@@ -144,9 +144,28 @@ function main()
         println(io, "# Pereira forward flight (phase 28)")
         println(io)
         println(io, "Generated $(Dates.today()) by `scripts/run_pereira.jl`.")
+        println(io, "**Re-run after plan I-01/I-02 ($(Dates.today())).** Criterion: VALIDATION_GUIDELINE §2.12 / 23d frozen 2026-10-21.")
         println(io, "D=0.30 m, B=2, 8000 rpm, V=16 m/s (J=0.4), observers on 1 m arc, `v_obs=[16,0,0]`.")
-        println(io, "Geometry: `pereira_fig1b_chord_twist.csv` downsampled to $(length(rR)) stations; mean chord $(round(mean_c*1e3; digits=2)) mm (paper 22.85 mm).")
-        println(io, "**Pass/fail waits on 23d [AUTHOR].**")
+        println(io, "Geometry: `pereira_fig1b_chord_twist.csv` downsampled to $(length(rR)) stations; area-mean chord $(round(mean_c*1e3; digits=2)) mm. **I-10:** paper's 22.85 mm is the 0.75R chord (digitized c/R≈0.152 → 22.9 mm), not an area mean; geometry not rescaled.")
+        println(io)
+        # 23d verdict on ScaledLoads / thickness-off / best polar by H1 mean |Δ|
+        println(io, "## 23d verdict (ScaledLoads, thickness off)")
+        println(io)
+        n1 = 0; n1ok = 0; n2 = 0; n2ok = 0
+        for r in spl_rows
+            r.thick == "toff" || continue
+            isnan(r.fig9) && continue
+            Δ = r.SPL_s - r.fig9
+            if r.H == 1
+                n1 += 1; abs(Δ) <= 1.7 && (n1ok += 1)
+            elseif r.H == 2
+                n2 += 1; abs(Δ) <= 3.0 && (n2ok += 1)
+            end
+        end
+        println(io, "- H1 within ±1.7 dB: $n1ok / $n1")
+        println(io, "- H2 within ±3 dB: $n2ok / $n2")
+        println(io, "- ψ₁(φ)−ψ₁(0°) within ±5°: not computed in this pass (Fig.7 fit deferred; levels only).")
+        println(io, "- Fig.8 vs Fig.9 H1 scatter recorded as reference (I-15 d/e); not corrected.")
         println(io)
         println(io, "## Loads vs Table 3")
         println(io)

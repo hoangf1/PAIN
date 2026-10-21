@@ -1,5 +1,5 @@
 #!/usr/bin/env julia
-# Phase 27: F1A vs Report 996 pressures (expanded matrix). Pass/fail waits on 23c [AUTHOR].
+# Phase 27: F1A vs Report 996 pressures (expanded matrix). Verdict against frozen 23c (2026-10-21).
 using PAIN
 using Dates
 
@@ -9,11 +9,40 @@ const BF = joinpath(DATA, "naca_4-5-08-03", "blade_form.csv")
 const POLAR = joinpath(DATA, "polars_forced_merged.json")
 const SCALES = joinpath(DATA, "scale_factors.csv")
 const DIG = joinpath(DATA, "tr996_fig12_13a_14_digitized.csv")
+const L51 = joinpath(DATA, "naca_4-5-08-03", "measured", "noise", "naca_rm_l51c27_table1_thrust_torque.csv")
 const OUT_MD = joinpath(ROOT, "docs", "validation_reports", "report996_acoustics.md")
 const OUT_CSV = joinpath(DATA, "f1a_results.csv")
 
 function rpm_from_Mt(Mt; D=1.2192, a=340.3)
     return Mt * a * 60 / (π * D)
+end
+
+"""I-08: RM L51C27 Table I → C_T, C_Q on the 47-in. diameter, applied to the 4-ft model at the same M_t."""
+function l51c27_scaled_loads(Mt; beta75=15.0, ρ=1.225, a=340.3, D_model=1.2192)
+    D47 = 47 * 0.0254
+    T_lb = NaN; Q_lbft = NaN
+    for raw in eachline(L51)
+        startswith(raw, "report") && continue
+        startswith(raw, "#") && continue
+        p = split(strip(raw), ',')
+        length(p) >= 8 || continue
+        parse(Float64, p[5]) == beta75 || continue
+        abs(parse(Float64, p[6]) - Mt) < 0.02 || continue
+        isempty(p[7]) && continue
+        T_lb = parse(Float64, p[7])
+        Q_lbft = parse(Float64, p[8])
+        break
+    end
+    (isfinite(T_lb) && isfinite(Q_lbft)) || return nothing
+    T_N = T_lb * 4.448221615
+    Q_Nm = Q_lbft * 1.3558179483314004
+    n47 = Mt * a / (π * D47)
+    CT = T_N / (ρ * n47^2 * D47^4)
+    CQ = Q_Nm / (ρ * n47^2 * D47^5)
+    n = Mt * a / (π * D_model)
+    T_tgt = CT * ρ * n^2 * D_model^4
+    Q_tgt = CQ * ρ * n^2 * D_model^5
+    return (T_tgt=T_tgt, Q_tgt=Q_tgt, CT=CT, CQ=CQ, T_lb=T_lb, Q_lbft=Q_lbft)
 end
 
 function make_cfg(; beta75, Mt, B)
@@ -127,22 +156,22 @@ function main()
     end
 
     # --- Fig. 13a: β=15°, M_t=0.75, d/D=0.083, first harmonic vs x/D ---
+    # I-08: scale with RM L51C27 Table I coefficients (47-in → 4-ft), not Fig.14 β=10° proxy.
     println("Fig.13a …")
-    Mt, beta75 = 0.75, 15.0
+    Mt13, beta75_13 = 0.75, 15.0
+    l51 = l51c27_scaled_loads(Mt13; beta75=beta75_13)
     xDs = [-0.5, -0.25, -0.125, 0.0, 0.125, 0.25, 0.5]
     for (pset, af) in ((:primary, af_p), (:bracket, af_b))
-        cfg = make_cfg(; beta75, Mt, B=2)
+        cfg = make_cfg(; beta75=beta75_13, Mt=Mt13, B=2)
         R = cfg.propeller.tip_radius_m; D = 2R
         obs = hub_observers(R, D; x_over_D=xDs, d_over_D=0.083, x_sign=-1.0)
         src0 = evaluate_propeller_source(cfg, obs; n_harmonics=4, num_src_times=64,
                                          af=af, allow_static=true)
-        # scale from RM L51C27 if present else Fig14 10° as proxy flagged
-        sT, sQ = load_scale(pset, 10.0, Mt, 2, "Fig14_table")
         src = src0; loads_tag = "ccblade"
-        if isfinite(sT) && isfinite(sQ)
+        if l51 !== nothing
             src = evaluate_propeller_source(cfg, obs; n_harmonics=4, num_src_times=64,
-                af=af, allow_static=true, loads=ScaledLoads(src0.T * sT, src0.Q * sQ))
-            loads_tag = "scaled_fig14proxy"
+                af=af, allow_static=true, loads=ScaledLoads(l51.T_tgt, l51.Q_tgt))
+            loads_tag = "scaled_RM_L51C27"
         end
         for (i, xd) in enumerate(xDs)
             A = src.amplitude[i, 1]
@@ -279,8 +308,15 @@ function main()
         println(io, "# Report 996 Acoustics (phase 27)")
         println(io)
         println(io, "Generated $(Dates.today()) by `scripts/run_report996_acoustics.jl`.")
-        println(io, "**Pass/fail waits on 23c [AUTHOR].** x_sign=−1 (report behind → AA +X).")
+        println(io, "**Re-run after plan I-01/I-02/I-08 ($(Dates.today())).** Criterion: VALIDATION_GUIDELINE §2.12 / 23c frozen 2026-10-21.")
+        println(io, "x_sign=−1 (report behind → AA +X). Thickness off.")
         println(io)
+        if l51 !== nothing
+            println(io, "## I-08 Fig. 13(a) load scale")
+            println(io)
+            println(io, "RM L51C27 Table I (47-in., β₇₅=15°, M_t=$(Mt13)): T=$(l51.T_lb) lb, Q=$(l51.Q_lbft) lb·ft → C_T=$(round(l51.CT; digits=4)), C_Q=$(round(l51.CQ; digits=5)); applied to 4-ft model: T_tgt=$(round(l51.T_tgt; digits=1)) N, Q_tgt=$(round(l51.Q_tgt; digits=1)) N·m. Tag `scaled_RM_L51C27` (replaces void fig14proxy).")
+            println(io)
+        end
         println(io, "## x-sign / asymmetry (25k)")
         println(io)
         println(io, asym_note)
@@ -288,24 +324,50 @@ function main()
         println(io, "## Page-12 phase (one measured value)")
         println(io)
         println(io, phase_note)
+        # 23c: page-12 phase within ±15° of measured 155°
+        if !isempty(behind) && !isempty(ahead)
+            dφ = abs(behind[1].phase_rad - ahead[1].phase_rad)
+            dφ = min(dφ, 2π - dφ)
+            dφ_deg = dφ * 180 / π
+            phase_ok = abs(dφ_deg - 155.0) <= 15.0
+            println(io)
+            println(io, "23c page-12 phase: |Δφ − 155°| = $(round(abs(dφ_deg - 155); digits=1))° → $(phase_ok ? "PASS" : "FAIL") (±15°).")
+        end
         println(io)
         println(io, "## Fig. 14 (scaled to table C_T/C_Q) — residual % vs digitized")
         println(io)
-        println(io, "| polar | loads | case | mB | A F1A dyne/cm² | meas | residual % |")
-        println(io, "|---|---|---|--:|---:|---:|---:|")
+        println(io, "| polar | loads | case | mB | A F1A dyne/cm² | meas | residual % | residual dB |")
+        println(io, "|---|---|---|--:|---:|---:|---:|---:|")
+        n_in = 0; n_ok = 0
         for r in results
             r.figure == "fig14" || continue
-            println(io, "| $(r.polar_set) | $(r.loads) | $(r.case) | $(r.harmonic) | $(round(pa_to_dyne_cm2(r.A_Pa); digits=1)) | $(r.meas_dyne_cm2) | $(round(r.residual_pct; digits=1)) |")
+            rdb = isnan(r.residual_pct) ? NaN : 20 * log10(max(1 + r.residual_pct / 100, 1e-30))
+            println(io, "| $(r.polar_set) | $(r.loads) | $(r.case) | $(r.harmonic) | $(round(pa_to_dyne_cm2(r.A_Pa); digits=1)) | $(r.meas_dyne_cm2) | $(round(r.residual_pct; digits=1)) | $(round(rdb; digits=2)) |")
+            if r.loads == "scaled" && isfinite(rdb)
+                n_in += 1
+                abs(rdb) <= 2.0 && (n_ok += 1)
+            end
         end
+        frac14 = n_in == 0 ? NaN : n_ok / n_in
+        println(io)
+        println(io, "23c scaled pressure (Fig.14 sample): $(n_ok)/$(n_in) within ±2 dB ($(round(100 * frac14; digits=0))%; need ≥75%).")
         println(io)
         println(io, "## Fig. 13(a) first harmonic vs x/D (M_t=0.75, β=15°)")
         println(io)
-        println(io, "| polar | loads | x/D | A F1A | meas | residual % |")
-        println(io, "|---|---|---:|---:|---:|---:|")
+        println(io, "| polar | loads | x/D | A F1A | meas | residual % | residual dB |")
+        println(io, "|---|---|---:|---:|---:|---:|---:|")
+        n13 = 0; n13ok = 0
         for r in results
             r.figure == "fig13a" || continue
-            println(io, "| $(r.polar_set) | $(r.loads) | $(r.x_over_D) | $(round(pa_to_dyne_cm2(r.A_Pa); digits=1)) | $(r.meas_dyne_cm2) | $(round(r.residual_pct; digits=1)) |")
+            rdb = isnan(r.residual_pct) ? NaN : 20 * log10(max(1 + r.residual_pct / 100, 1e-30))
+            println(io, "| $(r.polar_set) | $(r.loads) | $(r.x_over_D) | $(round(pa_to_dyne_cm2(r.A_Pa); digits=1)) | $(r.meas_dyne_cm2) | $(round(r.residual_pct; digits=1)) | $(round(rdb; digits=2)) |")
+            if startswith(r.loads, "scaled") && isfinite(rdb)
+                n13 += 1
+                abs(rdb) <= 2.0 && (n13ok += 1)
+            end
         end
+        println(io)
+        println(io, "23c scaled pressure (Fig.13a sample): $(n13ok)/$(n13) within ±2 dB.")
         println(io)
         println(io, "## Fig. 12(a)/(b) harmonics vs x/D (β=10°, primary/scaled)")
         println(io)

@@ -2,33 +2,33 @@
 
 block: SRC_AC
 class: X-EXTRAP
-reference: CCBlade+F1A vs ANOPP Table 8 ℓ=1 (peak SPL)
-metric: H=1 peak free-field SPL
-tolerance: informational; sane if |delta|≲15 dB after c0/frame fixes
-result: PASS
-notes: F1A_peak=125.7 dB ANOPP_peak=125.7 dB delta=0.0
+reference: CCBlade+F1A vs ANOPP Table 8 ℓ=1 (peak SPL); re-run after plan I-01/I-02 (2026-10-21); raw F1A, pitch_offset_deg=0, anopp_table8_calibrate=false (I-12/B-5)
+metric: H=1 peak free-field SPL (raw, untuned)
+tolerance: informational X-EXTRAP; not a pass criterion (I-12: no calibrate-to-Table-8)
+result: REPORTED
+notes: F1A_peak=121.5 dB ANOPP_peak=125.7 dB delta=-4.2
 
 block: SRC_AC
 class: X-EXTRAP
-reference: CCBlade+F1A vs ANOPP Table 8 ℓ=1 (peak SPL)
-metric: H=2 peak free-field SPL
-tolerance: informational; sane if |delta|≲15 dB after c0/frame fixes
-result: PASS
-notes: F1A_peak=118.6 dB ANOPP_peak=118.6 dB delta=0.0
+reference: CCBlade+F1A vs ANOPP Table 8 ℓ=1 (peak SPL); re-run after plan I-01/I-02 (2026-10-21); raw F1A, pitch_offset_deg=0, anopp_table8_calibrate=false (I-12/B-5)
+metric: H=2 peak free-field SPL (raw, untuned)
+tolerance: informational X-EXTRAP; not a pass criterion (I-12: no calibrate-to-Table-8)
+result: REPORTED
+notes: F1A_peak=113.3 dB ANOPP_peak=118.6 dB delta=-5.3
 
 block: SRC_AC
 class: X-EXTRAP
-reference: CCBlade+F1A vs ANOPP Table 8 ℓ=1 (peak SPL)
-metric: H=3 peak free-field SPL
-tolerance: informational; sane if |delta|≲15 dB after c0/frame fixes
-result: PASS
-notes: F1A_peak=111.3 dB ANOPP_peak=111.3 dB delta=-0.0
+reference: CCBlade+F1A vs ANOPP Table 8 ℓ=1 (peak SPL); re-run after plan I-01/I-02 (2026-10-21); raw F1A, pitch_offset_deg=0, anopp_table8_calibrate=false (I-12/B-5)
+metric: H=3 peak free-field SPL (raw, untuned)
+tolerance: informational X-EXTRAP; not a pass criterion (I-12: no calibrate-to-Table-8)
+result: REPORTED
+notes: F1A_peak=105.5 dB ANOPP_peak=111.3 dB delta=-5.8
 
 block: SRC_AC
 class: X-EXTRAP
-reference: CCBlade+F1A smoke
+reference: CCBlade+F1A smoke; re-run after plan I-01/I-02 (2026-10-21); raw F1A, pitch_offset_deg=0, anopp_table8_calibrate=false (I-12/B-5)
 metric: pipeline freefield grid
-tolerance: finite amps; asound=c0; AA (x3,x1,x2); r_p=0.965
-result: PASS
-notes: source=ccblade_f1a bpf=200.0 maxA=38.55049826381874 mean_delta_peak=-0.0 dB; CCBlade+F1A all 160 points, no GEXT (X-EXTRAP). Vinf=20.0; c0=340.0; t/c=0.0; pitch_off=-5.0°; AA (x3,x1,x2); DC-removed FFT; asound fixed. Table8 peak-cal scales=[0.577, 0.359, 0.21]; Tables 7–9.
+tolerance: informational X-EXTRAP (I-12)
+result: REPORTED
+notes: source=ccblade_f1a bpf=200.0 maxA=23.90517259122554 wall_s=7.9 deltas=[-4.2, -5.3, -5.8] dB; CCBlade+F1A all 160 points, no GEXT (X-EXTRAP). Vinf=20.0; c0=340.0; t/c=0.0; pitch_off=0.0°; AA (x3,x1,x2); DC-removed FFT; asound fixed. Tables 7–9.
 

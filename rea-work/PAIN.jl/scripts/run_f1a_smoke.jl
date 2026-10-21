@@ -1,21 +1,37 @@
 #!/usr/bin/env julia
-# Phase 6: CCBlade + F1A smoke; compare ℓ=1 peaks to ANOPP Table 8 (X-EXTRAP).
+# I-07 / I-12: raw CCBlade+F1A vs ANOPP Table 8 on ℓ=1 (X-EXTRAP).
+# Re-run after plan I-01/I-02 (2026-10-21). No Table-8 peak calibration (CLAUDE.md).
+# Untuned geometry: pitch_offset_deg = 0 (B-5); tuned JSON kept only as "calibrated (Table 8)".
 using Pkg
 Pkg.activate(joinpath(@__DIR__, ".."))
 using PAIN
 
 const REPORTS = joinpath(@__DIR__, "..", "..", "docs", "validation_reports")
 mkpath(REPORTS)
-json = joinpath(@__DIR__, "..", "examples", "aircraft_scale_hartzell.json")
+json_tuned = joinpath(@__DIR__, "..", "examples", "aircraft_scale_hartzell.json")
 
-# r_p = a + 0.457 from User Manual methodology grid (not a+0.05 tip-gap only)
+# Untuned copy for the check (B-5 / I-12): pitch_offset = 0, calibrate = false.
+txt = read(json_tuned, String)
+txt = replace(txt, r"\"pitch_offset_deg\"\s*:\s*[0-9.eE+-]+" => "\"pitch_offset_deg\": 0.0")
+if occursin("anopp_table8_calibrate", txt)
+    txt = replace(txt, r"\"anopp_table8_calibrate\"\s*:\s*(true|false)" => "\"anopp_table8_calibrate\": false")
+else
+    txt = replace(txt, r"\}\s*$" => ",\n  \"anopp_table8_calibrate\": false\n}\n")
+end
+json = joinpath(tempdir(), "aircraft_scale_hartzell_untuned_i12.json")
+write(json, txt)
+
 fuse = FuselageGeometry(1.803, 0.508, 56.6)
 prop = PropellerPlacement(0.965, 90.0, 0.90)
 spec = GridSpec()
 records = ValidationRecord[]
 
+header_note = "re-run after plan I-01/I-02 (2026-10-21); raw F1A, pitch_offset_deg=0, anopp_table8_calibrate=false (I-12/B-5)"
+
 try
+    t0 = time()
     ff = propeller_freefield_grid(json, fuse, prop, spec; n_harmonics=3, num_src_times=64)
+    wall = time() - t0
     pref = 20e-6
     anopp = PAIN._read_csv_numeric(joinpath(@__DIR__, "..", "..", "data", "anopp_table8_spl_dB.csv"))
     deltas = Float64[]
@@ -28,24 +44,23 @@ try
         push!(deltas, dpeak)
         push!(records, ValidationRecord(
             "SRC_AC", "X-EXTRAP",
-            "CCBlade+F1A vs ANOPP Table 8 ℓ=1 (peak SPL)",
-            "H=$H peak free-field SPL",
-            "informational; sane if |delta|≲15 dB after c0/frame fixes",
-            abs(dpeak) ≤ 15 ? "PASS" : "FAIL",
+            "CCBlade+F1A vs ANOPP Table 8 ℓ=1 (peak SPL); $header_note",
+            "H=$H peak free-field SPL (raw, untuned)",
+            "informational X-EXTRAP; not a pass criterion (I-12: no calibrate-to-Table-8)",
+            "REPORTED",
             "F1A_peak=$(round(maximum(spl_f1a); digits=1)) dB ANOPP_peak=$(round(maximum(spl_an); digits=1)) dB delta=$(round(dpeak; digits=1))",
         ))
     end
-    ok = all(abs(d) ≤ 15 for d in deltas)
     push!(records, ValidationRecord(
-        "SRC_AC", "X-EXTRAP", "CCBlade+F1A smoke",
-        "pipeline freefield grid", "finite amps; asound=c0; AA (x3,x1,x2); r_p=0.965",
-        ok ? "PASS" : "FAIL",
-        "source=$(ff.source) bpf=$(ff.bpf_Hz) maxA=$(maximum(ff.amplitudes)) mean_delta_peak=$(round(sum(deltas)/3; digits=1)) dB; $(ff.notes)",
+        "SRC_AC", "X-EXTRAP", "CCBlade+F1A smoke; $header_note",
+        "pipeline freefield grid", "informational X-EXTRAP (I-12)",
+        "REPORTED",
+        "source=$(ff.source) bpf=$(ff.bpf_Hz) maxA=$(maximum(ff.amplitudes)) wall_s=$(round(wall; digits=1)) deltas=$(round.(deltas; digits=1)) dB; $(ff.notes)",
     ))
-    println("F1A smoke OK bpf=$(ff.bpf_Hz) deltas=", round.(deltas; digits=1))
+    println("F1A smoke (raw/untuned) bpf=$(ff.bpf_Hz) deltas=", round.(deltas; digits=1), " wall=", round(wall; digits=1), "s")
 catch e
     push!(records, ValidationRecord(
-        "SRC_AC", "X-EXTRAP", "CCBlade+F1A smoke",
+        "SRC_AC", "X-EXTRAP", "CCBlade+F1A smoke; $header_note",
         "pipeline freefield grid", "completes", "FAIL",
         "error=$(sprint(showerror, e))",
     ))
@@ -55,3 +70,4 @@ catch e
 end
 write_validation_record(joinpath(REPORTS, "ccblade_f1a_smoke.md"), records)
 println("wrote ccblade_f1a_smoke.md")
+rm(json; force=true)

@@ -1,0 +1,43 @@
+# Source: NASA CR-159124 Fig. 20, longitudinal phase vs frequency
+# Method: author, WebPlotDigitizer; converted from Fig 20.txt (I-15); values unchanged
+# Digitized 2026-10-21 by author; converted 2026-10-21; script data/digitizers/convert_i15_author_exports.jl
+figure,panel,pair,taxi_speed_kt,freq_Hz,phase_rad,phase_units_of_pi,point_or_line,method
+20,-,5-9,0,90.0,-1.8849555921538759,-0.6,Point,author_WebPlotDigitizer
+20,-,5-9,0,170.0,-7.5398223686155035,-2.4,Point,author_WebPlotDigitizer
+20,-,5-9,0,250.0,-12.252211349000193,-3.9,Point,author_WebPlotDigitizer
+20,-,5-9,0,330.0,-15.393804002589988,-4.9,Point,author_WebPlotDigitizer
+20,-,5-9,0,410.0,-18.2212373908208,-5.8,Point,author_WebPlotDigitizer
+20,-,5-9,0,490.0,-21.676989309769574,-6.9,Point,author_WebPlotDigitizer
+20,-,5-9,0,580.0,-23.561944901923447,-7.5,Point,author_WebPlotDigitizer
+20,-,5-9,0,660.0,-27.96017461694916,-8.9,Point,author_WebPlotDigitizer
+20,-,5-9,0,740.0,-31.101767270538954,-9.9,Point,author_WebPlotDigitizer
+20,-,5-9,0,820.0,-34.55751918948772,-11.0,Point,author_WebPlotDigitizer
+20,-,5-9,30,170.0,-5.969026041820607,-1.9,Point,author_WebPlotDigitizer
+20,-,5-9,30,250.0,-10.053096491487338,-3.2,Point,author_WebPlotDigitizer
+20,-,5-9,30,330.0,-11.938052083641214,-3.8,Point,author_WebPlotDigitizer
+20,-,5-9,30,410.0,-14.765485471872028,-4.7,Point,author_WebPlotDigitizer
+20,-,5-9,30,490.0,-16.6504410640259,-5.3,Point,author_WebPlotDigitizer
+20,-,5-9,30,580.0,-22.933626371205488,-7.3,Point,author_WebPlotDigitizer
+20,-,5-9,30,660.0,-23.876104167282428,-7.6,Point,author_WebPlotDigitizer
+20,-,5-9,30,740.0,-27.96017461694916,-8.9,Point,author_WebPlotDigitizer
+20,-,5-9,30,830.0,-30.47344873982099,-9.7,Point,author_WebPlotDigitizer
+20,-,8-9,0,80.0,0.0,0.0,Point,author_WebPlotDigitizer
+20,-,8-9,0,160.0,0.0,0.0,Point,author_WebPlotDigitizer
+20,-,8-9,0,250.0,-5.340707511102648,-1.7,Point,author_WebPlotDigitizer
+20,-,8-9,0,330.0,-6.911503837897546,-2.2,Point,author_WebPlotDigitizer
+20,-,8-9,0,410.0,-7.853981633974483,-2.5,Point,author_WebPlotDigitizer
+20,-,8-9,0,490.0,-9.42477796076938,-3.0,Point,author_WebPlotDigitizer
+20,-,8-9,0,580.0,-10.681415022205297,-3.4,Point,author_WebPlotDigitizer
+20,-,8-9,0,660.0,-13.194689145077131,-4.2,Point,author_WebPlotDigitizer
+20,-,8-9,0,740.0,-15.079644737231007,-4.8,Point,author_WebPlotDigitizer
+20,-,8-9,0,830.0,-16.6504410640259,-5.3,Point,author_WebPlotDigitizer
+20,-,8-9,30,80.0,-0.3141592653589793,-0.1,Point,author_WebPlotDigitizer
+20,-,8-9,30,160.0,1.8849555921538759,0.6,Point,author_WebPlotDigitizer
+20,-,8-9,30,240.0,-1.5707963267948966,-0.5,Point,author_WebPlotDigitizer
+20,-,8-9,30,320.0,-7.225663103256523,-2.3,Point,author_WebPlotDigitizer
+20,-,8-9,30,400.0,-8.482300164692441,-2.7,Point,author_WebPlotDigitizer
+20,-,8-9,30,480.0,-9.1106186954104,-2.9,Point,author_WebPlotDigitizer
+20,-,8-9,30,570.0,-10.367255756846317,-3.3,Point,author_WebPlotDigitizer
+20,-,8-9,30,650.0,-12.252211349000193,-3.9,Point,author_WebPlotDigitizer
+20,-,8-9,30,730.0,-16.022122533307943,-5.1,Point,author_WebPlotDigitizer
+20,-,8-9,30,820.0,-17.27875959474386,-5.5,Point,author_WebPlotDigitizer

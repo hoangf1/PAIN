@@ -67,9 +67,9 @@ computes the free-field pressure time history at each observer, and a DC-removed
 (CCBlade's default of 1.0 m/s breaks F1A). Observers use AcousticAnalogies' (x3, x1, x2) ordering with the User Manual
 r_p = a + 0.457. Airfoil polars come from XFOIL with a Viterna post-stall extension (plan phase 11).
 
-**Status of the code (phases 21–22 done 2026-10-21).** The aircraft path runs F1A at all 160 grid points through one shared source function (`evaluate_propeller_source`), used by the production grid and by every validation case, so that what is validated is what runs. GEXT stays on the e11 path only. An optional Table-8 peak calibration (post-step) scales from the ℓ = 1 subset to ANOPP's table and applies the scale to all 160 points; it is not inherited NASA validation. The raw (uncalibrated) output over-predicts Table 8 by about 5, 9 and 14 dB at H1–H3.
+**Status of the code (phases 21–22 done; I-01/I-02 fix + I-07 re-runs 2026-10-21).** The aircraft path runs F1A at all 160 grid points through one shared source function (`evaluate_propeller_source`), used by the production grid and by every validation case. GEXT stays on the e11 path only. **I-01:** source time span is two revolutions (`n_rev_src=2`) with a reception-inside-elements guard. **I-02:** harmonic phase is `angle(c) − ω_H·t₀` (BBN 24b V-UNIT passes at 0.5°). Optional Table-8 peak calibration remains post-step and is never compared with Table 8 when enabled (I-12/B-5). Raw smoke vs Table 8 (untuned geometry): peak deltas −4.2/−5.3/−5.8 dB (X-EXTRAP). Source-check verdicts against §2.12: BBN 24c **FAIL** (15% within tol); Report 996 scaled pressure **FAIL** (≥75% within ±2 dB not met) and page-12 phase **FAIL**; Pereira 23d H1 **FAIL** (0/9 within ±1.7 dB; Fig.9 H1 bars at 80 dB accepted as read, I-15 d).
 
-**Claim today: X-EXTRAP.** The F1A smoke test (peak SPL against Table 8 on the ℓ = 1 subset) agrees only because of the peak calibration and is a sanity check, not a validation.
+**Claim today: X-EXTRAP.** Source-check verdicts wait on I-07 re-runs against the frozen §2.12 criteria (2026-10-21).
 
 **Planned checks of the source block (all through the shared function; criteria fixed first, plan phase 23):**
 
@@ -183,21 +183,23 @@ Until 29b/29c land, an aircraft run may silently use the test-article defaults l
 |-------|-------|----------|
 | Blocking Eq. (43) R1 matches CR-172428 p.68 within 0.06 dB; R2 maximum about 4 dB | V-UNIT | `validation_reports/blocking_p68.md` |
 | 160-point grid geometry matches the User Manual contract | V-UNIT | tests |
-| GEXT cosine falloff and geometric delay implement the flowchart | V-ASSUMED, unfalsifiable by published data; no fitted parameters, form attested a priori | unit tests; importance bound planned (phase 32) |
+| GEXT cosine falloff and geometric delay implement the flowchart | V-ASSUMED, unfalsifiable by published data; no fitted parameters, form attested a priori | unit tests; **phase 32:** any variant flips T1 → **T1 not claimable** (`gext_importance_bound.md`) |
 | CYL2D (App. C scheme): all 20 frequencies and generalized masses within 0.1 % of Table C-1, Fig. C-3 modes 0–5 equal | V-CODE | `cyl2d_table_c1.md` |
 | Table D-1 (32 modes) hybrid production path | V-CODE, circular; Fig. D-2 mode-1 shape: shell met, floor not met (19g) | `mrp_table_d1.md`, `fig_d2_check.md` |
 | Raw Ritz coverage of D-1, 30/32 within 5% | V-CODE (partial), calibrated | `mrp_ritz_vs_d1.md` |
 | Fig. E-11 dual digitization δ_dig ≤ 1.0 dB | V-EXP input (repeatability only) | `e11_delta_dig.md` |
 | T1 tonal interior SPL H = 1–3 against Fig. E-16 | No claim: untuned chain (17a, 2026-10-20) gives H1 90.2, H2 79.3 (within 4 dB of the mean) and H3 83.2 dB (fails); recorded, regrade in 18a | `t1_tonal.md` |
 | T2 1/3-octave 1.25–2 kHz against Fig. E-9 (±3.5 dB) | No claim: fails by 11–17 dB on the untuned chain; the stale `bb_j2_scale` is a calibrated parameter; cannot constrain GEXT | `t2_third_octave.md` |
-| CCBlade + F1A all-160 grid (shared `evaluate_propeller_source`); ℓ = 1 peak SPL after Table-8 peak calibration | X-EXTRAP | `ccblade_f1a_smoke.md`; diagnostic `gext_vs_f1a_grid.md` |
+| CCBlade + F1A all-160 grid (shared `evaluate_propeller_source`) | X-EXTRAP (aircraft path). Optional Table-8 peak calibration kept as post-step only (**33b**): raw F1A does **not** match Report 996 / Table 8 within frozen tolerances, so calibration is not dropped and is never compared with Table 8 when enabled (I-12) | `ccblade_f1a_smoke.md`, `report996_acoustics.md`, `gext_vs_f1a_grid.md` |
 | Eq. (8) tone pressure with the App. A trim and §3.8 losses in the pipeline (17a) | V-UNIT (analytic limits, scaling laws, independent re-implementation to 2e-3); conservation check done (19a, exact to 1e-15 in a two-resonator model); 18b reproduction of NASA's PAIN predictions fails (0 of 3); not validation | `pain_core_eq8_phase17.md`, tests |
 | PAIN reproduction against NASA's predictions, Fig. E-16 circles, ANOPP Table 8 input (18b) | V-CODE, criterion 4 dB per harmonic dated 2026-10-20 before the run: **not met** (+12.9, +4.5, +16.9 dB); conditional on GEXT | `pain_reproduction_e16.md` |
 | App. A trim and §3.8 loss factors as written (16a–16b), in the pipeline since 17a | V-UNIT (limits, quadrature) and V-CODE against Fig. E-14 calculated: 7 of 18 bands within ±25 %, criterion not met, not tuned; V-EXP against E-13/E-14/E-15 measured recorded with no pass mark | `trim_loss_e13_e14_e15.md`, tests |
 | dB(A) ±3.5 dB band helper | reporting (V-UNIT arithmetic) | `overall_dBA` |
-| BBN/Wilby circumferential phase | Blocked: common time base (24b) + 23a [AUTHOR] | `bbn_phase.md` |
-| Report 996 loads / F1A expanded matrix (Figs. 14, 13a, 7) + 25k | Numbers recorded; behind>ahead true; near-field A ≫ meas.; no verdict until 23c [AUTHOR] | `report996_loads.md`, `report996_acoustics.md`, `report996_setup.md` |
-| Pereira forward-flight (3 polars, ScaledLoads) | Best unscaled `xtr005` s_T≈1.34; ScaledLoads H1 φ=0 ≈−2.3 dB vs Fig.9; no verdict until 23d [AUTHOR] | `pereira_forward_flight.md` |
+| BBN/Wilby circumferential phase | 24b PASS; 24c 23a FAIL (26/168, 15%); F1A |Δφ| tracks m·B·Δψ, measured signs often opposite — finding, not tuned (I-09 sense fixed) | `bbn_phase.md` |
+| Report 996 loads / F1A (Figs. 14, 13a, 7) + 25k | I-07 re-run; I-08 L51C27 on Fig.13a; behind>ahead false after fix; 23c scaled ±2 dB FAIL (5/24); page-12 phase FAIL (103.8° vs 155°) | `report996_loads.md`, `report996_acoustics.md`, `report996_setup.md` |
+| Pereira forward-flight (3 polars, ScaledLoads) | 23d **FAIL** on H1 (0/9 within ±1.7 dB vs Fig.9 Exp at 80 dB as read); H2 6/9 within ±3 dB; best unscaled `xtr005` s_T≈1.34 | `pereira_forward_flight.md` |
+| Source-block summary (phase 33a/c) | BBN 24b PASS / 24c FAIL; Report 996 23c FAIL (scaled ±2 dB, page-12 phase); Pereira 23d FAIL H1; Gutin/Hanson cross-check **not run** (optional §2.3.3). Aircraft free field stays **X-EXTRAP** | this register; `VALIDATION_GUIDELINE.md` §2.3.3 |
+| GUI Validation tab (phase 34) | Shows registered cases only (fixed inputs, fixed criterion, dated). Not a calibration tool; no editable case inputs. Same `run_validation_case` as scripts/`Pkg.test()`. Plots: reference as digitized + computed; PNG under `docs/validation_reports/figures/` | `src/validation_cases.jl`, `src/validation_plots.jl`, GUI Validation tab |
 | CR-3813 E-21/E-22 digitization (C-05) | Pass B dual hand; δ_dig = 1.00 dB PASS | `e21_noise_reduction_range.csv`, `_B2.csv`, `e22_noise_reduction_ci.csv` |
 | CR-3813 E-16…E-18, E-9/E-10 pass B (C-07–C-10) | Digitized 2026-10-21; pass A targets frozen | `t1_interior_targets_B.csv`, `e17_interior_ci.csv`, `e18_interior_pred_eta1.csv`, `t2_third_octave_targets_B.csv`, `e10_interior_ci.csv` |
 
@@ -213,12 +215,14 @@ Until 29b/29c land, an aircraft run may silently use the test-article defaults l
   conditional on them.
 - Full Peterson shell-floor Fourier matrices from the App. D OCR: the model uses diagonal Donnell/Kirchhoff terms, junction
   springs and D-1 shape Rayleigh seeds, so raw Ritz coverage is incomplete (D-1 modes 2 and 9).
-- CCBlade/F1A as an uncalibrated replacement for ANOPP. The optional Table-8 peak calibration scales the output to a report
-  table and is not inherited NASA validation. Set `anopp_table8_calibrate: false` in the aircraft JSON to disable it.
+- CCBlade/F1A as a validated replacement for ANOPP. Source checks (BBN 24c, Report 996 23c, Pereira 23d) did not meet
+  frozen §2.12 tolerances (2026-10-21). The optional Table-8 peak calibration is an X-EXTRAP post-step only and must never
+  be compared with Table 8 when enabled (`anopp_table8_calibrate: false` for raw checks).
 - T2 above 2 kHz: Figs. E-9 and E-10 end near 2 kHz, so there are no measured means for 2.5–8 kHz.
 - The App. A multilayer transfer matrix against laboratory material coupons: the masses come from the App. E text and the insulation
   data from Fig. A-2 digitized at six frequencies (±1 % of full scale); the Phase III facing/septum loss factor, the G-10 wavespeed, the mechanical connections and the end-plate backing are V-ASSUMED (register f).
 - Inheritance of NASA validation by the aircraft CCBlade path without a source check that supports it.
+- That the GUI Validation tab is a place to tune cases. Cases are registered and read-only; changing inputs after a result exists makes that result post-hoc (CLAUDE.md / plan R2–R3).
 
 ## 11. Conditions that apply to every claim
 

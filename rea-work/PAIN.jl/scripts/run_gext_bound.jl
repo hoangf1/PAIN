@@ -54,15 +54,25 @@ function e11_with_gext(; falloff_exponent=1.0, falloff_floor=0.0, delay_scale=1.
     return fuse, prop, ff, line_amps
 end
 
-function pipeline_from_ff(fuse, prop, ff; blocking=R2)
+function pipeline_from_ff(fuse, prop, ff; blocking=R2,
+                          C_struc=3.0, η_lining=0.5, mass_scale=1.0, bb_j2_scale=0.5)
     bl = apply_blocking(ff, fuse, prop; variant=blocking)
     acoustic = cyl2d_modes(56.6; n_modes=20, NY=10)
     structural = structural_modes_from_table_d1(; L=1.803, a=0.508, theta0_deg=56.6, n_keep=32)
     ΔA = (π * 0.508 / 18)^2
-    p3 = phase3_trim(; a=0.508, L=1.803, theta0_deg=56.6)
+    p3 = phase3_trim(; a=0.508, L=1.803, theta0_deg=56.6, η_lining=η_lining)
+    m_wall = p3.m_wall * mass_scale
+    mech = p3.mech
+    # Scale trim-path masses with mass_scale (32e trim-mass ±20 %)
+    if mass_scale != 1.0
+        mech = MechanicalPath(m_t=mech.m_t * mass_scale, A_t=mech.A_t, h_t=mech.h_t, c_t=mech.c_t,
+                              η_t=mech.η_t, m=m_wall, A=mech.A, h=mech.h, c_l=mech.c_l,
+                              N_points=mech.N_points, line_length=mech.line_length)
+    end
     inp = PainInputs(fuse, prop, structural, acoustic, bl.amplitudes, bl.phases, bl.pts, ΔA;
-                     sidewall=p3.sidewall, endplates=p3.ends, mech=p3.mech, m_wall=p3.m_wall)
-    spec_out = interior_spl(inp; bpf_Hz=bl.bpf_Hz, n_harmonics=3)
+                     sidewall=p3.sidewall, endplates=p3.ends, mech=mech, m_wall=m_wall,
+                     C_struc=C_struc)
+    spec_out = interior_spl(inp; bpf_Hz=bl.bpf_Hz, n_harmonics=3, bb_j2_scale=bb_j2_scale)
     return spec_out, inp, bl
 end
 
@@ -159,7 +169,36 @@ end
 println(io)
 
 println(io, "## 32e Parameter-sensitivity comparator (±20 %)\n")
-println(io, "One-at-a-time on η_t (facing/septum), C of Eq. (80), trim-mass scale, `bb_j2_scale` (T2 only). Order-of-magnitude referent, not a second bound. Deferred in this run if rebuilding trim stacks is heavy; recorded as planned.\n")
+println(io, "One-at-a-time over the 13a ranges of η_t (facing/septum via `η_lining`), C of Eq. (80), trim-mass scale, and `bb_j2_scale` (T2 bands only). Order-of-magnitude referent vs GEXT flips — **not** a second bound; no parameter adopted from these runs.\n")
+println(io, "| parameter | value | H1 | H2 | H3 | ΔH1 dB | T2 1.25 kHz Δ dB |\n|---|---:|---:|---:|---:|---:|---:|")
+# Nominal T2 band level at 1250 Hz for offset
+function t2_1250(spec)
+    third = spec.third_octave_SPL_dB
+    isempty(third) && return NaN
+    bands = sort(collect(keys(third)))
+    k = bands[argmin(abs.(bands .- 1250.0))]
+    return third[k]
+end
+t2_0 = t2_1250(spec0)
+oat = [
+    ("η_t", :η_lining, 0.4), ("η_t", :η_lining, 0.6),  # ±20 % of 0.5
+    ("C", :C_struc, 2.4), ("C", :C_struc, 3.6),          # ±20 % of 3
+    ("trim-mass", :mass_scale, 0.8), ("trim-mass", :mass_scale, 1.2),
+    ("bb_j2_scale", :bb_j2_scale, 0.4), ("bb_j2_scale", :bb_j2_scale, 0.6),
+]
+for (pname, key, val) in oat
+    println("  32e $pname=$val …")
+    kw = Dict{Symbol,Any}(:C_struc => 3.0, :η_lining => 0.5, :mass_scale => 1.0, :bb_j2_scale => 0.5)
+    kw[key] = val
+    spec_p, _, _ = pipeline_from_ff(fuse, prop, ff0; C_struc=kw[:C_struc], η_lining=kw[:η_lining],
+                                    mass_scale=kw[:mass_scale], bb_j2_scale=kw[:bb_j2_scale])
+    t1p = [spec_p.harmonic_SPL_dB[H] for H in 1:3]
+    t2p = t2_1250(spec_p)
+    @printf(io, "| %s | %g | %.2f | %.2f | %.2f | %+.2f | %+.2f |\n",
+            pname, val, t1p..., t1p[1] - t1_0[1], t2p - t2_0)
+end
+println(io)
+println(io, "Compare ΔH1 magnitudes to GEXT flip sizes in 32c–32d (order-of-magnitude only).\n")
 
 flipped = any(r.flip for r in results)
 println(io, "## Claim status\n")

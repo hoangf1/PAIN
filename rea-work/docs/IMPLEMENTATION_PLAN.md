@@ -16,10 +16,10 @@ Single source of truth for building this project without re-deriving context in 
 5. *(moved to §11)* Step 19i done 2026-10-21
 6. Source phases 21–28
 7. Aircraft-cabin phases 29–31
-8. Phases 32–34 (34: validation cases in the GUI)
+8. Phases 32–34 *(done 2026-10-21; records in §11)*
 9. Reference appendices (BBN evidence, Report 996 figures and data, Pereira polar specification, variables)
 10. Optional future work, key formulas, file checklist
-11. Completed phases 0–22 + digitization/setup close-out (25k, C-05–C-12, 27–28 numbers)
+11. Completed phases 0–22 + digitization/setup close-out + phases 32–34 (2026-10-21)
 
 ---
 
@@ -240,22 +240,36 @@ Target names `data\report996\tr996_fig<NN><panel>_<content>.csv`, columns `x, y,
 | 19i | H3 follow-up after the η_T correction | **Done 2026-10-21**; omitted-term cause **not found**; moved to §11 |
 | 21 | One shared source-evaluation function; F1A at all 160 points, no GEXT on the aircraft path | **Done 2026-10-21**; moved to §11 |
 | 22 | Documentation update for phase 21 | **Done 2026-10-21**; moved to §11 |
-| 23 | Pre-registration of source pass criteria | **Frozen 2026-10-21** (author approval, §3.0a; values in the I-06 row); agent copies them into guideline §2.12 |
-| 24 | BBN/Wilby phase check | Partial: data+blade done; time-base blocker diagnosed (**I-02**, with I-01); geometry relabel and rotation sense **I-09**; criteria **I-06**; tip beyond 40 in not found (two assumed tips, X-EXTRAP) |
-| 25 | NACA Report 996 verification setup | **Done 2026-10-21** except **25g [AUTHOR]**: 25a–f/h–k + C-12; `report996_setup.md` (behind>ahead **true**; rms conv. at n=7) |
-| 26 | CCBlade check vs Report 996 | **Numbers recorded** (`report996_loads.md`, `scale_factors.csv`; loads not affected by I-01); verdict after I-06, labelled post-hoc |
-| 27 | AcousticAnalogies check vs Report 996 | **Void (I-01, I-02, I-08)**: near-field levels 24–250× measured were the F1A extrapolation bug; re-run after I-01/I-02 and the I-06 freeze |
-| 28 | Forward-flight check vs Pereira et al. (2026) | Loads table valid (best unscaled `xtr005` T≈10.8 N, s_T≈1.34); **levels and phases void (I-01, I-02, I-04)**; chord check I-10; re-run after I-05/I-06 |
+| 23 | Pre-registration of source pass criteria | **Frozen 2026-10-21** — values in `VALIDATION_GUIDELINE.md` §2.12 (I-06 / 23f done) |
+| 24 | BBN/Wilby phase check | **24b PASS**; **24c–e re-run 2026-10-21** (`bbn_phase.md`): 23a **FAIL** 26/168 (15%); tip assumed (24f); I-09 sense fixed |
+| 25 | NACA Report 996 verification setup | **Done** except **25g** (criteria live in §2.12/23c); I-07 re-ran `report996_setup.md` (behind>ahead **false** after I-01/I-02) |
+| 26 | CCBlade check vs Report 996 | **Numbers recorded** (`report996_loads.md`); labelled "criteria registered after the loads were computed" (I-06) |
+| 27 | AcousticAnalogies check vs Report 996 | **I-07 + I-08 re-run 2026-10-21** (`report996_acoustics.md`): Fig.13a `scaled_RM_L51C27`; 23c scaled ±2 dB **FAIL** (5/24); page-12 phase **FAIL** (103.8° vs 155°) |
+| 28 | Forward-flight check vs Pereira et al. (2026) | **I-07 re-run 2026-10-21** (`pereira_forward_flight.md`): loads OK (xtr005 s_T≈1.34); 23d H1 **FAIL** 0/9 (±1.7 dB); H2 6/9 (±3 dB); I-10 chord note recorded |
 | 29 | Aircraft cabin inputs: audit, guard, provenance, required inputs | **29a + 29d done**; 29b/29c deferred (no aircraft predictions, 2026-10-21) |
 | 30 | Parametric cabin blocks for the aircraft | **Deferred 2026-10-21: no aircraft predictions** (author); 30d test-article regression optional |
 | 31 | Uncertainty plan for the aircraft cabin result | **Deferred 2026-10-21: no aircraft predictions** (author); 31e test-article coverage check optional (E-21/E-22 present) |
-| 32 | GEXT importance bound (e11 path) | **32a–32d done 2026-10-21** (`gext_importance_bound.md`): flips → T1 not claimable; 32e deferred; 32f claim text updated |
-| 33 | Close-out | Planned; waits on source check verdicts (23f) + 32 |
-| 34 | Validation cases in the GUI: read-only Validation tab, reference-figure vs program-output plots, case registry | Planned (added 2026-10-21); 34a, 34b, 34e approved 2026-10-21 |
+| 32 | GEXT importance bound (e11 path) | **Done 2026-10-21** (`gext_importance_bound.md`): 32a–32f including **32e** OAT; flips → T1 not claimable |
+| 33 | Close-out | **Done 2026-10-21**: 33a–33c/33e–33g (33d earlier); Table-8 cal kept optional (33b); GUI aircraft-only (33g) |
+| 34 | Validation cases in the GUI: read-only Validation tab, reference-figure vs program-output plots, case registry | **Done 2026-10-21**; moved to §11 |
 
 ### Agent overnight close-out (2026-10-21, continued)
 
-*Superseded by the review in §3.0 (several items below were voided).* All work without [AUTHOR], [CONFIRM], or a new common-time-base API is now finished: **C-01–C-12, C-14**; phases 21–22; 25 (except 25g); 26 numbers; **27–28 expanded**; 25k; 29a/29d; 32a–d. **Left for author only:** 23f freeze, 24b common time base, 29b/29c [CONFIRM], then 30–31–33 (+ optional C-13).
+*Superseded by the review in §3.0 (several items below were voided).*
+
+**Agent session 2026-10-21 (this pass), Q0 progress — closed except I-14:**
+- **I-16 / I-15 / I-03 / I-04:** void files gone; author exports → schema CSVs; Fig. 8 pixel CSV (I-15 e).
+- **I-01/I-02:** `n_rev_src=2`, absolute phase; `Pkg.test()` includes BBN 24b V-UNIT and Gutin ≤1 dB.
+- **I-06/23f:** §2.12 frozen 2026-10-21.
+- **I-09:** geometry + rotation sense written before 24c.
+- **I-07 (done 2026-10-21):** `Pkg.test()`; smoke raw Table-8 −4.2/−5.3/−5.8 dB; e11 T1/T2 unchanged 81.04/75.00/75.29; `gext_vs_f1a_grid.md`; `report996_setup.md`; `report996_acoustics.md` (I-08); `pereira_forward_flight.md`; `bbn_phase.md` (24c–e).
+- **I-08:** Fig.13a scaled with RM L51C27 Table I coefficients (47-in → 4-ft); tag `scaled_RM_L51C27`.
+- **I-10:** Pereira 0.75R chord = paper “mean chord”; not rescaled.
+- **I-11:** panel (c) confirmed NACA 4-(5)(08)-03; max |Δ(b/D)|≈0.026, |Δ(h/b)|≈0.041, |Δβ|≈1.5°; author `Fig 3.txt` (B-3) wrong panel; `blade_form.csv` stays 25b input (`tr996_fig3_blade_form.csv`).
+- **I-12 / B-5:** smoke uses untuned geometry + `anopp_table8_calibrate=false`.
+- **I-14 (done 2026-10-21):** 24a spot-check list in `data/NASA_CR-158919/README.md`; `bbn_data.jl` wide→long (748 rows, no CSV.jl dep).
+- **32e + phase 33 (done 2026-10-21):** GEXT OAT comparator; claims/calibration/GUI source close-out. C-13 still optional.
+- **Phase 34 done 2026-10-21:** Validation tab + registry + CairoMakie plots; 34d/34f tests. Remaining: optional C-13; deferred 29b/29c/30/31 (B-4); further case cores as scripts are folded into the registry.
 
 ### 3.0 Review of the 2026-10-21 agent run: issues and how to resolve them *(read before anything else; review dated 2026-10-21)*
 
@@ -318,7 +332,7 @@ Not blockers (recorded so nobody stops on them): BBN tip geometry beyond 40 in. 
 | Q2 | **Docs sync for the η_T = 0.5 decision** (left over from phase 20): `METHODOLOGY.md` §6 T1/T2 numbers and the 18b text → 18a-r / 18b-r of `phase20_baseline.md`; claim register; `VALIDATION_GUIDELINE.md` §2.7/§2.8/register f; `README.md`; `flowchart.md` | docs only | Q1 | **Done 2026-10-21** (same pass as 19i) |
 | Q3 | Phase 21 | `src/` change [CONFIRM] waived by author “keep going”; **done 2026-10-21** | Q2 | shared function, tests, `gext_vs_f1a_grid.md` |
 | Q4 | Phase 22 | docs | Q3 | **Done 2026-10-21** |
-| Q5 | Phase 23 | pre-registration [AUTHOR] | Q4 (draft may precede) | **§2.12 draft 2026-10-21**; freeze waits on author |
+| Q5 | Phase 23 | pre-registration [AUTHOR] | Q4 (draft may precede) | **§2.12 frozen 2026-10-21** (I-06) |
 | Q6 | Phase 24 | scripts + tests | Q5, D-21 (C-06 **done**), phase 21 | `bbn_phase.md` |
 | Q7 | Phase 25 | setup, 25h/25i [CONFIRM] | Q5, D-07 | **Done except 25g**; `report996_setup.md` (25k) |
 | Q8 | Phase 26 | script | Q7 | **Numbers done**; `report996_loads.md` (no 23c verdict) |
@@ -327,9 +341,9 @@ Not blockers (recorded so nobody stops on them): BBN tip geometry beyond 40 in. 
 | Q11 | Phase 29 (29a any time; 29b, 29c [CONFIRM]) | docs + `src/` | Q3 | register rows, guard, tags |
 | Q12 | Phase 30 | `src/` [CONFIRM] | Q11, D-20 | parametric blocks, 30d shift |
 | Q13 | Phase 31 | design [AUTHOR], runs | Q12, D-16 | band, report template |
-| Q14 | Phase 32 | script runs | Q2 | **32a–d, 32f done 2026-10-21** (flips → T1 not claimable); 32e deferred |
-| Q15 | Phase 33 | close-out | all | claims and docs final |
-| Q16 | Phase 34 | `src/` + GUI [CONFIRM] | Q15 (34a–34c may start after I-07) | Validation tab with comparison plots, case registry, smoke tests |
+| Q14 | Phase 32 | script runs | Q2 | **Done 2026-10-21** including 32e |
+| Q15 | Phase 33 | close-out | all | **Done 2026-10-21** |
+| Q16 | Phase 34 | `src/` + GUI [CONFIRM] | Q15 | **Done 2026-10-21** |
 
 If a queue item is blocked on data, skip to the next unblocked item and say which data item blocks it.
 
@@ -584,13 +598,13 @@ Decision 2026-10-16: the BBN/Wilby data (NASA CR-158919 static, CR-159124 taxi) 
 
 **Execution detail (Q6).** Data D-01–D-06 present in `data\NASA_CR-158919\` and `data\NASA_CR-159124\`; D-21 (rotation direction, hub position; card C-06) needed for 24b/24c; D-08, D-09 for 24e/24f only.
 
-- [x] **24a (partial 2026-10-21).** Coherence cut added to both READMEs; `bbn_geometry.csv` (D-21); loader stub `scripts/bbn_data.jl` (wide→long reshape still to finish when 24c runs). Spot-check of five values per CSV against PDFs still to list.
-- [ ] **24b** Testset `"BBN kinematics (24b, V-UNIT)"` — plumbing checks pass; **Δφ = m·B·Δψ `@test_broken`** until common-time-base phase exists (`bbn_phase.md`, probe `_probe_bbn_kin.jl`, 2026-10-21). **Severe blocker.**
-- [ ] **24c** Configs `examples/bbn_aerocommander_tipA.json`, `examples/bbn_aerocommander_tipB.json`: D = 2.36 m, B = 3, chord/twist from the 9333C table to 40 in. (D-09 `hartzell_9333C_table3.csv`, minimum widths, labelled "repair minimum"; until C-14 is done use the §9 values, labelled "OCR, unverified"), two assumed tip tapers beyond 40 in. (A: linear taper to 0.5 × chord at the tip; B: elliptic), rpm per run (D-06). Script `scripts/run_bbn_phase.jl` → `docs/validation_reports/bbn_phase.md`: builds `Observer`s from `data\NASA_CR-158919\bbn_microphones_fig1.csv` with the hub position and rotation direction of `bbn_geometry.csv` (C-06) (`x = [x_sign·X/D·D, r·cosψ, r·sinψ]`), sets `v` for taxi runs, calls `evaluate_propeller_source`, and for each run, pair and harmonic computes the residual wrap(Δφ_meas − Δφ_F1A) and the trace-velocity ratio; drops or flags rows by coherence; prints the 23a verdict per pair and harmonic, for both tips.
-- [ ] **24d** Same script, in-plane relative levels of mics 3–6 against mic 4 (23b).
-- [ ] **24e** Longitudinal pairs (D-08), reported X-EXTRAP, both tips.
-- [ ] **24f** Record the source of the tip geometry, or "assumed" in every 24e line.
-- [ ] Docs: `METHODOLOGY.md` source section (phase claim waits for 33c), `VALIDATION_GUIDELINE.md` §2.3 (new BBN subsection), `README.md` status, `flowchart.md` diagram 3 if it lists checks.
+- [x] **24a (partial 2026-10-21).** Coherence cut in READMEs; `bbn_geometry.csv` (D-21 / I-09); loader `scripts/bbn_data.jl` (wide→long still I-14). Spot-check list still I-14.
+- [x] **24b (2026-10-21).** `"BBN kinematics (24b, V-UNIT)"` in `Pkg.test()`: Δφ = m·B·Δψ within 0.5° (23a′); reverse sense flips sign.
+- [x] **24c (2026-10-21).** `scripts/run_bbn_phase.jl` → `bbn_phase.md`; tipA/tipB × runs 4/2/5/7; 23a **FAIL** 26/168 (15%). F1A |Δφ| ≈ m·B·Δψ; measured signs often opposite (finding, not tuned).
+- [x] **24d (2026-10-21).** Same script; in-plane vs mic 4 (23b, X-EXTRAP).
+- [x] **24e (2026-10-21).** Fig.19 longitudinal sample (X-EXTRAP).
+- [x] **24f.** Tip beyond 40 in not found; assumed tipA/tipB stated in every result.
+- [x] Docs: README / flowchart / METHODOLOGY / VALIDATION_GUIDELINE / this file updated with 24 verdicts (33c claim wording still waits).
 
 ### Phase 25 — Report 996 verification setup
 
@@ -811,8 +825,8 @@ Pre-registered 2026-10-19, before any run. Full specification: `VALIDATION_GUIDE
 | 32b | Identity control: n = 1, f = 0, delay ×1 reproduces the nominal T1/T2 exactly | Identical numbers recorded under `docs\validation_reports\` |
 | 32c | Falloff grid: n ∈ {0.5, 1, 2} × f ∈ {0, 0.1, 0.3} plus n = 0 (10 runs including nominal), 18a cabin inputs held fixed | Per-H T1 residuals (max, RMS, pooled RMS), margins to the T1 gate edges, and flip yes/no recorded; T2 offset recorded against 10·log₁₀(mean f²_variant / mean f²_nominal) |
 | 32d | Delay variants (falloff nominal): off, sign flip, ×0.5, ×2. Add the n = 0.5 + delay ×2 corner only if delay is non-null on T1 | Same statistics recorded. If sign flip and ×2 are both exactly null on T1, delay moves to the sanity bucket and the null is logged as a code/data finding |
-| 32e | Parameter-sensitivity comparator: one-at-a-time over the 13a ranges of η_t, C and the trim-mass scale (±20 %), `bb_j2_scale` (T2 only) | Recorded as an order-of-magnitude referent, not a second bound |
-| 32f | Write the T1 claim status into `METHODOLOGY.md` from the consequence table; record the GEXT register entry (no fitted parameters, form attested a priori) | `METHODOLOGY.md` and `VALIDATION_GUIDELINE.md` §2.2.1 / §2.10 updated with the results |
+| 32e | Parameter-sensitivity comparator: one-at-a-time over the 13a ranges of η_t, C and the trim-mass scale (±20 %), `bb_j2_scale` (T2 only) | **Done 2026-10-21** in `gext_importance_bound.md` (ΔH1 up to ~1.5 dB vs GEXT flips) |
+| 32f | Write the T1 claim status into `METHODOLOGY.md` from the consequence table; record the GEXT register entry (no fitted parameters, form attested a priori) | **Done 2026-10-21** — T1 not claimable |
 
 **Rules.** Primary criterion: does any variant flip the existing per-H T1 gate (mean ± 4.0 dB OR NASA ±4.0 dB within the envelope), any-H rule. All variants and the statistic are fixed before the run. A variant that improves the residual is reported as a finding and is not adopted unless relabeled calibrated; an exploratory cross-fit is the follow-up. T2 sees GEXT only through the grid-mean H = 3 amplitude² anchor that `bb_j2_scale` absorbs, so it is reported as a computed offset, not a test. Refraction and scattering stay out of the test and stay V-ASSUMED.
 
@@ -832,16 +846,18 @@ Runs after every source check (phases 24, 26, 27, 28) and the GEXT importance bo
 
 | Step | What | Done when |
 |------|------|-----------|
-| 33a | **Summarize the cross-checks from phase 27** (Gutin Eq. 2 and Hanson near-field against F1A on identical loads). Fig. 17 (Gutin simplified vs Eq. 2) is the far-field limit check. Eq. (2) needs an effective radius R_e (0.7R–0.9R, Fig. 15), which is fitted, not independent physics. Write the claim wording from `VALIDATION_GUIDELINE.md` §2.3.3: accuracy at the listed cases, not "better than" the other methods | Cross-check summary written |
-| 33b | **Calibration decision.** If F1A matches the report without the Table-8 peak calibration, drop it (option b in open decision 1 under phase 21) | Decision recorded |
-| 33c | **Claims.** Update `METHODOLOGY.md` and `VALIDATION_GUIDELINE.md` from the results of phases 19, 24, 26, 27, 28 and 32: the phase 19 findings on the cabin chain, BBN circumferential phase (phase 24), static loading-only case at the listed harmonics (class V-EXP, limited scope), forward flight only by phase 28 (far field, harmonics 1–2), GEXT claim status from the phase 32 table; the aircraft path stays X-EXTRAP | `METHODOLOGY.md` claim register updated |
+| 33a | **Summarize the cross-checks from phase 27** (Gutin Eq. 2 and Hanson near-field against F1A on identical loads). Fig. 17 (Gutin simplified vs Eq. 2) is the far-field limit check. Eq. (2) needs an effective radius R_e (0.7R–0.9R, Fig. 15), which is fitted, not independent physics. Write the claim wording from `VALIDATION_GUIDELINE.md` §2.3.3: accuracy at the listed cases, not "better than" the other methods | **Done 2026-10-21:** optional Gutin/Hanson comparators **not run**; claim wording = accuracy at listed cases only (no "better than"); recorded in `METHODOLOGY.md` §9 |
+| 33b | **Calibration decision.** If F1A matches the report without the Table-8 peak calibration, drop it (option b in open decision 1 under phase 21) | **Done 2026-10-21:** raw F1A does **not** match (23c FAIL; smoke −4.2/−5.3/−5.8 dB) → **keep** optional Table-8 peak calibration as X-EXTRAP post-step; never compare calibrated path to Table 8 (I-12/B-5) |
+| 33c | **Claims.** Update `METHODOLOGY.md` and `VALIDATION_GUIDELINE.md` from the results of phases 19, 24, 26, 27, 28 and 32: the phase 19 findings on the cabin chain, BBN circumferential phase (phase 24), static loading-only case at the listed harmonics (class V-EXP, limited scope), forward flight only by phase 28 (far field, harmonics 1–2), GEXT claim status from the phase 32 table; the aircraft path stays X-EXTRAP | **Done 2026-10-21** — aircraft path **X-EXTRAP**; no V-EXP claim for CCBlade/F1A free field |
 | 33d | **Regrade the cabin sub-function rows** in `VALIDATION_GUIDELINE.md` §2.7 (trim transfer matrix, loss factors, power balance) from "V-EXP, calibrated" to "calibrated (in-sample)", the same grade as T1/T2 | [x] Done 2026-10-19. Superseded by 18a, which grades these rows from the untuned chain (V-CODE where checked against NASA calculated curves, 13b) |
-| 33e | **Stale phase numbers in a code comment.** `propeller_ccblade.jl` line 5 still says "phases 21-24"; it should name the current Report 996 phases. A comment edit only, **waits for confirmation** because it touches Julia | Comment updated |
-| 33f | **Docs sync.** `README.md`, `docs\flowchart.md` and the guideline match the code; code-differs notes removed | Notes removed |
-| 33g | **Make the NASA measured source test-only.** The only user option is BEMT + F1A. Remove `e11` and `synthetic` from the GUI source choices and from the public `source=` options of `run_pain_pipeline`; keep them reachable for T1/T2, the smoke test and `Pkg.test()`. A code change, **waits for confirmation** | e11 reachable only from tests and validation scripts; README and GUI text match |
+| 33e | **Stale phase numbers in a code comment.** `propeller_ccblade.jl` header should name Report 996 / Pereira / phase 33. Comment edit; author “approve everything” 2026-10-21 | **Done 2026-10-21** |
+| 33f | **Docs sync.** `README.md`, `docs\flowchart.md` and the guideline match the code; code-differs notes removed | **Done 2026-10-21** |
+| 33g | **Make the NASA measured source test-only.** The only user option is BEMT + F1A. Remove `e11` and `synthetic` from the GUI source choices; keep them reachable for T1/T2, smoke and `Pkg.test()`. Author approved | **Done 2026-10-21** — GUI model `["aircraft"]`; default `source=:aircraft`; e11/synthetic still callable from scripts/tests |
 
 
-### Phase 34 — Validation cases in the GUI, with figure comparisons *(planned; added 2026-10-21 at the author's request)*
+### Phase 34 — Validation cases in the GUI, with figure comparisons *(done 2026-10-21; see §11)*
+
+> **Completed.** Historical plan retained below for the plot-spec table; ticks and the §11 write-up are authoritative.
 
 **Why.** The author wants every validation case runnable from the GUI, and each one shown as a **graph of the published figure's data against the program's output**, on the same axes as the NASA or paper figure. 33g removes `e11` and `synthetic` from the user's *source* choice; this phase does not undo that. The cases live in a separate, read-only **Validation** tab that runs exactly the registered case (fixed inputs, fixed criterion), so the GUI cannot be used to tune a case (CLAUDE.md).
 
@@ -854,13 +870,13 @@ Runs after every source check (phases 24, 26, 27, 28) and the GEXT importance bo
 
 | Step | What | Done when |
 |------|------|-----------|
-| 34a | **Case registry (code; [CONFIRM]).** New `src/validation_cases.jl`: `struct ValidationCase` (`id`, `title`, `phase`, `reference_files`, `figure_ref` (document, figure, PDF page), `criterion_text`, `criterion_date`, `label`, `run::Function`, `plot_spec`) and `struct ValidationCaseResult` (`id`, `date`, `inputs_echo::NamedTuple`, `table` (quantity, x, reference, computed, residual, within tolerance), `series::Vector{PlotSeries}`, `verdict::Symbol`, `reason`, `label`, `report_path`). `struct PlotSeries` (`name`, `kind` ∈ {`:reference_points`, `:reference_band`, `:reference_curve`, `:computed`}, `x`, `y`, `ylow`, `yhigh`, `panel`). `VALIDATION_CASES` and `run_validation_case(id)`. Move each script's computational core into its case function; the script calls it and still writes its report | Registry exports; scripts call their case functions |
-| 34b | **Plotting backend (code; [CONFIRM], new dependency).** Add `CairoMakie` to `Project.toml` (one `Pkg.add`, versions pinned in `Manifest.toml`). New `src/validation_plots.jl`: `plot_case(result, spec; path)` renders a PNG (and PDF) from `result.series` using the axis definitions in `plot_spec`: reference points as hollow markers, reference envelopes or ranges as shaded bands or error bars, computed output as a solid line with filled markers, the tolerance band of the frozen criterion as a light band around the reference, panel titles as in the paper. Output goes to `docs/validation_reports/figures/<case_id>.png`; the report embeds it | Each case writes its PNG; the report shows it |
-| 34c | **Plot specification per case** (the axes mirror the cited figure; see the table below) | Every registry entry has a `plot_spec` from the table |
-| 34d | **Equivalence test.** `run_validation_case(id)` reproduces its report's numbers (rtol 1e-9), and every `:reference_*` series equals the CSV it was read from exactly | Testset "Validation case registry (34d)" passes |
-| 34e | **GUI tab (code; [CONFIRM]).** `gui/main.qml`: tab "Validation" with a case list (id, title, phase, label, verdict colour, criterion date), **Run** per case and **Run all**; a results pane with (1) the comparison plot (QML `Image` bound to the PNG path; reloaded after each run), (2) optionally, side by side, the original figure page rendered from the PDF (`docs/validation_reports/figures/source/<case_id>.png`, rendered once by a script from the §2.3 PDF page, so the user can compare against the printed figure), (3) the result table, inputs echo, criterion text and date, verdict and reason, (4) a button to open the report. `src/gui_model.jl`: observables `val_cases`, `val_selected`, `val_plot_path`, `val_source_path`, `val_result_text`, `val_status`; `run_validation_gui!(obs, id)` calls `run_validation_case` then `plot_case`. Long cases (Report 996, Pereira, BBN) run asynchronously with a status line | Tab loads; each case runs and shows its plot and table |
-| 34f | **Tests.** Extend `scripts/smoke_gui_model.jl` and `scripts/smoke_qml_load.jl`: the tab loads; the list holds every registry entry; a short case (CYL2D Table C-1) runs through `run_validation_gui!`, writes a non-empty PNG, and its table equals `run_validation_case`. No test needs a display | Smoke scripts pass |
-| 34g | **Docs (R5).** `README.md` (GUI section: running a case, reading the plot, cases are read-only), `flowchart.md` (GUI → case registry → plots), `METHODOLOGY.md` (the GUI shows registered cases; not a calibration tool), `VALIDATION_GUIDELINE.md` (§2.10 test list points to registry IDs and plots), this file | Docs updated |
+| 34a | **Case registry (code; [CONFIRM]).** New `src/validation_cases.jl`: `struct ValidationCase` (`id`, `title`, `phase`, `reference_files`, `figure_ref` (document, figure, PDF page), `criterion_text`, `criterion_date`, `label`, `run::Function`, `plot_spec`) and `struct ValidationCaseResult` (`id`, `date`, `inputs_echo::NamedTuple`, `table` (quantity, x, reference, computed, residual, within tolerance), `series::Vector{PlotSeries}`, `verdict::Symbol`, `reason`, `label`, `report_path`). `struct PlotSeries` (`name`, `kind` ∈ {`:reference_points`, `:reference_band`, `:reference_curve`, `:computed`}, `x`, `y`, `ylow`, `yhigh`, `panel`). `VALIDATION_CASES` and `run_validation_case(id)`. Move each script's computational core into its case function; the script calls it and still writes its report | **Done 2026-10-21** — registry + runnable cores for `CYL2D_C1`, `MRP_D1`, `T1`, `T2`, `REPRO_18b`; other IDs registered greyed; `write_cyl2d_report.jl` calls the case |
+| 34b | **Plotting backend (code; [CONFIRM], new dependency).** Add `CairoMakie` to `Project.toml` (one `Pkg.add`, versions pinned in `Manifest.toml`). New `src/validation_plots.jl`: `plot_case(result, spec; path)` renders a PNG (and PDF) from `result.series` using the axis definitions in `plot_spec`: reference points as hollow markers, reference envelopes or ranges as shaded bands or error bars, computed output as a solid line with filled markers, the tolerance band of the frozen criterion as a light band around the reference, panel titles as in the paper. Output goes to `docs/validation_reports/figures/<case_id>.png`; the report embeds it | **Done 2026-10-21** — CairoMakie 0.15.16; `plot_case` writes PNG/PDF |
+| 34c | **Plot specification per case** (the axes mirror the cited figure; see the table below) | **Done 2026-10-21** — every registry entry has a `plot_spec` |
+| 34d | **Equivalence test.** `run_validation_case(id)` reproduces its report's numbers (rtol 1e-9), and every `:reference_*` series equals the CSV it was read from exactly | **Done 2026-10-21** — testset "Validation case registry (34d)" |
+| 34e | **GUI tab (code; [CONFIRM]).** `gui/main.qml`: tab "Validation" with a case list (id, title, phase, label, verdict colour, criterion date), **Run** per case and **Run all**; a results pane with (1) the comparison plot (QML `Image` bound to the PNG path; reloaded after each run), (2) optionally, side by side, the original figure page rendered from the PDF (`docs/validation_reports/figures/source/<case_id>.png`, rendered once by a script from the §2.3 PDF page, so the user can compare against the printed figure), (3) the result table, inputs echo, criterion text and date, verdict and reason, (4) a button to open the report. `src/gui_model.jl`: observables `val_cases`, `val_selected`, `val_plot_path`, `val_source_path`, `val_result_text`, `val_status`; `run_validation_gui!(obs, id)` calls `run_validation_case` then `plot_case`. Long cases (Report 996, Pereira, BBN) run asynchronously with a status line | **Done 2026-10-21** |
+| 34f | **Tests.** Extend `scripts/smoke_gui_model.jl` and `scripts/smoke_qml_load.jl`: the tab loads; the list holds every registry entry; a short case (CYL2D Table C-1) runs through `run_validation_gui!`, writes a non-empty PNG, and its table equals `run_validation_case`. No test needs a display | **Done 2026-10-21** |
+| 34g | **Docs (R5).** `README.md` (GUI section: running a case, reading the plot, cases are read-only), `flowchart.md` (GUI → case registry → plots), `METHODOLOGY.md` (the GUI shows registered cases; not a calibration tool), `VALIDATION_GUIDELINE.md` (§2.10 test list points to registry IDs and plots), this file | **Done 2026-10-21** |
 
 **Plot specification (34c).** Reference = digitized published data; computed = program output. A case appears once its reference data exist and are not void.
 
@@ -1459,3 +1475,28 @@ Why this phase ran here: 18b showed that the chain does not compute what NASA's 
 - [x] **27** Expanded acoustics: Figs. 14, 13a, 12a/b, 7 → `report996_acoustics.md` / `f1a_results.csv` (verdict still 23c).
 - [x] **28** Expanded Pereira: 3 polars × thickness; ScaledLoads H1 φ=0 ≈−2.3 dB (verdict still 23d).
 - [x] Docs sync: `README.md`, `flowchart.md`, `METHODOLOGY.md`, `VALIDATION_GUIDELINE.md`, this file.
+
+## Phase 32 — GEXT importance bound *(done 2026-10-21)*
+
+- [x] 32a–32d, 32f: flips (n=0 flat; delay ×2) → **T1 not claimable**; GEXT stays V-ASSUMED.
+- [x] **32e** OAT ±20 % on η_t, C, trim-mass, `bb_j2_scale`: ΔH1 up to ~1.5 dB (referent only). Report `gext_importance_bound.md`.
+
+## Phase 33 — Close-out *(done 2026-10-21)*
+
+- [x] 33a: Gutin/Hanson optional cross-check **not run**; no "better than" claim.
+- [x] 33b: keep optional Table-8 peak calibration (raw F1A does not match within tol); never compare calibrated path to Table 8.
+- [x] 33c: claim register — aircraft free field **X-EXTRAP**; BBN/996/Pereira verdicts recorded; T1 not claimable (GEXT).
+- [x] 33d: earlier (18a).
+- [x] 33e: `propeller_ccblade.jl` header updated.
+- [x] 33f: five docs synced.
+- [x] 33g: GUI source = `aircraft` only; e11/synthetic remain for tests/scripts.
+
+## Phase 34 — Validation cases in the GUI *(done 2026-10-21)*
+
+- [x] **34a** `src/validation_cases.jl`: registry structs, `VALIDATION_CASES` / `run_validation_case`; runnable `CYL2D_C1`, `MRP_D1`, `T1`, `T2`, `REPRO_18b`; other 34c IDs greyed with reason until script cores move in.
+- [x] **34b** CairoMakie 0.15.16; `src/validation_plots.jl` → `docs/validation_reports/figures/<id>.png` (+ PDF).
+- [x] **34c** `plot_spec` on every registry entry (axes per published figure table).
+- [x] **34d** testset "Validation case registry (34d)": CYL2D/MRP rtol 1e-9; Table C-1 reference series exact; unavailable → `:no_verdict`.
+- [x] **34e** GUI **Validation** tab (`main.qml` + `gui_model.jl` / `gui_main.jl`); async run; open report.
+- [x] **34f** `smoke_gui_model.jl` / `smoke_qml_load.jl` extended (CYL2D_C1 through `run_validation_gui!`).
+- [x] **34g** five docs updated (README, flowchart, METHODOLOGY, VALIDATION_GUIDELINE, this file).

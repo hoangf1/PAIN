@@ -40,16 +40,11 @@ The [flowcharts](docs/flowchart.md) show the NASA validation path (diagram 2), t
 | **T2 1/3-oct vs E-9** | **18a-r:** 52.96 (pass), 50.62, 48.66 dB (fail) against 51.0, 46.0, 41.5; `bb_j2_scale` = 0.5 stale; replaced in 30b. Original 18a 62.3/60.3/58.5 kept as wrong η_T. **No claim** |
 | **PAIN reproduction vs NASA (18b-r)** | **Not met, 2 of 3** (η_T = 0.5): 82.73, 75.73, 77.05 dB = +3.7, +0.2, +9.1 dB vs 79.0, 75.5, 68.0. Original 18b at 0.05 (91.9, 80.0, 84.9, 0 of 3) kept. **19i:** omitted D-1 terms not found as H3 cause (`h3_followup.md`). Report `pain_reproduction_e16.md` |
 | Trim / loss (phase 16, App. A + section 3.8) | **Done 2026-10-20.** Written from the printed equations, no fitted parameter: App. A transfer matrices (A.10)-(A.12), tau_t (A.22), C_w, beta (A.16), mechanical path (A.19)-(A.21), Phase III stacks; Si/Cin, joint acceptances (63)-(73), eta_n (77), eta_r (79)-(81), eta_r' (82), eta_r'' (83). Fig. A-2 digitized in `data/fig_a2_pf105.csv`. Eq. (78) against NASA's calculated Fig. E-14 curves: **7 of 18 bands within +-25 %** at trim loss 0.5 and at 1.0 (criterion not met, recorded, not tuned); Fig. E-13 has no calculated curve. Printed-equation findings (factor 2 in Eqs. 69-70, the Eq. 82 limp-mass limit) in the [plan](docs/IMPLEMENTATION_PLAN.md). In the pipeline since 17a (2026-10-20). Report: `docs/validation_reports/trim_loss_e13_e14_e15.md` (`julia --project=. scripts/run_trim_loss_check.jl`) |
-| CCBlade -> F1A | **Done** (phase 21): all 160 points via `evaluate_propeller_source`, no GEXT; Table-8 peak calibration optional post-step. `ScaledLoads` + `allow_static` + `load_polar_set` + `blade_form_geometry` + rms/`p_c` helpers (25). Class **X-EXTRAP** until source checks close |
-| Report 996 / Pereira checks | **Expanded 2026-10-21** (`report996_loads.md`, `report996_acoustics.md` Figs. 14/13a/7, `report996_setup.md` 25k, `pereira_forward_flight.md` 3-polar matrix; C-01–C-12 digitized). **No pass/fail** until §2.12 freeze **[AUTHOR]** |
+| CCBlade -> F1A | **Done** (phase 21 + **I-01/I-02 fix 2026-10-21**): all 160 points via `evaluate_propeller_source`, no GEXT; source span = 2 revolutions; phase referenced to absolute observer time. Table-8 peak calibration optional post-step (never compared to Table 8 when on — I-12/B-5). Class **X-EXTRAP** |
+| Report 996 / Pereira / BBN | **I-07 re-runs done 2026-10-21** against §2.12 freeze. Smoke raw Table-8 peaks −4.2/−5.3/−5.8 dB. BBN 24b **PASS**; 24c 23a **FAIL** (26/168). Report 996: I-08 L51C27 scale on Fig.13a; 23c scaled pressure 5/24 within ±2 dB, page-12 phase **FAIL**. Pereira 23d H1 0/9 within ±1.7 dB (Fig.9 H1=80 dB accepted as read). Loads still valid (phase 26 post-hoc label) |
 | dB(A) / SIL | **Done** |
 
-**Severe blockers for the author (nothing else left without approval):**
-1. **§2.12 / 23f** — fill **[AUTHOR]** tolerances and date the freeze (blocks official 24–28 verdicts).
-2. **BBN common time base (24b)** — per-observer F1A FFT phases are not comparable (`bbn_phase.md`); needs a shared reception clock or cross-spectrum path.
-3. **29b/29c [CONFIRM]** — NASA-default guard and provenance tags on the aircraft path.
-
-C-05 pass B is done (δ_dig = 1.00 dB). Remaining planned work after those: phases 30–31–33 (+ optional C-13). Near-field F1A amplitudes at Report 996 d/D=0.083 remain ≫ measured (documented, not a pass).
+**Status after phase 34 (2026-10-21):** Validation tab + case registry (`src/validation_cases.jl`, CairoMakie plots). Run tab source = **aircraft only** (33g). Cases are read-only (fixed inputs/criteria; not a calibration tool). Runnable now: `CYL2D_C1`, `MRP_D1`, `T1`, `T2`, `REPRO_18b`; other 34c IDs listed greyed until script cores are moved in. Aircraft cabin 29b–31 deferred (B-4).
 
 Source-block data: Report 996 in `data/report996/`; Pereira in `data/pereira/`; CR-3813 E-16…E-22 / E-9/E-10 pass-B CSVs in `data/`; BBN phase Figs. 18–20 in `data/NASA_CR-159124/`. Details in the [plan](docs/IMPLEMENTATION_PLAN.md).
 
@@ -147,8 +142,9 @@ Compares the propeller noise on the l = 1 line with ANOPP Table 8 and writes `do
 julia --project=. scripts/run_gui.jl
 ```
 
-GUI source modes today: `e11` (validation test), `synthetic` (smoke test), `aircraft` (BEMT + F1A; needs an aircraft JSON file, for example
-`examples\aircraft_scale_hartzell.json`).
+**Run tab:** source = `aircraft` only (BEMT + F1A; needs an aircraft JSON, e.g. `examples\aircraft_scale_hartzell.json`). `e11` / `synthetic` stay for scripts and `Pkg.test()`, not the GUI.
+
+**Validation tab (phase 34):** pick a registered case → **Run** (or **Run all**). Inputs are an echo only; the criterion text/date and verdict are fixed. The comparison plot is written to `docs/validation_reports/figures/<case_id>.png` and shown in the tab. Cases with missing cores or deferred data are greyed with a reason. This tab is not a place to tune parameters against a figure (CLAUDE.md).
 
 ## Using PAIN from the Julia prompt (optional)
 

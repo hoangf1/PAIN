@@ -42,7 +42,20 @@ H1–H3 = 81.54, 71.29, 72.65; flip=yes
 
 ## 32e Parameter-sensitivity comparator (±20 %)
 
-One-at-a-time on η_t (facing/septum), C of Eq. (80), trim-mass scale, `bb_j2_scale` (T2 only). Order-of-magnitude referent, not a second bound. Deferred in this run if rebuilding trim stacks is heavy; recorded as planned.
+One-at-a-time over the 13a ranges of η_t (facing/septum via `η_lining`), C of Eq. (80), trim-mass scale, and `bb_j2_scale` (T2 bands only). Order-of-magnitude referent vs GEXT flips — **not** a second bound; no parameter adopted from these runs.
+
+| parameter | value | H1 | H2 | H3 | ΔH1 dB | T2 1.25 kHz Δ dB |
+|---|---:|---:|---:|---:|---:|---:|
+| η_t | 0.4 | 82.43 | 75.49 | 76.16 | +1.39 | +1.01 |
+| η_t | 0.6 | 79.94 | 74.64 | 74.61 | -1.10 | -0.86 |
+| C | 2.4 | 81.05 | 75.00 | 75.32 | +0.01 | +0.00 |
+| C | 3.6 | 81.03 | 74.99 | 75.26 | -0.01 | +0.00 |
+| trim-mass | 0.8 | 82.51 | 74.60 | 74.62 | +1.47 | +0.00 |
+| trim-mass | 1.2 | 80.11 | 75.24 | 75.75 | -0.93 | +0.00 |
+| bb_j2_scale | 0.4 | 81.04 | 75.00 | 75.29 | +0.00 | -0.97 |
+| bb_j2_scale | 0.6 | 81.04 | 75.00 | 75.29 | +0.00 | +0.79 |
+
+Compare ΔH1 magnitudes to GEXT flip sizes in 32c–32d (order-of-magnitude only).
 
 ## Claim status
 

@@ -1,13 +1,15 @@
 # NASA CR-158919 / CR-159124 BBN geometry for phase 24 (card C-06 / D-21).
 # Source: CR-158919 Fig. 1 (PDF p. 9, printed p. 3); CR-159124 Fig. 1 (PDF p. 16), Table 7 hub distances and Table 8 hub angles (PDF p. 60, printed p. 48).
-# Method: text search of both PDFs for rotation direction (no printed statement found); hub position by least-squares fit of (hub_x, hub_y) in the Fig. 1 frame to mics 3–6 at x = 0, y = 0.584, 0.279, 0, −0.305 m against Table 7 distances 1.33, 1.31, 1.36, 1.52 m.
+# Method: least-squares fit of hub position to mics 3–6 at x = 0, y = 0.584, 0.279, 0, −0.305 m against Table 7 distances 1.33, 1.31, 1.36, 1.52 m; then relabelled per plan I-09 (lateral offset, not fuselage-x).
 # Uncertainty: fit residual RMS about 0.015 m; pair angles from the fit 13.28°, 11.59°, 11.11° against Table 8 13.3°, 11.8°, 10.4°.
-# Digitized 2026-10-21 by agent; script inline (plan card C-06).
-# Conventions: Fig. 1 x along the fuselage (negative forward of the propeller plane), y as printed; hub_offset_from_skin_m ≈ |hub_x| with mics on the skin at x = 0. Rotation direction not printed → 24b runs both signs.
+# Digitized 2026-10-21 by agent; relabelled 2026-10-21 (I-09). Rotation sense from author 2026-10-21 (documents), before any 24c run.
+# Conventions: Fig. 1 x along the fuselage (rotation plane at x = 0); hub_lateral_offset_m is the offset of the hub from the skin plane (mics on the skin). Rotation: clockwise from rear, blades upward at the starboard fuselage.
 quantity,value,unit,source
-rotation_direction,not printed,-,CR-158919 and CR-159124 text search 2026-10-21
-view,not printed,-,neither Fig. 1 states the viewing direction for rotation
-hub_x_m,-1.310,m,LS fit to Table 7 + Fig. 1 mics 3–6
-hub_y_m,0.432,m,LS fit to Table 7 + Fig. 1 mics 3–6
-hub_offset_from_skin_m,1.310,m,|hub_x_m| with mics at x = 0
+rotation_direction,clockwise_from_rear,-,author 2026-10-21; CR-158919 p. 1 starboard microphones; Aero Commander 680E conventional twin / left engine critical
+view,"from behind, looking forward",-,author 2026-10-21
+blade_motion_at_fuselage,upward,-,author 2026-10-21; starboard propeller, fuselage inboard
+hub_x_m,0,m,I-09 relabel: rotation plane (mics 3–6 at x = 0)
+hub_lateral_offset_m,1.310,m,I-09 relabel: was mislabelled hub_x_m; lateral offset from skin plane
+hub_y_m,0.432,m,LS fit to Table 7 + Fig. 1 mics 3–6 (unchanged)
+hub_offset_from_skin_m,1.310,m,alias of hub_lateral_offset_m
 fit_residual_m,0.015,m,RMS of (predicted − Table 7) over mics 3–6

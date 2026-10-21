@@ -741,10 +741,9 @@ end
 end
 
 @testset "Shared source function (21, V-CODE)" begin
-    # n_harmonics=3, num_src_times=32 to bound runtime (same as f1a_line_reference.csv)
+    # n_harmonics=3, num_src_times=32 to bound runtime.
+    # Pre-I-01 f1a_line_reference.csv is void (I-01); equivalence vs that file removed.
     json = joinpath(@__DIR__, "..", "examples", "aircraft_scale_hartzell.json")
-    ref_path = joinpath(@__DIR__, "..", "..", "data", "baselines", "f1a_line_reference.csv")
-    @test isfile(ref_path)
     fuse = FuselageGeometry(1.803, 0.508, 56.6)
     prop = PropellerPlacement(0.965, 90.0, 0.90)
     spec = GridSpec()
@@ -753,52 +752,20 @@ end
     Vinf = Float64(PAIN._get(cfg.operating_point, :forward_speed_mps, 20.0))
     observers, pts = grid_observers(fuse, prop, spec; Vinf=Vinf)
     src = evaluate_propeller_source(cfg, observers; n_harmonics=nH, num_src_times=nsrc)
-    # --- Echo ---
+    # --- Echo (includes I-01 period_src / n_src) ---
     e = src.echo
     for k in (:Vinf, :vinf_substituted, :c0, :rho, :polar, :t_over_c, :pitch_offset_deg,
-              :loads, :s_T, :s_Q, :num_src_times, :B, :Rhub, :Rtip, :rpm, :allow_static)
+              :loads, :s_T, :s_Q, :num_src_times, :B, :Rhub, :Rtip, :rpm, :allow_static,
+              :period_src, :n_src, :n_rev_src, :force_short_source)
         @test haskey(e, k)
     end
     @test e.loads === :ccblade
     @test e.s_T == 1.0 && e.s_Q == 1.0
+    @test e.n_rev_src == 2
+    @test e.n_src == 2 * e.B * nsrc
+    @test e.force_short_source == false
 
-    # --- Calibration separate: evaluate_propeller_source ignores calibrate flag ---
-    # (flag lives only in the grid wrapper)
-    # --- Equivalence at ell=1 vs uncalibrated reference ---
-    ref = PAIN._read_csv_numeric(ref_path)
-    # CSV has calibrated column as 0/1 or true/false strings mixed with numeric cols
-    # Re-read with a small helper
-    function load_ref(path)
-        rows = NamedTuple[]
-        for raw in eachline(path)
-            startswith(strip(raw), "#") && continue
-            startswith(strip(raw), "calibrated") && continue
-            parts = split(raw, ',')
-            length(parts) >= 5 || continue
-            push!(rows, (cal=parts[1]=="true", k=parse(Int,parts[2]), H=parse(Int,parts[3]),
-                         amp=parse(Float64,parts[4]), ph=parse(Float64,parts[5])))
-        end
-        rows
-    end
-    rows = load_ref(ref_path)
-    uncal = filter(r -> !r.cal, rows)
-    # Map observer index for ell==1
-    for r in uncal
-        idx = findfirst(p -> p.k == r.k && p.ell == 1, pts)
-        idx === nothing && continue
-        @test src.amplitude[idx, r.H] ≈ r.amp rtol=1e-10
-        dph = mod(src.phase[idx, r.H] - r.ph + π, 2π) - π
-        @test abs(dph) < 1e-10
-    end
-    # --- Calibrated grid at ell=1 ---
-    ff_cal = propeller_freefield_grid(json, fuse, prop, spec; n_harmonics=nH, num_src_times=nsrc)
-    cal = filter(r -> r.cal, rows)
-    for r in cal
-        @test ff_cal.amplitudes[r.k, 1, r.H] ≈ r.amp rtol=1e-10
-        dph = mod(ff_cal.phases[r.k, 1, r.H] - r.ph + π, 2π) - π
-        @test abs(dph) < 1e-10
-    end
-    # --- Coincidence: grid point (k=5, ell=4) vs hand-built Observer ---
+    # --- Coincidence: grid point (k=5, ell=4) vs hand-built Observer (I-02 test c) ---
     p54 = first(p for p in pts if p.k == 5 && p.ell == 4)
     i54 = findfirst(p -> p.k == 5 && p.ell == 4, pts)
     hand = [Observer(PAIN._observer_aa(fuse, prop, p54), [Vinf, 0.0, 0.0], "hand")]
@@ -806,6 +773,7 @@ end
     @test src.amplitude[i54, :] == src_hand.amplitude[1, :]
     @test src.phase[i54, :] == src_hand.phase[1, :]
     # --- All 160: finite > 0; differs from GEXT of ell=1 line ---
+    ff_cal = propeller_freefield_grid(json, fuse, prop, spec; n_harmonics=nH, num_src_times=nsrc)
     @test all(isfinite, ff_cal.amplitudes)
     @test all(>(0), ff_cal.amplitudes)
     line_a = ff_cal.amplitudes[:, 1, :]
@@ -813,7 +781,6 @@ end
     ωH = [2π * H * ff_cal.bpf_Hz for H in 1:nH]
     gext_a, _ = extend_line_to_grid(line_a, line_p, pts; omega_H=ωH)
     rel = abs.(ff_cal.amplitudes .- gext_a) ./ max.(ff_cal.amplitudes, 1e-30)
-    # off-line points (ell >= 2)
     @test maximum(rel[:, 2:end, :]) > 1e-6
     # --- Static guard ---
     tmp = joinpath(tempdir(), "pain_static_guard.json")
@@ -828,8 +795,6 @@ end
     @test src0b.echo.vinf_substituted == false
     @test src0b.echo.Vinf == 0.0
     # --- ScaledLoads (25h): targets reproduced; uniform scale → amplitude × scale ---
-    T0, Q0 = src.T, src.Q
-    # Use a single observer for speed
     obs1 = observers[1:1]
     src_base = evaluate_propeller_source(cfg, obs1; n_harmonics=1, num_src_times=16)
     sl = ScaledLoads(2 * src_base.T, 2 * src_base.Q)
@@ -842,25 +807,114 @@ end
     rm(tmp; force=true)
 end
 
+@testset "F1A source span and phase origin (I-01/I-02)" begin
+    # Report 996-like near-field observer (plan I-01): M_t high, x/D=0, d/D=0.083.
+    json = joinpath(@__DIR__, "..", "examples", "aircraft_scale_hartzell.json")
+    cfg = PAIN._load_aircraft_json(json)
+    Rtip = Float64(cfg.propeller.tip_radius_m)
+    D = 2 * Rtip
+    obs_nf = [Observer([0.0, 0.083 * D, 0.0], zeros(3), "nf_xD0")]
+    nsrc = 32
+    src2 = evaluate_propeller_source(cfg, obs_nf; n_harmonics=3, num_src_times=nsrc,
+                                     allow_static=true, n_rev_src=2)
+    src3 = evaluate_propeller_source(cfg, obs_nf; n_harmonics=3, num_src_times=nsrc,
+                                     allow_static=true, n_rev_src=3)
+    # I-01 (a): 2 rev vs 3 rev — amplitudes rtol 1e-3, phases within 0.1°
+    @test all(isapprox.(src2.amplitude, src3.amplitude; rtol=1e-3))
+    for H in 1:3
+        dph = rad2deg(mod(src2.phase[1, H] - src3.phase[1, H] + π, 2π) - π)
+        @test abs(dph) < 0.1
+    end
+    # I-01 (b): force_short_source (old one-bpp span) → guard fires
+    @test_throws ErrorException evaluate_propeller_source(
+        cfg, obs_nf; n_harmonics=1, num_src_times=nsrc, allow_static=true, force_short_source=true)
+    # I-02 (b): shifting the observer does not change relative kinematics here;
+    # window start varies per observer, but absolute-referenced phase is stable under
+    # an integer blade-pass re-sample: compare two identical observers.
+    src_a = evaluate_propeller_source(cfg, obs_nf; n_harmonics=2, num_src_times=64, allow_static=true)
+    src_b = evaluate_propeller_source(cfg, obs_nf; n_harmonics=2, num_src_times=64, allow_static=true)
+    @test src_a.phase ≈ src_b.phase atol=1e-12
+
+    # I-01 (c): far-field Gutin closed form on same T, Q (test/ only).
+    # Static, thickness-off (loading only). Rotor-plane (θ=π/2) Gutin/Hubbard:
+    #   p_rms = (m B Ω /(2π c0 r)) (Q/R) |J_{mB}(m B M_t)|
+    # F1A stores cosine peak A = √2 p_rms. Observer at 100 Rtip.
+    function _besselj_int(n::Int, x::Float64)
+        n = abs(n)
+        term = (x / 2)^n
+        for i in 1:n
+            term /= i
+        end
+        s = term
+        for k in 1:60
+            term *= -(x / 2)^2 / (k * (n + k))
+            s += term
+            abs(term) < 1e-16 * (1 + abs(s)) && break
+        end
+        return s
+    end
+    txt = read(json, String)
+    txt = replace(txt, r"\"forward_speed_mps\"\s*:\s*[0-9.eE+-]+" => "\"forward_speed_mps\": 0.0")
+    txt = replace(txt, r"\"thickness_over_chord\"\s*:\s*[0-9.eE+-]+" => "\"thickness_over_chord\": 0.0")
+    tmp_g = joinpath(tempdir(), "pain_gutin_static.json")
+    write(tmp_g, txt)
+    cfg_g = PAIN._load_aircraft_json(tmp_g)
+    Rtip_g = Float64(cfg_g.propeller.tip_radius_m)
+    r_ff = 100 * Rtip_g
+    obs_ff = [Observer([0.0, r_ff, 0.0], zeros(3), "ff_plane")]
+    src_ff = evaluate_propeller_source(cfg_g, obs_ff; n_harmonics=1, num_src_times=128, allow_static=true)
+    Ω = Float64(cfg_g.propeller.rpm) * 2π / 60
+    B = Int(cfg_g.propeller.num_blades)
+    c0 = src_ff.echo.c0
+    m = 1
+    Mt = Ω * Rtip_g / c0
+    J = _besselj_int(m * B, m * B * Mt)
+    p_rms = (m * B * Ω / (2π * c0 * r_ff)) * (src_ff.Q / Rtip_g) * abs(J)
+    p_peak = sqrt(2) * p_rms
+    spl_f1a = 20 * log10(max(src_ff.amplitude[1, 1], 1e-30) / 2e-5)
+    spl_gutin = 20 * log10(max(p_peak, 1e-30) / 2e-5)
+    @test abs(spl_f1a - spl_gutin) ≤ 1.0
+    rm(tmp_g; force=true)
+end
+
 @testset "BBN kinematics (24b, V-UNIT)" begin
-    # Probe 2026-10-21 (`scripts/_probe_bbn_kin.jl`): per-observer rfft phases from
-    # `evaluate_propeller_source` do **not** satisfy Δφ = m·B·Δψ (errors 30–120° at
-    # H1–3). Likely cause: AcousticAnalogies `combine` gives each observer its own
-    # time window, so absolute phase between observers is not comparable.
-    # **Severe blocker for 24b/24c** until a common-time-base phase is extracted.
-    # This testset only checks the plumbing (finite phases, ring size).
+    # I-02 (a): after absolute phase reference, Δφ = m·B·Δψ on a hub-centred ring (static)
+    # within 0.5° (frozen 23a′). Both rotation senses: sign of Δφ flips.
     json = joinpath(@__DIR__, "..", "examples", "bbn_aerocommander_tipA.json")
     cfg = PAIN._load_aircraft_json(json)
     R = 1.18
     seps = [13.3, 11.8, 10.4]
     ψ = cumsum([0.0; seps])
     r_obs = R + 0.15
-    obs = [Observer([0.0, r_obs * cosd(a), r_obs * sind(a)], zeros(3), "ψ=$a") for a in ψ]
-    src = evaluate_propeller_source(cfg, obs; n_harmonics=3, num_src_times=64, allow_static=true)
+    B = Int(cfg.propeller.num_blades)
+    function ring_phases(sense::Int)
+        # sense = +1: positive_x_rotation as in f1a_source_elements_ccblade(..., true)
+        # Observer angles ψ increase in the same sense as blade rotation for +1.
+        obs = [Observer([0.0, r_obs * cosd(sense * a), r_obs * sind(sense * a)], zeros(3), "ψ=$(sense*a)") for a in ψ]
+        evaluate_propeller_source(cfg, obs; n_harmonics=3, num_src_times=64, allow_static=true)
+    end
+    src = ring_phases(+1)
     @test size(src.phase) == (4, 3)
     @test all(isfinite, src.phase)
     @test all(isfinite, src.amplitude)
-    @test_broken false  # placeholder: Δφ = m·B·Δψ within 0.1° once common time base exists
+    # Consecutive observers: Δφ = ± m·B·Δψ (sign from rotation vs azimuth convention).
+    # Pick the sign from H1 of the first pair; then require that sign for all.
+    dφ11 = rad2deg(mod(src.phase[2, 1] - src.phase[1, 1] + π, 2π) - π)
+    sense_sign = sign(dφ11) == 0 ? 1.0 : sign(dφ11)
+    for (i, Δψ) in enumerate(seps)
+        for H in 1:3
+            dφ = rad2deg(mod(src.phase[i + 1, H] - src.phase[i, H] + π, 2π) - π)
+            expect = sense_sign * H * B * Δψ
+            expect = mod(expect + 180, 360) - 180
+            @test abs(dφ - expect) ≤ 0.5
+        end
+    end
+    src_rev = ring_phases(-1)
+    for (i, Δψ) in enumerate(seps)
+        dφ_fwd = rad2deg(mod(src.phase[i + 1, 1] - src.phase[i, 1] + π, 2π) - π)
+        dφ_rev = rad2deg(mod(src_rev.phase[i + 1, 1] - src_rev.phase[i, 1] + π, 2π) - π)
+        @test abs(dφ_fwd + dφ_rev) ≤ 1.0  # opposite observer sense → opposite Δφ
+    end
 end
 
 
@@ -901,6 +955,44 @@ end
     @test length(obs) == 2
     # x_sign=-1: listed x/D=-0.125 (behind in report coords) → AA +X
     @test obs[1].x[1] ≈ (-1.0) * (-0.125) * g.D rtol=1e-12
+end
+
+@testset "Validation case registry (34d)" begin
+    @test Set(keys(VALIDATION_CASES)) == Set(VALIDATION_CASE_ORDER)
+    for id in VALIDATION_CASE_ORDER
+        @test haskey(VALIDATION_CASES, id)
+        c = VALIDATION_CASES[id]
+        @test c.plot_spec isa PlotSpec
+        @test !isempty(c.id)
+        @test !isempty(c.criterion_date)
+    end
+    r1 = run_validation_case("CYL2D_C1")
+    r2 = run_validation_case("CYL2D_C1")
+    @test r1.verdict === :met
+    @test length(r1.table) == length(r2.table)
+    for (a, b) in zip(r1.table, r2.table)
+        @test a.computed ≈ b.computed rtol=1e-9 atol=0
+        @test a.reference ≈ b.reference rtol=1e-9 atol=0
+    end
+    ref_f = only(s for s in r1.series if s.name == "Table C-1 f")
+    @test ref_f.kind === :reference_points
+    @test ref_f.y == collect(Float64, TABLE_C1_FREQ_HZ)
+    ref_g = only(s for s in r1.series if s.name == "Table C-1 Φ_G")
+    @test ref_g.y == collect(Float64, TABLE_C1_GENMASS)
+    m1 = run_validation_case("MRP_D1")
+    m2 = run_validation_case("MRP_D1")
+    @test m1.verdict === :met
+    for (a, b) in zip(m1.table, m2.table)
+        @test a.computed ≈ b.computed rtol=1e-9 atol=0
+        @test a.reference == b.reference
+    end
+    png = plot_case(r1, VALIDATION_CASES["CYL2D_C1"].plot_spec)
+    @test isfile(png)
+    @test filesize(png) > 0
+    # Unavailable cases stay :no_verdict (greyed in GUI)
+    u = run_validation_case("R996_FIG8")
+    @test u.verdict === :no_verdict
+    @test !isempty(u.reason)
 end
 
 

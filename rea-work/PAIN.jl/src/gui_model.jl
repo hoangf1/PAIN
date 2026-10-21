@@ -31,7 +31,7 @@ Input/output Observables. Wrap with `JuliaPropertyMap` in `launch_gui`.
 function make_gui_observables(;
         default_aircraft_json::AbstractString=joinpath(@__DIR__, "..", "examples", "aircraft_scale_hartzell.json"))
     return Dict{String,Observable}(
-        "source" => Observable("e11"),
+        "source" => Observable("aircraft"),  # phase 33g: only user source; e11/synthetic are validation-only
         "blocking" => Observable("R2"),
         "L" => Observable(1.803),
         "a" => Observable(0.508),
@@ -39,13 +39,13 @@ function make_gui_observables(;
         "r_p" => Observable(0.965),
         "phi_p_deg" => Observable(90.0),
         "z_p" => Observable(0.90),
-        "n_harmonics" => Observable(3.0),
-        "bpf_Hz" => Observable(200.0),
+        "n_harmonics" => Observable(5.0),
+        "bpf_Hz" => Observable(150.0),
         "aircraft_json" => Observable(abspath(default_aircraft_json)),
         "C_struc" => Observable(3.0),        # C of Eq. (80), CR-3813 range 2-4
         "eta_n_bare" => Observable(0.05),    # η_n of a bare cabin (input, register g)
         "trim" => Observable("auto"),        # auto | bare | phase3
-        "status" => Observable("Ready. Choose source and press Run."),
+        "status" => Observable("Ready. Choose aircraft JSON and press Run."),
         "busy" => Observable(false),
         "smoke_ms" => Observable(0.0),
         "validity_tag" => Observable(""),
@@ -57,7 +57,74 @@ function make_gui_observables(;
         "sil_text" => Observable(""),
         "notes" => Observable(""),
         "source_out" => Observable(""),
+        # Phase 34 — Validation tab (read-only cases)
+        "val_cases" => Observable(_format_val_case_list()),
+        "val_selected" => Observable("CYL2D_C1"),
+        "val_plot_path" => Observable(""),
+        "val_source_path" => Observable(""),
+        "val_result_text" => Observable("Select a case and press Run."),
+        "val_status" => Observable("Ready."),
+        "val_criterion" => Observable(_criterion_for("CYL2D_C1")),
+        "val_report_path" => Observable(""),
     )
+end
+
+function _format_val_case_list()
+    lines = String[]
+    for c in list_validation_cases()
+        grey = isempty(c.unavailable_reason) ? "" : " [unavailable]"
+        push!(lines, "$(c.id)\t$(c.title)\tphase $(c.phase)\t$(c.label)$(grey)")
+    end
+    return join(lines, "\n")
+end
+
+function _criterion_for(id::AbstractString)
+    haskey(VALIDATION_CASES, id) || return ""
+    c = VALIDATION_CASES[id]
+    return "criterion ($(c.criterion_date)): $(c.criterion_text)"
+end
+
+"""
+    run_validation_gui!(obs, id)
+
+Run one registered case, write its PNG, and push results into Validation-tab Observables.
+Long cases may be called from a `@async` wrapper by the QML side.
+"""
+function run_validation_gui!(obs::AbstractDict, id::AbstractString)
+    obs["val_status"][] = "Running $id…"
+    obs["busy"][] = true
+    try
+        haskey(VALIDATION_CASES, id) || error("unknown case: $id")
+        case = VALIDATION_CASES[id]
+        obs["val_selected"][] = String(id)
+        obs["val_criterion"][] = _criterion_for(id)
+        result = run_validation_case(id)
+        png = plot_case(result, case.plot_spec)
+        src = validation_source_figure_path(id)
+        # Clear then set so QML Image reloads even when the path string is unchanged.
+        obs["val_plot_path"][] = ""
+        obs["val_plot_path"][] = png
+        obs["val_source_path"][] = isfile(src) ? src : ""
+        obs["val_result_text"][] = format_validation_result(result)
+        obs["val_report_path"][] = result.report_path
+        obs["val_status"][] = "Done $id: $(result.verdict) — $(result.reason)"
+        return result
+    catch e
+        obs["val_status"][] = "Error ($id): $(sprint(showerror, e))"
+        obs["val_result_text"][] = sprint(showerror, e)
+        return nothing
+    finally
+        obs["busy"][] = false
+    end
+end
+
+"""Run every registered case sequentially (status line updates per case)."""
+function run_all_validation_gui!(obs::AbstractDict)
+    for c in list_validation_cases()
+        run_validation_gui!(obs, c.id)
+    end
+    obs["val_status"][] = "Run all finished ($(length(VALIDATION_CASE_ORDER)) cases)."
+    return true
 end
 
 """

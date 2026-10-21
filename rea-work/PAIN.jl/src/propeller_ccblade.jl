@@ -2,7 +2,7 @@
 Propeller free-field via CCBlade.jl + AcousticAnalogies.jl (flowchart SRC_AC).
 
 Validity: **X-EXTRAP** for the aircraft application. The source block is checked against
-NACA Report 996 and Pereira (docs/IMPLEMENTATION_PLAN.md, phases 25–28).
+NACA Report 996 and Pereira (docs/IMPLEMENTATION_PLAN.md, phases 25–28; close-out phase 33).
 
 Shared evaluation: `evaluate_propeller_source` is the only place that runs
 CCBlade → F1A → FFT. `propeller_freefield_grid` evaluates all 160 grid observers
@@ -207,19 +207,55 @@ function _default_af(α, Re, M)
     return cl, cd
 end
 
+# Wrap phase to (−π, π] after removing the FFT window start time from angle(c) (I-02).
+_wrap_phase(φ::Real) = mod(φ + π, 2π) - π
+
+# Guard (I-01): one-bpp reception window must lie inside every element's reception span.
+function _assert_reception_inside_elements(apth, t_common, observer_label::AbstractString)
+    nd = ndims(apth)
+    nd >= 1 || error("empty F1A pressure array for observer $observer_label")
+    n_t = size(apth, 1)
+    n_t >= 2 || error("F1A element time history too short for observer $observer_label")
+    t_firsts = Float64[]
+    t_lasts = Float64[]
+    if nd == 1
+        push!(t_firsts, apth[1].t)
+        push!(t_lasts, apth[end].t)
+    else
+        other = CartesianIndices(size(apth)[2:end])
+        for I in other
+            push!(t_firsts, apth[1, I].t)
+            push!(t_lasts, apth[n_t, I].t)
+        end
+    end
+    t0 = first(t_common)
+    t1 = last(t_common)
+    if t1 > minimum(t_lasts) || t0 < maximum(t_firsts)
+        error("F1A reception window outside element data for observer $(observer_label): " *
+              "t_common=[$(t0), $(t1)], element t_first max=$(maximum(t_firsts)), " *
+              "t_last min=$(minimum(t_lasts)) (plan I-01 guard)")
+    end
+    return nothing
+end
+
 """
-    evaluate_propeller_source(cfg, observers; n_harmonics, num_src_times, loads, af, allow_static)
+    evaluate_propeller_source(cfg, observers; n_harmonics, num_src_times, loads, af, allow_static,
+                              n_rev_src, force_short_source)
 
 **The only place** that builds the CCBlade rotor, solves sections, builds F1A
 source elements, and takes the FFT per observer. No calibration, no GEXT, no grid knowledge.
 `loads` is `:ccblade` or `ScaledLoads(T_target, Q_target)` (phase 25h).
 `allow_static=true` keeps Vinf as given when Vinf < 1 (phase 25a probe); default still substitutes 20 m/s with a warning.
+Source span is `n_rev_src` revolutions (default 2, plan I-01); reception window is one bpp.
+Phase is referenced to absolute observer time (I-02). `force_short_source` is test-only.
 """
 function evaluate_propeller_source(cfg, observers::Vector{Observer};
                                    n_harmonics::Int=10, num_src_times::Int=64,
-                                   loads=:ccblade, af=nothing, allow_static::Bool=false)
+                                   loads=:ccblade, af=nothing, allow_static::Bool=false,
+                                   n_rev_src::Int=2, force_short_source::Bool=false)
     loads === :ccblade || loads isa ScaledLoads ||
         error("loads=$loads not supported; use :ccblade or ScaledLoads(T,Q)")
+    n_rev_src >= 1 || error("n_rev_src must be ≥ 1")
     p = cfg.propeller
     op = cfg.operating_point
     B = Int(p.num_blades)
@@ -281,9 +317,17 @@ function evaluate_propeller_source(cfg, observers::Vector{Observer};
 
     area_over_chord2 = fill(t_over_c, nsec)
     bpp = 2π / Ω / B
-    period = bpp
+    # I-01: source span = n_rev_src revolutions at the same Δt as before; reception = one bpp.
+    # force_short_source: test-only path that reproduces the old one-bpp source (guard must fire).
+    if force_short_source
+        period_src = bpp
+        n_src = num_src_times
+    else
+        period_src = n_rev_src * (2π / Ω)
+        n_src = n_rev_src * B * num_src_times
+    end
     ses = AcousticAnalogies.f1a_source_elements_ccblade(
-        rotor, sections, ops, outs, area_over_chord2, period, num_src_times, true)
+        rotor, sections, ops, outs, area_over_chord2, period_src, n_src, true)
 
     n_obs = length(observers)
     amplitude = zeros(n_obs, n_harmonics)
@@ -291,20 +335,25 @@ function evaluate_propeller_source(cfg, observers::Vector{Observer};
     for (i, obs) in enumerate(observers)
         aa_obs = AcousticAnalogies.ConstVelocityAcousticObserver(0.0, obs.x, obs.v)
         apth = AcousticAnalogies.noise.(ses, Ref(aa_obs))
+        # Reception window: exactly one blade-pass period (bin H+1 = harmonic H).
         apth_total = AcousticAnalogies.combine(apth, bpp, num_src_times)
         t = AcousticMetrics.time(apth_total)
+        _assert_reception_inside_elements(apth, t, obs.label)
         pref = AcousticMetrics.pressure(apth_total)
         p_ac = pref .- sum(pref) / length(pref)
         n = length(p_ac)
         P = FFTW.rfft(p_ac)
         dt = n > 1 ? (t[2] - t[1]) : bpp / num_src_times
         df = 1 / max(n * dt, eps())
+        # I-02: rfft phase is φ + ω_H·t₀ for p(t)=A cos(ω_H t + φ) on t=t₀+jΔt.
+        t0 = first(t)
         for H in 1:n_harmonics
             fH = H * bpf
             bin = clamp(round(Int, fH / df) + 1, 1, length(P))
             c = P[bin]
             amplitude[i, H] = 2 * abs(c) / n
-            phase[i, H] = angle(c)
+            ω_H = 2π * fH
+            phase[i, H] = _wrap_phase(angle(c) - ω_H * t0)
         end
     end
 
@@ -313,6 +362,8 @@ function evaluate_propeller_source(cfg, observers::Vector{Observer};
         polar=polar_tag, t_over_c=t_over_c, pitch_offset_deg=pitch_off,
         loads=loads, s_T=s_T, s_Q=s_Q, num_src_times=num_src_times,
         B=B, Rhub=Rhub, Rtip=Rtip, rpm=rpm, allow_static=allow_static,
+        period_src=period_src, n_src=n_src, n_rev_src=n_rev_src,
+        force_short_source=force_short_source,
     )
     return SourceResult(amplitude, phase, collect(1:n_harmonics), bpf, T, Q, CT, CQ, CP, echo)
 end

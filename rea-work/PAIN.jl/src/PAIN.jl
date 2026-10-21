@@ -15,6 +15,8 @@ using AcousticAnalogies
 using AcousticMetrics
 using Observables
 using QML
+using Dates
+using CairoMakie
 
 include("geometry.jl")
 include("blocking.jl")
@@ -28,6 +30,8 @@ include("trim_loss.jl")
 include("pain_core.jl")
 include("metrics.jl")
 include("validation_report.jl")
+include("validation_cases.jl")
+include("validation_plots.jl")
 include("gui_model.jl")
 include("gui_main.jl")
 
@@ -62,12 +66,20 @@ export
     a_weight_dB, sil_dB, overall_dBA, sil_from_third_octave,
     ValidationRecord, write_validation_record,
     run_pain_pipeline, evaluate_T1, evaluate_T2, validate_mrp_table_d1,
-    main, make_gui_observables, run_pain_gui!
+    main, make_gui_observables, run_pain_gui!,
+    PlotSeries, PlotSpec, FigureRef, ValidationTableRow, ValidationCase, ValidationCaseResult,
+    VALIDATION_CASES, VALIDATION_CASE_ORDER, list_validation_cases,
+    run_validation_case, format_validation_result,
+    plot_case, validation_figure_path, validation_source_figure_path,
+    run_validation_gui!, run_all_validation_gui!
 
 """
-    run_pain_pipeline(; source=:synthetic | :e11 | :aircraft, trim=:auto, ...)
+    run_pain_pipeline(; source=:aircraft | :e11 | :synthetic, trim=:auto, ...)
 
 End-to-end: free-field → blocking → CYL2D + MRP → interior SPL (Eq. 8 chain).
+
+**User source (phase 33g):** `:aircraft` (BEMT + F1A) is the only user option in the GUI.
+`:e11` and `:synthetic` remain callable for T1/T2, smoke tests and `Pkg.test()` only.
 
 Cabin treatment (`trim`): `:bare` (τ_t = 1, η_n = `η_n_bare`), `:phase3` (the App. E Phase III stacks of
 `phase3_trim`, test article only), or `:auto` (`:phase3` for `source=:e11`, `:bare` otherwise). Giving
@@ -83,8 +95,8 @@ function run_pain_pipeline(;
         phi_p_deg::Float64=90.0,
         z_p::Float64=0.90,
         aircraft_json::Union{Nothing,String}=nothing,
-        source::Symbol=:synthetic,
-        use_synthetic::Bool=true,   # legacy alias
+        source::Symbol=:aircraft,
+        use_synthetic::Bool=false,   # legacy: true + no aircraft_json → :synthetic (tests)
         use_table_d1::Bool=true,
         blocking::BlockingVariant=R2,
         n_harmonics::Int=5,
@@ -105,11 +117,13 @@ function run_pain_pipeline(;
     prop = PropellerPlacement(r_p, phi_p_deg, z_p)
     spec = GridSpec()
 
+    # Resolve source. User path is :aircraft. :e11 / :synthetic stay for validation scripts and tests
+    # (phase 33g); the GUI does not offer them.
     src = source
-    if use_synthetic && source === :synthetic && aircraft_json === nothing
-        src = :synthetic
-    elseif aircraft_json !== nothing
+    if aircraft_json !== nothing
         src = :aircraft
+    elseif use_synthetic && source !== :e11
+        src = :synthetic
     end
 
     paths = default_e11_paths()

@@ -1,0 +1,18 @@
+# Source: CR-3813 Fig. E-16, PDF p. 142 (printed E-26), Pain Methodology.pdf
+# Method: author, WebPlotDigitizer; converted from data/Fig E-16.txt (I-15); values unchanged
+# Digitized 2026-10-21 by author; converted 2026-10-21; script data/digitizers/convert_i15_author_exports.jl
+# Conventions: dB re 20 µPa; space-average SPL; NASA PAIN = open circles where present
+# I-15 notes: (a)–(c) band alignment fixed in .txt before conversion (B-2)
+band_Hz,measured_mean_dB,low_dB,high_dB,nasa_pred_dB
+160,69.5,53.0,76.0,
+200,90.0,65.0,97.0,79.0
+250,71.0,52.0,79.0,
+315,62.5,51.0,71.0,
+400,80.0,62.0,87.0,75.0
+500,64.0,53.0,71.0,
+630,65.0,50.0,74.0,68.0
+800,54.0,47.0,61.0,49.0
+1000,53.0,47.0,58.0,32.0
+1250,51.0,46.0,59.0,
+1600,45.0,41.0,50.0,
+2000,41.5,35.0,49.0,

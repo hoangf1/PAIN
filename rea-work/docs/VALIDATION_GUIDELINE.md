@@ -307,6 +307,11 @@ A-weighting, band sum → dB(A), SIL. Class: **X-EXTRAP** when driven by CCBlade
 
 ### 2.10 Test-case guide: what each test does, why it exists, how much it proves
 
+**GUI registry (phase 34).** Each row below that has a registry ID can be run from the GUI **Validation** tab (and from
+`run_validation_case(id)` / scripts). Plots go to `docs/validation_reports/figures/<id>.png`. Cases are read-only. IDs in use:
+`CYL2D_C1`, `MRP_D1`, `T1`, `T2`, `REPRO_18b` (runnable); `E12_BLOCK`, `E11_FREEFIELD`, `E14_LOSS`, `E21_E22_NR`, `GEXT_BOUND`,
+`BBN_KIN`, `BBN_CIRC`, `BBN_LEVELS`, `BBN_LONG`, `R996_*`, `PER_*` (listed; greyed until the script core is moved into the registry).
+
 **How to read a PASS.** The class says what was compared. **V-UNIT**: the code matches a written equation. **V-CODE**: the code
 reproduces a NASA table or NASA program output. **V-EXP**: the result is compared with a measurement. A V-EXP pass is only as strong as
 its independence from tuning: if a parameter was set with the target in view, the pass is a *consistency check* and is labeled
@@ -321,8 +326,9 @@ an error changes the cabin result in a specific band or mode. *Minor*: reporting
 | **Grid geometry, 160 points** (unit test) | Checks the skin-point coordinates against the User Manual Fig. 3 formulas | Every observer position, γ, and joint-acceptance area comes from this grid | Critical | Coordinates match the manual (V-UNIT). Says nothing about the physics at those points. |
 | **Grid extension unit checks** (unit test) | Checks falloff at 0/45/90°, phase sign, axis mapping | Code check for GEXT, which fills the grid from one measured line in the e11 path | Minor | Code does what it was written to do (V-ASSUMED). It does not show the cosine falloff is correct. Used only in the e11 path. |
 | **Fig. E-11 digitization** (`e11_delta_dig.md`) | Compares two digitizations of the same figure; passes if max difference ≤ 1.0 dB | Input quality gate for the e11 source | Important | Shows the figure was read repeatably, not that the numbers are right. δmax = 1.0 dB sits exactly at the limit. Both readings use the same method. H = 3 values and all phases come from ANOPP Table 8, not from Fig. E-11 (see register). |
-| **CYL2D vs Table C-1 and Fig. C-3** (`cyl2d_table_c1.md`) | App. C scheme: compares all 20 frequencies and generalized masses with Table C-1 at 0.1 % (c0 = 341 m/s), the symmetry types, and the Fig. C-3 modes 0–5 node by node | Cabin modes set the resonances and coupling in the tone calculation | Important | Reproduces NASA's table (V-CODE), not an experiment. A pass shows the equations of App. C were implemented as written; the node rule r ≤ 1 + 0.4h and the tangential-gradient points are inferences that the table and figure confirm. Valid only for grids where B_E is non-singular and the spectrum is real (the paper's NY = 10 is one). |
-| **MRP vs Table D-1, hybrid 32/32** (`mrp_table_d1.md`, `run_pain.jl`) | Compares the production mode set with Table D-1 at 0.1% | Structural modes set the tone response | Important | **Circular.** The production modes take their frequencies and masses from Table D-1, so this passes by construction and tests nothing about the Ritz solver. |
+| **CYL2D vs Table C-1 and Fig. C-3** (`CYL2D_C1`; `cyl2d_table_c1.md`) | App. C scheme: compares all 20 frequencies and generalized masses with Table C-1 at 0.1 % (c0 = 341 m/s), the symmetry types, and the Fig. C-3 modes 0–5 node by node | Cabin modes set the resonances and coupling in the tone calculation | Important | Reproduces NASA's table (V-CODE), not an experiment. A pass shows the equations of App. C were implemented as written; the node rule r ≤ 1 + 0.4h and the tangential-gradient points are inferences that the table and figure confirm. Valid only for grids where B_E is non-singular and the spectrum is real (the paper's NY = 10 is one). |
+| **MRP vs Table D-1, hybrid 32/32** (`MRP_D1`; `mrp_table_d1.md`, `run_pain.jl`) | Compares the production mode set with Table D-1 at 0.1% | Structural modes set the tone response | Important | **Circular.** The production modes take their frequencies and masses from Table D-1, so this passes by construction and tests nothing about the Ritz solver. |
+| **T1 / T2 / REPRO_18b** (registry) | Same gates as the T1/T2/18b rows; GUI/scripts call `run_validation_case` | One implementation per case (phase 34) | Critical / Important | Same caveats as T1/T2/18b; plots show digitized reference vs computed. |
 | **MRP raw Ritz vs Table D-1** (`mrp_ritz_vs_d1.md`) | Matches Ritz frequencies to D-1 within 5% by greedy nearest-frequency assignment | The only real test of the structural-mode solver | Important | 30/32 pass (modes 2 and 9 miss). Three scales (`k_scale`, `edge`, `floor`) were fitted to maximize this same count, so it is calibrated. Greedy matching is lenient. Not an experimental modal survey. |
 | **Pipeline smoke** (`pipeline_smoke.md`) | Runs the synthetic free-field case through the whole chain | Catches crashes and wiring errors | Minor | The chain runs. Proves nothing about accuracy. |
 | **T1 tonal** (`t1_tonal.md`) | Runs the e11 free field through blocking, modes, and the Eq. (8) PAIN core; compares interior SPL for H = 1–3 with Fig. E-16 | The only end-to-end test of the cabin model against measurement | Critical | Since 17a **not calibrated**: no parameter of the tone path is fitted to T1, and the test records the outcome instead of asserting it. The gate passes if the result is within 4 dB of the measured mean, *or* inside the measured envelope and within 4 dB of NASA's PAIN prediction. Envelopes are wide (H1 65–97 dB), and the means are visual digitizations (about ±2 dB). Result 90.2, 79.3, 83.2 dB (H1, H2 pass, H3 fails). H1 depends on a trim resonance (τ_t = 15.6 at 200 Hz), and NASA's own PAIN prediction at H1 was 11 dB below the mean. Conditional on the identifications in the trace table (Phase 17 report §1). Regrade in 18a |
@@ -332,8 +338,8 @@ an error changes the cabin result in a specific band or mode. *Minor*: reporting
 | **Metrics dB(A) / SIL** (unit test) | Checks A-weighting and band-sum math | Reporting | Minor | The arithmetic is right (V-UNIT). |
 | **F1A smoke** (`ccblade_f1a_smoke.md`) | Compares peak SPL on the ℓ = 1 line with ANOPP Table 8 | Sanity check that loads → pressure gives sensible levels | Minor | Δ ≈ 0 only because of the Table-8 peak calibration; the raw overprediction is about 5, 9, and 14 dB at H1–H3. Table 8 is ANOPP's prediction, not a measurement. Not a validation. |
 | **BBN/Wilby phase check** (planned, plan phase 24) | Circumferential phase between microphone pairs (CR-158919 static, CR-159124 taxi) against B × m × Δψ, and relative in-plane levels of microphones 3–6; longitudinal pairs as X-EXTRAP | The first planned experimental check of the source block, run first for phase | Critical for the aircraft path | Kinematic part has no fitted parameters; microphones sit on a reflecting surface (scattering V-ASSUMED); axial pairs need an assumed blade. Criteria fixed in plan phase 23 first. Not yet run. |
-| **Report 996 checks** (planned, plan phases 26–27) | CCBlade C_T / C_P vs measured static data; F1A total rms pressure vs Figs. 6, 7, 8, each case run with two polar sets and with unscaled and measured-T/Q-scaled loads | The only planned experimental check of the source block | Critical for the aircraft path | See §2.3.1 for limits and rules and §2.3.3 for what a pass supports (accuracy on these cases, not "better than" another method). Not yet run. |
-| **Gutin / Hanson cross-check** (planned, plan phase 27) | F1A vs Report Eq. (2) and a Hanson near-field implementation on identical loads and observers | Catches coding errors in the F1A path; supplies the comparison needed for any "better" claim | Important | Agreement between implementations (V-CODE-like), not experiment. See §2.3.3. Not yet run. |
+| **Report 996 checks** (plan phases 26–27; I-07 re-run 2026-10-21) | CCBlade C_T / C_P; F1A vs Figs. 6, 7, 12–14 with scaled/unscaled loads | Source-block experimental check | Critical | **23c not met** (scaled ±2 dB 5/24; page-12 phase FAIL). Loads post-hoc label. See §2.3.3 — accuracy at listed cases only, not "better than". |
+| **Gutin / Hanson cross-check** (optional, phase 27 / 33a) | F1A vs Report Eq. (2) and a Hanson near-field implementation on identical loads | Coding cross-check; needed only for a "better" claim | Optional | **Not run** (2026-10-21 close-out). No "better than" claim. |
 | **Pereira forward-flight check** (planned, plan phase 28) | CCBlade T, Q and F1A harmonics 1–2 at 1 m vs measurement | The only planned check at a forward-flight operating point | Important | Far field only; polars generated here (spec in plan phase 28); ±1.7 dB measurement uncertainty. Not yet run. |
 
 **Parameter register: values fitted or chosen with a test target in view.** Any result that depends on these is a consistency check,
@@ -465,81 +471,89 @@ Decision of the author (2026-10-20): the Phase III trim loss factor of the test 
 | A miss | Recorded, not tuned. H3 followed by 19i (criteria fixed 2026-10-20 before the run) |
 | **19i result (2026-10-21)** | Base = 18b-r (82.73, 75.73, 77.05 dB). Part A H3 top modes 15 (29.8 %), 25 (22.6 %), 17 (21.4 %), 21 (8.1 %). Part B: every ±0.057 plate/shell omitted term on those four modes shifts H3 by ≤ 0.16 dB; **not found** as the cause of the H3 miss. Not adopted. Report `h3_followup.md`. Phase 33 carries H3 as a stated limitation |
 
-### 2.12 Source pre-registration (phase 23) — draft 2026-10-21; tolerances **[AUTHOR]**
+### 2.12 Source pre-registration (phase 23) — **frozen 2026-10-21** (author approval, plan §3.0a / I-06)
 
-Written before any BBN / Report 996 / Pereira comparison run. Tolerances and pass rules marked **[AUTHOR]** are not fixed until the author fills them; a blank criterion blocks the phase that needs it (R3). Evidence cited is a constraint, not a choice.
-
-**Agent status 2026-10-21 (continued):** draft rows below unchanged; **23f freeze still AUTHOR**. Report 996 acoustics matrix expanded (Figs. 14/13a/7) and Pereira 3-polar matrix recorded without pass/fail. BBN circumferential comparison remains blocked on a common time base (`bbn_phase.md`). Digitization C-01–C-12 done (C-05 E-21/E-22 δ_dig = 1.00 dB PASS). Pereira Fig. 8 (C-03) H1 Exp φ=0 is 3.4 dB below Fig. 9 (card ±2 dB marginal).
+Written before any BBN / Report 996 / Pereira comparison run that uses these tolerances for a verdict. Values below are the I-06 freeze (author 2026-10-21). Phase 26 loads were computed before this freeze and are labelled "criteria registered after the loads were computed" whatever the outcome. Re-runs of 24, 27 and 28 after I-01/I-02 use these criteria as pre-registered.
 
 #### 23a BBN circumferential phase (phase 24c)
 
-| Column | Draft |
-|--------|-------|
+| Column | Frozen |
+|--------|--------|
 | ID | 23a |
 | data | D-02, D-03, D-04, D-06, D-21 |
 | cases | pairs 4-3, 5-3, 4-5 (5-6 reported, flagged); harmonics 1–7; static CR-158919 + taxi 40/55/70 kt CR-159124 |
 | quantity | wrap(Δφ_meas − Δφ_F1A) to ±180°; trace-velocity ratio v_tr / (Ω r_hub) |
 | statistic | per pair × harmonic residual; coherence &lt; 0.15 low confidence, &lt; 0.05 dropped |
-| tolerance | **[AUTHOR]** proposed floor ≥ ±15° at H1–2 (hand pre-check 2–13° at H1–2; 11–31° at H3–5 for 4-5) |
-| pass rule | **[AUTHOR]** e.g. all pairs×H1–2 within tol, or ≥ N of M |
+| tolerance | \|residual\| ≤ 15° at H1–2, ≤ 35° at H3–7; trace-velocity ratio within ±0.10 of the measured ratio |
+| pass rule | pass if ≥ 80 % of rows with coherence ≥ 0.15 (pairs 4-3, 5-3, 4-5; 5-6 reported only) are within tolerance |
 | label if met | V-EXP (circumferential phase, no fitted parameters) |
 | label if not met | recorded finding; not tuned |
-| date | draft 2026-10-21; freeze at 23f |
+| date | **frozen 2026-10-21** |
 
 #### 23a′ V-UNIT kinematic (phase 24b)
 
-| Column | Draft |
-|--------|-------|
+| Column | Frozen |
+|--------|--------|
 | ID | 23a′ |
 | quantity | Δφ = m·B·Δψ wrapped, hub-centred ring, static |
-| tolerance | **[AUTHOR]** proposed 0.1° with `num_src_times` ≥ 128 |
+| tolerance | 0.5° |
 | pass rule | all listed separations (13.3°, 11.8°, 10.4°), H1–7; reverse rotation flips sign |
-| date | draft 2026-10-21 |
+| date | **frozen 2026-10-21** |
 
 #### 23b BBN in-plane levels (phase 24d)
 
-| Column | Draft |
-|--------|-------|
+| Column | Frozen |
+|--------|--------|
 | ID | 23b |
 | quantity | relative level of mics 3–6 vs mic 4 (dB) |
-| statistic | **[AUTHOR]** Δ(SPL_i − SPL_4)_meas − Δ(SPL_i − SPL_4)_F1A |
-| tolerance | **[AUTHOR]** (reflections present; assumed blade) |
-| date | draft 2026-10-21 |
+| statistic | Δ(SPL_i − SPL_4)_meas − Δ(SPL_i − SPL_4)_F1A |
+| tolerance | ±3 dB on (SPL_i − SPL_4) |
+| label | reported X-EXTRAP (assumed blade) |
+| date | **frozen 2026-10-21** |
 
 #### 23c Report 996 (phases 26–27)
 
-| Column | Draft |
-|--------|-------|
+| Column | Frozen |
+|--------|--------|
 | ID | 23c |
 | evidence | Fig. 7 legend C_P vs RM L8H25a −5%/+11%; Fig. 14 vs L8H25a +5%/+15%; Fig. 12 vs 14 ≤ 6%; dig ≈ 0.5% |
-| tolerance C_T, C_P | **[AUTHOR]** |
-| tolerance pressure | **[AUTHOR]** per harmonic and total rms |
-| polar bracket | **[AUTHOR]** both sets pass, or bracket straddles measurement |
-| page-12 phase | **[AUTHOR]** (155° measured / 165° Eq. 2 at M_t = 0.75) |
-| date | draft 2026-10-21 |
+| tolerance C_T, C_P | within ±15 % (largest source-to-source spread, Fig. 14 table vs RM L8H25a) |
+| tolerance pressure | scaled-load pressure per harmonic and total rms within ±2 dB at ≥ 75 % of in-scope points; unscaled runs informational |
+| page-12 phase | within ±15° |
+| date | **frozen 2026-10-21** |
+| note on 26 | "criteria registered after the loads were computed" |
 
 #### 23d Pereira (phase 28)
 
-| Column | Draft |
-|--------|-------|
+| Column | Frozen |
+|--------|--------|
 | ID | 23d |
 | quantity | harmonics 1–2 SPL at 1 m; ψ₁(φ) − ψ₁(0°) |
-| tolerance H1 | ±1.7 dB (paper App. A) — proposed; **[AUTHOR]** confirm |
-| tolerance H2 | **[AUTHOR]** (paper ~2.7 dB above its BEMT) |
-| phase Δψ₁ | **[AUTHOR]** proposed ±2° reading unc. |
-| date | draft 2026-10-21 |
+| tolerance H1 | ±1.7 dB |
+| tolerance H2 | ±3 dB |
+| phase Δψ₁ | ψ₁(φ) − ψ₁(0°) within ±5° |
+| exclusion | a clipped or missing reference cell is excluded, not filled |
+| date | **frozen 2026-10-21** |
 
 #### 23e Held-out reservation
 
-| Column | Draft |
-|--------|-------|
+| Column | Frozen |
+|--------|--------|
 | ID | 23e |
-| decision | **[AUTHOR]** which of E-16/E-17/E-18/E-9/E-10 is held out; if none, T1/T2 stay calibrated (in-sample) |
-| date | draft 2026-10-21 |
+| decision | held out of any calibration: E-17, E-10, E-21, E-22 (all) |
+| date | **frozen 2026-10-21** |
 
 #### 23f Freeze
 
-Date the filled tolerances here and in this section header when the author confirms. Any change after the first comparison run makes that result calibrated with the changed parameter named.
+**Frozen 2026-10-21** at the I-06 values above (author approval, plan §3.0a). Any change after a comparison run that uses these tolerances makes that result calibrated with the changed parameter named.
+
+**I-07 comparison runs (2026-10-21), using the freeze above (not changing it):**
+- **23a′ / 24b:** PASS (`Pkg.test()`).
+- **23a / 24c:** FAIL — 26/168 rows (15%) within tolerance (`bbn_phase.md`).
+- **23b / 24d:** reported X-EXTRAP in `bbn_phase.md`.
+- **23c / 27:** FAIL — scaled Fig.14 sample 5/24 within ±2 dB; page-12 |Δφ−155°|=51.2° (`report996_acoustics.md`; I-08 L51C27 on Fig.13a).
+- **23d / 28:** FAIL on H1 (0/9 within ±1.7 dB vs Fig.9 Exp at 80 dB as read); H2 6/9 within ±3 dB (`pereira_forward_flight.md`).
+- Phase **26** loads keep the post-hoc label "criteria registered after the loads were computed".
 
 ---
 
@@ -550,7 +564,7 @@ A recreation is **pipeline-valid** only if:
 1. **Blocking** matches Eq. (43) within **0.06 dB** (R1) and R2 scaling is explicit.  
 2. **CYL2D / MRP** match Table C-1 / D-1 within flowchart tolerances (**V-CODE**).  
 3. **PAIN core** with **measured / digitized free-field** (Fig. E-11 path) reproduces App. E tonal tests within the published scatter (**V-EXP**).  
-4. **CCBlade + AcousticAnalogies** is treated as an **alternate free-field generator**; its outputs are **X-EXTRAP** for the aircraft application. The source block on its own is checked against NACA Report 996 (static) and Pereira et al. 2026 (forward flight) (`IMPLEMENTATION_PLAN.md` phases 25–28); see §2.3.3 for what those checks can claim.
+4. **CCBlade + AcousticAnalogies** is treated as an **alternate free-field generator**; its outputs are **X-EXTRAP** for the aircraft application (phase 33 close-out 2026-10-21: BBN 24c, Report 996 23c and Pereira 23d did not meet frozen tolerances; Gutin/Hanson optional cross-check not run). See §2.3.3.
 
 Do **not** claim that replacing ANOPP with CCBlade/F1A inherits NASA’s exterior-noise validation. Claim inheritance only for the **transmission / cabin** model after the free-field grid interface.
 

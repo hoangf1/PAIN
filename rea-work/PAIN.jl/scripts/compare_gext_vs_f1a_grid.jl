@@ -19,7 +19,7 @@ gext_a, gext_p = extend_line_to_grid(line_a, line_p, pts; omega_H=ωH)
 pref = 20e-6
 io = IOBuffer()
 println(io, "# GEXT vs full-grid F1A (phase 21i diagnostic)\n")
-println(io, "Generated $(Dates.today()) by `scripts/compare_gext_vs_f1a_grid.jl`. Same Table-8 calibration on both; only the off-line fill differs. Wall time full-grid (nH=3, nsrc=32): $(round(wall; digits=1)) s.\n")
+println(io, "Generated $(Dates.today()) by `scripts/compare_gext_vs_f1a_grid.jl`. **Re-run after plan I-01/I-02 ($(Dates.today())).** Same Table-8 calibration on both; only the off-line fill differs. Wall time full-grid (nH=3, nsrc=32): $(round(wall; digits=1)) s.\n")
 println(io, "| H | max \\|ΔSPL\\| dB (144 off-line) | RMS ΔSPL dB | max \\|Δphase\\| rad |\n|---:|---:|---:|---:|")
 for H in 1:nH
     dspl = Float64[]; dph = Float64[]

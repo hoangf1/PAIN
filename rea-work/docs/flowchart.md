@@ -11,7 +11,7 @@ The user source is BEMT + F1A, which gives the free-field pressure at the 160 fu
 
 Grid extension (GEXT) appears only in diagram 2. It exists because the NASA paper measured one line of the grid.
 
-Status key: green = check exists and passes as stated; orange = planned, not independently checked, or the current code differs from CR-3813; blue = calibrated surrogate. Step numbers refer to `IMPLEMENTATION_PLAN.md` (phases numbered in run order, grid fix 12, pre-registration 13 and E-12 check 14 done, cabin phases 15–18 done; assumptions registered in 13a, `VALIDATION_GUIDELINE.md` §2.11).
+Status key: green = check exists and passes as stated; orange = planned, not independently checked, or the current code differs from CR-3813; blue = calibrated surrogate. Step numbers refer to `IMPLEMENTATION_PLAN.md`. **2026-10-21:** phases 32–34 done. Source checks reported; GEXT flips → T1 not claimable; GUI Run tab = aircraft only; **Validation tab** → case registry → CairoMakie plots (`docs/validation_reports/figures/`). Aircraft path stays X-EXTRAP; 29b–31 deferred (B-4).
 
 **Grid azimuth (12b, done 2026-10-20).** The 160-point grid lies on the upper quarter of the fuselage with line ℓ = 1 at the propeller azimuth φ_p, θ_ℓ = φ_p + (ℓ−1)π/18 (User Manual p. 34 and Fig. 3), and γ is the angle between the surface→hub direction and the outward normal (γ = 0 at ℓ = 1, k = k_p). Before the fix the code put ℓ = 1 at the bottom centerline, so e11 results computed before 2026-10-20 used the wrong incidence angle and the wrong shell region and are void. Results in diagram 2 now come from the corrected grid but now use the untuned CR-3813 cabin chain (Eq. 8, App. A trim, §3.8 losses; 17a, 2026-10-20), regraded in 18a. Order of work: `IMPLEMENTATION_PLAN.md`, phases numbered in run order (12 grid fix, 13 pre-registration and 14 E-12 check, done; 15–18 cabin chain, 19–27 source checks, 28–30 aircraft cabin, 31 GEXT bound, 32 close-out).
 
@@ -25,17 +25,21 @@ flowchart LR
     S["<b>Shared cabin model</b><br/>blocking -> modes -> PAIN core<br/>(diagram 4)"]
     T["Tests T1 / T2<br/>vs NASA interior SPL"]
     M["dB(A), SIL<br/><i>extrapolated</i>"]
+    GUI["GUI Validation tab<br/>case registry<br/>read-only plots"]
 
     V --> G
     A --> G
     G --> S
     S --> T
     S --> M
+    T --> GUI
+    S --> GUI
 
     style V fill:#e8f4ff
     style A fill:#f3e5f5
     style T fill:#e8ffe8
     style M fill:#f3e5f5
+    style GUI fill:#e8ffe8
 ```
 
 ## 2. NASA validation (e11)
@@ -130,7 +134,7 @@ flowchart LR
     style APP fill:#f3e5f5
 ```
 
-Code status (2026-10-21): phases 21–22 done; 25 (except 25g) + C-01–C-12 done; 26–28 **expanded numbers recorded** (no official pass/fail). GEXT remains e11-only (diagram 2).
+Code status (2026-10-21 phase 33): 21–28 and 32 done (29b–31 deferred); 33 close-out recorded; GUI source = aircraft only. GEXT remains e11-only (diagram 2). Phase 34 planned.
 
 **Blocked for author:** 23f [AUTHOR] freeze; BBN 24b common-time-base; 29b/29c [CONFIRM]. Then 30–31–33.
 

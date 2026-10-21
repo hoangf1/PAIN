@@ -1,0 +1,21 @@
+# Source: NACA Report 996 Fig. 3(c) NACA 4-(5)(08)-03, PDF p. 9
+# Method: hand reading of panel (c); b/D curve confirmed (not h/b); compare blade_form.csv (I-11)
+# Digitized 2026-10-21; regenerated I-11 2026-10-21; script data/digitizers/dig_tr996_fig3.py
+# Finding I-11: panel (c) caption is NACA 4-(5)(08)-03; curve read as b/D. Author Fig 3.txt (B-3) disagrees — wrong panel/curve; blade_form.csv stays geometry input (25b).
+# Conventions: b/D = c/(2R); h/b = t/c; beta_deg section pitch
+r_over_R,b_over_D,h_over_b,beta_deg,b_over_D_blade_form,h_over_b_blade_form,beta_deg_blade_form,blade_form_r_over_R
+0.3,0.093,0.17,65.5,0.0927,0.1294,65.9,0.3
+0.35,0.092,0.155,62.5,0.08935,0.1223,62.71,0.35
+0.4,0.091,0.14,59.5,0.08535,0.114,59.09,0.41
+0.45,0.09,0.128,56.5,0.0833,0.11,57.35,0.44
+0.5,0.09,0.118,53.5,0.0793,0.1024,54.05,0.5
+0.55,0.089,0.108,50.5,0.0753,0.0951,50.97,0.56
+0.6,0.089,0.1,48.0,0.0726,0.0904,49.04,0.6
+0.65,0.088,0.092,45.5,0.06925,0.0849,46.76,0.65
+0.7,0.088,0.085,43.5,0.06655,0.0806,45.04,0.69
+0.75,0.087,0.078,42.0,0.06255,0.0745,42.64,0.75
+0.8,0.085,0.07,40.0,0.0592,0.0698,40.82,0.8
+0.85,0.08,0.06,38.0,0.05585,0.0652,39.14,0.85
+0.9,0.065,0.052,36.5,0.0525,0.0581,37.61,0.9
+0.95,0.04,0.045,35.0,0.0483,0.0467,36.23,0.95
+1.0,0.0,0.04,34.0,0.0,0.0,35.01,1.0

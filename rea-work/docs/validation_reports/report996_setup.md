@@ -13,10 +13,10 @@ Case: β₇₅=15°, M_t=0.75, d/D=0.083, H1, CCBlade loads (unscaled).
 
 | side | x/D | A_H1 Pa | A_H1 dyne/cm² |
 |---|---:|---:|---:|
-| behind | -0.125 | 22316.64 | 223166.4 |
-| ahead | +0.125 | 2195.51 | 21955.1 |
+| behind | -0.125 | 88.66 | 886.6 |
+| ahead | +0.125 | 101.35 | 1013.5 |
 
-behind > ahead: **true** (Fig. 13(a) measured ~1328 vs ~1009 dyne/cm²).
+behind > ahead: **false** (Fig. 13(a) measured ~1328 vs ~1009 dyne/cm²).
 Absolute levels remain far above measured (near-field F1A at d/D=0.083); pass/fail waits on 23c [AUTHOR].
 
 ## Blade-angle shift (25b)
@@ -29,7 +29,7 @@ Forced-transition merged polar (`polars_forced_merged.json`): clamped_Re=729, cl
 
 ## Harmonic count for total-rms convergence (25k)
 
-At behind x/D=−0.125: adding harmonic n changes total SPL by < 0.1 dB starting at **n = 7** (of 12 computed).
+At behind x/D=−0.125: adding harmonic n changes total SPL by < 0.1 dB starting at **n = 6** (of 12 computed).
 
 ## Related
 

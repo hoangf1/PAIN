@@ -1,0 +1,95 @@
+# Source: Pereira et al., Aerosp. Sci. Technol. 177 (2026) 112963, Fig. 9, PDF p. 10
+# Method: author, WebPlotDigitizer; converted from Pereira Fig. 9 Deg=0/20/40.txt (I-15); values unchanged
+# Digitized 2026-10-21 by author; converted 2026-10-21; script data/digitizers/convert_i15_author_exports.jl
+# I-15 (d)/(e): H1=80 dB accepted as read; Fig. 8 = pereira_fig8_directivity.csv (pixel)
+panel,phi_deg,harmonic,series,SPL_dB,dSPL_vs_BEMT_dB,flag
+a,0,1,BEMT,80.0,0.0,I-15(d): H1 bars read 80 dB all series; accepted by author 2026-10-21
+a,0,1,Numerical,80.0,1.0,I-15(d): H1 bars read 80 dB all series; accepted by author 2026-10-21
+a,0,1,Experimental,80.0,1.0,I-15(d): H1 bars read 80 dB all series; accepted by author 2026-10-21
+a,0,2,BEMT,63.0,0.0,
+a,0,2,Numerical,67.0,3.0,
+a,0,2,Experimental,69.0,4.5,
+a,0,3,BEMT,49.0,0.0,Delta_SPL at frame limit (+/-10)
+a,0,3,Numerical,53.0,5.0,Delta_SPL at frame limit (+/-10)
+a,0,3,Experimental,62.0,10.0,Delta_SPL at frame limit (+/-10)
+a,0,4,BEMT,30.0,0.0,Delta_SPL at frame limit (+/-10)
+a,0,4,Numerical,38.0,5.5,Delta_SPL at frame limit (+/-10)
+a,0,4,Experimental,48.0,10.0,Delta_SPL at frame limit (+/-10)
+a,0,5,BEMT,28.0,0.0,Delta_SPL at frame limit (+/-10)
+a,0,5,Numerical,20.0,-5.0,Delta_SPL at frame limit (+/-10)
+a,0,5,Experimental,48.0,10.0,Delta_SPL at frame limit (+/-10)
+a,0,6,BEMT,26.0,0.0,Delta_SPL at frame limit (+/-10)
+a,0,6,Numerical,22.0,-1.5,Delta_SPL at frame limit (+/-10)
+a,0,6,Experimental,49.0,10.0,Delta_SPL at frame limit (+/-10)
+a,0,7,BEMT,24.0,0.0,Delta_SPL at frame limit (+/-10)
+a,0,7,Numerical,24.0,0.0,Delta_SPL at frame limit (+/-10)
+a,0,7,Experimental,45.0,10.0,Delta_SPL at frame limit (+/-10)
+a,0,8,BEMT,22.0,0.0,Delta_SPL at frame limit (+/-10)
+a,0,8,Numerical,24.0,1.5,Delta_SPL at frame limit (+/-10)
+a,0,8,Experimental,44.0,10.0,Delta_SPL at frame limit (+/-10)
+a,0,9,BEMT,21.0,0.0,Delta_SPL at frame limit (+/-10)
+a,0,9,Numerical,26.0,2.5,Delta_SPL at frame limit (+/-10)
+a,0,9,Experimental,44.0,10.0,Delta_SPL at frame limit (+/-10)
+a,0,10,BEMT,20.0,0.0,Delta_SPL at frame limit (+/-10)
+a,0,10,Numerical,26.0,4.5,Delta_SPL at frame limit (+/-10)
+a,0,10,Experimental,42.0,10.0,Delta_SPL at frame limit (+/-10)
+b,20,1,BEMT,80.0,0.0,I-15(d): H1 bars read 80 dB all series; accepted by author 2026-10-21
+b,20,1,Numerical,80.0,0.0,I-15(d): H1 bars read 80 dB all series; accepted by author 2026-10-21
+b,20,1,Experimental,80.0,0.0,I-15(d): H1 bars read 80 dB all series; accepted by author 2026-10-21
+b,20,2,BEMT,64.0,0.0,
+b,20,2,Numerical,66.0,2.0,
+b,20,2,Experimental,64.0,-0.5,
+b,20,3,BEMT,49.0,0.0,
+b,20,3,Numerical,53.0,4.0,
+b,20,3,Experimental,49.0,-0.5,
+b,20,4,BEMT,31.0,0.0,Delta_SPL at frame limit (+/-10)
+b,20,4,Numerical,32.0,1.0,Delta_SPL at frame limit (+/-10)
+b,20,4,Experimental,41.0,10.0,Delta_SPL at frame limit (+/-10)
+b,20,5,BEMT,27.0,0.0,
+b,20,5,Numerical,20.0,-7.0,
+b,20,5,Experimental,36.0,9.0,
+b,20,6,BEMT,26.0,0.0,Delta_SPL at frame limit (+/-10)
+b,20,6,Numerical,26.0,0.0,Delta_SPL at frame limit (+/-10)
+b,20,6,Experimental,44.0,10.0,Delta_SPL at frame limit (+/-10)
+b,20,7,BEMT,25.0,0.0,Delta_SPL at frame limit (+/-10)
+b,20,7,Numerical,24.0,-1.0,Delta_SPL at frame limit (+/-10)
+b,20,7,Experimental,42.0,10.0,Delta_SPL at frame limit (+/-10)
+b,20,8,BEMT,22.0,0.0,Delta_SPL at frame limit (+/-10)
+b,20,8,Numerical,25.0,3.0,Delta_SPL at frame limit (+/-10)
+b,20,8,Experimental,42.0,10.0,Delta_SPL at frame limit (+/-10)
+b,20,9,BEMT,21.0,0.0,Delta_SPL at frame limit (+/-10)
+b,20,9,Numerical,26.0,5.0,Delta_SPL at frame limit (+/-10)
+b,20,9,Experimental,45.0,10.0,Delta_SPL at frame limit (+/-10)
+b,20,10,BEMT,20.0,0.0,Delta_SPL at frame limit (+/-10)
+b,20,10,Numerical,29.0,9.0,Delta_SPL at frame limit (+/-10)
+b,20,10,Experimental,44.0,10.0,Delta_SPL at frame limit (+/-10)
+c,40,1,BEMT,80.0,0.0,I-15(d): H1 bars read 80 dB all series; accepted by author 2026-10-21
+c,40,1,Numerical,80.0,-0.5,I-15(d): H1 bars read 80 dB all series; accepted by author 2026-10-21
+c,40,1,Experimental,80.0,-0.5,I-15(d): H1 bars read 80 dB all series; accepted by author 2026-10-21
+c,40,2,BEMT,60.0,0.0,
+c,40,2,Numerical,62.0,2.0,
+c,40,2,Experimental,64.5,4.5,
+c,40,3,BEMT,39.0,0.0,
+c,40,3,Numerical,44.0,5.0,
+c,40,3,Experimental,47.5,8.5,
+c,40,4,BEMT,26.0,0.0,Delta_SPL at frame limit (+/-10)
+c,40,4,Numerical,23.0,-3.0,Delta_SPL at frame limit (+/-10)
+c,40,4,Experimental,45.0,10.0,Delta_SPL at frame limit (+/-10)
+c,40,5,BEMT,24.0,0.0,Delta_SPL at frame limit (+/-10)
+c,40,5,Numerical,24.5,0.5,Delta_SPL at frame limit (+/-10)
+c,40,5,Experimental,48.0,10.0,Delta_SPL at frame limit (+/-10)
+c,40,6,BEMT,22.0,0.0,Delta_SPL at frame limit (+/-10)
+c,40,6,Numerical,27.0,5.0,Delta_SPL at frame limit (+/-10)
+c,40,6,Experimental,50.0,10.0,Delta_SPL at frame limit (+/-10)
+c,40,7,BEMT,20.0,0.0,Delta_SPL at frame limit (+/-10)
+c,40,7,Numerical,26.0,6.0,Delta_SPL at frame limit (+/-10)
+c,40,7,Experimental,48.0,10.0,Delta_SPL at frame limit (+/-10)
+c,40,8,BEMT,19.0,0.0,Delta_SPL at frame limit (+/-10)
+c,40,8,Numerical,29.0,10.0,Delta_SPL at frame limit (+/-10)
+c,40,8,Experimental,50.0,10.0,Delta_SPL at frame limit (+/-10)
+c,40,9,BEMT,18.0,0.0,Delta_SPL at frame limit (+/-10)
+c,40,9,Numerical,28.0,10.0,Delta_SPL at frame limit (+/-10)
+c,40,9,Experimental,50.0,10.0,Delta_SPL at frame limit (+/-10)
+c,40,10,BEMT,17.0,0.0,Delta_SPL at frame limit (+/-10)
+c,40,10,Numerical,27.0,10.0,Delta_SPL at frame limit (+/-10)
+c,40,10,Experimental,48.0,10.0,Delta_SPL at frame limit (+/-10)
