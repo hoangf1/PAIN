@@ -1,0 +1,19 @@
+# Digitization A of Fig. E-12 measured blocked SPL (CR-3813 App. E, p. E-20, PDF page 136), line l=1, dB re 20 uPa.
+# Read by eye against the axis ticks (calibration in data/digitizers/e12_common.py); vertices of the curve, not resampled.
+# End points of the dashed measured curve without a circle are marked point_type=end.
+harmonic,X3_over_D,SPL_dB,point_type
+1,0.676,102.0,marker
+1,0.154,126.3,marker
+1,0.006,124.9,marker
+1,-0.104,126.1,marker
+1,-0.628,105.9,marker
+2,0.685,83.4,marker
+2,0.155,118.8,marker
+2,0.011,118.7,marker
+2,-0.118,115.4,marker
+2,-0.21,109.9,end
+3,0.152,111.5,marker
+3,0.011,114.7,marker
+3,-0.116,107.5,marker
+3,0.223,104.6,end
+3,-0.21,99.2,end

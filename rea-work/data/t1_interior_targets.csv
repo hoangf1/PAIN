@@ -1,0 +1,9 @@
+# T1 tonal interior SPL targets — re-digitized Fig. E-16 (CR-3813 App. E, p.E-26).
+# Values are space-average measured 1/3-octave band SPL at bands containing H*BPF
+# (BPF=200 Hz → H1@200, H2@400, H3@630). PAIN_pred = NASA PAIN circles on E-16.
+# Digitizations: visual from data/figures/e16-142.png (±2 dB uncertainty on mean).
+# Gate: measured_low..measured_high = dashed envelope on E-16; prefer mean±4 for pass check.
+harmonic,f_Hz,band_Hz,measured_mean_SPL_dB,measured_low_dB,measured_high_dB,nasa_pain_pred_dB
+1,200,200,90.0,65.0,97.0,79.0
+2,400,400,80.0,62.0,87.0,75.5
+3,600,630,65.0,50.0,74.0,68.0

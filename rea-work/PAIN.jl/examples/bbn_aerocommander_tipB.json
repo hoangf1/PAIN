@@ -1,0 +1,21 @@
+{
+  "description": "BBN Aero Commander assumed blade tip B (elliptic taper 40 in → tip). Same inner stations as tip A.",
+  "propeller": {
+    "num_blades": 3,
+    "tip_radius_m": 1.18,
+    "hub_radius_m": 0.2413,
+    "rpm": 1600,
+    "thickness_over_chord": 0.0,
+    "pitch_offset_deg": 0.0,
+    "radii_m": [0.2413, 0.3302, 0.508, 0.7112, 0.8636, 1.016, 1.098, 1.18],
+    "chord_m": [0.1195, 0.1453, 0.1602, 0.1542, 0.1384, 0.1067, 0.0935, 0.01],
+    "twist_deg": [45.0, 43.0, 41.5, 36.8, 33.2, 30.0, 28.5, 27.0]
+  },
+  "operating_point": {
+    "forward_speed_mps": 0.0,
+    "rho_kg_m3": 1.225,
+    "c0_mps": 340.3
+  },
+  "anopp_table8_calibrate": false,
+  "notes": "tip B: elliptic taper to zero chord at tip; OCR unverified; allow_static=true required"
+}

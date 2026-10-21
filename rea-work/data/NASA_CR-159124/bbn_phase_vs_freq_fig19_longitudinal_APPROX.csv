@@ -1,0 +1,42 @@
+# APPROXIMATE by-eye readings of CR-159124 Figure 19 (phase angle spectra, longitudinal direction, PDF p. 56, printed p. 44).
+# NOT a pixel trace. Frequency read against the printed 0-1000 Hz axis (+/- 15 Hz); phase read against the printed multiples of pi (+/- 0.1 pi, i.e. +/- 0.3 rad).
+# phase_rad = phase_pi * pi, sign as printed (the figure plots negative phase going down). Lines fitted by the author in the figure are not transcribed.
+# Verify each point against the PDF before using it for a quantitative comparison.
+figure_panel,pair,series,frequency_Hz,phase_units_of_pi,phase_rad,method
+19a,5-1,0 kt (triangles),239,0.6,1.885,by_eye_approx
+19a,5-1,0 kt (triangles),320,0.24,0.754,by_eye_approx
+19a,5-1,0 kt (triangles),398,-0.24,-0.754,by_eye_approx
+19a,5-1,0 kt (triangles),487,-0.8,-2.5133,by_eye_approx
+19a,5-1,0 kt (triangles),565,-1.5,-4.7124,by_eye_approx
+19a,5-1,0 kt (triangles),641,-1.68,-5.2779,by_eye_approx
+19a,5-1,0 kt (triangles),726,-2.12,-6.6602,by_eye_approx
+19a,5-1,0 kt (triangles),804,-2.7,-8.4823,by_eye_approx
+19a,5-1,30 kt (circles),80,0.27,0.8482,by_eye_approx
+19a,5-1,30 kt (circles),167,0.3,0.9425,by_eye_approx
+19a,5-1,30 kt (circles),240,0.14,0.4398,by_eye_approx
+19a,5-1,30 kt (circles),320,0.05,0.1571,by_eye_approx
+19a,5-1,30 kt (circles),405,-0.01,-0.0314,by_eye_approx
+19a,5-1,30 kt (circles),483,0.0,0.0,by_eye_approx
+19a,5-1,30 kt (circles),568,0.25,0.7854,by_eye_approx
+19a,5-1,30 kt (circles),639,-0.3,-0.9425,by_eye_approx
+19a,5-1,30 kt (circles),726,-1.09,-3.4243,by_eye_approx
+19a,5-1,30 kt (circles),804,-0.95,-2.9845,by_eye_approx
+19b,5-8,0 kt (triangles),82,-0.55,-1.7279,by_eye_approx
+19b,5-8,0 kt (triangles),158,-0.46,-1.4451,by_eye_approx
+19b,5-8,0 kt (triangles),243,-0.38,-1.1938,by_eye_approx
+19b,5-8,0 kt (triangles),323,-0.8,-2.5133,by_eye_approx
+19b,5-8,0 kt (triangles),398,-1.38,-4.3354,by_eye_approx
+19b,5-8,0 kt (triangles),485,-1.84,-5.7805,by_eye_approx
+19b,5-8,0 kt (triangles),561,-2.26,-7.1,by_eye_approx
+19b,5-8,0 kt (triangles),643,-2.5,-7.854,by_eye_approx
+19b,5-8,0 kt (triangles),725,-3.05,-9.5819,by_eye_approx
+19b,5-8,0 kt (triangles),804,-3.8,-11.9381,by_eye_approx
+19b,5-8,30 kt (circles),82,-0.55,-1.7279,by_eye_approx
+19b,5-8,30 kt (circles),158,-0.95,-2.9845,by_eye_approx
+19b,5-8,30 kt (circles),319,-1.48,-4.6496,by_eye_approx
+19b,5-8,30 kt (circles),397,-2.17,-6.8173,by_eye_approx
+19b,5-8,30 kt (circles),484,-2.49,-7.8226,by_eye_approx
+19b,5-8,30 kt (circles),566,-1.86,-5.8434,by_eye_approx
+19b,5-8,30 kt (circles),642,-3.07,-9.6447,by_eye_approx
+19b,5-8,30 kt (circles),725,-3.59,-11.2783,by_eye_approx
+19b,5-8,30 kt (circles),804,-4.26,-13.3832,by_eye_approx

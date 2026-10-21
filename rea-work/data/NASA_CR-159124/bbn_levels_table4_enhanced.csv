@@ -1,0 +1,9 @@
+# NASA CR-159124 (BBN, taxi tests), transcribed from page images 2026-10-20.
+# Source: Table 4, Overall Values of Enhanced Propeller Blade Passage Tones, PDF p. 42 (printed p. 30). e = enhanced, u = unenhanced (dB). ** = no data acquired. Runs: static (1&4), 30 kt (2), 70 kt (7).
+location,static_e_dB,static_u_dB,kt30_e_dB,kt30_u_dB,kt70_e_dB,kt70_u_dB
+1,132.9,133.1,132.5,132.5,**,**
+3,136.4,137.5,**,**,130.3,132.4
+4,137.3,137.6,**,**,131.9,133.7
+5,134.0,134.8,133.9,134.3,130.8,131.8
+8,130.2,130.8,129.8,130.5,**,**
+9,117.6,121.9,119.0,121.2,**,**

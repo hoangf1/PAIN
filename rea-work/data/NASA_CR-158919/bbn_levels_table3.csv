@@ -1,0 +1,18 @@
+# NASA CR-158919 (BBN), transcribed from page images 2026-10-20.
+# Source: Table 3, Overall Values of Propeller Blade Passage Tones (4 Hz resolution), PDF p. 17 (printed p. 17). Columns are BBN run numbers (Table 1). Levels in dB as printed.
+# * levels too high due to engine noise contamination and reflections off the wing; ** data suspect (auto-ranging). Location 10 run 2 is ** (no value).
+location,flag,run1,run2,run3,run4,run5,run6,run7,run8
+1,,128.9,131.9,132.7,133.1,129.3,128.4,124.0,123.8
+2,,133.1,135.8,136.9,137.3,133.2,132.5,128.2,127.8
+3,,133.1,135.6,137.3,137.4,132.3,132.0,127.2,127.0
+4,,133.8,136.5,138.4,138.1,132.9,132.5,128.1,128.2
+5,,129.6,132.6,134.1,134.0,129.1,129.1,123.6,123.4
+6,,125.8,128.9,130.5,130.4,125.2,125.2,129.7,129.2
+7,,130.3,133.0,134.0,134.2,130.8,129.6,124.9,125.0
+8,,126.7,129.6,131.7,131.9,126.7,125.7,121.0,121.7
+9,*,127.0,129.6,131.7,132.1,125.4,124.8,117.9,118.9
+10,*,125.8,**,130.5,130.8,124.6,124.2,118.2,119.5
+11,,105.1,107.9,109.7,109.8,101.4,101.0,96.6,97.8
+rpm,,2100,2400,2600,2600,2100,2100,1700,1700
+engines,,both,both,both,both,stbd,stbd,stbd,stbd
+bpf_Hz,,67.6,75.8,82.1,82.0,66.9,66.8,54.5,52.8

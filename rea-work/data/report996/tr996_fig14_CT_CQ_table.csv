@@ -1,0 +1,8 @@
+# NACA Report 996 Fig. 14 table: thrust and torque coefficients listed in the figure (NACA 4-(5)(08)-03, B=2, beta_0.75=10 deg).
+# The report says its Eq. (2) points used these values. Whether they are measured or computed is not stated. Read by eye from the printed table.
+M_t,C_T,C_Q,in_scope
+0.45,0.070,0.0037,true
+0.60,0.072,0.0042,true
+0.75,0.075,0.0044,true
+0.90,0.080,0.0051,true
+1.00,0.081,0.0060,false

@@ -1,0 +1,41 @@
+# Source: Pereira et al., Aerospace Science and Technology 177 (2026) 112963, Tables 3 and 4
+# Method: typed from PDF text layer (PDF p. 5 Table 3; PDF p. 7 Table 4); checked against page renders 2026-10-21
+# Uncertainty: exact as printed (text layer); deviations are BEMT−method as printed
+# Digitized 2026-10-21 by agent; card C-04 / D-13
+# Conventions: thrust N, torque N·m, power W; C_T = T/(ρ n² D⁴), C_P = P/(ρ n³ D⁵); OSPL at φ = 0°
+table,quantity,method,value,uncertainty,unit
+3,Thrust,BEMT,14.56,-,N
+3,Thrust,Numerical,14.51,-,N
+3,Thrust,Experimental,14.55,0.01,N
+3,Torque,BEMT,0.4338,-,N·m
+3,Torque,Numerical,0.4361,-,N·m
+3,Torque,Experimental,0.4133,0.0002,N·m
+3,Power,BEMT,363.4,-,W
+3,Power,Numerical,365.4,-,W
+3,Power,Experimental,346.2,0.1,W
+3,C_T,BEMT,0.0826,-,-
+3,C_T,Numerical,0.0822,-,-
+3,C_T,Experimental,0.0825,0.00006,-
+3,C_P,BEMT,0.0512,-,-
+3,C_P,Numerical,0.0518,-,-
+3,C_P,Experimental,0.0491,0.00002,-
+3,Thrust_deviation_vs_BEMT,Numerical,-0.05,-,N
+3,Thrust_deviation_vs_BEMT,Experimental,-0.01,-,N
+3,Torque_deviation_vs_BEMT,Numerical,0.0023,-,N·m
+3,Torque_deviation_vs_BEMT,Experimental,-0.0205,-,N·m
+3,Power_deviation_vs_BEMT,Numerical,2.0,-,W
+3,Power_deviation_vs_BEMT,Experimental,-17.2,-,W
+3,C_T_deviation_vs_BEMT,Numerical,-0.0004,-,-
+3,C_T_deviation_vs_BEMT,Experimental,-0.0001,-,-
+3,C_P_deviation_vs_BEMT,Numerical,0.0006,-,-
+3,C_P_deviation_vs_BEMT,Experimental,-0.0021,-,-
+4,OSPL,BEMT,83.4,-,dB
+4,OSPL,Numerical,84.7,-,dB
+4,OSPL,Experimental,84.6,-,dB
+4,OSPL_A,BEMT,76.2,-,dB(A)
+4,OSPL_A,Numerical,76.8,-,dB(A)
+4,OSPL_A,Experimental,77.3,-,dB(A)
+4,OSPL_deviation_vs_BEMT,Numerical,1.3,-,dB
+4,OSPL_deviation_vs_BEMT,Experimental,1.2,-,dB
+4,OSPL_A_deviation_vs_BEMT,Numerical,0.6,-,dB(A)
+4,OSPL_A_deviation_vs_BEMT,Experimental,1.1,-,dB(A)

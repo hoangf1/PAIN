@@ -1,0 +1,7 @@
+# NASA CR-159124 (BBN, taxi tests), transcribed from page images 2026-10-20.
+# Source: Table 7, Distances Between Propeller Hub and Microphone, PDF p. 60 (printed p. 48).
+microphone,distance_hub_m
+3,1.33
+4,1.31
+5,1.36
+6,1.52

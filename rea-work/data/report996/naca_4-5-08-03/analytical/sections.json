@@ -1,0 +1,312 @@
+{
+ "propeller": "naca_4-5-08-03",
+ "source_polars": "propellers/naca_4-5-08-03/analytical/polars_forced.json",
+ "transition": "forced (xtr 0.02, fully turbulent)",
+ "fitted_utc": "2026-10-05T17:54:16+00:00",
+ "method": "The raw XFOIL polars of the thin NACA 16 sections are patchy: XFOIL fails to converge above 5-7 deg at many\n(Re, M) combinations, and every blade station whose rounded (cl_design, t/c) key is missing from the database\ngot zero lift.  Fitting each section to a small set of physical parameters makes the section data smooth and\ncomplete, and makes the approximations explicit:",
+ "sections": {
+  "n16_213": {
+   "cla0_per_deg": 0.08080918620401309,
+   "alpha0_deg": -0.33536668541710285,
+   "clmax": 0.8532,
+   "clmin": -0.47,
+   "clmax_truncated": false,
+   "clmax_at": [
+    500000.0,
+    0.4,
+    10.0
+   ],
+   "clmax_M": {
+    "0.40": 0.8532,
+    "0.55": 0.8818
+   },
+   "clmax_M_truncated": {
+    "0.40": false,
+    "0.55": false
+   },
+   "cd0_1e6": 0.012502486549461515,
+   "re_exp": 0.1930195942696005,
+   "cd2": 0.008466712061053145,
+   "clcd0": -0.060496484036724196,
+   "n_linear_fits": 12,
+   "n_drag_fits": 4,
+   "cl_design": 0.2,
+   "tc": 0.13,
+   "rms_cl": 0.024121117950494653,
+   "rms_cd": 0.0003883982182278991
+  },
+  "n16_312": {
+   "cla0_per_deg": 0.0863992005114898,
+   "alpha0_deg": -0.7810609543136322,
+   "clmax": 0.8855,
+   "clmin": -0.4811,
+   "clmax_truncated": false,
+   "clmax_at": [
+    500000.0,
+    0.4,
+    9.5
+   ],
+   "clmax_M": {
+    "0.40": 0.8855,
+    "0.55": 0.9193
+   },
+   "clmax_M_truncated": {
+    "0.40": false,
+    "0.55": false
+   },
+   "cd0_1e6": 0.0120774795890365,
+   "re_exp": 0.1927826045378431,
+   "cd2": 0.008218114972649761,
+   "clcd0": -0.018514024405506847,
+   "n_linear_fits": 12,
+   "n_drag_fits": 4,
+   "cl_design": 0.3,
+   "tc": 0.12,
+   "rms_cl": 0.027188613980218407,
+   "rms_cd": 0.00037477517772003963
+  },
+  "n16_411": {
+   "cla0_per_deg": 0.0930875069475803,
+   "alpha0_deg": -1.7740018086542695,
+   "clmax": 1.0981,
+   "clmin": -0.3856,
+   "clmax_truncated": false,
+   "clmax_at": [
+    4000000.0,
+    0.4,
+    9.5
+   ],
+   "clmax_M": {
+    "0.20": 1.0072,
+    "0.40": 1.0981,
+    "0.55": 0.985
+   },
+   "clmax_M_truncated": {
+    "0.20": false,
+    "0.40": false,
+    "0.55": false
+   },
+   "cd0_1e6": 0.011378229681556584,
+   "re_exp": 0.18848452030931448,
+   "cd2": 0.009748502876302897,
+   "clcd0": 0.16499289750449014,
+   "n_linear_fits": 12,
+   "n_drag_fits": 4,
+   "cl_design": 0.4,
+   "tc": 0.11,
+   "rms_cl": 0.032797707487648216,
+   "rms_cd": 0.0006446328751370091
+  },
+  "n16_410": {
+   "cla0_per_deg": 0.0943431922629605,
+   "alpha0_deg": -2.1927807953752874,
+   "clmax": 1.1003,
+   "clmin": -0.3435,
+   "clmax_truncated": false,
+   "clmax_at": [
+    4000000.0,
+    0.4,
+    8.5
+   ],
+   "clmax_M": {
+    "0.40": 1.1003,
+    "0.55": 1.0169
+   },
+   "clmax_M_truncated": {
+    "0.40": false,
+    "0.55": false
+   },
+   "cd0_1e6": 0.01101988816273161,
+   "re_exp": 0.18201338839770997,
+   "cd2": 0.01280309870354045,
+   "clcd0": 0.2551821529468892,
+   "n_linear_fits": 12,
+   "n_drag_fits": 4,
+   "cl_design": 0.4,
+   "tc": 0.1,
+   "rms_cl": 0.03429750988936316,
+   "rms_cd": 0.0010436942586735374
+  },
+  "n16_509": {
+   "cla0_per_deg": 0.09511059964049841,
+   "alpha0_deg": -2.5579666866483177,
+   "clmax": 1.1039,
+   "clmin": -0.2949,
+   "clmax_truncated": false,
+   "clmax_at": [
+    4000000.0,
+    0.4,
+    8.0
+   ],
+   "clmax_M": {
+    "0.40": 1.1039,
+    "0.55": 1.0391
+   },
+   "clmax_M_truncated": {
+    "0.40": false,
+    "0.55": false
+   },
+   "cd0_1e6": 0.01061014270024775,
+   "re_exp": 0.1753478397321571,
+   "cd2": 0.016366184354727763,
+   "clcd0": 0.3248775152272017,
+   "n_linear_fits": 11,
+   "n_drag_fits": 4,
+   "cl_design": 0.5,
+   "tc": 0.09,
+   "rms_cl": 0.03482479902872399,
+   "rms_cd": 0.0017082156427878099
+  },
+  "n16_508": {
+   "cla0_per_deg": 0.0958174062820946,
+   "alpha0_deg": -3.1300583813598877,
+   "clmax": 1.0775,
+   "clmin": -0.2578,
+   "clmax_truncated": false,
+   "clmax_at": [
+    4000000.0,
+    0.4,
+    7.0
+   ],
+   "clmax_M": {
+    "0.20": 1.0402,
+    "0.40": 1.0775,
+    "0.55": 1.0562
+   },
+   "clmax_M_truncated": {
+    "0.20": true,
+    "0.40": false,
+    "0.55": false
+   },
+   "cd0_1e6": 0.009636152627624359,
+   "re_exp": 0.1484851390445594,
+   "cd2": 0.029270464714848912,
+   "clcd0": 0.4078742680861793,
+   "n_linear_fits": 12,
+   "n_drag_fits": 4,
+   "cl_design": 0.5,
+   "tc": 0.08,
+   "rms_cl": 0.032749297152155764,
+   "rms_cd": 0.0026120205322783686
+  },
+  "n16_507": {
+   "cla0_per_deg": 0.09735492375481467,
+   "alpha0_deg": -3.3139773817700124,
+   "clmax": 1.1339,
+   "clmin": -0.2034,
+   "clmax_truncated": false,
+   "clmax_at": [
+    4000000.0,
+    0.2,
+    8.0
+   ],
+   "clmax_M": {
+    "0.20": 1.1339,
+    "0.40": 1.0552
+   },
+   "clmax_M_truncated": {
+    "0.20": false,
+    "0.40": false
+   },
+   "cd0_1e6": 0.009166806995777089,
+   "re_exp": 0.1653618159465719,
+   "cd2": 0.0354406121615803,
+   "clcd0": 0.4347830623462766,
+   "n_linear_fits": 12,
+   "n_drag_fits": 4,
+   "cl_design": 0.5,
+   "tc": 0.07,
+   "rms_cl": 0.03327714955073737,
+   "rms_cd": 0.0025951059229042486
+  },
+  "n16_506": {
+   "cla0_per_deg": 0.09769453840945477,
+   "alpha0_deg": -3.168604215729376,
+   "clmax": 0.9701,
+   "clmin": -0.2397,
+   "clmax_truncated": false,
+   "clmax_at": [
+    4000000.0,
+    0.4,
+    7.0
+   ],
+   "clmax_M": {
+    "0.40": 0.9701
+   },
+   "clmax_M_truncated": {
+    "0.40": false
+   },
+   "cd0_1e6": 0.008067714403116117,
+   "re_exp": 0.21543898676619044,
+   "cd2": 0.0558764338849811,
+   "clcd0": 0.40116338882718594,
+   "n_linear_fits": 10,
+   "n_drag_fits": 4,
+   "cl_design": 0.5,
+   "tc": 0.06,
+   "rms_cl": 0.022021399641909387,
+   "rms_cd": 0.0034637379943649026
+  },
+  "n16_405": {
+   "cla0_per_deg": 0.0974858017913523,
+   "alpha0_deg": -2.790415333483056,
+   "clmax": 0.8861,
+   "clmin": -0.323,
+   "clmax_truncated": false,
+   "clmax_at": [
+    4000000.0,
+    0.4,
+    14.0
+   ],
+   "clmax_M": {
+    "0.40": 0.8861,
+    "0.55": 0.9353
+   },
+   "clmax_M_truncated": {
+    "0.40": false,
+    "0.55": false
+   },
+   "cd0_1e6": 0.00781420811202992,
+   "re_exp": 0.2863102150868765,
+   "cd2": 0.09339685227180289,
+   "clcd0": 0.3256540918278841,
+   "n_linear_fits": 10,
+   "n_drag_fits": 4,
+   "cl_design": 0.4,
+   "tc": 0.05,
+   "rms_cl": 0.022938691566140916,
+   "rms_cd": 0.0029157339103062694
+  },
+  "n16_101": {
+   "cla0_per_deg": 0.10263789907707045,
+   "alpha0_deg": -0.9066283401275996,
+   "clmax": 0.9311,
+   "clmin": -0.7311000000000001,
+   "clmax_truncated": false,
+   "clmax_at": [
+    500000.0,
+    0.4,
+    14.0
+   ],
+   "clmax_M": {
+    "0.40": 0.9311,
+    "0.55": 0.9863
+   },
+   "clmax_M_truncated": {
+    "0.40": false,
+    "0.55": false
+   },
+   "cd0_1e6": 0.008519406373144633,
+   "re_exp": 0.22947801652890298,
+   "cd2": 0.06776277060515105,
+   "clcd0": 0.03412196966028864,
+   "n_linear_fits": 3,
+   "n_drag_fits": 2,
+   "cl_design": 0.1,
+   "tc": 0.01,
+   "rms_cl": 0.020257442319533754,
+   "rms_cd": 0.009244228065453426
+  }
+ },
+ "unfittable": []
+}

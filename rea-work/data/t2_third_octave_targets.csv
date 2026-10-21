@@ -1,0 +1,8 @@
+# T2 1/3-octave targets from Fig.E-9 (CR-3813 App.E, digitized e9-132.png).
+# Flowchart asks 1.25–8 kHz ±3.5 dB. Fig.E-9 plot ends ~2 kHz; bands >2 kHz
+# are left out (no measured mean in figure). Tonal-only PAIN (H=1..3) only
+# deposits energy near 200/400/630 Hz — expect FAIL on 1.25–2 kHz until broadband.
+fc_Hz,measured_mean_SPL_dB,tol_dB
+1250,51.0,3.5
+1600,46.0,3.5
+2000,41.5,3.5

@@ -1,0 +1,19 @@
+# NASA CR-159124 (BBN, taxi tests), transcribed from page images 2026-10-20.
+# Source: Table 6, Estimated Circumferential Trace Velocities (2600 rpm nominal), PDF p. 59 (printed p. 47). Ref [2] = static (CR-158919 run). Positive in upward direction. Velocity ratio U_c/U'_c with U'_c from rigid-body pressure field.
+# Engine rpm column as printed: rpm from the 10th harmonic frequency.
+pair,run,kt,rpm,trace_velocity_m_s,velocity_ratio_Uc_over_Uprime
+4-3,ref2,0,1636,217,0.96
+4-3,4,0,1628,203,0.91
+4-3,5,40,1708,241,1.02
+4-3,6,55,1744,246,1.02
+4-3,7,70,1652,232,1.02
+5-3,ref2,0,1636,217,0.95
+5-3,4,0,1628,214,0.94
+5-3,5,40,1708,239,1.0
+5-3,6,55,1744,244,1.0
+5-3,7,70,1652,231,1.0
+5-4,ref2,0,1636,209,0.89
+5-4,4,0,1628,229,0.99
+5-4,5,40,1708,237,0.97
+5-4,6,55,1744,243,0.98
+5-4,7,70,1652,231,0.98

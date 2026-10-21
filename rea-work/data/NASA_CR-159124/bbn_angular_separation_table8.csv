@@ -1,0 +1,6 @@
+# NASA CR-159124 (BBN, taxi tests), transcribed from page images 2026-10-20.
+# Source: Table 8, Calculated Angular Separation of Microphone Pairs at the Propeller Hub, PDF p. 60 (printed p. 48).
+pair,angular_separation_deg
+3-4,13.3
+4-5,11.8
+5-6,10.4

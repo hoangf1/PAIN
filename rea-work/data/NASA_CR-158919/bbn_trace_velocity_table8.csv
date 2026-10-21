@@ -1,0 +1,22 @@
+# NASA CR-158919 (BBN), transcribed from page images 2026-10-20.
+# Source: Table 8, Estimated Trace Velocities, PDF p. 41 (printed p. 35). Positive = convection rearward or upward (as printed). Run numbers are BBN numbers.
+# Table 9 (ratio of measured to rigid-body circumferential trace velocity), PDF p. 42 (printed p. 36), is in bbn_trace_velocity_table9.csv.
+pair,type,run4_2600rpm_m_s,run2_2400rpm_m_s,run5_2100rpm_m_s,run7_1700rpm_m_s,average_m_s
+4-3,circumferential,217,216,180,160,
+5-3,circumferential,217,203,176,150,
+5-4,circumferential,209,193,171,143,
+6-4,circumferential,246,239,207,172,
+6-5,circumferential,326,317,244,201,
+5-2,longitudinal,-97,-94,-79,-78,
+5-1,longitudinal,-153,-153,-132,-120,
+2-1,longitudinal,,,,,-608
+5-7,longitudinal,98,95,80,60,
+5-8,longitudinal,129,131,118,109,
+5-9,longitudinal,,,,,334
+5-10,longitudinal,,,,,369
+7-8,longitudinal,,,,,445
+7-9,longitudinal,,,,,413
+7-10,longitudinal,,,,,394
+8-9,longitudinal,,,,,417
+8-10,longitudinal,,,,,391
+9-10,longitudinal,,,,,353

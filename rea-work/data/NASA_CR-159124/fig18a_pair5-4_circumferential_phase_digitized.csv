@@ -1,0 +1,25 @@
+# NASA CR-159124 Figure 18 (phase angle vs frequency, circumferential direction), digitized with WebPlotDigitizer from the PDF p. 43 render (200 dpi).
+# Calibration: x = 0 Hz at page px 453, 1000 Hz at px 1279; y = 0 rad at px 841, -5pi at px 1676. Values as exported by the digitizer (2026-10-21).
+# Uncertainty: about +-10 Hz and +-0.05 rad for well-separated markers; higher for overlapping markers.
+# Panel (a) microphone pair 5-4. Frequency axis is assumed to match panel (b) (no tick labels printed on panel a); not independently verified. 70 kt series re-exported 2026-10-21 (earlier export was a duplicate of 0 kt).
+series,frequency_Hz,phase_rad
+0kt,86.8,-0.672
+0kt,169.6,-1.314
+0kt,260.2,-2.016
+0kt,343.5,-2.661
+0kt,436.0,-3.378
+0kt,526.7,-4.081
+0kt,611.8,-4.741
+0kt,693.2,-5.371
+0kt,776.4,-6.016
+0kt,860.5,-6.668
+70kt,86.8,-0.65
+70kt,169.6,-1.295
+70kt,260.2,-1.995
+70kt,343.5,-2.64
+70kt,436.0,-3.355
+70kt,526.7,-4.06
+70kt,611.8,-4.72
+70kt,693.2,-5.35
+70kt,776.4,-5.995
+70kt,860.5,-6.645

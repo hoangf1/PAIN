@@ -1,0 +1,15 @@
+# Fig. A-2 of CR-3813 (printed p. A-6, PDF page 64): acoustical properties of Owens-Corning PF-105 Fiberglas, density 9.6 kg/m^3.
+# Digitized 2026-10-20 from a 300 dpi render of the PDF page, by pixel position of the plotted markers, at the six marked frequencies
+# (100, 315, 630, 1000, 2500, 6300 Hz). Axis scales read from the gridlines: lambda_m 0-1.2 m, alpha 0-600 dB/m, phi 0-60 deg, |W| 0-1200 mks rayls.
+# Digitization uncertainty: about +-1% of full scale (+-0.012 m, +-6 dB/m, +-0.6 deg, +-12 rayls).
+# Per-quantity notes: lambda_m at 100 Hz and 1000 Hz and alpha at 1000 Hz sit on a curve/gridline crossing (+-2% of full scale).
+# phi has plotted markers only at 100, 315 and 2500 Hz; phi at 630, 1000 and 6300 Hz is read from the curve. |W| at 1000 Hz is read from the
+# smooth curve (870 rayls); the plotted x marker there lies above the curve at about 932 rayls (a measured point off the smooth curve).
+# |W| at 100 Hz is read from the curve start (no separate marker). phi is taken as the phase of W = |W| exp(i phi) (an assumption; sign convention in the code).
+f_Hz,lambda_m,alpha_dB_per_m,phi_deg,W_rayl
+100,1.163,4.6,3.4,1178
+315,0.376,28.2,8.9,1114
+630,0.208,82,18.4,981
+1000,0.142,163,24.0,870
+2500,0.067,360,26.9,622
+6300,0.046,487,22.2,523

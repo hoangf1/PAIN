@@ -1,0 +1,23 @@
+# Digitization A of Fig. E-11 measured free-field SPL (CR-3813 App. E, page E-19).
+# Line ell=1; harmonics H=1,2,3. SPL in dB re 20 uPa.
+# X3/D from PAIN grid: x3=(pi*a/18)*(k_p-k), a=0.508 m, D=0.762 m, k_p=8.
+# Phases: NOT in Fig. E-11 (CR-3813: no measured phase); use companion phase CSV from ANOPP Table 8.
+# Validity: V-EXP input path (digitized measured exterior). Uncertainty: see digitization_B + delta_dig.
+# BPF_Hz=200 (3-blade @ 4000 rpm Hartzell scale case matching Table 8 / App. E context)
+k,X3_over_D,SPL_H1_dB,SPL_H2_dB,SPL_H3_dB
+1,0.814,98.0,99.5,96.0
+2,0.698,102.0,100.0,96.5
+3,0.582,107.0,100.5,97.0
+4,0.465,112.5,102.0,98.5
+5,0.349,118.0,108.0,102.0
+6,0.233,123.0,115.0,108.0
+7,0.116,126.0,118.0,111.0
+8,0.000,121.0,115.0,109.0
+9,-0.116,125.0,116.0,108.0
+10,-0.233,122.0,110.0,102.0
+11,-0.349,117.0,102.0,98.0
+12,-0.465,112.0,98.0,96.0
+13,-0.582,107.0,96.5,95.0
+14,-0.698,102.5,96.0,94.5
+15,-0.814,98.5,95.5,94.0
+16,-0.931,95.0,95.0,93.5

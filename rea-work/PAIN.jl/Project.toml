@@ -1,0 +1,32 @@
+name = "PAIN"
+uuid = "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+version = "0.1.0"
+authors = ["PAIN recreation"]
+
+[deps]
+AcousticAnalogies = "e71b3392-1e0c-4536-b366-2bd1fce6fba0"
+AcousticMetrics = "046f749b-9c1e-43ca-86bc-6902340f753e"
+CCBlade = "e1828068-15df-11e9-03e4-ef195ea46fa4"
+FFTW = "7a1cc6ca-52ef-59f5-83cd-3a7055c09341"
+JSON3 = "0f8b85d8-7281-11e9-16c2-39a750bddbf1"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+Observables = "510215fc-4207-5dde-b226-833fc4488ee2"
+QML = "2db162a6-7e43-52c3-8d84-290c1c42d82a"
+SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
+
+[compat]
+AcousticAnalogies = "1.0.0"
+AcousticMetrics = "1.1.0"
+CCBlade = "1.0.0"
+FFTW = "1.10.0"
+JSON3 = "1.14.3"
+Observables = "0.5.5"
+QML = "0.13.2"
+SparseArrays = "1.13.0"
+julia = "1.10"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]

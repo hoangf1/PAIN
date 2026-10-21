@@ -1,0 +1,18 @@
+# Source: CR-3813 Fig. E-18 (PDF p. 145 / printed E-29), Pain Methodology.pdf
+# Caption: trim loss factor = 1.0, total structural loss factor limited to 0.15 maximum
+# NOTE: η_T=1.0 predictions — NOT the reproduction target of 18b (that is E-16 with η_T=0.5)
+# Method: pass B hand digitization, 300 dpi
+# Digitized 2026-10-21; dig_cr3813_hand_passB.py
+band_Hz,nasa_pred_dB,measured_mean_dB,low_dB,high_dB
+160,78.00,68.00,66.00,70.00
+200,88.00,90.00,88.00,92.00
+250,76.00,74.00,72.00,76.00
+315,68.00,62.00,60.00,64.00
+400,75.00,80.00,78.00,82.00
+500,70.00,64.00,62.00,66.00
+630,67.00,60.00,58.00,62.00
+800,49.00,54.00,52.00,56.00
+1000,32.00,52.00,50.00,54.00
+1250,40.00,52.00,50.00,54.00
+1600,38.00,47.00,45.00,49.00
+2000,36.00,42.00,40.00,44.00

@@ -1,0 +1,7 @@
+# NACA Report 996 p. 12 (printed page 12 of the report; PDF in rea-work\NASA Report 996.pdf). Text values, not read from a figure.
+# Phase difference between the first-harmonic pressures at two points equidistant ahead of and behind the propeller plane.
+# The text does not name the x/D pair or the blade angle; M_t = 0.75 is stated for the first two values.
+quantity,M_t,value_deg,source,measured_or_calculated
+phase_difference_ahead_vs_behind,0.75,155,experiment,measured
+phase_difference_ahead_vs_behind,0.75,165,Eq. (2),calculated
+phase_difference_ahead_vs_behind,not stated (same tip speed),125,Eq. (2) at a larger blade angle,calculated only (no measurement)

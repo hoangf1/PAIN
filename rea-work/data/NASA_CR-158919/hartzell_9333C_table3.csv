@@ -1,0 +1,12 @@
+# Source: Hartzell Manual 114-8 (Hartzell_114-8.pdf), Table III "Blade Repair Tolerances", 9333C-3 blade, PDF p. 13
+# Method: typed from PDF text layer 2026-10-21 (card C-14 / D-09); checked against page image
+# Uncertainty: exact as printed for stations given; width and thickness are repair MINIMUMS (* All Minimum Requirements)
+# Digitized 2026-10-21 by agent; tip geometry beyond 40 in: not found in this manual
+# Conventions: station_in from hub centerline; angles and face alignment as printed ranges; 34° setup station
+station_in,blade_angle_deg_min,blade_angle_deg_max,face_alignment_in_min,face_alignment_in_max,min_width_in,min_thickness_in
+9.5,-,-,-,-,4.704,1.980
+13,-,-,-,-,5.720,1.095
+20,41,42,-0.122,-0.058,6.307,0.693
+28,36.5,37.1,-0.472,-0.408,6.070,0.472
+34,33.2,33.2,-0.682,-0.618,5.450,0.376
+40,29.8,30.2,-0.832,-0.768,4.200,0.286

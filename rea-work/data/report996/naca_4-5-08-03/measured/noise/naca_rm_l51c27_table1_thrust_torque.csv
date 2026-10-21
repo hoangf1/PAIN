@@ -1,0 +1,13 @@
+report,propeller,diameter_in,blades,beta_075R_deg,M_tip,thrust_lb,torque_lbft,power_hp,power_loading_hp_per_sqft,note
+NACA-RM-L51C27,NACA 4-(5)(08)-03 (47-in. two-blade; same blade sections as 10-(5)(08)-03),47,2,15,0.75,225,114,65,5.4,static (zero forward speed)
+NACA-RM-L51C27,NACA 4-(5)(08)-03 (47-in. two-blade; same blade sections as 10-(5)(08)-03),47,2,15,0.90,302,140,128,10.6,static (zero forward speed)
+NACA-RM-L51C27,NACA 4-(5)(08)-03 (47-in. two-blade; same blade sections as 10-(5)(08)-03),47,2,15,1.00,384,198,188,15.6,static (zero forward speed)
+NACA-RM-L51C27,NACA 4-(5)(08)-03 (47-in. two-blade; same blade sections as 10-(5)(08)-03),47,2,15,1.10,496,260,272,22.5,static (zero forward speed)
+NACA-RM-L51C27,NACA 4-(5)(08)-03 (47-in. two-blade; same blade sections as 10-(5)(08)-03),47,2,15,1.20,545,310,362,30,static (zero forward speed)
+NACA-RM-L51C27,NACA 4-(5)(08)-03 (47-in. two-blade; same blade sections as 10-(5)(08)-03),47,2,15,1.30,,,,,"not obtained"
+NACA-RM-L51C27,NACA 4-(5)(08)-03 (47-in. two-blade; same blade sections as 10-(5)(08)-03),47,2,13,0.75,,106,60.5,5,thrust not measured
+NACA-RM-L51C27,NACA 4-(5)(08)-03 (47-in. two-blade; same blade sections as 10-(5)(08)-03),47,2,13,0.90,,130,121,10,thrust not measured
+NACA-RM-L51C27,NACA 4-(5)(08)-03 (47-in. two-blade; same blade sections as 10-(5)(08)-03),47,2,13,1.00,,184,181,15,thrust not measured
+NACA-RM-L51C27,NACA 4-(5)(08)-03 (47-in. two-blade; same blade sections as 10-(5)(08)-03),47,2,13,1.10,,237,248,20.5,thrust not measured
+NACA-RM-L51C27,NACA 4-(5)(08)-03 (47-in. two-blade; same blade sections as 10-(5)(08)-03),47,2,13,1.20,,277,335,27,thrust not measured
+NACA-RM-L51C27,NACA 4-(5)(08)-03 (47-in. two-blade; same blade sections as 10-(5)(08)-03),47,2,13,1.30,,313,423,35,thrust not measured

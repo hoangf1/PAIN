@@ -1,0 +1,15 @@
+# NASA CR-158919 (BBN), transcribed from page images 2026-10-20.
+# Source: Figure 1 (and the table beneath it), PDF p. 9 (printed p. 3). Coordinates in m, origin and axes as printed in Figure 1 (x along the fuselage as printed; y as printed). Propeller diameter 2.36 m. Location 11 is inside the fuselage, 0.25 m left of location 4 (as printed).
+# Distances from microphones 3, 4, 5, 6 to the propeller tip along the radius are as printed.
+location,x_m,y_m,distance_to_prop_tip_m
+1,-0.622,0,
+2,-0.368,0,
+3,0,0.584,0.14
+4,0,0.279,0.121
+5,0,0,0.178
+6,0,-0.305,0.33
+7,0.368,0,
+8,0.622,0,
+9,1.841,0.152,
+10,2.785,0.152,
+11 (inside fuselage),0,0.279,

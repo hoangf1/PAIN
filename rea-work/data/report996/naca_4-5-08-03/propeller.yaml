@@ -1,0 +1,99 @@
+name: naca_4-5-08-03
+title: NACA 4-(5)(08)-03
+short_title: NACA 4-(5)(08)-03
+description: Two-blade 4-ft propeller of the NACA 16-series family, design cl 0.5, thickness ratio 0.08 at 0.7 R,
+  activity factor 3; tested in the Langley 8-ft high-speed tunnel (RM L9G06a) and used for the NACA propeller-noise
+  work (Reports 996, 1079; TN 3202).
+diameter_m: 1.2192
+blades: 2
+blade_counts_tested:
+- 2
+- 4
+rotation: right-hand (about +z, free stream along +z)
+blade:
+  form: blade_form.csv
+  columns: r_over_R, c_over_R, t_over_c, beta_deg (chord-line datum), cl_design
+  beta_datum: chord line at each station
+  beta75_design_deg: 42.64
+  stacking: mid-chord (assumed)
+  sections:
+    family: naca16
+    note: NACA 16-series thickness distribution with the a = 1.0 mean line at the station design cl
+    coordinates_dir: null
+  mesh_regularisations:
+    te_thickness_over_chord: 0.004
+    min_thickness_over_R: 0.0025
+    note: applied by prop_geometry.build_sections for the boundary-layer extrusion; documented approximations, not
+      calibrations
+hub:
+  root_r_over_R: 0.27
+  spinner_r_m: 0.1651
+  body_profile: spinner.csv
+  body_note: 13-in. diameter dynamometer shell of the 8-ft HST (RM L9G06a fig. 2, not dimensioned) with an assumed
+    3:1 elliptical nose; propeller plane assumed 2 shell radii behind the nose tip.  Approximation.
+  prop_plane_station_in: null
+design:
+  beta75_deg: 45.0
+  J: null
+  note: blade form from NASA CR 196702 App. B-1 (Harris 1996 table of RM L9G06a fig. 6)
+cfd_points:                       # how cfd/run_cfd.py default_points / point_from derive the operating points from the Harris table
+  schedule: tunnel_mach           # the 8-ft HST tunnel Mach number is the independent variable; the speed from V = M a(T), the rotational speed from J
+  stagnation_T_K: 300.0           # assumed (the static temperature is not tabulated): Mach, J and beta are matched exactly, only the Reynolds number depends on it
+  n_J: 4
+sources:
+- NACA RM L9G06a
+- NASA CR 196702 App. B
+- NACA RM L8H25a (static)
+- NACA Report 996 / 1079, TN 3202, RM L51C27 (noise)
+measured:
+- key: harris_table
+  file: wind_tunnel/nasa_cr196702_appB2_4-5-08-03_performance.csv
+  report: NASA CR 196702 App. B-2 (RM L9G06a figs)
+  kind: performance
+  blades: 2
+  columns: beta_075R_deg, M_tunnel, J, CT, CP
+  note: J carries the tunnel-wall correction; M is the uncorrected tunnel value
+- key: anchored_curves
+  file: wind_tunnel/anchored/faired_curves.csv
+  report: NACA RM L9G06a fig. 10 (anchored digitisation)
+  kind: performance
+  blades: 2
+  columns: beta_075R_deg, mach, J, quantity (CT/CP/ETA), value
+- key: static
+  file: static/rm_l8h25a_static_vs_blade_angle_Mt045.csv
+  report: NACA RM L8H25a
+  kind: static
+- key: static_tip_mach
+  file: static/rm_l8h25a_static_vs_tip_mach.csv
+  report: NACA RM L8H25a
+  kind: static
+- key: noise_directivity
+  file: noise/tr1079_fig6_directivity_pressures.csv
+  report: NACA Report 1079 fig. 6
+  kind: noise
+- key: noise_spl_tip_mach
+  file: noise/tr1079_fig7_spl_vs_tip_mach.csv
+  report: NACA Report 1079 fig. 7
+  kind: noise
+  note: "constant power loading 30 hp/sq ft (blade angle varied with tip speed); the beta 13 in the rows is nominal, not the test condition"
+- key: noise_spl_distance
+  file: noise/tr1079_fig8_spl_vs_distance.csv
+  report: NACA Report 1079 fig. 8
+  kind: noise
+- key: noise_harmonics
+  file: noise/naca_tn3202_table1_harmonic_amplitudes.csv
+  report: NACA TN 3202 Table I
+  kind: noise
+  blades: 2
+  note: two-blade pusher propeller (3.92 ft, the 4-(5)(08)-03 blades cut square), TN 3202
+- key: noise_thrust_torque
+  file: noise/naca_rm_l51c27_table1_thrust_torque.csv
+  report: NACA RM L51C27 Table I
+  kind: noise
+  note: operating conditions of the noise tests (measured static thrust and torque against tip Mach; power and power loading follow from them); the thrust and torque inputs of the rotational-noise predictions
+  site: false
+- key: pressure_near_field
+  file: noise/tr996_fig6_tip_clearance_pressure_vs_xD.csv
+  report: NACA Report 996 fig. 6
+  kind: noise
+geometry_source: measured/geometry/nasa_cr196702_appB1_4-5-08-03_blade_geometry.csv

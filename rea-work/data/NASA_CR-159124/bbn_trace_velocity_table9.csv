@@ -1,0 +1,8 @@
+# NASA CR-159124 (BBN, taxi tests), transcribed from page images 2026-10-20.
+# Source: Table 9, Estimated Longitudinal Trace Velocities (2600 rpm nominal), PDF p. 62 (printed p. 50). Ref [2] = static. Runs 1, 2, 3 at 0, 30, 50 kt. Positive upward/rearward as printed.
+# Table 9 also lists 8-9 (static from ref 2 = 417 m/s).
+pair,ref2_static,run1_0kt,run2_30kt,run3_50kt,rpm_run1,rpm_run2,rpm_run3
+5-1,-153,-212,-231,-150,1636,1636,1692
+5-8,129,218,213,223,1636,1636,1692
+5-9,334,269,309,293,1636,1636,1692
+8-9,417,384,378,436,1636,1636,1692

@@ -1,0 +1,41 @@
+naca4412|30000|0.00: 81 pts, 0 missing
+naca4412|20000|0.00: 81 pts, 0 missing
+naca4412|20000|0.20: 81 pts, 0 missing
+naca4412|20000|0.40: 81 pts, 0 missing
+naca4412|20000|0.30: 81 pts, 0 missing
+naca4412|20000|0.10: 80 pts, 1 missing
+naca4412|30000|0.10: 81 pts, 0 missing
+naca4412|50000|0.00: 81 pts, 0 missing
+naca4412|30000|0.30: 81 pts, 0 missing
+naca4412|30000|0.20: 81 pts, 0 missing
+naca4412|30000|0.40: 81 pts, 0 missing
+naca4412|50000|0.10: 81 pts, 0 missing
+naca4412|50000|0.20: 81 pts, 0 missing
+naca4412|75000|0.00: 81 pts, 0 missing
+naca4412|50000|0.30: 81 pts, 0 missing
+naca4412|75000|0.10: 81 pts, 0 missing
+naca4412|75000|0.20: 81 pts, 0 missing
+naca4412|50000|0.40: 80 pts, 1 missing
+naca4412|75000|0.30: 81 pts, 0 missing
+naca4412|75000|0.40: 81 pts, 0 missing
+naca4412|100000|0.10: 81 pts, 0 missing
+naca4412|100000|0.00: 81 pts, 0 missing
+naca4412|100000|0.20: 81 pts, 0 missing
+naca4412|100000|0.30: 81 pts, 0 missing
+naca4412|100000|0.40: 81 pts, 0 missing
+naca4412|150000|0.40: 81 pts, 0 missing
+naca4412|200000|0.00: 80 pts, 1 missing
+naca4412|150000|0.30: 77 pts, 4 missing
+naca4412|200000|0.30: 79 pts, 2 missing
+naca4412|200000|0.40: 80 pts, 1 missing
+naca4412|150000|0.10: 72 pts, 9 missing TIMEOUT up
+naca4412|150000|0.00: 76 pts, 5 missing TIMEOUT up
+naca4412|150000|0.20: 74 pts, 7 missing TIMEOUT up
+naca4412|300000|0.20: 81 pts, 0 missing
+naca4412|300000|0.30: 80 pts, 1 missing
+naca4412|200000|0.10: 80 pts, 1 missing TIMEOUT up
+naca4412|200000|0.20: 77 pts, 4 missing TIMEOUT up
+naca4412|300000|0.40: 78 pts, 3 missing
+naca4412|300000|0.00: 73 pts, 8 missing TIMEOUT up
+naca4412|300000|0.10: 77 pts, 4 missing TIMEOUT up
+wrote C:\Users\FrancisHoang\git\PAIN\rea-work\data\pereira\naca4412_xfoil_xtr005.json entries with non-converged points: 15

@@ -1,0 +1,102 @@
+100 new (section, Re, M) polars
+n16_213|300000|0.40: 41 pts, 0 missing
+n16_213|300000|0.65: 41 pts, 0 missing
+n16_213|300000|0.55: 41 pts, 0 missing
+n16_213|300000|0.72: 41 pts, 0 missing
+n16_213|300000|0.10: 32 pts, 9 missing TIMEOUT up
+n16_213|300000|0.20: 33 pts, 8 missing TIMEOUT up
+n16_213|500000|0.10: 32 pts, 9 missing TIMEOUT up
+n16_213|2000000|0.10: 31 pts, 10 missing TIMEOUT up
+n16_213|1000000|0.10: 30 pts, 11 missing TIMEOUT up
+n16_213|4000000|0.10: 31 pts, 10 missing TIMEOUT up
+n16_312|300000|0.40: 41 pts, 0 missing
+n16_312|300000|0.55: 41 pts, 0 missing
+n16_312|300000|0.65: 41 pts, 0 missing
+n16_312|300000|0.72: 41 pts, 0 missing
+n16_312|300000|0.10: 32 pts, 9 missing TIMEOUT up
+n16_312|300000|0.20: 32 pts, 9 missing TIMEOUT up
+n16_312|500000|0.10: 32 pts, 9 missing TIMEOUT up
+n16_312|1000000|0.10: 31 pts, 10 missing TIMEOUT up
+n16_312|2000000|0.10: 30 pts, 11 missing TIMEOUT up
+n16_312|4000000|0.10: 30 pts, 11 missing TIMEOUT up
+n16_411|300000|0.55: 41 pts, 0 missing
+n16_411|300000|0.65: 41 pts, 0 missing
+n16_411|300000|0.72: 41 pts, 0 missing
+n16_411|300000|0.20: 32 pts, 9 missing TIMEOUT up
+n16_411|300000|0.10: 30 pts, 11 missing TIMEOUT up
+n16_410|300000|0.10: 40 pts, 1 missing
+n16_411|300000|0.40: 34 pts, 7 missing TIMEOUT up
+n16_411|500000|0.10: 31 pts, 10 missing TIMEOUT up
+n16_411|2000000|0.10: 31 pts, 10 missing TIMEOUT up
+n16_411|1000000|0.10: 31 pts, 10 missing TIMEOUT up
+n16_410|300000|0.55: 41 pts, 0 missing
+n16_410|300000|0.65: 41 pts, 0 missing
+n16_410|300000|0.72: 41 pts, 0 missing
+n16_410|300000|0.20: 40 pts, 1 missing
+n16_410|500000|0.10: 30 pts, 11 missing
+n16_411|4000000|0.10: 31 pts, 10 missing TIMEOUT up
+n16_410|300000|0.40: 30 pts, 11 missing TIMEOUT up
+n16_509|300000|0.40: 41 pts, 0 missing
+n16_410|2000000|0.10: 31 pts, 10 missing TIMEOUT up
+n16_410|1000000|0.10: 31 pts, 10 missing TIMEOUT up
+n16_410|4000000|0.10: 30 pts, 11 missing TIMEOUT up
+n16_509|300000|0.10: 30 pts, 11 missing
+n16_509|300000|0.55: 40 pts, 1 missing
+n16_509|300000|0.65: 41 pts, 0 missing
+n16_509|300000|0.72: 41 pts, 0 missing
+n16_509|500000|0.10: 29 pts, 12 missing
+n16_508|300000|0.10: 27 pts, 14 missing
+n16_509|300000|0.20: 30 pts, 11 missing TIMEOUT up
+n16_508|300000|0.40: 41 pts, 0 missing
+n16_508|300000|0.55: 41 pts, 0 missing
+n16_508|300000|0.65: 41 pts, 0 missing
+n16_508|300000|0.72: 41 pts, 0 missing
+n16_509|1000000|0.10: 30 pts, 11 missing TIMEOUT up
+n16_509|4000000|0.10: 30 pts, 11 missing TIMEOUT up
+n16_509|2000000|0.10: 30 pts, 11 missing TIMEOUT up
+n16_508|500000|0.10: 27 pts, 14 missing
+n16_508|1000000|0.10: 24 pts, 17 missing
+n16_508|300000|0.20: 38 pts, 3 missing TIMEOUT up
+n16_507|300000|0.40: 41 pts, 0 missing
+n16_507|300000|0.55: 41 pts, 0 missing
+n16_507|300000|0.65: 41 pts, 0 missing
+n16_507|300000|0.72: 41 pts, 0 missing
+n16_507|300000|0.10: 26 pts, 15 missing TIMEOUT up
+n16_508|4000000|0.10: 28 pts, 13 missing TIMEOUT up
+n16_508|2000000|0.10: 28 pts, 13 missing TIMEOUT up
+n16_507|300000|0.20: 25 pts, 16 missing TIMEOUT up
+n16_507|4000000|0.10: 32 pts, 9 missing
+n16_507|500000|0.10: 26 pts, 15 missing
+n16_506|300000|0.40: 41 pts, 0 missing
+n16_506|300000|0.55: 41 pts, 0 missing
+n16_506|300000|0.65: 41 pts, 0 missing
+n16_507|1000000|0.10: 21 pts, 20 missing
+n16_506|300000|0.10: 23 pts, 18 missing TIMEOUT up
+n16_507|2000000|0.10: 23 pts, 18 missing TIMEOUT up
+n16_506|300000|0.20: 23 pts, 18 missing TIMEOUT up
+n16_405|300000|0.10: 39 pts, 2 missing
+n16_506|300000|0.72: 19 pts, 22 missing TIMEOUT up
+n16_405|300000|0.40: 41 pts, 0 missing
+n16_405|300000|0.55: 41 pts, 0 missing
+n16_405|300000|0.65: 41 pts, 0 missing
+n16_506|500000|0.10: 18 pts, 23 missing TIMEOUT up
+n16_405|300000|0.72: 41 pts, 0 missing
+n16_405|300000|0.20: 37 pts, 4 missing
+n16_506|2000000|0.10: 22 pts, 19 missing TIMEOUT up
+n16_506|1000000|0.10: 13 pts, 28 missing TIMEOUT up
+n16_506|4000000|0.10: 19 pts, 22 missing
+n16_101|300000|0.20: 34 pts, 7 missing
+n16_101|300000|0.40: 41 pts, 0 missing
+n16_101|300000|0.55: 41 pts, 0 missing
+n16_405|1000000|0.10: 12 pts, 29 missing TIMEOUT up
+n16_101|300000|0.72: 41 pts, 0 missing
+n16_405|4000000|0.10: 12 pts, 29 missing TIMEOUT up
+n16_101|300000|0.10: 20 pts, 21 missing TIMEOUT up
+n16_405|500000|0.10: 11 pts, 30 missing TIMEOUT up+down
+n16_405|2000000|0.10: 11 pts, 30 missing TIMEOUT up+down
+n16_101|300000|0.65: 12 pts, 29 missing TIMEOUT up
+n16_101|2000000|0.10: 2 pts, 39 missing TIMEOUT up
+n16_101|500000|0.10: 12 pts, 29 missing TIMEOUT up+down
+n16_101|1000000|0.10: 5 pts, 36 missing TIMEOUT up+down
+n16_101|4000000|0.10: 2 pts, 39 missing TIMEOUT up+down
+wrote C:\Users\FrancisHoang\git\PAIN\rea-work\data\report996\polars_forced_merged.json non-converged entries: 65

@@ -1,0 +1,10 @@
+# NASA CR-159124 (BBN, taxi tests), transcribed from page images 2026-10-20.
+# Source: Table 1, Summary of Aero Commander Taxi Runs, PDF p. 15 (printed p. 3). Measurement locations refer to Figure 1. Microphones 2, 6, 7 and 10 were not recorded.
+run,taxi_speed_kt,engine_rpm,blade_passage_Hz,measurement_locations
+1,static,2600,81.8,1 5 8 9
+2,30,2600,81.8,1 5 8 9
+3,40,2690,84.6,1 5 8 9
+4,static,2580,81.4,3 4 5 11
+5,40,2710,85.4,3 4 5 11
+6,55,2770,87.2,3 4 5 11
+7,70,2620,82.6,3 4 5 11

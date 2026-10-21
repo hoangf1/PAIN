@@ -1,0 +1,47 @@
+{
+  "description": "Scale-model Hartzell-like case for CCBlade + AcousticAnalogies free-field (X-EXTRAP). Chord/twist are engineering estimates for 0.762 m dia 3-blade; not OEM data. pitch_offset_deg and thickness_over_chord tuned so ℓ=1 peak SPLs are within ~15 dB of ANOPP Table 8 (loading-only; compact thickness overpredicts at this tip clearance).",
+  "validity_class": "X-EXTRAP",
+  "reference": "Pain Validation.pdf Tables 7–9; 0.762 m dia 3-bladed Hartzell @ 3000–5000 rpm; User Manual methodology x1=0.457+a(1-cos…)",
+  "propeller": {
+    "diameter_m": 0.762,
+    "num_blades": 3,
+    "rpm": 4000,
+    "hub_radius_m": 0.08,
+    "tip_radius_m": 0.381,
+    "radii_m": [0.085, 0.12, 0.16, 0.20, 0.24, 0.28, 0.32, 0.35, 0.37, 0.378],
+    "chord_m": [0.055, 0.070, 0.078, 0.080, 0.078, 0.072, 0.062, 0.050, 0.038, 0.028],
+    "twist_deg": [38.0, 32.0, 27.0, 23.0, 20.0, 17.0, 14.5, 12.5, 11.0, 10.0],
+    "pitch_offset_deg": -5.0,
+    "thickness_over_chord": 0.0,
+    "airfoil_polar_files": []
+  },
+  "operating_point": {
+    "forward_speed_mps": 20.0,
+    "altitude_m": 0.0,
+    "rho_kg_m3": 1.225,
+    "c0_mps": 340.0,
+    "pitch_deg": 15.0
+  },
+
+  "fuselage": {
+    "L_m": 1.803,
+    "a_m": 0.508,
+    "theta0_deg": 56.6
+  },
+  "propeller_placement": {
+    "r_p_m": 0.965,
+    "phi_p_deg": 90.0,
+    "z_p_m": 0.90,
+    "note": "r_p = a + 0.457 from User Manual / methodology x1 grid (tip clearance ~0.076 m for 0.381 m Rtip)"
+  },
+  "grid": {
+    "k_max": 16,
+    "ell_max": 10,
+    "k_p": 8
+  },
+  "harmonics": 5,
+  "acoustic_analogies": {
+    "num_src_times": 64,
+    "observer_periods_blade_pass": 2
+  }
+}

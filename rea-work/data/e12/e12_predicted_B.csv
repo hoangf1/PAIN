@@ -1,0 +1,25 @@
+# Digitization B of Fig. E-12 predicted blocked SPL (CR-3813 App. E, p. E-20, PDF page 136), line l=1, dB re 20 uPa.
+# Second pass: read from a 0.1 X3/D x 2 dB grid overlay (data/digitizers/e12_grid.py) without the A table in view; same reader, different method from A (pixel calibration).
+# Not read in pass B: the H2 measured marker at X3/D = 0.69 (outside the grid crops). Dashed-curve end points without a circle: point_type=end.
+harmonic,X3_over_D,SPL_dB,point_type
+1,0.815,102.7,vertex
+1,0.229,128.7,vertex
+1,0.14,130.9,vertex
+1,0.02,125.8,vertex
+1,-0.104,129.8,vertex
+1,-0.236,126.4,vertex
+1,-0.642,108.5,vertex
+1,-0.893,99.2,vertex
+2,0.597,89.0,vertex
+2,0.14,123.6,vertex
+2,0.02,119.6,vertex
+2,-0.09,121.4,vertex
+2,-0.208,115.3,vertex
+2,-0.53,89.3,vertex
+3,0.5,79.0,vertex
+3,0.364,93.7,vertex
+3,0.138,116.1,vertex
+3,0.02,113.6,vertex
+3,-0.096,112.8,vertex
+3,-0.234,98.3,vertex
+3,-0.408,79.6,vertex

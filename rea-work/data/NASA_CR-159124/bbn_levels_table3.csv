@@ -1,0 +1,12 @@
+# NASA CR-159124 (BBN, taxi tests), transcribed from page images 2026-10-20.
+# Source: Table 3, Overall Values of Propeller Blade Passage Tones, PDF p. 31 (printed p. 19). Columns: static (runs 1&4), static (Ref. 2), 30 kt (run 2), 40 kt (run 5, 2710 rpm), 40 kt (run 3, 2690 rpm), 55 kt (run 6), 70 kt (run 7). ** = no data acquired.
+location,static_1_4_dB,static_ref2_dB,kt30_run2_dB,kt40_run5_dB,kt40_run3_dB,kt55_run6_dB,kt70_run7_dB
+1,133.2,132.9,132.5,**,130.4,**,**
+3,137.6,136.3,**,133.6,**,132.6,132.4
+4,137.6,137.2,**,135.1,**,134.3,133.8
+5,134.8,133.9,134.3,132.7,132.3,132.2,131.8
+8,130.9,129.9,130.5,**,126.7,**,**
+9,122.2,123.4,121.2,**,120.9,**,**
+11,107.5,**,**,106.2,**,105.6,104.2
+rpm,2600,2600,2600,2710,2690,2770,2620
+bpf_Hz,81.8,81.8,81.8,85.4,84.6,87.2,82.6

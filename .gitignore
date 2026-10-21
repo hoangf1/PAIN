@@ -1,0 +1,21 @@
+# Julia
+*.jl.cov
+*.jl.*.cov
+*.jl.mem
+.julia/
+docs/build/
+Manifest.toml.local
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*~
+
+# Local scratch / caches
+rea-work/data/_scratch/
+**/__pycache__/
+*.pyc
+.ipynb_checkpoints/
