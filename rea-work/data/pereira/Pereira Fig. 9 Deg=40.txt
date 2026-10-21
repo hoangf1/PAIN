@@ -1,0 +1,11 @@
+BPF_Harmonic_Number,SPL_BEMT_dB,SPL_Numerical_dB,SPL_Experimental_dB,Delta_SPL_Numerical_dB,Delta_SPL_Experimental_dB
+1,80,80,80,-0.5,-0.5
+2,60,62,64.5,2,4.5
+3,39,44,47.5,5,8.5
+4,26,23,45,-3,10
+5,24,24.5,48,0.5,10
+6,22,27,50,5,10
+7,20,26,48,6,10
+8,19,29,50,10,10
+9,18,28,50,10,10
+10,17,27,48,10,10

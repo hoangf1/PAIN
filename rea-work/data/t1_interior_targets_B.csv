@@ -1,8 +1,0 @@
-# T1 tonal interior SPL — Fig. E-16 pass B (CR-3813 PDF p. 142 / E-26)
-# Method: hand read on 300 dpi render; did not consult pass A while reading
-# δ_dig vs pass A means = 0.00 dB (informational; pass A stays frozen)
-# Digitized 2026-10-21; script data/digitizers/dig_cr3813_hand_passB.py
-harmonic,f_Hz,band_Hz,measured_mean_SPL_dB,measured_low_dB,measured_high_dB,nasa_pain_pred_dB
-1,200,200,90.0,65.0,97.0,79.0
-2,400,400,80.0,62.0,87.0,76.0
-3,600,630,65.0,50.0,74.0,68.0
