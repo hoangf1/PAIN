@@ -98,7 +98,7 @@ const TABLE_C1_SYMMETRIC = (
     false, true, false, true, true, false, true, false, true, false,
 )
 
-"""Table C-1 speed of sound implied by the printed frequencies [m/s]."""
+"""c0 back-solved from Table C-1 (a fitted scale, used only for display/comparison) [m/s]."""
 const TABLE_C1_C0 = 341.0
 
 # --- grid ---------------------------------------------------------------------------

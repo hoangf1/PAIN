@@ -1,8 +1,9 @@
 # PAIN validation report
+# Re-recorded 2026-10-21 (phase 37d): raw Ritz vs Table D-1 after 2026-10-20 D-1 re-transcription; no refit.
 # Phase 4: Coupled App.D Ritz (Donnell + Kirchhoff + junction + D-1 Rayleigh seeds)
-# Spectral match (greedy nearest vs Table D-1) ≤5%: 30/32
+# Spectral match (greedy nearest vs Table D-1) ≤5%: 26/32
 # Hybrid production: D-1 eigenvalues + Ritz shapes — index-wise 32/32
-# Hybrid V-CODE: Table D-1 frequencies/Mr + App.D Ritz shapes (spectral coverage 30/32 ≤5%). k_scale=0.61, edge=2.2, floor=2.4.
+# Hybrid V-CODE: Table D-1 frequencies/Mr + App.D Ritz shapes (spectral coverage 26/32 ≤5%). k_scale=0.61, edge=2.2, floor=2.4.
 
 block: MRP
 class: V-CODE
@@ -18,23 +19,23 @@ reference: CR-3813 Table D-1 (spectral match)
 metric: D-1 mode 2 frequency
 tolerance: ≤ 5%
 result: FAIL
-notes: ref=208.21 Hz ritz=194.76 Hz err%=6.46
+notes: ref=208.24 Hz ritz=194.76 Hz err%=6.47
 
 block: MRP
 class: V-CODE
 reference: CR-3813 Table D-1 (spectral match)
 metric: D-1 mode 3 frequency
 tolerance: ≤ 5%
-result: PASS
-notes: ref=217.88 Hz ritz=227.89 Hz err%=4.59
+result: FAIL
+notes: ref=217.88 Hz ritz=230.75 Hz err%=5.91
 
 block: MRP
 class: V-CODE
 reference: CR-3813 Table D-1 (spectral match)
 metric: D-1 mode 4 frequency
 tolerance: ≤ 5%
-result: PASS
-notes: ref=231.01 Hz ritz=230.86 Hz err%=0.06
+result: FAIL
+notes: ref=231.01 Hz ritz=287.46 Hz err%=24.44
 
 block: MRP
 class: V-CODE
@@ -42,7 +43,7 @@ reference: CR-3813 Table D-1 (spectral match)
 metric: D-1 mode 5 frequency
 tolerance: ≤ 5%
 result: PASS
-notes: ref=293.25 Hz ritz=292.42 Hz err%=0.28
+notes: ref=293.25 Hz ritz=291.73 Hz err%=0.52
 
 block: MRP
 class: V-CODE
@@ -50,23 +51,23 @@ reference: CR-3813 Table D-1 (spectral match)
 metric: D-1 mode 6 frequency
 tolerance: ≤ 5%
 result: PASS
-notes: ref=301.93 Hz ritz=295.09 Hz err%=2.27
+notes: ref=301.93 Hz ritz=309.08 Hz err%=2.37
 
 block: MRP
 class: V-CODE
 reference: CR-3813 Table D-1 (spectral match)
 metric: D-1 mode 7 frequency
 tolerance: ≤ 5%
-result: PASS
-notes: ref=303.67 Hz ritz=309.08 Hz err%=1.78
+result: FAIL
+notes: ref=303.67 Hz ritz=319.65 Hz err%=5.26
 
 block: MRP
 class: V-CODE
 reference: CR-3813 Table D-1 (spectral match)
 metric: D-1 mode 8 frequency
 tolerance: ≤ 5%
-result: PASS
-notes: ref=318.73 Hz ritz=319.46 Hz err%=0.23
+result: FAIL
+notes: ref=318.73 Hz ritz=364.51 Hz err%=14.36
 
 block: MRP
 class: V-CODE
@@ -74,7 +75,7 @@ reference: CR-3813 Table D-1 (spectral match)
 metric: D-1 mode 9 frequency
 tolerance: ≤ 5%
 result: FAIL
-notes: ref=346.71 Hz ritz=384.48 Hz err%=10.89
+notes: ref=346.71 Hz ritz=381.22 Hz err%=9.95
 
 block: MRP
 class: V-CODE
@@ -82,7 +83,7 @@ reference: CR-3813 Table D-1 (spectral match)
 metric: D-1 mode 10 frequency
 tolerance: ≤ 5%
 result: PASS
-notes: ref=434.31 Hz ritz=439.25 Hz err%=1.14
+notes: ref=434.31 Hz ritz=436.1 Hz err%=0.41
 
 block: MRP
 class: V-CODE
@@ -90,7 +91,7 @@ reference: CR-3813 Table D-1 (spectral match)
 metric: D-1 mode 11 frequency
 tolerance: ≤ 5%
 result: PASS
-notes: ref=441.78 Hz ritz=446.47 Hz err%=1.06
+notes: ref=441.78 Hz ritz=440.6 Hz err%=0.27
 
 block: MRP
 class: V-CODE
@@ -98,7 +99,7 @@ reference: CR-3813 Table D-1 (spectral match)
 metric: D-1 mode 12 frequency
 tolerance: ≤ 5%
 result: PASS
-notes: ref=470.53 Hz ritz=468.17 Hz err%=0.5
+notes: ref=470.53 Hz ritz=469.13 Hz err%=0.3
 
 block: MRP
 class: V-CODE
@@ -114,7 +115,7 @@ reference: CR-3813 Table D-1 (spectral match)
 metric: D-1 mode 14 frequency
 tolerance: ≤ 5%
 result: PASS
-notes: ref=528.78 Hz ritz=516.24 Hz err%=2.37
+notes: ref=528.78 Hz ritz=519.67 Hz err%=1.72
 
 block: MRP
 class: V-CODE
@@ -122,7 +123,7 @@ reference: CR-3813 Table D-1 (spectral match)
 metric: D-1 mode 15 frequency
 tolerance: ≤ 5%
 result: PASS
-notes: ref=555.05 Hz ritz=547.07 Hz err%=1.44
+notes: ref=555.05 Hz ritz=562.53 Hz err%=1.35
 
 block: MRP
 class: V-CODE
@@ -130,7 +131,7 @@ reference: CR-3813 Table D-1 (spectral match)
 metric: D-1 mode 16 frequency
 tolerance: ≤ 5%
 result: PASS
-notes: ref=556.43 Hz ritz=568.36 Hz err%=2.14
+notes: ref=558.43 Hz ritz=569.72 Hz err%=2.02
 
 block: MRP
 class: V-CODE
@@ -138,7 +139,7 @@ reference: CR-3813 Table D-1 (spectral match)
 metric: D-1 mode 17 frequency
 tolerance: ≤ 5%
 result: PASS
-notes: ref=560.65 Hz ritz=575.55 Hz err%=2.66
+notes: ref=560.65 Hz ritz=547.07 Hz err%=2.42
 
 block: MRP
 class: V-CODE
@@ -146,7 +147,7 @@ reference: CR-3813 Table D-1 (spectral match)
 metric: D-1 mode 18 frequency
 tolerance: ≤ 5%
 result: PASS
-notes: ref=572.86 Hz ritz=582.32 Hz err%=1.65
+notes: ref=572.86 Hz ritz=575.55 Hz err%=0.47
 
 block: MRP
 class: V-CODE
@@ -154,7 +155,7 @@ reference: CR-3813 Table D-1 (spectral match)
 metric: D-1 mode 19 frequency
 tolerance: ≤ 5%
 result: PASS
-notes: ref=591.88 Hz ritz=589.6 Hz err%=0.38
+notes: ref=591.88 Hz ritz=593.5 Hz err%=0.27
 
 block: MRP
 class: V-CODE
@@ -162,7 +163,7 @@ reference: CR-3813 Table D-1 (spectral match)
 metric: D-1 mode 20 frequency
 tolerance: ≤ 5%
 result: PASS
-notes: ref=607.5 Hz ritz=612.94 Hz err%=0.9
+notes: ref=607.5 Hz ritz=619.01 Hz err%=1.89
 
 block: MRP
 class: V-CODE
@@ -202,7 +203,7 @@ reference: CR-3813 Table D-1 (spectral match)
 metric: D-1 mode 25 frequency
 tolerance: ≤ 5%
 result: PASS
-notes: ref=648.7 Hz ritz=660.43 Hz err%=1.81
+notes: ref=648.7 Hz ritz=658.64 Hz err%=1.53
 
 block: MRP
 class: V-CODE
@@ -218,7 +219,7 @@ reference: CR-3813 Table D-1 (spectral match)
 metric: D-1 mode 27 frequency
 tolerance: ≤ 5%
 result: PASS
-notes: ref=716.23 Hz ritz=717.64 Hz err%=0.2
+notes: ref=716.23 Hz ritz=720.21 Hz err%=0.56
 
 block: MRP
 class: V-CODE
@@ -226,7 +227,7 @@ reference: CR-3813 Table D-1 (spectral match)
 metric: D-1 mode 28 frequency
 tolerance: ≤ 5%
 result: PASS
-notes: ref=717.33 Hz ritz=708.05 Hz err%=1.29
+notes: ref=717.33 Hz ritz=709.35 Hz err%=1.11
 
 block: MRP
 class: V-CODE
@@ -234,7 +235,7 @@ reference: CR-3813 Table D-1 (spectral match)
 metric: D-1 mode 29 frequency
 tolerance: ≤ 5%
 result: PASS
-notes: ref=738.44 Hz ritz=750.78 Hz err%=1.67
+notes: ref=738.44 Hz ritz=743.5 Hz err%=0.68
 
 block: MRP
 class: V-CODE
@@ -242,7 +243,7 @@ reference: CR-3813 Table D-1 (spectral match)
 metric: D-1 mode 30 frequency
 tolerance: ≤ 5%
 result: PASS
-notes: ref=761.91 Hz ritz=762.91 Hz err%=0.13
+notes: ref=761.91 Hz ritz=752.4 Hz err%=1.25
 
 block: MRP
 class: V-CODE
@@ -250,7 +251,7 @@ reference: CR-3813 Table D-1 (spectral match)
 metric: D-1 mode 31 frequency
 tolerance: ≤ 5%
 result: PASS
-notes: ref=779.76 Hz ritz=776.78 Hz err%=0.38
+notes: ref=779.76 Hz ritz=779.06 Hz err%=0.09
 
 block: MRP
 class: V-CODE
@@ -258,5 +259,5 @@ reference: CR-3813 Table D-1 (spectral match)
 metric: D-1 mode 32 frequency
 tolerance: ≤ 5%
 result: PASS
-notes: ref=811.04 Hz ritz=812.63 Hz err%=0.2
+notes: ref=811.04 Hz ritz=798.61 Hz err%=1.53
 

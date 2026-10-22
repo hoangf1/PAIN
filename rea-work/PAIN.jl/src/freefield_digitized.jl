@@ -6,8 +6,21 @@ Amplitudes from dual digitizations under `data/`. Phases from ANOPP Table 8
 is V-ASSUMED (e11 path only; aircraft path uses F1A at all 160 points, phase 21).
 """
 
-"""SPL dB → pressure amplitude Pa (re 20 μPa)."""
+# Amplitude convention (CR-3813 Eqs. (28)–(31); User Manual App. A; CR-172428 p. 41):
+# - Published / measured SPL is rms: ⟨p²⟩ = p₀² 10^(SPL/10).
+# - PAIN input A_H is the cosine-peak Fourier amplitude (A_H = √(a_H²+b_H²), mean square A²/2).
+# - Hence SPL → A: A = √2 · p₀ · 10^(SPL/20); A → SPL: SPL = 20 log10(A / (√2 p₀)).
+# `spl_dB_to_Pa` returns rms pressure (unchanged meaning). Use `spl_dB_to_peak_Pa` wherever a
+# published SPL becomes PAIN's A; use `peak_Pa_to_spl_dB` when converting F1A A to SPL.
+
+"""SPL dB → rms pressure Pa (re 20 μPa)."""
 spl_dB_to_Pa(spl_dB::Real) = 20e-6 * 10^(float(spl_dB) / 20)
+
+"""SPL dB (rms) → cosine-peak Fourier amplitude Pa for PAIN input A_H."""
+spl_dB_to_peak_Pa(spl_dB::Real) = sqrt(2) * spl_dB_to_Pa(spl_dB)
+
+"""Cosine-peak Fourier amplitude A (Pa) → rms-referenced SPL dB (re 20 μPa)."""
+peak_Pa_to_spl_dB(A::Real) = 20 * log10(float(A) / (sqrt(2) * 20e-6) + 1e-30)
 
 """Read a simple CSV with header; skip `#` comment lines. Returns Dict{Symbol,Vector}."""
 function _read_csv_numeric(path::AbstractString)
@@ -112,7 +125,7 @@ function freefield_from_e11_csv(amp_csv::AbstractString,
                     end
                 end
             end
-            line_amps[k, H] = spl_dB_to_Pa(spl)
+            line_amps[k, H] = spl_dB_to_peak_Pa(spl)
             pkey = H == 1 ? :phase_H1_deg : H == 2 ? :phase_H2_deg : :phase_H3_deg
             j = findfirst(==(float(k)), ph[:k])
             j === nothing && error("phase CSV missing k=$k")

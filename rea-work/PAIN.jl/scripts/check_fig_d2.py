@@ -13,7 +13,7 @@ import pymupdf
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.normpath(os.path.join(HERE, "..", ".."))
-PDF = os.path.join(ROOT, "Pain Methodology.pdf")
+PDF = os.path.join(ROOT, "references", "Pain Methodology.pdf")
 DPI = 300
 page = pymupdf.open(PDF)[112]
 assert "FIGURE D-2" in page.get_text()

@@ -22,8 +22,13 @@ function write_validation_record(io::IO, r::ValidationRecord)
     println(io)
 end
 
-function write_validation_record(path::AbstractString, records::Vector{ValidationRecord})
+function write_validation_record(path::AbstractString, records::Vector{ValidationRecord};
+                                  header::AbstractString="")
     open(path, "w") do io
+        if !isempty(header)
+            println(io, header)
+            println(io)
+        end
         println(io, "# PAIN validation report")
         println(io)
         for r in records

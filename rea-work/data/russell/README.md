@@ -1,6 +1,6 @@
 # Russell & Sekula (2017) SUI Endurance (T-Motor 15x5) blade geometry
 
-Source: AHS Paper 73-2017-0096, "Comprehensive Analysis Modeling of Small-Scale UAS Rotors" (`Foil Geom for Wu (Russell).pdf` in `rea-work`), used for the Wu et al. (2022) propeller.
+Source: AHS Paper 73-2017-0096, "Comprehensive Analysis Modeling of Small-Scale UAS Rotors" (`Foil Geom for Wu (Russell).pdf` in `rea-work\references`), used for the Wu et al. (2022) propeller.
 
 | File | Content |
 |------|---------|

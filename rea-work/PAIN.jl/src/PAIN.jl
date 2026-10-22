@@ -31,6 +31,8 @@ include("pain_core.jl")
 include("metrics.jl")
 include("validation_report.jl")
 include("validation_cases.jl")
+include("validation_case_extras.jl")
+include("validation_map.jl")
 include("validation_plots.jl")
 include("gui_model.jl")
 include("gui_main.jl")
@@ -53,7 +55,7 @@ export
     ScaledLoads, load_polar_set, PolarStats,
     total_rms, pressure_coefficient_pc, pa_to_dyne_cm2, dyne_cm2_to_pa, blade_form_geometry,
     apply_blocking,
-    freefield_from_e11_csv, delta_dig_dB, default_e11_paths, spl_dB_to_Pa,
+    freefield_from_e11_csv, delta_dig_dB, default_e11_paths, spl_dB_to_Pa, spl_dB_to_peak_Pa, peak_Pa_to_spl_dB,
     PainInputs, InteriorSpectrum, interior_spl, cabin_volume, tone_mean_square_pressure, generalized_force, generalized_force_amplitude,
     absorption_coefficient,
     InsulationTable, load_insulation_table, pf105_table, insulation_properties,
@@ -69,9 +71,15 @@ export
     main, make_gui_observables, run_pain_gui!,
     PlotSeries, PlotSpec, FigureRef, ValidationTableRow, ValidationCase, ValidationCaseResult,
     VALIDATION_CASES, VALIDATION_CASE_ORDER, list_validation_cases,
-    run_validation_case, format_validation_result,
+    validation_case_runnable, run_validation_case, format_validation_result,
     plot_case, validation_figure_path, validation_source_figure_path,
-    run_validation_gui!, run_all_validation_gui!
+    VALIDATION_SOURCE_FIGURE_FALLBACKS,
+    CaseInfo, MapBlock, ValidationMap, CASE_INFO, VALIDATION_MAPS,
+    validation_guideline_path, parse_validation_guideline_section,
+    load_validation_docs!, reload_validation_docs!,
+    validation_map_json, case_info_json, validation_map_case_order,
+    f1a_gutin_h1_comparison,
+    run_validation_gui!, run_all_validation_gui!, reload_validation_docs_gui!
 
 """
     run_pain_pipeline(; source=:aircraft | :e11 | :synthetic, trim=:auto, ...)
@@ -236,7 +244,8 @@ function evaluate_T2(spectrum::InteriorSpectrum;
 end
 
 """Compare structural mode frequencies to Table D-1 (V-CODE)."""
-function validate_mrp_table_d1(modes::StructuralModes; tol_frac::Float64=0.05)
+function validate_mrp_table_d1(modes::StructuralModes; tol_frac::Float64=0.05,
+                               label::AbstractString="V-CODE")
     records = ValidationRecord[]
     n = min(length(modes.modes), length(TABLE_D1_FULL))
     for i in 1:n
@@ -245,7 +254,7 @@ function validate_mrp_table_d1(modes::StructuralModes; tol_frac::Float64=0.05)
         err = abs(got - ref) / max(ref, 1e-9)
         ok = err ≤ tol_frac
         push!(records, ValidationRecord(
-            "MRP", "V-CODE",
+            "MRP", String(label),
             "CR-3813 Table D-1",
             "mode $i frequency", "≤ $(100 * tol_frac)%",
             ok ? "PASS" : "FAIL",

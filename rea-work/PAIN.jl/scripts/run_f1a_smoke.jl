@@ -32,23 +32,22 @@ try
     t0 = time()
     ff = propeller_freefield_grid(json, fuse, prop, spec; n_harmonics=3, num_src_times=64)
     wall = time() - t0
-    pref = 20e-6
     anopp = PAIN._read_csv_numeric(joinpath(@__DIR__, "..", "..", "data", "anopp_table8_spl_dB.csv"))
     deltas = Float64[]
     for H in 1:3
         line = [ff.amplitudes[k, 1, H] for k in 1:16]
-        spl_f1a = [20 * log10(max(A, 1e-20) / pref) for A in line]
+        spl_f1a = [peak_Pa_to_spl_dB(max(A, 1e-20)) for A in line]
         key = H == 1 ? :SPL_H1_dB : H == 2 ? :SPL_H2_dB : :SPL_H3_dB
         spl_an = anopp[key]
         dpeak = maximum(spl_f1a) - maximum(spl_an)
         push!(deltas, dpeak)
         push!(records, ValidationRecord(
             "SRC_AC", "X-EXTRAP",
-            "CCBlade+F1A vs ANOPP Table 8 ℓ=1 (peak SPL); $header_note",
-            "H=$H peak free-field SPL (raw, untuned)",
+            "CCBlade+F1A vs ANOPP Table 8 ℓ=1 (rms SPL via peak_Pa_to_spl_dB); $header_note",
+            "H=$H free-field SPL rms (raw, untuned; amplitude convention fixed 2026-10-21, post-hoc)",
             "informational X-EXTRAP; not a pass criterion (I-12: no calibrate-to-Table-8)",
             "REPORTED",
-            "F1A_peak=$(round(maximum(spl_f1a); digits=1)) dB ANOPP_peak=$(round(maximum(spl_an); digits=1)) dB delta=$(round(dpeak; digits=1))",
+            "F1A_rms=$(round(maximum(spl_f1a); digits=1)) dB ANOPP_rms=$(round(maximum(spl_an); digits=1)) dB delta=$(round(dpeak; digits=1))",
         ))
     end
     push!(records, ValidationRecord(
@@ -57,7 +56,7 @@ try
         "REPORTED",
         "source=$(ff.source) bpf=$(ff.bpf_Hz) maxA=$(maximum(ff.amplitudes)) wall_s=$(round(wall; digits=1)) deltas=$(round.(deltas; digits=1)) dB; $(ff.notes)",
     ))
-    println("F1A smoke (raw/untuned) bpf=$(ff.bpf_Hz) deltas=", round.(deltas; digits=1), " wall=", round(wall; digits=1), "s")
+    println("F1A smoke (raw/untuned, peak→rms SPL) bpf=$(ff.bpf_Hz) deltas=", round.(deltas; digits=1), " wall=", round(wall; digits=1), "s")
 catch e
     push!(records, ValidationRecord(
         "SRC_AC", "X-EXTRAP", "CCBlade+F1A smoke; $header_note",
@@ -68,6 +67,11 @@ catch e
     Base.showerror(stdout, e)
     println()
 end
-write_validation_record(joinpath(REPORTS, "ccblade_f1a_smoke.md"), records)
+smoke_path = joinpath(REPORTS, "ccblade_f1a_smoke.md")
+write_validation_record(smoke_path, records)
+# Prepend post-hoc amplitude-convention note (I-17 / F4).
+let body = read(smoke_path, String)
+    write(smoke_path, "Re-recorded 2026-10-21 after the amplitude-convention fix (I-17; sources cited); result known in advance in direction, therefore post-hoc.\n\n" * body)
+end
 println("wrote ccblade_f1a_smoke.md")
 rm(json; force=true)

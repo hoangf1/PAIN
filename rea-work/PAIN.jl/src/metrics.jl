@@ -18,16 +18,30 @@ end
 """
     overall_dBA(spectrum; uncertainty_1sigma_dB=3.5)
 
-A-weighted overall from tonal harmonics (+ optional 1/3-oct energy).
+A-weighted overall level L_A = 10 log10 Σ 10^((L + A(f))/10).
+
+When `spectrum.third_octave_SPL_dB` is non-empty, sum over all finite 1/3-octave
+bands with A-weighting at each band centre frequency. Tones are not added again
+(they are already folded into the bands in `interior_spl`). When the band dict is
+empty (hand-built spectra), sum tonal harmonics at exact harmonic frequencies.
+
 Uncertainty band ~3.5 dB 1σ per CR-172428 §6.1 when marked X-EXTRAP.
 Returns (dBA, dBA−σ, dBA+σ).
 """
 function overall_dBA(spectrum::InteriorSpectrum; uncertainty_1sigma_dB::Float64=3.5)
     pref2 = (20e-6)^2
     p2 = 0.0
-    for (H, spl) in enumerate(spectrum.harmonic_SPL_dB)
-        f = H * spectrum.bpf_Hz
-        p2 += pref2 * 10^((spl + a_weight_dB(f)) / 10)
+    bands = spectrum.third_octave_SPL_dB
+    if !isempty(bands)
+        for (fc, spl) in bands
+            (isfinite(fc) && isfinite(spl)) || continue
+            p2 += pref2 * 10^((spl + a_weight_dB(fc)) / 10)
+        end
+    else
+        for (H, spl) in enumerate(spectrum.harmonic_SPL_dB)
+            f = H * spectrum.bpf_Hz
+            p2 += pref2 * 10^((spl + a_weight_dB(f)) / 10)
+        end
     end
     dBA = 10 * log10(p2 / pref2 + 1e-30)
     return dBA, dBA - uncertainty_1sigma_dB, dBA + uncertainty_1sigma_dB

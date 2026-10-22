@@ -387,7 +387,7 @@ function apply_table8_calibration(grid::FreeFieldHarmonicGrid, csv::AbstractStri
               H == 3 ? :SPL_H3_dB : H == 4 ? :SPL_H4_dB : :SPL_H5_dB
         haskey(anopp, key) || continue
         peak_f1a = maximum(amps[:, 1, H])   # ℓ = 1 subset
-        peak_an = maximum(spl_dB_to_Pa.(anopp[key]))
+        peak_an = maximum(spl_dB_to_peak_Pa.(anopp[key]))
         s = peak_f1a > 0 ? peak_an / peak_f1a : 1.0
         s = clamp(s, 10^(-1.0), 10^(1.0))
         amps[:, :, H] .*= s
@@ -424,6 +424,67 @@ end
 """Pa → dyne/cm² (Report 996 figures). 1 Pa = 10 dyne/cm²."""
 pa_to_dyne_cm2(p_Pa::Real) = 10.0 * Float64(p_Pa)
 dyne_cm2_to_pa(p::Real) = Float64(p) / 10.0
+
+"""Integer-order Bessel J_n(x) series (loading-noise Gutin closed form)."""
+function _besselj_int(n::Int, x::Float64)
+    n = abs(n)
+    term = (x / 2)^n
+    for i in 1:n
+        term /= i
+    end
+    s = term
+    for k in 1:60
+        term *= -(x / 2)^2 / (k * (n + k))
+        s += term
+        abs(term) < 1e-16 * (1 + abs(s)) && break
+    end
+    return s
+end
+
+"""
+    f1a_gutin_h1_comparison(; aircraft_json, r_over_Rtip=100) -> NamedTuple
+
+I-01 (c) / F1A_GUTIN: static, thickness-off F1A H1 SPL vs Gutin/Hubbard closed form
+on the same T, Q at an in-plane observer `r_over_Rtip * Rtip` from the hub.
+"""
+function f1a_gutin_h1_comparison(;
+        aircraft_json::AbstractString=joinpath(@__DIR__, "..", "examples", "aircraft_scale_hartzell.json"),
+        r_over_Rtip::Float64=100.0,
+        num_src_times::Int=128)
+    txt = read(aircraft_json, String)
+    txt = replace(txt, r"\"forward_speed_mps\"\s*:\s*[0-9.eE+-]+" => "\"forward_speed_mps\": 0.0")
+    txt = replace(txt, r"\"thickness_over_chord\"\s*:\s*[0-9.eE+-]+" => "\"thickness_over_chord\": 0.0")
+    tmp = joinpath(tempdir(), "pain_gutin_static_$(hash(aircraft_json)).json")
+    write(tmp, txt)
+    try
+        cfg = _load_aircraft_json(tmp)
+        Rtip = Float64(cfg.propeller.tip_radius_m)
+        r_ff = r_over_Rtip * Rtip
+        obs = [Observer([0.0, r_ff, 0.0], zeros(3), "ff_plane")]
+        src = evaluate_propeller_source(cfg, obs; n_harmonics=1, num_src_times=num_src_times,
+                                        allow_static=true)
+        Ω = Float64(cfg.propeller.rpm) * 2π / 60
+        B = Int(cfg.propeller.num_blades)
+        c0 = src.echo.c0
+        m = 1
+        Mt = Ω * Rtip / c0
+        J = _besselj_int(m * B, m * B * Mt)
+        # Rotor-plane (θ=π/2) Gutin/Hubbard: p_rms = (m B Ω /(2π c0 r)) (Q/R) |J_{mB}(m B M_t)|
+        # F1A stores cosine peak A = √2 p_rms. Compare peak with peak (both "SPL of the peak").
+        p_rms = (m * B * Ω / (2π * c0 * r_ff)) * (src.Q / Rtip) * abs(J)
+        p_peak = sqrt(2) * p_rms
+        spl_f1a = 20 * log10(max(src.amplitude[1, 1], 1e-30) / 2e-5)   # SPL of the peak
+        spl_gutin = 20 * log10(max(p_peak, 1e-30) / 2e-5)              # SPL of the peak
+        Δ = spl_f1a - spl_gutin
+        return (;
+            spl_f1a, spl_gutin, delta_dB=Δ, ok=abs(Δ) ≤ 1.0,
+            T=src.T, Q=src.Q, Mt, B, Rtip, r_ff, c0, Ω,
+            aircraft_json=abspath(aircraft_json),
+        )
+    finally
+        rm(tmp; force=true)
+    end
+end
 
 """
     blade_form_geometry(csv_path; D, beta75_target_deg, r_tip_frac=0.995) -> NamedTuple

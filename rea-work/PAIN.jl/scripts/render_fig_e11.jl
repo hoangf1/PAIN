@@ -1,8 +1,8 @@
 using Poppler_jll
 
-outdir = raw"D:\code\PAIN\rea-work\data\figures"
+outdir = joinpath(@__DIR__, "..", "..", "data", "figures")
 mkpath(outdir)
-pdf = raw"D:\code\PAIN\rea-work\Pain Methodology.pdf"
+pdf = joinpath(@__DIR__, "..", "..", "references", "Pain Methodology.pdf")
 
 # Fig E-11 is page 135; also grab neighbors and E-16 region later
 for (label, page) in (("e11", 135), ("e11_prev", 134), ("e11_next", 136))

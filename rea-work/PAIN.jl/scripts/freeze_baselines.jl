@@ -5,7 +5,7 @@ using Pkg; Pkg.activate(joinpath(@__DIR__, ".."))
 using PAIN, Printf
 out = joinpath(@__DIR__, "..", "..", "data", "baselines", "phase17_baselines.csv")
 io = IOBuffer()
-println(io, "# Phase 17 regression baselines (frozen 2026-10-20; renewed 2026-10-20 after the author decided the Phase III trim loss factor eta_T = 0.5, plan phase 19; the eta_T = 0.05 file is kept as phase17_baselines_etaT0p05_archive.csv, not read by the tests). e11 source, R2 blocking, BPF 200 Hz, 3 harmonics. name,value")
+println(io, "# Phase 17 regression baselines (re-frozen 2026-10-21 after the amplitude-convention fix I-17/F4: published SPL → cosine-peak A via √2; old rms-as-A file kept as phase17_baselines_rmsA_archive.csv). Prior renewals: 2026-10-20 eta_T=0.5 (phase17_baselines_etaT0p05_archive.csv). e11 source, R2 blocking, BPF 200 Hz, 3 harmonics. name,value")
 println(io, "name,value")
 for trim in (:bare, :phase3)
     r = run_pain_pipeline(; source=:e11, n_harmonics=3, bpf_Hz=200.0, blocking=R2, trim=trim)

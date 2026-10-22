@@ -2,7 +2,7 @@ import sys, csv, fitz
 sys.path.insert(0, 'data/digitizers')
 from e12_common import to_px
 tag = sys.argv[1]
-d = fitz.open('Pain Methodology.pdf'); p = d[135]
+d = fitz.open('references/Pain Methodology.pdf'); p = d[135]
 k = 72/300
 for kind, col in (('measured', (1, 0, 0)), ('predicted', (0, 0.6, 0))):
     for r in csv.DictReader(l for l in open(f'data/e12/e12_{kind}_{tag}.csv') if not l.startswith('#')):

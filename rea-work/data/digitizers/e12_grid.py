@@ -2,7 +2,7 @@
 import sys, fitz
 sys.path.insert(0, 'data/digitizers')
 from e12_common import to_px
-d = fitz.open('Pain Methodology.pdf'); p = d[135]; k = 72/300
+d = fitz.open('references/Pain Methodology.pdf'); p = d[135]; k = 72/300
 rng = {1: (98, 134), 2: (82, 128), 3: (78, 120)}
 for h, (lo, hi) in rng.items():
     for i in range(-10, 9):

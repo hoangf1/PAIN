@@ -1,8 +1,9 @@
 # Report 996 Acoustics (phase 27)
 
+Re-recorded 2026-10-21 after the amplitude-convention fix (I-17; sources cited); result known in advance in direction, therefore post-hoc.
 Generated 2026-10-21 by `scripts/run_report996_acoustics.jl`.
 **Re-run after plan I-01/I-02/I-08 (2026-10-21).** Criterion: VALIDATION_GUIDELINE §2.12 / 23c frozen 2026-10-21.
-x_sign=−1 (report behind → AA +X). Thickness off.
+x_sign=−1 (report behind → AA +X). Thickness off. Harmonic A vs measured: A_rms = A_Pa/√2 (Report 996 p.10 rms).
 
 ## I-08 Fig. 13(a) load scale
 
@@ -10,7 +11,7 @@ RM L51C27 Table I (47-in., β₇₅=15°, M_t=0.75): T=225.0 lb, Q=114.0 lb·ft 
 
 ## x-sign / asymmetry (25k)
 
-A(-0.125)=1291.9 vs A(+0.125)=1508.4 dyne/cm² (meas ~1328 vs ~1009); behind>ahead=false
+A_rms(-0.125)=913.5 vs A_rms(+0.125)=1066.6 dyne/cm² (meas ~1328 vs ~1009); behind>ahead=false
 
 ## Page-12 phase (one measured value)
 
@@ -22,98 +23,98 @@ A(-0.125)=1291.9 vs A(+0.125)=1508.4 dyne/cm² (meas ~1328 vs ~1009); behind>ahe
 
 | polar | loads | case | mB | A F1A dyne/cm² | meas | residual % | residual dB |
 |---|---|---|--:|---:|---:|---:|---:|
-| primary | scaled | beta10_B2_Mt0.45 | 2 | 255.4 | 200.9 | 27.1 | 2.08 |
-| primary | scaled | beta10_B2_Mt0.45 | 4 | 131.7 | 100.0 | 31.7 | 2.39 |
-| primary | scaled | beta10_B2_Mt0.45 | 6 | 68.9 | 50.1 | 37.5 | 2.76 |
-| bracket | scaled | beta10_B2_Mt0.45 | 2 | 259.3 | 200.9 | 29.1 | 2.22 |
-| bracket | scaled | beta10_B2_Mt0.45 | 4 | 134.4 | 100.0 | 34.4 | 2.57 |
-| bracket | scaled | beta10_B2_Mt0.45 | 6 | 70.6 | 50.1 | 40.8 | 2.97 |
-| primary | scaled | beta10_B2_Mt0.6 | 2 | 497.5 | 358.2 | 38.9 | 2.85 |
-| primary | scaled | beta10_B2_Mt0.6 | 4 | 277.6 | 179.1 | 55.0 | 3.81 |
-| primary | scaled | beta10_B2_Mt0.6 | 6 | 156.4 | 79.7 | 96.2 | 5.85 |
-| bracket | scaled | beta10_B2_Mt0.6 | 2 | 505.4 | 358.2 | 41.1 | 2.99 |
-| bracket | scaled | beta10_B2_Mt0.6 | 4 | 283.4 | 179.1 | 58.3 | 3.99 |
-| bracket | scaled | beta10_B2_Mt0.6 | 6 | 160.2 | 79.7 | 101.0 | 6.07 |
-| primary | scaled | beta10_B2_Mt0.75 | 2 | 824.6 | 661.0 | 24.8 | 1.92 |
-| primary | scaled | beta10_B2_Mt0.75 | 4 | 505.0 | 399.6 | 26.4 | 2.03 |
-| primary | scaled | beta10_B2_Mt0.75 | 6 | 316.0 | 229.0 | 38.0 | 2.8 |
-| bracket | scaled | beta10_B2_Mt0.75 | 2 | 835.5 | 661.0 | 26.4 | 2.04 |
-| bracket | scaled | beta10_B2_Mt0.75 | 4 | 513.8 | 399.6 | 28.6 | 2.18 |
-| bracket | scaled | beta10_B2_Mt0.75 | 6 | 322.6 | 229.0 | 40.9 | 2.98 |
-| primary | scaled | beta10_B2_Mt0.9 | 2 | 1422.7 | 1297.9 | 9.6 | 0.8 |
-| primary | scaled | beta10_B2_Mt0.9 | 4 | 1015.6 | 840.7 | 20.8 | 1.64 |
-| primary | scaled | beta10_B2_Mt0.9 | 6 | 759.5 | 547.2 | 38.8 | 2.85 |
-| bracket | scaled | beta10_B2_Mt0.9 | 2 | 1448.0 | 1297.9 | 11.6 | 0.95 |
-| bracket | scaled | beta10_B2_Mt0.9 | 4 | 1039.3 | 840.7 | 23.6 | 1.84 |
-| bracket | scaled | beta10_B2_Mt0.9 | 6 | 781.0 | 547.2 | 42.7 | 3.09 |
+| primary | scaled | beta10_B2_Mt0.45 | 2 | 180.6 | 200.9 | -10.1 | -0.93 |
+| primary | scaled | beta10_B2_Mt0.45 | 4 | 93.1 | 100.0 | -6.9 | -0.62 |
+| primary | scaled | beta10_B2_Mt0.45 | 6 | 48.7 | 50.1 | -2.8 | -0.25 |
+| bracket | scaled | beta10_B2_Mt0.45 | 2 | 183.3 | 200.9 | -8.7 | -0.79 |
+| bracket | scaled | beta10_B2_Mt0.45 | 4 | 95.0 | 100.0 | -5.0 | -0.44 |
+| bracket | scaled | beta10_B2_Mt0.45 | 6 | 49.9 | 50.1 | -0.4 | -0.04 |
+| primary | scaled | beta10_B2_Mt0.6 | 2 | 351.8 | 358.2 | -1.8 | -0.16 |
+| primary | scaled | beta10_B2_Mt0.6 | 4 | 196.3 | 179.1 | 9.6 | 0.8 |
+| primary | scaled | beta10_B2_Mt0.6 | 6 | 110.6 | 79.7 | 38.7 | 2.84 |
+| bracket | scaled | beta10_B2_Mt0.6 | 2 | 357.4 | 358.2 | -0.2 | -0.02 |
+| bracket | scaled | beta10_B2_Mt0.6 | 4 | 200.4 | 179.1 | 11.9 | 0.98 |
+| bracket | scaled | beta10_B2_Mt0.6 | 6 | 113.3 | 79.7 | 42.2 | 3.06 |
+| primary | scaled | beta10_B2_Mt0.75 | 2 | 583.1 | 661.0 | -11.8 | -1.09 |
+| primary | scaled | beta10_B2_Mt0.75 | 4 | 357.1 | 399.6 | -10.6 | -0.98 |
+| primary | scaled | beta10_B2_Mt0.75 | 6 | 223.5 | 229.0 | -2.4 | -0.21 |
+| bracket | scaled | beta10_B2_Mt0.75 | 2 | 590.8 | 661.0 | -10.6 | -0.97 |
+| bracket | scaled | beta10_B2_Mt0.75 | 4 | 363.3 | 399.6 | -9.1 | -0.83 |
+| bracket | scaled | beta10_B2_Mt0.75 | 6 | 228.1 | 229.0 | -0.4 | -0.03 |
+| primary | scaled | beta10_B2_Mt0.9 | 2 | 1006.0 | 1297.9 | -22.5 | -2.21 |
+| primary | scaled | beta10_B2_Mt0.9 | 4 | 718.1 | 840.7 | -14.6 | -1.37 |
+| primary | scaled | beta10_B2_Mt0.9 | 6 | 537.0 | 547.2 | -1.9 | -0.16 |
+| bracket | scaled | beta10_B2_Mt0.9 | 2 | 1023.9 | 1297.9 | -21.1 | -2.06 |
+| bracket | scaled | beta10_B2_Mt0.9 | 4 | 734.9 | 840.7 | -12.6 | -1.17 |
+| bracket | scaled | beta10_B2_Mt0.9 | 6 | 552.2 | 547.2 | 0.9 | 0.08 |
 
-23c scaled pressure (Fig.14 sample): 5/24 within ±2 dB (21.0%; need ≥75%).
+23c scaled pressure (Fig.14 sample): 20/24 within ±2 dB (83.0%; need ≥75%).
 
 ## Fig. 13(a) first harmonic vs x/D (M_t=0.75, β=15°)
 
 | polar | loads | x/D | A F1A | meas | residual % | residual dB |
 |---|---|---:|---:|---:|---:|---:|
-| primary | scaled_RM_L51C27 | -0.5 | 411.8 | 501.2 | -17.8 | -1.71 |
-| primary | scaled_RM_L51C27 | -0.25 | 998.7 | 1001.8 | -0.3 | -0.03 |
-| primary | scaled_RM_L51C27 | -0.125 | 1291.9 | 1327.9 | -2.7 | -0.24 |
-| primary | scaled_RM_L51C27 | 0.0 | 1019.3 | 762.9 | 33.6 | 2.52 |
-| primary | scaled_RM_L51C27 | 0.125 | 1508.4 | 1008.5 | 49.6 | 3.5 |
-| primary | scaled_RM_L51C27 | 0.25 | 1210.0 | 835.3 | 44.9 | 3.22 |
-| primary | scaled_RM_L51C27 | 0.5 | 576.4 | 355.4 | 62.2 | 4.2 |
-| bracket | scaled_RM_L51C27 | -0.5 | 414.7 | 501.2 | -17.3 | -1.65 |
-| bracket | scaled_RM_L51C27 | -0.25 | 1007.1 | 1001.8 | 0.5 | 0.05 |
-| bracket | scaled_RM_L51C27 | -0.125 | 1304.7 | 1327.9 | -1.7 | -0.15 |
-| bracket | scaled_RM_L51C27 | 0.0 | 1017.9 | 762.9 | 33.4 | 2.5 |
-| bracket | scaled_RM_L51C27 | 0.125 | 1522.7 | 1008.5 | 51.0 | 3.58 |
-| bracket | scaled_RM_L51C27 | 0.25 | 1219.1 | 835.3 | 45.9 | 3.28 |
-| bracket | scaled_RM_L51C27 | 0.5 | 579.6 | 355.4 | 63.1 | 4.25 |
+| primary | scaled_RM_L51C27 | -0.5 | 291.2 | 501.2 | -41.9 | -4.72 |
+| primary | scaled_RM_L51C27 | -0.25 | 706.2 | 1001.8 | -29.5 | -3.04 |
+| primary | scaled_RM_L51C27 | -0.125 | 913.5 | 1327.9 | -31.2 | -3.25 |
+| primary | scaled_RM_L51C27 | 0.0 | 720.8 | 762.9 | -5.5 | -0.49 |
+| primary | scaled_RM_L51C27 | 0.125 | 1066.6 | 1008.5 | 5.8 | 0.49 |
+| primary | scaled_RM_L51C27 | 0.25 | 855.6 | 835.3 | 2.4 | 0.21 |
+| primary | scaled_RM_L51C27 | 0.5 | 407.6 | 355.4 | 14.7 | 1.19 |
+| bracket | scaled_RM_L51C27 | -0.5 | 293.3 | 501.2 | -41.5 | -4.66 |
+| bracket | scaled_RM_L51C27 | -0.25 | 712.1 | 1001.8 | -28.9 | -2.96 |
+| bracket | scaled_RM_L51C27 | -0.125 | 922.6 | 1327.9 | -30.5 | -3.16 |
+| bracket | scaled_RM_L51C27 | 0.0 | 719.8 | 762.9 | -5.7 | -0.51 |
+| bracket | scaled_RM_L51C27 | 0.125 | 1076.7 | 1008.5 | 6.8 | 0.57 |
+| bracket | scaled_RM_L51C27 | 0.25 | 862.0 | 835.3 | 3.2 | 0.27 |
+| bracket | scaled_RM_L51C27 | 0.5 | 409.9 | 355.4 | 15.3 | 1.24 |
 
-23c scaled pressure (Fig.13a sample): 6/14 within ±2 dB.
+23c scaled pressure (Fig.13a sample): 8/14 within ±2 dB.
 
 ## Fig. 12(a)/(b) harmonics vs x/D (β=10°, primary/scaled)
 
 | fig | loads | x/D | mB | A F1A | meas | residual % |
 |---|---|---:|--:|---:|---:|---:|
-| fig12a | scaled | -0.25 | 2 | 710.2 | 600.4 | 18.3 |
-| fig12a | scaled | -0.25 | 4 | 339.7 | 251.1 | 35.3 |
-| fig12a | scaled | -0.25 | 6 | 167.7 | 101.9 | 64.6 |
-| fig12a | scaled | -0.25 | 8 | 85.4 | 68.8 | 24.2 |
-| fig12a | scaled | -0.125 | 2 | 824.6 | 621.8 | 32.6 |
-| fig12a | scaled | -0.125 | 4 | 505.0 | 400.1 | 26.2 |
-| fig12a | scaled | -0.125 | 6 | 316.0 | 234.0 | 35.1 |
-| fig12a | scaled | -0.125 | 8 | 202.8 | 158.4 | 28.0 |
-| fig12a | scaled | 0.0 | 2 | 393.3 | 400.0 | -1.7 |
-| fig12a | scaled | 0.0 | 4 | 246.5 | 321.0 | -23.2 |
-| fig12a | scaled | 0.0 | 6 | 152.3 | 213.5 | -28.7 |
-| fig12a | scaled | 0.0 | 8 | 98.6 | 181.0 | -45.5 |
-| fig12a | scaled | 0.125 | 2 | 924.4 | 661.1 | 39.8 |
-| fig12a | scaled | 0.125 | 4 | 557.9 | 592.0 | -5.8 |
-| fig12a | scaled | 0.125 | 6 | 342.6 | 404.4 | -15.3 |
-| fig12a | scaled | 0.125 | 8 | 216.7 | 233.1 | -7.0 |
-| fig12a | scaled | 0.25 | 2 | 804.9 | 562.9 | 43.0 |
-| fig12a | scaled | 0.25 | 4 | 384.8 | 384.0 | 0.2 |
-| fig12a | scaled | 0.25 | 6 | 188.0 | 224.6 | -16.3 |
-| fig12a | scaled | 0.25 | 8 | 94.9 | 154.8 | -38.7 |
-| fig12b | scaled | -0.25 | 2 | 1248.3 | 906.0 | 37.8 |
-| fig12b | scaled | -0.25 | 4 | 752.8 | 656.7 | 14.6 |
-| fig12b | scaled | -0.25 | 6 | 486.2 | 308.3 | 57.7 |
-| fig12b | scaled | -0.25 | 8 | 327.0 | 256.7 | 27.4 |
-| fig12b | scaled | -0.125 | 2 | 1422.7 | 1301.4 | 9.3 |
-| fig12b | scaled | -0.125 | 4 | 1015.6 | 852.1 | 19.2 |
-| fig12b | scaled | -0.125 | 6 | 759.5 | 554.0 | 37.1 |
-| fig12b | scaled | -0.125 | 8 | 586.1 | 503.7 | 16.4 |
-| fig12b | scaled | 0.0 | 2 | 775.5 | 798.1 | -2.8 |
-| fig12b | scaled | 0.0 | 4 | 583.1 | 579.6 | 0.6 |
-| fig12b | scaled | 0.0 | 6 | 439.3 | 679.7 | -35.4 |
-| fig12b | scaled | 0.0 | 8 | 348.4 | 626.0 | -44.3 |
-| fig12b | scaled | 0.125 | 2 | 1767.4 | 1146.0 | 54.2 |
-| fig12b | scaled | 0.125 | 4 | 1298.7 | 993.9 | 30.7 |
-| fig12b | scaled | 0.125 | 6 | 975.4 | 896.2 | 8.8 |
-| fig12b | scaled | 0.125 | 8 | 754.6 | 647.3 | 16.6 |
-| fig12b | scaled | 0.25 | 2 | 1564.7 | 992.5 | 57.7 |
-| fig12b | scaled | 0.25 | 4 | 976.0 | 791.8 | 23.3 |
-| fig12b | scaled | 0.25 | 6 | 632.0 | 590.7 | 7.0 |
-| fig12b | scaled | 0.25 | 8 | 425.0 | 390.3 | 8.9 |
+| fig12a | scaled | -0.25 | 2 | 502.2 | 600.4 | -16.4 |
+| fig12a | scaled | -0.25 | 4 | 240.2 | 251.1 | -4.4 |
+| fig12a | scaled | -0.25 | 6 | 118.6 | 101.9 | 16.4 |
+| fig12a | scaled | -0.25 | 8 | 60.4 | 68.8 | -12.2 |
+| fig12a | scaled | -0.125 | 2 | 583.1 | 621.8 | -6.2 |
+| fig12a | scaled | -0.125 | 4 | 357.1 | 400.1 | -10.7 |
+| fig12a | scaled | -0.125 | 6 | 223.5 | 234.0 | -4.5 |
+| fig12a | scaled | -0.125 | 8 | 143.4 | 158.4 | -9.5 |
+| fig12a | scaled | 0.0 | 2 | 278.1 | 400.0 | -30.5 |
+| fig12a | scaled | 0.0 | 4 | 174.3 | 321.0 | -45.7 |
+| fig12a | scaled | 0.0 | 6 | 107.7 | 213.5 | -49.6 |
+| fig12a | scaled | 0.0 | 8 | 69.7 | 181.0 | -61.5 |
+| fig12a | scaled | 0.125 | 2 | 653.6 | 661.1 | -1.1 |
+| fig12a | scaled | 0.125 | 4 | 394.5 | 592.0 | -33.4 |
+| fig12a | scaled | 0.125 | 6 | 242.3 | 404.4 | -40.1 |
+| fig12a | scaled | 0.125 | 8 | 153.2 | 233.1 | -34.3 |
+| fig12a | scaled | 0.25 | 2 | 569.2 | 562.9 | 1.1 |
+| fig12a | scaled | 0.25 | 4 | 272.1 | 384.0 | -29.1 |
+| fig12a | scaled | 0.25 | 6 | 132.9 | 224.6 | -40.8 |
+| fig12a | scaled | 0.25 | 8 | 67.1 | 154.8 | -56.6 |
+| fig12b | scaled | -0.25 | 2 | 882.7 | 906.0 | -2.6 |
+| fig12b | scaled | -0.25 | 4 | 532.3 | 656.7 | -18.9 |
+| fig12b | scaled | -0.25 | 6 | 343.8 | 308.3 | 11.5 |
+| fig12b | scaled | -0.25 | 8 | 231.3 | 256.7 | -9.9 |
+| fig12b | scaled | -0.125 | 2 | 1006.0 | 1301.4 | -22.7 |
+| fig12b | scaled | -0.125 | 4 | 718.1 | 852.1 | -15.7 |
+| fig12b | scaled | -0.125 | 6 | 537.0 | 554.0 | -3.1 |
+| fig12b | scaled | -0.125 | 8 | 414.4 | 503.7 | -17.7 |
+| fig12b | scaled | 0.0 | 2 | 548.4 | 798.1 | -31.3 |
+| fig12b | scaled | 0.0 | 4 | 412.3 | 579.6 | -28.9 |
+| fig12b | scaled | 0.0 | 6 | 310.6 | 679.7 | -54.3 |
+| fig12b | scaled | 0.0 | 8 | 246.3 | 626.0 | -60.6 |
+| fig12b | scaled | 0.125 | 2 | 1249.8 | 1146.0 | 9.1 |
+| fig12b | scaled | 0.125 | 4 | 918.3 | 993.9 | -7.6 |
+| fig12b | scaled | 0.125 | 6 | 689.7 | 896.2 | -23.0 |
+| fig12b | scaled | 0.125 | 8 | 533.6 | 647.3 | -17.6 |
+| fig12b | scaled | 0.25 | 2 | 1106.4 | 992.5 | 11.5 |
+| fig12b | scaled | 0.25 | 4 | 690.1 | 791.8 | -12.8 |
+| fig12b | scaled | 0.25 | 6 | 446.9 | 590.7 | -24.3 |
+| fig12b | scaled | 0.25 | 8 | 300.5 | 390.3 | -23.0 |
 
 ## Fig. 7 p_c/C_P (β=15°, M_t=0.60, C_P legend=0.0424)
 

@@ -39,7 +39,7 @@ function e11_with_gext(; falloff_exponent=1.0, falloff_floor=0.0, delay_scale=1.
                     spl = spl_a
                 end
             end
-            line_amps[k, H] = spl_dB_to_Pa(spl)
+            line_amps[k, H] = spl_dB_to_peak_Pa(spl)
             pkey = H == 1 ? :phase_H1_deg : H == 2 ? :phase_H2_deg : :phase_H3_deg
             j = findfirst(==(float(k)), ph[:k])
             line_phases[k, H] = deg2rad(ph[pkey][j])
@@ -97,6 +97,7 @@ delay_vars = [(1.0, 0.0, 0.0), (1.0, 0.0, -1.0), (1.0, 0.0, 0.5), (1.0, 0.0, 2.0
 
 io = IOBuffer()
 println(io, "# GEXT importance bound (phase 32)\n")
+println(io, "Re-recorded 2026-10-21 after the amplitude-convention fix (I-17; sources cited); result known in advance in direction, therefore post-hoc.\n")
 println(io, "Generated $(Dates.today()) by `scripts/run_gext_bound.jl`. Criteria: `VALIDATION_GUIDELINE.md` §2.2.1, re-dated 2026-10-21 for cabin inputs = 18a-r (η_T = 0.5). Flip = any H changing pass↔fail vs nominal (any-H rule).\n")
 
 # Identity / nominal
@@ -106,7 +107,7 @@ spec0, _, bl0 = pipeline_from_ff(fuse, prop, ff0)
 t1_0 = [spec0.harmonic_SPL_dB[H] for H in 1:3]
 gate0 = [t1_gate(t1_0[H], H) for H in 1:3]
 println(io, "## 32b Identity control\n")
-println(io, "Nominal T1 H1–H3: $(join([@sprintf("%.2f", x) for x in t1_0], ", ")) dB (phase20_baseline 81.04, 75.00, 75.29).\n")
+println(io, "Nominal T1 H1–H3: $(join([@sprintf("%.2f", x) for x in t1_0], ", ")) dB (amplitude convention fixed 2026-10-21, post-hoc).\n")
 println(io, "| H | SPL dB | d_mean | d_nasa | pass | margin |\n|---:|---:|---:|---:|---|---:|")
 for H in 1:3
     g = gate0[H]

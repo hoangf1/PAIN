@@ -103,10 +103,12 @@ end
 
 function push_result!(results; figure, case, polar_set, loads, x_over_D, d_over_D,
                       harmonic, A_Pa, phase_rad, p_rms, p_c, meas=NaN, residual_pct=NaN)
+    # A_Pa = cosine-peak Fourier amplitude; measured Report 996 pressures are rms (p.10).
+    A_rms = isnan(A_Pa) ? NaN : A_Pa / sqrt(2)
     push!(results, (
         figure=figure, case=case, polar_set=polar_set, loads=loads,
         x_over_D=x_over_D, d_over_D=d_over_D, harmonic=harmonic,
-        A_Pa=A_Pa, phase_rad=phase_rad, p_rms_total_Pa=p_rms, p_c=p_c,
+        A_Pa=A_Pa, A_rms_Pa=A_rms, phase_rad=phase_rad, p_rms_total_Pa=p_rms, p_c=p_c,
         meas_dyne_cm2=meas, residual_pct=residual_pct,
     ))
 end
@@ -139,8 +141,8 @@ function main()
             pc = pressure_coefficient_pc(prms; ρ=ρ, M_t=Mt, a=a_sound)
             for (H, mB) in ((1, 2), (2, 4), (3, 6))
                 A = src.amplitude[1, H]
-                A_dyne = pa_to_dyne_cm2(A)  # peak Pa → dyne/cm² (report plots peak-ish pressures)
-                # Match digitized: value is harmonic pressure in dyne/cm²
+                # Measured Report 996 amplitudes are rms (p.10); compare A/√2.
+                A_dyne = pa_to_dyne_cm2(A / sqrt(2))
                 meas = NaN
                 for d in dig
                     d.figure == 14 && d.in_scope && abs(d.M_t - Mt) < 0.02 && d.mB == mB || continue
@@ -175,7 +177,7 @@ function main()
         end
         for (i, xd) in enumerate(xDs)
             A = src.amplitude[i, 1]
-            A_dyne = pa_to_dyne_cm2(A)
+            A_dyne = pa_to_dyne_cm2(A / sqrt(2))  # rms vs Report 996 measured rms
             meas = NaN
             for d in dig
                 d.figure == 13 && d.in_scope || continue
@@ -210,7 +212,7 @@ function main()
             for (i, xd) in enumerate(xDs12)
                 for (H, mB) in ((1, 2), (2, 4), (3, 6), (4, 8))
                     A = src.amplitude[i, H]
-                    A_dyne = pa_to_dyne_cm2(A)
+                    A_dyne = pa_to_dyne_cm2(A / sqrt(2))  # rms vs Report 996 measured rms
                     meas = NaN
                     for d in dig
                         d.figure == 12 && d.in_scope || continue
@@ -283,7 +285,7 @@ function main()
     ahead = filter(r -> r.figure == "fig13a" && r.polar_set == "primary" && r.loads != "ccblade" && r.x_over_D ≈ 0.125, results)
     asym_note = "n/a"
     if !isempty(behind) && !isempty(ahead)
-        asym_note = "A(-0.125)=$(round(pa_to_dyne_cm2(behind[1].A_Pa); digits=1)) vs A(+0.125)=$(round(pa_to_dyne_cm2(ahead[1].A_Pa); digits=1)) dyne/cm² (meas ~1328 vs ~1009); behind>ahead=$(behind[1].A_Pa > ahead[1].A_Pa)"
+        asym_note = "A_rms(-0.125)=$(round(pa_to_dyne_cm2(behind[1].A_rms_Pa); digits=1)) vs A_rms(+0.125)=$(round(pa_to_dyne_cm2(ahead[1].A_rms_Pa); digits=1)) dyne/cm² (meas ~1328 vs ~1009); behind>ahead=$(behind[1].A_Pa > ahead[1].A_Pa)"
     end
 
     # --- Page-12 phase: Δφ between equidistant ahead/behind (candidates x/D=±0.125) ---
@@ -297,19 +299,20 @@ function main()
     end
 
     open(OUT_CSV, "w") do io
-        println(io, "figure,case,polar_set,loads,x_over_D,d_over_D,harmonic,A_Pa,phase_rad,p_rms_total_Pa,p_c,meas_dyne_cm2,residual_pct")
+        println(io, "figure,case,polar_set,loads,x_over_D,d_over_D,harmonic,A_Pa,A_rms_Pa,phase_rad,p_rms_total_Pa,p_c,meas_dyne_cm2,residual_pct")
         for r in results
             println(io, join([r.figure, r.case, r.polar_set, r.loads, r.x_over_D, r.d_over_D,
-                r.harmonic, r.A_Pa, r.phase_rad, r.p_rms_total_Pa, r.p_c, r.meas_dyne_cm2, r.residual_pct], ','))
+                r.harmonic, r.A_Pa, r.A_rms_Pa, r.phase_rad, r.p_rms_total_Pa, r.p_c, r.meas_dyne_cm2, r.residual_pct], ','))
         end
     end
 
     open(OUT_MD, "w") do io
         println(io, "# Report 996 Acoustics (phase 27)")
         println(io)
+        println(io, "Re-recorded 2026-10-21 after the amplitude-convention fix (I-17; sources cited); result known in advance in direction, therefore post-hoc.")
         println(io, "Generated $(Dates.today()) by `scripts/run_report996_acoustics.jl`.")
         println(io, "**Re-run after plan I-01/I-02/I-08 ($(Dates.today())).** Criterion: VALIDATION_GUIDELINE §2.12 / 23c frozen 2026-10-21.")
-        println(io, "x_sign=−1 (report behind → AA +X). Thickness off.")
+        println(io, "x_sign=−1 (report behind → AA +X). Thickness off. Harmonic A vs measured: A_rms = A_Pa/√2 (Report 996 p.10 rms).")
         println(io)
         if l51 !== nothing
             println(io, "## I-08 Fig. 13(a) load scale")
@@ -342,7 +345,7 @@ function main()
         for r in results
             r.figure == "fig14" || continue
             rdb = isnan(r.residual_pct) ? NaN : 20 * log10(max(1 + r.residual_pct / 100, 1e-30))
-            println(io, "| $(r.polar_set) | $(r.loads) | $(r.case) | $(r.harmonic) | $(round(pa_to_dyne_cm2(r.A_Pa); digits=1)) | $(r.meas_dyne_cm2) | $(round(r.residual_pct; digits=1)) | $(round(rdb; digits=2)) |")
+            println(io, "| $(r.polar_set) | $(r.loads) | $(r.case) | $(r.harmonic) | $(round(pa_to_dyne_cm2(r.A_rms_Pa); digits=1)) | $(r.meas_dyne_cm2) | $(round(r.residual_pct; digits=1)) | $(round(rdb; digits=2)) |")
             if r.loads == "scaled" && isfinite(rdb)
                 n_in += 1
                 abs(rdb) <= 2.0 && (n_ok += 1)
@@ -360,7 +363,7 @@ function main()
         for r in results
             r.figure == "fig13a" || continue
             rdb = isnan(r.residual_pct) ? NaN : 20 * log10(max(1 + r.residual_pct / 100, 1e-30))
-            println(io, "| $(r.polar_set) | $(r.loads) | $(r.x_over_D) | $(round(pa_to_dyne_cm2(r.A_Pa); digits=1)) | $(r.meas_dyne_cm2) | $(round(r.residual_pct; digits=1)) | $(round(rdb; digits=2)) |")
+            println(io, "| $(r.polar_set) | $(r.loads) | $(r.x_over_D) | $(round(pa_to_dyne_cm2(r.A_rms_Pa); digits=1)) | $(r.meas_dyne_cm2) | $(round(r.residual_pct; digits=1)) | $(round(rdb; digits=2)) |")
             if startswith(r.loads, "scaled") && isfinite(rdb)
                 n13 += 1
                 abs(rdb) <= 2.0 && (n13ok += 1)
@@ -375,7 +378,7 @@ function main()
         println(io, "|---|---|---:|--:|---:|---:|---:|")
         for r in results
             startswith(r.figure, "fig12") || continue
-            println(io, "| $(r.figure) | $(r.loads) | $(r.x_over_D) | $(r.harmonic) | $(round(pa_to_dyne_cm2(r.A_Pa); digits=1)) | $(r.meas_dyne_cm2) | $(round(r.residual_pct; digits=1)) |")
+            println(io, "| $(r.figure) | $(r.loads) | $(r.x_over_D) | $(r.harmonic) | $(round(pa_to_dyne_cm2(r.A_rms_Pa); digits=1)) | $(r.meas_dyne_cm2) | $(round(r.residual_pct; digits=1)) |")
         end
         println(io)
         println(io, "## Fig. 7 p_c/C_P (β=15°, M_t=0.60, C_P legend=0.0424)")

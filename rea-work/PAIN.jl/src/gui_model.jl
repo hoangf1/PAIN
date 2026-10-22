@@ -2,8 +2,34 @@
 GUI model: Observables for QML binding. Physics stays in `run_pain_pipeline`.
 """
 
+"""Last validation verdicts by case id (feeds map chip dots after a Run)."""
+const _GUI_LAST_VERDICTS = Dict{String,Symbol}()
+
 validity_for_source(source::Symbol) =
     source === :e11 ? "V-EXP" : "X-EXTRAP"
+
+function _refresh_map_json!(obs::AbstractDict)
+    obs["map_pain_json"][] = validation_map_json("pain"; last=_GUI_LAST_VERDICTS)
+    obs["map_aircraft_json"][] = validation_map_json("aircraft"; last=_GUI_LAST_VERDICTS)
+    return nothing
+end
+
+"""Re-parse §2.13 and refresh map / selected-case Observables (map tab open / doc edit)."""
+function reload_validation_docs_gui!(obs::AbstractDict)
+    reload_validation_docs!()
+    _refresh_map_json!(obs)
+    sid = String(obs["map_selected"][])
+    if !isempty(sid)
+        obs["map_detail_json"][] = case_info_json(sid)
+    end
+    vsid = String(obs["val_selected"][])
+    if !isempty(vsid)
+        obs["val_info_json"][] = case_info_json(vsid)
+        obs["val_criterion"][] = _criterion_for(vsid)
+    end
+    obs["val_cases"][] = _format_val_case_list()
+    return nothing
+end
 
 function _format_records(records::Vector{ValidationRecord})
     isempty(records) && return "(none)"
@@ -60,20 +86,34 @@ function make_gui_observables(;
         # Phase 34 — Validation tab (read-only cases)
         "val_cases" => Observable(_format_val_case_list()),
         "val_selected" => Observable("CYL2D_C1"),
+        "val_runnable" => Observable(true),
         "val_plot_path" => Observable(""),
         "val_source_path" => Observable(""),
         "val_result_text" => Observable("Select a case and press Run."),
         "val_status" => Observable("Ready."),
         "val_criterion" => Observable(_criterion_for("CYL2D_C1")),
+        "val_info_json" => Observable(case_info_json("CYL2D_C1")),
         "val_report_path" => Observable(""),
+        # Task C — Validation map tab
+        "map_pain_json" => Observable(validation_map_json("pain"; last=_GUI_LAST_VERDICTS)),
+        "map_aircraft_json" => Observable(validation_map_json("aircraft"; last=_GUI_LAST_VERDICTS)),
+        "map_selected" => Observable(""),
+        "map_detail_json" => Observable("{}"),
     )
 end
 
 function _format_val_case_list()
+    # Map → block order; last column is the map title (caseIdFromRow still uses col 0).
     lines = String[]
-    for c in list_validation_cases()
-        grey = isempty(c.unavailable_reason) ? "" : " [unavailable]"
-        push!(lines, "$(c.id)\t$(c.title)\tphase $(c.phase)\t$(c.label)$(grey)")
+    for m in VALIDATION_MAPS
+        for b in m.blocks
+            for id in b.cases
+                haskey(VALIDATION_CASES, id) || continue
+                c = VALIDATION_CASES[id]
+                grey = isempty(c.unavailable_reason) ? "" : " [unavailable]"
+                push!(lines, "$(c.id)\t$(c.title)\tphase $(c.phase)\t$(c.label)$(grey)\t$(m.title)")
+            end
+        end
     end
     return join(lines, "\n")
 end
@@ -98,6 +138,7 @@ function run_validation_gui!(obs::AbstractDict, id::AbstractString)
         case = VALIDATION_CASES[id]
         obs["val_selected"][] = String(id)
         obs["val_criterion"][] = _criterion_for(id)
+        obs["val_info_json"][] = case_info_json(id)
         result = run_validation_case(id)
         png = plot_case(result, case.plot_spec)
         src = validation_source_figure_path(id)
@@ -108,6 +149,8 @@ function run_validation_gui!(obs::AbstractDict, id::AbstractString)
         obs["val_result_text"][] = format_validation_result(result)
         obs["val_report_path"][] = result.report_path
         obs["val_status"][] = "Done $id: $(result.verdict) — $(result.reason)"
+        _GUI_LAST_VERDICTS[String(id)] = result.verdict
+        _refresh_map_json!(obs)
         return result
     catch e
         obs["val_status"][] = "Error ($id): $(sprint(showerror, e))"
@@ -118,12 +161,15 @@ function run_validation_gui!(obs::AbstractDict, id::AbstractString)
     end
 end
 
-"""Run every registered case sequentially (status line updates per case)."""
+"""Run every runnable registered case sequentially (skips greyed)."""
 function run_all_validation_gui!(obs::AbstractDict)
+    n = 0
     for c in list_validation_cases()
+        isempty(c.unavailable_reason) || continue
         run_validation_gui!(obs, c.id)
+        n += 1
     end
-    obs["val_status"][] = "Run all finished ($(length(VALIDATION_CASE_ORDER)) cases)."
+    obs["val_status"][] = "Run all finished ($n runnable cases)."
     return true
 end
 

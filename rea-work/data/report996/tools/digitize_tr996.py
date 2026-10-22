@@ -66,7 +66,7 @@ def refine(maps,box,x,y,w=7):
 
 # ---------------------------------------------------------------------------
 # Driver: NACA Report 996 Figs. 12(a), 12(b), 13(a), 14(a) -> tr996_fig12_13a_14_digitized.csv
-# Usage (from rea-work\data\report996): python tools/digitize_tr996.py "..\..\NASA Report 996.pdf"
+# Usage (from rea-work\data\report996): python tools/digitize_tr996.py "..\..\references\NASA Report 996.pdf"
 # Method: render PDF pages at 300 dpi (pdftoppm), fit axes to the printed grid lines, locate hollow markers by
 # ring-template matching around approximate positions chosen by eye (marker identity and the x = 0 curve
 # assignment in Fig. 12b were checked visually against the curves), refine to sub-pixel, convert to data units.

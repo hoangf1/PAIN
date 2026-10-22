@@ -1,5 +1,5 @@
 import pdfplumber, numpy as np, csv, re, os
-M='/sessions/modest-vigilant-allen/mnt/PAIN/rea-work/Foil Geom for Wu (Russell).pdf'
+M=os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'references', 'Foil Geom for Wu (Russell).pdf')
 rR=[0.1237,0.1650,0.2062,0.2475,0.2887,0.3300,0.3712,0.4124,0.4537,0.4949,0.5362,0.5774,0.6187,0.6599,0.7011,0.7424,0.7836,0.8249,0.8661,0.9074,0.9486,0.9899]
 xin=[329.8,392.65,455.5,517.95]; xs=37.55; ys=37.35
 y04=[86.33,138.49,190.9,243.06,295.48,347.63]

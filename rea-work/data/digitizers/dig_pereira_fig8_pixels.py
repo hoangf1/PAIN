@@ -1,7 +1,7 @@
 import numpy as np, math, sys
 from PIL import Image
 from scipy import ndimage as nd
-# Usage (from rea-work): python data/digitizers/dig_pereira_fig8_pixels.py Pereira.pdf data/pereira/pereira_fig8_directivity.csv data/pereira/qa/pereira_fig8_pixels_overlay.png
+# Usage (from rea-work): python data/digitizers/dig_pereira_fig8_pixels.py references/Pereira.pdf data/pereira/pereira_fig8_directivity.csv data/pereira/qa/pereira_fig8_pixels_overlay.png
 # Needs: pymupdf, numpy, scipy, Pillow. Reads the embedded Fig. 8 image (PDF p. 9, image xref 44) at its native resolution.
 import io, pymupdf
 _pdf=pymupdf.open(sys.argv[1]); _img=_pdf.extract_image(44)

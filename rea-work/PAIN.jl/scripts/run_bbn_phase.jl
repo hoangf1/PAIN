@@ -11,6 +11,7 @@ const ROOT = joinpath(@__DIR__, "..", "..")
 const D158 = joinpath(ROOT, "data", "NASA_CR-158919")
 const D159 = joinpath(ROOT, "data", "NASA_CR-159124")
 const OUT_MD = joinpath(ROOT, "docs", "validation_reports", "bbn_phase.md")
+const OUT_CSV = joinpath(D158, "bbn_results.csv")
 
 const PAIRS_VERDICT = ((4, 3), (5, 3), (4, 5))  # 23a; 5-6 reported only
 const PAIRS_REPORT = ((4, 3), (5, 3), (4, 5), (5, 6))
@@ -263,7 +264,7 @@ function main()
                 haskey(idx, loc) && haskey(levels, loc) && haskey(levels[loc], run) || continue
                 haskey(levels, 4) && haskey(levels[4], run) || continue
                 ia = idx[loc]; i4 = idx[4]
-                # Use H1 amplitude as tone proxy for overall blade-passage tone table
+                # Relative levels (mic i − mic 4): peak↔rms convention cancels (I-17 / F4).
                 spl_f = 20 * log10(src.amplitude[ia, 1] / 20e-6 + 1e-30)
                 spl4_f = 20 * log10(src.amplitude[i4, 1] / 20e-6 + 1e-30)
                 d_f = spl_f - spl4_f
@@ -384,7 +385,33 @@ function main()
         println(io)
         println(io, "What this does **not** show: fuselage scattering/reflection (V-ASSUMED); general phase correctness off the rotation-plane circumferential set.")
     end
+    open(OUT_CSV, "w") do io
+        println(io, "kind,tip,run,regime,pair,harmonic,mic,measured,f1a,residual,coherence,tolerance,within,flagged,units")
+        for r in rows24c
+            r.H >= 1 || continue
+            println(io, join(["circ", r.tip, r.run, "static", r.pair, r.H, "",
+                              r.φ_meas, r.φ_f1a, r.resid, r.coh, r.tol,
+                              r.within ? "Y" : "N", r.flagged ? "Y" : "N", "deg"], ','))
+        end
+        for r in rows24d
+            println(io, join(["levels", r.tip, r.run, "static", "", "", r.loc,
+                              r.d_meas, r.d_f1a, r.resid, "", 3.0,
+                              r.within ? "Y" : "N", "N", "dB"], ','))
+        end
+        # Frequency is not stored: several Fig.19 freqs can map to the same nearest
+        # harmonic and yield an identical CSV row — keep only exact copies once.
+        seen_long = Set{String}()
+        for r in rows24e
+            line = join(["long", "tipA", 4, "static", r.pair, r.H, "",
+                         r.φ_meas_rad, r.φ_f1a_deg, r.resid, "", "",
+                         "", "N", "rad_meas_deg_f1a"], ',')
+            line in seen_long && continue
+            push!(seen_long, line)
+            println(io, line)
+        end
+    end
     println("wrote $OUT_MD  23a=$(pass23a ? "PASS" : "FAIL") ($n_ok/$n_tot)")
+    println("wrote $OUT_CSV")
 end
 
 main()

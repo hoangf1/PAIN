@@ -4,22 +4,22 @@ Single source of truth for building this project without re-deriving context in 
 
 **Read first:** §0 of this file · `METHODOLOGY.md` · `VALIDATION_GUIDELINE.md` · `flowchart.md` · `README.md`  
 **Code:** `PAIN.jl/` (Julia package; `Manifest.toml` pins CCBlade 1.0.0 and AcousticAnalogies 1.0.0)  
-**Source PDFs (in `rea-work`):** `Pain Methodology.pdf` (CR-3813), `Pain User Manual.pdf` (CR-172425), `Pain Validation.pdf` (CR-172428), `NASA Report 996.pdf`, `Pereira.pdf`. Text extractions: `docs/extracted/`. CR-3813 App. E PDF page = printed page E-n + 116 (E-19 → PDF 135).
+**Source PDFs (in `rea-work\references`, moved there 2026-10-21):** `Pain Methodology.pdf` (CR-3813), `Pain User Manual.pdf` (CR-172425), `Pain Validation.pdf` (CR-172428), `NASA Report 996.pdf`, `Pereira.pdf`. Text extractions: `docs/extracted/`. CR-3813 App. E PDF page = printed page E-n + 116 (E-19 → PDF 135).
 
 ## Contents
 
 0. Agent hand-off brief: rules, workflow, stop conditions
 1. Goal and validity classes
 2. Data register and digitization instructions (status, procedure, one card per figure)
-3. Current status and work queue (§3.0: review of the 2026-10-21 run, issues I-01–I-16, read first)
+3. Current status and work queue (§3.0: review of the 2026-10-21 run, issues I-01–I-17, read first)
 4. Architecture
 5. *(moved to §11)* Step 19i done 2026-10-21
 6. Source phases 21–28
 7. Aircraft-cabin phases 29–31
-8. Phases 32–34 *(done 2026-10-21; records in §11)*
+8. Phases 32–35 *(done 2026-10-21; records in §11)*; Phase 36 cabin mode animation *(planned, not started)*; Phase 37 root-cause fixes *(in progress)*; Phase 38 CR-3813 / User Manual completeness *(planned)*
 9. Reference appendices (BBN evidence, Report 996 figures and data, Pereira polar specification, variables)
 10. Optional future work, key formulas, file checklist
-11. Completed phases 0–22 + digitization/setup close-out + phases 32–34 (2026-10-21)
+11. Completed phases 0–22 + digitization/setup close-out + phases 32–35 (2026-10-21)
 
 ---
 
@@ -49,6 +49,7 @@ Single source of truth for building this project without re-deriving context in 
 | R10 | **Wording.** Cite NASA figures and equations by number and page. Follow the paper's form, not another normalization. No "expected to fail" wording; never "until compared to ANOPP" (no ANOPP comparison will happen). Be concise. |
 | R11 | **Frozen baselines.** `Pkg.test()` compares against `data/baselines/phase17_baselines.csv` at rtol 1e-6. Renewing it is a dated decision of the author, recorded in its header and here. |
 | R12 | **Numbering.** Phases are numbered in run order. Do not renumber. A new sub-step takes the next free letter of its phase. |
+| R13 | **Cursor writer check (CLAUDE.md, 2026-10-21).** Code changes delegated to Cursor (`scripts\cursor-exec.ps1`, write mode) are checked before they are accepted or built on: (1) diff against a pre-run snapshot and revert edits outside the named files; (2) confirm no criterion, tolerance, reference/digitized data, recorded result or fitted parameter changed unless the task named it (post-hoc labels dated); (3) run the affected checks yourself (`Pkg.test()` from `PAIN.jl`, or GUI smokes) and read the output; (4) spot-check reported numbers against `docs/validation_reports`; (5) confirm the five docs were updated. One Cursor writer at a time; a failed check is fixed before the next task. |
 
 ### 0.3 Per-step workflow
 
@@ -111,7 +112,7 @@ All PDFs are in `C:\Users\FrancisHoang\git\PAIN\rea-work\` (bash path `rea-work/
 
 | ID | Item | Status 2026-10-21 | Where it is / goes | Needed by |
 |----|------|-------------------|--------------------|-----------|
-| D-01 | BBN report PDFs | **Present** | `rea-work\NASA Contractor Report 158919.pdf` (103 p.), `rea-work\NASA Contractor Report 159124.pdf` (146 p.) | 24 |
+| D-01 | BBN report PDFs | **Present** | `rea-work\references\NASA Contractor Report 158919.pdf` (103 p.), `rea-work\references\NASA Contractor Report 159124.pdf` (146 p.) | 24 |
 | D-02 | BBN phase and coherence per pair, harmonic, run | **Present** (typed, exact as printed) | `data\NASA_CR-158919\bbn_phase_coherence_CR158919_appendixC.csv` (PDF p. 86–95); `data\NASA_CR-159124\bbn_phase_coherence_CR159124_appendixD.csv` (PDF p. 94–97); harmonic phase tables C-1, C-2 of CR-159124 | 24c |
 | D-03 | BBN trace velocities | **Present** | CR-158919 Tables 8, 9 (`bbn_trace_velocity_table8.csv`, `_table9.csv`); CR-159124 Tables 6, 9 | 24c |
 | D-04 | BBN microphone geometry | **Present, one gap** | CR-158919 Fig. 1 table (`bbn_microphones_fig1.csv`), CR-159124 Tables 7 (hub distances) and 8 (hub angles). **Gap: propeller rotation direction and hub position in the Fig. 1 frame → D-21** | 24b, 24c |
@@ -119,7 +120,7 @@ All PDFs are in `C:\Users\FrancisHoang\git\PAIN\rea-work\` (bash path `rea-work/
 | D-06 | BBN run conditions | **Present** | `bbn_runs_table1.csv` in both folders | 24c |
 | D-07 | Report 996 files from the sibling repository | **Present (copied 2026-10-21)**; checksums written 2026-10-21 | `data\report996\naca_4-5-08-03\` (same tree as the source: `blade_form.csv`, `propeller.yaml`, `analytical\`, `measured\`, `plots\`). Every plan reference to "`data\report996\<file>` from the data folder" means this subfolder. `CHECKSUMS.txt` SHA-256 of every file (14 files) | 25–27 |
 | D-08 | BBN longitudinal phase vs frequency | Author's Fig. 18 files valid; **Figs. 19, 20 author digitized 2026-10-21** (`Fig 19.txt`, `Fig 20.txt`; convert per I-15); agent's Fig. 18–20 files void (I-16) | `data\NASA_CR-159124\bbn_phase_vs_freq_fig{18,19,20}_*.csv` | 24e (X-EXTRAP, not blocking) |
-| D-09 | Hartzell 9333C-3 blade table | **Present 2026-10-21** (C-14): PDF downloaded, Table III typed and checked; tip beyond 40 in **not found** | `rea-work\Hartzell_114-8.pdf`, `data\NASA_CR-158919\hartzell_9333C_table3.csv` | 24c (blade), 24e |
+| D-09 | Hartzell 9333C-3 blade table | **Present 2026-10-21** (C-14): PDF downloaded, Table III typed and checked; tip beyond 40 in **not found** | `rea-work\references\Hartzell_114-8.pdf`, `data\NASA_CR-158919\hartzell_9333C_table3.csv` | 24c (blade), 24e |
 | D-10 | Pereira Fig. 6 (acoustic spectra) | **Author digitized 2026-10-21** (raw export; convert and check per I-15; replaces C-02) | `data\pereira\pereira_fig6_peaks.csv` | 28 |
 | D-11 | Pereira Fig. 8 (tonal directivity, harmonics 1–6) | **Present 2026-10-21** (pixel digitization, `pereira_fig8_directivity.csv`, I-15 e) | `data\pereira\pereira_fig8_directivity.csv` | 28 |
 | D-12 | Pereira Fig. 9 (tonal levels, harmonics 1–10, three angles) | **Author digitized 2026-10-21** (raw export; convert and check per I-15; replaces C-01) | `data\pereira\pereira_fig9_harmonics.csv` | 28 |
@@ -177,7 +178,7 @@ Tools available: Python 3 with `pymupdf`, `numpy`, `Pillow` (`pip install pymupd
 - Dual independent hand readings on 300 dpi renders (`dig_cr3813_e21_e22_hand.py`); δ_dig = 1.00 dB on means (**PASS**). Auto pass A discarded. Files: `e21_noise_reduction_range.csv`, `e21_noise_reduction_range_B2.csv`, `e22_noise_reduction_ci.csv`.
 
 **C-06 · BBN rotation direction and hub position · D-21 · blocks 24b/24c sign · reading · relabel and finish per I-09**
-- `rea-work\NASA Contractor Report 158919.pdf` **PDF p. 9 (printed p. 3), Figure 1**, and `NASA Contractor Report 159124.pdf` **PDF p. 16, Figure 1**; search both texts for "rotation" first.
+- `rea-work\references\NASA Contractor Report 158919.pdf` **PDF p. 9 (printed p. 3), Figure 1**, and `NASA Contractor Report 159124.pdf` **PDF p. 16, Figure 1**; search both texts for "rotation" first.
 - Read: (1) the direction of propeller rotation as drawn or stated (seen from the front or from the side the microphones are on; say which view); (2) the hub position in the Fig. 1 frame (x along the fuselage, y as printed). If the hub position is not printed, compute it from the Fig. 1 coordinates of mics 3–6 (all at x = 0; y = 0.584, 0.279, 0, −0.305 m) and the CR-159124 Table 7 hub distances (1.33, 1.31, 1.36, 1.52 m), least squares, and report the residual; check the result against Table 8 (13.3°, 11.8°, 10.4°).
 - Target `data\NASA_CR-158919\bbn_geometry.csv`, rows `quantity, value, unit, source`: `rotation_direction`, `view`, `hub_x_m`, `hub_y_m`, `hub_offset_from_skin_m`, `fit_residual_m`. If the direction is not printed anywhere, write `not printed`; 24b then runs both signs and 24c reports both.
 
@@ -211,7 +212,7 @@ Tools available: Python 3 with `pymupdf`, `numpy`, `Pillow` (`pip install pymupd
 Target names `data\report996\tr996_fig<NN><panel>_<content>.csv`, columns `x, y, series, units` with the axis names in the header. The page indices of Figs. 12–14 are those used by `data\report996\tools\digitize_tr996.py` (Fig. 12(a) p. 13, 12(b) p. 14, 13(a) p. 15, 14(a) p. 16).
 
 **C-14 · Hartzell 9333C-3 blade data · D-09 · obtain, then type · done 2026-10-21**
-- Downloaded `rea-work\Hartzell_114-8.pdf`; Table III typed and checked → `data\NASA_CR-158919\hartzell_9333C_table3.csv`. Tip beyond 40 in: **not found** (24f).
+- Downloaded `rea-work\references\Hartzell_114-8.pdf`; Table III typed and checked → `data\NASA_CR-158919\hartzell_9333C_table3.csv`. Tip beyond 40 in: **not found** (24f).
 
 ### 2.4 Present and complete (no action)
 
@@ -252,6 +253,7 @@ Target names `data\report996\tr996_fig<NN><panel>_<content>.csv`, columns `x, y,
 | 32 | GEXT importance bound (e11 path) | **Done 2026-10-21** (`gext_importance_bound.md`): 32a–32f including **32e** OAT; flips → T1 not claimable |
 | 33 | Close-out | **Done 2026-10-21**: 33a–33c/33e–33g (33d earlier); Table-8 cal kept optional (33b); GUI aircraft-only (33g) |
 | 34 | Validation cases in the GUI: read-only Validation tab, reference-figure vs program-output plots, case registry | **Done 2026-10-21**; moved to §11 |
+| 35 | Test audit, validation maps, "Validation map" GUI tab; plot error panels; report-pointer CSV replays; dB(A) band sum; directory cleanup; Cursor check rule | **Done 2026-10-21**; moved to §11 |
 
 ### Agent overnight close-out (2026-10-21, continued)
 
@@ -269,7 +271,8 @@ Target names `data\report996\tr996_fig<NN><panel>_<content>.csv`, columns `x, y,
 - **I-12 / B-5:** smoke uses untuned geometry + `anopp_table8_calibrate=false`.
 - **I-14 (done 2026-10-21):** 24a spot-check list in `data/NASA_CR-158919/README.md`; `bbn_data.jl` wide→long (748 rows, no CSV.jl dep).
 - **32e + phase 33 (done 2026-10-21):** GEXT OAT comparator; claims/calibration/GUI source close-out. C-13 still optional.
-- **Phase 34 done 2026-10-21:** Validation tab + registry + CairoMakie plots; 34d/34f tests. Remaining: optional C-13; deferred 29b/29c/30/31 (B-4); further case cores as scripts are folded into the registry.
+- **Phase 34 done 2026-10-21:** Validation tab + registry + CairoMakie plots; 34d/34f tests. **GUI fix 2026-10-21:** Run binds to `val_selected` (not ListView.currentItem); only E21_E22_NR and R996_FIG8 greyed; E11/E12/E14/GEXT/BBN_KIN/R996_PHASE runnable in-process. Remaining: optional C-13; deferred 29b/29c/30/31 (B-4); inline remaining F1A script cores.
+- **Phase 35 done 2026-10-21:** test audit (CYL2D ratios; MRP_D1 `no_verdict`; REPRO_18b 18b-r inputs); CASE_INFO + two validation maps + map GUI tab; plot error panels; CSV replays; `overall_dBA` band sum fixed; Cursor check rule (R13 / CLAUDE.md). Open: free-field amplitude convention (I-17).
 
 ### 3.0 Review of the 2026-10-21 agent run: issues and how to resolve them *(read before anything else; review dated 2026-10-21)*
 
@@ -295,6 +298,10 @@ The overnight run stopped on several blockers, and the review found two code bug
 | **I-14** | **Agent tasks left unfinished.** 24a spot-check list and the wide→long `scripts/bbn_data.jl` reshape; 32e (parameter-sensitivity comparator, no blocker); C-13 (optional) | — | Agent, any time after I-07 |
 | **I-15** | **Author's digitizations of 2026-10-21 (raw exports) need converting and checking.** Files: `data\Fig E-9.txt`, `Fig E-10.txt`, `Fig E-16.txt`, `Fig E-17.txt`, `Fig E-18.txt`, `Fig E-21.txt`, `Fig E-22.txt`; `data\pereira\Fig 1b.txt`, `Fig 6a/b/c.txt`, `Fig 8a–8f *.csv`, `Pereira Fig. 9 Deg=0/20/40.txt`; `data\NASA_CR-159124\Fig 19.txt`, `Fig 20.txt`; `data\report996\Fig 3.txt`. Consistency findings from a read-through on 2026-10-21 (the author decides; nothing is changed by the agent): **(a)** Fig. E-9 starts at 125 Hz with 69.5/90.0 dB at 125/160 Hz, where E-16 has them at 160/200 Hz (BPF H1 is 200 Hz): band column looks shifted by one band from 125 to about 315 Hz. **(b)** Fig. E-18: 90.0 dB at 160 Hz and 54.0 dB at 630 Hz, against E-16/E-17 at 200 and 800 Hz: same kind of shift. **(c)** Fig. E-10 has 62.5 dB at 250 Hz and 71.0 at 315 Hz; E-16 and E-17 have 71.0/70.5 at 250 and 62.5 at 315: possibly swapped. **(d)** Pereira Fig. 9: H1 = 80 dB for all three series at all three angles while the ΔSPL column is non-zero (for example +1 at φ = 0°), and Fig. 6a peaks near 79 dB; check whether the H1 bars were read at the frame. **(e) Resolved 2026-10-21:** Pereira Fig. 8 re-digitized from the pixels of the embedded image at the author's request (`data\pereira\pereira_fig8_directivity.csv`, script `data\digitizers\dig_pereira_fig8_pixels.py`, overlay `data\pereira\qa\pereira_fig8_pixels_overlay.png`); it replaces the author's `Fig 8a`–`Fig 8f` files (to be deleted by the author). At φ = 0° it agrees with the Fig. 9 bars within about 1 dB for H1–H3; Fig. 9 H1 (all 80 dB) remains item (d). **(f)** Report 996 `Fig 3.txt`: h/b = 0.123 at r/R = 0.7, where the designation 4-(5)(08)-03 means h/b = 0.08 at 0.7R (`blade_form.csv` 0.0806), h/b = 0.28 at the root is above the 0.20 axis, β₇₅ = 16.8° against the design 42.64°, b/D about half of `blade_form.csv`: probably a different panel or curve (I-11). **(g)** E-21 at 100 Hz: minimum equals the average (16 dB). **Agent:** after the author has answered (a)–(g), convert each file to the schema CSV of its card (§2.3) with the §2.2 header (source, PDF page, method "author, WebPlotDigitizer", date) **without changing any value**, keep the raw `.txt` beside it, and record the answers in the header | Each reference file has a schema CSV; (a)–(g) answered and recorded |
 | **I-16** | **Leftover void agent files still in `data\`.** `data\e10_interior_ci.csv`, `t1_interior_targets_B.csv`, `t2_third_octave_targets_B.csv`; `data\NASA_CR-159124\bbn_phase_vs_freq_fig18_circumferential.csv`, `bbn_phase_vs_freq_fig19_longitudinal.csv`, `bbn_phase_vs_freq_fig20_longitudinal.csv` | Could be picked up as references | Author deletes them (the agent may not). The I-15 conversion writes the new `e10_interior_ci.csv` etc. only after they are gone |
+| **I-17** | **Free-field amplitude convention (rms vs Fourier peak) — open, author decision (theory audit 2026-10-21).** `spl_dB_to_Pa` (`freefield_digitized.jl`) converts E-11 / ANOPP Table 8 SPL to Pa as an rms-equivalent amplitude and that value enters Eq. (42) as A (Δ⁴/2 assumes a cosine peak; User Manual card 38 "amplitude of Fourier component (Pa)"). F1A stores the peak (A = √2 p_rms). Documentary evidence: CR-3813 Eqs. (28)–(31) A_H = √(a_H²+b_H²), mean square A²/2 → cosine peak; CR-172428 p. 41 ⟨p²⟩ = p₀² 10^(SPL/10) → SPL is rms-referenced; CR-172428 §3 predictions are Fourier representations "as required for PAIN input". Hence A = √2 p₀ 10^(SPL/20); the code omits √2 → e11/Table-8 tones ~3.01 dB low (T1, T2 tonal part, REPRO_18b, E12 levels, GEXT_BOUND). F1A path already peak. | Affected e11/Table-8 tone SPLs ~3 dB low; fixing would give REPRO_18b ≈ +6.7, +3.2, +12.1 dB (result known → any change is post-hoc) | **Decided 2026-10-21 (author): fix, on documentary grounds** (author: "not tuning" means not adjusting toward experimental data; a documented convention fix is allowed). The same error was found in three comparisons against rms measurements: NACA Report 996 p. 10 "Pressure amplitudes (rms) of the first four harmonics were measured with a harmonic wave analyzer" (Figs. 12, 13a, 14 compared F1A's peak A with rms data, +3.01 dB bias); Pereira et al. 2026 p. 13 "The root-mean-square of the pressure fluctuations yields a tonal noise emission of 84.6 dB" (= Table 4; `run_pereira.jl` converted the peak A to SPL); `run_f1a_smoke.jl`. Fix in phase 37 step 37b; every affected result is re-recorded and labelled post-hoc |
+| **I-18** | **Lower-quarter grid (mirroring) — reopened 2026-10-21 (completeness audit).** Decision 19d (use the 160 upper-quarter points only) read the User Manual and CR-3813 §3.4 and left Manual output item 7 ("both above and below θ = 0") unresolved. It did not cite CR-172428 §3: "PAIN then generates data for an identical grid on the lower quarter surface of the fuselage nearest the propeller (using the data input for the upper grid)". The 19d diagnostic, mirroring about the ℓ = 1 line, moved 18b by +0.73, +3.18, +6.81 dB | Changes Ψ_G at every harmonic; known direction → post-hoc if adopted | **[AUTHOR] decision rule, dated 2026-10-21 before phase 38b runs:** keep the 160 points for now (noted). Adopt mirroring about the ℓ = 1 line **only if** the high-frequency tone formulation (phase 38b) "explains H3", defined now as: with the 38b crossover rule (fixed before the run), the REPRO_18b H3 value is within the 18b criterion (≤ 4 dB of NASA's 68.0 dB) where the Eq. (8) value is not. If adopted, all affected results are re-recorded and labelled post-hoc |
+| **I-19** | **BBN circumferential phase sign (23a, 26/168).** F1A's phase difference matches the rigid-rotation value m·B·Δψ in magnitude, and the measured CR-158919 App. C phases have the opposite sign at most rows (`bbn_phase.md` finding). CR-158919 App. C p. C-1 says only that the phase was read from the SD360 analyzer in −π…π; it does not say which microphone of a pair is the reference. Rotation sense and geometry were checked: blades move upward at the fuselage as recorded (I-09) | 23a stays FAIL | Not fixable from the source; choosing the sign that fits would be tuning against experiment. Recorded; a sign-free magnitude comparison may be shown only as a labelled post-hoc diagnostic, never as a pass |
+| **I-20** | **R996_FIG8 out of scope.** Report 996 Fig. 8 is at tip Mach 1.0; the 2026-10-16 scope decision tests M_t 0.45–0.90 only, and the author confirmed 2026-10-21 that transonic effects are not studied | — | **Removed 2026-10-21** (author): case deleted from the registry, the aircraft map and the docs, not deferred |
 
 ### 3.0a Author approvals and remaining blockers *(recorded 2026-10-21)*
 
@@ -344,6 +351,10 @@ Not blockers (recorded so nobody stops on them): BBN tip geometry beyond 40 in. 
 | Q14 | Phase 32 | script runs | Q2 | **Done 2026-10-21** including 32e |
 | Q15 | Phase 33 | close-out | all | **Done 2026-10-21** |
 | Q16 | Phase 34 | `src/` + GUI [CONFIRM] | Q15 | **Done 2026-10-21** |
+| Q17 | Phase 35 | `src/` + GUI + docs | Q16 | **Done 2026-10-21** |
+| Q18 | Phase 36 — cabin mode animation in the GUI (§8) | GUI + `src/` [CONFIRM] | Q17 | **Planned 2026-10-21, not started — do not implement until the author says go** |
+| Q19 | Phase 37 — root-cause fixes from the 2026-10-21 GUI review (§8) | GUI + `src/` + scripts (author asked "find all root causes and fix all of them") | Q17 | 37a done 2026-10-21; 37b–37e in progress |
+| Q20 | Phase 38 — CR-3813 / User Manual completeness (§8; audit `validation_reports/cr3813_completeness_audit.md`) | `src/` + cases (author: "the whole PAIN program is supposed to function just like it does in the PAIN Methodology") | Q19 (37b first: amplitude convention) | 38a–38e in order; 38f–38h planned with the author before starting |
 
 If a queue item is blocked on data, skip to the next unblocked item and say which data item blocks it.
 
@@ -643,7 +654,7 @@ what is missing is in [Report 996 data sources](#report-996-data-sources-invento
 - [x] **25d. Observers.** `hub_observers` in place (no default `x_sign`). Report 996 scripts use `x_sign=-1` (report “behind” → AA +X). Asymmetry confirmation vs Fig. 13(a) remains a 25k/27 item.
 - [x] **25e. Conversions.** `total_rms`, `pressure_coefficient_pc`, `pa_to_dyne_cm2` / `dyne_cm2_to_pa` in `propeller_ccblade.jl` (25j tests).
 - [x] **25f. Targets.** Copied `measured\noise\` and `measured\static\` into `data\report996\` with `MEASURED_NOTES.md` and `MEASURED_CHECKSUMS.txt`. Contents: Figs. 6, 7, 8
-  (pressures), RM L8H25a static C_T and C_P, RM L51C27 thrust and torque. Figs. 12(a), 12(b), 13(a) and 14(a) were digitized from `rea-work\NASA Report 996.pdf` (300 dpi pages, axes fitted to the printed grid, hollow markers located by ring-template matching and refined to sub-pixel) into
+  (pressures), RM L8H25a static C_T and C_P, RM L51C27 thrust and torque. Figs. 12(a), 12(b), 13(a) and 14(a) were digitized from `rea-work\references\NASA Report 996.pdf` (300 dpi pages, axes fitted to the printed grid, hollow markers located by ring-template matching and refined to sub-pixel) into
   `data\report996\tr996_fig12_13a_14_digitized.csv`, with the script in `data\report996\tools\digitize_tr996.py` and overlays in `data\report996\qa\`. The Fig. 14 C_T/C_Q table is in `tr996_fig14_CT_CQ_table.csv` (read by eye from the printed table). Uncertainty: axis fit residual about 1.3 px (about 0.5% on the log-scale Fig. 14, about 1 dyne/cm² on the linear figures), marker centers ±1–2 px; one automated pass with checked overlays, not an independent second digitization. Within the report, Fig. 12 and Fig. 14 agree at x/D = −0.125 to 6% or better (M_t 0.75: mB 2 622 vs 661, mB 4 400 vs 400, mB 6 234 vs 229; M_t 0.90: 1301 vs 1298, 852 vs 841, 554 vs 547 dynes/cm²), so no pass tolerance can be tighter than that. Digitization is one automated pass with QA overlays (about 60 px per grid cell; the tails of Figs. 6/7
   are good to about 5–10 dyne/cm² or 0.005 in p_c/CP; 27 rows are manual readings), not two independent passes. Spot-check at least three points per figure against the PDF at high
   resolution. **Not in the data folder:** Report 996 Figs. 12, 13 and 14 (now digitized, see above). Fig. 11 (per-harmonic pressure vs C_P in the plane of rotation, M_t 0.75/0.90/1.00) and Fig. 13(b) are not digitized (13(b) is M_t = 1.00, out of scope). The page-12 phase values are in the report text (checked in `NASA Report 996.pdf`):
@@ -807,7 +818,9 @@ Design rules agreed so far:
 
 ---
 
-## 8. Phases 32–34
+## 8. Phases 32–35
+
+**Phase 35 — Test audit, validation maps and the "Validation map" GUI tab** *(done 2026-10-21; see §11).*
 
 ### Phase 32 — GEXT importance bound (e11 path) *(planned; code options added)*
 
@@ -884,7 +897,7 @@ Runs after every source check (phases 24, 26, 27, 28) and the GEXT importance bo
 |---------|-----------------------------|------------------------------|------------------|-----------------|
 | `T1` | CR-3813 Fig. E-16 (p. 142), with E-17 (p. 143) | Interior SPL (dB) vs 1/3-octave band (log x, 160–2000 Hz) | Measured space-average (points), min–max range (bars), E-17 95 % limits (second band), NASA PAIN prediction (open circles) | PAIN tone levels at H1–H3 (200, 400, 630 Hz bands), filled markers |
 | `T2` | Fig. E-9 (p. 132), E-10 (p. 133) | SPL vs band (log x, to 2000 Hz) | Average, range, 95 % limits | 1.25–2 kHz band levels (line) |
-| `REPRO_18b` | Fig. E-16 NASA predictions (p. 142) | SPL vs harmonic band | NASA PAIN prediction (open circles) with ±4 dB criterion band | Reproduction run (18b-r inputs) |
+| `REPRO_18b` | Fig. E-16 NASA predictions (p. 142) | SPL vs harmonic band | NASA PAIN prediction (open circles) with ±4 dB criterion band | Reproduction run (**18b-r inputs**, fixed 2026-10-21: was wrongly `source=:e11, blocking=R2` = T1; now ANOPP Table 8 + GEXT, R1, η_T = 0.5 → 82.73, 75.73, 77.05 dB) |
 | `E12_BLOCK` | Fig. E-12 (p. 136) | Blocked SPL (dB) vs X3/D, panels H1–H3 | Predicted and measured, passes A and B | Eq. (43) on Table 8, R1 |
 | `E11_FREEFIELD` | Fig. E-11 (p. 135) | Free-field SPL vs X3/D, H1–H3 | Measured passes A and B | e11 input line as used (after the ANOPP clip, flagged) |
 | `CYL2D_C1` | CR-3813 Table C-1 and Fig. C-3 | Mode frequency (Hz) vs mode number; second panel Φ_G | Table C-1 values (points) | CYL2D frequencies and Φ_G (line) |
@@ -911,6 +924,76 @@ Runs after every source check (phases 24, 26, 27, 28) and the GEXT importance bo
 | `PER_FIG9` | Pereira Fig. 9 (p. 10) | Grouped bars: SPL vs BPF harmonic, panels φ = 0°, 20°, 40° | Experimental, CFD, BEMT bars | F1A bars (fourth colour) |
 
 Runs after 33g and after the case verdicts exist; 34a–34d may start any time after §3.0 I-07, adding cases as their phases close.
+
+### Phase 36 — Cabin mode animation in the GUI *(planned 2026-10-21; not started — do not implement until the author says go)*
+
+**Why.** The author wants to see the cabin acoustic modes move. Table C-1 and Fig. C-3 give numbers; an animation of each mode shape
+oscillating in time shows which modes are symmetric, where the nodal lines are, and which modes the propeller tone excites, which is
+easier to check by eye than a table. Display only: it adds no check and no criterion (CLAUDE.md), and nothing in it can be tuned.
+
+**What it shows.**
+- 2-D cross-section modes from `cyl2d_modes` (App. C, NY = 10, θ0 = 56.6°): the pressure shape φ_n(x, y)·cos(ω_n t) on the half-cabin
+  grid mirrored to the full section (antisymmetric modes change sign across the centreline), colour map with a fixed symmetric scale,
+  nodal lines drawn, the floor and wall outline, mode index, f (Hz) at the selected c0, Φ_G and symmetry in the caption.
+- For modes 0–5, an overlay or side panel of the printed Fig. C-3 one-decimal node values (`test/fig_c3_values.jl`), so the animation
+  can be compared with the paper.
+- 3-D modes (q, i): the axial factor cos(qπz/L) (Eq. C.9) as a side view along the cabin, or a cut through the cabin length.
+- Optional, later: the Table D-1 structural mode shapes ψ (Eqs. 46–49) on the shell and floor, and the coupling f′ between a selected
+  structural and acoustic mode, so the user can see why a pair couples.
+
+**Steps (each needs the author's go-ahead; `src/` and GUI changes are [CONFIRM]).**
+
+| Step | What | Done when |
+|------|------|-----------|
+| 36a | Frame generator in `src/` (display only): from a `Cyl2DResult` mode, build the full-section field on the App. C grid (interpolated for drawing only, the node values unchanged) and render N frames over one period with CairoMakie (`record` → GIF/MP4, or PNG frames). No new physics; reads `cyl2d_modes` output | Frames for modes 0–19 render; mode 0 is uniform; an antisymmetric mode is odd about the centreline |
+| 36b | GUI: a "Cabin modes" panel (in the Validation map detail for `CYL2D_C1`, or its own tab): mode selector 0–19, q selector, play/pause, speed; shows the mode's f, Φ_G, symmetry and, for 0–5, the Fig. C-3 values | Runs offscreen in the smoke test without opening a window |
+| 36c | Tests: the frame data equal the `cyl2d_modes` node values at the nodes (no smoothing of the data), symmetry checks, frame count and file written | `Pkg.test()` and smoke pass |
+| 36d | Optional structural shapes and f′ view (Table D-1 path) | Author decides after 36a–36c |
+| 36e | Five docs (README GUI section, flowchart, METHODOLOGY §4, VALIDATION_GUIDELINE §2.6 "display only, no claim", this file) | Done per CLAUDE.md |
+
+**Rules.** Display only: no criterion, no verdict, no editable physics inputs (c0, θ0, NY shown as the fixed `CYL2D_C1` inputs). The
+colour scale and interpolation are for drawing only and are stated on the figure. Delegated work follows the Cursor check rule (R13).
+
+### Phase 37 — Root-cause fixes from the 2026-10-21 GUI review *(in progress 2026-10-21)*
+
+**Why.** The author ran every case in the GUI and listed failures and display problems ("find all the root causes and fix all of
+them; ensure you are not tuning anything"). Tuning, as the author defined it on 2026-10-21, means adjusting anything toward
+**experimental** data; for code-on-code checks a demonstrated bug is fixed. Each item below has a root cause from the code or the
+source documents, not from the size of the gap. Code changes are delegated to Cursor and checked per R13.
+
+| Step | Item (author's report) | Root cause | Fix | Status |
+|------|------------------------|------------|-----|--------|
+| 37a | Selected row loses its highlight; figure page swamps the plot; pages not scrollable; plots unreadable (BBN levels/circ/long, R996 Figs. 6/12/13a/14, loads, Pereira) | QML list model rebuilt as a new array on every observable change (reset `currentIndex`); plot and page side by side at fixed size; error-panel legend one entry per row; series joining different harmonics/runs/polar sets/β; phase drawn as lines across ±180°; BBN residual not wrapped (23a says wrap); R996 Fig. 6 single point drawn as a line | Selection keyed by case id; scrollable result pane, plot ≥ 560 px first, source page below behind a toggle, click opens full size; explicit row groups; one series per harmonic/run/polar set; markers for phase; wrapped residual; Fig. 6 marker at x/D = 0 | **Done 2026-10-21** — all verdicts and counts unchanged except 37a′ |
+| 37a′ | GEXT_BOUND "did not pass" | Verdict hard-coded `:not_met` for a diagnostic with no pass criterion | `:no_verdict`, reason states it is a diagnostic (phase 32) | **Done 2026-10-21** |
+| 37b | Errors in R996 Figs. 12/13a/14, Pereira; e11/Table-8 tones (I-17) | **Amplitude convention**: rms data compared with or converted as Fourier peaks (I-17 sources) | One convention in code: `spl_dB_to_peak_Pa`, `peak_Pa_to_spl_dB`; comparisons in rms; scripts re-run; baselines re-frozen with a dated note; affected results labelled post-hoc. Check: every e11/Table-8 tone moves by exactly +3.0103 dB | **Done 2026-10-21.** Check met (T1 +3.010/+3.009/+3.014, REPRO_18b +3.010/+3.010/+3.015, baselines +3.0103 exact, Ψ_G ×2, τ_t unchanged). Re-recorded (post-hoc): **REPRO_18b 85.74, 78.74, 80.06 dB = +6.7, +3.2, +12.1 vs NASA, 1 of 3 (was 2 of 3)**; T1 84.05, 78.01, 78.30 (H1 fail, H2 pass, H3 fail); T2 55.97, 53.63, 51.67; **R996 Fig. 14 20/24 within ±2 dB → met (was 5/24)**, Fig. 13a 8/14, Fig. 12 22/40 (counts recomputed independently from `f1a_results.csv`); Pereira Fig. 9 H1 3/9 (was 0/9), H2 6/9; F1A smoke vs Table 8 −7.2, −8.3, −8.8 dB (rms). Page-12 phase unchanged (103.8°). Old baselines kept as `phase17_baselines_rmsA_archive.csv` |
+| 37c | R996_FIG8 "fix sweep defer" | Out of scope (M_t = 1.0; I-20) | Case removed from registry, map, tests and docs | **Done 2026-10-21** (code); docs in 37h; digitized `tr996_fig8_pc_vs_CP.csv` kept |
+| 37d | MRP_RITZ "failing" | The raw solver is a fitted surrogate (not Eq. D.25); the 30/32 record predates the 2026-10-20 Table D-1 re-transcription whose shapes seed it (today 26/32: D-1 modes 2, 3, 4, 7, 8, 9 miss) | Re-run `scripts/mrp_ritz_vs_d1.jl` to re-record 26/32; no refit (refitting the scales to the table would be calibration); explanation in §2.13 | **Done 2026-10-21** — `mrp_ritz_vs_d1.md` 26/32, dated header |
+| 37e | No explanations (R2, F1A_GUTIN, PER_LOADS "no verdict", R996 loads errors, BBN, R996_PHASE); the Validation map not understandable | Texts were hard-coded in `validation_map.jl` and thin | New `VALIDATION_GUIDELINE.md` §2.13 "Validation case reference (read by the GUI)": one block per case, per map and per block; the GUI parses it, so editing the .md changes the GUI. Both tabs show what it tests, why, what a pass means, what is not covered, recorded outcome, explanation; the map gets "how to read this map". Leftover display items: blank legend entries beyond the cap, dense log ticks on Fig. 14 | Pending |
+| 37f | R996_LOADS errors | No code bug: C_T, C_P definitions checked (T/(ρn²D⁴) both sides). CCBlade thrust ≈ 20 % low with these XFOIL polars, as the data folder's own BEM (12–31 % low) | Explanation only; not tuned; post-hoc label kept (criteria registered after the loads were computed) | Pending (text in 37e) |
+| 37g | BBN_CIRC fails; R996_PHASE fails | I-19 (sign convention undocumented); page-12 stations not named in Report 996 (candidates ±0.125) | Explanations only; verdicts stay | Pending (text in 37e) |
+| 37i | **Run buttons do nothing** (Validation tab Run / Run all, Validation map Run) | The QML handlers start the case with `@async` and return; `main()` ends with the blocking `exec()`, which never yields to Julia's scheduler, so the task never runs. The smoke tests call `run_validation_gui!` directly and never exercised the button path | `main()` uses QML.jl's `exec_async()` (cooperative event loop) and waits until the window closes; new smoke check runs the GUI on Qt's offscreen platform, triggers `run_validation_from_qml` from QML and asserts the case completed (status "Done …", PNG written) — the exact button path, no visible window | Pending (after 37e) |
+| 37h | Five docs (R5) | — | README, flowchart, METHODOLOGY, VALIDATION_GUIDELINE, this file | Pending |
+
+### Phase 38 — CR-3813 / User Manual completeness *(planned 2026-10-21; order fixed; audit `validation_reports/cr3813_completeness_audit.md`)*
+
+**Why.** The author requires the program to function as the PAIN Methodology (CR-3813) and the User Manual (CR-172425) describe.
+The 2026-10-21 audit walked both documents and found missing or surrogate parts (the earlier theory audit only checked implemented
+equations, which is how §3.3 was missed). Each step implements the text as printed (equations read from the page images), adds
+tests against analytic limits first (V-UNIT), then the NASA comparison with criteria written and dated **before** the first run.
+
+| Step | What | Source | Comparison and criterion (dated 2026-10-21, before any run) |
+|------|------|--------|---------------------------------------------------------------|
+| 38a | **Noise reduction for a reverberant exterior field**: Eq. (17) modal inflow, Eq. (18) ⟨p_i²⟩/⟨p_e²⟩, the blocked ↔ diffuse relation, reverberant joint acceptance j²_rev(ω) per structural mode (§3.6; Manual output 1), η_r′ cap option. New case `E21_E22_NR` | CR-3813 §3.3 pp. 21–23, §3.6; App. E p. E-30 | **Inputs as NASA's (p. E-30):** Phase III trim with η_T = 1.0, η_r′ ≤ 0.15, test-article geometry, CYL2D + Table D-1 modes. The end-plate allowance of ref. [7] (80–160 Hz) is not available: not applied, and the 80, 100, 125, 160 Hz bands are reported but excluded from both pass counts (V-ASSUMED). **Code-on-code (V-CODE):** \|NR − NASA prediction (E-21)\| ≤ 3 dB at ≥ 75 % of the remaining bands with a NASA value. **Experiment (V-EXP, held out, 23e):** NR inside the E-22 95 % limits at ≥ 75 % of the remaining bands; the E-21 min–max range is reported as a secondary count. No tuning; a miss is recorded. **Scope note (added 2026-10-21, before any run):** Eq. (18) is a modal sum and the 20 CYL2D cross-section modes reach ≈ 880 Hz at a = 0.508 m; above the crossover band (38b rule: ≥ 10 three-dimensional acoustic modes in the band) NASA's model is the high-frequency Eq. (19). 38a therefore issues the two counts over the bands **below** the crossover only; the full-band E-21/E-22 verdict, same thresholds, is issued after 38c. NR = 10 log10(⟨p_e²⟩/⟨p_i²⟩) with ⟨p_e²⟩ = ⟨p_bl²⟩/2 (p. 23) and c_ω = 0.232 (p. 10) |
+| 38b | **High-frequency tone formulation** Eqs. (11)–(16) (expected value with n_n, n_r, η̄_n, η̄_r, ⟨ε_n f′²⟩ and j²_rev) and the crossover band (Manual card 10) | CR-3813 §3.2 pp. 16–20; Manual §5.4 card 10, §5.4.3 item 9 | **Crossover rule (fixed now):** the lowest 1/3-octave band whose count of 3-D acoustic modes (q, i) with resonance inside the band is ≥ 10 (CR-3813 §3.3 "ten or more modes in a third octave band"); an input override as card 10. **Production value:** Eq. (8) below the crossover band, the Eq. (15)–(16) expected value at and above it (Manual output 9(3)); both always reported. **"Explains H3" (I-18 rule):** REPRO_18b H3 within 4 dB of NASA's 68.0 dB with 38b where Eq. (8) is not; if so, I-18 mirroring is adopted and all affected results are re-recorded post-hoc |
+| 38c | **High-frequency broadband model Eq. (19)–(23) as printed** (trim areas A_t, S, A′; τ_t; resonant transmission; average radiation loss factors), replacing the surrogate and the stale `bb_j2_scale` | CR-3813 §3.3 pp. 23–25 | T2 against Fig. E-9 with the unchanged T2 criterion (±3.5 dB, 1.25–2 kHz); the result is labelled as the first run of the printed model |
+| 38d | **E-18 case**: tones with η_T = 1.0 and η_r′ ≤ 0.15 (uses the 38a cap) against `data/e18_interior_pred_eta1.csv` | App. E p. E-29 | Code-on-code: \|computed − NASA E-18 prediction\| ≤ 4 dB per harmonic (the 18b criterion) |
+| 38e | **E-15 case**: total structural loss factor η_r′ vs `data/e15_structural_loss_targets.csv` | App. E p. E-25 | V-EXP, reported per band with no pass mark (as recorded in 16b) unless the author freezes a criterion first |
+| 38f | Card inputs: separate exterior/interior ρ and c; cavity length L_c and offset d; per-band structural and bare acoustic loss-factor input; rotation direction; user band set | Manual cards 2, 3–6, 9, 11–18, 36 | Unit tests (limits: L_c = L, d = 0 reproduces current results exactly) — **plan with the author before starting** |
+| 38g | **Structural solver App. D** (Eqs. D.17–D.26) for any geometry other than the test article | CR-3813 App. D | Table D-1 frequencies within the flowchart's 5 % with **no fitted scale**, Fig. D-2 shapes — **plan with the author before starting** (large) |
+| 38h | **Printed outputs** of the Manual (§5.4.3): modes per band, coupling and Ψ_G tables, 5 largest modal contributions, pressures on both quarters | Manual §5.4.3 | Report/GUI page — **plan with the author before starting** |
+
+**Rules.** No parameter is chosen by looking at a comparison result. Where the text is ambiguous, the reading is decided and
+recorded from the text before running. Delegated work follows R13 (snapshot, diff, rules, run the checks, spot-check numbers, docs).
 
 ---
 
@@ -977,7 +1060,7 @@ Fig. 1 chord table before running.
 | Fig. 13 (b) | Same at M_t 1.00, 10° | Out of scope (M_t > 0.90) | No | Recorded only |
 | Fig. 6 | Total rms pressure vs x/D at four tip clearances (B = 4) | F1A distance scaling | Yes | Yes (`tr996_fig6_...csv`) |
 | Fig. 7 | p_c/C_P vs x/D at three blade angles, with C_P in the legend | F1A loading sensitivity; C_P check | Yes | Yes (`tr996_fig7_...csv`) |
-| p. 12 text | Phase difference ahead vs behind: 155° measured, 165° Eq. (2) (M_t 0.75); 125° Eq. (2) only | Phase check | Yes | In `rea-work\NASA Report 996.pdf` (checked) |
+| p. 12 text | Phase difference ahead vs behind: 155° measured, 165° Eq. (2) (M_t 0.75); 125° Eq. (2) only | Phase check | Yes | In `rea-work\references\NASA Report 996.pdf` (checked) |
 | Fig. 8 | p_c vs C_P in the rotation plane (B = 2, 4; M_t 0.60, 1.00) | Loading sensitivity; cross-propeller consistency | Yes (was optional) | Yes (`tr996_fig8_...csv`) |
 | Fig. 15 | Effect of effective radius R_e on first harmonic | Eq. (2) cross-check | Optional | No |
 | Fig. 17 | Gutin simplified vs Eq. (2) | Far-field limit check | Optional | No |
@@ -1119,6 +1202,8 @@ docs/validation_reports/eq8_two_resonator.md                (19a, 19b, done; scr
 docs/validation_reports/eps_n_quadrature.md                  (19c, done; scripts/check_eps_n_quadrature.jl)
 docs/validation_reports/grid_mirroring.md                    (19d, done; scripts/check_grid_mirroring.jl)
 docs/validation_reports/{tau_t_variants,bisect_18b,fig_d2_check,eta_r_normalization}.md  (19e–19h, done)
+docs/validation_reports/figures/                             (phase 34–35 CairoMakie plots)
+docs/validation_reports/figures/source/<case>.png            (phase 35: cropped source pages, display-only)
 data/e11_freefield_measured_{A,B}.csv
 data/e12/e12_blocked_{measured,predicted}_{A,B}.csv              (planned, 14a)
 data/fig_a2_pf105.csv                                        (16a, done)
@@ -1131,7 +1216,12 @@ data/e14_acoustic_loss_targets.csv
 data/e15_structural_loss_targets.csv
 data/figures/e{9,11,14,15,16}*.png
 data/figures/e{12,13}*.png                                   (planned, 14a, 13b)
+data/pereira/pereira_results.csv                             (phase 35 C4; written by run_pereira.jl)
+data/NASA_CR-158919/bbn_results.csv                          (phase 35 C4; written by run_bbn_phase.jl)
 PAIN.jl/
+PAIN.jl/src/validation_map.jl                                (phase 35: CASE_INFO + two maps)
+PAIN.jl/scripts/retired/                                     (phase 35 C3: one-off probes, git mv)
+docs/archive/                                                (phase 35 C3: SESSION_PROMPT.txt, T1_fix_instructions.txt)
 
 Planned files (phases 19i–33):
 docs/validation_reports/h3_followup.md                       (19i)
@@ -1150,11 +1240,16 @@ docs/validation_reports/gext_importance_bound.md             (32)
 data/{e17_interior_ci,e18_interior_pred_eta1,e21_noise_reduction_range,e22_noise_reduction_ci,e10_interior_ci}.csv  (D-14–D-16, D-18)
 data/{t1_interior_targets_B,t2_third_octave_targets_B}.csv  (D-17, D-18; second passes)
 data/digitizers/dig_<source>_<fig>.py                        (every new digitization, §2.2)
+
+Retired / archived (phase 35 C3, 2026-10-21, git mv):
+PAIN.jl/scripts/retired/{_probe_bbn_kin,check_t1,check_mrp_spectral,debug_f1a_pitch,
+  find_fig_e11,find_fig_e9,map_k_x3d}.jl
+docs/archive/{SESSION_PROMPT.txt,T1_fix_instructions.txt}
 ```
 
 ---
 
-## 11. Completed phases 0–22 + 2026-10-21 close-out (reference)
+## 11. Completed phases 0–22 + 2026-10-21 close-out + phases 32–35 (reference)
 
 No action needed for closed phases. Kept for the record; the planned work is in §§5–8.
 
@@ -1493,10 +1588,21 @@ Why this phase ran here: 18b showed that the chain does not compute what NASA's 
 
 ## Phase 34 — Validation cases in the GUI *(done 2026-10-21)*
 
-- [x] **34a** `src/validation_cases.jl`: registry structs, `VALIDATION_CASES` / `run_validation_case`; runnable `CYL2D_C1`, `MRP_D1`, `T1`, `T2`, `REPRO_18b`; other 34c IDs greyed with reason until script cores move in.
+- [x] **34a** `src/validation_cases.jl` + `validation_case_extras.jl`: registry; runnable cabin/source short cases + E11/E12/E14/GEXT/BBN_KIN/R996_PHASE; long F1A IDs Run→report pointer (not greyed); greyed only E21_E22_NR, R996_FIG8.
 - [x] **34b** CairoMakie 0.15.16; `src/validation_plots.jl` → `docs/validation_reports/figures/<id>.png` (+ PDF).
 - [x] **34c** `plot_spec` on every registry entry (axes per published figure table).
 - [x] **34d** testset "Validation case registry (34d)": CYL2D/MRP rtol 1e-9; Table C-1 reference series exact; unavailable → `:no_verdict`.
 - [x] **34e** GUI **Validation** tab (`main.qml` + `gui_model.jl` / `gui_main.jl`); async run; open report.
 - [x] **34f** `smoke_gui_model.jl` / `smoke_qml_load.jl` extended (CYL2D_C1 through `run_validation_gui!`).
 - [x] **34g** five docs updated (README, flowchart, METHODOLOGY, VALIDATION_GUIDELINE, this file).
+
+## Phase 35 — Test audit, validation maps and the "Validation map" GUI tab *(done 2026-10-21)*
+
+- [x] **35a Test audit (A1–A7).** CYL2D: `TABLE_C1_C0 = 341 m/s` back-solved from Table C-1 → absolute-frequency check partly by construction; **re-stated 2026-10-21 post-hoc** as frequency *ratios* f_i/f_1 (modes 2–19) within 0.1 % (c0-free; worst 0.0003 %); Φ_G, symmetry, Fig. C-3 unchanged; criterion date "2026-10-20 (ratio form 2026-10-21, post-hoc)". MRP: hybrid asserts the Table D-1 copy; `MRP_D1` verdict `no_verdict` (transcription); raw Ritz kept as regression guard of a calibrated fit — live **26/32** within 5 % (`mrp_ritz_vs_d1.md` still records 30/32, stale; `mrp.jl` not changed). Can't-fail tests replaced: dBA → IEC 61672 table + hand-built-spectrum checks; polar → `clb/cl = k_cl = 0.92264` exactly. `REPRO_18b` registry case was running e11/R2 (= T1); now runs 18b-r inputs → **82.73, 75.73, 77.05 dB**, not met (2/3, H3 +9.1); label **"post-hoc (η_T = 0.5 input correction; result known from 19f)"**. T1 case table shows both gates A and B. Free gauges kept (Fig. C-3 eigenvector sign; BBN kinematic rotation-sense from H1). Valid checks unchanged: blocking p.68, coupling limits, joint acceptance, App. A, Ψ_G, Eq. (8) re-impl, Gutin, E-14, E-11 δ_dig, E-12.
+- [x] **35b Plots.** Every case plot has an error panel (computed − reference; green/red vs criterion; ±tolerance dashed); legend outside; plain-number ticks on log axes; one tolerance band around the first reference series; T2 x-axis 1000–2600 Hz; "Source figure page" shows digitized page images via `VALIDATION_SOURCE_FIGURE_FALLBACKS` for T1, REPRO_18b, T2, E11, E12, E14, R996 Figs 12/13a/14, Pereira Figs 6–9.
+- [x] **35c CASE_INFO + two maps + new cases + replays.** `src/validation_map.jl`: Map 1 "PAIN verification — CR-3813 cabin chain"; Map 2 "Aircraft source validation — CCBlade BEMT + F1A". New registry: `BLK_P68` (met 6/6), `MRP_RITZ` (calibrated, always `no_verdict`; 26/32 live), `F1A_GUTIN` (met, Δ = 0.3 dB; Gutin in `f1a_gutin_h1_comparison`). Replays from CSV: `R996_FIG14` not met 5/24, `R996_FIG13A` not met 6/14, `R996_FIG12` not met 19/40 (first verdict under frozen 23c), `R996_LOADS` 6/32 not met (post-hoc label). C4: `pereira_results.csv` / `bbn_results.csv`; PER_* and BBN_* replays; only `E21_E22_NR` and `R996_FIG8` remain placeholders. All case numbers from CSVs or transcribed tables; page images display-only. C5: `overall_dBA` energy-sums all 1/3-octave bands A-weighted at centres (aircraft example 83.22 → 83.74; synthetic smoke 71.38 → 91.36). **I-17 open:** free-field amplitude convention (rms vs Fourier peak).
+- [x] **35d GUI.** Third tab **"Validation map"**: map switch, intro, legend, flowchart of blocks with clickable case chips; detail panel (source, verifies, why, meaning, not covered, recorded, criterion + date, Run, Open report, code-vs-figure plot with error panel, source figure page). Validation-tab list ordered by map and block. GUI shows "Press Run to draw the comparison plot" until run.
+- [x] **35e Tests/smokes.** `Pkg.test()` passes; smoke scripts cover map JSON and a replay run.
+- [x] **35f Five docs** updated (this phase).
+- [x] **35g Cursor check rule** in `CLAUDE.md` / plan R13.
+- [x] **C3 Directory cleanup.** `git mv` one-off scripts → `PAIN.jl/scripts/retired/`; `SESSION_PROMPT.txt`, `T1_fix_instructions.txt` → `docs/archive/`; cropped source figures under `docs/validation_reports/figures/source/`.
