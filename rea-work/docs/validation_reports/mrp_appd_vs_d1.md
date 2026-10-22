@@ -1,123 +1,49 @@
-# MRP_APPD — App. D Eqs. (D.17)–(D.26) vs Table D-1 (phase 38g, first run)
+Re-recorded 2026-10-22 at L = 1.83 m (I-22, post-hoc; earlier 1.803 m values: see length_sensitivity.md)
 
-Label: **V-CODE (vs NASA's solver outputs), first run of the printed App. D formulation 2026-10-22**.
+# MRP_APPD — re-recorded at L = 1.83 m
 
-Criterion (fixed **2026-10-22 before any run**; not changed): ≥ **75 % of the 32** Table D-1 modes within **5 %**; no calibration input. Fig. D-2 mode-1 shape reported **without** a pass mark. A miss is recorded as a miss. Nothing was changed after seeing this comparison.
+Label: **V-CODE (vs NASA's solver outputs), first run of the printed App. D formulation 2026-10-22**
 
 ## Verdict
 
-**`:met` — 27 / 32 within 5 % (84.4 %); threshold ceil(0.75×32) = 24.** No parameter fitted to Table D-1 / Fig. D-2.
+**`met`** — 27/32 within 5 % (84.4 %); criterion ≥ 75 % of 32 within 5 %, no calibration (fixed 2026-10-22). Fig. D-2 mode-1: max |Δw| = 1.4534 over 49 digitized points (no pass mark)
 
-Fig. D-2 (info only): max |Δw| = **1.4534** over 49 digitized points (no pass mark).
+## Table
 
-## Equations as implemented
+| quantity | x | reference | computed | residual | ok |
+|---|---:|---:|---:|---:|:--:|
+| f_Hz mode 1 | 1.0 | 188.52 | 197.10784747283356 | 8.587847472833545 | true |
+| f_Hz mode 2 | 2.0 | 208.24 | 207.04733078748768 | -1.1926692125123282 | true |
+| f_Hz mode 3 | 3.0 | 217.88 | 214.3815465128721 | -3.498453487127904 | true |
+| f_Hz mode 4 | 4.0 | 231.01 | 225.2382328537797 | -5.771767146220299 | true |
+| f_Hz mode 5 | 5.0 | 293.25 | 292.4301050746561 | -0.8198949253438741 | true |
+| f_Hz mode 6 | 6.0 | 301.93 | 287.33240128940145 | -14.597598710598561 | true |
+| f_Hz mode 7 | 7.0 | 303.67 | 316.7522017108257 | 13.0822017108257 | true |
+| f_Hz mode 8 | 8.0 | 318.73 | 341.2489332071612 | 22.518933207161183 | false |
+| f_Hz mode 9 | 9.0 | 346.71 | 344.48138927367796 | -2.2286107263220174 | true |
+| f_Hz mode 10 | 10.0 | 434.31 | 437.8141304764896 | 3.5041304764895926 | true |
+| f_Hz mode 11 | 11.0 | 441.78 | 441.71774811967606 | -0.062251880323913156 | true |
+| f_Hz mode 12 | 12.0 | 470.53 | 480.1325949358116 | 9.602594935811624 | true |
+| f_Hz mode 13 | 13.0 | 502.23 | 493.7626164212585 | -8.467383578741533 | true |
+| f_Hz mode 14 | 14.0 | 528.78 | 528.1575956288592 | -0.6224043711407603 | true |
+| f_Hz mode 15 | 15.0 | 555.05 | 567.3457941143436 | 12.295794114343607 | true |
+| f_Hz mode 16 | 16.0 | 558.43 | 570.817339058709 | 12.387339058709017 | true |
+| f_Hz mode 17 | 17.0 | 560.65 | 576.6189200897179 | 15.968920089717926 | true |
+| f_Hz mode 18 | 18.0 | 572.86 | 586.1395066984171 | 13.279506698417094 | true |
+| f_Hz mode 19 | 19.0 | 591.88 | 602.2187475372963 | 10.338747537296285 | true |
+| f_Hz mode 20 | 20.0 | 607.5 | 610.0322648796464 | 2.532264879646391 | true |
+| f_Hz mode 21 | 21.0 | 626.01 | 621.9725453796051 | -4.037454620394897 | true |
+| f_Hz mode 22 | 22.0 | 632.02 | 631.7779982365852 | -0.24200176341480528 | true |
+| f_Hz mode 23 | 23.0 | 636.15 | 652.2160452184031 | 16.066045218403133 | true |
+| f_Hz mode 24 | 24.0 | 641.2 | 663.4065458632494 | 22.206545863249403 | true |
+| f_Hz mode 25 | 25.0 | 648.7 | 675.4896133649632 | 26.789613364963202 | true |
+| f_Hz mode 26 | 26.0 | 663.3 | 681.9610903757723 | 18.661090375772346 | true |
+| f_Hz mode 27 | 27.0 | 716.23 | 696.7987707052224 | -19.43122929477761 | true |
+| f_Hz mode 28 | 28.0 | 717.33 | 686.4732027906698 | -30.85679720933024 | true |
+| f_Hz mode 29 | 29.0 | 738.44 | 524.985616001152 | -213.45438399884802 | false |
+| f_Hz mode 30 | 30.0 | 761.91 | 519.3108673764187 | -242.59913262358123 | false |
+| f_Hz mode 31 | 31.0 | 779.76 | 487.83277713662744 | -291.92722286337255 | false |
+| f_Hz mode 32 | 32.0 | 811.04 | 452.90008430722884 | -358.1399156927711 | false |
+| Fig. D-2 max |Δw| (info) | 0.0 | 0.0 | 1.4534464541325456 | 1.4534464541325456 | true |
 
-Printed forms from CR-3813 Appendix D (PDF pp. 99–106 / report pp. D-3…D-12), transcribed into `src/mrp_appd.jl`:
-
-| Eq. | Role | Implementation |
-|---|---|---|
-| (D.2)–(D.3) | Axial `sin(Mπx/L)`; circ. `cos/sin nθ` (θ from bottom) | Trial fields per `(M, n)` and floor `(M, p)` |
-| (D.4) / (D.17) | Rigid junction: `u_s=u_p`, `w_s sinθ₁+v_s cosθ₁=v_p`, `w_s cosθ₁−v_s sinθ₁=w_p`, rotation continuity | Constraint matrix `C q = 0` |
-| (D.18)–(D.21) | Partition / eliminate dependent DOFs via `[E]` | SVD nullspace of `C` (≡ columns of `[E]`) |
-| (D.22) | `[K]{q₁}=ω²[M]{q₁}` | `eigen(Symmetric(Kr), Symmetric(Mr))` |
-| (D.23)–(D.24) | Constitutive with `k_xs`, `k_θR`, `D_xs`, `D_θR` | Smeared areas/inertias; asterisk (`*`) terms **omitted** |
-| (D.25) + p. D-10 | Shell operator; thickness rule | Membrane `k` from `t_eq`; bending off-diag from `D(t_eq)`; third diagonal `D_xs`, `D_θR` from actual-skin `D` + `EI/d`, `EI/ℓ` |
-| (D.26)–(D.29) | Mode shapes `ψ` | `C_n ≡ W_Mn`; `shell_circumferential` applies `Σ C (−1)^n cos/sin` |
-| (D.31) | Generalized mass `∫ ρ (u²+v²+w²) dA` | Rayleigh `qᵀ M q` after peak-normalisation (p. D-10: max \|w\| = 1) |
-
-## Readings decided (before Table D-1 run)
-
-From `APPD_READINGS` / printed text:
-
-| Reading | Decision | Why |
-|---|---|---|
-| Attachment | `:rigid` (all four of D.4) | App. E p. E-3 floor “bolt to skin”; hinged would drop the rotation line (p. D-4) |
-| Asterisk terms in (D.23) | omitted | p. D-8: vanish when stiffener eccentricities `z_s`, `z_r` are zero (Mikulas comparison); App. D smearing does not re-introduce them |
-| (D.25) thickness rule | `:page_D10` | Membrane from `t_eq`; third-diagonal `D_xs`/`D_θR` from actual skin + (D.24) |
-| θ origin | bottom centerline | (D.3)/(D.26); junctions at ±θ₀ |
-| Length | **1.83 m** | App. E p. E-1 prints 1.83 m (72 in.); program/`mrp.jl` uses 1.803 — **text wins** (spec) |
-| Material | `MRP_E_2024`, `MRP_NU_2024`, `MRP_RHO_2024` | App. E “2024-T3 aluminum”; E, ν, ρ from Manual §5.2 / existing constants (no separate printed E in App. D) |
-| Constraint reduction | nullspace of `C` | Equivalent to (D.20) after independent/dependent partition |
-| Arc coupling n↔n′ | omitted (diagonal only) | Leading Peterson diagonal; junction coupling via (D.17) only |
-
-## Inputs (test article)
-
-| Quantity | Value | Source |
-|---|---|---|
-| L | 1.83 m | App. E p. E-1 |
-| a | 0.508 m | App. E Fig. E-2 (diameter 1.016 m) |
-| θ₀ | 56.6° | App. E p. E-3 |
-| t_skin | 0.00081 m | App. E p. E-1 / `MRP_T_SKIN` |
-| A_stringer, d, I | `MRP_A_STRINGER`, `MRP_D_STRINGER`, `MRP_I_STRINGER` | App. E dimensions → existing constants |
-| A_frame, ℓ, I | `MRP_A_FRAME`, `MRP_ELL_FRAME` (0.2 m), `MRP_I_FRAME` | App. E p. E-1 |
-| Floor beams | `MRP_A_FLOOR_BEAM`, `MRP_I_FLOOR_BEAM` | App. E Fig. E-2 |
-| E, ν, ρ | 73.1e9 Pa, 0.33, 2780 kg/m³ | Manual §5.2 / `MRP_*` |
-
-Solver call for this run: `appd_modes(g; n_modes=48, n_axial=7, n_circ=8, n_floor_max=5)`. Default production path unchanged (`structural_solver=:table_d1`).
-
-## V-UNIT (before this comparison)
-
-Filtered `Pkg.test("PAIN"; test_args=["App. D structural solver 38g", "Validation case registry"])`:
-
-1. Unstiffened closed cylinder vs Donnell–Mushtari / Soedel–Leissa SP-288 §2.1.2 (condensed App. D 3×3 within **1 %**; full 3×3 within **15 %**).
-2. Stiffeners raise frequency; smeared analytic (D_xs + t_eq) within **15 %**; large-radius limit lowers frequency.
-3. Generalized-mass consistency (w-shape integral vs Rayleigh M_r band) and mass-matrix orthogonality ≤ **1e-8**.
-4. Constraint residuals (D.17) ≤ **1e-8**.
-5. Surrogate / Table D-1 default path unchanged (`MRP_RITZ` match count ≥ 25; `build_structural_modes(...; :table_d1)` identical to D-1).
-
-**Result: 43 / 43 V-UNIT pass; registry 1210 pass.**
-
-## Table D-1 comparison (once, after V-UNIT)
-
-Greedy nearest-frequency match (`match_ritz_to_table_d1`; same helper as `MRP_RITZ`).
-
-| D-1 # | NASA f [Hz] | App. D f [Hz] | Δ % | within 5 %? |
-|------:|------------:|--------------:|----:|:-----------:|
-| 1 | 188.52 | 197.11 | +4.56 | yes |
-| 2 | 208.24 | 207.05 | −0.57 | yes |
-| 3 | 217.88 | 214.38 | −1.61 | yes |
-| 4 | 231.01 | 225.24 | −2.50 | yes |
-| 5 | 293.25 | 292.43 | −0.28 | yes |
-| 6 | 301.93 | 287.33 | −4.83 | yes |
-| 7 | 303.67 | 316.75 | +4.31 | yes |
-| 8 | 318.73 | 341.25 | +7.07 | **no** |
-| 9 | 346.71 | 344.48 | −0.64 | yes |
-| 10 | 434.31 | 437.81 | +0.81 | yes |
-| 11 | 441.78 | 441.72 | −0.01 | yes |
-| 12 | 470.53 | 480.13 | +2.04 | yes |
-| 13 | 502.23 | 493.76 | −1.69 | yes |
-| 14 | 528.78 | 528.16 | −0.12 | yes |
-| 15 | 555.05 | 567.35 | +2.22 | yes |
-| 16 | 558.43 | 570.82 | +2.22 | yes |
-| 17 | 560.65 | 576.62 | +2.85 | yes |
-| 18 | 572.86 | 586.14 | +2.32 | yes |
-| 19 | 591.88 | 602.22 | +1.75 | yes |
-| 20 | 607.50 | 610.03 | +0.42 | yes |
-| 21 | 626.01 | 621.97 | −0.64 | yes |
-| 22 | 632.02 | 631.78 | −0.04 | yes |
-| 23 | 636.15 | 652.22 | +2.53 | yes |
-| 24 | 641.20 | 663.41 | +3.46 | yes |
-| 25 | 648.70 | 675.49 | +4.13 | yes |
-| 26 | 663.30 | 681.96 | +2.81 | yes |
-| 27 | 716.23 | 696.80 | −2.71 | yes |
-| 28 | 717.33 | 686.47 | −4.30 | yes |
-| 29 | 738.44 | 524.99 | −28.91 | **no** |
-| 30 | 761.91 | 519.31 | −31.84 | **no** |
-| 31 | 779.76 | 487.83 | −37.44 | **no** |
-| 32 | 811.04 | 452.90 | −44.16 | **no** |
-
-**Count: 27 / 32 within 5 % → `:met`.**
-
-Misses: mode 8 (+7.07 %); modes 29–32 (greedy match attached lower computed frequencies — recorded, not retuned).
-
-## Fig. D-2 mode 1 (no pass mark)
-
-Digitized CSV `data/cr3813/fig_d2_mode1_digitized.csv` (floor index → x = i·L_p/20; shell row k → θ = 5k°). Compared to the App. D mode matched to D-1 mode 1. **max |Δw| = 1.4534** over 49 points — reported only; not part of the verdict.
-
-## Code / registry
-
-- `src/mrp_appd.jl` — `appd_modes`, `build_structural_modes(...; structural_solver=:appd)`
-- Case `MRP_APPD` in `validation_case_extras.jl`
-- `mrp.jl` defaults untouched; production remains Table D-1
-
-No change after seeing this comparison.
+inputs: (n_modes = 32, npass = 27, tol_frac = 0.05, count_rule = "≥75% of 32 within 5%", count_rule_date = "2026-10-22", calibration = false, L = 1.83, readings = (attachment = :rigid, asterisk_terms = false, d25_thickness_rule = :page_D10, theta_origin = :bottom_centerline, L_source = "App. E p. E-1 / I-22: 1.83 m (test_article_length)", material_source = "MRP_E_2024 / MRP_NU_2024 / MRP_RHO_2024 (Manual §5.2)", constraint_reduction = :nullspace_of_C), reference_tables = ["TABLE_D1_FULL", "fig_d2_mode1_digitized.csv"])

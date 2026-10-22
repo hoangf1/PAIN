@@ -1,3 +1,5 @@
+Re-recorded 2026-10-22 at L = 1.83 m (I-22, post-hoc; earlier 1.803 m values: see length_sensitivity.md)
+
 # PAIN validation report
 
 block: MRP
