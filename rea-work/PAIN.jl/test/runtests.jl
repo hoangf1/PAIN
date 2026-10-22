@@ -554,12 +554,13 @@ function _rebuild(inp::PainInputs; structural=inp.structural, acoustic=inp.acous
                   η_n_bare=inp.η_n_bare, C_struc=inp.C_struc, q_max=inp.q_max,
                   crossover_band_Hz=inp.crossover_band_Hz,
                   ρ0=inp.ρ0, c0=inp.c0, ρ_ext=inp.ρ_ext, c_ext=inp.c_ext,
-                  ρ_int=inp.ρ_int, c_int=inp.c_int, L_c=inp.L_c, d=inp.d, prop=inp.prop)
+                  ρ_int=inp.ρ_int, c_int=inp.c_int, L_c=inp.L_c, d=inp.d, prop=inp.prop,
+                  bands=inp.bands, η_r_band=inp.η_r_band, η_n_band=inp.η_n_band)
     return PainInputs(inp.fuse, prop, structural, acoustic, amplitudes, phases, inp.pts, ΔA;
                       sidewall, endplates, mech, m_wall=inp.m_wall, η_n_bare, C_struc, q_max,
                       allow_extrapolation=inp.allow_extrapolation, ρ0=ρ0, c0=c0,
                       ρ_ext=ρ_ext, c_ext=c_ext, ρ_int=ρ_int, c_int=c_int, L_c=L_c, d=d,
-                      crossover_band_Hz)
+                      crossover_band_Hz, bands=bands, η_r_band=η_r_band, η_n_band=η_n_band)
 end
 
 _run_if("Generalized force Ψ_G, Eq. (42) (17e, analytic limits)") do
@@ -1532,6 +1533,113 @@ _run_if("Card inputs 38f-1 (air split, L_c/d, rotation)") do
     @test ff_m.phases ≈ -ff_p.phases
     # Applying −1 geometry twice (via +1) restores original θ list
     @test [p.theta_deg for p in pts_p] == [p.theta_deg for p in grid_points(fuse, prop_p, GridSpec())]
+end
+
+# Plan phase 38f-2: Manual cards 3–6 (band set) and 11–18 (per-band η_r / η_n).
+# Defaults must reproduce current outputs exactly (no comparison criterion; input plumbing).
+# ---------------------------------------------------------------------------------------------
+_run_if("Card inputs 38f-2 (bands, η_r/η_n per band)") do
+    r0 = run_pain_pipeline(; source=:synthetic, use_synthetic=true, n_harmonics=3, bpf_Hz=150.0,
+                           trim=:bare, NY=8)
+    inp0 = r0.inputs
+    ωH = 2π * 150.0
+    p2_0 = tone_mean_square_pressure(inp0, 1, ωH)
+    nr0 = noise_reduction_spectrum(inp0; bands=[250.0, 500.0])
+    hf0 = hf_pressure_ratio(inp0, 1000.0)
+    toc = third_octave_centers()
+
+    # --- 1. Defaults reproduce current tone / NR / HF / REPRO_18b path exactly ---
+    inp_def = _rebuild(inp0; bands=nothing, η_r_band=nothing, η_n_band=nothing)
+    @test tone_mean_square_pressure(inp_def, 1, ωH) == p2_0
+    @test resolve_bands(inp_def) == toc
+    nr_def = noise_reduction_spectrum(inp_def; bands=[250.0, 500.0])
+    @test nr_def.rows[1].NR_dB == nr0.rows[1].NR_dB
+    @test hf_pressure_ratio(inp_def, 1000.0).NR_dB == hf0.NR_dB
+    # Explicit default band list identical to nothing
+    inp_toc = _rebuild(inp0; bands=toc)
+    @test tone_mean_square_pressure(inp_toc, 1, ωH) == p2_0
+    spec0 = interior_spl(inp0; bpf_Hz=150.0, n_harmonics=3, broadband=true)
+    spec_toc = interior_spl(inp_toc; bpf_Hz=150.0, n_harmonics=3, broadband=true)
+    @test spec_toc.harmonic_SPL_dB == spec0.harmonic_SPL_dB
+    @test spec_toc.third_octave_SPL_dB == spec0.third_octave_SPL_dB
+    # REPRO_18b-like e11 tones (defaults) bit-identical under explicit default cards
+    r18 = run_pain_pipeline(; source=:e11, n_harmonics=3, bpf_Hz=200.0, blocking=R1, trim=:phase3)
+    inp18 = r18.inputs
+    inp18b = _rebuild(inp18; bands=third_octave_centers(), η_r_band=nothing, η_n_band=nothing)
+    for H in 1:3
+        ω = 2π * H * 200.0
+        @test tone_mean_square_pressure(inp18b, H, ω) == tone_mean_square_pressure(inp18, H, ω)
+    end
+    @test r18.spectrum.harmonic_SPL_dB ==
+          interior_spl(inp18b; bpf_Hz=200.0, n_harmonics=3, broadband=false).harmonic_SPL_dB
+
+    # --- 2. Band set: custom subset matches default at those centres; invalid sets raise ---
+    # Contiguous subset of the default list keeps tone→band assignment for in-range harmonics.
+    subset = toc[1:16]
+    inp_sub = _rebuild(inp0; bands=subset)
+    spec0_nb = interior_spl(inp0; bpf_Hz=150.0, n_harmonics=3, broadband=false)
+    spec_sub = interior_spl(inp_sub; bpf_Hz=150.0, n_harmonics=3, broadband=false)
+    @test Set(keys(spec_sub.third_octave_SPL_dB)) == Set(subset)
+    for fc in subset
+        @test spec_sub.third_octave_SPL_dB[fc] == spec0_nb.third_octave_SPL_dB[fc]
+    end
+    # NR / HF at a listed centre identical (path is per-centre, independent of other bands)
+    for fc in (250.0, 500.0, 1000.0)
+        fc_s = nearest_third_octave(fc, toc)
+        @test noise_reduction_band(inp_sub, fc_s).NR_dB == noise_reduction_band(inp0, fc_s).NR_dB
+    end
+    @test hf_pressure_ratio(inp_sub, 1000.0).NR_dB == hf0.NR_dB
+    nr_sub = noise_reduction_spectrum(inp_sub)
+    @test nr_sub.bands == subset
+    @test_throws ErrorException validate_band_set([250.0, 251.0])          # non-standard
+    @test_throws ErrorException validate_band_set(vcat(toc, toc[1:5]))     # > 26
+    @test_throws ErrorException validate_band_set([1000.0, 500.0])         # unsorted
+    @test_throws ErrorException _rebuild(inp0; bands=[1000.0, 500.0])
+
+    # Containing-band lookup (1/3-octave edges via c_ω)
+    fc630 = nearest_third_octave(630.0, toc)
+    @test containing_third_octave(600.0, toc) == fc630
+    @test containing_third_octave(fc630, toc) == fc630
+
+    # --- 3. Loss-factor override ---
+    # Bare cabin: η_n override equal to η_n_bare → identical; different → changes; 0 → fallback
+    inp_ηn_same = _rebuild(inp0; η_n_band=Dict(nearest_third_octave(150.0, toc) => inp0.η_n_bare))
+    @test tone_mean_square_pressure(inp_ηn_same, 1, ωH) == p2_0
+    inp_ηn_zero = _rebuild(inp0; η_n_band=Dict(nearest_third_octave(150.0, toc) => 0.0))
+    @test tone_mean_square_pressure(inp_ηn_zero, 1, ωH) == p2_0   # zero → compute
+    @test inp_ηn_zero.η_n_band === nothing
+    inp_ηn_hi = _rebuild(inp0; η_n_band=Dict(nearest_third_octave(150.0, toc) => 0.25))
+    p2_hi = tone_mean_square_pressure(inp_ηn_hi, 1, ωH)
+    @test p2_hi != p2_0
+    # H2 at 300 Hz is in a different band → unchanged when only 150 Hz band overridden
+    ω2 = 2π * 300.0
+    fc150 = nearest_third_octave(150.0, toc)
+    fc300 = nearest_third_octave(300.0, toc)
+    @test fc150 != fc300
+    @test tone_mean_square_pressure(inp_ηn_hi, 2, ω2) == tone_mean_square_pressure(inp0, 2, ω2)
+
+    # Structural η_r: one value per band (Manual). Identity when a band holds a single
+    # structural mode and the override equals that mode's Eqs. 79–81 value.
+    by_band = Dict{Float64,Vector{Any}}()
+    for st in inp0.structural.modes
+        fc = containing_third_octave(st.f_Hz, toc)
+        fc === nothing && continue
+        push!(get!(() -> Any[], by_band, fc), st)
+    end
+    solo_fc, solo_st = first((fc, sts[1]) for (fc, sts) in by_band if length(sts) == 1)
+    ωr = 2π * solo_st.f_Hz
+    ηr_comp = structural_loss_total(solo_st, ωr; a=inp0.fuse.a, L=inp0.fuse.L, m=inp0.m_wall,
+                                    C=inp0.C_struc, ρ0=inp0.ρ_ext, c0=inp0.c_ext)
+    inp_ηr_same = _rebuild(inp0; η_r_band=Dict(solo_fc => ηr_comp))
+    @test tone_mean_square_pressure(inp_ηr_same, 1, ωH) == p2_0
+    inp_ηr_diff = _rebuild(inp0; η_r_band=Dict(solo_fc => 0.5))
+    @test tone_mean_square_pressure(inp_ηr_diff, 1, ωH) != p2_0
+    # Vector form aligned with bands
+    ηn_vec = zeros(length(subset))
+    ηn_vec[1] = 0.25
+    inp_vec = _rebuild(inp0; bands=subset, η_n_band=ηn_vec)
+    @test inp_vec.η_n_band !== nothing
+    @test haskey(inp_vec.η_n_band, subset[1])
 end
 
 _run_if("Validation case registry (34d)") do

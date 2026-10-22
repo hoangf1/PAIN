@@ -186,7 +186,7 @@ flowchart LR
 
     subgraph PAIN["PAIN Main - reimplemented"]
         direction TB
-        P_IN["IN: structural modes<br/>acoustic modes<br/>blocked pressures<br/>trim stack (App A), C (Eq 80),<br/>eta_n if bare; ρ_ext/ρ_int, c_ext/c_int (card 2);<br/>L_c, d (card 9); rotation ±1 (card 36); assumptions 13a"]
+        P_IN["IN: structural modes<br/>acoustic modes<br/>blocked pressures<br/>trim stack (App A), C (Eq 80),<br/>eta_n if bare; ρ_ext/ρ_int, c_ext/c_int (card 2);<br/>L_c, d (card 9); bands ≤26 (cards 3–6);<br/>η_r/η_n per band (cards 11–18); rotation ±1 (card 36); assumptions 13a"]
         subgraph FUNC["internal functions"]
             direction TB
             F2["coupling f'(n,r), Eq 52<br/>(Eqs 46-49, 53-57; axial overlap L_c,d)<br/><i>implemented, tests pass (17f); 38f-1 L≠L_c;<br/>boundary values from 15a (done)</i>"]

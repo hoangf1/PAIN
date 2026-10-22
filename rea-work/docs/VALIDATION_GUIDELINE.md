@@ -423,7 +423,7 @@ Each row is a hard-coded NASA test-article constant that can reach an aircraft r
 | `PAIN.jl` | `run_pain_pipeline` geometry defaults | L=1.803, a=0.508, θ0=56.6, r_p=0.965 | test article |
 | `PAIN.jl` | hybrid Table D-1 modes when `use_table_d1=true` | 32 modes | Table D-1 |
 | `cyl2d.jl` / pipeline | CYL2D NY=10, c0=340, ρ0=1.225 | defaults | App. C / register |
-| `pain_core.jl` / pipeline | `L_c` default = fuse.L, `d` = 0; `rotation_direction` = +1 | card 9 / 36 defaults | Manual §5.4; 38f-1 |
+| `pain_core.jl` / pipeline | `L_c` default = fuse.L, `d` = 0; `rotation_direction` = +1; `bands` / `η_r_band` / `η_n_band` default `nothing` | card 9 / 36 / 3–6 / 11–18 defaults | Manual §5.4; 38f-1, 38f-2 |
 | `trim_loss.jl` | end-plate 1.3 cm aluminium mass path | as coded | App. E |
 | `pain_core.jl` | η_n_bare default, C_struc default | 0.05, 3.0 | register g |
 
@@ -444,7 +444,7 @@ Written before the first run of the 14a–18a chain. A value here is changed onl
 | f | G-10 wavespeed | 3200 m/s | 2800–3600 m/s | — | Run and report |
 | f | Facing side of each layer | Cabin side | Skin side | — | Alternative run and reported |
 | f | Mechanical connections | 9 points + 2 floor-edge lines | Points only; lines only | — | Each alternative run and reported |
-| g | η_n of a bare cabin (§3.8.1 says measured; an input) | 0.05 | 0.02–0.10 | — | Sensitivity run |
+| g | η_n of a bare cabin (§3.8.1 says measured; an input) | 0.05 | 0.02–0.10. **38f-2:** optional per-band `η_n_band` / `η_r_band` (Manual cards 11–18); 0/absent → compute as before | — | Sensitivity run |
 | g | C of Eq. (80) | 3 | 2–4 (CR-3813 range) | CR-3813 | Sensitivity run |
 | h | Areas: A in Eqs. (8) and (52); Ā in Eq. (81); A in Eq. (A.19) | A = L(Lp + 2a(π − θ0)); Ā = 2πaL; A = 2a(π − θ0)L | none | Normalization of Eq. (52); full-circumference coordinates of Eqs. (62)–(65); curved sidewall | — |
 | i | η_r'' of Eq. (83) | Applied to every (n, r) pair (its own resonance factor limits it) | Variant restricted to \|ω_r − ω_n\| ≤ η_nω_n/2 ("typically", §3.8.2), reported | CR-3813 §3.8.2 | Both reported |

@@ -132,13 +132,9 @@ function hf_band_loss_factors(inp::PainInputs, fc::Real, band;
     trimmed = has_trim(inp)
     m = inp.m_wall
 
-    if trimmed
-        ξ = trim_conductance(inp.sidewall, ω, m; ρ0=ρ_int, c0=c_int, allow_extrapolation=ext)
-        ξe = trim_conductance(inp.endplates, ω, Inf; ρ0=ρ_int, c0=c_int, allow_extrapolation=ext)
-        η̄_n = acoustic_loss_average(ω; V=areas.V, S=areas.S_side, S_e=areas.S_e, ξ, ξ_e=ξe, c0=c_int)
-    else
-        η̄_n = inp.η_n_bare
-    end
+    ξ = trimmed ? trim_conductance(inp.sidewall, ω, m; ρ0=ρ_int, c0=c_int, allow_extrapolation=ext) : 0.0
+    ξe = trimmed ? trim_conductance(inp.endplates, ω, Inf; ρ0=ρ_int, c0=c_int, allow_extrapolation=ext) : 0.0
+    η̄_n = resolve_η_n_band(inp, fc; ξ, ξ_e=ξe, V=areas.V, S=areas.S_side, S_e=areas.S_e)
     ᾱ = absorption_from_loss_factor(η̄_n, ω; V=areas.V, S=areas.S, c0=c_int)
 
     # η_rad from band-average joint acceptance (printed after Eq. 19): ρ0 exterior, ρ interior
@@ -154,12 +150,7 @@ function hf_band_loss_factors(inp::PainInputs, fc::Real, band;
     ηrp_vals = Float64[]
     for st in st_list
         ωr = 2π * st.f_Hz
-        ηr = structural_loss_total(st, ωr; a, L, m, C=inp.C_struc, ρ0=ρ_ext, c0=c_ext, Abar)
-        ηrp = trimmed ?
-            structural_loss_with_trim(ηr, ωr, m, trim_Cw(inp.sidewall, ωr; allow_extrapolation=ext);
-                                      η_r_cap) :
-            apply_η_r_cap(ηr, η_r_cap)
-        push!(ηrp_vals, ηrp)
+        push!(ηrp_vals, structural_η_r_prime(inp, st, ωr; η_r_cap, Abar))
     end
     η̄_r′ = isempty(ηrp_vals) ? 0.0 : sum(ηrp_vals) / length(ηrp_vals)
     # η̄_r = η_rad^ext + η_r' (+ η_r'' omitted — reading §7)

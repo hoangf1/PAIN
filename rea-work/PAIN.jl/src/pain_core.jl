@@ -31,6 +31,11 @@ Manual card 2: `ρ0`,`c0` are the single-air entry points — when `ρ_ext`/`c_e
 equal `ρ0`,`c0` (bitwise-identical to the pre-38f-1 single-air path). Card 9: `L_c` (default = structure length
 `fuse.L`) and offset `d` (default 0). Card 36 rotation sense lives on `prop.rotation_direction`.
 
+Cards 3–6 (38f-2): `bands` = user 1/3-octave centres (≤ 26, standard, ascending); `nothing` = current fixed list
+`third_octave_centers()`. Cards 11–18: `η_r_band` / `η_n_band` = per-band overrides (Dict keyed by centre Hz, or a
+vector aligned with `bands`). Zero or absent → compute as before (η_r from Eqs. 79–81 then 82 if trim; η_n from
+trim Eq. 77 or scalar `η_n_bare`). Non-zero η_r replaces η_r of Eqs. 79–81 before trim; non-zero η_n replaces η_n.
+
 Card 2 term map (CR-3813 symbols ρ₀/c₀ exterior, ρ/c interior when distinguished; else single air):
   exterior (ρ_ext, c_ext): mass-law (mA/4)²τ_ML; η_rad^ext; ρ₀ in τ_R; structural joint acceptance k=ω/c_ext;
     exterior radiation part of η_r′; blocked-field side of Eqs. 19–23.
@@ -67,6 +72,10 @@ struct PainInputs
     # Manual card 10: high-frequency crossover band centre [Hz]; `nothing` = estimate
     # (lowest 1/3-oct with ≥ 10 three-dimensional acoustic modes; phase 38b).
     crossover_band_Hz::Union{Nothing,Float64}
+    # Manual cards 3–6 / 11–18 (38f-2); `nothing` = default list / compute loss factors
+    bands::Union{Nothing,Vector{Float64}}
+    η_r_band::Union{Nothing,Dict{Float64,Float64}}
+    η_n_band::Union{Nothing,Dict{Float64,Float64}}
 end
 
 function PainInputs(fuse, prop, structural, acoustic, amplitudes, phases, pts, ΔA::Real;
@@ -79,7 +88,8 @@ function PainInputs(fuse, prop, structural, acoustic, amplitudes, phases, pts, �
                     ρ_ext::Union{Nothing,Real}=nothing, c_ext::Union{Nothing,Real}=nothing,
                     ρ_int::Union{Nothing,Real}=nothing, c_int::Union{Nothing,Real}=nothing,
                     L_c::Union{Nothing,Real}=nothing, d::Real=0.0,
-                    crossover_band_Hz::Union{Nothing,Real}=nothing)
+                    crossover_band_Hz::Union{Nothing,Real}=nothing,
+                    bands=nothing, η_r_band=nothing, η_n_band=nothing)
     (sidewall === nothing) == (endplates === nothing) ||
         error("PainInputs: give both `sidewall` and `endplates` trim stacks, or neither (bare cabin)")
     mech !== nothing && sidewall === nothing && error("PainInputs: `mech` needs a `sidewall` stack")
@@ -91,10 +101,11 @@ function PainInputs(fuse, prop, structural, acoustic, amplitudes, phases, pts, �
     ρi = float(something(ρ_int, ρ0f))
     ci = float(something(c_int, c0f))
     Lc = float(something(L_c, fuse.L))
+    bands_n, ηr_n, ηn_n = normalize_band_card_inputs(bands, η_r_band, η_n_band)
     return PainInputs(fuse, prop, structural, acoustic, amplitudes, phases, pts, float(ΔA),
                       sidewall, endplates, mech, m, float(η_n_bare), float(C_struc),
                       q_max === nothing ? nothing : Int(q_max), allow_extrapolation, ρ0f, c0f,
-                      ρe, ce, ρi, ci, Lc, float(d), xover)
+                      ρe, ce, ρi, ci, Lc, float(d), xover, bands_n, ηr_n, ηn_n)
 end
 
 """Trim stacks present (sidewall and end plates)?"""
@@ -374,7 +385,7 @@ function tone_mean_square_pressure(inp::PainInputs, H::Int, ωH::Float64;
     ξ = trimmed ? trim_conductance(inp.sidewall, ωH, inp.m_wall; ρ0=ρ_int, c0=c_int, allow_extrapolation=ext) : 0.0
     ξe = trimmed ? trim_conductance(inp.endplates, ωH, Inf; ρ0=ρ_int, c0=c_int, allow_extrapolation=ext) : 0.0
 
-    # per structural mode: Ψ_G, ω_r, η_r' (radiation uses exterior air)
+    # per structural mode: Ψ_G, ω_r, η_r' (radiation uses exterior air; card 11–14 η_r override)
     nst = length(inp.structural.modes)
     Ψ = Vector{Float64}(undef, nst)
     ωr = Vector{Float64}(undef, nst)
@@ -382,22 +393,17 @@ function tone_mean_square_pressure(inp::PainInputs, H::Int, ωH::Float64;
     for (j, st) in enumerate(inp.structural.modes)
         Ψ[j] = generalized_force(st, H, inp.amplitudes, inp.phases, inp.pts, fuse; ΔA=inp.ΔA)
         ωr[j] = 2π * st.f_Hz
-        ηr = structural_loss_total(st, ωr[j]; a, L, m=inp.m_wall, C=inp.C_struc, ρ0=ρ_ext, c0=c_ext)
-        ηrp[j] = trimmed ?
-            structural_loss_with_trim(ηr, ωr[j], inp.m_wall,
-                                      trim_Cw(inp.sidewall, ωr[j]; allow_extrapolation=ext);
-                                      η_r_cap) :
-            (η_r_cap === nothing ? ηr : min(ηr, η_r_cap))
+        ηrp[j] = structural_η_r_prime(inp, st, ωr[j]; η_r_cap)
     end
 
     # (c_int/V)² · (ρ_ext c_ext A)² ω_H⁴  ≡  4 c_int²/V² · (ρ_ext c_ext A/(2ω_H))² · ω_H⁶ / ω_H² …
     pref = (c_int / V)^2 * (ρ_ext * c_ext * A)^2 * ωH^4
+    fH = ωH / 2π
     p2 = 0.0
     for q in 0:qtop, ac in inp.acoustic.modes
         ωn = 2π * cabin_frequency_3d(ac, a, L_c, q; c0=c_int)
         εn = cabin_eps_3d(ac, q)
-        N = trimmed ? acoustic_loss_modal(ac, q, ωH, ωn; a, L=L_c, V, c0=c_int, ξ, ξ_e=ξe).N :
-            inp.η_n_bare * ωn^2
+        N = acoustic_N(inp, ac, q, fH, ωn; ξ, ξ_e=ξe, V)
         Dn = (ωn^2 - ωH^2)^2 + N^2
         for (j, st) in enumerate(inp.structural.modes)
             f = coupling_factor(ac, st, inp; τ_t, q)
@@ -564,7 +570,7 @@ function interior_spl(inp::PainInputs; bpf_Hz::Float64, n_harmonics::Int=10,
         spl8[H] = 10 * log10(pair.p2_eq8 / pref^2 + 1e-30)
         spl15[H] = 10 * log10(pair.p2_eq15_16 / pref^2 + 1e-30)
     end
-    bands = third_octave_centers()
+    bands = resolve_bands(inp)
     band_p2 = Dict{Float64,Float64}(b => 0.0 for b in bands)
     for H in 1:nH
         f = H * bpf_Hz
@@ -605,13 +611,193 @@ function interior_spl(inp::PainInputs; bpf_Hz::Float64, n_harmonics::Int=10,
                             crossover_Hz=xover, tone_model=tone_model)
 end
 
+# ---------------------------------------------------------------------------------------------
+# Manual cards 3–6 / 11–18 (38f-2): band set + per-band loss-factor overrides
+# ---------------------------------------------------------------------------------------------
+
+"""One-third-octave relative bandwidth c_ω (CR-3813 p. 10). Defined here so card 3–6 helpers
+can use it; `noise_reduction.jl` reuses the same constant."""
+const C_OMEGA_THIRD_OCTAVE = 0.232
+
+"""Default production 1/3-octave centres: 63 Hz … 8 kHz (geometric, f₀ = 1000 Hz)."""
 function third_octave_centers()
-    # 63 Hz … 8 kHz
     f0 = 1000.0
     ks = -12:9
     return [f0 * 2.0^(k / 3) for k in ks]
 end
 
+"""Master list of standard geometric 1/3-octave centres used to validate card 3–6 inputs."""
+function standard_third_octave_centers(; k_min::Int=-20, k_max::Int=16)
+    return [1000.0 * 2.0^(k / 3) for k in k_min:k_max]
+end
+
 function nearest_third_octave(f::Real, bands::Vector{Float64})
     bands[argmin(abs.(bands .- float(f)))]
+end
+
+"""1/3-octave band edges about centre `fc` [Hz] using CR-3813 c_ω (relative half-width c_ω/2)."""
+function third_octave_band_edges(fc::Real; c_ω::Real=C_OMEGA_THIRD_OCTAVE)
+    f = float(fc)
+    return (lo=f * (1 - c_ω / 2), hi=f * (1 + c_ω / 2))
+end
+
+"""
+Snap `f` to the nearest standard geometric 1/3-octave centre, or `nothing` if not standard
+(relative mismatch > 2 %).
+"""
+function snap_third_octave_center(f::Real; rtol::Float64=0.02)
+    std = standard_third_octave_centers()
+    i = argmin(abs.(std .- float(f)))
+    c = std[i]
+    return abs(c - float(f)) ≤ rtol * max(c, float(f), 1.0) ? c : nothing
+end
+
+"""
+Validate and normalize a user band set (Manual cards 3–6): ≤ 26 centres, each a standard
+1/3-octave centre, strictly ascending. Returns snapped geometric centres.
+"""
+function validate_band_set(bands::AbstractVector{<:Real})
+    isempty(bands) && error("bands: empty set (Manual cards 3–6 require NI ≥ 1)")
+    length(bands) > 26 && error("bands: NI=$(length(bands)) exceeds Manual maximum of 26")
+    out = Float64[]
+    prev = -Inf
+    for (i, raw) in enumerate(bands)
+        c = snap_third_octave_center(raw)
+        c === nothing && error("bands: entry $i ($(raw) Hz) is not a standard 1/3-octave centre")
+        c ≤ prev && error("bands: must be strictly ascending (got $(prev) then $(c) Hz at entry $i)")
+        push!(out, c)
+        prev = c
+    end
+    return out
+end
+
+"""Active band list for an inputs object (`nothing` → production default)."""
+resolve_bands(inp::PainInputs) = inp.bands === nothing ? third_octave_centers() : inp.bands
+
+"""
+Band centre among `bands` whose 1/3-octave edges contain `f_Hz`, or `nothing` if none.
+Manual lookup for a tone/mode frequency that is not itself a centre (edges via c_ω).
+"""
+function containing_third_octave(f_Hz::Real, bands::AbstractVector{<:Real};
+                                 c_ω::Real=C_OMEGA_THIRD_OCTAVE)
+    f = float(f_Hz)
+    for fc in bands
+        e = third_octave_band_edges(fc; c_ω)
+        (e.lo ≤ f ≤ e.hi) && return float(fc)
+    end
+    return nothing
+end
+
+"""
+Normalize cards 3–6 / 11–18 kwargs → (`bands`, `η_r_band`, `η_n_band`) stored on `PainInputs`.
+Vectors for η are paired with `bands` (required). Dict keys are snapped to standard centres.
+Zero entries are dropped (Manual: 0 → compute).
+"""
+function normalize_band_card_inputs(bands, η_r_band, η_n_band)
+    bands_n = bands === nothing ? nothing : validate_band_set(bands)
+    ηr = _normalize_η_dict(η_r_band, bands_n; label="η_r_band")
+    ηn = _normalize_η_dict(η_n_band, bands_n; label="η_n_band")
+    return bands_n, ηr, ηn
+end
+
+_η_key_hz(k) = k isa Real ? float(k) : float(String(k))
+
+function _normalize_η_dict(η, bands_n; label::AbstractString)
+    η === nothing && return nothing
+    if η isa AbstractDict
+        d = Dict{Float64,Float64}()
+        for (k, v) in η
+            c = snap_third_octave_center(_η_key_hz(k))
+            c === nothing && error("$label: key $(k) Hz is not a standard 1/3-octave centre")
+            fv = float(v)
+            (isfinite(fv) && fv != 0) || continue
+            fv < 0 && error("$label: negative loss factor $fv at $(c) Hz")
+            d[c] = fv
+        end
+        return isempty(d) ? nothing : d
+    elseif η isa AbstractVector
+        bands_n === nothing &&
+            error("$label: vector form requires `bands` (same length, Manual cards 3–6 order)")
+        length(η) == length(bands_n) ||
+            error("$label: length $(length(η)) ≠ bands length $(length(bands_n))")
+        d = Dict{Float64,Float64}()
+        for (i, v) in enumerate(η)
+            fv = float(v)
+            (isfinite(fv) && fv != 0) || continue
+            fv < 0 && error("$label: negative loss factor $fv at band $(bands_n[i]) Hz")
+            d[bands_n[i]] = fv
+        end
+        return isempty(d) ? nothing : d
+    else
+        error("$label: expected nothing, Dict, or Vector (got $(typeof(η)))")
+    end
+end
+
+"""
+Per-band override at frequency `f_Hz`: containing-band lookup; 0/absent → `nothing` (compute).
+"""
+function loss_factor_override(η_dict::Union{Nothing,Dict{Float64,Float64}}, f_Hz::Real,
+                             bands::AbstractVector{<:Real}; c_ω::Real=C_OMEGA_THIRD_OCTAVE)
+    η_dict === nothing && return nothing
+    fc = containing_third_octave(f_Hz, bands; c_ω)
+    fc === nothing && return nothing
+    v = get(η_dict, fc, 0.0)
+    return (isfinite(v) && v != 0) ? float(v) : nothing
+end
+
+loss_factor_override(inp::PainInputs, which::Symbol, f_Hz::Real; c_ω::Real=C_OMEGA_THIRD_OCTAVE) =
+    loss_factor_override(which === :η_r ? inp.η_r_band : inp.η_n_band, f_Hz, resolve_bands(inp); c_ω)
+
+"""
+η_r of Eqs. (79)–(81) for mode `st`, then η_r′ (Eq. 82) when trim is present.
+Card 11–14 non-zero override replaces Eqs. 79–81; trim / η_r_cap still apply.
+"""
+function structural_η_r_prime(inp::PainInputs, st::StructuralMode, ωr::Real;
+                              η_r_cap::Union{Nothing,Float64}=nothing,
+                              Abar::Union{Nothing,Real}=nothing)
+    fuse = inp.fuse
+    a, L = fuse.a, fuse.L
+    Ab = Abar === nothing ? cylinder_surface_area(a, L) : float(Abar)
+    ov = loss_factor_override(inp, :η_r, st.f_Hz)
+    ηr = ov !== nothing ? ov :
+         structural_loss_total(st, ωr; a, L, m=inp.m_wall, C=inp.C_struc,
+                               ρ0=inp.ρ_ext, c0=inp.c_ext, Abar=Ab)
+    if has_trim(inp)
+        return structural_loss_with_trim(ηr, ωr, inp.m_wall,
+                                         trim_Cw(inp.sidewall, ωr; allow_extrapolation=inp.allow_extrapolation);
+                                         η_r_cap)
+    else
+        return apply_η_r_cap(ηr, η_r_cap)
+    end
+end
+
+"""
+N = η_n ω_n² for cabin mode (ac, q) at lookup frequency `f_Hz` (tone or band centre).
+Card 16–18 non-zero override replaces η_n; else trim Eq. (77) or `η_n_bare`.
+"""
+function acoustic_N(inp::PainInputs, ac, q::Integer, f_Hz::Real, ωn::Real;
+                    ξ::Real=0.0, ξ_e::Real=0.0, V::Union{Nothing,Real}=nothing)
+    ov = loss_factor_override(inp, :η_n, f_Hz)
+    if ov !== nothing
+        return ov * ωn^2
+    end
+    if has_trim(inp)
+        Vol = V === nothing ? cabin_volume(inp) : float(V)
+        return acoustic_loss_modal(ac, q, 2π * f_Hz, ωn; a=inp.fuse.a, L=inp.L_c, V=Vol,
+                                   c0=inp.c_int, ξ, ξ_e).N
+    else
+        return inp.η_n_bare * ωn^2
+    end
+end
+
+"""Band-average η_n at centre `fc` [Hz]: card override or trim / bare as before."""
+function resolve_η_n_band(inp::PainInputs, fc::Real; ξ::Real=0.0, ξ_e::Real=0.0,
+                          V::Real, S::Real, S_e::Real)
+    ov = loss_factor_override(inp, :η_n, fc)
+    ov !== nothing && return ov
+    if has_trim(inp)
+        return acoustic_loss_average(2π * fc; V, S, S_e, ξ, ξ_e, c0=inp.c_int)
+    else
+        return inp.η_n_bare
+    end
 end

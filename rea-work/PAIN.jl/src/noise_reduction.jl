@@ -2,9 +2,6 @@
 # Equations (17)–(18) and the ln/arctan/D_nr helpers as printed on pp. 21–23
 # (PDF pages 31–33). No parameter is chosen from E-21/E-22.
 
-"""One-third-octave relative bandwidth c_ω (CR-3813 p. 10)."""
-const C_OMEGA_THIRD_OCTAVE = 0.232
-
 """b_j, c_j of CR-3813 p. 22 for acoustic (n) or structural (r) resonator."""
 nr_b(ωj::Real) = -2 * ωj^2
 nr_c(ωj::Real, ηj::Real) = ωj^4 * (1 + ηj^2)
@@ -132,9 +129,10 @@ Lowest 1/3-octave band whose count of 3-D acoustic modes in the band is ≥ `n_m
 (CR-3813 §3.3 / phase 38b rule, fixed before any run).
 """
 function acoustic_crossover_band(inp::PainInputs;
-                                 bands::AbstractVector{<:Real}=third_octave_centers(),
+                                 bands::Union{Nothing,AbstractVector{<:Real}}=nothing,
                                  c_ω::Real=C_OMEGA_THIRD_OCTAVE, n_min::Int=10)
-    for (i, fc) in enumerate(bands)
+    bs = bands === nothing ? resolve_bands(inp) : bands
+    for (i, fc) in enumerate(bs)
         n = acoustic_modes_in_band(inp, fc; c_ω)
         n ≥ n_min && return (; fc_Hz=float(fc), n_modes=n, band_index=i)
     end
@@ -180,14 +178,10 @@ function w_in_reverberant(inp::PainInputs, fc::Real;
     ωr = Vector{Float64}(undef, nst)
     ηrp = Vector{Float64}(undef, nst)
     j2 = Vector{Float64}(undef, nst)
+    f_band = ω / 2π
     for (j, st) in enumerate(inp.structural.modes)
         ωr[j] = 2π * st.f_Hz
-        ηr = structural_loss_total(st, ωr[j]; a, L, m=inp.m_wall, C=inp.C_struc, ρ0=ρ_ext, c0=c_ext, Abar)
-        η′ = trimmed ?
-            structural_loss_with_trim(ηr, ωr[j], inp.m_wall,
-                                      trim_Cw(inp.sidewall, ωr[j]; allow_extrapolation=ext);
-                                      η_r_cap) : apply_η_r_cap(ηr, η_r_cap)
-        ηrp[j] = η′
+        ηrp[j] = structural_η_r_prime(inp, st, ωr[j]; η_r_cap, Abar)
         j2[j] = structural_joint_acceptance(st, ω; a, L, c0=c_ext)
     end
 
@@ -199,7 +193,7 @@ function w_in_reverberant(inp::PainInputs, fc::Real;
         ωn = 2π * cabin_frequency_3d(ac, a, L_c, q; c0=c_int)
         ωn == 0 && continue   # rigid-body: η_n undefined / Inf; no band contribution in the closed form
         εn = cabin_eps_3d(ac, q)
-        N = trimmed ? acoustic_loss_modal(ac, q, ω, ωn; a, L=L_c, V, c0=c_int, ξ, ξ_e=ξe).N : inp.η_n_bare * ωn^2
+        N = acoustic_N(inp, ac, q, f_band, ωn; ξ, ξ_e=ξe, V)
         ηn = N / ωn^2
         for (j, st) in enumerate(inp.structural.modes)
             f = coupling_factor(ac, st, inp; τ_t, q)   # barred f̄'
@@ -269,14 +263,10 @@ function noise_reduction_band(inp::PainInputs, fc::Real;
     ωr = Vector{Float64}(undef, nst)
     ηrp = Vector{Float64}(undef, nst)
     j2 = Vector{Float64}(undef, nst)
+    f_band = ω / 2π
     for (j, st) in enumerate(inp.structural.modes)
         ωr[j] = 2π * st.f_Hz
-        ηr = structural_loss_total(st, ωr[j]; a, L, m=inp.m_wall, C=inp.C_struc, ρ0=ρ_ext, c0=c_ext, Abar)
-        η′ = trimmed ?
-            structural_loss_with_trim(ηr, ωr[j], inp.m_wall,
-                                      trim_Cw(inp.sidewall, ωr[j]; allow_extrapolation=ext);
-                                      η_r_cap) : apply_η_r_cap(ηr, η_r_cap)
-        ηrp[j] = η′
+        ηrp[j] = structural_η_r_prime(inp, st, ωr[j]; η_r_cap, Abar)
         j2[j] = structural_joint_acceptance(st, ω; a, L, c0=c_ext)
     end
 
@@ -287,7 +277,7 @@ function noise_reduction_band(inp::PainInputs, fc::Real;
         ωn = 2π * cabin_frequency_3d(ac, a, L_c, q; c0=c_int)
         ωn == 0 && continue
         εn = cabin_eps_3d(ac, q)
-        N = trimmed ? acoustic_loss_modal(ac, q, ω, ωn; a, L=L_c, V, c0=c_int, ξ, ξ_e=ξe).N : inp.η_n_bare * ωn^2
+        N = acoustic_N(inp, ac, q, f_band, ωn; ξ, ξ_e=ξe, V)
         ηn = N / ωn^2
         for (j, st) in enumerate(inp.structural.modes)
             f = coupling_factor(ac, st, inp; τ_t, q)   # barred f̄' as printed in Eq. 18
@@ -313,14 +303,15 @@ band; values at and above it are marked `above_crossover`. With `hf_model=:eq19`
 at/above crossover use printed Eqs. (19)–(23) instead (38c).
 """
 function noise_reduction_spectrum(inp::PainInputs;
-                                  bands::AbstractVector{<:Real}=third_octave_centers(),
+                                  bands::Union{Nothing,AbstractVector{<:Real}}=nothing,
                                   η_r_cap::Union{Nothing,Float64}=nothing,
                                   c_ω::Real=C_OMEGA_THIRD_OCTAVE,
                                   hf_model::Symbol=:none)
-    xover = acoustic_crossover_band(inp; bands, c_ω)
+    bs = bands === nothing ? resolve_bands(inp) : float.(collect(bands))
+    xover = acoustic_crossover_band(inp; bands=bs, c_ω)
     rows = [noise_reduction_band(inp, fc; η_r_cap, c_ω, crossover_fc=xover.fc_Hz, hf_model)
-            for fc in bands]
-    return (; bands=float.(collect(bands)), rows, crossover=xover, η_r_cap, c_ω, hf_model)
+            for fc in bs]
+    return (; bands=bs, rows, crossover=xover, η_r_cap, c_ω, hf_model)
 end
 
 """

@@ -989,6 +989,8 @@ tests against analytic limits first (V-UNIT), then the NASA comparison with crit
 
 **38f-1 result (2026-10-22).** Done: Manual card 2 (`ρ_ext, c_ext, ρ_int, c_int`, defaults ρ0, c0), card 9 (cavity length L_c and offset d; coupling integral over [d, d+L_c] ∩ [0, L]; V ∝ L_c; defaults L_c = L, d = 0), card 36 (rotation direction ±1, default +1 flips the grid azimuth, ANOPP x₂ sign and blade-passage phase sign; no lower-quarter mirroring). Report `validation_reports/phase38f1_card_inputs.md` (term map). Tests: defaults reproduce all previous outputs; 26 new V-UNIT tests pass. No comparison criterion.
 
+**38f-2 result (2026-10-22).** Done: Manual cards 3–6 (`bands`: ≤ 26 standard 1/3-octave centres, ascending; default the fixed list) and cards 11–18 (`η_r_band`, `η_n_band`: a non-zero entry replaces the computed value in its band, 0 or absent computes as before; the containing band is found from the edges fc(1 ± c_ω/2)). Wired through `PainInputs`, the calculation paths, JSON and the GUI input echo. Report `validation_reports/phase38f2_card_inputs.md`. Tests: defaults reproduce all previous outputs; 49 new V-UNIT tests pass. No comparison criterion.
+
 **Rules.** No parameter is chosen by looking at a comparison result. Where the text is ambiguous, the reading is decided and
 recorded from the text before running. Delegated work follows R13 (snapshot, diff, rules, run the checks, spot-check numbers, docs).
 

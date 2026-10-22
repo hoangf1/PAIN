@@ -106,25 +106,16 @@ function band_average_loss_factors(inp::PainInputs, ωH::Real, band;
     ξ = trimmed ? trim_conductance(inp.sidewall, ωH, inp.m_wall; ρ0=ρ_int, c0=c_int, allow_extrapolation=ext) : 0.0
     ξe = trimmed ? trim_conductance(inp.endplates, ωH, Inf; ρ0=ρ_int, c0=c_int, allow_extrapolation=ext) : 0.0
 
+    fH = ωH / 2π
     ηn_vals = Float64[]
     for m in band.ac_list
-        if trimmed
-            N = acoustic_loss_modal(m.ac, m.q, ωH, m.ωn; a, L=L_c, V, c0=c_int, ξ, ξ_e=ξe).N
-            η = m.ωn == 0 ? NaN : N / m.ωn^2
-        else
-            η = inp.η_n_bare
-        end
+        N = acoustic_N(inp, m.ac, m.q, fH, m.ωn; ξ, ξ_e=ξe, V)
+        η = m.ωn == 0 ? NaN : N / m.ωn^2
         isfinite(η) && η > 0 && push!(ηn_vals, η)
     end
     ηr_vals = Float64[]
     for m in band.st_list
-        ηr = structural_loss_total(m.st, m.ωr; a, L, m=inp.m_wall, C=inp.C_struc, ρ0=ρ_ext, c0=c_ext)
-        ηrp = trimmed ?
-            structural_loss_with_trim(ηr, m.ωr, inp.m_wall,
-                                      trim_Cw(inp.sidewall, m.ωr; allow_extrapolation=ext);
-                                      η_r_cap) :
-            apply_η_r_cap(ηr, η_r_cap)
-        push!(ηr_vals, ηrp)
+        push!(ηr_vals, structural_η_r_prime(inp, m.st, m.ωr; η_r_cap))
     end
     η̄_n = isempty(ηn_vals) ? NaN : sum(ηn_vals) / length(ηn_vals)
     η̄_r = isempty(ηr_vals) ? NaN : sum(ηr_vals) / length(ηr_vals)
@@ -257,7 +248,7 @@ end
 Manual card 10: use `inp.crossover_band_Hz` when set, else `acoustic_crossover_band`.
 """
 function resolve_crossover_Hz(inp::PainInputs;
-                              bands::AbstractVector{<:Real}=third_octave_centers(),
+                              bands::Union{Nothing,AbstractVector{<:Real}}=nothing,
                               c_ω::Real=C_OMEGA_THIRD_OCTAVE)
     inp.crossover_band_Hz !== nothing && return float(inp.crossover_band_Hz)
     return acoustic_crossover_band(inp; bands, c_ω).fc_Hz

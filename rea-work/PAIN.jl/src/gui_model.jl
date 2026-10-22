@@ -49,6 +49,16 @@ function _format_third(spectrum::InteriorSpectrum)
     join(["fc=$(round(fc; digits=1)) Hz  SPL=$(round(spl; digits=2)) dB" for (fc, spl) in pairs], "\n")
 end
 
+"""Parse optional card 3–6 / 11–18 Observables (JSON text; empty → defaults)."""
+function _parse_band_card_observables(obs::AbstractDict)
+    function _parse_opt(key)
+        s = strip(String(obs[key][]))
+        isempty(s) && return nothing
+        return JSON3.read(s)
+    end
+    return _parse_opt("bands_Hz"), _parse_opt("eta_r_band"), _parse_opt("eta_n_band")
+end
+
 """
     make_gui_observables(; default_aircraft_json) -> Dict{String,Observable}
 
@@ -81,6 +91,10 @@ function make_gui_observables(;
         "L_c" => Observable(1.803),
         "d_cavity" => Observable(0.0),
         "rotation_direction" => Observable(1.0),
+        # Manual cards 3–6 / 11–18 (38f-2); empty string = defaults (compute / full band list)
+        "bands_Hz" => Observable(""),
+        "eta_r_band" => Observable(""),
+        "eta_n_band" => Observable(""),
         "status" => Observable("Ready. Choose aircraft JSON and press Run."),
         "busy" => Observable(false),
         "smoke_ms" => Observable(0.0),
@@ -216,6 +230,7 @@ function run_pain_gui!(obs::AbstractDict)
         L_c = Float64(obs["L_c"][])
         d_cav = Float64(obs["d_cavity"][])
         rot = Int(round(Float64(obs["rotation_direction"][])))
+        bands_kw, ηr_kw, ηn_kw = _parse_band_card_observables(obs)
 
         common = (
             L=L, a=a, theta0_deg=theta0,
@@ -227,6 +242,7 @@ function run_pain_gui!(obs::AbstractDict)
             use_synthetic=(src === :synthetic),
             ρ0=ρ0, c0=c0, ρ_ext=ρ_ext, ρ_int=ρ_int, c_ext=c_ext, c_int=c_int,
             L_c=L_c, d=d_cav,
+            bands=bands_kw, η_r_band=ηr_kw, η_n_band=ηn_kw,
         )
         result = if src === :aircraft
             isfile(json_path) || error("aircraft JSON not found: $json_path")

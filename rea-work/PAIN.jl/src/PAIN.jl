@@ -73,7 +73,10 @@ export
     g_resonance, expected_g_closed, expected_g_pi, expected_g_quad,
     tone_Q_H, modes_in_tone_band, band_average_loss_factors,
     tone_expected_value, tone_eq13_sample, resolve_crossover_Hz,
-    tone_mean_square_pressure_pair, third_octave_centers,
+    tone_mean_square_pressure_pair, third_octave_centers, nearest_third_octave,
+    standard_third_octave_centers, validate_band_set, resolve_bands, containing_third_octave,
+    third_octave_band_edges, snap_third_octave_center, loss_factor_override,
+    structural_η_r_prime, acoustic_N, resolve_η_n_band,
     InsulationTable, load_insulation_table, pf105_table, insulation_properties,
     TrimElement, InsulationLayer, LimpMass, TrimStack, element_matrix, stack_matrix, stack_extrapolated,
     trim_tau_insulation, trim_Cw, trim_admittance, trim_conductance, trim_tau,
@@ -144,7 +147,10 @@ function run_pain_pipeline(;
         ρ_int::Union{Nothing,Float64}=nothing,
         c_int::Union{Nothing,Float64}=nothing,
         L_c::Union{Nothing,Float64}=nothing,
-        d::Float64=0.0)
+        d::Float64=0.0,
+        bands=nothing,
+        η_r_band=nothing,
+        η_n_band=nothing)
     trim in (:auto, :bare, :phase3) || error("trim must be :auto, :bare or :phase3")
     fuse = FuselageGeometry(L, a, theta0_deg)
     prop = PropellerPlacement(r_p, phi_p_deg, z_p, rotation_direction)
@@ -157,7 +163,7 @@ function run_pain_pipeline(;
     if aircraft_json !== nothing
         src = :aircraft
         cfg = _load_aircraft_json(aircraft_json)
-        # Optional card 2 / 9 / 36 overrides from JSON (same paths as existing fuselage/prop keys).
+        # Optional card 2 / 9 / 36 / 3–6 / 11–18 overrides from JSON.
         fuse_j = _get(cfg, :fuselage, nothing)
         if fuse_j !== nothing
             L_c === nothing && (L_c = _get(fuse_j, :L_c_m, nothing))
@@ -176,6 +182,20 @@ function run_pain_pipeline(;
             if rd !== nothing
                 prop = PropellerPlacement(r_p, phi_p_deg, z_p, Int(rd))
             end
+        end
+        # Cards 3–6 / 11–18 (38f-2)
+        if bands === nothing
+            bj = _get(cfg, :bands_Hz, nothing)
+            bj === nothing && (bj = _get(cfg, :bands, nothing))
+            bands = bj
+        end
+        if η_r_band === nothing
+            η_r_band = _get(cfg, :eta_r_band, nothing)
+            η_r_band === nothing && (η_r_band = _get(cfg, :η_r_band, nothing))
+        end
+        if η_n_band === nothing
+            η_n_band = _get(cfg, :eta_n_band, nothing)
+            η_n_band === nothing && (η_n_band = _get(cfg, :η_n_band, nothing))
         end
     elseif use_synthetic && source !== :e11
         src = :synthetic
@@ -220,7 +240,7 @@ function run_pain_pipeline(;
                      η_n_bare=η_n_bare, C_struc=C_struc, q_max=q_max,
                      allow_extrapolation=allow_extrapolation,
                      ρ0=ρ0, c0=c0, ρ_ext=ρ_ext, c_ext=c_ext, ρ_int=ρ_int, c_int=c_int,
-                     L_c=L_c, d=d)
+                     L_c=L_c, d=d, bands=bands, η_r_band=η_r_band, η_n_band=η_n_band)
     spec_out = interior_spl(inp; bpf_Hz=bl.bpf_Hz, n_harmonics=min(n_harmonics, size(bl.amplitudes, 3)))
     return (; fuse, prop, ff=bl, acoustic, structural, spectrum=spec_out, source=src,
               trim=trim_used, inputs=inp)
