@@ -2013,6 +2013,54 @@ end
 
 
 
+# Post-hoc length override plumbing (2026-10-22). Default stays 1.803; no length selected
+# from any error. App. D keeps its own 1.83 default until the override is set.
+_run_if("Length override") do
+    reset_test_article_length!()
+    @test test_article_length() == 1.803
+    @test !test_article_length_overridden()
+
+    # Default path: identical numbers to the unmodified hard-coded 1.803
+    fuse0 = FuselageGeometry(test_article_length(), 0.508, 56.6)
+    V0 = cabin_volume(fuse0)
+    @test V0 == cabin_volume(FuselageGeometry(1.803, 0.508, 56.6))
+    p3_0 = phase3_trim()
+    @test p3_0.A_curved == phase3_trim(; L=1.803).A_curved
+    sm0 = structural_modes_from_table_d1(; n_keep=4)
+    @test sm0.L == 1.803
+    g_appd0 = appd_test_article_geometry()
+    @test g_appd0.L == 1.83   # App. D keeps text default until override is set
+    @test run_pain_pipeline(; source=:synthetic, n_harmonics=1, use_synthetic=true).inputs.fuse.L == 1.803
+
+    # Override to 1.83: cabin volume scales with L; App. D follows the override
+    with_test_article_length(1.83) do
+        @test test_article_length() == 1.83
+        @test test_article_length_overridden()
+        fuse1 = FuselageGeometry(test_article_length(), 0.508, 56.6)
+        V1 = cabin_volume(fuse1)
+        @test V1 / V0 ≈ 1.83 / 1.803 rtol=1e-14
+        @test phase3_trim().A_curved / p3_0.A_curved ≈ 1.83 / 1.803 rtol=1e-14
+        @test structural_modes_from_table_d1(; n_keep=4).L == 1.83
+        @test appd_test_article_geometry().L == 1.83
+        # L_c default follows structure length
+        inp = noise_reduction_test_article_inputs(; η_lining=1.0)
+        @test inp.fuse.L == 1.83
+        @test inp.L_c == 1.83
+    end
+
+    # Restored after with_test_article_length
+    @test test_article_length() == 1.803
+    @test !test_article_length_overridden()
+    @test appd_test_article_geometry().L == 1.83
+
+    # Restored even when the body errors
+    @test_throws ErrorException with_test_article_length(1.83) do
+        error("probe")
+    end
+    @test test_article_length() == 1.803
+    @test !test_article_length_overridden()
+end
+
 println()
 println("=== Testset filter summary ===")
 if isempty(_TEST_FILTER)

@@ -1,3 +1,44 @@
+# Test-article cylinder length [m]. Table D-1 title / App. D example list: 1.803 m (71 in.);
+# App. D body / App. E / validation report: 1.83 m (72 in.). Default stays 1.803 so every
+# existing output is bit-identical. Override is for post-hoc sensitivity only (2026-10-22);
+# no length is selected on the basis of any error.
+const TEST_ARTICLE_L_DEFAULT = 1.803
+const TEST_ARTICLE_L = Ref(TEST_ARTICLE_L_DEFAULT)
+const _TEST_ARTICLE_L_OVERRIDE = Ref(false)
+
+"""Current test-article length [m] (default 1.803)."""
+test_article_length() = TEST_ARTICLE_L[]
+
+"""True when `set_test_article_length!` has been called and not yet reset."""
+test_article_length_overridden() = _TEST_ARTICLE_L_OVERRIDE[]
+
+"""Set the test-article length override. Restore with `reset_test_article_length!`."""
+function set_test_article_length!(L::Real)
+    TEST_ARTICLE_L[] = float(L)
+    _TEST_ARTICLE_L_OVERRIDE[] = true
+    return TEST_ARTICLE_L[]
+end
+
+"""Restore the default test-article length (1.803 m) and clear the override flag."""
+function reset_test_article_length!()
+    TEST_ARTICLE_L[] = TEST_ARTICLE_L_DEFAULT
+    _TEST_ARTICLE_L_OVERRIDE[] = false
+    return TEST_ARTICLE_L[]
+end
+
+"""Run `f()` with test-article length `L`, restoring the prior value afterwards (even on error)."""
+function with_test_article_length(f::Function, L::Real)
+    old_L = TEST_ARTICLE_L[]
+    old_set = _TEST_ARTICLE_L_OVERRIDE[]
+    try
+        set_test_article_length!(L)
+        return f()
+    finally
+        TEST_ARTICLE_L[] = old_L
+        _TEST_ARTICLE_L_OVERRIDE[] = old_set
+    end
+end
+
 """Fuselage cylinder + floor angle (User Manual / CR-3813 Fig. 1)."""
 struct FuselageGeometry
     L::Float64          # cylinder length [m]

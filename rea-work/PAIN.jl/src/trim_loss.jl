@@ -225,7 +225,7 @@ The Phase III trim of App. E p. E-8. Curved wall: four 1.3 cm layers of 9.61 kg/
 (CR-3813 p. E-24; default changed from 0.05 on 2026-10-20 by the author's decision, plan 19; the aircraft register default 0.05 stays
 in `VALIDATION_GUIDELINE.md` register f and is revisited in phase 31, `phase3_trim` being the test article only). Values CR-3813 does not give (V-ASSUMED, register f): which side the facing is on (`:cabin` default), the G-10 dilatational wavespeed, nine point connections plus two floor-edge lines.
 """
-function phase3_trim(; a::Real=0.508, L::Real=1.803, theta0_deg::Real=56.6,
+function phase3_trim(; a::Real=0.508, L::Real=test_article_length(), theta0_deg::Real=56.6,
                      material::InsulationTable=pf105_table(),
                      η_lining::Real=0.5, facing_side::Symbol=:cabin,
                      septum_mass::Real=6.58, layer_thickness::Real=0.013, n_layers::Int=4,

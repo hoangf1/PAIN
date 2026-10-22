@@ -412,7 +412,7 @@ Each row is a hard-coded NASA test-article constant that can reach an aircraft r
 
 | File | Symbol / site | Value | Source |
 |------|---------------|-------|--------|
-| `trim_loss.jl` | `phase3_trim` defaults `a`, `L`, `theta0_deg` | 0.508 m, 1.803 m, 56.6° | CR-3813 App. E test article |
+| `trim_loss.jl` | `phase3_trim` defaults `a`, `L`, `theta0_deg` | 0.508 m, `test_article_length()` (default 1.803 m), 56.6° | CR-3813 App. E test article; L via `TEST_ARTICLE_L` (post-hoc sensitivity 2026-10-22) |
 | `trim_loss.jl` | `phase3_trim` η_lining | 0.5 (Phase III); aircraft register default 0.05 | p. E-24 / register f |
 | `trim_loss.jl` | PF-105 / Fig. A-2 insulation table | `data/cr3813/fig_a2_pf105.csv` | App. A |
 | `trim_loss.jl` | Phase III sidewall/end stacks, septum 6.58 kg, facing 0.095 kg/m² | as coded | App. E p. E-8 |
@@ -420,7 +420,8 @@ Each row is a hard-coded NASA test-article constant that can reach an aircraft r
 | `pain_core.jl` | wall mass fallback from `MRP_*` when `m_wall` NaN | smeared skin | same |
 | `pain_core.jl` | `bb_j2_scale` default | 0.5 | stale T2 fit |
 | `pain_core.jl` | Spbl H=3 anchor, f⁻² slope, absorption curve | as coded | V-ASSUMED / educated |
-| `PAIN.jl` | `run_pain_pipeline` geometry defaults | L=1.803, a=0.508, θ0=56.6, r_p=0.965 | test article |
+| `PAIN.jl` | `run_pain_pipeline` geometry defaults | L=`test_article_length()` (default 1.803), a=0.508, θ0=56.6, r_p=0.965 | test article |
+| `geometry.jl` | `TEST_ARTICLE_L` / `test_article_length()` | default 1.803 m; App. D `appd_test_article_geometry` keeps 1.83 until override is set | I-22; post-hoc sensitivity report `length_sensitivity.md` (2026-10-22; no length selected from any error) |
 | `PAIN.jl` | hybrid Table D-1 modes when `use_table_d1=true` | 32 modes | Table D-1 |
 | `cyl2d.jl` / pipeline | CYL2D NY=10, c0=340, ρ0=1.225 | defaults | App. C / register |
 | `pain_core.jl` / pipeline | `L_c` default = fuse.L, `d` = 0; `rotation_direction` = +1; `bands` / `η_r_band` / `η_n_band` default `nothing` | card 9 / 36 / 3–6 / 11–18 defaults | Manual §5.4; 38f-1, 38f-2 |

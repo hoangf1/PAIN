@@ -222,11 +222,13 @@ function _mode_from_d1_row(row)
 end
 
 """
-    structural_modes_from_table_d1(; L=1.803, a=0.508, theta0_deg=56.6, n_keep=32)
+    structural_modes_from_table_d1(; L=test_article_length(), a=0.508, theta0_deg=56.6, n_keep=32)
 
 Load published Table D-1 spectrum (full 32 modes) for PAIN integration.
+Frequencies/shapes are the published Table D-1 values (unchanged by L); L is stored
+on `StructuralModes` for geometry-dependent coupling / loss callers.
 """
-function structural_modes_from_table_d1(; L::Float64=1.803, a::Float64=0.508,
+function structural_modes_from_table_d1(; L::Float64=test_article_length(), a::Float64=0.508,
                                         theta0_deg::Float64=56.6, n_keep::Int=32)
     n = min(n_keep, length(TABLE_D1_FULL))
     modes = [_mode_from_d1_row(TABLE_D1_FULL[i]) for i in 1:n]
@@ -539,7 +541,7 @@ end
 """
 Fit scales maximizing spectral coverage of Table D-1 (greedy match ≤5%).
 """
-function fit_mrp_to_table_d1(fuse::FuselageGeometry=FuselageGeometry(1.803, 0.508, 56.6);
+function fit_mrp_to_table_d1(fuse::FuselageGeometry=FuselageGeometry(test_article_length(), 0.508, 56.6);
                              n_fit::Int=32,
                              scales=0.45:0.05:0.90,
                              edges=2.0:0.1:3.2,

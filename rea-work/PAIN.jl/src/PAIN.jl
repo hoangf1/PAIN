@@ -43,6 +43,9 @@ include("gui_model.jl")
 include("gui_main.jl")
 
 export
+    TEST_ARTICLE_L, TEST_ARTICLE_L_DEFAULT,
+    test_article_length, test_article_length_overridden,
+    set_test_article_length!, reset_test_article_length!, with_test_article_length,
     FuselageGeometry, PropellerPlacement, GridSpec, grid_points,
     incidence_angle_deg,
     blocking_factor, blocked_amplitude, BlockingVariant, R1, R2,
@@ -126,7 +129,7 @@ Cabin treatment (`trim`): `:bare` (τ_t = 1, η_n = `η_n_bare`), `:phase3` (the
 `allow_extrapolation` continues the insulation table beyond Fig. A-2 (X-EXTRAP).
 """
 function run_pain_pipeline(;
-        L::Float64=1.803,
+        L::Float64=test_article_length(),
         a::Float64=0.508,
         theta0_deg::Float64=56.6,
         r_p::Float64=0.965,  # a+0.457 User Manual grid; tip clearance ≈0.076 m @ Rtip=0.381

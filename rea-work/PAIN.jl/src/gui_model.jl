@@ -69,7 +69,7 @@ function make_gui_observables(;
     return Dict{String,Observable}(
         "source" => Observable("aircraft"),  # phase 33g: only user source; e11/synthetic are validation-only
         "blocking" => Observable("R2"),
-        "L" => Observable(1.803),
+        "L" => Observable(test_article_length()),
         "a" => Observable(0.508),
         "theta0_deg" => Observable(56.6),
         "r_p" => Observable(0.965),
@@ -88,7 +88,7 @@ function make_gui_observables(;
         "rho_int" => Observable(1.225),
         "c_ext" => Observable(340.0),
         "c_int" => Observable(340.0),
-        "L_c" => Observable(1.803),
+        "L_c" => Observable(test_article_length()),
         "d_cavity" => Observable(0.0),
         "rotation_direction" => Observable(1.0),
         # Manual cards 3–6 / 11–18 (38f-2); empty string = defaults (compute / full band list)

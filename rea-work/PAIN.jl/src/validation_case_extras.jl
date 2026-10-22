@@ -35,7 +35,7 @@ function _run_e12_block()
     data = joinpath(@__DIR__, "..", "..", "data", "cr3813", "e12")
     predA = _e12_readcurve(joinpath(data, "e12_predicted_A.csv"))
     predB = _e12_readcurve(joinpath(data, "e12_predicted_B.csv"))
-    fuse = FuselageGeometry(1.803, 0.508, 56.6)
+    fuse = FuselageGeometry(test_article_length(), 0.508, 56.6)
     prop = PropellerPlacement(0.965, 90.0, 0.90)
     pts = [p for p in grid_points(fuse, prop, GridSpec()) if p.ell == 1]
     D = 0.762
@@ -100,7 +100,7 @@ function _run_e11_freefield()
     B = _read_csv_numeric(paths.B)
     k = Float64.(A[:k])
     # X3/D from grid k index on ℓ=1 (same geometry as e11 path)
-    fuse = FuselageGeometry(1.803, 0.508, 56.6)
+    fuse = FuselageGeometry(test_article_length(), 0.508, 56.6)
     prop = PropellerPlacement(0.965, 90.0, 0.90)
     line = [p for p in grid_points(fuse, prop, GridSpec()) if p.ell == 1]
     D = 0.762
@@ -142,7 +142,7 @@ function _run_e14_loss()
     fc = Float64.(cols[:f_Hz])
     ref05 = Float64.(cols[:eta_calc_trim0p5])
     ref10 = Float64.(cols[:eta_calc_trim1p0])
-    a, L, θ0d = 0.508, 1.803, 56.6
+    a, L, θ0d = 0.508, test_article_length(), 56.6
     θ0 = deg2rad(θ0d)
     fuse = FuselageGeometry(L, a, θ0d)
     V = cabin_volume(fuse)
@@ -187,7 +187,8 @@ function _run_gext_bound()
     tg = _read_csv_numeric(joinpath(dirname(paths.A), "t1_interior_targets.csv"))
     means = Float64.(tg[:measured_mean_SPL_dB][1:3])
     function e11_pipe(; falloff_exponent=1.0, delay_scale=1.0)
-        fuse = FuselageGeometry(1.803, 0.508, 56.6)
+        L = test_article_length()
+        fuse = FuselageGeometry(L, 0.508, 56.6)
         prop = PropellerPlacement(0.965, 90.0, 0.90)
         spec = GridSpec()
         amp = _read_csv_numeric(paths.A)
@@ -224,7 +225,7 @@ function _run_gext_bound()
         acoustic = cyl2d_modes(56.6; n_modes=20, NY=10)
         structural = structural_modes_from_table_d1(; n_keep=32)
         ΔA = (π * 0.508 / 18)^2
-        p3 = phase3_trim(; a=0.508, L=1.803, theta0_deg=56.6)
+        p3 = phase3_trim(; a=0.508, L=L, theta0_deg=56.6)
         inp = PainInputs(fuse, prop, structural, acoustic, bl.amplitudes, bl.phases, bl.pts, ΔA;
                          sidewall=p3.sidewall, endplates=p3.ends, mech=p3.mech, m_wall=p3.m_wall)
         return interior_spl(inp; bpf_Hz=200.0, n_harmonics=3)
@@ -409,7 +410,7 @@ end
 
 """Raw Ritz vs Table D-1 — calibrated fit quality only; verdict always :no_verdict."""
 function _run_mrp_ritz()
-    fuse = FuselageGeometry(1.803, 0.508, 56.6)
+    fuse = FuselageGeometry(test_article_length(), 0.508, 56.6)
     ritz = structural_modes(fuse; hybrid=false, n_keep=48)
     npass, pairs = match_ritz_to_table_d1(ritz; tol_frac=0.05)
     table = ValidationTableRow[]
@@ -1517,7 +1518,7 @@ function _run_e15_struct_loss()
     fs = Float64.(cols[:f_Hz])
     meas = Float64.(cols[:eta_meas])
     tols = Float64.(cols[:tol_frac])
-    a, L, θ0d = 0.508, 1.803, 56.6
+    a, L, θ0d = 0.508, test_article_length(), 56.6
     p3 = phase3_trim(; a=a, L=L, theta0_deg=θ0d, η_lining=1.0)
     sm = structural_modes_from_table_d1(; L=L, a=a, theta0_deg=θ0d, n_keep=32)
     ρ0, c0 = 1.225, 340.0

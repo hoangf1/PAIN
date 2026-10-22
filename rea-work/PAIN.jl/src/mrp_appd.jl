@@ -61,11 +61,14 @@ end
 """
 Test-article geometry from CR-3813 App. E (pp. E-1…E-3) + Manual §5.2 material.
 Areas / inertias reuse `MRP_*` (derived from the same printed dimensions).
-L = 1.83 m from the text (not the program's 1.803).
+Default L = 1.83 m from the text (not the program's 1.803). When the test-article
+length override is set (`set_test_article_length!`), L follows that override
+(post-hoc sensitivity; no length selected from any error).
 """
 function appd_test_article_geometry()
+    L = test_article_length_overridden() ? test_article_length() : 1.83
     return AppDGeometry(
-        1.83,                  # App. E p. E-1
+        L,
         0.508,                 # diameter 1.016 m (App. E Fig. E-2)
         56.6,                  # App. E p. E-3
         MRP_T_SKIN,            # 0.00081 m (App. E p. E-1)

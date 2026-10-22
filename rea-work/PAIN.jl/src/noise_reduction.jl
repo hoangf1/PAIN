@@ -320,7 +320,8 @@ Eq. 18 uses j_r²^rev, not Ψ_G). Dummy unit amplitudes satisfy the struct.
 """
 function noise_reduction_test_article_inputs(; η_lining::Real=1.0,
                                              NY::Int=10, n_modes::Int=20)
-    fuse = FuselageGeometry(1.803, 0.508, 56.6)
+    L = test_article_length()
+    fuse = FuselageGeometry(L, 0.508, 56.6)
     prop = PropellerPlacement(0.965, 90.0, 0.90)
     acoustic = cyl2d_modes(56.6; n_modes, NY)
     structural = structural_modes_from_table_d1(; n_keep=32)
@@ -329,7 +330,7 @@ function noise_reduction_test_article_inputs(; η_lining::Real=1.0,
     amps = ones(Float64, 10, 16, 1)
     phases = zeros(Float64, 10, 16, 1)
     ΔA = (π * 0.508 / 18)^2
-    p3 = phase3_trim(; a=0.508, L=1.803, theta0_deg=56.6, η_lining)
+    p3 = phase3_trim(; a=0.508, L=L, theta0_deg=56.6, η_lining)
     # allow_extrapolation: E-21 bands include 63 Hz (below Fig. A-2's 100 Hz); NASA's PAIN
     # produced values there — flag X-EXTRAP for the insulation table outside 100–6300 Hz.
     inp = PainInputs(fuse, prop, structural, acoustic, amps, phases, pts, ΔA;
