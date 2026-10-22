@@ -204,7 +204,7 @@ flowchart LR
 | Polars | Viterna fixed pre-comparison | UT_POLAR |
 | CCBlade BEMT | T, Q / C_T, C_P | R996_LOADS, PER_LOADS |
 | F1A free-field p | Shared `evaluate_propeller_source` | `propeller_ccblade.jl` |
-| BBN phase | Common time base; AUTHOR items | BBN_KIN, BBN_CIRC, BBN_LONG |
+| BBN phase | Common time base; I-19 pair φ_b−φ_a (post-hoc) | BBN_KIN, BBN_CIRC, BBN_LONG |
 | Report 996 | Amplitude matrix; A_rms convention | R996_FIG*; F1A_GUTIN |
 | Pereira | Forward flight | PER_FIG6–9 |
 | Unit tests | V-CODE | F1A_GUTIN, BBN_KIN |
@@ -212,7 +212,7 @@ flowchart LR
 | Open author | I-17 amplitude | `VALIDATION_GUIDELINE.md` |
 | Aircraft cabin guard / tags | 29b/29c done 2026-10-22 | `aircraft_provenance.jl`; §2.10 guard column |
 | Parametric cabin blocks | 30a–30d done 2026-10-22 | `cabin_blocks=:parametric` (aircraft default); App. D + Eq.19; `parametric_regression.md` |
-| Uncertainty (epistemic band) | 31a–31f done 2026-10-22 | `UNC_COVER` `:not_met` (H2/H3); aircraft H1–H3 band; phase dominates H2/H3; not a CI |
+| Uncertainty (epistemic band) | 31a–31f done 2026-10-22 | `UNC_COVER` `:not_met` (H2/H3); aircraft H1–H3 band; after I-19 k≈0.09, phase (i) does not dominate; not a CI |
 
 ## 4. Shared cabin model
 

@@ -1,6 +1,7 @@
 using Test
 using PAIN
 using JSON3
+using Statistics
 
 # Top-level testset filter (task P1). Empty ARGS → run everything.
 # Pkg.test("PAIN"; test_args=["CYL2D"]) puts substrings in ARGS (case-insensitive match on title).
@@ -1060,6 +1061,29 @@ _run_if("BBN kinematics (24b, V-UNIT)") do
     end
 end
 
+_run_if("BBN pair convention (I-19)") do
+    # Printed App. C convention: φ_b − φ_a; mic b lagging a by 30° → −30°.
+    @test bbn_printed_pair_phase(0.0, -30.0) ≈ -30.0 atol=1e-12
+    @test bbn_printed_pair_phase(10.0, -20.0) ≈ -30.0 atol=1e-12
+    # Rigid rotating field, blades upward at fuselage (same tipA / sense as BBN_KIN):
+    # pair 4-3 printed-convention phase at H1 is negative (upper mic lags), matching
+    # Table 8 positive (upward) U_c ⇒ negative printed phase.
+    json = joinpath(@__DIR__, "..", "examples", "bbn_aerocommander_tipA.json")
+    cfg = PAIN._load_aircraft_json(json)
+    geom = (hub_x=0.0, hub_y=0.432, hub_lat=1.31)
+    # Fig. 1: mic 3 y=0.584 (upper), mic 4 y=0.279 (lower); pair 4-3 = lower–upper
+    mics = Dict(3 => (x=0.0, y=0.584), 4 => (x=0.0, y=0.279))
+    obs = Observer[]
+    idx = Dict{Int,Int}()
+    for loc in (3, 4)
+        m = mics[loc]
+        push!(obs, Observer([m.x - geom.hub_x, geom.hub_lat, m.y - geom.hub_y], zeros(3), "mic$loc"))
+        idx[loc] = length(obs)
+    end
+    src = evaluate_propeller_source(cfg, obs; n_harmonics=1, num_src_times=64, allow_static=true)
+    φ_printed = bbn_printed_pair_phase(rad2deg(src.phase[idx[4], 1]), rad2deg(src.phase[idx[3], 1]))
+    @test φ_printed < 0
+end
 
 _run_if("Polar loader (25i, V-CODE)") do
     path = joinpath(@__DIR__, "..", "..", "data", "report996", "polars_forced_merged.json")
@@ -2101,10 +2125,27 @@ _run_if("Uncertainty budget (phase 31, V-UNIT)") do
     @test ph0.k == 0.0
     @test ph0.B == 3
 
-    # BBN residual gradient ratio is finite and negative
+    # BBN residual gradient ratio is finite; equals median(residual/f1a) from CSV (no sign assert)
     k = bbn_h1_residual_gradient_ratio()
     @test isfinite(k)
-    @test k < 0
+    path_bbn = joinpath(@__DIR__, "..", "..", "data", "NASA_CR-158919", "bbn_results.csv")
+    ratios = Float64[]
+    for (i, line) in enumerate(eachline(path_bbn))
+        i == 1 && continue
+        parts = split(strip(line), ',')
+        length(parts) < 11 && continue
+        parts[1] == "circ" || continue
+        parts[2] == "tipA" || continue
+        parts[5] in ("4-3", "5-3", "4-5") || continue
+        tryparse(Int, parts[6]) == 1 || continue
+        coh = tryparse(Float64, parts[11])
+        (coh === nothing || coh < 0.15) && continue
+        f1a = tryparse(Float64, parts[9])
+        resid = tryparse(Float64, parts[10])
+        (resid === nothing || f1a === nothing || f1a == 0.0) && continue
+        push!(ratios, resid / f1a)
+    end
+    @test k == median(ratios)
 
     # Report template contains every required statement
     md = uncertainty_report_md(; title="unit", budget)
@@ -2317,8 +2358,10 @@ _run_if("Validation case registry (34d)") do
         @test !isempty(r.table)
     end
     bbn = results_by_id["BBN_CIRC"]
-    @test bbn.inputs_echo.n_ok == 26
+    # Post-hoc pair convention (I-19, 2026-10-22); pre-registered FAIL was 26/168
+    @test bbn.inputs_echo.n_ok == 134
     @test bbn.inputs_echo.n_tot == 168
+    @test occursin("post-hoc", VALIDATION_CASES["BBN_CIRC"].label)
     # BBN_LONG: Fig. 19 / Fig. 20 panels are built per pair (must differ)
     blong = results_by_id["BBN_LONG"]
     m1 = only(s for s in blong.series if s.panel == 1 && startswith(s.name, "measured"))

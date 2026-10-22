@@ -14,7 +14,7 @@
 
 Do not quote the +2.6 to +4.3 dB flight bias or "10 dB" as an error bar for this aircraft.
 
-Cabin inputs tagged assumed (working example; only the 2.64 m diameter is given as measured geometry): L_m, a_m, theta0_deg, r_p_m, phi_p_deg, z_p_m, L_c_m, d_m, rotation_direction, rho_kg_m3, c0_mps, eta_n_bare, C_struc, m_wall_kg_m2, NY, bb_alpha, spbl_anchor_H, structural_solver, broadband_model, cabin_blocks, trim, t_skin_m, t_floor_m, A_stringer_m2, d_stringer_m, I_stringer_m4, A_frame_m2, ell_frame_m, I_frame_m4, A_floor_beam_m2, I_floor_beam_m4, E_Pa, nu, rho_struc_kg_m3.
+Cabin inputs tagged assumed (working example; only the 2.64 m diameter is given as measured geometry): L_m, theta0_deg, r_p_m, phi_p_deg, z_p_m, L_c_m, d_m, rotation_direction, rho_kg_m3, c0_mps, eta_n_bare, C_struc, m_wall_kg_m2, NY, bb_alpha, spbl_anchor_H, structural_solver, broadband_model, cabin_blocks, trim, t_skin_m, t_floor_m, A_stringer_m2, d_stringer_m, I_stringer_m4, A_frame_m2, ell_frame_m, I_frame_m4, A_floor_beam_m2, I_floor_beam_m4, E_Pa, nu, rho_struc_kg_m3.
 
 ## Budget table (31a)
 
@@ -162,23 +162,23 @@ Scattering/refraction: V-ASSUMED; no range invented.
 
 (i) BBN H1 residual expressed as a ratio to the predicted circumferential phase difference, applied per observer as k·H·B·Δψ; defined 2026-10-22 before the aircraft band run.
 
-k (BBN H1 residual/f1a median) = -2.0944; B (blade count) = 3.
+k (BBN H1 residual/f1a median) = 0.0944; B (blade count) = 3.
 
 Case (ii) fully random phase is the extreme only (seed UNC_MC_SEED); phase-dominance uses case (i).
 
 | Harmonic | Nominal [dB] | (i) BBN residual [dB] | (ii) Random [dB] | Spread (i) vs nom [dB] | Spread (ii) vs nom [dB] |
 |----------|-------------:|---------------------:|----------------:|-----------------------:|------------------------:|
-| H1 | 102.08 | 104.54 | 97.91 | 2.45 | 4.17 |
-| H2 | 59.25 | 62.96 | 56.72 | 3.7 | 2.53 |
-| H3 | 35.75 | 37.83 | 34.52 | 2.08 | 1.22 |
+| H1 | 102.08 | 101.72 | 97.91 | 0.36 | 4.17 |
+| H2 | 59.25 | 58.79 | 56.72 | 0.46 | 2.53 |
+| H3 | 35.75 | 35.96 | 34.52 | 0.22 | 1.22 |
 
 ### Phase-dominance rule (case (i) bounding)
 
-- H1: case (i) spread 2.45 dB ≤ MC width 4.9 dB → phase does not dominate.
-- H2: case (i) spread 3.7 dB > MC width 1.46 dB → phase dominates.
-- H3: case (i) spread 2.08 dB > MC width 0.81 dB → phase dominates.
+- H1: case (i) spread 0.36 dB ≤ MC width 4.9 dB → phase does not dominate.
+- H2: case (i) spread 0.46 dB ≤ MC width 1.46 dB → phase does not dominate.
+- H3: case (i) spread 0.22 dB ≤ MC width 0.81 dB → phase does not dominate.
 
 ## Runtime
 
-Wall time: 726.6 s.
+Wall time: 708.8 s.
 

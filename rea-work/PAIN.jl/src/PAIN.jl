@@ -112,7 +112,7 @@ export
     uncertainty_budget, active_budget_rows, nominal_sample,
     build_testarticle_cache, build_aircraft_cache, evaluate_uncertainty_sample,
     oat_sweep, monte_carlo_band, coverage_check, e16_measured_means,
-    phase_bounding_cases, bbn_h1_residual_gradient_ratio,
+    phase_bounding_cases, bbn_h1_residual_gradient_ratio, bbn_printed_pair_phase,
     uncertainty_report_md, UNC_REQUIRED_STATEMENTS, UNC_MC_N, UNC_MC_SEED,
     main, make_gui_observables, run_pain_gui!,
     PlotSeries, PlotSpec, FigureRef, ValidationTableRow, ValidationCase, ValidationCaseResult,

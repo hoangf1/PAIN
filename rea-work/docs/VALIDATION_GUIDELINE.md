@@ -529,6 +529,7 @@ Written before any BBN / Report 996 / Pereira comparison run that uses these tol
 | label if met | V-EXP (circumferential phase, no fitted parameters) |
 | label if not met | recorded finding; not tuned |
 | date | **frozen 2026-10-21** |
+| note (2026-10-22) | Pre-registered 23a FAIL was 26/168 under a reversed pair reading. Pair convention φ_b−φ_a from CR-158919 §3.4/Table 8 found after that result; re-run is post-hoc. Criterion row unchanged. |
 
 #### 23a′ V-UNIT kinematic (phase 24b)
 
@@ -589,7 +590,7 @@ Written before any BBN / Report 996 / Pereira comparison run that uses these tol
 
 **I-07 comparison runs (2026-10-21), using the freeze above (not changing it):**
 - **23a′ / 24b:** PASS (`Pkg.test()`).
-- **23a / 24c:** FAIL — 26/168 rows (15%) within tolerance (`bbn_phase.md`); registry replay `BBN_CIRC` not met 26/168 (= recorded).
+- **23a / 24c:** Pre-registered FAIL 26/168 (15%) on record (2026-10-21, reversed pair reading). Post-hoc re-run 2026-10-22 with CR-158919 §3.4/Table 8 pair convention: **134/168** (79.8 %, below the 80 % pass rule) → FAIL (`bbn_phase.md`); registry `BBN_CIRC` replays the CSV.
 - **23b / 24d:** reported X-EXTRAP in `bbn_phase.md`; `BBN_LEVELS` no verdict (20/32 within ±3 dB, X-EXTRAP).
 - **23c / 27:** FAIL — scaled Fig.14 sample 5/24 within ±2 dB; page-12 |Δφ−155°|=51.2° (`report996_acoustics.md`; I-08 L51C27 on Fig.13a). **Registry replays (phase 35):** `R996_FIG14` not met 5/24 (= recorded); `R996_FIG13A` not met 6/14 (= recorded); `R996_FIG12` not met **19/40** (first verdict under the frozen 23c rule; no count was recorded before); `R996_PHASE` reads 155°/165° from `tr996_phase_values.csv` and F1A 103.8° from `f1a_results.csv`.
 - **23d / 28:** FAIL on H1 (0/9 within ±1.7 dB vs Fig.9 Exp at 80 dB as read); H2 6/9 within ±3 dB (`pereira_forward_flight.md`). Replays: `PER_FIG9` not met (H1 0/9, H2 6/9); `PER_FIG8` not met (H1 1/7, H2 6/7); `PER_FIG7` not met (Δψ₁ 2/3 within ±5°); `PER_FIG6` / `PER_LOADS` no verdict (no frozen criterion).
@@ -1343,9 +1344,9 @@ Outputs: Δφ [deg]; verdict |Δφ − m·B·Δψ| ≤ 0.5°.
 **What it tests:** F1A circumferential phase between fuselage microphones.
 **Why it is here:** First experimental phase check.
 **A pass means:** ≥ 80 % of coh≥0.15 rows within 15°/35° (23a).
-**Not covered:** Reflecting surface; low coherence; reference-mic sign not stated in the source.
-**Recorded outcome:** FAIL 26/168 within tolerance; replay of bbn_results.csv
-**Explanation:** Replay of a recorded result: circumferential phase (CR-158919 App. C / CR-159124) under frozen 23a. Fails 26/168 (15 %). Measured phases often opposite sign to F1A; source does not name the reference mic, so the sign is not fixed from the papers. Verdict stays.
+**Not covered:** Reflecting surface; low coherence; CR-159124 pair convention unresolved (Table 9 pair 8-9).
+**Recorded outcome:** Pre-registered FAIL 26/168 (2026-10-21) on record; post-hoc re-run FAIL 134/168 (2026-10-22); replay of bbn_results.csv
+**Explanation:** Replay of a recorded result under frozen 23a. Pre-registered FAIL 26/168 used a reversed pair reading. Pair convention φ_b−φ_a from CR-158919 §3.4 (B/A) and Table 8 was found 2026-10-22 after that result; the re-run (134/168, still FAIL) is labelled post-hoc. Criterion 23a unchanged.
 Inputs: recorded `bbn_results.csv` from BBN script.
 Equations: F1A phase (replayed); criterion 23a.
 Outputs: phase [deg]; verdict on 80 % within 15°/35°.

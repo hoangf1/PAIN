@@ -21,6 +21,10 @@ function wrap180(deg)
     return mod(deg + 180, 360) - 180
 end
 
+# Printed pair phase for CR-158919 App. C: φ_b − φ_a (PAIN.bbn_printed_pair_phase).
+# CR-159124 App. D / Fig. 19: same SD360 B/A wording (CR-159124 §3.4, PDF p. 27), but
+# sign(U)=−sign(phase) fails for pair 8-9 vs Table 9 — leave old reading, mark unresolved.
+
 function load_geometry()
     g = Dict{String,String}()
     for raw in eachline(joinpath(D158, "bbn_geometry.csv"))
@@ -220,8 +224,8 @@ function main()
                     key = (a, b, H, run)
                     haskey(phase_data, key) || continue
                     coh, φm = phase_data[key]
-                    dφ_f1a = wrap180(rad2deg(src.phase[ia, H] - src.phase[ib, H]))
-                    # Measured App. C is phase of a relative to b as printed (pair a-b)
+                    # CR-158919 App. C printed convention: φ_b − φ_a (B/A; see bbn_printed_pair_phase)
+                    dφ_f1a = bbn_printed_pair_phase(rad2deg(src.phase[ia, H]), rad2deg(src.phase[ib, H]))
                     resid = wrap180(φm - dφ_f1a)
                     tol = H <= 2 ? 15.0 : 35.0
                     within = abs(resid) <= tol
@@ -296,6 +300,8 @@ function main()
             m === nothing && continue
             a = parse(Int, m.captures[1]); b = parse(Int, m.captures[2])
             haskey(idx, a) && haskey(idx, b) || continue
+            # CR-159124 Fig. 19: convention unresolved (pair 8-9 disagrees Table 9 vs App. D);
+            # keep pre-fix reading φ_a − φ_b (not bbn_printed_pair_phase).
             dφ = wrap180(rad2deg(src.phase[idx[a], H] - src.phase[idx[b], H]))
             push!(rows24e, (pair=pair, f=f, H=H, φ_meas_rad=φ, φ_f1a_deg=dφ,
                             resid=wrap180(rad2deg(φ) - dφ)))
@@ -328,7 +334,9 @@ function main()
         println(io)
         println(io, "## 24c Circumferential phase (23a)")
         println(io)
-        @printf(io, "Rows with coh ≥ 0.15 on pairs 4-3, 5-3, 4-5: **%d / %d** within tolerance (%.0f%%; need ≥80%%) → **%s**.\n\n",
+        println(io, "The pre-registered 23a verdict as first recorded on 2026-10-21 (FAIL 26/168, reversed pair reading) stays on record. This re-run uses the pair convention read from CR-158919 §3.4 (SD360 Function 6, transfer function B/A) and Table 8 (sign(U_c)=−sign(printed phase) ⇒ printed phase = φ_b−φ_a), found on 2026-10-22 after that result, and is therefore labelled post-hoc. Criterion 23a is unchanged.")
+        println(io)
+        @printf(io, "Rows with coh ≥ 0.15 on pairs 4-3, 5-3, 4-5: **%d / %d** within tolerance (%.1f%%; need ≥80%%) → **%s** (post-hoc pair convention).\n\n",
                 n_ok, n_tot, 100 * frac, pass23a ? "PASS" : "FAIL")
         println(io, "| tip | run | pair | H | coh | φ_meas° | φ_F1A° | resid° | tol° | within |")
         println(io, "|---|--:|---|--:|---:|---:|---:|---:|---:|:---:|")
@@ -367,6 +375,7 @@ function main()
         println(io, "## 24e Longitudinal pairs (X-EXTRAP)")
         println(io)
         println(io, "Fig. 19 digitized phase vs F1A at nearest BPF harmonic (tipA, run 4). Not a validation claim.")
+        println(io, "CR-159124 pair convention: **unresolved**. Report §3.4 (PDF p. 27) also uses SD360 Function 6 (B/A), and circumferential Table 6 vs App. D H1 matches sign(U)=−sign(phase), but longitudinal Table 9 vs App. D fails for pair **8-9** (ref2 U=+417 / ph=+6; run1_0 U=+384 / ph=+6). Fig. 19 / long CSV rows keep the old reading (φ_a−φ_b) and are marked `convention_unresolved` in `bbn_results.csv`.")
         println(io)
         if isempty(rows24e)
             println(io, "(no rows — Fig.19 missing or mic index gap)")
@@ -404,7 +413,7 @@ function main()
         for r in rows24e
             line = join(["long", "tipA", 4, "static", r.pair, r.H, "",
                          r.φ_meas_rad, r.φ_f1a_deg, r.resid, "", "",
-                         "", "N", "rad_meas_deg_f1a"], ',')
+                         "", "convention_unresolved", "rad_meas_deg_f1a"], ',')
             line in seen_long && continue
             push!(seen_long, line)
             println(io, line)

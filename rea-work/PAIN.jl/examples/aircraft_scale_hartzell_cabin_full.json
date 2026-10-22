@@ -48,7 +48,7 @@
     "note": "All values assumed. Diameter 2.64 m working example; App. D skin/stringer/frame/floor supplied so nasa_defaults is empty on the parametric path.",
     "cabin_blocks": {"value": "parametric", "tag": "assumed"},
     "L_m": {"value": 1.83, "tag": "assumed"},
-    "a_m": {"value": 1.32, "tag": "assumed"},
+    "a_m": {"value": 1.32, "tag": "measured"},
     "theta0_deg": {"value": 56.6, "tag": "assumed"},
     "r_p_m": {"value": 1.777, "tag": "assumed"},
     "phi_p_deg": {"value": 90.0, "tag": "assumed"},
