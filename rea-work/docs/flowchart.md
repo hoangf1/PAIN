@@ -211,6 +211,7 @@ flowchart LR
 | Shared cabin / dB(A) | X-EXTRAP | A_CABIN; Run tab |
 | Open author | I-17 amplitude | `VALIDATION_GUIDELINE.md` |
 | Aircraft cabin guard / tags | 29b/29c done 2026-10-22 | `aircraft_provenance.jl`; §2.10 guard column |
+| Parametric cabin blocks | 30a–30d done 2026-10-22 | `cabin_blocks=:parametric` (aircraft default); App. D + Eq.19; `parametric_regression.md` |
 
 ## 4. Shared cabin model
 

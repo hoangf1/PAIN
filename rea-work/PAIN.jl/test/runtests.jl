@@ -1808,16 +1808,19 @@ _run_if("Printed outputs 38h (Manual §5.4.3)") do
 end
 
 # Plan phase 29b/29c: NASA-default guard + provenance tags (aircraft path only).
+# After phase 30 the aircraft default is cabin_blocks=:parametric (App. D + eq19);
+# surrogate-path flags (bb_j2_scale, absorption_curve, table_d1) appear when
+# cabin_blocks=:surrogate is requested explicitly.
 # ---------------------------------------------------------------------------------------------
 _run_if("Aircraft provenance 29b/29c (V-UNIT)") do
     json_bare = joinpath(@__DIR__, "..", "examples", "aircraft_scale_hartzell.json")
     json_full = joinpath(@__DIR__, "..", "examples", "aircraft_scale_hartzell_cabin_full.json")
     @test isfile(json_bare) && isfile(json_full)
 
-    # 1. No cabin block → every used §2.10 default listed; warn once
+    # 1. No cabin block + :surrogate → every used §2.10 surrogate default listed; warn once
     r_bare = @test_logs (:warn, r"NASA test-article defaults") match_mode=:any begin
         run_pain_pipeline(; source=:aircraft, aircraft_json=json_bare,
-                          n_harmonics=2, trim=:bare)
+                          n_harmonics=2, trim=:bare, cabin_blocks=:surrogate)
     end
     nd = r_bare.provenance.nasa_defaults
     @test !isempty(nd)
@@ -1829,14 +1832,26 @@ _run_if("Aircraft provenance 29b/29c (V-UNIT)") do
     end
     @test isempty(r_bare.provenance.inputs)  # no cabin.* tags supplied
 
+    # 1b. Parametric default (no cabin) → App. D MRP_* listed; no absorption / bb_j2_scale
+    r_bare_p = @test_logs (:warn, r"NASA test-article defaults") match_mode=:any begin
+        run_pain_pipeline(; source=:aircraft, aircraft_json=json_bare,
+                          n_harmonics=2, trim=:bare)   # cabin_blocks=:auto → :parametric
+    end
+    @test r_bare_p.cabin_blocks === :parametric
+    names_p = Set(String(r.name) for r in r_bare_p.provenance.nasa_defaults)
+    @test "t_skin_m" in names_p && "structural_solver" in names_p
+    @test !("bb_j2_scale" in names_p) && !("absorption_curve" in names_p)
+    @test !("phase3_trim" in names_p)
+
     # 2. Fully specified cabin → empty nasa_defaults; tags round-trip; report table
     r_full = run_pain_pipeline(; source=:aircraft, aircraft_json=json_full,
                                n_harmonics=2)
     @test isempty(r_full.provenance.nasa_defaults)
+    @test r_full.cabin_blocks === :parametric
     @test !isempty(r_full.provenance.inputs)
     @test all(r -> r.tag in ("measured", "assumed", "nasa_default"), r_full.provenance.inputs)
     @test any(r -> r.name == "eta_n_bare" && r.tag == "assumed", r_full.provenance.inputs)
-    @test any(r -> r.name == "structural_solver" && r.value == "ritz", r_full.provenance.inputs)
+    @test any(r -> r.name == "structural_solver" && r.value == "appd", r_full.provenance.inputs)
     mktempdir() do tmp
         out = printed_outputs(r_full.inputs; bpf_Hz=r_full.spectrum.bpf_Hz, n_harmonics=2,
                               broadband=false)
@@ -1858,6 +1873,7 @@ _run_if("Aircraft provenance 29b/29c (V-UNIT)") do
     r_e11_a = run_pain_pipeline(; source=:e11, n_harmonics=3, bpf_Hz=200.0, trim=:bare, NY=8)
     r_e11_b = run_pain_pipeline(; source=:e11, n_harmonics=3, bpf_Hz=200.0, trim=:bare, NY=8)
     @test r_e11_a.spectrum.harmonic_SPL_dB == r_e11_b.spectrum.harmonic_SPL_dB
+    @test r_e11_a.cabin_blocks === :surrogate
     @test isempty(r_e11_a.provenance.nasa_defaults)
     r_syn_a = run_pain_pipeline(; source=:synthetic, use_synthetic=true, n_harmonics=3,
                                 bpf_Hz=150.0, trim=:bare, NY=8)
@@ -1876,6 +1892,71 @@ _run_if("Aircraft provenance 29b/29c (V-UNIT)") do
         md = read(path, String)
         @test occursin("uses NASA test-article defaults:", md)
         @test occursin("NASA test article inputs used for:", md)
+    end
+end
+
+# Plan phase 30a–30d: parametric cabin blocks on the aircraft path.
+# ---------------------------------------------------------------------------------------------
+_run_if("Parametric cabin blocks 30a-30d (V-UNIT)") do
+    json_bare = joinpath(@__DIR__, "..", "examples", "aircraft_scale_hartzell.json")
+    json_full = joinpath(@__DIR__, "..", "examples", "aircraft_scale_hartzell_cabin_full.json")
+
+    # 1. :surrogate (and e11/synthetic) stay on the current path; :parametric does not
+    #    list absorption / bb_j2_scale / table_d1 / phase3_trim unless used.
+    r_s = run_pain_pipeline(; source=:aircraft, aircraft_json=json_bare, n_harmonics=2,
+                            trim=:bare, cabin_blocks=:surrogate)
+    @test r_s.cabin_blocks === :surrogate
+    ns = Set(String(r.name) for r in r_s.provenance.nasa_defaults)
+    @test "absorption_curve" in ns && "bb_j2_scale" in ns
+    @test any(r -> r.name == "structural_solver" && string(r.value) == "table_d1",
+              r_s.provenance.nasa_defaults)
+
+    r_p = run_pain_pipeline(; source=:aircraft, aircraft_json=json_bare, n_harmonics=2,
+                            trim=:bare, cabin_blocks=:parametric)
+    @test r_p.cabin_blocks === :parametric
+    np = Set(String(r.name) for r in r_p.provenance.nasa_defaults)
+    @test !("absorption_curve" in np) && !("bb_j2_scale" in np)
+    @test !("phase3_trim" in np)
+    @test !any(r -> r.name == "structural_solver" && string(r.value) == "table_d1",
+               r_p.provenance.nasa_defaults)
+
+    # 2. Explicit test-article geometry → parametric modes ≡ appd_modes; V, S, A = formulas
+    L, a, θ0 = 1.83, 0.508, 56.6
+    fuse = FuselageGeometry(L, a, θ0)
+    g = build_appd_geometry(fuse)
+    modes_ref = appd_modes(g; n_modes=24)
+    r_ta = run_pain_pipeline(; source=:aircraft, aircraft_json=json_bare, n_harmonics=1,
+                             trim=:bare, cabin_blocks=:parametric,
+                             L=L, a=a, theta0_deg=θ0,
+                             structural_solver=:appd, broadband_model=:eq19)
+    @test length(r_ta.structural.modes) == length(modes_ref.modes) ||
+          length(r_ta.structural.modes) == 32  # pipeline keeps 32
+    # Compare the first min(n) frequencies against a fresh appd_modes at n_keep=32
+    modes_32 = appd_modes(g; n_modes=32)
+    @test [m.f_Hz for m in r_ta.structural.modes] == [m.f_Hz for m in modes_32.modes]
+    V = cabin_volume(r_ta.inputs)
+    A = coupling_area(r_ta.fuse)
+    areas = hf_absorbing_areas(r_ta.inputs)
+    θ0r = deg2rad(θ0)
+    V_form = a^2 * L * (π - θ0r + cos(θ0r) * sin(θ0r))
+    Lp = 2a * sin(θ0r)
+    A_form = L * (Lp + 2a * (π - θ0r))
+    S_side = 2a * (π - θ0r) * L
+    S_e = V_form / L
+    S_form = S_side + 2 * S_e
+    @test V ≈ V_form rtol=0 atol=0
+    @test A ≈ A_form rtol=0 atol=0
+    @test areas.S ≈ S_form rtol=0 atol=0
+    @test areas.V ≈ V_form rtol=0 atol=0
+
+    # 3. Scaled geometry (2.64 m diameter) end-to-end; empty guard when all inputs supplied
+    r_sc = run_pain_pipeline(; source=:aircraft, aircraft_json=json_full, n_harmonics=2)
+    @test isempty(r_sc.provenance.nasa_defaults)
+    @test r_sc.fuse.a ≈ 1.32 rtol=0 atol=0
+    @test r_sc.cabin_blocks === :parametric
+    for H in eachindex(r_sc.spectrum.harmonic_SPL_dB)
+        spl = r_sc.spectrum.harmonic_SPL_dB[H]
+        @test isfinite(spl) && spl > 0
     end
 end
 

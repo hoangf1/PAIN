@@ -611,21 +611,22 @@ appd_modes(fuse::FuselageGeometry; kwargs...) =
 """
 Build the structural mode set for the pipeline.
 `structural_solver = :table_d1` (default) | `:ritz` | `:appd`.
+
+For `:appd`, pass `appd_geometry` (phase 30c) built from the aircraft JSON / fuse;
+when omitted, `AppDGeometry(fuse)` uses MRP_* defaults (no hard-coded 0.508/1.83 —
+L, a, θ0 come from `fuse`).
 """
 function build_structural_modes(fuse::FuselageGeometry;
                                 structural_solver::Symbol=:table_d1,
-                                n_keep::Int=32)
+                                n_keep::Int=32,
+                                appd_geometry::Union{Nothing,AppDGeometry}=nothing)
     if structural_solver === :table_d1 || structural_solver === :d1
         return structural_modes_from_table_d1(; L=fuse.L, a=fuse.a,
                                               theta0_deg=fuse.theta0_deg, n_keep=n_keep)
     elseif structural_solver === :ritz || structural_solver === :surrogate
         return structural_modes(fuse; n_keep=n_keep)
     elseif structural_solver === :appd
-        g = appd_test_article_geometry()
-        if abs(fuse.L - g.L) > 1e-9 || abs(fuse.a - g.a) > 1e-9 ||
-           abs(fuse.theta0_deg - g.theta0_deg) > 1e-9
-            g = AppDGeometry(fuse)
-        end
+        g = appd_geometry === nothing ? AppDGeometry(fuse) : appd_geometry
         return appd_modes(g; n_modes=n_keep)
     else
         error("unknown structural_solver=$structural_solver (use :table_d1, :ritz, :appd)")

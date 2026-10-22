@@ -419,11 +419,13 @@ Each row is a hard-coded NASA test-article constant that can reach an aircraft r
 | `trim_loss.jl` | Phase III sidewall/end stacks, septum 6.58 kg, facing 0.095 kg/m² | as coded | App. E p. E-8 | yes — with Phase III path |
 | `mrp.jl` | `MRP_T_SKIN`, stringer/frame areas and spacings, E, ν, ρ | 0.00081 m, … | App. D / MRP constants | yes — via `m_wall` fallback |
 | `pain_core.jl` | wall mass fallback from `MRP_*` when `m_wall` NaN | smeared skin | same | yes — `m_wall_kg_m2` / `cabin.m_wall_kg_m2` |
-| `pain_core.jl` | `bb_j2_scale` default | 0.5 | stale T2 fit | yes — unless `broadband_model=eq19` or user supplies scale |
-| `pain_core.jl` | Spbl H=3 anchor, f⁻² slope, absorption curve | as coded | V-ASSUMED / educated | yes — `spbl_anchor_H`, `bb_alpha`; absorption when surrogate |
-| `PAIN.jl` | `run_pain_pipeline` geometry defaults | L=`test_article_length()` (default 1.83), a=0.508, θ0=56.6, r_p=0.965 | test article | yes — `cabin.L_m` / `a_m` / … |
+| `pain_core.jl` | `bb_j2_scale` default | 0.5 | stale T2 fit | yes — unless `cabin_blocks=:parametric` / `broadband_model=eq19` or user supplies scale |
+| `pain_core.jl` | Spbl H=3 anchor, f⁻² slope, absorption curve | as coded | V-ASSUMED / educated | yes — `spbl_anchor_H`, `bb_alpha`; absorption when surrogate only |
+| `PAIN.jl` | `run_pain_pipeline` geometry defaults | L=`test_article_length()` (default 1.83), a=0.508, θ0=56.6, r_p=0.965 | test article | yes — `cabin.L_m` / `a_m` / …; on `:parametric` these are inputs (no hard-coded path after JSON) |
 | `geometry.jl` | `TEST_ARTICLE_L` / `test_article_length()` | default **1.83 m** (I-22); App. D follows `test_article_length()` | I-22 decision 2026-10-22; re-record `length_rerecord_before_after.md` (from `length_sensitivity.md`; no length selected from any error) | yes — with `L_m` |
-| `PAIN.jl` | hybrid Table D-1 modes when `use_table_d1=true` | 32 modes | Table D-1 | yes — `cabin.structural_solver` |
+| `PAIN.jl` | hybrid Table D-1 modes when `use_table_d1=true` | 32 modes | Table D-1 | yes — `cabin.structural_solver`; **not** on `cabin_blocks=:parametric` (uses App. D) |
+| `mrp_appd.jl` / pipeline | App. D skin/stringer/frame/floor (`MRP_*`) when `:appd` | as coded | App. E / Manual §5.2 | yes — `cabin.t_skin_m` … `rho_struc_kg_m3` (30c) |
+| `PAIN.jl` | `cabin_blocks` default | `:auto` → `:parametric` on aircraft, `:surrogate` else | phase 30 | aircraft HF = Eq. 19–23 (I-21 X-EXTRAP); validation paths unchanged |
 | `cyl2d.jl` / pipeline | CYL2D NY=10, c0=340, ρ0=1.225 | defaults | App. C / register | yes |
 | `pain_core.jl` / pipeline | `L_c` default = fuse.L, `d` = 0; `rotation_direction` = +1; `bands` / `η_r_band` / `η_n_band` default `nothing` | card 9 / 36 / 3–6 / 11–18 defaults | Manual §5.4; 38f-1, 38f-2 | yes |
 | `printed_outputs.jl` (38h) | Manual §5.4.3 tables from existing APIs; lower-quarter pressures not computed (I-18 note); no criterion | report / GUI only | Manual §5.4.3; plan 38h | report header echoes 29b/29c labels |

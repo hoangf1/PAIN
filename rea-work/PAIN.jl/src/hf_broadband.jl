@@ -1,6 +1,11 @@
 # CR-3813 §3.3 high-frequency broadband model, Eqs. (19)–(23) as printed
 # (pp. 23–25; PDF pages `cr3813_pdf033.png`–`pdf035.png`). No parameter is chosen
 # from Fig. E-9, E-21 or E-22.
+#
+# Open readings (I-21, 2026-10-22): sparse-mode / "resonant below the band" wording,
+# and the printed τ_R form, leave the aircraft `:parametric` / `:eq19` result as
+# X-EXTRAP with the epistemic band of phase 31 — not a prediction of accuracy.
+# See IMPLEMENTATION_PLAN.md I-21 review.
 
 # =============================================================================
 # Readings decided (every ambiguity stated; none fitted to comparison data)

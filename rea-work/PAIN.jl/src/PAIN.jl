@@ -106,6 +106,7 @@ export
     run_pain_pipeline, evaluate_T1, evaluate_T2, validate_mrp_table_d1,
     parse_tagged_value, apply_aircraft_cabin_json, collect_nasa_defaults_used,
     provenance_header_labels, empty_provenance, NASA_DEFAULTS, nasa_default_m_wall,
+    resolve_cabin_blocks, build_appd_geometry, parse_aircraft_trim_json,
     main, make_gui_observables, run_pain_gui!,
     PlotSeries, PlotSpec, FigureRef, ValidationTableRow, ValidationCase, ValidationCaseResult,
     VALIDATION_CASES, VALIDATION_CASE_ORDER, list_validation_cases,
@@ -126,7 +127,8 @@ export
     cabin_modes_step_frame_from_qml, set_cabin_struct_from_qml
 
 """
-    run_pain_pipeline(; source=:aircraft | :e11 | :synthetic, trim=:auto, ...)
+    run_pain_pipeline(; source=:aircraft | :e11 | :synthetic, trim=:auto,
+                      cabin_blocks=:auto, ...)
 
 End-to-end: free-field → blocking → CYL2D + MRP → interior SPL (Eq. 8 chain).
 
@@ -138,6 +140,14 @@ Cabin treatment (`trim`): `:bare` (τ_t = 1, η_n = `η_n_bare`), `:phase3` (the
 `sidewall_trim_stack` and `end_trim_stack` (and optionally `mech`) overrides it with the user's stacks.
 `C_struc` is the C of Eq. (80), `q_max` the axial truncation of the cabin modes, `NY` the CYL2D grid,
 `allow_extrapolation` continues the insulation table beyond Fig. A-2 (X-EXTRAP).
+
+**cabin_blocks (phase 30):** `:parametric` | `:surrogate` | `:auto`.
+`:auto` → `:parametric` on `source=:aircraft`, `:surrogate` otherwise (validation/e11/synthetic
+bit-identical). `:parametric` selects `broadband_model=:eq19` (Eqs. 19–23; open readings I-21 →
+X-EXTRAP with phase-31 epistemic band, not a prediction of accuracy), `structural_solver=:appd`
+(App. D modes from user geometry / skin / stringer / frame / floor), and no η_r cap / no
+absorption curve / no `bb_j2_scale` unless the JSON asks for them. `:surrogate` keeps the
+current Table D-1 + absorption/`bb_j2_scale` path.
 """
 function run_pain_pipeline(;
         L::Float64=test_article_length(),
@@ -181,8 +191,11 @@ function run_pain_pipeline(;
         bb_j2_scale::Float64=0.5,
         bb_α::Float64=2.0,
         broadband_model::Symbol=:surrogate,
-        spbl_anchor_H::Int=3)
-    trim in (:auto, :bare, :phase3) || error("trim must be :auto, :bare or :phase3")
+        spbl_anchor_H::Int=3,
+        cabin_blocks::Symbol=:auto,
+        appd_overrides::Dict{Symbol,Float64}=Dict{Symbol,Float64}())
+    trim in (:auto, :bare, :phase3, :custom) ||
+        error("trim must be :auto, :bare, :phase3 or :custom")
 
     # Resolve source. User path is :aircraft. :e11 / :synthetic stay for validation scripts and tests
     # (phase 33g); the GUI does not offer them.
@@ -193,13 +206,14 @@ function run_pain_pipeline(;
     if aircraft_json !== nothing
         src = :aircraft
         cfg = _load_aircraft_json(aircraft_json)
-        # Phase 29b/29c: cabin provenance + existing 38f card keys (geometry L/a/θ0 only from cabin.*)
+        # Phase 29b/29c/30: cabin provenance + 38f card keys (geometry L/a/θ0 only from cabin.*)
         applied = apply_aircraft_cabin_json(cfg, (;
             L, a, theta0_deg, r_p, phi_p_deg, z_p, rotation_direction,
             η_n_bare, C_struc, NY, ρ0, c0, ρ_ext, c_ext, ρ_int, c_int,
             L_c, d, use_table_d1, structural_solver, m_wall,
             bb_j2_scale, bb_α, broadband_model, spbl_anchor_H, q_max, allow_extrapolation,
-            bands, η_r_band, η_n_band, trim))
+            bands, η_r_band, η_n_band, trim, cabin_blocks,
+            sidewall_trim_stack, end_trim_stack, mech))
         kw = applied.kwargs
         L = kw.L; a = kw.a; theta0_deg = kw.theta0_deg
         r_p = kw.r_p; phi_p_deg = kw.phi_p_deg; z_p = kw.z_p
@@ -215,10 +229,29 @@ function run_pain_pipeline(;
         q_max = kw.q_max; allow_extrapolation = kw.allow_extrapolation
         bands = kw.bands; η_r_band = kw.η_r_band; η_n_band = kw.η_n_band
         trim = kw.trim
+        cabin_blocks = kw.cabin_blocks
+        sidewall_trim_stack = kw.sidewall_trim_stack
+        end_trim_stack = kw.end_trim_stack
+        mech = kw.mech
+        appd_overrides = kw.appd_overrides
         prov_inputs = applied.provenance_inputs
         supplied = applied.supplied_names
     elseif use_synthetic && source !== :e11
         src = :synthetic
+    end
+
+    # Phase 30b/30c: resolve cabin_blocks and apply parametric defaults when not JSON-supplied
+    blocks = resolve_cabin_blocks(cabin_blocks, src)
+    if blocks === :parametric
+        if !("structural_solver" in supplied)
+            structural_solver = :appd
+            use_table_d1 = false
+        end
+        if !("broadband_model" in supplied)
+            broadband_model = :eq19
+        end
+        # No η_r cap on the parametric path (callers may still pass η_r_cap into
+        # printed_outputs / noise_reduction separately; interior_spl default is nothing).
     end
 
     fuse = FuselageGeometry(L, a, theta0_deg)
@@ -242,16 +275,19 @@ function run_pain_pipeline(;
     end
     bl = apply_blocking(ff, fuse, prop; variant=blocking)
 
-    acoustic = cyl2d_modes(theta0_deg; n_modes=20, NY=NY)
-    # Default structural path unchanged: Table D-1 seed when use_table_d1 (legacy flag).
-    # structural_solver=:appd selects the printed App. D solver (38g); :ritz the surrogate.
+    # CYL2D: aircraft/user c0 and θ0 (no hard-coded path constants beyond the NY default)
+    acoustic = cyl2d_modes(theta0_deg; n_modes=20, NY=NY, c0=c0)
+    # Default structural path unchanged for :surrogate: Table D-1 when use_table_d1.
+    # :parametric / structural_solver=:appd → App. D with aircraft geometry (30c).
     solver = structural_solver
     if solver === :table_d1 && !use_table_d1
         solver = :ritz
     end
-    structural = build_structural_modes(fuse; structural_solver=solver, n_keep=32)
+    appd_g = (solver === :appd) ? build_appd_geometry(fuse, appd_overrides) : nothing
+    structural = build_structural_modes(fuse; structural_solver=solver, n_keep=32,
+                                        appd_geometry=appd_g)
 
-    ΔA = (π * a / 18)^2  # User Manual grid spacing scale
+    ΔA = (π * a / 18)^2  # User Manual grid spacing scale (from fuse.a)
     trim_used = trim === :auto ? (src === :e11 ? :phase3 : :bare) : trim
     sidewall = end_stack = mech_used = nothing
     m_wall_eff = m_wall
@@ -266,6 +302,8 @@ function run_pain_pipeline(;
             m_wall_eff = p3.m_wall
             m_wall_from_phase3 = true
         end
+    elseif trim_used === :custom
+        error("trim=:custom requires sidewall_trim_stack / end_trim_stack")
     end
     m_wall_was_fallback = isnan(m_wall_eff)  # PainInputs will fill from MRP_*
     inp = PainInputs(fuse, prop, structural, acoustic,
@@ -275,10 +313,12 @@ function run_pain_pipeline(;
                      allow_extrapolation=allow_extrapolation,
                      ρ0=ρ0, c0=c0, ρ_ext=ρ_ext, c_ext=c_ext, ρ_int=ρ_int, c_int=c_int,
                      L_c=L_c, d=d, bands=bands, η_r_band=η_r_band, η_n_band=η_n_band)
+    # Parametric HF path: Eqs. 19–23 (I-21 open readings → X-EXTRAP); η_r_cap=nothing
     spec_out = interior_spl(inp; bpf_Hz=bl.bpf_Hz,
                             n_harmonics=min(n_harmonics, size(bl.amplitudes, 3)),
                             bb_j2_scale=bb_j2_scale, bb_α=bb_α,
-                            spbl_anchor_H=spbl_anchor_H, broadband_model=broadband_model)
+                            spbl_anchor_H=spbl_anchor_H, broadband_model=broadband_model,
+                            η_r_cap=nothing)
 
     provenance = empty_provenance()
     if src === :aircraft
@@ -290,15 +330,14 @@ function run_pain_pipeline(;
             structural_solver=solver, use_table_d1,
             bb_j2_scale, bb_α, broadband_model, spbl_anchor_H,
             trim_used, sidewall_is_phase3=(trim_used === :phase3),
+            cabin_blocks=blocks, appd_overrides,
             supplied, input_rows=prov_inputs)
-        # Fill deferred tags for kwargs that were not in JSON (still appear in report when tagged nasa)
-        # Report table = JSON-supplied inputs only; nasa_defaults is the guard list.
         warn_nasa_defaults!(nasa_defs)
-        provenance = (; nasa_defaults=nasa_defs, inputs=prov_inputs)
+        provenance = (; nasa_defaults=nasa_defs, inputs=prov_inputs, cabin_blocks=blocks)
     end
 
     return (; fuse, prop, ff=bl, acoustic, structural, spectrum=spec_out, source=src,
-              trim=trim_used, inputs=inp, provenance)
+              trim=trim_used, inputs=inp, provenance, cabin_blocks=blocks)
 end
 
 """

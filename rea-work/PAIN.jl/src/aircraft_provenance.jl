@@ -1,6 +1,8 @@
 # Phase 29b/29c — aircraft-path NASA-default guard and provenance tags.
+# Phase 30 — parametric cabin blocks (`cabin_blocks=:parametric|:surrogate`).
 # Aircraft runs only (`source=:aircraft` / `aircraft_json=…`). Validation / :e11 /
-# :synthetic paths do not call this and stay bit-identical.
+# :synthetic paths do not call this and stay bit-identical unless the caller
+# explicitly sets `cabin_blocks` (30d regression).
 
 const PROVENANCE_TAGS = ("measured", "assumed", "nasa_default")
 
@@ -22,6 +24,37 @@ const NASA_DEFAULTS = (
     rotation_direction = 1,
     spbl_anchor_H = 3,
     η_lining_phase3 = 0.5,   # Phase III test article (register f)
+    # App. D / MRP geometry (30c) — missing → NASA article, flagged by 29b
+    t_skin_m = MRP_T_SKIN,
+    t_floor_m = MRP_T_SKIN,
+    A_stringer_m2 = MRP_A_STRINGER,
+    d_stringer_m = MRP_D_STRINGER,
+    I_stringer_m4 = MRP_I_STRINGER,
+    A_frame_m2 = MRP_A_FRAME,
+    ell_frame_m = MRP_ELL_FRAME,
+    I_frame_m4 = MRP_I_FRAME,
+    A_floor_beam_m2 = MRP_A_FLOOR_BEAM,
+    I_floor_beam_m4 = MRP_I_FLOOR_BEAM,
+    E_Pa = MRP_E_2024,
+    nu = MRP_NU_2024,
+    rho_struc_kg_m3 = MRP_RHO_2024,
+)
+
+# App. D JSON key → (canonical provenance name, NASA default). Looked up under cabin / cabin.skin / …
+const APPD_INPUT_SPECS = (
+    (name="t_skin_m", keys=(:t_skin_m, :t_skin), nasa=() -> NASA_DEFAULTS.t_skin_m),
+    (name="t_floor_m", keys=(:t_floor_m, :t_floor), nasa=() -> NASA_DEFAULTS.t_floor_m),
+    (name="A_stringer_m2", keys=(:A_stringer_m2, :A_stringer), nasa=() -> NASA_DEFAULTS.A_stringer_m2),
+    (name="d_stringer_m", keys=(:d_stringer_m, :d_stringer), nasa=() -> NASA_DEFAULTS.d_stringer_m),
+    (name="I_stringer_m4", keys=(:I_stringer_m4, :I_stringer), nasa=() -> NASA_DEFAULTS.I_stringer_m4),
+    (name="A_frame_m2", keys=(:A_frame_m2, :A_frame), nasa=() -> NASA_DEFAULTS.A_frame_m2),
+    (name="ell_frame_m", keys=(:ell_frame_m, :ell_frame), nasa=() -> NASA_DEFAULTS.ell_frame_m),
+    (name="I_frame_m4", keys=(:I_frame_m4, :I_frame), nasa=() -> NASA_DEFAULTS.I_frame_m4),
+    (name="A_floor_beam_m2", keys=(:A_floor_beam_m2, :A_floor_beam), nasa=() -> NASA_DEFAULTS.A_floor_beam_m2),
+    (name="I_floor_beam_m4", keys=(:I_floor_beam_m4, :I_floor_beam), nasa=() -> NASA_DEFAULTS.I_floor_beam_m4),
+    (name="E_Pa", keys=(:E_Pa, :E), nasa=() -> NASA_DEFAULTS.E_Pa),
+    (name="nu", keys=(:nu, :ν), nasa=() -> NASA_DEFAULTS.nu),
+    (name="rho_struc_kg_m3", keys=(:rho_struc_kg_m3, :rho_struc, :ρ), nasa=() -> NASA_DEFAULTS.rho_struc_kg_m3),
 )
 
 """Smeared Phase III wall mass from `MRP_*` (same formula as `PainInputs`)."""
@@ -185,6 +218,11 @@ function apply_aircraft_cabin_json(cfg, kw)
     η_r_band = kw.η_r_band
     η_n_band = kw.η_n_band
     trim = kw.trim
+    cabin_blocks = kw.cabin_blocks
+    sidewall_trim_stack = kw.sidewall_trim_stack
+    end_trim_stack = kw.end_trim_stack
+    mech = kw.mech
+    appd_overrides = Dict{Symbol,Float64}()
 
     inputs = NamedTuple[]
     supplied = Set{String}()
@@ -314,11 +352,64 @@ function apply_aircraft_cabin_json(cfg, kw)
         push!(inputs, _input_row("allow_extrapolation", allow_extrapolation, "assumed"))
     end
 
-    tr = _get_tagged_symbol(cabin, (:trim,); name="trim", allowed=(:auto, :bare, :phase3))
-    if tr !== nothing
-        trim = tr.value
+    cb = _get_tagged_symbol(cabin, (:cabin_blocks,);
+                            name="cabin_blocks", allowed=(:parametric, :surrogate, :auto))
+    if cb !== nothing
+        cabin_blocks = cb.value
+        push!(supplied, "cabin_blocks")
+        push!(inputs, _input_row("cabin_blocks", String(cabin_blocks), cb.tag))
+    end
+
+    # trim: :auto|:bare|:phase3, or a stack object (30a) under cabin.trim / cabin.trim_stack
+    trim_raw = cabin === nothing ? nothing : _get(cabin, :trim, nothing)
+    trim_stack_raw = cabin === nothing ? nothing : _get(cabin, :trim_stack, nothing)
+    if _looks_like_trim_stack(trim_raw)
+        parsed_trim = parse_aircraft_trim_json(trim_raw; cabin_a=a, cabin_L=L,
+                                               cabin_theta0_deg=theta0_deg)
+        sidewall_trim_stack = parsed_trim.sidewall
+        end_trim_stack = parsed_trim.ends
+        mech = parsed_trim.mech
+        trim = :custom
         push!(supplied, "trim")
-        push!(inputs, _input_row("trim", String(trim), tr.tag))
+        push!(inputs, _input_row("trim", "user_stack", parsed_trim.tag))
+        for row in parsed_trim.input_rows
+            push!(inputs, row)
+            push!(supplied, row.name)
+        end
+    elseif _looks_like_trim_stack(trim_stack_raw)
+        parsed_trim = parse_aircraft_trim_json(trim_stack_raw; cabin_a=a, cabin_L=L,
+                                               cabin_theta0_deg=theta0_deg)
+        sidewall_trim_stack = parsed_trim.sidewall
+        end_trim_stack = parsed_trim.ends
+        mech = parsed_trim.mech
+        trim = :custom
+        push!(supplied, "trim")
+        push!(inputs, _input_row("trim", "user_stack", parsed_trim.tag))
+        for row in parsed_trim.input_rows
+            push!(inputs, row)
+            push!(supplied, row.name)
+        end
+    else
+        tr = _get_tagged_symbol(cabin, (:trim,); name="trim", allowed=(:auto, :bare, :phase3))
+        if tr !== nothing
+            trim = tr.value
+            push!(supplied, "trim")
+            push!(inputs, _input_row("trim", String(trim), tr.tag))
+        end
+    end
+
+    # App. D skin / stringer / frame / floor (30c) — cabin.* or cabin.structure.*
+    struct_j = cabin === nothing ? nothing : _get(cabin, :structure, nothing)
+    for spec in APPD_INPUT_SPECS
+        parsed = _first(_get_tagged(cabin, spec.keys; name=spec.name),
+                        _get_tagged(struct_j, spec.keys; name=spec.name))
+        parsed === nothing && continue
+        val, tag0 = parsed
+        push!(supplied, spec.name)
+        nasa_ref = spec.nasa()
+        tag = tag0 === nothing ? resolve_plain_tag(val, nasa_ref) : tag0
+        push!(inputs, _input_row(spec.name, val, tag))
+        appd_overrides[Symbol(spec.name)] = val
     end
 
     if bands === nothing
@@ -355,7 +446,8 @@ function apply_aircraft_cabin_json(cfg, kw)
         η_n_bare, C_struc, NY, ρ0, c0, ρ_ext, c_ext, ρ_int, c_int,
         L_c, d, use_table_d1, structural_solver, m_wall,
         bb_j2_scale, bb_α, broadband_model, spbl_anchor_H, q_max, allow_extrapolation,
-        bands, η_r_band, η_n_band, trim,
+        bands, η_r_band, η_n_band, trim, cabin_blocks,
+        sidewall_trim_stack, end_trim_stack, mech, appd_overrides,
     )
     return (; kwargs=new_kw, provenance_inputs=inputs, supplied_names=supplied)
 end
@@ -382,6 +474,9 @@ function _nasa_ref_for(name::AbstractString)
     name == "rho_int_kg_m3" && return NASA_DEFAULTS.rho_kg_m3
     name == "c_ext_mps" && return NASA_DEFAULTS.c0_mps
     name == "c_int_mps" && return NASA_DEFAULTS.c0_mps
+    for spec in APPD_INPUT_SPECS
+        name == spec.name && return spec.nasa()
+    end
     return nothing
 end
 
@@ -391,6 +486,8 @@ end
 29b list: every §2.10 test-article default this aircraft run actually used.
 A JSON value tagged `assumed` or `measured` is omitted even if numerically equal
 to a NASA default; tag `nasa_default` is listed.
+On `cabin_blocks=:parametric`, absorption / `bb_j2_scale` / Table D-1 are listed
+only when that path actually used them (30b/30c).
 """
 function collect_nasa_defaults_used(;
         L, a, theta0_deg, r_p, phi_p_deg, z_p, rotation_direction,
@@ -399,6 +496,8 @@ function collect_nasa_defaults_used(;
         structural_solver::Symbol, use_table_d1::Bool,
         bb_j2_scale, bb_α, broadband_model::Symbol, spbl_anchor_H::Int,
         trim_used::Symbol, sidewall_is_phase3::Bool,
+        cabin_blocks::Symbol=:surrogate,
+        appd_overrides::AbstractDict=Dict{Symbol,Float64}(),
         supplied::Set{String},
         input_rows::Vector{<:NamedTuple})
     tag_of = Dict{String,String}(r.name => r.tag for r in input_rows)
@@ -458,6 +557,23 @@ function collect_nasa_defaults_used(;
         elseif get(tag_of, "structural_solver", "") == "nasa_default"
             push!(out, _prov_row("structural_solver", "table_d1", "Table D-1 / user tag nasa_default"))
         end
+    elseif structural_solver === :appd
+        if !("structural_solver" in supplied)
+            push!(out, _prov_row("structural_solver", "appd",
+                                 "App. D modes (cabin_blocks=:parametric default)"))
+        elseif get(tag_of, "structural_solver", "") == "nasa_default"
+            push!(out, _prov_row("structural_solver", "appd", "App. D / user tag nasa_default"))
+        end
+        # Missing App. D skin/stringer/frame/floor → NASA MRP_* (30c)
+        for spec in APPD_INPUT_SPECS
+            if !(spec.name in supplied)
+                push!(out, _prov_row(spec.name, spec.nasa(),
+                                     "MRP_* / App. D test-article default (30c)"))
+            elseif get(tag_of, spec.name, "") == "nasa_default"
+                v = get(appd_overrides, Symbol(spec.name), spec.nasa())
+                push!(out, _prov_row(spec.name, v, "App. D / user tag nasa_default"))
+            end
+        end
     end
 
     maybe!("spbl_anchor_H", spbl_anchor_H, "blocked_broadband_band_p2 H anchor";
@@ -513,3 +629,211 @@ function provenance_header_labels(prov)
 end
 
 empty_provenance() = (; nasa_defaults=NamedTuple[], inputs=NamedTuple[])
+
+# =============================================================================
+# Phase 30 — trim stack JSON (30a) and App. D geometry overrides (30c)
+# =============================================================================
+
+"""True when `raw` is a trim-stack object (has sidewall/elements), not a mode symbol."""
+function _looks_like_trim_stack(raw)
+    raw === nothing && return false
+    raw isa AbstractString && return false
+    raw isa Symbol && return false
+    raw isa Number && return false
+    # Tagged scalar {"value":"bare","tag":…}
+    try
+        v = getproperty(raw, :value)
+        (v isa AbstractString || v isa Symbol || v isa Number) && return false
+    catch
+    end
+    if raw isa AbstractDict
+        haskey(raw, "value") && return false
+        haskey(raw, :value) && return false
+        return haskey(raw, "sidewall") || haskey(raw, :sidewall) ||
+               haskey(raw, "elements") || haskey(raw, :elements)
+    end
+    return _get(raw, :sidewall, nothing) !== nothing ||
+           _get(raw, :elements, nothing) !== nothing
+end
+
+"""Resolve cabin_blocks for the pipeline (aircraft default = :parametric)."""
+function resolve_cabin_blocks(cabin_blocks::Symbol, source::Symbol)
+    cabin_blocks in (:auto, :parametric, :surrogate) ||
+        error("cabin_blocks must be :auto, :parametric or :surrogate (got $cabin_blocks)")
+    if cabin_blocks === :auto
+        return source === :aircraft ? :parametric : :surrogate
+    end
+    return cabin_blocks
+end
+
+"""
+Build `AppDGeometry` from fuselage + optional JSON overrides (30c).
+Missing fields use NASA MRP_* (flagged by 29b when on the parametric path).
+No hard-coded 0.508 / 1.83: L, a, θ0 come from `fuse`.
+"""
+function build_appd_geometry(fuse::FuselageGeometry,
+                             overrides::AbstractDict=Dict{Symbol,Float64}())
+    getv(name::Symbol, default) = Float64(get(overrides, name, default))
+    return AppDGeometry(
+        fuse.L, fuse.a, fuse.theta0_deg,
+        getv(:t_skin_m, MRP_T_SKIN),
+        getv(:t_floor_m, MRP_T_SKIN),
+        getv(:A_stringer_m2, MRP_A_STRINGER),
+        getv(:d_stringer_m, MRP_D_STRINGER),
+        getv(:I_stringer_m4, MRP_I_STRINGER),
+        getv(:A_frame_m2, MRP_A_FRAME),
+        getv(:ell_frame_m, MRP_ELL_FRAME),
+        getv(:I_frame_m4, MRP_I_FRAME),
+        getv(:A_floor_beam_m2, MRP_A_FLOOR_BEAM),
+        getv(:I_floor_beam_m4, MRP_I_FLOOR_BEAM),
+        getv(:E_Pa, MRP_E_2024),
+        getv(:nu, MRP_NU_2024),
+        getv(:rho_struc_kg_m3, MRP_RHO_2024),
+    )
+end
+
+function _dict_get(obj, key::Symbol, default=nothing)
+    v = _get(obj, key, nothing)
+    v !== nothing && return v
+    if obj isa AbstractDict
+        for kk in (key, String(key))
+            haskey(obj, kk) && return obj[kk]
+        end
+    end
+    return default
+end
+
+function _resolve_insulation_table(raw; default_table=nothing)
+    raw === nothing && return something(default_table, pf105_table()), "nasa_default", NamedTuple[]
+    rows = NamedTuple[]
+    tag = "assumed"
+    path = nothing
+    name = "user"
+    density = 9.6
+    if raw isa AbstractString
+        path = String(raw)
+    else
+        path = _dict_get(raw, :path, nothing)
+        path === nothing && (path = _dict_get(raw, :file, nothing))
+        n = _dict_get(raw, :name, nothing)
+        n !== nothing && (name = String(n))
+        d = _dict_get(raw, :density, nothing)
+        d === nothing && (d = _dict_get(raw, :density_kg_m3, nothing))
+        d !== nothing && (density = float(d))
+        t = _dict_get(raw, :tag, nothing)
+        t !== nothing && (tag = lowercase(String(t)))
+    end
+    path === nothing && error("aircraft JSON trim: insulation_table needs path or file")
+    # Absolute, else relative to data/cr3813, else relative to cwd
+    candidates = String[path]
+    if !isabspath(path)
+        push!(candidates, normpath(joinpath(@__DIR__, "..", "..", "data", "cr3813", path)))
+        push!(candidates, normpath(joinpath(@__DIR__, "..", "..", "data", path)))
+    end
+    local found = nothing
+    for c in candidates
+        isfile(c) && (found = c; break)
+    end
+    found === nothing && error("aircraft JSON: insulation table not found: $path")
+    tbl = load_insulation_table(found; name=name, density=density)
+    push!(rows, _input_row("insulation_table", found, tag))
+    return tbl, tag, rows
+end
+
+function _parse_trim_element(el, material::InsulationTable)
+    typ = _dict_get(el, :type, nothing)
+    typ === nothing && (typ = _dict_get(el, :kind, nothing))
+    typ === nothing && error("trim element needs type: insulation | limp_mass")
+    t = lowercase(String(typ))
+    if t in ("insulation", "insulation_layer", "layer")
+        th = _dict_get(el, :thickness_m, nothing)
+        th === nothing && (th = _dict_get(el, :thickness, nothing))
+        th === nothing && error("insulation element needs thickness_m")
+        return InsulationLayer(float(th), material)
+    elseif t in ("limp_mass", "limp", "facing", "septum")
+        m = _dict_get(el, :m_kg_m2, nothing)
+        m === nothing && (m = _dict_get(el, :m, nothing))
+        m === nothing && error("limp_mass element needs m_kg_m2")
+        η = _dict_get(el, :eta, nothing)
+        η === nothing && (η = _dict_get(el, :η, nothing))
+        η === nothing && (η = 0.05)
+        lab = _dict_get(el, :label, nothing)
+        lab = lab === nothing ? "limp mass" : String(lab)
+        return LimpMass(float(m), float(η), lab)
+    else
+        error("unknown trim element type \"$t\" (use insulation | limp_mass)")
+    end
+end
+
+function _parse_stack_elements(stack_obj, material::InsulationTable; name::AbstractString="")
+    els_raw = _dict_get(stack_obj, :elements, nothing)
+    els_raw === nothing && error("trim stack $name needs elements[]")
+    els = TrimElement[]
+    for el in els_raw
+        push!(els, _parse_trim_element(el, material))
+    end
+    label = _dict_get(stack_obj, :name, nothing)
+    label = label === nothing ? String(name) : String(label)
+    return TrimStack(els, label)
+end
+
+"""
+    parse_aircraft_trim_json(obj; cabin_a, cabin_L, cabin_theta0_deg) -> NamedTuple
+
+Read a user trim stack (30a) into `TrimStack` / `MechanicalPath` / insulation table.
+Same objects the Phase III path uses. Provenance rows for insulation table and stack.
+"""
+function parse_aircraft_trim_json(obj; cabin_a::Real, cabin_L::Real, cabin_theta0_deg::Real)
+    tag = "assumed"
+    t0 = _dict_get(obj, :tag, nothing)
+    t0 !== nothing && (tag = lowercase(String(t0)))
+    input_rows = NamedTuple[]
+
+    mat_raw = _dict_get(obj, :insulation_table, nothing)
+    mat_raw === nothing && (mat_raw = _dict_get(obj, :insulation, nothing))
+    material, mat_tag, mat_rows = _resolve_insulation_table(mat_raw)
+    append!(input_rows, mat_rows)
+
+    sw_obj = _dict_get(obj, :sidewall, nothing)
+    if sw_obj === nothing && _dict_get(obj, :elements, nothing) !== nothing
+        sw_obj = obj
+    end
+    sw_obj === nothing && error("aircraft trim JSON: need sidewall or elements")
+    sidewall = _parse_stack_elements(sw_obj, material; name="sidewall")
+
+    end_obj = _dict_get(obj, :endplates, nothing)
+    end_obj === nothing && (end_obj = _dict_get(obj, :ends, nothing))
+    ends = if end_obj === nothing
+        # Single insulation + facing copy of first limp mass if any, else empty insulation
+        TrimStack(TrimElement[InsulationLayer(0.013, material)], "end plate (default layer)")
+    else
+        _parse_stack_elements(end_obj, material; name="endplates")
+    end
+
+    mech = nothing
+    mech_obj = _dict_get(obj, :mechanical, nothing)
+    mech_obj === nothing && (mech_obj = _dict_get(obj, :mech, nothing))
+    if mech_obj !== nothing
+        θ0 = deg2rad(float(cabin_theta0_deg))
+        A_curved = 2 * float(cabin_a) * (π - θ0) * float(cabin_L)
+        m_t = float(_dict_get(mech_obj, :m_t, _dict_get(mech_obj, :m_t_kg_m2, 0.1)))
+        A_t = float(_dict_get(mech_obj, :A_t, A_curved))
+        h_t = float(_dict_get(mech_obj, :h_t, 0.00079))
+        c_t = float(_dict_get(mech_obj, :c_t, 3200.0))
+        η_t = float(_dict_get(mech_obj, :eta_t, _dict_get(mech_obj, :η_t, 0.05)))
+        m_w = float(_dict_get(mech_obj, :m, _dict_get(mech_obj, :m_wall, nasa_default_m_wall())))
+        A_w = float(_dict_get(mech_obj, :A, A_curved))
+        h = float(_dict_get(mech_obj, :h, MRP_T_SKIN))
+        c_l = float(_dict_get(mech_obj, :c_l, sqrt(MRP_E_2024 / (MRP_RHO_2024 * (1 - MRP_NU_2024^2)))))
+        N_pts = Int(round(float(_dict_get(mech_obj, :N_points, 0))))
+        n_lines = float(_dict_get(mech_obj, :n_lines, 0))
+        line_len = float(_dict_get(mech_obj, :line_length, n_lines * float(cabin_L)))
+        mech = MechanicalPath(m_t=m_t, A_t=A_t, h_t=h_t, c_t=c_t, η_t=η_t,
+                              m=m_w, A=A_w, h=h, c_l=c_l,
+                              N_points=N_pts, line_length=line_len)
+        push!(input_rows, _input_row("mechanical_path", "user", tag))
+    end
+
+    push!(input_rows, _input_row("trim_stack", sidewall.name, tag))
+    return (; sidewall, ends, mech, tag, material, input_rows)
+end

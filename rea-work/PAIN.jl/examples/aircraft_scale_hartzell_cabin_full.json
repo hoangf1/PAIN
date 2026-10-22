@@ -1,7 +1,7 @@
 {
-  "description": "Hartzell scale-model propeller (same as aircraft_scale_hartzell.json) with a fully specified cabin block for phase 29b/29c. Every cabin value is tagged assumed — invented for the guard/provenance test, not measured OEM data. Working-example fuselage geometry matches the scale-model case (L≈test article, a=0.508 m); propeller geometry unchanged.",
+  "description": "Hartzell scale-model propeller with a fully specified cabin for phase 29b/29c/30. Working-example fuselage diameter 2.64 m (a=1.32 m, diameter ratio 2.60 to the 1.016 m test article). Every cabin value is tagged assumed — invented for the guard/provenance and parametric-path tests, not measured OEM data. cabin_blocks=:parametric (App. D modes + Eqs. 19–23).",
   "validity_class": "X-EXTRAP",
-  "reference": "Pain Validation.pdf Tables 7–9; phase 29c provenance tags",
+  "reference": "Pain Validation.pdf Tables 7–9; phase 29c provenance tags; phase 30 parametric blocks",
   "propeller": {
     "diameter_m": 0.762,
     "num_blades": 3,
@@ -23,13 +23,13 @@
     "pitch_deg": 15.0
   },
   "fuselage": {
-    "L_m": 1.803,
-    "a_m": 0.508,
+    "L_m": 1.83,
+    "a_m": 1.32,
     "theta0_deg": 56.6,
     "note": "Documentary only; pipeline geometry comes from cabin.* below (29c)."
   },
   "propeller_placement": {
-    "r_p_m": 0.965,
+    "r_p_m": 1.777,
     "phi_p_deg": 90.0,
     "z_p_m": 0.90,
     "rotation_direction": 1
@@ -45,11 +45,12 @@
     "observer_periods_blade_pass": 2
   },
   "cabin": {
-    "note": "All values assumed (invented for the 29b/29c empty-nasa_defaults test). Numbers match the scale-model geometry / register defaults so the physics path is unchanged; tags are assumed so they are not silent NASA defaults.",
+    "note": "All values assumed. Diameter 2.64 m working example; App. D skin/stringer/frame/floor supplied so nasa_defaults is empty on the parametric path.",
+    "cabin_blocks": {"value": "parametric", "tag": "assumed"},
     "L_m": {"value": 1.83, "tag": "assumed"},
-    "a_m": {"value": 0.508, "tag": "assumed"},
+    "a_m": {"value": 1.32, "tag": "assumed"},
     "theta0_deg": {"value": 56.6, "tag": "assumed"},
-    "r_p_m": {"value": 0.965, "tag": "assumed"},
+    "r_p_m": {"value": 1.777, "tag": "assumed"},
     "phi_p_deg": {"value": 90.0, "tag": "assumed"},
     "z_p_m": {"value": 0.90, "tag": "assumed"},
     "rotation_direction": {"value": 1, "tag": "assumed"},
@@ -61,10 +62,23 @@
     "C_struc": {"value": 3.0, "tag": "assumed"},
     "m_wall_kg_m2": {"value": 3.23, "tag": "assumed"},
     "NY": {"value": 10, "tag": "assumed"},
-    "structural_solver": {"value": "ritz", "tag": "assumed"},
+    "structural_solver": {"value": "appd", "tag": "assumed"},
     "broadband_model": {"value": "eq19", "tag": "assumed"},
     "bb_alpha": {"value": 2.0, "tag": "assumed"},
     "spbl_anchor_H": {"value": 3, "tag": "assumed"},
-    "trim": {"value": "bare", "tag": "assumed"}
+    "trim": {"value": "bare", "tag": "assumed"},
+    "t_skin_m": {"value": 0.00081, "tag": "assumed"},
+    "t_floor_m": {"value": 0.00081, "tag": "assumed"},
+    "A_stringer_m2": {"value": 1.05765e-5, "tag": "assumed"},
+    "d_stringer_m": {"value": 0.460766, "tag": "assumed"},
+    "I_stringer_m4": {"value": 2.396e-10, "tag": "assumed"},
+    "A_frame_m2": {"value": 5.832e-5, "tag": "assumed"},
+    "ell_frame_m": {"value": 0.2, "tag": "assumed"},
+    "I_frame_m4": {"value": 3.695e-9, "tag": "assumed"},
+    "A_floor_beam_m2": {"value": 4.455e-5, "tag": "assumed"},
+    "I_floor_beam_m4": {"value": 3.695e-9, "tag": "assumed"},
+    "E_Pa": {"value": 7.31e10, "tag": "assumed"},
+    "nu": {"value": 0.33, "tag": "assumed"},
+    "rho_struc_kg_m3": {"value": 2780.0, "tag": "assumed"}
   }
 }
