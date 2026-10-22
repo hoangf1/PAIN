@@ -1121,6 +1121,12 @@ Do **not** claim that replacing ANOPP with CCBlade/F1A inherits NASA’s exterio
 
 ---
 
+## 3.1 Test runner notes (P1, 2026-10-22)
+
+`Pkg.test("PAIN"; test_args=[…])` selects top-level testsets by case-insensitive title substring. Empty args run the full suite. This is a developer convenience only: **no assertion, tolerance, reference file or recorded result changes.** Titles and measured times: `PAIN.jl/test/README.md`. Optional DaemonMode under `PAIN.jl/scripts/devtools/` (separate Project.toml; Revise loaded in the daemon).
+
+---
+
 ## 4. Implementation order (validation-first)
 
 Aligned with `flowchart.md`:

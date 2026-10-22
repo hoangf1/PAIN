@@ -1,0 +1,11 @@
+name = "PAINDevTools"
+uuid = "b2c3d4e5-f6a7-8901-bcde-f12345678901"
+version = "0.1.0"
+
+[deps]
+DaemonMode = "d749ddd5-2b29-4920-8305-6ff5a704e36e"
+Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
+
+[compat]
+DaemonMode = "0.1.10"
+Revise = "3.17.3"

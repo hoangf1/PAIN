@@ -2,7 +2,45 @@ using Test
 using PAIN
 using JSON3
 
-@testset "Blocking Eq.43 vs CR-172428 p.68 (V-UNIT)" begin
+# Top-level testset filter (task P1). Empty ARGS → run everything.
+# Pkg.test("PAIN"; test_args=["CYL2D"]) puts substrings in ARGS (case-insensitive match on title).
+# Helpers are defined once so DaemonMode can re-include this file with shared=true.
+if !isdefined(@__MODULE__, :_run_if)
+    const _TEST_FILTER = String[]
+    const _TESTSETS_RAN = String[]
+    const _TESTSETS_SKIPPED = String[]
+
+    function _want_testset(title::AbstractString)
+        isempty(_TEST_FILTER) && return true
+        t = lowercase(title)
+        return any(occursin(f, t) for f in _TEST_FILTER)
+    end
+
+    """Run `f` inside `@testset title` when ARGS is empty or title contains any filter substring.
+    Do-block form `_run_if("title") do … end` passes `f` first."""
+    function _run_if(f::Function, title::AbstractString)
+        if _want_testset(title)
+            push!(_TESTSETS_RAN, title)
+            t0 = time()
+            @testset "$title" begin
+                f()
+            end
+            dt = time() - t0
+            println("RAN: ", title, " (", round(dt; digits=2), " s)")
+        else
+            push!(_TESTSETS_SKIPPED, title)
+            println("SKIPPED: ", title)
+        end
+        return nothing
+    end
+end
+
+empty!(_TEST_FILTER)
+append!(_TEST_FILTER, lowercase.(String.(ARGS)))
+empty!(_TESTSETS_RAN)
+empty!(_TESTSETS_SKIPPED)
+
+_run_if("Blocking Eq.43 vs CR-172428 p.68 (V-UNIT)") do
     tol = 0.06
     records = ValidationRecord[]
     for (γ, expected_dB) in PAIN.BLOCKING_P68_CHECKPOINTS
@@ -31,14 +69,14 @@ using JSON3
     write_validation_record(out, records)
 end
 
-@testset "Grid geometry 160 points (User Manual Fig.3)" begin
+_run_if("Grid geometry 160 points (User Manual Fig.3)") do
     fuse = FuselageGeometry(1.676, 0.381, 50.0)
     prop = PropellerPlacement(0.381 + 0.05, 90.0, 0.84)
     pts = grid_points(fuse, prop, GridSpec())
     @test length(pts) == 160
 end
 
-@testset "Grid azimuth: ℓ = 1 at the propeller azimuth, upper quarter (12b, V-CODE)" begin
+_run_if("Grid azimuth: ℓ = 1 at the propeller azimuth, upper quarter (12b, V-CODE)") do
     fuse = FuselageGeometry(1.676, 0.381, 50.0)
     for φp in (60.0, 90.0, 120.0)
         prop = PropellerPlacement(0.381 + 0.05, φp, 0.84)
@@ -60,7 +98,7 @@ end
     end
 end
 
-@testset "Grid extension unit checks (V-ASSUMED code-only)" begin
+_run_if("Grid extension unit checks (V-ASSUMED code-only)") do
     fuse = FuselageGeometry(1.676, 0.381, 50.0)
     prop = PropellerPlacement(0.5, 90.0, 0.84)
     pts = grid_points(fuse, prop)
@@ -70,7 +108,7 @@ end
     @test 0 < amps[8, 5, 1] < 1
 end
 
-@testset "GEXT importance-bound options (code checks, not physics)" begin
+_run_if("GEXT importance-bound options (code checks, not physics)") do
     fuse = FuselageGeometry(1.676, 0.381, 50.0)
     prop = PropellerPlacement(0.5, 90.0, 0.84)
     pts = grid_points(fuse, prop)
@@ -100,7 +138,7 @@ end
 
 include("fig_c3_values.jl")
 
-@testset "CYL2D vs Table C-1 and Fig. C-3 (App. C scheme, V-CODE, criteria fixed 2026-10-20; frequency check re-stated as ratios 2026-10-21)" begin
+_run_if("CYL2D vs Table C-1 and Fig. C-3 (App. C scheme, V-CODE, criteria fixed 2026-10-20; frequency check re-stated as ratios 2026-10-21)") do
     cy = cyl2d_modes(56.6; n_modes=20, NY=10, c0=TABLE_C1_C0)
     @test length(cy.modes) == 20
     @test issorted([m.f_Hz_unit for m in cy.modes])
@@ -146,7 +184,7 @@ include("fig_c3_values.jl")
     @test_throws ErrorException cyl2d_modes_search(56.6; NY0=8)   # NY = 8 and 10 differ by more than 1 %
 end
 
-@testset "Three-dimensional cabin modes (Eqs. C.7, C.9, C.12)" begin
+_run_if("Three-dimensional cabin modes (Eqs. C.7, C.9, C.12)") do
     cy = cyl2d_modes(56.6; n_modes=20, NY=10, c0=340.0)
     a, L = 0.508, 1.803
     m = cy.modes[2]
@@ -160,7 +198,7 @@ end
     @test issorted([x.f_Hz for x in modes3])
 end
 
-@testset "Table D-1 shapes, all 32 modes (transcription checks, V-CODE)" begin
+_run_if("Table D-1 shapes, all 32 modes (transcription checks, V-CODE)") do
     @test length(PAIN._D1_SHAPES) == 32
     for (i, row) in enumerate(TABLE_D1_FULL)
         sh = PAIN._D1_SHAPES[i]
@@ -183,13 +221,13 @@ end
     @test structural_shell_psi(m2, 0.5, 90.0, 1.0) ≈ 1.0
 end
 
-@testset "CYL2D floor values" begin
+_run_if("CYL2D floor values") do
     cy = cyl2d_modes(56.6; n_modes=6, NY=10)
     @test all(m -> length(m.phi_floor) == length(m.x_floor_unit) == 11, cy.modes)
     @test all(m -> all(abs.(m.phi_floor) .≤ 1 + 1e-12), cy.modes)
 end
 
-@testset "Coupling f'(n,r) Eq.(52) (V-CODE, analytic limits)" begin
+_run_if("Coupling f'(n,r) Eq.(52) (V-CODE, analytic limits)") do
     θ0d = 56.6
     θ0 = deg2rad(θ0d)
     a, L = 0.508, 1.803
@@ -229,7 +267,7 @@ end
     @test_throws ErrorException coupling_factor(ac_unif, big, fuse)
 end
 
-@testset "Table D-1 seed load (transcription check; residual 0 by construction)" begin
+_run_if("Table D-1 seed load (transcription check; residual 0 by construction)") do
     s = structural_modes_from_table_d1(; n_keep=32)
     @test s.modes[1].f_Hz ≈ 188.52 atol=0.1
     @test s.modes[32].f_Hz ≈ 811.04 atol=0.1
@@ -241,7 +279,7 @@ end
     write_validation_record(out, records)
 end
 
-@testset "Fig E-11 digitization path (SRC_TA)" begin
+_run_if("Fig E-11 digitization path (SRC_TA)") do
     paths = default_e11_paths()
     @test isfile(paths.A)
     @test isfile(paths.B)
@@ -263,14 +301,14 @@ end
     write_validation_record(out, records)
 end
 
-@testset "End-to-end pipeline smoke" begin
+_run_if("End-to-end pipeline smoke") do
     r = run_pain_pipeline(; use_synthetic=true, n_harmonics=3, bpf_Hz=150.0)
     @test length(r.spectrum.harmonic_SPL_dB) == 3
     @test all(isfinite, r.spectrum.harmonic_SPL_dB)
     @test cabin_volume(r.fuse) > 0
 end
 
-@testset "E-11 pipeline: T1/T2 recorded, not asserted (Eq. 8 chain, no tuning)" begin
+_run_if("E-11 pipeline: T1/T2 recorded, not asserted (Eq. 8 chain, no tuning)") do
     r = run_pain_pipeline(; source=:e11, n_harmonics=3, bpf_Hz=200.0, blocking=R2)
     @test r.source === :e11
     @test r.trim === :phase3
@@ -287,14 +325,14 @@ end
     @info "T1/T2 recorded (not asserted)" T1 = [rec.result for rec in t1] T2 = [rec.result for rec in t2]
 end
 
-@testset "Trim / loss helpers" begin
+_run_if("Trim / loss helpers") do
     @test 0.02 ≤ absorption_coefficient(1000) ≤ 0.65
     # The tuned surrogates trim_T_fc, acoustic_loss_factor and structural_loss_factor were removed in 17a.
     @test !isdefined(PAIN, :trim_T_fc) && !isdefined(PAIN, :TrimPanel)
     @test !isdefined(PAIN, :acoustic_loss_factor) && !isdefined(PAIN, :structural_loss_factor)
 end
 
-@testset "App. A trim transfer matrices (16a)" begin
+_run_if("App. A trim transfer matrices (16a)") do
     mat = pf105_table()
     @testset "Fig. A-2 table" begin
         for (i, f) in enumerate(mat.f_Hz)
@@ -379,7 +417,7 @@ end
     end
 end
 
-@testset "Loss factors, Eqs. (62)–(83) (16b)" begin
+_run_if("Loss factors, Eqs. (62)–(83) (16b)") do
     @testset "Si and Cin to machine precision" begin
         @test sine_integral(1.0) ≈ 0.9460830703671830 rtol = 1e-14
         @test sine_integral(10.0) ≈ 1.658347594218874 rtol = 1e-14
@@ -519,7 +557,7 @@ function _rebuild(inp::PainInputs; structural=inp.structural, acoustic=inp.acous
                       allow_extrapolation=inp.allow_extrapolation, ρ0=inp.ρ0, c0=inp.c0)
 end
 
-@testset "Generalized force Ψ_G, Eq. (42) (17e, analytic limits)" begin
+_run_if("Generalized force Ψ_G, Eq. (42) (17e, analytic limits)") do
     fuse = FuselageGeometry(1.803, 0.508, 56.6)
     ΔA = (π * 0.508 / 18)^2
     # a mode uniform in θ: ψ = sin(Mπz/L) (symmetric, n = 0, C = 1)
@@ -561,7 +599,7 @@ end
     @test num ≈ ana rtol = 5e-3
 end
 
-@testset "Resonance form of Eq. (8) (17g)" begin
+_run_if("Resonance form of Eq. (8) (17g)") do
     # D = (ω0² − ω²)² + (η ω0²)² = ω0⁴ [(1 − ω²/ω0²)² + η²]
     D(ω, ω0, η) = (ω0^2 - ω^2)^2 + (η * ω0^2)^2
     ω0, η = 2π * 300, 0.05
@@ -582,7 +620,7 @@ end
     @test isfinite(p_r) && p_r > 0
 end
 
-@testset "Eq. (8) tone pressure: scaling laws and independent re-implementation (17a, 17h, 17i)" begin
+_run_if("Eq. (8) tone pressure: scaling laws and independent re-implementation (17a, 17h, 17i)") do
     r = run_pain_pipeline(; source=:e11, n_harmonics=3, bpf_Hz=200.0, blocking=R2, trim=:bare)
     inp = r.inputs
     ωH = 2π * 200.0
@@ -673,7 +711,7 @@ end
     @test tone_mean_square_pressure(inp, 1, ωH; q_max=6) ≥ tone_mean_square_pressure(inp, 1, ωH; q_max=0)
 end
 
-@testset "PainInputs and the trim path (17a, 17b)" begin
+_run_if("PainInputs and the trim path (17a, 17b)") do
     rb = run_pain_pipeline(; source=:e11, n_harmonics=3, bpf_Hz=200.0, trim=:bare)
     rt = run_pain_pipeline(; source=:e11, n_harmonics=3, bpf_Hz=200.0, trim=:phase3)
     @test rb.trim === :bare && rt.trim === :phase3
@@ -695,7 +733,7 @@ end
     @test 0 < τ ≤ 1
 end
 
-@testset "Phase 17 regression baselines (17k, frozen 2026-10-20)" begin
+_run_if("Phase 17 regression baselines (17k, frozen 2026-10-20)") do
     base = PAIN._read_csv_numeric(joinpath(@__DIR__, "..", "..", "data", "baselines", "phase17_baselines.csv"))
     names = [split(l, ",")[1] for l in readlines(joinpath(@__DIR__, "..", "..", "data", "baselines", "phase17_baselines.csv")) if !startswith(l, "#") && !startswith(l, "name") && !isempty(strip(l))]
     @test length(names) == length(base[:value])
@@ -728,7 +766,7 @@ end
     end
 end
 
-@testset "MRP raw Ritz: regression guard of a calibrated fit (not evidence)" begin
+_run_if("MRP raw Ritz: regression guard of a calibrated fit (not evidence)") do
     fuse = FuselageGeometry(1.803, 0.508, 56.6)
     ritz = structural_modes(fuse; hybrid=false, n_keep=48)
     n_spec, _ = match_ritz_to_table_d1(ritz; tol_frac=0.05)
@@ -741,7 +779,7 @@ end
     @test all(m -> !isempty(m.C_shell) || !isempty(m.C_floor), hyb.modes)   # Ritz shapes attached
 end
 
-@testset "Metrics dBA / SIL" begin
+_run_if("Metrics dBA / SIL") do
     # IEC 61672 A-weighting table values (independent of overall_dBA band)
     @test a_weight_dB(1000.0) ≈ 0.0 atol=0.1
     @test a_weight_dB(100.0) ≈ -19.1 atol=0.1
@@ -785,7 +823,7 @@ end
     @test dBA_r ≈ bands_only atol=1e-9
 end
 
-@testset "Shared source function (21, V-CODE)" begin
+_run_if("Shared source function (21, V-CODE)") do
     # n_harmonics=3, num_src_times=32 to bound runtime.
     # Pre-I-01 f1a_line_reference.csv is void (I-01); equivalence vs that file removed.
     json = joinpath(@__DIR__, "..", "examples", "aircraft_scale_hartzell.json")
@@ -852,7 +890,7 @@ end
     rm(tmp; force=true)
 end
 
-@testset "F1A source span and phase origin (I-01/I-02)" begin
+_run_if("F1A source span and phase origin (I-01/I-02)") do
     # Report 996-like near-field observer (plan I-01): M_t high, x/D=0, d/D=0.083.
     json = joinpath(@__DIR__, "..", "examples", "aircraft_scale_hartzell.json")
     cfg = PAIN._load_aircraft_json(json)
@@ -886,7 +924,7 @@ end
     @test cmp.ok
 end
 
-@testset "BBN kinematics (24b, V-UNIT)" begin
+_run_if("BBN kinematics (24b, V-UNIT)") do
     # I-02 (a): after absolute phase reference, Δφ = m·B·Δψ on a hub-centred ring (static)
     # within 0.5° (frozen 23a′). Both rotation senses: sign of Δφ flips.
     json = joinpath(@__DIR__, "..", "examples", "bbn_aerocommander_tipA.json")
@@ -927,7 +965,7 @@ end
 end
 
 
-@testset "Polar loader (25i, V-CODE)" begin
+_run_if("Polar loader (25i, V-CODE)") do
     path = joinpath(@__DIR__, "..", "..", "data", "report996", "polars_forced_merged.json")
     @test isfile(path)
     af, st = load_polar_set(path; set=:primary)
@@ -941,7 +979,7 @@ end
     @test stb.clamped_Re >= 0
 end
 
-@testset "Report 996 conversions + blade form (25b/25j, V-UNIT)" begin
+_run_if("Report 996 conversions + blade form (25b/25j, V-UNIT)") do
     # total_rms: two equal peak amplitudes A → √(A²) = A
     @test total_rms([2.0, 2.0]) ≈ 2.0 rtol=1e-12
     @test total_rms([√2]) ≈ 1.0 rtol=1e-12
@@ -967,7 +1005,7 @@ end
     @test obs[1].x[1] ≈ (-1.0) * (-0.125) * g.D rtol=1e-12
 end
 
-@testset "Validation case registry (34d)" begin
+_run_if("Validation case registry (34d)") do
     @test Set(keys(VALIDATION_CASES)) == Set(VALIDATION_CASE_ORDER)
     for id in VALIDATION_CASE_ORDER
         @test haskey(VALIDATION_CASES, id)
@@ -1197,3 +1235,19 @@ end
 end
 
 
+
+println()
+println("=== Testset filter summary ===")
+if isempty(_TEST_FILTER)
+    println("Filter: (none — all testsets)")
+else
+    println("Filter: ", join(ARGS, ", "))
+end
+println("Ran (", length(_TESTSETS_RAN), "):")
+for t in _TESTSETS_RAN
+    println("  + ", t)
+end
+println("Skipped (", length(_TESTSETS_SKIPPED), "):")
+for t in _TESTSETS_SKIPPED
+    println("  - ", t)
+end

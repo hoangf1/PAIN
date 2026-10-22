@@ -1170,6 +1170,7 @@ has no thickness noise.
 4. Lab coupon closure of App. A transfer matrix  
 5. Notebooks  
 6. Check R1/R2 blocking against NACA Report 996 Fig. 10 (pressure at a flat wall about twice the free-space value; one condition, wall-plane pressure, no phase; needs digitizing)
+7. ~~Faster test cycle (testset filter + DaemonMode)~~ → **P1 done 2026-10-22** (§11)
 
 ---
 
@@ -1249,7 +1250,7 @@ docs/archive/{SESSION_PROMPT.txt,T1_fix_instructions.txt}
 
 ---
 
-## 11. Completed phases 0–22 + 2026-10-21 close-out + phases 32–35 (reference)
+## 11. Completed phases 0–22 + 2026-10-21 close-out + phases 32–35 + task P1 (reference)
 
 No action needed for closed phases. Kept for the record; the planned work is in §§5–8.
 
@@ -1606,3 +1607,12 @@ Why this phase ran here: 18b showed that the chain does not compute what NASA's 
 - [x] **35f Five docs** updated (this phase).
 - [x] **35g Cursor check rule** in `CLAUDE.md` / plan R13.
 - [x] **C3 Directory cleanup.** `git mv` one-off scripts → `PAIN.jl/scripts/retired/`; `SESSION_PROMPT.txt`, `T1_fix_instructions.txt` → `docs/archive/`; cropped source figures under `docs/validation_reports/figures/source/`.
+
+## Task P1 — Faster test cycle *(done 2026-10-22)*
+
+Developer tooling only; **no** change to assertions, criteria, reference data or `src/`.
+
+- [x] **Testset filter.** Top-level `@testset`s wrapped in `_run_if` in `test/runtests.jl`. `Pkg.test("PAIN"; test_args=[…])` runs only titles containing any substring (case-insensitive); empty args = full suite. Prints ran/skipped summary. Titles + typical times: `PAIN.jl/test/README.md`.
+- [x] **DaemonMode.** `PAIN.jl/scripts/devtools/` own env (`Project.toml` / `Manifest.toml`: DaemonMode + Revise — **not** a PAIN dependency). `start_daemon.ps1` / `start_daemon.jl` (Revise + `using PAIN` + `serve(shared=true)`), `run_in_daemon.ps1`, `run_tests_in_daemon.jl`, `stop_daemon.ps1`. README notes Revise is loaded; restart after structural `src/` / project changes if revise fails.
+- [x] **Measured wall times (2026-10-22, Julia 1.13.2):** full `Pkg.test()` **224 s**; filtered `Grid geometry` via `Pkg.test` **88 s**, via daemon **33 s**; `smoke_gui_model.jl` normal **577 s**, via daemon **54 s**.
+- [x] Docs: README, flowchart, METHODOLOGY, VALIDATION_GUIDELINE §3.1, this file.

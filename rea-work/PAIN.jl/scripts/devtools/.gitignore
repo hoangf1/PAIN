@@ -1,0 +1,4 @@
+daemon.out.log
+daemon.err.log
+daemon.pid
+_time_*.txt

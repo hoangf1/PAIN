@@ -269,6 +269,8 @@ Preferred cabin path (calibrated): `data/e11_freefield_measured_A.csv` (with the
 | Build order, phase checklist, data inventory | `IMPLEMENTATION_PLAN.md` |
 | Diagrams (NASA validation, aircraft validation, cabin model, validation maps) | `flowchart.md` |
 | How to run it | `../README.md` |
+| Testset titles / filter / typical times (P1) | `PAIN.jl/test/README.md` |
+| Persistent Julia for checks (DaemonMode; not a PAIN dep) | `PAIN.jl/scripts/devtools/README.md` |
 | Validation reports | `validation_reports/` |
 | Digitized data and READMEs with uncertainties | `../data/` (`report996/`, `pereira/`, `e11_*`, `t1_*`, `e14_*`, `e15_*`) |
 | Case registry + runners | `PAIN.jl/src/validation_cases.jl`, `validation_case_extras.jl` |

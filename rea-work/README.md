@@ -119,6 +119,14 @@ julia --project=. -e "using Pkg; Pkg.test()"
 
 Expected: a test summary ending with all tests passed.
 
+To run only some top-level testsets (substring match on the title, case-insensitive):
+
+```powershell
+julia --project=. -e "using Pkg; Pkg.test(`"PAIN`"; test_args=[`"CYL2D`", `"Validation case registry`"])"
+```
+
+Titles and typical times: [`PAIN.jl/test/README.md`](PAIN.jl/test/README.md). Optional persistent Julia (DaemonMode, own env under `PAIN.jl/scripts/devtools/`): [`PAIN.jl/scripts/devtools/README.md`](PAIN.jl/scripts/devtools/README.md). No change to assertions or `src/` (task P1, 2026-10-22).
+
 ### Step 4 - Run the full pipeline and validation checks
 
 ```powershell
