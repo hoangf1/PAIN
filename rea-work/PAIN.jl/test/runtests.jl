@@ -1895,21 +1895,22 @@ _run_if("Validation case registry (34d)") do
         @test haskey(CASE_INFO, id)
         @test get(block_hits, id, 0) == 1
     end
-    for map_id in ("pain", "aircraft")
+    for map_id in ("total",)
         raw = validation_map_json(map_id)
         parsed = JSON3.read(raw)
         @test parsed.id == map_id
         listed = String[]
         for b in parsed.blocks
+            @test haskey(b, :col) && haskey(b, :row) && haskey(b, :feeds)
+            @test haskey(b, :group) && haskey(b, :role)
             for c in b.cases
                 push!(listed, String(c.id))
             end
         end
+        @test haskey(parsed, :groups)
         for id in VALIDATION_CASE_ORDER
-            # registry cases on this map must appear in the JSON
             get(block_hits, id, 0) == 1 || continue
             info = CASE_INFO[id]
-            # find which map owns this id
             own = nothing
             for m in VALIDATION_MAPS
                 for b in m.blocks
@@ -1949,16 +1950,37 @@ _run_if("Validation case registry (34d)") do
             @test !isempty(b.what_it_does)
         end
     end
-    # Expected structure (frozen with §2.13 migration; R996_FIG8 removed)
-    @test [m.id for m in VALIDATION_MAPS] == ["pain", "aircraft"]
-    @test [b.id for b in VALIDATION_MAPS[1].blocks] ==
-          ["P_FF", "P_GRID", "P_BLK", "P_MRP", "P_CYL", "P_TRIM", "P_EQ8", "P_REPRO", "P_MEAS"]
-    @test [b.id for b in VALIDATION_MAPS[2].blocks] ==
-          ["A_GEO", "A_LOADS", "A_AMP", "A_PHASE", "A_FWD", "A_SURF", "A_CABIN"]
-    @test VALIDATION_MAPS[1].blocks[3].cases == ["BLK_P68", "E12_BLOCK"]
-    @test VALIDATION_MAPS[2].blocks[3].cases ==
+    # Expected structure — single total map (aircraft + cabin + checks); R996_FIG8 removed
+    @test [m.id for m in VALIDATION_MAPS] == ["total"]
+    total = VALIDATION_MAPS[1]
+    @test Set([
+        "A_GEO", "A_LOADS", "A_AMP", "A_PHASE", "A_FWD", "A_SURF", "A_CABIN",
+        "P_FF", "P_GRID", "P_BLK", "P_MRP", "P_CYL", "P_TRIM", "P_EQ8", "P_REPRO", "P_MEAS",
+        "X_F1A", "X_FF", "X_SRC", "X_BLK_OUT", "X_OUT",
+    ]) ⊆ Set(b.id for b in total.blocks)
+    blk_p68 = only(b for b in total.blocks if b.id == "P_BLK")
+    @test blk_p68.cases == ["BLK_P68", "E12_BLOCK"]
+    amp = only(b for b in total.blocks if b.id == "A_AMP")
+    @test amp.cases ==
           ["F1A_GUTIN", "R996_FIG14", "R996_FIG12", "R996_FIG13A", "R996_FIG6", "R996_FIG7"]
+    air = only(b for b in total.blocks if b.id == "A_GEO")
+    @test air.group_title == "Aircraft BEMT+F1A"
+    @test air.role == "input"
+    # Feeds targets exist; layout positions present; no empty-role pipeline without group
+    ids = Set(b.id for b in total.blocks)
+    for b in total.blocks
+        @test b.col >= 0 && b.row >= 0
+        for f in b.feeds
+            @test f in ids
+        end
+        @test !isempty(b.group)
+        @test b.role in ("input", "function", "output", "check")
+    end
     @test !haskey(CASE_INFO, "R996_FIG8")
+    # Every case Map / block points at total
+    for id in keys(CASE_INFO)
+        @test CASE_INFO[id].map_id == "total"
+    end
     # Temp-doc edit → case_info_json changes (single source)
     mktempdir() do tmp
         src = validation_guideline_path()
@@ -1979,10 +2001,12 @@ _run_if("Validation case registry (34d)") do
     end
     blk = JSON3.read(case_info_json("BLK_P68"))
     @test occursin("R2", String(blk.explanation))
-    pain_json = JSON3.read(validation_map_json("pain"))
-    @test haskey(pain_json, :how_to_read)
-    @test !isempty(String(pain_json.how_to_read))
-    @test haskey(pain_json.blocks[1], :what_it_does)
+    total_json = JSON3.read(validation_map_json("total"))
+    @test haskey(total_json, :how_to_read)
+    @test !isempty(String(total_json.how_to_read))
+    @test haskey(total_json.blocks[1], :what_it_does)
+    @test haskey(total_json.blocks[1], :col)
+    @test haskey(total_json, :groups)
     r1 = run_validation_case("CYL2D_C1")
     r2 = run_validation_case("CYL2D_C1")
     @test r1.verdict === :met

@@ -221,17 +221,17 @@ Until 29b/29c land, an aircraft run may silently use the test-article defaults l
 | Report 996 loads / F1A (Figs. 14, 13a, 7) + 25k | I-07 re-run; I-08 L51C27 on Fig.13a; behind>ahead false after fix; 23c scaled ±2 dB FAIL (5/24); page-12 phase FAIL (103.8° vs 155°) | `report996_loads.md`, `report996_acoustics.md`, `report996_setup.md` |
 | Pereira forward-flight (3 polars, ScaledLoads) | 23d **FAIL** on H1 (0/9 within ±1.7 dB vs Fig.9 Exp at 80 dB as read); H2 6/9 within ±3 dB; best unscaled `xtr005` s_T≈1.34 | `pereira_forward_flight.md` |
 | Source-block summary (phase 33a/c) | BBN 24b PASS / 24c FAIL; Report 996 23c FAIL (scaled ±2 dB, page-12 phase); Pereira 23d FAIL H1; Gutin/Hanson cross-check **not run** (optional §2.3.3). Aircraft free field stays **X-EXTRAP** | this register; `VALIDATION_GUIDELINE.md` §2.3.3 |
-| GUI Validation tab (phase 34) + Validation map tab (phase 35) | Shows registered cases only (fixed inputs, fixed criterion, dated). Not a calibration tool; no editable case inputs. Same `run_validation_case` as scripts/`Pkg.test()`. Plots: reference as digitized + computed + error panel; PNG under `docs/validation_reports/figures/`. Two maps in `validation_map.jl` (cabin chain; aircraft source). Case/map/block copy from `VALIDATION_GUIDELINE.md` §2.13 (both tabs; each Explanation ends with Inputs / Equations / Outputs). `UT_GRID` runnable with γ-coloured grid figure. Runnable include `E18_TONES` / `E15_STRUCT_LOSS` (38d–38e); R996_FIG8 removed | `src/validation_cases.jl`, `validation_map.jl`, `validation_plots.jl`, GUI tabs |
+| GUI Validation tab (phase 34) + Validation map tab (phase 35 → total) | Shows registered cases only (fixed inputs, fixed criterion, dated). Not a calibration tool; no editable case inputs. Same `run_validation_case` as scripts/`Pkg.test()`. Plots: reference as digitized + computed + error panel; PNG under `docs/validation_reports/figures/`. One map `total` in `validation_map.jl` (aircraft + e11 + cabin + checks; `Position`/`Feeds`/`Group`/`Role`; horizontal canvas; group frames from own blocks only, pairwise disjoint). Case/map/block copy from `VALIDATION_GUIDELINE.md` §2.13 (both tabs; each Explanation ends with Inputs / Equations / Outputs). `UT_GRID` runnable with γ-coloured grid figure. Runnable include `E18_TONES` / `E15_STRUCT_LOSS` (38d–38e); R996_FIG8 removed | `src/validation_cases.jl`, `validation_map.jl`, `validation_plots.jl`, GUI tabs |
 | Cabin modes animation (phase 36) | Display only: full-section mode frames from `cyl2d_modes`, Fig. C-3 overlay, Eq. (C.9) axial factor, optional structural ψ / f′. Own GUI tab; fixed `CYL2D_C1` inputs. No criterion, no verdict, no tuning | `src/mode_animation.jl`, Cabin modes tab |
 | CR-3813 E-21/E-22 digitization (C-05) | Pass B dual hand; δ_dig = 1.00 dB PASS | `e21_noise_reduction_range.csv`, `_B2.csv`, `e22_noise_reduction_ci.csv` |
 | CR-3813 E-16…E-18, E-9/E-10 pass B (C-07–C-10) | Digitized 2026-10-21; pass A targets frozen | `t1_interior_targets_B.csv`, `e17_interior_ci.csv`, `e18_interior_pred_eta1.csv`, `t2_third_octave_targets_B.csv`, `e10_interior_ci.csv` |
 
 **Pre-registration (phase 13, 2026-10-20).** The assumptions of the CR-3813 cabin chain (15a–17a) and the pass criteria for the loss and trim comparisons (Fig. E-14 calculated within ±25 %, Fig. E-13 within ±0.05, measured curves recorded with no pass mark) are fixed before any run in `VALIDATION_GUIDELINE.md` §2.11. A later change makes the affected result calibrated with the parameter named.
 
-**Validation maps (phase 35, 2026-10-21).** Two flowcharts in `src/validation_map.jl` (also drawn in `flowchart.md` §5) organise every registry case:
+**Validation map (phase 35 → total, 2026-10-22).** One flowchart `total` in `src/validation_map.jl` (also drawn in `flowchart.md` §1 / §5) organises every registry case on a left-to-right stage canvas (input / function / output / check). Stage group frames are computed from each group's own blocks only and §2.13 `(col,row)` keeps those frames pairwise disjoint (aircraft checks above/below the pipeline; Free field in later columns). Earlier Map 1 / Map 2 pages are replaced in the GUI:
 
-1. **Map 1 — PAIN verification (CR-3813 cabin chain).** Free field E11 → grid/GEXT → blocking → structural modes → cabin modes → trim/loss → coupling/Ψ_G/Eq. 8 → vs NASA's PAIN program → vs test-article measurement. A pass shows the cabin chain matches its own printed equations, tables and NASA PAIN output, then in-sample measurement. It does **not** cover the aircraft source.
-2. **Map 2 — Aircraft source (CCBlade BEMT + F1A).** Geometry/polars → BEMT loads → F1A amplitude (static near field) → F1A phase → forward-flight far field → fuselage-surface levels → hand-off to Map 1. Report 996 = static near-field amplitude; BBN = phase on a fuselage; Pereira = forward flight far field. The aircraft cabin result stays **X-EXTRAP**. Neither map is a calibration tool.
+1. **Aircraft BEMT+F1A → Free field → Grid and blocking → PAIN main → Interior SPL**, with Structural modes / CYL2D / Trim and loss in parallel into PAIN main. Case chips branch from stage outputs (same case ids as before). A cabin-chain pass shows equations match printed tables / NASA PAIN / in-sample measurement; it does **not** validate the aircraft source.
+2. **Aircraft source checks** (loads, F1A amplitude/phase, forward flight, surface levels) sit on the aircraft stage. Report 996 = static near-field amplitude; BBN = phase on a fuselage; Pereira = forward flight far field. Aircraft cabin SPL stays **X-EXTRAP**. The map is not a calibration tool.
 
 ## 10. What this recreation does not claim
 
@@ -277,7 +277,7 @@ Preferred cabin path (calibrated): `data/cr3813/e11_freefield_measured_A.csv` (w
 |------|------|
 | Evidence, tolerances, parameter register, reporting template | `VALIDATION_GUIDELINE.md` |
 | Build order, phase checklist, data inventory | `IMPLEMENTATION_PLAN.md` |
-| Diagrams (NASA validation, aircraft validation, cabin model, validation maps) | `flowchart.md` |
+| Diagrams (overview/total, NASA validation, aircraft validation, cabin model, validation map) | `flowchart.md` |
 | How to run it | `../README.md` |
 | Testset titles / filter / typical times (P1) | `PAIN.jl/test/README.md` |
 | Persistent Julia for checks (DaemonMode; not a PAIN dep) | `PAIN.jl/scripts/devtools/README.md` |
@@ -285,5 +285,5 @@ Preferred cabin path (calibrated): `data/cr3813/e11_freefield_measured_A.csv` (w
 | Digitized data and READMEs with uncertainties | `../data/` (`cr3813/` for E-11/T1/T2/E-14/E-15/…, `report996/`, `pereira/`; see `data/README.md`) |
 | Scripts by purpose (R1) | `PAIN.jl/scripts/{run,checks,digitize,setup,smoke}/` (`scripts/README.md`) |
 | Case registry + runners | `PAIN.jl/src/validation_cases.jl`, `validation_case_extras.jl` |
-| Validation maps (CASE_INFO, Map 1 / Map 2) + GUI map tab | `PAIN.jl/src/validation_map.jl` |
+| Validation map (CASE_INFO, map `total`) + GUI map tab | `PAIN.jl/src/validation_map.jl` |
 | Case plots (error panel, source page) | `PAIN.jl/src/validation_plots.jl`; figures under `validation_reports/figures/`; optional `PlotSpec.error_xlabel` when error-panel x ≠ main-panel x (`UT_GRID`) |

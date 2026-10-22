@@ -6,8 +6,8 @@ import jlqml
 ApplicationWindow {
     id: root
     visible: true
-    width: 1180
-    height: 780
+    width: String(pain.smoke_map_png || "").length > 0 ? 1900 : 1180
+    height: String(pain.smoke_map_png || "").length > 0 ? 1000 : 780
     title: "PAIN - Propeller Aircraft Interior Noise"
     color: "#f4f6f8"
 
@@ -69,11 +69,15 @@ ApplicationWindow {
         }
     }
 
-    // ---- Validation map helpers ----
-    property string activeMapId: "pain"
-    property var mapData: ({ "id": "", "title": "", "intro": "", "what_is": "", "how_to_read": "", "blocks": [] })
+    // ---- Validation map helpers (single total flowchart) ----
+    property string activeMapId: "total"
+    property var mapData: ({ "id": "", "title": "", "intro": "", "what_is": "", "how_to_read": "", "blocks": [], "groups": [] })
     property var mapDetail: ({})
     property bool mapHowExpanded: false
+    property real mapZoom: 1.0
+    readonly property real mapCellW: 168
+    readonly property real mapCellH: 118
+    readonly property real mapPad: 28
 
     function categoryColor(cat) {
         if (cat === "verification") return "#0b6e4f"
@@ -92,23 +96,83 @@ ApplicationWindow {
         return ""
     }
 
+    function roleBorder(role) {
+        if (role === "input") return "#5b4b8a"
+        if (role === "function") return "#1f5fa8"
+        if (role === "output") return "#0b6e4f"
+        if (role === "check") return "#8a4b08"
+        return root.border
+    }
+
+    function blockAt(col, row) {
+        return Qt.point(root.mapPad + col * root.mapCellW, root.mapPad + row * root.mapCellH)
+    }
+
+    // Chip stack height under a title box (Flow ~2 chips wide, ~30 px/row). Must match
+    // validation_map_group_rects in validation_map.jl for the smoke disjoint check.
+    function blockChipExtra(block) {
+        var n = (block && block.cases) ? block.cases.length : 0
+        if (n <= 0)
+            return 0
+        var rows = Math.ceil(n / 2)
+        return 4 + rows * 30
+    }
+
+    // Axis-aligned group rectangle from that group's own blocks only (incl. check chips).
+    function groupBounds(groupId, blocks) {
+        var minX = 1e9, minY = 1e9, maxX = -1e9, maxY = -1e9, any = false
+        for (var i = 0; i < blocks.length; i++) {
+            var b = blocks[i]
+            if (String(b.group || "") !== String(groupId))
+                continue
+            any = true
+            var p = root.blockAt(b.col, b.row)
+            var extra = root.blockChipExtra(b)
+            if (p.x < minX) minX = p.x
+            if (p.y < minY) minY = p.y
+            if (p.x + 148 > maxX) maxX = p.x + 148
+            if (p.y + 44 + extra > maxY) maxY = p.y + 44 + extra
+        }
+        if (!any)
+            return { x: 0, y: 0, w: 40, h: 40 }
+        return {
+            x: minX - 10,
+            y: minY - 22,
+            w: Math.max(40, (maxX + 10) - (minX - 10)),
+            h: Math.max(40, (maxY + 10) - (minY - 22))
+        }
+    }
+
+    function mapContentSize() {
+        var blocks = (root.mapData && root.mapData.blocks) ? root.mapData.blocks : []
+        var maxC = 0, maxR = 0
+        for (var i = 0; i < blocks.length; i++) {
+            if (blocks[i].col > maxC) maxC = blocks[i].col
+            if (blocks[i].row > maxR) maxR = blocks[i].row
+        }
+        return Qt.size(root.mapPad * 2 + (maxC + 1) * root.mapCellW + 80,
+                       root.mapPad * 2 + (maxR + 1) * root.mapCellH + 100)
+    }
+
     function resetMapFlowScroll() {
-        if (typeof mapFlowScroll !== "undefined" && mapFlowScroll) {
-            if (mapFlowScroll.contentItem)
-                mapFlowScroll.contentItem.contentY = 0
-            if (mapFlowScroll.ScrollBar && mapFlowScroll.ScrollBar.vertical)
-                mapFlowScroll.ScrollBar.vertical.position = 0
+        if (typeof mapCanvasFlick !== "undefined" && mapCanvasFlick) {
+            mapCanvasFlick.contentX = 0
+            mapCanvasFlick.contentY = 0
         }
     }
 
     function reloadActiveMap() {
-        var raw = activeMapId === "aircraft" ? pain.map_aircraft_json : pain.map_pain_json
+        var raw = pain.map_total_json
         try {
             mapData = JSON.parse(String(raw || "{}"))
         } catch (e) {
-            mapData = { "id": "", "title": "", "intro": "", "blocks": [] }
+            mapData = { "id": "", "title": "", "intro": "", "blocks": [], "groups": [] }
         }
         resetMapFlowScroll()
+        Qt.callLater(function () {
+            if (typeof mapCanvasFlick !== "undefined" && mapCanvasFlick)
+                Julia.report_map_canvas_size_from_qml(mapCanvasFlick.contentWidth, mapCanvasFlick.width)
+        })
     }
 
     function reloadMapDetail() {
@@ -119,9 +183,13 @@ ApplicationWindow {
         }
     }
 
-    function setActiveMap(id) {
-        activeMapId = id
-        reloadActiveMap()
+    function fitMapToWindow() {
+        if (typeof mapCanvasFlick === "undefined" || !mapCanvasFlick)
+            return
+        var sz = root.mapContentSize()
+        var zx = mapCanvasFlick.width / Math.max(1, sz.width)
+        var zy = mapCanvasFlick.height / Math.max(1, sz.height)
+        root.mapZoom = Math.max(0.35, Math.min(1.5, Math.min(zx, zy) * 0.95))
         resetMapFlowScroll()
     }
 
@@ -727,7 +795,7 @@ ApplicationWindow {
                 }
             }
 
-            // ---- Validation map tab (two flowcharts) ----
+            // ---- Validation map tab (single total flowchart, horizontal) ----
             RowLayout {
                 spacing: 14
                 Component.onCompleted: {
@@ -735,9 +803,7 @@ ApplicationWindow {
                     root.reloadMapDetail()
                 }
 
-                // Re-parse when Julia refreshes map / detail Observables after a Run.
-                property string mapJsonWatch: root.activeMapId === "aircraft"
-                                              ? pain.map_aircraft_json : pain.map_pain_json
+                property string mapJsonWatch: pain.map_total_json
                 onMapJsonWatchChanged: root.reloadActiveMap()
                 property string mapDetailWatch: pain.map_detail_json
                 onMapDetailWatchChanged: root.reloadMapDetail()
@@ -754,25 +820,34 @@ ApplicationWindow {
                         RowLayout {
                             Layout.fillWidth: true
                             spacing: 8
-                            Button {
-                                text: "PAIN verification"
-                                highlighted: root.activeMapId === "pain"
-                                onClicked: root.setActiveMap("pain")
+                            Text {
+                                text: (root.mapData && root.mapData.title) ? root.mapData.title : ""
+                                font.bold: true
+                                font.pixelSize: 14
+                                color: root.ink
+                                Layout.fillWidth: true
+                                wrapMode: Text.WordWrap
                             }
                             Button {
-                                text: "Aircraft source validation"
-                                highlighted: root.activeMapId === "aircraft"
-                                onClicked: root.setActiveMap("aircraft")
+                                text: "Fit"
+                                flat: true
+                                onClicked: root.fitMapToWindow()
                             }
-                        }
-
-                        Text {
-                            text: (root.mapData && root.mapData.title) ? root.mapData.title : ""
-                            font.bold: true
-                            font.pixelSize: 15
-                            color: root.ink
-                            Layout.fillWidth: true
-                            wrapMode: Text.WordWrap
+                            Button {
+                                text: "−"
+                                flat: true
+                                onClicked: root.mapZoom = Math.max(0.35, root.mapZoom - 0.1)
+                            }
+                            Text {
+                                text: Math.round(root.mapZoom * 100) + "%"
+                                color: root.muted
+                                font.pixelSize: 11
+                            }
+                            Button {
+                                text: "+"
+                                flat: true
+                                onClicked: root.mapZoom = Math.min(2.0, root.mapZoom + 0.1)
+                            }
                         }
 
                         // Collapsible "How to read this map" (from §2.13 what_is + how_to_read)
@@ -895,146 +970,317 @@ ApplicationWindow {
                             }
                         }
 
-                        ScrollView {
-                            id: mapFlowScroll
+                        Item {
                             Layout.fillWidth: true
                             Layout.fillHeight: true
-                            clip: true
-                            // Assign (not bind) so availableWidth ↔ contentWidth cannot loop.
-                            ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
-                            onAvailableWidthChanged: contentWidth = availableWidth
-                            Component.onCompleted: contentWidth = availableWidth
 
-                            Column {
-                                width: mapFlowScroll.availableWidth
-                                spacing: 4
+                            Flickable {
+                                id: mapCanvasFlick
+                                anchors.fill: parent
+                                clip: true
+                                interactive: true
+                                boundsBehavior: Flickable.StopAtBounds
+                                ScrollBar.horizontal: ScrollBar { policy: ScrollBar.AlwaysOn }
+                                ScrollBar.vertical: ScrollBar { policy: ScrollBar.AlwaysOn }
+                                contentWidth: mapScaled.width
+                                contentHeight: mapScaled.height
+                                onWidthChanged: Julia.report_map_canvas_size_from_qml(contentWidth, width)
+                                onContentWidthChanged: Julia.report_map_canvas_size_from_qml(contentWidth, width)
+                                Component.onCompleted: Julia.report_map_canvas_size_from_qml(contentWidth, width)
 
-                                Repeater {
-                                    model: (root.mapData && root.mapData.blocks) ? root.mapData.blocks : []
-                                    delegate: Column {
-                                        id: blockCol
-                                        property var block: modelData
-                                        property int blockIndex: index
-                                        width: parent.width
-                                        spacing: 4
+                                // Shift+wheel → horizontal scroll; Ctrl+wheel → zoom
+                                MouseArea {
+                                    anchors.fill: parent
+                                    acceptedButtons: Qt.NoButton
+                                    onWheel: function (w) {
+                                        if (w.modifiers & Qt.ControlModifier) {
+                                            var dz = w.angleDelta.y > 0 ? 0.1 : -0.1
+                                            root.mapZoom = Math.max(0.35, Math.min(2.0, root.mapZoom + dz))
+                                            w.accepted = true
+                                        } else if (w.modifiers & Qt.ShiftModifier) {
+                                            mapCanvasFlick.contentX = Math.max(0, Math.min(
+                                                mapCanvasFlick.contentWidth - mapCanvasFlick.width,
+                                                mapCanvasFlick.contentX - w.angleDelta.y))
+                                            w.accepted = true
+                                        }
+                                    }
+                                }
 
-                                        RowLayout {
-                                            width: parent.width
-                                            spacing: 10
+                                Item {
+                                    id: mapScaled
+                                    width: mapCanvas.width * root.mapZoom
+                                    height: mapCanvas.height * root.mapZoom
 
-                                            Rectangle {
-                                                Layout.preferredWidth: 240
-                                                Layout.minimumHeight: 64
-                                                radius: 4
-                                                color: "#f0f3f6"
-                                                border.color: root.border
-                                                Column {
-                                                    anchors.fill: parent
-                                                    anchors.margins: 8
-                                                    spacing: 2
+                                    Item {
+                                        id: mapCanvas
+                                        property var blocks: (root.mapData && root.mapData.blocks) ? root.mapData.blocks : []
+                                        property var groups: (root.mapData && root.mapData.groups) ? root.mapData.groups : []
+                                        width: root.mapContentSize().width
+                                        height: root.mapContentSize().height
+                                        transform: Scale {
+                                            xScale: root.mapZoom
+                                            yScale: root.mapZoom
+                                            origin.x: 0
+                                            origin.y: 0
+                                        }
+
+                                        // Stage group frames (bounds from that group's blocks only)
+                                        Repeater {
+                                            model: mapCanvas.groups
+                                            delegate: Rectangle {
+                                                id: grpRect
+                                                property var grp: modelData
+                                                property var ownBounds: root.groupBounds(grp.id, mapCanvas.blocks)
+                                                x: ownBounds.x
+                                                y: ownBounds.y
+                                                width: ownBounds.w
+                                                height: ownBounds.h
+                                                radius: 10
+                                                color: "#f7f9fb"
+                                                border.color: "#c5ced8"
+                                                border.width: 1
+                                                z: 0
+                                                Text {
+                                                    anchors.left: parent.left
+                                                    anchors.top: parent.top
+                                                    anchors.margins: 6
+                                                    text: String(grp.title || grp.id || "")
+                                                    font.pixelSize: 10
+                                                    font.bold: true
+                                                    color: root.muted
+                                                }
+                                            }
+                                        }
+
+                                        // Edges (feeds)
+                                        Canvas {
+                                            id: mapEdges
+                                            anchors.fill: parent
+                                            z: 1
+                                            property var blocks: mapCanvas.blocks
+                                            onBlocksChanged: requestPaint()
+                                            onPaint: {
+                                                var ctx = getContext("2d")
+                                                ctx.reset()
+                                                var byId = {}
+                                                for (var i = 0; i < blocks.length; i++)
+                                                    byId[blocks[i].id] = blocks[i]
+                                                function centerOf(b) {
+                                                    var p = root.blockAt(b.col, b.row)
+                                                    var h = 44 + root.blockChipExtra(b)
+                                                    return { x: p.x + 74, y: p.y + Math.min(22, h / 2) }
+                                                }
+                                                function route(c0, c1, toCheck) {
+                                                    // Prefer orthogonal elbows so curves do not cut block titles.
+                                                    ctx.moveTo(c0.x, c0.y)
+                                                    if (Math.abs(c0.y - c1.y) < 8) {
+                                                        ctx.lineTo(c1.x, c1.y)
+                                                    } else if (toCheck) {
+                                                        var midY = (c0.y + c1.y) / 2
+                                                        ctx.lineTo(c0.x, midY)
+                                                        ctx.lineTo(c1.x, midY)
+                                                        ctx.lineTo(c1.x, c1.y)
+                                                    } else if (c1.x >= c0.x + 40) {
+                                                        var mx = c0.x + Math.max(36, (c1.x - c0.x) * 0.35)
+                                                        ctx.lineTo(mx, c0.y)
+                                                        ctx.lineTo(mx, c1.y)
+                                                        ctx.lineTo(c1.x, c1.y)
+                                                    } else {
+                                                        var mid = (c0.x + c1.x) / 2
+                                                        ctx.bezierCurveTo(mid, c0.y, mid, c1.y, c1.x, c1.y)
+                                                    }
+                                                }
+                                                for (var i = 0; i < blocks.length; i++) {
+                                                    var src = blocks[i]
+                                                    var feeds = src.feeds || []
+                                                    var c0 = centerOf(src)
+                                                    for (var j = 0; j < feeds.length; j++) {
+                                                        var dst = byId[feeds[j]]
+                                                        if (!dst) continue
+                                                        var c1 = centerOf(dst)
+                                                        var toCheck = String(dst.role || "") === "check"
+                                                        ctx.beginPath()
+                                                        if (toCheck) {
+                                                            ctx.setLineDash([5, 4])
+                                                            ctx.strokeStyle = "#a0a8b4"
+                                                        } else {
+                                                            ctx.setLineDash([])
+                                                            ctx.strokeStyle = "#6a7585"
+                                                        }
+                                                        ctx.lineWidth = 1.5
+                                                        route(c0, c1, toCheck)
+                                                        ctx.stroke()
+                                                        // arrowhead along final segment
+                                                        var ang = Math.atan2(c1.y - c0.y, c1.x - c0.x)
+                                                        if (toCheck)
+                                                            ang = Math.atan2(c1.y - ((c0.y + c1.y) / 2), 0)
+                                                        else if (Math.abs(c0.y - c1.y) >= 8 && c1.x >= c0.x + 40)
+                                                            ang = 0
+                                                        ctx.setLineDash([])
+                                                        ctx.beginPath()
+                                                        ctx.moveTo(c1.x, c1.y)
+                                                        ctx.lineTo(c1.x - 8 * Math.cos(ang - 0.35), c1.y - 8 * Math.sin(ang - 0.35))
+                                                        ctx.lineTo(c1.x - 8 * Math.cos(ang + 0.35), c1.y - 8 * Math.sin(ang + 0.35))
+                                                        ctx.closePath()
+                                                        ctx.fillStyle = toCheck ? "#a0a8b4" : "#6a7585"
+                                                        ctx.fill()
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        // Blocks (titles only + chips)
+                                        Repeater {
+                                            model: mapCanvas.blocks
+                                            delegate: Item {
+                                                id: blockItem
+                                                property var block: modelData
+                                                x: root.blockAt(block.col, block.row).x
+                                                y: root.blockAt(block.col, block.row).y
+                                                width: 148
+                                                height: blockBox.height + chipFlow.implicitHeight + 4
+                                                z: 2
+
+                                                Rectangle {
+                                                    id: blockBox
+                                                    width: parent.width
+                                                    height: 44
+                                                    radius: 6
+                                                    color: pain.map_selected_block === block.id ? "#e8f4ef" : "#ffffff"
+                                                    border.color: root.roleBorder(String(block.role || ""))
+                                                    border.width: pain.map_selected_block === block.id ? 2 : 1
                                                     Text {
-                                                        text: blockCol.block.title
+                                                        anchors.fill: parent
+                                                        anchors.margins: 6
+                                                        text: String(block.title || block.id)
                                                         font.bold: true
                                                         font.pixelSize: 11
                                                         color: root.ink
                                                         wrapMode: Text.WordWrap
-                                                        width: parent.width
+                                                        horizontalAlignment: Text.AlignHCenter
+                                                        verticalAlignment: Text.AlignVCenter
                                                     }
-                                                    Text {
-                                                        visible: String(blockCol.block.code || "").length > 0
-                                                        text: blockCol.block.code
-                                                        font.pixelSize: 9
-                                                        color: root.muted
-                                                        wrapMode: Text.WordWrap
-                                                        width: parent.width
-                                                    }
-                                                    Text {
-                                                        visible: String(blockCol.block.what_it_does || blockCol.block.note || "").length > 0
-                                                        text: blockCol.block.what_it_does || blockCol.block.note || ""
-                                                        font.pixelSize: 9
-                                                        color: root.muted
-                                                        wrapMode: Text.WordWrap
-                                                        width: parent.width
+                                                    MouseArea {
+                                                        anchors.fill: parent
+                                                        cursorShape: Qt.PointingHandCursor
+                                                        onClicked: Julia.select_map_block_from_qml(block.id)
                                                     }
                                                 }
-                                            }
 
-                                            Flow {
-                                                Layout.fillWidth: true
-                                                spacing: 6
-                                                Repeater {
-                                                    model: blockCol.block.cases || []
-                                                    delegate: Rectangle {
-                                                        property var chip: modelData
-                                                        property color catColor: root.categoryColor(chip.category)
-                                                        property bool selected: pain.map_selected === chip.id
-                                                        radius: 10
-                                                        color: selected ? "#e8f4ef" : root.panel
-                                                        border.color: catColor
-                                                        border.width: selected ? 2 : 1
-                                                        implicitHeight: chipCol.implicitHeight + 10
-                                                        implicitWidth: chipCol.implicitWidth + 16
-                                                        Column {
-                                                            id: chipCol
-                                                            anchors.centerIn: parent
-                                                            spacing: 2
-                                                            Row {
-                                                                spacing: 5
-                                                                Rectangle {
-                                                                    width: 8; height: 8; radius: 4
-                                                                    color: {
-                                                                        var last = String(chip.last || "not_run")
-                                                                        if (last === "met") return "#0b6e4f"
-                                                                        if (last === "not_met") return "#c0392b"
-                                                                        if (last === "no_verdict") return "#9aa3ae"
-                                                                        return "transparent"
+                                                Flow {
+                                                    id: chipFlow
+                                                    anchors.top: blockBox.bottom
+                                                    anchors.topMargin: 4
+                                                    width: parent.width
+                                                    spacing: 4
+                                                    Repeater {
+                                                        model: blockItem.block.cases || []
+                                                        delegate: Rectangle {
+                                                            property var chip: modelData
+                                                            property color catColor: root.categoryColor(chip.category)
+                                                            property bool selected: pain.map_selected === chip.id
+                                                            radius: 8
+                                                            color: selected ? "#e8f4ef" : root.panel
+                                                            border.color: catColor
+                                                            border.width: selected ? 2 : 1
+                                                            implicitHeight: chipCol.implicitHeight + 6
+                                                            implicitWidth: Math.min(parent.width, chipCol.implicitWidth + 10)
+                                                            Column {
+                                                                id: chipCol
+                                                                anchors.centerIn: parent
+                                                                spacing: 1
+                                                                Row {
+                                                                    spacing: 3
+                                                                    Rectangle {
+                                                                        width: 7; height: 7; radius: 4
+                                                                        color: {
+                                                                            var last = String(chip.last || "not_run")
+                                                                            if (last === "met") return "#0b6e4f"
+                                                                            if (last === "not_met") return "#c0392b"
+                                                                            if (last === "no_verdict") return "#9aa3ae"
+                                                                            return "transparent"
+                                                                        }
+                                                                        border.color: "#9aa3ae"
+                                                                        border.width: String(chip.last || "not_run") === "not_run" ? 1 : 0
+                                                                        anchors.verticalCenter: parent.verticalCenter
                                                                     }
-                                                                    border.color: "#9aa3ae"
-                                                                    border.width: String(chip.last || "not_run") === "not_run" ? 1 : 0
-                                                                    anchors.verticalCenter: parent.verticalCenter
+                                                                    Text {
+                                                                        text: chip.id
+                                                                        font.pixelSize: 9
+                                                                        font.bold: true
+                                                                        color: root.ink
+                                                                        anchors.verticalCenter: parent.verticalCenter
+                                                                    }
                                                                 }
                                                                 Text {
-                                                                    text: chip.id
-                                                                    font.pixelSize: 11
-                                                                    font.bold: true
-                                                                    color: root.ink
-                                                                    anchors.verticalCenter: parent.verticalCenter
-                                                                }
-                                                                Text {
-                                                                    visible: root.kindTag(chip.kind).length > 0
-                                                                    text: root.kindTag(chip.kind)
-                                                                    font.pixelSize: 9
+                                                                    text: chip.title
+                                                                    font.pixelSize: 8
                                                                     color: root.muted
-                                                                    anchors.verticalCenter: parent.verticalCenter
+                                                                    width: Math.min(130, implicitWidth)
+                                                                    elide: Text.ElideRight
                                                                 }
                                                             }
-                                                            Text {
-                                                                text: chip.title
-                                                                font.pixelSize: 9
-                                                                color: root.muted
-                                                                width: Math.min(180, implicitWidth)
-                                                                elide: Text.ElideRight
+                                                            MouseArea {
+                                                                anchors.fill: parent
+                                                                cursorShape: Qt.PointingHandCursor
+                                                                onClicked: Julia.select_map_case_from_qml(chip.id)
                                                             }
-                                                        }
-                                                        MouseArea {
-                                                            anchors.fill: parent
-                                                            cursorShape: Qt.PointingHandCursor
-                                                            onClicked: Julia.select_map_case_from_qml(chip.id)
                                                         }
                                                     }
                                                 }
                                             }
-                                        }
-
-                                        Text {
-                                            visible: blockCol.blockIndex < ((root.mapData && root.mapData.blocks) ? root.mapData.blocks.length : 0) - 1
-                                            text: "▼"
-                                            color: root.muted
-                                            font.pixelSize: 14
-                                            horizontalAlignment: Text.AlignHCenter
-                                            width: 240
                                         }
                                     }
+                                }
+                            }
+
+                            // Offscreen screenshots (zoom 1, no fit): left then scrolled right.
+                            Timer {
+                                interval: 400
+                                running: String(pain.smoke_map_png || "").length > 0
+                                repeat: false
+                                onTriggered: {
+                                    tabs.currentIndex = 2
+                                    root.mapHowExpanded = false
+                                    root.mapZoom = 1.0
+                                    root.reloadActiveMap()
+                                    mapShotDelay.start()
+                                }
+                            }
+                            Timer {
+                                id: mapShotDelay
+                                interval: 700
+                                repeat: false
+                                onTriggered: {
+                                    var path = String(pain.smoke_map_png || "")
+                                    if (path.length === 0) return
+                                    mapCanvasFlick.contentX = 0
+                                    mapCanvasFlick.contentY = 0
+                                    mapCanvasFlick.grabToImage(function (result) {
+                                        result.saveToFile(path)
+                                        console.log("VALIDATION_MAP_TOTAL saved:", path)
+                                        mapShotRightDelay.start()
+                                    })
+                                }
+                            }
+                            Timer {
+                                id: mapShotRightDelay
+                                interval: 500
+                                repeat: false
+                                onTriggered: {
+                                    var path = String(pain.smoke_map_png || "")
+                                    if (path.length === 0) return
+                                    var rightPath = path.replace("VALIDATION_MAP_TOTAL.png",
+                                                                 "VALIDATION_MAP_TOTAL_right.png")
+                                    if (rightPath === path)
+                                        rightPath = path + ".right.png"
+                                    var maxX = Math.max(0, mapCanvasFlick.contentWidth - mapCanvasFlick.width)
+                                    mapCanvasFlick.contentX = maxX
+                                    mapCanvasFlick.contentY = 0
+                                    mapCanvasFlick.grabToImage(function (result) {
+                                        result.saveToFile(rightPath)
+                                        console.log("VALIDATION_MAP_TOTAL_right saved:", rightPath)
+                                    })
                                 }
                             }
                         }
@@ -1042,6 +1288,8 @@ ApplicationWindow {
                 }
 
                 Frame {
+                    // Offscreen map shots: hide detail so the canvas uses the full 1900 px width.
+                    visible: String(pain.smoke_map_png || "").length === 0
                     Layout.preferredWidth: 520
                     Layout.fillHeight: true
 
@@ -1062,7 +1310,9 @@ ApplicationWindow {
                             RowLayout {
                                 Layout.fillWidth: true
                                 Text {
-                                    text: (root.mapDetail && root.mapDetail.title) ? root.mapDetail.title : "(select a case chip)"
+                                    text: (root.mapDetail && root.mapDetail.title)
+                                          ? root.mapDetail.title
+                                          : "(select a block or case chip)"
                                     font.bold: true
                                     font.pixelSize: 14
                                     color: root.ink
@@ -1087,8 +1337,37 @@ ApplicationWindow {
                                 }
                             }
 
+                            // Block detail (click a pipeline box)
                             Text {
-                                visible: !!(root.mapDetail && root.mapDetail.id)
+                                visible: !!(root.mapDetail && root.mapDetail.detail_kind === "block")
+                                text: "Role: " + (root.mapDetail.role || "")
+                                      + (root.mapDetail.group_title ? (" · " + root.mapDetail.group_title)
+                                         : (root.mapDetail.group ? (" · " + root.mapDetail.group) : ""))
+                                wrapMode: Text.WordWrap
+                                Layout.fillWidth: true
+                                color: root.muted
+                                font.pixelSize: 11
+                            }
+                            Text {
+                                visible: !!(root.mapDetail && root.mapDetail.detail_kind === "block" && root.mapDetail.code)
+                                text: "Code: " + (root.mapDetail.code || "")
+                                wrapMode: Text.WordWrap
+                                Layout.fillWidth: true
+                                color: root.ink
+                                font.pixelSize: 11
+                            }
+                            Text {
+                                visible: !!(root.mapDetail && root.mapDetail.detail_kind === "block")
+                                text: root.mapDetail.what_it_does || ""
+                                wrapMode: Text.WordWrap
+                                Layout.fillWidth: true
+                                color: root.ink
+                                font.pixelSize: 11
+                            }
+
+                            // Case detail (click a chip)
+                            Text {
+                                visible: !!(root.mapDetail && root.mapDetail.detail_kind !== "block" && root.mapDetail.id)
                                 text: "Source: " + (root.mapDetail.source || "")
                                 wrapMode: Text.WordWrap
                                 Layout.fillWidth: true
@@ -1096,7 +1375,7 @@ ApplicationWindow {
                                 font.pixelSize: 11
                             }
                             Text {
-                                visible: !!(root.mapDetail && root.mapDetail.id)
+                                visible: !!(root.mapDetail && root.mapDetail.detail_kind !== "block" && root.mapDetail.id)
                                 text: "What it tests: " + (root.mapDetail.verifies || "")
                                 wrapMode: Text.WordWrap
                                 Layout.fillWidth: true
@@ -1104,7 +1383,7 @@ ApplicationWindow {
                                 font.pixelSize: 11
                             }
                             Text {
-                                visible: !!(root.mapDetail && root.mapDetail.id)
+                                visible: !!(root.mapDetail && root.mapDetail.detail_kind !== "block" && root.mapDetail.id)
                                 text: "Why it is here: " + (root.mapDetail.why || "")
                                 wrapMode: Text.WordWrap
                                 Layout.fillWidth: true
@@ -1112,7 +1391,7 @@ ApplicationWindow {
                                 font.pixelSize: 11
                             }
                             Text {
-                                visible: !!(root.mapDetail && root.mapDetail.id)
+                                visible: !!(root.mapDetail && root.mapDetail.detail_kind !== "block" && root.mapDetail.id)
                                 text: "A pass means: " + (root.mapDetail.meaning || "")
                                 wrapMode: Text.WordWrap
                                 Layout.fillWidth: true
@@ -1120,7 +1399,7 @@ ApplicationWindow {
                                 font.pixelSize: 11
                             }
                             Text {
-                                visible: !!(root.mapDetail && root.mapDetail.id)
+                                visible: !!(root.mapDetail && root.mapDetail.detail_kind !== "block" && root.mapDetail.id)
                                 text: "Not covered: " + (root.mapDetail.missing || "")
                                 wrapMode: Text.WordWrap
                                 Layout.fillWidth: true
@@ -1128,7 +1407,7 @@ ApplicationWindow {
                                 font.pixelSize: 11
                             }
                             Text {
-                                visible: !!(root.mapDetail && root.mapDetail.id)
+                                visible: !!(root.mapDetail && root.mapDetail.detail_kind !== "block" && root.mapDetail.id)
                                 text: "Recorded outcome: " + (root.mapDetail.recorded || "")
                                 wrapMode: Text.WordWrap
                                 Layout.fillWidth: true
@@ -1136,7 +1415,7 @@ ApplicationWindow {
                                 font.pixelSize: 11
                             }
                             Text {
-                                visible: !!(root.mapDetail && root.mapDetail.id)
+                                visible: !!(root.mapDetail && root.mapDetail.detail_kind !== "block" && root.mapDetail.id)
                                 text: "Explanation: " + (root.mapDetail.explanation || "")
                                 wrapMode: Text.WordWrap
                                 Layout.fillWidth: true
@@ -1144,7 +1423,7 @@ ApplicationWindow {
                                 font.pixelSize: 11
                             }
                             Text {
-                                visible: !!(root.mapDetail && root.mapDetail.criterion_text)
+                                visible: !!(root.mapDetail && root.mapDetail.detail_kind !== "block" && root.mapDetail.criterion_text)
                                 text: "Criterion (" + (root.mapDetail.criterion_date || "") + "): " + (root.mapDetail.criterion_text || "")
                                 wrapMode: Text.WordWrap
                                 Layout.fillWidth: true
@@ -1154,6 +1433,7 @@ ApplicationWindow {
 
                             RowLayout {
                                 Layout.fillWidth: true
+                                visible: !!(root.mapDetail && root.mapDetail.detail_kind !== "block")
                                 Button {
                                     text: pain.busy ? "Running…" : "Run"
                                     enabled: !pain.busy

@@ -1,267 +1,348 @@
 # PAIN recreation flowcharts
 
-The user source is BEMT + F1A, which gives the free-field pressure at the 160 fuselage grid points. NASA's measured data are a validation test of the cabin model only, not a user option. The cabin stages are the same for both.
-
 | Diagram | What it shows |
 |---------|---------------|
-| [1. Overview](#1-overview) | The user source (BEMT + F1A), the NASA validation test, and the shared cabin model |
-| [2. NASA validation (e11)](#2-nasa-validation-e11) | NASA measured data -> grid extension -> cabin model -> tests T1/T2 |
-| [3. Aircraft validation](#3-aircraft-validation) | CCBlade + F1A source, XFOIL polars, and the BBN/Wilby, Report 996 and Pereira checks |
-| [4. Shared cabin model](#4-shared-cabin-model) | Blocking, structural modes, acoustic modes, PAIN core |
-| [5. Validation maps](#5-validation-maps) | Map 1 cabin-chain cases; Map 2 aircraft-source cases (GUI "Validation map" tab) |
+| [1. Overview](#1-overview) | Total flowchart: aircraft + e11 → grid → cabin → checks |
+| [2. NASA validation (e11)](#2-nasa-validation-e11) | Measured free-field → GEXT → cabin → T1/T2 |
+| [3. Aircraft validation](#3-aircraft-validation) | BEMT+F1A source and experiment checks |
+| [4. Shared cabin model](#4-shared-cabin-model) | Blocking, modes, trim, PAIN main |
+| [5. Validation maps](#5-validation-maps) | GUI `total` map (titles only) |
 
-Grid extension (GEXT) appears only in diagram 2. It exists because the NASA paper measured one line of the grid.
+Colour key in diagrams: green = check exists and passes as stated; orange = planned / differs / calibrated; blue = calibrated surrogate; red = blocked / fail. **Status and evidence live in the tables under each diagram**, not inside nodes. Detail: `IMPLEMENTATION_PLAN.md`.
 
-Status key: green = check exists and passes as stated; orange = planned, not independently checked, or the current code differs from CR-3813; blue = calibrated surrogate. Step numbers refer to `IMPLEMENTATION_PLAN.md`. **2026-10-22:** phases **38d–38e** — `E18_TONES` 2/3 vs NASA E-18 (not met); `E15_STRUCT_LOSS` η_r′ V-EXP info (no_verdict). Phase **38c** printed HF broadband; `T2_EQ19` 0/3. **38h** Manual §5.4.3 printed outputs (`printed_outputs.jl` + GUI tab; no criterion). **38g** printed App. D solver `mrp_appd.jl` / case `MRP_APPD`: **27/32** within 5 % → met (criterion ≥75 % of 32, fixed 2026-10-22; `mrp_appd_vs_d1.md`). **Phase 36** cabin mode animation (`mode_animation.jl` + GUI **Cabin modes** tab; display only, no claim). Phases 38a–38b remain. Phases 32–35 done. GUI Run tab = aircraft only; **Validation** + **Validation map** + **Printed outputs** + **Cabin modes** tabs. `REPRO_18b` = 18b-r (not met); `MRP_D1` = transcription `no_verdict`. Aircraft path stays X-EXTRAP; 29b–31 deferred (B-4).
+## Status
 
-**Test tooling (P1, 2026-10-22, no behaviour change).** `Pkg.test` accepts `test_args` substrings to select top-level testsets; list/times in `PAIN.jl/test/README.md`. Optional DaemonMode loop in `PAIN.jl/scripts/devtools/` (separate env; Revise loaded). Does not alter criteria, reports, or `src/`.
-
-**L = 1.83 m default (I-22, 2026-10-22, post-hoc).** Source text printed both 1.803 m and 1.83 m; decision from App. D body / App. E / hardware (not from error). `test_article_length()` default **1.83 m**; Table D-1 title 1.803 m = caption typo. Affected results re-recorded; before/after `length_rerecord_before_after.md` (from `length_sensitivity.md`). **No verdict flips.** Criteria/reference unchanged.
-
-**Directory layout (R1, 2026-10-22, moves only).** CR-3813 inputs under `data/cr3813/`; scripts under `PAIN.jl/scripts/{run,checks,digitize,setup,smoke}/` (`run_gui.jl` top-level). Path references updated; no change to criteria or recorded numeric results. See `data/README.md`, `PAIN.jl/scripts/README.md`.
-
-**Grid azimuth (12b, done 2026-10-20).** The 160-point grid lies on the upper quarter of the fuselage with line ℓ = 1 at the propeller azimuth φ_p, θ_ℓ = φ_p + (ℓ−1)π/18 (User Manual p. 34 and Fig. 3), and γ is the angle between the surface→hub direction and the outward normal (γ = 0 at ℓ = 1, k = k_p). Before the fix the code put ℓ = 1 at the bottom centerline, so e11 results computed before 2026-10-20 used the wrong incidence angle and the wrong shell region and are void. Results in diagram 2 now come from the corrected grid but now use the untuned CR-3813 cabin chain (Eq. 8, App. A trim, §3.8 losses; 17a, 2026-10-20), regraded in 18a. Order of work: `IMPLEMENTATION_PLAN.md`, phases numbered in run order (12 grid fix, 13 pre-registration and 14 E-12 check, done; 15–18 cabin chain, 19–27 source checks, 28–30 aircraft cabin, 31 GEXT bound, 32 close-out).
+- **2026-10-22:** GUI Validation map is one horizontal `total` flowchart (aircraft + e11 + cabin + checks); titles only on blocks; stage frames pairwise disjoint (aircraft checks above/below pipeline). See §5 and `VALIDATION_GUIDELINE.md` §2.13.
+- **Phases 38d–38e / 38c / 38h / 38g / 36:** E18_TONES, E15_STRUCT_LOSS, HF broadband, printed outputs, MRP_APPD, cabin mode animation — see `IMPLEMENTATION_PLAN.md`.
+- **L = 1.83 m (I-22, post-hoc):** `test_article_length()` default; re-records in `length_rerecord_before_after.md`; no verdict flips.
+- **Grid azimuth (12b):** ℓ = 1 at propeller azimuth; pre-2026-10-20 e11 results void.
+- **Test tooling (P1):** `Pkg.test` `test_args` substrings; DaemonMode optional under `scripts/devtools/`.
+- **Layout (R1):** CR-3813 data under `data/cr3813/`; scripts under `PAIN.jl/scripts/{run,checks,digitize,setup,smoke}/`.
 
 ## 1. Overview
 
+Whole program (titles only). Same structure as the GUI `total` map.
+
 ```mermaid
 flowchart LR
-    V["<b>NASA validation test only (e11)</b><br/>not a user option<br/>NASA Fig E-11 measured line<br/>+ grid extension (GEXT)<br/>(diagram 2)"]
-    A["<b>User source: BEMT + F1A</b><br/>CCBlade + AcousticAnalogies F1A<br/>at all 160 points<br/>(diagram 3)"]
-    G["Free-field grid<br/>160 points<br/>amplitude + phase per harmonic"]
-    S["<b>Shared cabin model</b><br/>blocking -> modes -> PAIN core<br/>(diagram 4)"]
-    T["Tests T1 / T2<br/>vs NASA interior SPL"]
-    M["dB(A), SIL<br/><i>extrapolated</i>"]
-    GUI["GUI Validation + map + Printed outputs + Cabin modes<br/>case registry / CASE_INFO<br/>§5.4.3 (38h); mode anim (36, display only)"]
+  subgraph G_AIR["Aircraft BEMT+F1A"]
+    direction LR
+    A_GEO["Aircraft inputs"] --> A_LOADS["CCBlade BEMT"]
+    A_LOADS -->|L, D| X_F1A["F1A source"]
+    X_F1A -->|p| X_FF["Free field p"]
+  end
 
-    V --> G
-    A --> G
-    G --> S
-    S --> T
-    S --> M
-    T --> GUI
-    S --> GUI
+  subgraph G_FF["Free field"]
+    direction LR
+    P_FF["e11 free field"] --> X_SRC["Source select"]
+    X_FF --> X_SRC
+  end
 
-    style V fill:#e8f4ff
-    style A fill:#f3e5f5
-    style T fill:#e8ffe8
-    style M fill:#f3e5f5
-    style GUI fill:#e8ffe8
+  subgraph G_GRID["Grid and blocking"]
+    direction LR
+    P_GRID["160-point grid"] --> P_BLK["Blocking Eq. 43"]
+    P_BLK --> X_BLK_OUT["Blocked pressures"]
+  end
+
+  subgraph G_MRP["Structural modes"]
+    direction LR
+    X_MRP_IN["Structure inputs"] --> P_MRP["Structural modes"]
+    P_MRP --> X_MRP_OUT["Modes f_r, ψ_r"]
+  end
+
+  subgraph G_CYL["CYL2D"]
+    direction LR
+    X_CYL_IN["Cabin geometry"] --> P_CYL["CYL2D"]
+    P_CYL --> X_CYL_OUT["Modes Φ_G"]
+  end
+
+  subgraph G_TRIM["Trim and loss"]
+    direction LR
+    X_TRIM_IN["Trim stack"] --> P_TRIM["Trim and loss"]
+    P_TRIM --> X_TRIM_OUT["τ, η"]
+  end
+
+  subgraph G_PAIN["PAIN main"]
+    direction LR
+    X_PAIN_IN["Cabin inputs"] --> P_EQ8["Coupling / Eq. 8"]
+    P_EQ8 --> X_OUT["Interior SPL"]
+  end
+
+  subgraph G_VAL["Validation comparisons"]
+    direction TB
+    P_REPRO["vs NASA PAIN"]
+    P_MEAS["vs measurement"]
+    A_CABIN["Aircraft cabin"]
+  end
+
+  X_SRC --> P_GRID
+  X_BLK_OUT --> X_PAIN_IN
+  X_MRP_OUT --> X_PAIN_IN
+  X_CYL_OUT --> X_PAIN_IN
+  X_TRIM_OUT --> X_PAIN_IN
+  X_FF -.-> A_AMP["F1A amplitude"] & A_PHASE["F1A phase"] & A_FWD["Forward flight"] & A_SURF["Surface levels"]
+  X_OUT -.-> P_REPRO & P_MEAS & A_CABIN
+
+  style A_AMP fill:#fff4e8
+  style A_PHASE fill:#fff4e8
+  style A_FWD fill:#fff4e8
+  style A_SURF fill:#fff4e8
+  style P_REPRO fill:#fff4e8
+  style P_MEAS fill:#fff4e8
+  style A_CABIN fill:#f3e5f5
 ```
+
+| Block | Status / evidence | Where |
+|-------|-------------------|-------|
+| Aircraft BEMT+F1A | Source path; X-EXTRAP for cabin | Diagram 3; map `G_AIR` |
+| e11 free field | Digitization QA; ANOPP H3/phases | E11_FREEFIELD |
+| Grid + blocking | Unit + Eq. 43 checks | UT_GRID, BLK_P68, E12_BLOCK |
+| Structural / CYL2D / trim | Table D-1 / C-1 / App. A | MRP_*, CYL2D_C1, UT_TRIM, E14/E15 |
+| PAIN main | Eq. 8 + HF | UT_EQ8; 38b–38c |
+| vs NASA PAIN / measurement | Code-on-code / in-sample | REPRO_18b, E18_TONES, T1, T2, E21_E22_NR |
+| Aircraft cabin | X-EXTRAP | A_CABIN |
 
 ## 2. NASA validation (e11)
 
-Purpose: check the cabin model against NASA's published results. The source is NASA's measured free-field data, so no
-CCBlade or F1A is involved.
+Purpose: cabin model vs NASA published results. No CCBlade/F1A.
 
 ```mermaid
 flowchart LR
-    S["PROVIDES the only measured free-field data<br/>Fig E-11, l=1, H=1,2,3<br/>digitization quality: delta_dig <= 1 dB"]
+  S["e11 free field"]
 
-    subgraph EXT["Grid extension (this path only)"]
-        direction TB
-        E1["FILLS the grid: l=1 -> 160 points<br/>cosine falloff + geometric delay<br/>claim: none — V-ASSUMED,<br/>unfalsifiable by published data"]
-        E2["VERIFIES the code<br/>not the physics — V-CODE only"]
-        E3["BOUNDS the dependence on E1<br/>variants, cabin fixed; T1 flip test<br/>not a validation; does not measure circularity<br/><i>phase 32, runs after 18a (12b done)</i>"]
-    end
+  subgraph EXT["Grid extension"]
+    direction TB
+    E1["Fill 160 points"]
+    E2["Code check"]
+    E3["GEXT bound"]
+  end
 
-    CAB["TRANSMITS grid -> interior SPL<br/>shared cabin (diagram 4)<br/>CR-3813 equations, no tuning (15a-17a done)<br/>grid azimuth fixed (12b)<br/>HF Eq.(19) printed + surrogate selector (38c)"]
+  CAB["Shared cabin"]
 
-    subgraph VAL["Validation: interior SPL"]
-        direction TB
-        V1["TESTS joint model vs tonal data<br/>E-16/17/18, H=1,2,3<br/>18a-r: 81.0, 75.0, 75.3 dB; no claim;<br/>GEXT bound (32): flips → T1 not claimable;<br/>REPRO_18b = 18b-r 82.73/75.73/77.05 (2 of 3);<br/>E18_TONES η_T=1.0 (38d): 2/3 not met;<br/>19i H3 not found"]
-        V2["TESTS joint model vs broadband<br/>E-9, +/-3.5 dB (T2 surrogate + T2_EQ19);<br/>E-21/E-22 NR Eq.(18)/(19) (38a/38c);<br/>E-15 η_r′ (38e, info); HF tones (38b);<br/>printed Eq.(19)–(23) first run 38c"]
-        V3["LOCALIZES a failure by band<br/>E-7, G1/G2/G3<br/>result: diagnostic, not validation"]
-    end
+  subgraph VAL["Interior SPL"]
+    direction TB
+    V1["Tonal T1"]
+    V2["Broadband T2"]
+    V3["Band diagnostic"]
+  end
 
-    S --> E1
-    E1 --> CAB
-    E1 -.-> E2
-    E1 -.-> E3
-    CAB --> V1 & V2
-    V1 -.->|fail| V3
-    V2 -.->|fail| V3
+  S --> E1
+  E1 --> CAB
+  E1 -.-> E2
+  E1 -.-> E3
+  CAB --> V1 & V2
+  V1 -.-> V3
+  V2 -.-> V3
 
-    style S fill:#e8ffe8
-    style CAB fill:#fff4e8
-    style V1 fill:#fff4e8
-    style V2 fill:#fff4e8
-    style E2 fill:#fff4e8
-    style E3 fill:#fff4e8
-    style V3 fill:#fff4e8
+  style S fill:#e8ffe8
+  style CAB fill:#fff4e8
+  style V1 fill:#fff4e8
+  style V2 fill:#fff4e8
+  style E2 fill:#fff4e8
+  style E3 fill:#fff4e8
+  style V3 fill:#fff4e8
 ```
 
-Note: the Fig E-12 check (blocked pressure on the l=1 line) belongs to blocking; see diagram 4. 14a is done (2026-10-20): Eq. 43 reproduces NASA's predicted E-12 curve at 29 of 31 points within delta_dig + 0.5 dB, FAIL at 2 H3 points aft, recorded (`e12_blocking.md`).
+| Block | Status / evidence | Where |
+|-------|-------------------|-------|
+| e11 free field | δ_dig ≤ 1 dB | E11_FREEFIELD; `e11_delta_dig.md` |
+| Fill 160 points | V-ASSUMED GEXT | `grid_extension.jl` |
+| Code check | Grid formulas | UT_GRID |
+| GEXT bound | Variants flip T1 → not claimable | GEXT_BOUND; phase 32 |
+| Shared cabin | Untuned CR-3813 chain | Diagram 4 |
+| Tonal T1 | Calibrated / GEXT-bound | T1; REPRO_18b; E18_TONES |
+| Broadband T2 | Surrogate + Eq. 19 | T2; T2_EQ19; E21_E22_NR; E15 |
+| Band diagnostic | E-7 bands | (diagnostic) |
+| Fig E-12 | 29/31 within 3.41 dB | E12_BLOCK; `e12_blocking.md` |
 
 ## 3. Aircraft validation
 
-Purpose: compute the free-field source for your own propeller and aircraft (CCBlade + F1A) and check it against
-BBN/Wilby, NACA Report 996 and Pereira. No NASA cabin measurement is involved, so the cabin result is an extrapolation.
-
-Order of the checks (decision 2026-10-16): BBN/Wilby first for phase; Report 996 for amplitude; Pereira second as the
-forward-flight check. Pass criteria are written before any comparison; no tuning to delta 0. Fuselage scattering and
-reflection stay V-ASSUMED.
+Purpose: free-field source vs BBN, Report 996, Pereira. Cabin result is extrapolation.
 
 ```mermaid
 flowchart LR
-    IN["XFOIL polars<br/>Viterna fixed pre-comparison"]
+  IN["XFOIL polars"]
 
-    subgraph FWD["Forward model (no GEXT)"]
-        direction TB
-        A1["aircraft.json"]
-        A2["CCBlade.jl BEMT -> L, D"]
-        A3["F1A -> free-field p<br/>all 160 points"]
-        A1 --> A2 --> A3
-    end
+  subgraph FWD["Aircraft BEMT+F1A"]
+    direction TB
+    A1["aircraft.json"]
+    A2["CCBlade BEMT"]
+    A3["F1A free-field p"]
+    A1 -->|geo| A2
+    A2 -->|L, D| A3
+  end
 
-    subgraph CHK["Checks (criteria fixed before comparing)"]
-        direction TB
-        C1["BBN/Wilby phase<br/>blocked: common time base<br/>+ 23a AUTHOR"]
-        C2["Report 996 expanded matrix<br/>+ 25k asymmetry OK;<br/>verdict waits 23c AUTHOR"]
-        C3["Pereira 3-polar matrix<br/>ScaledLoads H1 ~−2.3 dB;<br/>verdict waits 23d AUTHOR"]
-        C4["Unit / code tests<br/>V-CODE (incl. 25j)"]
-    end
+  subgraph CHK["Checks"]
+    direction TB
+    C1["BBN phase"]
+    C2["Report 996"]
+    C3["Pereira"]
+    C4["Unit tests"]
+  end
 
-    CAB["Shared cabin model"]
-    APP["dB(A), SIL<br/>EXTRAPOLATED"]
-    ST["Source: EXTRAPOLATED<br/>until C1-C3 pass<br/>longitudinal = X-EXTRAP"]
+  CAB["Shared cabin"]
+  APP["dB(A), SIL"]
+  ST["Source status"]
 
-    IN -.-> A1
-    A3 --> CAB
-    A3 -.-> C1 & C2 & C3 & C4
-    CAB --> APP
-    C1 & C2 & C3 -.-> ST
-    ST -.-> APP
+  IN -.-> A1
+  A3 --> CAB
+  A3 -.-> C1 & C2 & C3 & C4
+  CAB --> APP
+  C1 & C2 & C3 -.-> ST
+  ST -.-> APP
 
-    style C1 fill:#ffe8e8
-    style C2 fill:#fff4e8
-    style C3 fill:#fff4e8
-    style C4 fill:#e8ffe8
-    style ST fill:#ffe8e8
-    style APP fill:#f3e5f5
+  style C1 fill:#ffe8e8
+  style C2 fill:#fff4e8
+  style C3 fill:#fff4e8
+  style C4 fill:#e8ffe8
+  style ST fill:#ffe8e8
+  style APP fill:#f3e5f5
 ```
 
-Code status (2026-10-21 phases 33–35): 21–28 and 32–35 done (29b–31 deferred); GUI source = aircraft only; Validation map tab live. GEXT remains e11-only (diagram 2). Open author item: I-17 amplitude convention.
-
-**Blocked for author:** I-17 [AUTHOR] free-field amplitude (rms vs Fourier peak); 29b/29c [CONFIRM].
-
-Design rule: the CCBlade -> F1A -> FFT step is one function, `evaluate_propeller_source`. The 160-point grid,
-the Report 996 checks, and the Pereira check all call it with different observer lists; the Table-8 calibration is a separate
-post-step and is never applied inside it. Nothing else may reimplement that step.
+| Block | Status / evidence | Where |
+|-------|-------------------|-------|
+| Polars | Viterna fixed pre-comparison | UT_POLAR |
+| CCBlade BEMT | T, Q / C_T, C_P | R996_LOADS, PER_LOADS |
+| F1A free-field p | Shared `evaluate_propeller_source` | `propeller_ccblade.jl` |
+| BBN phase | Common time base; AUTHOR items | BBN_KIN, BBN_CIRC, BBN_LONG |
+| Report 996 | Amplitude matrix; A_rms convention | R996_FIG*; F1A_GUTIN |
+| Pereira | Forward flight | PER_FIG6–9 |
+| Unit tests | V-CODE | F1A_GUTIN, BBN_KIN |
+| Shared cabin / dB(A) | X-EXTRAP | A_CABIN; Run tab |
+| Open author | I-17 amplitude; 29b/29c | `VALIDATION_GUIDELINE.md` |
 
 ## 4. Shared cabin model
 
-Both paths feed the same blocks.
+Both paths feed the same blocks (IN → FUNC → OUT → VERIFY).
 
 ```mermaid
 flowchart LR
-    GRID["Free-field grid<br/>160 points, upper quarter<br/>l=1 at propeller azimuth phi_p<br/>(User Manual Fig 3)<br/><i>code matches (12b done)</i>"]
+  GRID["Free-field grid"]
 
-    subgraph BLK["Blocking - Eq. 43"]
-        direction TB
-        B_IN["IN: free-field grid<br/>+ incidence angles<br/>+ R1 or R2"]
-        B_FUNC["APPLY:<br/>F(gamma) = 10^[0.3 -<br/>0.000224 e^(0.08 gamma)]"]
-        B_OUT["OUT: blocked pressures<br/>at 160 grid points"]
-        B_VAL["VALIDATE:<br/>CR-172428 p.68<br/>within 0.06 dB"]
-        B_VAL2["ON-LINE CHECK (e11 only):<br/>Fig E-12 blocked at l=1<br/><i>tests Eq.43 + R1/R2<br/>14a done 2026-10-20:<br/>29 of 31 points within 3.41 dB,<br/>2 H3 aft points fail (recorded)</i>"]
-        B_IN --> B_FUNC --> B_OUT --> B_VAL
-        B_OUT --> B_VAL2
-    end
+  subgraph BLK["Blocking Eq. 43"]
+    direction TB
+    B_IN["Free-field + γ"]
+    B_FUNC["F(γ)"]
+    B_OUT["Blocked pressures"]
+    B_VAL["p.68 check"]
+    B_VAL2["Fig E-12"]
+    B_IN --> B_FUNC --> B_OUT
+    B_OUT -.-> B_VAL
+    B_OUT -.-> B_VAL2
+  end
 
-    subgraph MRP["Structural Modes<br/>(MRP + MRPMOD merged)"]
-        direction TB
-        M_IN["IN: E, nu, rho, t_eq<br/>m_s, m_p, EI/d, EI/l<br/>constraints"]
-        M_FUNC["REIMPL:<br/>Rayleigh-Ritz with<br/>Fourier shapes<br/>-> sort, truncate, M_r"]
-        M_OUT["OUT: f_r, M_r, C_Mn<br/>psi_r by Eqs 46-49"]
-        M_VAL["VERIFY (code-to-code):<br/>MRP_D1 transcription no_verdict<br/><i>production copies D-1 (by construction);<br/>raw Ritz MRP_RITZ: live 26/32 within 5%<br/>(report 30/32 stale; calibrated);<br/>App. D MRP_APPD (38g): no fitted scale;<br/>≥75% of 32 within 5% (fixed 2026-10-22);<br/>shape/mass comparison 17d;<br/>Fig. D-2 shape check 19g</i>"]
-        M_IN --> M_FUNC --> M_OUT --> M_VAL
-    end
+  subgraph MRP["Structural modes"]
+    direction TB
+    M_IN["Geometry, materials"]
+    M_FUNC["Ritz / App. D"]
+    M_OUT["f_r, ψ_r"]
+    M_VAL["Table D-1"]
+    M_IN --> M_FUNC --> M_OUT
+    M_OUT -.-> M_VAL
+  end
 
-    subgraph CYL["CYL2D"]
-        direction TB
-        C_IN["IN: floor angle theta0<br/>cavity length L_c (card 9), radius"]
-        C_FUNC["REIMPL (15a, done):<br/>App C half grid, NY = 10, Eqs C.1-C.6,<br/>node rule r &lt;= 1 + 0.4h,<br/>two tangential-gradient equations"]
-        C_OUT["OUT: omega_n (C.7, q and i),<br/>boundary phi_i (Eq 51),<br/>Phi_G (C.10), eps_n (C.11)"]
-        C_VAL["VERIFY (code-to-code), ratio form 2026-10-21:<br/>f_i/f_1 within 0.1% (c0-free; post-hoc);<br/>Phi_G / symmetry / Fig C-3 unchanged<br/><i>worst ratio 0.0003%; TABLE_C1_C0=341<br/>was back-solved from the table</i>"]
-        C_IN --> C_FUNC --> C_OUT --> C_VAL
-    end
+  subgraph CYL["CYL2D"]
+    direction TB
+    C_IN["θ0, L_c, a"]
+    C_FUNC["App. C"]
+    C_OUT["ω_n, Φ_G"]
+    C_VAL["Table C-1"]
+    C_IN --> C_FUNC --> C_OUT
+    C_OUT -.-> C_VAL
+  end
 
-    subgraph PAIN["PAIN Main - reimplemented"]
-        direction TB
-        P_IN["IN: structural modes<br/>acoustic modes<br/>blocked pressures<br/>trim stack (App A), C (Eq 80),<br/>eta_n if bare; ρ_ext/ρ_int, c_ext/c_int (card 2);<br/>L_c, d (card 9); bands ≤26 (cards 3–6);<br/>η_r/η_n per band (cards 11–18); rotation ±1 (card 36); assumptions 13a"]
-        subgraph FUNC["internal functions"]
-            direction TB
-            F2["coupling f'(n,r), Eq 52<br/>(Eqs 46-49, 53-57; axial overlap L_c,d)<br/><i>implemented, tests pass (17f); 38f-1 L≠L_c;<br/>boundary values from 15a (done)</i>"]
-            F3["generalized force<br/>Psi_G, Eq 42 (Delta^4/2)<br/><i>Delta^4/2 implemented (17a, done);<br/>analytic limits tested (17e, done)</i>"]
-            F4["trim, App A<br/>Eqs A.6-A.22, Fig A-2<br/><i>written (16a, done): trim_loss.jl;<br/>in the pipeline since 17a</i>"]
-            F5["loss factors<br/>Eqs 77, 79-83, j_r rev Eqs 63-73<br/><i>written (16b, done); E-14 reproduction 7/18 bands;<br/>in the pipeline since 17a</i>"]
-            F6["tone pressure<br/>Eq 8 + HF Eqs 15–16 (38b)<br/><i>Eq. 8 default (tone_model=:eq8); :auto at crossover;<br/>η_r_cap on tone path (38a/38d); 18b-r / E18_TONES not met;<br/>38b :auto H3 72.31 (Δ=+4.31) — I-18 not explained<br/>(phase38b_high_freq_tones.md; e18_tones_eta1.md)</i>"]
-            F7["HF broadband<br/>Eqs 19–23 (38c) + surrogate<br/><i>broadband_model=:surrogate default;<br/>:eq19 = printed τ_f, τ_R, ᾱ;<br/>T2_EQ19 first run 0/3 vs E-9<br/>(phase38c_hf_broadband.md)</i>"]
-        end
-        P_OUT["OUT: interior SPL<br/>per harmonic<br/>+ 1/3-octave spectrum"]
-        P_IN --> F2 --> F3 --> F6
-        P_IN --> F4 --> F5 --> F6
-        F5 --> F7
-        F6 --> P_OUT
-        F7 --> P_OUT
-    end
+  subgraph PAIN["PAIN main"]
+    direction TB
+    P_IN["Modes + blocked + trim"]
+    F2["Coupling f′"]
+    F3["Ψ_G"]
+    F4["Trim"]
+    F5["Loss factors"]
+    F6["Tone pressure Eq. 8"]
+    F7["HF broadband"]
+    P_OUT["Interior SPL"]
+    P_IN --> F2 --> F3 --> F6
+    P_IN --> F4 --> F5 --> F6
+    F5 --> F7
+    F6 --> P_OUT
+    F7 --> P_OUT
+  end
 
-    GRID --> B_IN
-    B_VAL --> P_IN
-    C_VAL --> P_IN
-    M_VAL --> P_IN
+  GRID --> B_IN
+  B_OUT --> P_IN
+  M_OUT --> P_IN
+  C_OUT --> P_IN
 
-    style F2 fill:#fff4e8
-    style F3 fill:#fff4e8
-    style F4 fill:#dbe9ff
-    style F5 fill:#dbe9ff
-    style F6 fill:#fff4e8
-    style F7 fill:#fff4e8
-    style B_VAL fill:#e8ffe8
-    style B_VAL2 fill:#fff4e8
-    style C_VAL fill:#fff4e8
-    style M_VAL fill:#fff4e8
-    style GRID fill:#ffe8e8
+  style F2 fill:#fff4e8
+  style F3 fill:#fff4e8
+  style F4 fill:#dbe9ff
+  style F5 fill:#dbe9ff
+  style F6 fill:#fff4e8
+  style F7 fill:#fff4e8
+  style B_VAL fill:#e8ffe8
+  style B_VAL2 fill:#fff4e8
+  style C_VAL fill:#fff4e8
+  style M_VAL fill:#fff4e8
+  style GRID fill:#ffe8e8
 ```
 
-**SRC_TA note (I-17, open 2026-10-21):** free-field SPL→Pa for the e11 / Table-8 path may omit the Fourier-peak √2 relative to CR-3813 / User Manual amplitude A. Author decision pending; see `VALIDATION_GUIDELINE.md` §2.1.
+| Block | Status / evidence | Where |
+|-------|-------------------|-------|
+| Free-field grid | Upper quarter; ℓ = 1 at φ_p | UT_GRID; 12b |
+| Blocking F(γ) | ≤ 0.06 dB on p.68 | BLK_P68 |
+| Fig E-12 | 29/31; 2 H3 aft fail | E12_BLOCK |
+| Structural modes | D-1 seed; Ritz calibrated; App. D 27/32 | MRP_D1, MRP_RITZ, MRP_APPD |
+| CYL2D | Ratios / Φ_G / symmetry | CYL2D_C1 |
+| Trim / loss | App. A; E-14 / E-15 | UT_TRIM, E14_LOSS, E15_STRUCT_LOSS |
+| Coupling / Ψ_G / Eq. 8 | Default tone path | UT_EQ8; 17a–17f |
+| HF broadband | Surrogate default; Eq. 19 | 38b–38c; T2_EQ19 |
+| SRC_TA amplitude | I-17 open (√2) | `VALIDATION_GUIDELINE.md` §2.1 |
 
 ## 5. Validation maps
 
-GUI tab **"Validation map"** (`src/validation_map.jl`). Cases are read-only; page images are display-only; numbers come from CSVs or transcribed tables. Per-case and per-block plain-language text (including Inputs / Equations / Outputs on every Explanation) is loaded from `VALIDATION_GUIDELINE.md` §2.13 into both the Validation and Validation map tabs. `UT_GRID` is runnable with figure `docs/validation_reports/figures/UT_GRID.png` (error panel uses `error_xlabel` = sample index, not axial z).
-
-### Map 1 — PAIN verification (CR-3813 cabin chain)
-
-Verifies the cabin chain against its own printed equations, tables and NASA PAIN output, then in-sample against measurement. Does **not** cover the aircraft source.
+GUI tab **Validation map** shows one map `total` (`src/validation_map.jl`), laid out from §2.13 `Position` / `Feeds` / `Group` / `Role`. Stage frames bound each group's own blocks only (positions chosen so frames are pairwise disjoint; aircraft checks above/below the pipeline). Titles only on boxes; case chips keep verdict dots. Horizontal + vertical scroll; zoom / fit.
 
 ```mermaid
-flowchart TB
-    P_FF["P_FF Free field SRC_TA<br/>E11_FREEFIELD · input_qa"]
-    P_GRID["P_GRID Grid + GEXT<br/>UT_GRID · unit test + figure<br/>GEXT_BOUND · calibrated"]
-    P_BLK["P_BLK Blocking Eq.43<br/>BLK_P68 · verification<br/>E12_BLOCK · verification"]
-    P_MRP["P_MRP Structural modes<br/>MRP_D1 · input_qa no_verdict<br/>MRP_RITZ · calibrated<br/>MRP_APPD · App. D (38g)"]
-    P_CYL["P_CYL Cabin modes<br/>CYL2D_C1 · verification"]
-    P_TRIM["P_TRIM Trim / loss<br/>UT_TRIM · verification<br/>E14_LOSS · verification<br/>E15_STRUCT_LOSS · experiment info"]
-    P_EQ8["P_EQ8 Coupling / Eq.8<br/>UT_EQ8 · verification"]
-    P_REPRO["P_REPRO vs NASA PAIN<br/>REPRO_18b · calibrated<br/>E18_TONES · verification (38d)"]
-    P_MEAS["P_MEAS vs measurement<br/>T1 · T2 · calibrated<br/>E21_E22_NR · Eq.(18) 38a"]
-
-    P_FF --> P_GRID --> P_BLK --> P_MRP --> P_CYL --> P_TRIM --> P_EQ8 --> P_REPRO --> P_MEAS
+flowchart LR
+  subgraph G_AIR["Aircraft BEMT+F1A"]
+    direction LR
+    A_GEO["Aircraft inputs"] --> A_LOADS["CCBlade BEMT"] --> X_F1A["F1A source"] --> X_FF["Free field p"]
+  end
+  subgraph G_FF["Free field"]
+    P_FF["e11 free field"] --> X_SRC["Source select"]
+    X_FF --> X_SRC
+  end
+  subgraph G_GRID["Grid and blocking"]
+    X_SRC --> P_GRID["160-point grid"] --> P_BLK["Blocking Eq. 43"] --> X_BLK_OUT["Blocked pressures"]
+  end
+  subgraph G_MRP["Structural modes"]
+    X_MRP_IN["Structure inputs"] --> P_MRP["Structural modes"] --> X_MRP_OUT["Modes f_r, ψ_r"]
+  end
+  subgraph G_CYL["CYL2D"]
+    X_CYL_IN["Cabin geometry"] --> P_CYL["CYL2D"] --> X_CYL_OUT["Modes Φ_G"]
+  end
+  subgraph G_TRIM["Trim and loss"]
+    X_TRIM_IN["Trim stack"] --> P_TRIM["Trim and loss"] --> X_TRIM_OUT["τ, η"]
+  end
+  subgraph G_PAIN["PAIN main"]
+    X_PAIN_IN["Cabin inputs"] --> P_EQ8["Coupling / Eq. 8"] --> X_OUT["Interior SPL"]
+  end
+  subgraph G_VAL["Validation comparisons"]
+    P_REPRO["vs NASA PAIN"]
+    P_MEAS["vs measurement"]
+    A_CABIN["Aircraft cabin"]
+  end
+  X_BLK_OUT --> X_PAIN_IN
+  X_MRP_OUT --> X_PAIN_IN
+  X_CYL_OUT --> X_PAIN_IN
+  X_TRIM_OUT --> X_PAIN_IN
+  X_FF -.-> A_AMP & A_PHASE & A_FWD & A_SURF
+  X_OUT -.-> P_REPRO & P_MEAS & A_CABIN
 ```
 
-### Map 2 — Aircraft source (CCBlade BEMT + F1A)
-
-Verifies the aircraft free-field source against experiments it was not tuned to. Report 996 = static near-field amplitude; BBN = phase on a fuselage; Pereira = forward flight far field. Aircraft cabin SPL stays **X-EXTRAP**. Does **not** claim a validated aircraft cabin.
-
-```mermaid
-flowchart TB
-    A_GEO["A_GEO Geometry / polars<br/>UT_POLAR · verification"]
-    A_LOADS["A_LOADS BEMT loads<br/>R996_LOADS · experiment<br/>PER_LOADS · experiment"]
-    A_AMP["A_AMP F1A amplitude static NF<br/>F1A_GUTIN · verification<br/>R996_FIG14/12/13A · experiment<br/>R996_FIG6/7/8"]
-    A_PHASE["A_PHASE F1A phase<br/>BBN_KIN · verification<br/>BBN_CIRC · experiment<br/>BBN_LONG · extrap<br/>R996_PHASE · experiment"]
-    A_FWD["A_FWD Forward flight FF<br/>PER_FIG6–9 · experiment"]
-    A_SURF["A_SURF Fuselage surface levels<br/>BBN_LEVELS · extrap"]
-    A_CABIN["A_CABIN → Map 1 cabin<br/>aircraft cabin = X-EXTRAP"]
-
-    A_GEO --> A_LOADS --> A_AMP --> A_PHASE --> A_FWD --> A_SURF --> A_CABIN
-```
+| Block | Status / evidence | Where |
+|-------|-------------------|-------|
+| All P_* / A_* cases | Unchanged ids, verdicts, criteria | `VALIDATION_GUIDELINE.md` §2.13 |
+| New X_* connectors | Layout only; no cases | Map `total` |
+| UT_GRID figure | Sample-index error panel | `docs/validation_reports/figures/UT_GRID.png` |
+| Screenshot | Offscreen smoke, zoom 1, left + right | `VALIDATION_MAP_TOTAL.png`, `VALIDATION_MAP_TOTAL_right.png` |

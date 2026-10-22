@@ -317,8 +317,8 @@ Per-case GUI text (titles, explanations, map/block copy) lives in **§2.13** —
 
 **GUI registry (phases 34–35).** Each row below that has a registry ID can be run from the GUI **Validation** tab (and from
 `run_validation_case(id)` / scripts). Plots go to `docs/validation_reports/figures/<id>.png` (with error panel since 2026-10-21).
-Cases are read-only. Third tab **"Validation map"** (`src/validation_map.jl`): Map 1 cabin chain, Map 2 aircraft source;
-clickable case chips; Validation-tab list ordered by map and block. **Greyed (Run disabled):** none (`R996_FIG8` removed
+Cases are read-only. Third tab **"Validation map"** (`src/validation_map.jl`): single horizontal map `total` (aircraft + e11 + cabin + checks);
+stage frames from each group's own blocks only (disjoint layout in §2.13); clickable case chips; Validation-tab list ordered by map and block. **Greyed (Run disabled):** none (`R996_FIG8` removed
 I-20; `E21_E22_NR` runnable since 38a). **In-process runnable:** `CYL2D_C1`, `MRP_D1`, `MRP_RITZ`, `MRP_APPD`, `BLK_P68`,
 `F1A_GUTIN`, `T1`, `T2`, `REPRO_18b`, `E12_BLOCK`, `E11_FREEFIELD`, `UT_GRID`, `E14_LOSS`, `GEXT_BOUND`, `BBN_KIN`, `R996_PHASE`,
 `E21_E22_NR` (Eq. 18, η_T = 1.0, η_r′ ≤ 0.15; criterion dated 2026-10-21), `T2_EQ19` (printed Eqs. 19–23; T2
@@ -598,97 +598,261 @@ Written before any BBN / Report 996 / Pereira comparison run that uses these tol
 
 ## 2.13 Validation case reference (read by the GUI)
 
-Machine-readable case/map/block text for the Validation and Validation-map tabs. Format: `### Map: id` / `#### Block: id` / `### Case: id` with bold `**Field:**` lines; the GUI parser in `src/validation_map.jl` depends on this layout. Both the Validation tab and the Validation map tab read these fields (`valInfo` / `mapDetail` / block `what_it_does` / map `what_is` / `how_to_read`). Abbreviations used below: ANOPP = NASA Aircraft NOise Prediction Program (free-field source tables); GEXT = assumed grid extension from one measured line to 160 skin points; T1 / T2 = tonal / 1/3-octave interior checks vs App. E; R1 / R2 = blocking Eq. (43) revisions; γ = incidence angle; ℓ = 1 = propeller-azimuth grid line; H1–H3 = blade-passage harmonics 1–3; BPF = blade-passage frequency; η_T = trim loss factor; F1A = Farassat formulation 1A.
+Machine-readable case/map/block text for the Validation and Validation-map tabs. Format: `### Map: id` / `#### Block: id` / `### Case: id` with bold `**Field:**` lines; the GUI parser in `src/validation_map.jl` depends on this layout. Both the Validation tab and the Validation map tab read these fields (`valInfo` / `mapDetail` / block `what_it_does` / map `what_is` / `how_to_read`). Optional per-block layout fields: `**Position:** col,row` (integers, columns left→right), `**Feeds:** id1, id2` (edges; every id must exist), `**Group:**` stage id, `**Role:**` `input`|`function`|`output`|`check`, and once per group `**Group title:**`. Defaults (0,0 / empty feeds / empty group) keep older blocks parseable. Choose `(col,row)` so stage group rectangles (axis-aligned bounds of each group's own blocks, including check chips) are pairwise disjoint and no block sits inside another group's rectangle; aircraft check blocks sit above/below the Aircraft pipeline so that group's box grows to include them without covering Free field. The GUI shows the single map `total` (aircraft path + e11 path + cabin chain + every check) on a horizontally scrolling canvas; block titles only on the boxes, case chips with verdict dots as before. Abbreviations used below: ANOPP = NASA Aircraft NOise Prediction Program (free-field source tables); GEXT = assumed grid extension from one measured line to 160 skin points; T1 / T2 = tonal / 1/3-octave interior checks vs App. E; R1 / R2 = blocking Eq. (43) revisions; γ = incidence angle; ℓ = 1 = propeller-azimuth grid line; H1–H3 = blade-passage harmonics 1–3; BPF = blade-passage frequency; η_T = trim loss factor; F1A = Farassat formulation 1A.
 
-### Map: pain
-**Title:** PAIN verification — CR-3813 cabin chain
-**What this map is:** Checks that the cabin chain computes what CR-3813 writes (V-UNIT: code = printed equation; V-CODE: code = NASA table or NASA PAIN output), then compares the end result with NASA's test-article measurements (in-sample, no claim). A pass here shows the equations are implemented as written; it does not show they are physically right, and none of it covers the aircraft source. Order follows the pipeline: free-field input → skin grid → blocking → structure → cabin acoustics → trim/loss → coupling → code-on-code interior → measured interior.
-**How to read it:** Blocks are pipeline stages in order from top to bottom. Chips are checks of that stage. Border colour is the kind of evidence (verification / experiment / calibrated / input QA / X-EXTRAP / deferred). The coloured dot is the last run verdict in this GUI session (green = met, red = not_met, grey = no_verdict, empty ring = not run). Kind tags: runnable = live code; replay = recorded script CSV re-plotted, not re-run; pkgtest = covered by Pkg.test; deferred = not built. The detail panel's error plot is green inside the criterion and red outside. "Replay" means the recorded script output is re-plotted, not re-computed. Each Explanation ends with Inputs / Equations / Outputs lines.
-
-#### Block: P_FF
-**Title:** Free field on the fuselage (test article)
-**What this stage does:** First stage: the exterior free-field sound-pressure level (SPL) that drives every App. E cabin run. Fig. E-11 is NASA's measured line along grid line ℓ = 1 with the fuselage absent; harmonic 3 (H3) and all phases come from ANOPP Table 8, not from the figure. Code: `freefield_digitized.jl`.
-**Code:** freefield_digitized.jl
-**Note:** Fig. E-11 measured line; H3 and all phases from ANOPP Table 8
-
-#### Block: P_GRID
-**Title:** 160-point grid and extension (GEXT)
-**What this stage does:** Builds the 160 fuselage-skin observers (User Manual Fig. 3) and, on the e11 path only, fills 150 of them from the one measured line by an assumed amplitude falloff and geometric delay (GEXT). Comes after free-field input because every later pressure lives on this grid. Code: `geometry.jl`, `grid_extension.jl`.
-**Code:** geometry.jl, grid_extension.jl
-
-#### Block: P_BLK
-**Title:** Blocking, Eq. (43)
-**What this stage does:** Scales free-field amplitude at each skin point by Magliozzi's empirical factor F(γ) so a rigid fuselage "blocks" (reflects) the wave; phases unchanged. Comes after the grid because γ is computed from hub-to-skin geometry. Code: `blocking.jl`.
-**Code:** blocking.jl
-
-#### Block: P_MRP
-**Title:** Structural modes (Table D-1 / Ritz / App. D)
-**What this stage does:** Fuselage structural modal frequencies and shapes that enter the coupling. Production uses the Table D-1 seed; a calibrated Ritz surrogate and the printed App. D solver are checked beside it. Comes before cabin acoustics and coupling. Code: `mrp.jl`, `mrp_appd.jl`.
-**Code:** mrp.jl, mrp_appd.jl
-
-#### Block: P_CYL
-**Title:** Cabin acoustic modes (App. C)
-**What this stage does:** Two-dimensional cabin acoustic modes (frequencies, generalized mass, shapes) from Appendix C. Needed with the structural modes before the Eq. (8) coupling sum. Code: `cyl2d.jl`.
-**Code:** cyl2d.jl
-
-#### Block: P_TRIM
-**Title:** Trim (App. A) and loss factors (§3.8)
-**What this stage does:** Sidewall/end trim transfer matrices and structural/acoustic loss factors that set every modal amplitude. Comes after modes and before the tone/broadband sums. Code: `trim_loss.jl`.
-**Code:** trim_loss.jl
-
-#### Block: P_EQ8
-**Title:** Coupling f′, Ψ_G, Eq. (8) tone sum + HF Eqs. (15)–(16)
-**What this stage does:** Generalized force, joint acceptance Ψ_G, and the tonal mean-square pressure sum Eq. (8) in `pain_core.jl`; high-frequency expected-value Eqs. (11)–(16) and crossover card 10 in `high_freq_tones.jl` (38b). Default `tone_model=:eq8`; `:auto` switches at the crossover band. Last equation stage before interior SPL checks.
-**Code:** pain_core.jl, high_freq_tones.jl
-
-#### Block: P_REPRO
-**Title:** Interior SPL vs NASA's PAIN program
-**What this stage does:** Code-on-code: run this cabin chain on the same free-field/blocking/trim settings NASA used and compare interior tonal SPL with NASA's PAIN circles (Fig. E-16 / E-18). Comes after the equation stages so a miss can be blamed on the chain, not on a missing mode.
-
-#### Block: P_MEAS
-**Title:** Interior SPL vs test-article measurement
-**What this stage does:** End-to-end checks against measured cabin levels and noise reduction (T1, T2, E-21/E-22). Last on the map because they inherit every upstream assumption (especially GEXT); several are calibrated or not claimable.
-
-### Map: aircraft
-**Title:** Aircraft source validation — CCBlade BEMT + F1A
-**What this map is:** Checks the aircraft free-field source (CCBlade blade-element momentum theory loads → AcousticAnalogies Farassat F1A pressure) against experiments it was not tuned to. Report 996 covers static near-field amplitude, BBN covers phase between points on a fuselage, Pereira covers forward flight in the far field. None covers a full aircraft cabin, so the aircraft cabin result stays X-EXTRAP. Criteria frozen 2026-10-21 (VALIDATION_GUIDELINE §2.12). Order: geometry → loads → amplitude → phase → forward flight → surface levels → cabin hand-off.
-**How to read it:** Blocks are pipeline stages in order from top to bottom. Chips are checks of that stage. Border colour is the kind of evidence (verification / experiment / calibrated / input QA / X-EXTRAP / deferred). The coloured dot is the last run verdict in this GUI session (green = met, red = not_met, grey = no_verdict, empty ring = not run). Kind tags: runnable = live code; replay = recorded script CSV re-plotted, not re-run; pkgtest = covered by Pkg.test; deferred = not built. The detail panel's error plot is green inside the criterion and red outside. "Replay" means the recorded script output is re-plotted, not re-computed. Each Explanation ends with Inputs / Equations / Outputs lines.
+### Map: total
+**Title:** Whole program: aircraft source → grid → blocking → cabin chain → interior SPL, with every validation check
+**What this map is:** One left-to-right flowchart of the whole program. Two free-field sources meet at Source select: (1) aircraft CCBlade BEMT → F1A, (2) the e11 measured line / ANOPP Table 8. Shared hand-off: 160-point grid → Blocking Eq. 43 → PAIN main, with Structural modes, CYL2D, and Trim/loss feeding the cabin chain in parallel. Output is Interior SPL; validation chips sit on check blocks that branch from stage outputs. A pass on a chip means that stage's stated check; aircraft cabin SPL stays X-EXTRAP.
+**How to read it:** Stages are labelled groups (rounded frames; each frame bounds only that stage's blocks). Inside each stage: input → function → output (titles only). Aircraft checks sit above/below the BEMT→F1A chain inside the Aircraft group; Free field is the next column so frames do not overlap. Solid arrows follow **Feeds**; dotted arrows from outputs to check chips. Border colour on a chip is the evidence kind; the coloured dot is the last run verdict in this GUI session (green = met, red = not_met, grey = no_verdict, empty ring = not run). Click a block for what_it_does / code; click a chip for the case detail. Scroll horizontally and vertically; zoom / fit if shown. Kind tags: runnable / replay / pkgtest / deferred. Each Explanation ends with Inputs / Equations / Outputs lines.
 
 #### Block: A_GEO
-**Title:** Blade geometry and polars
+**Title:** Aircraft inputs
 **What this stage does:** Loads airfoil lift/drag tables and aircraft JSON geometry that CCBlade needs before any thrust or noise. First aircraft stage. Code: `polars.jl`, aircraft JSON.
 **Code:** polars.jl, aircraft JSON
+**Group:** G_AIR
+**Group title:** Aircraft BEMT+F1A
+**Role:** input
+**Position:** 0,2
+**Feeds:** A_LOADS
 
 #### Block: A_LOADS
-**Title:** CCBlade BEMT loads (T, Q)
+**Title:** CCBlade BEMT
 **What this stage does:** Blade-element momentum theory thrust T and torque Q (coefficients C_T, C_P). Load error swamps acoustic error, so this sits before F1A amplitude checks. Code: `propeller_ccblade.jl`.
 **Code:** propeller_ccblade.jl
+**Group:** G_AIR
+**Role:** function
+**Position:** 1,2
+**Feeds:** X_F1A
+
+#### Block: X_F1A
+**Title:** F1A source
+**What this stage does:** Farassat F1A turns BEMT section loads into free-field pressure at observers. Code: `propeller_ccblade.jl` (F1A).
+**Code:** propeller_ccblade.jl (F1A)
+**Group:** G_AIR
+**Role:** function
+**Position:** 2,2
+**Feeds:** X_FF
+
+#### Block: X_FF
+**Title:** Free field p
+**What this stage does:** Aircraft free-field pressures (amplitude and phase per harmonic) handed to Source select and to the aircraft source checks.
+**Group:** G_AIR
+**Role:** output
+**Position:** 3,2
+**Feeds:** X_SRC, A_AMP, A_PHASE, A_FWD, A_SURF
 
 #### Block: A_AMP
-**Title:** F1A amplitude, static near field
+**Title:** F1A amplitude
 **What this stage does:** Farassat F1A harmonic amplitudes in the static near field (Report 996 figures) plus a far-field Gutin coding check. Comes after loads because several cases scale loads to measured T, Q. Code: `propeller_ccblade.jl` (F1A).
 **Code:** propeller_ccblade.jl (F1A)
+**Group:** G_AIR
+**Role:** check
+**Position:** 1,0
+**Feeds:**
 
 #### Block: A_PHASE
-**Title:** F1A phase between points
+**Title:** F1A phase
 **What this stage does:** Phase differences between observers (kinematic hub-ring unit test, BBN circumferential/longitudinal, Report 996 one-point phase). Phase enters cabin coupling Ψ_G; checked after amplitude wiring.
+**Group:** G_AIR
+**Role:** check
+**Position:** 1,4
+**Feeds:**
 
 #### Block: A_FWD
-**Title:** F1A forward flight, far field
+**Title:** Forward flight
 **What this stage does:** Pereira et al. 2026 forward-flight spectra, waveform phase, and directivity at 1 m — the only forward-flight experiment set. Comes after static amplitude/phase.
+**Group:** G_AIR
+**Role:** check
+**Position:** 2,0
+**Feeds:**
 
 #### Block: A_SURF
-**Title:** Levels on a fuselage surface
+**Title:** Surface levels
 **What this stage does:** Relative in-plane levels on a fuselage-like microphone ring (BBN Tables 3–4). Surface shape check before any cabin claim.
+**Group:** G_AIR
+**Role:** check
+**Position:** 2,4
+**Feeds:**
+
+#### Block: P_FF
+**Title:** e11 free field
+**What this stage does:** Exterior free-field SPL that drives every App. E cabin run. Fig. E-11 is NASA's measured line along grid line ℓ = 1 with the fuselage absent; harmonic 3 (H3) and all phases come from ANOPP Table 8, not from the figure. Code: `freefield_digitized.jl`.
+**Code:** freefield_digitized.jl
+**Note:** Fig. E-11 measured line; H3 and all phases from ANOPP Table 8
+**Group:** G_FF
+**Group title:** Free field
+**Role:** input
+**Position:** 5,1
+**Feeds:** X_SRC
+
+#### Block: X_SRC
+**Title:** Source select
+**What this stage does:** Chooses the free-field driver for the cabin chain: aircraft F1A grid or e11 measured line / ANOPP Table 8. Hand-off into the shared 160-point grid.
+**Group:** G_FF
+**Role:** function
+**Position:** 5,2
+**Feeds:** P_GRID
+
+#### Block: P_GRID
+**Title:** 160-point grid
+**What this stage does:** Builds the 160 fuselage-skin observers (User Manual Fig. 3) and, on the e11 path only, fills 150 of them from the one measured line by an assumed amplitude falloff and geometric delay (GEXT). Comes after free-field input because every later pressure lives on this grid. Code: `geometry.jl`, `grid_extension.jl`.
+**Code:** geometry.jl, grid_extension.jl
+**Group:** G_GRID
+**Group title:** Grid and blocking
+**Role:** function
+**Position:** 6,2
+**Feeds:** P_BLK
+
+#### Block: P_BLK
+**Title:** Blocking Eq. 43
+**What this stage does:** Scales free-field amplitude at each skin point by Magliozzi's empirical factor F(γ) so a rigid fuselage "blocks" (reflects) the wave; phases unchanged. Comes after the grid because γ is computed from hub-to-skin geometry. Code: `blocking.jl`.
+**Code:** blocking.jl
+**Group:** G_GRID
+**Role:** function
+**Position:** 7,2
+**Feeds:** X_BLK_OUT
+
+#### Block: X_BLK_OUT
+**Title:** Blocked pressures
+**What this stage does:** Blocked skin pressures (amplitude after Eq. 43; phases unchanged) handed to PAIN main.
+**Group:** G_GRID
+**Role:** output
+**Position:** 8,2
+**Feeds:** X_PAIN_IN
+
+#### Block: X_MRP_IN
+**Title:** Structure inputs
+**What this stage does:** Fuselage geometry and material inputs for the structural modal solve / Table D-1 seed.
+**Group:** G_MRP
+**Group title:** Structural modes
+**Role:** input
+**Position:** 6,5
+**Feeds:** P_MRP
+
+#### Block: P_MRP
+**Title:** Structural modes
+**What this stage does:** Fuselage structural modal frequencies and shapes that enter the coupling. Production uses the Table D-1 seed; a calibrated Ritz surrogate and the printed App. D solver are checked beside it. Comes before cabin acoustics and coupling. Code: `mrp.jl`, `mrp_appd.jl`.
+**Code:** mrp.jl, mrp_appd.jl
+**Group:** G_MRP
+**Role:** function
+**Position:** 7,5
+**Feeds:** X_MRP_OUT
+
+#### Block: X_MRP_OUT
+**Title:** Modes f_r, ψ_r
+**What this stage does:** Structural modal frequencies, masses and shapes handed to PAIN main.
+**Group:** G_MRP
+**Role:** output
+**Position:** 8,5
+**Feeds:** X_PAIN_IN
+
+#### Block: X_CYL_IN
+**Title:** Cabin geometry
+**What this stage does:** Floor angle, cavity length and radius for Appendix C cabin acoustic modes.
+**Group:** G_CYL
+**Group title:** CYL2D
+**Role:** input
+**Position:** 6,7
+**Feeds:** P_CYL
+
+#### Block: P_CYL
+**Title:** CYL2D
+**What this stage does:** Two-dimensional cabin acoustic modes (frequencies, generalized mass, shapes) from Appendix C. Needed with the structural modes before the Eq. (8) coupling sum. Code: `cyl2d.jl`.
+**Code:** cyl2d.jl
+**Group:** G_CYL
+**Role:** function
+**Position:** 7,7
+**Feeds:** X_CYL_OUT
+
+#### Block: X_CYL_OUT
+**Title:** Modes Φ_G
+**What this stage does:** Cabin acoustic modal frequencies, generalized mass and shapes handed to PAIN main.
+**Group:** G_CYL
+**Role:** output
+**Position:** 8,7
+**Feeds:** X_PAIN_IN
+
+#### Block: X_TRIM_IN
+**Title:** Trim stack
+**What this stage does:** Sidewall/end trim stack definition and loss-factor inputs before App. A / §3.8.
+**Group:** G_TRIM
+**Group title:** Trim and loss
+**Role:** input
+**Position:** 6,9
+**Feeds:** P_TRIM
+
+#### Block: P_TRIM
+**Title:** Trim and loss
+**What this stage does:** Sidewall/end trim transfer matrices and structural/acoustic loss factors that set every modal amplitude. Comes after modes and before the tone/broadband sums. Code: `trim_loss.jl`.
+**Code:** trim_loss.jl
+**Group:** G_TRIM
+**Role:** function
+**Position:** 7,9
+**Feeds:** X_TRIM_OUT
+
+#### Block: X_TRIM_OUT
+**Title:** τ, η
+**What this stage does:** Trim transfer results and loss factors handed to PAIN main.
+**Group:** G_TRIM
+**Role:** output
+**Position:** 8,9
+**Feeds:** X_PAIN_IN
+
+#### Block: X_PAIN_IN
+**Title:** Cabin inputs
+**What this stage does:** Blocked pressures, structural modes, cabin modes, trim and loss factors collected for the coupling / tone / HF sums.
+**Group:** G_PAIN
+**Group title:** PAIN main
+**Role:** input
+**Position:** 9,2
+**Feeds:** P_EQ8
+
+#### Block: P_EQ8
+**Title:** Coupling / Eq. 8
+**What this stage does:** Generalized force, joint acceptance Ψ_G, and the tonal mean-square pressure sum Eq. (8) in `pain_core.jl`; high-frequency expected-value Eqs. (11)–(16) and crossover card 10 in `high_freq_tones.jl` (38b). Default `tone_model=:eq8`; `:auto` switches at the crossover band. Last equation stage before interior SPL checks.
+**Code:** pain_core.jl, high_freq_tones.jl
+**Group:** G_PAIN
+**Role:** function
+**Position:** 10,2
+**Feeds:** X_OUT
+
+#### Block: X_OUT
+**Title:** Interior SPL
+**What this stage does:** Interior tonal and 1/3-octave SPL from the cabin chain; feeds the vs-NASA-PAIN and vs-measurement comparisons. Aircraft cabin use stays X-EXTRAP.
+**Group:** G_PAIN
+**Role:** output
+**Position:** 11,2
+**Feeds:** P_REPRO, P_MEAS, A_CABIN
+
+#### Block: P_REPRO
+**Title:** vs NASA PAIN
+**What this stage does:** Code-on-code: run this cabin chain on the same free-field/blocking/trim settings NASA used and compare interior tonal SPL with NASA's PAIN circles (Fig. E-16 / E-18). Comes after the equation stages so a miss can be blamed on the chain, not on a missing mode.
+**Group:** G_VAL
+**Group title:** Validation comparisons
+**Role:** check
+**Position:** 12,1
+**Feeds:**
+
+#### Block: P_MEAS
+**Title:** vs measurement
+**What this stage does:** End-to-end checks against measured cabin levels and noise reduction (T1, T2, E-21/E-22). Last on the map because they inherit every upstream assumption (especially GEXT); several are calibrated or not claimable.
+**Group:** G_VAL
+**Role:** check
+**Position:** 12,3
+**Feeds:**
 
 #### Block: A_CABIN
-**Title:** → PAIN cabin chain (Map 1)
-**What this stage does:** Hand-off: aircraft free-field on the 160-point grid feeds Map 1. Aircraft cabin SPL stays X-EXTRAP — no aircraft interior measurement is used.
+**Title:** Aircraft cabin
+**What this stage does:** Hand-off note: aircraft free-field on the 160-point grid feeds the cabin chain. Aircraft cabin SPL stays X-EXTRAP — no aircraft interior measurement is used.
 **Note:** Aircraft cabin SPL is X-EXTRAP: no aircraft interior measurement is used
+**Group:** G_VAL
+**Role:** check
+**Position:** 12,5
+**Feeds:**
 
 ### Case: E11_FREEFIELD
 **Title:** Fig. E-11 free-field line
-**Map / block:** pain / P_FF
+**Map / block:** total / P_FF
 **Category:** input_qa
 **Kind:** runnable
 **Source:** CR-3813 Fig. E-11, App. E p. E-19 / PDF p.135
@@ -704,7 +868,7 @@ Outputs: δ_dig [dB] per harmonic and station; verdict uses max δ_dig ≤ 1.0 d
 
 ### Case: UT_GRID
 **Title:** Skin grid vs User Manual Fig. 3 (with figure)
-**Map / block:** pain / P_GRID
+**Map / block:** total / P_GRID
 **Category:** verification
 **Kind:** runnable
 **Source:** User Manual Fig. 3
@@ -720,7 +884,7 @@ Outputs: x1,x2,x3 [m], θ [deg] vs formulas; figure γ [deg]; verdict on coordin
 
 ### Case: GEXT_BOUND
 **Title:** Grid-extension (GEXT) importance bound on T1
-**Map / block:** pain / P_GRID
+**Map / block:** total / P_GRID
 **Category:** calibrated
 **Kind:** runnable
 **Source:** derived (VALIDATION_GUIDELINE §2.2.1)
@@ -736,7 +900,7 @@ Outputs: T1 residual [dB] per harmonic H1–H3 per variant; verdict always `:no_
 
 ### Case: BLK_P68
 **Title:** Blocking Eq. (43) vs printed p.68 values
-**Map / block:** pain / P_BLK
+**Map / block:** total / P_BLK
 **Category:** verification
 **Kind:** runnable
 **Source:** NASA-CR-172428 p.68; CR-3813 Eq. (43)
@@ -752,7 +916,7 @@ Outputs: ΔL [dB] vs p.68; verdict |Δ| ≤ 0.06 dB on all R1 checkpoints.
 
 ### Case: E12_BLOCK
 **Title:** Fig. E-12 blocked SPL
-**Map / block:** pain / P_BLK
+**Map / block:** total / P_BLK
 **Category:** verification
 **Kind:** runnable
 **Source:** CR-3813 Fig. E-12, p.136
@@ -768,7 +932,7 @@ Outputs: blocked SPL [dB] H1–H3; verdict |Δ| ≤ 3.41 dB vs digitized NASA pr
 
 ### Case: MRP_D1
 **Title:** MRP Table D-1 seed
-**Map / block:** pain / P_MRP
+**Map / block:** total / P_MRP
 **Category:** input_qa
 **Kind:** runnable
 **Source:** CR-3813 Table D-1, p.113
@@ -784,7 +948,7 @@ Outputs: mode frequencies f [Hz] equal to Table D-1; verdict `:no_verdict`.
 
 ### Case: MRP_RITZ
 **Title:** MRP raw Ritz vs Table D-1
-**Map / block:** pain / P_MRP
+**Map / block:** total / P_MRP
 **Category:** calibrated
 **Kind:** runnable
 **Source:** CR-3813 Table D-1
@@ -800,7 +964,7 @@ Outputs: f [Hz] vs Table D-1; fraction within 5 %; verdict always `:no_verdict`.
 
 ### Case: MRP_APPD
 **Title:** App. D Eqs. (D.17)–(D.26) vs Table D-1
-**Map / block:** pain / P_MRP
+**Map / block:** total / P_MRP
 **Category:** verification
 **Kind:** runnable
 **Source:** CR-3813 Table D-1 / Fig. D-2; App. D pp. D-3…D-10
@@ -816,7 +980,7 @@ Outputs: f [Hz] vs Table D-1; Fig. D-2 shape residuals (info); verdict on count 
 
 ### Case: CYL2D_C1
 **Title:** CYL2D vs Table C-1 / Fig. C-3
-**Map / block:** pain / P_CYL
+**Map / block:** total / P_CYL
 **Category:** verification
 **Kind:** runnable
 **Source:** CR-3813 Table C-1, Fig. C-3
@@ -832,7 +996,7 @@ Outputs: f [Hz], f/f1 [-], Φ_G [-], symmetry flags; verdict on ratios ≤0.1 %,
 
 ### Case: UT_TRIM
 **Title:** Trim / loss (Pkg.test)
-**Map / block:** pain / P_TRIM
+**Map / block:** total / P_TRIM
 **Category:** verification
 **Kind:** pkgtest
 **Source:** CR-3813 App. A, §3.8
@@ -848,7 +1012,7 @@ Outputs: matrix determinants, passivity, quadrature residuals in Pkg.test; no re
 
 ### Case: E14_LOSS
 **Title:** Fig. E-14 loss factor
-**Map / block:** pain / P_TRIM
+**Map / block:** total / P_TRIM
 **Category:** verification
 **Kind:** runnable
 **Source:** CR-3813 Fig. E-14, p.139
@@ -864,7 +1028,7 @@ Outputs: η̄ [-] per band; verdict ±25 % vs NASA η_T = 0.5 curve.
 
 ### Case: E15_STRUCT_LOSS
 **Title:** Fig. E-15 η_r′ (struct. loss)
-**Map / block:** pain / P_TRIM
+**Map / block:** total / P_TRIM
 **Category:** experiment
 **Kind:** runnable
 **Source:** CR-3813 Fig. E-15, p.E-25 / PDF p.141
@@ -880,7 +1044,7 @@ Outputs: η_r′ [-] vs measured; info counts within CSV tol_frac; verdict `:no_
 
 ### Case: UT_EQ8
 **Title:** Eq. (8) coupling + HF tones (Pkg.test)
-**Map / block:** pain / P_EQ8
+**Map / block:** total / P_EQ8
 **Category:** verification
 **Kind:** pkgtest
 **Source:** CR-3813 Eqs. (8), (11)–(16), (41)–(42), (52)
@@ -896,7 +1060,7 @@ Outputs: Pkg.test residuals only; no registry verdict.
 
 ### Case: REPRO_18b
 **Title:** PAIN reproduction (18b-r)
-**Map / block:** pain / P_REPRO
+**Map / block:** total / P_REPRO
 **Category:** calibrated
 **Kind:** runnable
 **Source:** CR-3813 Fig. E-16 NASA PAIN circles, p.142
@@ -912,7 +1076,7 @@ Outputs: interior SPL_H1..H3 [dB]; verdict |Δ| ≤ 4 dB vs NASA PAIN prediction
 
 ### Case: E18_TONES
 **Title:** Fig. E-18 tones (η_T=1)
-**Map / block:** pain / P_REPRO
+**Map / block:** total / P_REPRO
 **Category:** verification
 **Kind:** runnable
 **Source:** CR-3813 Fig. E-18, p.E-29; e18_interior_pred_eta1.csv
@@ -928,7 +1092,7 @@ Outputs: interior SPL [dB] at 200/400/630 Hz; verdict ≤ 4 dB vs NASA E-18 pred
 
 ### Case: T1
 **Title:** Tonal interior SPL (T1)
-**Map / block:** pain / P_MEAS
+**Map / block:** total / P_MEAS
 **Category:** calibrated
 **Kind:** runnable
 **Source:** CR-3813 Fig. E-16/E-17, p.142
@@ -944,7 +1108,7 @@ Outputs: SPL_H1..H3 [dB]; verdict on gates A/B (still labeled not claimable).
 
 ### Case: T2
 **Title:** 1/3-octave (T2)
-**Map / block:** pain / P_MEAS
+**Map / block:** total / P_MEAS
 **Category:** calibrated
 **Kind:** runnable
 **Source:** CR-3813 Fig. E-9, p.132
@@ -960,7 +1124,7 @@ Outputs: 1/3-octave SPL [dB] at target bands; verdict vs CSV tol_dB.
 
 ### Case: T2_EQ19
 **Title:** 1/3-octave Eq.(19) (T2_EQ19)
-**Map / block:** pain / P_MEAS
+**Map / block:** total / P_MEAS
 **Category:** experiment
 **Kind:** runnable
 **Source:** CR-3813 Fig. E-9, p.132; Eqs. (19)–(23) pp.23–25
@@ -976,7 +1140,7 @@ Outputs: SPL [dB] at 1.25/1.6/2 kHz; verdict ±3.5 dB; E-21/E-22 full-band count
 
 ### Case: E21_E22_NR
 **Title:** Figs. E-21 / E-22 NR
-**Map / block:** pain / P_MEAS
+**Map / block:** total / P_MEAS
 **Category:** experiment
 **Kind:** runnable
 **Source:** CR-3813 Figs. E-21, E-22, p.149
@@ -992,7 +1156,7 @@ Outputs: NR(band) [dB]; verdict on NASA and E-22 fraction rules.
 
 ### Case: UT_POLAR
 **Title:** Polar loader (Pkg.test)
-**Map / block:** aircraft / A_GEO
+**Map / block:** total / A_GEO
 **Category:** verification
 **Kind:** pkgtest
 **Source:** XFOIL polars, tables.json
@@ -1008,7 +1172,7 @@ Outputs: Pkg.test assertions only; no registry verdict.
 
 ### Case: R996_LOADS
 **Title:** Report 996 CCBlade loads
-**Map / block:** aircraft / A_LOADS
+**Map / block:** total / A_LOADS
 **Category:** calibrated
 **Kind:** replay
 **Source:** RM L8H25a, Report 996 Fig. 14 table, Fig. 7 legend
@@ -1024,7 +1188,7 @@ Outputs: C_T, C_P [-]; verdict |ratio−1| ≤ 0.15 (replay).
 
 ### Case: PER_LOADS
 **Title:** Pereira Table 3 loads
-**Map / block:** aircraft / A_LOADS
+**Map / block:** total / A_LOADS
 **Category:** experiment
 **Kind:** replay
 **Source:** Pereira et al. 2026, Table 3
@@ -1040,7 +1204,7 @@ Outputs: T, Q; verdict `:no_verdict`.
 
 ### Case: F1A_GUTIN
 **Title:** F1A vs Gutin (far field)
-**Map / block:** aircraft / A_AMP
+**Map / block:** total / A_AMP
 **Category:** verification
 **Kind:** runnable
 **Source:** Gutin far-field closed form
@@ -1056,7 +1220,7 @@ Outputs: SPL [dB]; verdict |Δ| ≤ 1 dB.
 
 ### Case: R996_FIG14
 **Title:** Report 996 Fig. 14(a)
-**Map / block:** aircraft / A_AMP
+**Map / block:** total / A_AMP
 **Category:** experiment
 **Kind:** replay
 **Source:** NACA Report 996 Fig. 14(a), p.16
@@ -1072,7 +1236,7 @@ Outputs: pressure [dyne/cm²] / SPL error [dB]; verdict ≥75 % within ±2 dB.
 
 ### Case: R996_FIG12
 **Title:** Report 996 Fig. 12(a)(b)
-**Map / block:** aircraft / A_AMP
+**Map / block:** total / A_AMP
 **Category:** experiment
 **Kind:** replay
 **Source:** Report 996 Fig. 12(a)(b), p.13
@@ -1088,7 +1252,7 @@ Outputs: pressure vs x/D; verdict ≥75 % within ±2 dB.
 
 ### Case: R996_FIG13A
 **Title:** Report 996 Fig. 13(a)
-**Map / block:** aircraft / A_AMP
+**Map / block:** total / A_AMP
 **Category:** experiment
 **Kind:** replay
 **Source:** Report 996 Fig. 13(a), p.15
@@ -1104,7 +1268,7 @@ Outputs: H1 pressure vs x/D; verdict ≥75 % within ±2 dB.
 
 ### Case: R996_FIG6
 **Title:** Report 996 Fig. 6
-**Map / block:** aircraft / A_AMP
+**Map / block:** total / A_AMP
 **Category:** experiment
 **Kind:** replay
 **Source:** Report 996 Fig. 6, p.11
@@ -1120,7 +1284,7 @@ Outputs: total rms [dyne/cm²]; no pass rule.
 
 ### Case: R996_FIG7
 **Title:** Report 996 Fig. 7
-**Map / block:** aircraft / A_AMP
+**Map / block:** total / A_AMP
 **Category:** experiment
 **Kind:** replay
 **Source:** Report 996 Fig. 7, p.11
@@ -1136,7 +1300,7 @@ Outputs: p_c/C_P [-]; no pass rule.
 
 ### Case: BBN_KIN
 **Title:** BBN kinematic Δφ
-**Map / block:** aircraft / A_PHASE
+**Map / block:** total / A_PHASE
 **Category:** verification
 **Kind:** runnable
 **Source:** kinematics (23a′)
@@ -1152,7 +1316,7 @@ Outputs: Δφ [deg]; verdict |Δφ − m·B·Δψ| ≤ 0.5°.
 
 ### Case: BBN_CIRC
 **Title:** BBN circumferential phase
-**Map / block:** aircraft / A_PHASE
+**Map / block:** total / A_PHASE
 **Category:** experiment
 **Kind:** replay
 **Source:** NASA CR-158919 App. C, CR-159124
@@ -1168,7 +1332,7 @@ Outputs: phase [deg]; verdict on 80 % within 15°/35°.
 
 ### Case: BBN_LONG
 **Title:** BBN longitudinal phase
-**Map / block:** aircraft / A_PHASE
+**Map / block:** total / A_PHASE
 **Category:** extrap
 **Kind:** replay
 **Source:** CR-159124 Figs. 19, 20
@@ -1184,7 +1348,7 @@ Outputs: phase [deg]; no pass rule (X-EXTRAP).
 
 ### Case: R996_PHASE
 **Title:** Report 996 page-12 phase
-**Map / block:** aircraft / A_PHASE
+**Map / block:** total / A_PHASE
 **Category:** experiment
 **Kind:** replay
 **Source:** Report 996 p.12 text
@@ -1200,7 +1364,7 @@ Outputs: phase difference [deg]; verdict within ±15° of 155°.
 
 ### Case: PER_FIG6
 **Title:** Pereira Fig. 6 spectra
-**Map / block:** aircraft / A_FWD
+**Map / block:** total / A_FWD
 **Category:** experiment
 **Kind:** replay
 **Source:** Pereira et al. 2026 Fig. 6
@@ -1216,7 +1380,7 @@ Outputs: SPL [dB] vs BPF harmonic; no 23d pass rule.
 
 ### Case: PER_FIG7
 **Title:** Pereira Fig. 7 waveform
-**Map / block:** aircraft / A_FWD
+**Map / block:** total / A_FWD
 **Category:** experiment
 **Kind:** replay
 **Source:** Pereira et al. 2026 Fig. 7
@@ -1232,7 +1396,7 @@ Outputs: Δψ₁ [deg]; verdict ±5°.
 
 ### Case: PER_FIG8
 **Title:** Pereira Fig. 8 directivity
-**Map / block:** aircraft / A_FWD
+**Map / block:** total / A_FWD
 **Category:** experiment
 **Kind:** replay
 **Source:** Pereira et al. 2026 Fig. 8
@@ -1248,7 +1412,7 @@ Outputs: SPL [dB] vs φ; verdict on H1/H2 tolerances.
 
 ### Case: PER_FIG9
 **Title:** Pereira Fig. 9 harmonics
-**Map / block:** aircraft / A_FWD
+**Map / block:** total / A_FWD
 **Category:** experiment
 **Kind:** replay
 **Source:** Pereira et al. 2026 Fig. 9
@@ -1264,7 +1428,7 @@ Outputs: SPL [dB]; verdict on H1/H2 counts.
 
 ### Case: BBN_LEVELS
 **Title:** BBN relative levels
-**Map / block:** aircraft / A_SURF
+**Map / block:** total / A_SURF
 **Category:** extrap
 **Kind:** replay
 **Source:** CR-158919 Tables 3, 4

@@ -9,8 +9,7 @@ validity_for_source(source::Symbol) =
     source === :e11 ? "V-EXP" : "X-EXTRAP"
 
 function _refresh_map_json!(obs::AbstractDict)
-    obs["map_pain_json"][] = validation_map_json("pain"; last=_GUI_LAST_VERDICTS)
-    obs["map_aircraft_json"][] = validation_map_json("aircraft"; last=_GUI_LAST_VERDICTS)
+    obs["map_total_json"][] = validation_map_json("total"; last=_GUI_LAST_VERDICTS)
     return nothing
 end
 
@@ -118,11 +117,14 @@ function make_gui_observables(;
         "val_criterion" => Observable(_criterion_for("CYL2D_C1")),
         "val_info_json" => Observable(case_info_json("CYL2D_C1")),
         "val_report_path" => Observable(""),
-        # Task C — Validation map tab
-        "map_pain_json" => Observable(validation_map_json("pain"; last=_GUI_LAST_VERDICTS)),
-        "map_aircraft_json" => Observable(validation_map_json("aircraft"; last=_GUI_LAST_VERDICTS)),
+        # Task C — Validation map tab (single total flowchart)
+        "map_total_json" => Observable(validation_map_json("total"; last=_GUI_LAST_VERDICTS)),
         "map_selected" => Observable(""),
+        "map_selected_block" => Observable(""),
         "map_detail_json" => Observable("{}"),
+        "map_content_width" => Observable(0.0),
+        "map_view_width" => Observable(0.0),
+        "smoke_map_png" => Observable(""),
         # Phase 38h — Manual §5.4.3 printed outputs (read-only)
         "po_status" => Observable("Ready. Press Run / Refresh for the current Run-tab case."),
         "po_text" => Observable(""),
