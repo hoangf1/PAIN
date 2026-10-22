@@ -23,6 +23,7 @@ include("blocking.jl")
 include("grid_extension.jl")
 include("cyl2d.jl")
 include("mrp.jl")
+include("mrp_appd.jl")
 include("propeller_ccblade.jl")
 include("polars.jl")
 include("freefield_digitized.jl")
@@ -52,6 +53,12 @@ export
     scale_acoustic_freq, acoustic_boundary_value,
     structural_modes, structural_modes_from_table_d1, fit_mrp_to_table_d1, match_ritz_to_table_d1,
     StructuralModes, StructuralMode, structural_shell_psi, structural_floor_psi, TABLE_D1_CORE, TABLE_D1_FULL,
+    AppDGeometry, appd_test_article_geometry, appd_modes, build_structural_modes,
+    APPD_READINGS, donnell_mushtari_frequency_Hz, appd_shell_harmonic_frequency_Hz,
+    appd_shell_condensed_frequency_Hz,
+    appd_generalized_mass_from_shape, appd_smeared_stringer_frequency_Hz,
+    appd_constraint_residuals, appd_max_constraint_residual, appd_mode_orthogonality,
+    shell_circumferential,
     coupling_factor, axial_coupling,
     FreeFieldHarmonicGrid, Observer, SourceResult,
     propeller_freefield_grid, synthetic_freefield_grid,
@@ -130,6 +137,7 @@ function run_pain_pipeline(;
         source::Symbol=:aircraft,
         use_synthetic::Bool=false,   # legacy: true + no aircraft_json → :synthetic (tests)
         use_table_d1::Bool=true,
+        structural_solver::Symbol=:table_d1,
         blocking::BlockingVariant=R2,
         n_harmonics::Int=5,
         bpf_Hz::Float64=150.0,
@@ -223,9 +231,13 @@ function run_pain_pipeline(;
     bl = apply_blocking(ff, fuse, prop; variant=blocking)
 
     acoustic = cyl2d_modes(theta0_deg; n_modes=20, NY=NY)
-    structural = use_table_d1 ?
-        structural_modes_from_table_d1(; L=L, a=a, theta0_deg=theta0_deg, n_keep=32) :
-        structural_modes(fuse; n_keep=32)
+    # Default structural path unchanged: Table D-1 seed when use_table_d1 (legacy flag).
+    # structural_solver=:appd selects the printed App. D solver (38g); :ritz the surrogate.
+    solver = structural_solver
+    if solver === :table_d1 && !use_table_d1
+        solver = :ritz
+    end
+    structural = build_structural_modes(fuse; structural_solver=solver, n_keep=32)
 
     ΔA = (π * a / 18)^2  # User Manual grid spacing scale
     trim_used = trim === :auto ? (src === :e11 ? :phase3 : :bare) : trim

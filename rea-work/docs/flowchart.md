@@ -12,7 +12,7 @@ The user source is BEMT + F1A, which gives the free-field pressure at the 160 fu
 
 Grid extension (GEXT) appears only in diagram 2. It exists because the NASA paper measured one line of the grid.
 
-Status key: green = check exists and passes as stated; orange = planned, not independently checked, or the current code differs from CR-3813; blue = calibrated surrogate. Step numbers refer to `IMPLEMENTATION_PLAN.md`. **2026-10-22:** phases **38d–38e** — `E18_TONES` 2/3 vs NASA E-18 (not met); `E15_STRUCT_LOSS` η_r′ V-EXP info (no_verdict). Phase **38c** printed HF broadband; `T2_EQ19` 0/3. **38h** Manual §5.4.3 printed outputs (`printed_outputs.jl` + GUI tab; no criterion). Phases 38a–38b remain; 38g next after 38h. Phases 32–35 done. GUI Run tab = aircraft only; **Validation** + **Validation map** + **Printed outputs** tabs. `REPRO_18b` = 18b-r (not met); `MRP_D1` = transcription `no_verdict`. Aircraft path stays X-EXTRAP; 29b–31 deferred (B-4).
+Status key: green = check exists and passes as stated; orange = planned, not independently checked, or the current code differs from CR-3813; blue = calibrated surrogate. Step numbers refer to `IMPLEMENTATION_PLAN.md`. **2026-10-22:** phases **38d–38e** — `E18_TONES` 2/3 vs NASA E-18 (not met); `E15_STRUCT_LOSS` η_r′ V-EXP info (no_verdict). Phase **38c** printed HF broadband; `T2_EQ19` 0/3. **38h** Manual §5.4.3 printed outputs (`printed_outputs.jl` + GUI tab; no criterion). **38g** printed App. D solver `mrp_appd.jl` / case `MRP_APPD`: **27/32** within 5 % → met (criterion ≥75 % of 32, fixed 2026-10-22; `mrp_appd_vs_d1.md`). Phases 38a–38b remain. Phases 32–35 done. GUI Run tab = aircraft only; **Validation** + **Validation map** + **Printed outputs** tabs. `REPRO_18b` = 18b-r (not met); `MRP_D1` = transcription `no_verdict`. Aircraft path stays X-EXTRAP; 29b–31 deferred (B-4).
 
 **Test tooling (P1, 2026-10-22, no behaviour change).** `Pkg.test` accepts `test_args` substrings to select top-level testsets; list/times in `PAIN.jl/test/README.md`. Optional DaemonMode loop in `PAIN.jl/scripts/devtools/` (separate env; Revise loaded). Does not alter criteria, reports, or `src/`.
 
@@ -171,7 +171,7 @@ flowchart LR
         M_IN["IN: E, nu, rho, t_eq<br/>m_s, m_p, EI/d, EI/l<br/>constraints"]
         M_FUNC["REIMPL:<br/>Rayleigh-Ritz with<br/>Fourier shapes<br/>-> sort, truncate, M_r"]
         M_OUT["OUT: f_r, M_r, C_Mn<br/>psi_r by Eqs 46-49"]
-        M_VAL["VERIFY (code-to-code):<br/>MRP_D1 transcription no_verdict<br/><i>production copies D-1 (by construction);<br/>raw Ritz MRP_RITZ: live 26/32 within 5%<br/>(report 30/32 stale; calibrated);<br/>shape/mass comparison 17d;<br/>Fig. D-2 shape check 19g</i>"]
+        M_VAL["VERIFY (code-to-code):<br/>MRP_D1 transcription no_verdict<br/><i>production copies D-1 (by construction);<br/>raw Ritz MRP_RITZ: live 26/32 within 5%<br/>(report 30/32 stale; calibrated);<br/>App. D MRP_APPD (38g): no fitted scale;<br/>≥75% of 32 within 5% (fixed 2026-10-22);<br/>shape/mass comparison 17d;<br/>Fig. D-2 shape check 19g</i>"]
         M_IN --> M_FUNC --> M_OUT --> M_VAL
     end
 
@@ -237,7 +237,7 @@ flowchart TB
     P_FF["P_FF Free field SRC_TA<br/>E11_FREEFIELD · input_qa"]
     P_GRID["P_GRID Grid + GEXT<br/>UT_GRID · verification<br/>GEXT_BOUND · calibrated"]
     P_BLK["P_BLK Blocking Eq.43<br/>BLK_P68 · verification<br/>E12_BLOCK · verification"]
-    P_MRP["P_MRP Structural modes<br/>MRP_D1 · input_qa no_verdict<br/>MRP_RITZ · calibrated"]
+    P_MRP["P_MRP Structural modes<br/>MRP_D1 · input_qa no_verdict<br/>MRP_RITZ · calibrated<br/>MRP_APPD · App. D (38g)"]
     P_CYL["P_CYL Cabin modes<br/>CYL2D_C1 · verification"]
     P_TRIM["P_TRIM Trim / loss<br/>UT_TRIM · verification<br/>E14_LOSS · verification<br/>E15_STRUCT_LOSS · experiment info"]
     P_EQ8["P_EQ8 Coupling / Eq.8<br/>UT_EQ8 · verification"]

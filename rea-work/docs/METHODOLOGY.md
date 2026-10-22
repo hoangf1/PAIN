@@ -125,7 +125,8 @@ H2 by 6.7 dB and H3 by 7.7 dB (Phase III trim), and the 0.1 dB convergence rule 
 
 A Rayleigh-Ritz model with Fourier shapes, sorted and truncated, giving the generalized masses.
 
-- **Eqs. (D.22)–(D.26) (19g, 2026-10-20):** the raw Ritz solver is not an implementation of them: it has no u, v degrees of freedom, replaces the compatibility constraints (D.17)–(D.21) by soft junction springs and uses a Donnell-type diagonal with three fitted scales in place of the (D.25) operator; the smearing of (D.24) is present in spirit. The production path does not use it (`fig_d2_check.md`). Fig. D-2 mode 1 against the Table D-1 coefficients: shell within the print quantization (0.026 of the peak), floor 0.057 against a 0.05 criterion (not met).
+- **Eqs. (D.22)–(D.26) (19g, 2026-10-20):** the raw Ritz solver in `mrp.jl` is not an implementation of them: it has no u, v degrees of freedom, replaces the compatibility constraints (D.17)–(D.21) by soft junction springs and uses a Donnell-type diagonal with three fitted scales in place of the (D.25) operator; the smearing of (D.24) is present in spirit. The production path does not use it (`fig_d2_check.md`). Fig. D-2 mode 1 against the Table D-1 coefficients: shell within the print quantization (0.026 of the peak), floor 0.057 against a 0.05 criterion (not met).
+- **Printed App. D solver (`mrp_appd.jl`, 38g, 2026-10-22):** implements constraints (D.17)–(D.21), constitutive (D.23)–(D.24), operator (D.25), eigenproblem (D.22), and shapes (D.26)–(D.29) with physical geometry/material from App. E / Manual §5.2 — no fitted scale. Selected with `structural_solver=:appd`; default remains Table D-1. Registry `MRP_APPD`: ≥ 75 % of 32 modes within 5 % (count rule fixed 2026-10-22 before any run); Fig. D-2 reported without a pass mark. **First run: 27/32 within 5 % → `:met`** (`mrp_appd_vs_d1.md`).
 - **Production (hybrid) path:** frequencies and masses come from NASA Table D-1 with Ritz shapes, so its 32/32 match with D-1
   is **by construction**. Registry `MRP_D1` is a transcription check with verdict `no_verdict` (2026-10-21; was `met`). Do not
   quote it as a pass.
@@ -238,8 +239,8 @@ Until 29b/29c land, an aircraft run may silently use the test-article defaults l
   importance bound only.
 - That any GEXT or cabin result is free of refraction and scattering effects. Both stay V-ASSUMED, so every claim is
   conditional on them.
-- Full Peterson shell-floor Fourier matrices from the App. D OCR: the model uses diagonal Donnell/Kirchhoff terms, junction
-  springs and D-1 shape Rayleigh seeds, so raw Ritz coverage is incomplete (D-1 modes 2 and 9).
+- Full Peterson shell-floor Fourier matrices: addressed in 38g by `mrp_appd.jl` (printed App. D); the calibrated `mrp.jl`
+  surrogate still uses diagonal Donnell/Kirchhoff + junction springs and remains the non-default path only.
 - CCBlade/F1A as a validated replacement for ANOPP. Source checks (BBN 24c, Report 996 23c, Pereira 23d) did not meet
   frozen §2.12 tolerances (2026-10-21). The optional Table-8 peak calibration is an X-EXTRAP post-step only and must never
   be compared with Table 8 when enabled (`anopp_table8_calibrate: false` for raw checks).

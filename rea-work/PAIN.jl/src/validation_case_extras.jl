@@ -436,6 +436,84 @@ function _run_mrp_ritz()
     )
 end
 
+"""
+App. D solver vs Table D-1 (38g). Criterion fixed 2026-10-22 before any run:
+≥ 75 % of 32 modes within 5 %, no calibration input. Fig. D-2 reported without a pass mark.
+"""
+function _run_mrp_appd()
+    g = appd_test_article_geometry()
+    modes = appd_modes(g; n_modes=48, n_axial=7, n_circ=8, n_floor_max=5)
+    npass, pairs = match_ritz_to_table_d1(modes; tol_frac=0.05)
+    n_ref = length(TABLE_D1_FULL)
+    frac = npass / n_ref
+    # Count rule fixed 2026-10-22: ≥ 75 % of 32 within 5 %, no calibration.
+    met = (npass >= ceil(Int, 0.75 * n_ref))
+    table = ValidationTableRow[]
+    idxs = Float64[]; ref_f = Float64[]; got_f = Float64[]
+    for p in pairs
+        push!(table, ValidationTableRow("f_Hz mode $(p.d1)", Float64(p.d1),
+                                        p.ref, p.got, p.got - p.ref, p.ok))
+        push!(idxs, Float64(p.d1)); push!(ref_f, p.ref); push!(got_f, p.got)
+    end
+    # Fig. D-2 mode-1 shape at digitized points — report only, no pass mark
+    # CSV columns: part,index,position,value (floor index i → x=i·Lp/20; shell row k → θ=5k°)
+    d2_path = _data_path("cr3813", "fig_d2_mode1_digitized.csv")
+    d2_notes = "Fig. D-2 not compared (digitized CSV missing)"
+    if isfile(d2_path) && !isempty(modes.modes)
+        m1 = modes.modes[1]
+        for p in pairs
+            if p.d1 == 1
+                m1 = modes.modes[p.ritz]
+                break
+            end
+        end
+        Lp = 2 * g.a * sin(deg2rad(g.theta0_deg))
+        hdr, rows = _read_csv_rows(d2_path)
+        col = Dict(h => i for (i, h) in enumerate(hdr))
+        peak_diff = 0.0
+        n_pts = 0
+        for r in rows
+            length(r) < length(hdr) && continue
+            part = r[col["part"]]
+            idx = tryparse(Int, r[col["index"]])
+            ref = tryparse(Float64, r[col["value"]])
+            (idx === nothing || ref === nothing) && continue
+            got = if part == "floor"
+                x = idx * Lp / 20
+                s = 0.0
+                for (C, n) in zip(m1.C_floor, m1.n_floor)
+                    s += m1.symmetric ? C * cos(n * π * x / Lp) : C * sin(n * π * x / Lp)
+                end
+                s
+            else
+                θ_deg = 5.0 * idx
+                shell_circumferential(m1, deg2rad(θ_deg))
+            end
+            peak_diff = max(peak_diff, abs(got - ref))
+            n_pts += 1
+        end
+        d2_notes = "Fig. D-2 mode-1: max |Δw| = $(round(peak_diff; digits=4)) over $n_pts digitized points (no pass mark)"
+        push!(table, ValidationTableRow("Fig. D-2 max |Δw| (info)", 0.0, 0.0, peak_diff, peak_diff, true))
+    end
+    series = [
+        PlotSeries("Table D-1", :reference_points, idxs, ref_f; panel=1),
+        PlotSeries("App. D solver", :computed, idxs, got_f; panel=1),
+    ]
+    verdict = met ? :met : :not_met
+    reason = "$npass/$n_ref within 5 % ($(round(100 * frac; digits=1)) %); " *
+             "criterion ≥ 75 % of 32 within 5 %, no calibration (fixed 2026-10-22). $d2_notes"
+    return ValidationCaseResult(
+        "MRP_APPD", _today_iso(),
+        (; n_modes=n_ref, npass, tol_frac=0.05, count_rule="≥75% of 32 within 5%",
+         count_rule_date="2026-10-22", calibration=false,
+         L=g.L, readings=APPD_READINGS,
+         reference_tables=["TABLE_D1_FULL", "fig_d2_mode1_digitized.csv"]),
+        table, series, verdict, reason,
+        "V-CODE (vs NASA's solver outputs), first run of the printed App. D formulation 2026-10-22",
+        joinpath(_VAL_REPORT_DIR, "mrp_appd_vs_d1.md"),
+    )
+end
+
 """F1A vs Gutin far-field H1 (I-01 c); shared with Pkg.test."""
 function _run_f1a_gutin()
     cmp = f1a_gutin_h1_comparison()
@@ -1546,6 +1624,14 @@ function _finish_validation_registry!()
             _run_mrp_ritz,
             PlotSpec(; xlabel="mode number", ylabel="frequency (Hz)", panel_titles=["Ritz vs D-1"],
                      error_mode=:relative_pct, error_tol=5.0), ""),
+        ValidationCase("MRP_APPD", "App. D Eqs. (D.17)–(D.26) vs Table D-1", "38g", String[],
+            FigureRef("CR-3813", "Table D-1 / Fig. D-2", 113),
+            "≥ 75 % of 32 modes within 5 % (count rule fixed 2026-10-22); no calibration; Fig. D-2 reported without pass mark.",
+            "2026-10-22",
+            "V-CODE (vs NASA's solver outputs), first run of the printed App. D formulation 2026-10-22",
+            _run_mrp_appd,
+            PlotSpec(; xlabel="mode number", ylabel="frequency (Hz)", panel_titles=["App. D vs D-1"],
+                     error_mode=:relative_pct, error_tol=5.0), ""),
         ValidationCase("F1A_GUTIN", "F1A vs Gutin far-field H1", "27", String[],
             FigureRef("Gutin / Hubbard", "far-field closed form", nothing),
             "|SPL_F1A − SPL_Gutin| ≤ 1 dB at H1, static, thickness off, 100 R_tip in the rotor plane (Pkg.test I-01 c)",
@@ -1732,7 +1818,7 @@ function _finish_validation_registry!()
     end
     # Map order for list/GUI; every registry id must appear in exactly one map block.
     order = [
-        "E11_FREEFIELD", "GEXT_BOUND", "BLK_P68", "E12_BLOCK", "MRP_D1", "MRP_RITZ",
+        "E11_FREEFIELD", "GEXT_BOUND", "BLK_P68", "E12_BLOCK", "MRP_D1", "MRP_RITZ", "MRP_APPD",
         "CYL2D_C1", "E14_LOSS", "E15_STRUCT_LOSS", "REPRO_18b", "E18_TONES",
         "T1", "T2", "T2_EQ19", "E21_E22_NR",
         "R996_LOADS", "PER_LOADS", "F1A_GUTIN", "R996_FIG14", "R996_FIG12", "R996_FIG13A",

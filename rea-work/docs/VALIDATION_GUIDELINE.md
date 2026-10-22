@@ -318,7 +318,7 @@ Per-case GUI text (titles, explanations, map/block copy) lives in **§2.13** —
 `run_validation_case(id)` / scripts). Plots go to `docs/validation_reports/figures/<id>.png` (with error panel since 2026-10-21).
 Cases are read-only. Third tab **"Validation map"** (`src/validation_map.jl`): Map 1 cabin chain, Map 2 aircraft source;
 clickable case chips; Validation-tab list ordered by map and block. **Greyed (Run disabled):** none (`R996_FIG8` removed
-I-20; `E21_E22_NR` runnable since 38a). **In-process runnable:** `CYL2D_C1`, `MRP_D1`, `MRP_RITZ`, `BLK_P68`,
+I-20; `E21_E22_NR` runnable since 38a). **In-process runnable:** `CYL2D_C1`, `MRP_D1`, `MRP_RITZ`, `MRP_APPD`, `BLK_P68`,
 `F1A_GUTIN`, `T1`, `T2`, `REPRO_18b`, `E12_BLOCK`, `E11_FREEFIELD`, `E14_LOSS`, `GEXT_BOUND`, `BBN_KIN`, `R996_PHASE`,
 `E21_E22_NR` (Eq. 18, η_T = 1.0, η_r′ ≤ 0.15; criterion dated 2026-10-21), `T2_EQ19` (printed Eqs. 19–23; T2
 criterion unchanged; first run 2026-10-22), `E18_TONES` (Fig. E-18, η_T = 1.0, η_r′ ≤ 0.15; criterion dated
@@ -620,9 +620,9 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **Code:** blocking.jl
 
 #### Block: P_MRP
-**Title:** Structural modes (Table D-1 / Ritz)
-**What this stage does:** Implemented in mrp.jl.
-**Code:** mrp.jl
+**Title:** Structural modes (Table D-1 / Ritz / App. D)
+**What this stage does:** Production Table D-1 seed and calibrated Ritz surrogate in `mrp.jl`; printed App. D solver (Eqs. D.17–D.26) in `mrp_appd.jl` (`structural_solver=:appd`).
+**Code:** mrp.jl, mrp_appd.jl
 
 #### Block: P_CYL
 **Title:** Cabin acoustic modes (App. C)
@@ -774,6 +774,19 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **Not covered:** Not evidence; Eq. (D.25) not implemented (w-only surrogate)
 **Recorded outcome:** 26/32 within 5 % (re-recorded 2026-10-21); always no_verdict (calibrated surrogate)
 **Explanation:** The raw structural solver is a simplified (w-only Donnell) surrogate with three scales (k_scale, edge_factor, floor_scale) fitted to Table D-1, not CR-3813 Eq. (D.25). Today 26/32 frequencies are within 5 %; the old record (30/32) predates the 2026-10-20 Table D-1 re-transcription whose shapes seed the solver. Always no_verdict (calibrated fit — CLAUDE.md forbids quoting a calibrated path as a pass). Production uses Table D-1 directly (MRP_D1).
+
+### Case: MRP_APPD
+**Title:** App. D Eqs. (D.17)–(D.26) vs Table D-1
+**Map / block:** pain / P_MRP
+**Category:** verification
+**Kind:** runnable
+**Source:** CR-3813 Table D-1 / Fig. D-2; App. D pp. D-3…D-10
+**What it tests:** `mrp_appd.jl` printed App. D structural solver (no fitted scale)
+**Why it is here:** Any geometry other than the test article needs Eqs. (D.17)–(D.26), not the Table-D-1 seed
+**A pass means:** ≥ 75 % of the 32 Table D-1 modes within 5 % (count rule fixed 2026-10-22 before any run); no calibration input
+**Not covered:** Fig. D-2 shapes reported without a pass mark; production default remains Table D-1 / fitted surrogate
+**Recorded outcome:** **met**, 27/32 within 5 % (84.4 %); Fig. D-2 max \|Δw\| = 1.4534 (info, no pass mark). First run 2026-10-22 (`mrp_appd_vs_d1.md`)
+**Explanation:** Implements CR-3813 Appendix D (constraints D.17–D.21, constitutive D.23–D.24, operator D.25, eigenproblem D.22, shapes D.26–D.29) with physical geometry/material from App. E / Manual §5.2. No parameter is fitted to Table D-1. Label: V-CODE (vs NASA's solver outputs), first run of the printed App. D formulation 2026-10-22.
 
 ### Case: CYL2D_C1
 **Title:** CYL2D vs Table C-1 / Fig. C-3

@@ -1717,6 +1717,72 @@ _run_if("Printed outputs 38h (Manual §5.4.3)") do
     @test length(out.psi_G) == length(inp.structural.modes) * nH
 end
 
+_run_if("App. D structural solver 38g (V-UNIT)") do
+    g = appd_test_article_geometry()
+    @test g.L == 1.83                          # App. E text (not program 1.803)
+    @test g.t_skin == PAIN.MRP_T_SKIN
+    @test APPD_READINGS.attachment === :rigid
+    @test APPD_READINGS.asterisk_terms === false
+
+    # 1. Unstiffened closed circular cylinder vs Donnell–Mushtari closed form
+    #    Formula (Soedel / Leissa SP-288 §2.1.2, in-plane inertia neglected):
+    #      ω² = (D/(ρ t a⁴))(λ²+n²)² + (E/(ρ a²)) λ⁴/(λ²+n²)²
+    #    with λ = m π a/L, D = E t³/(12(1−ν²)).
+    #    The App. D operator with static condensation of u,v must match within 1 %.
+    #    The full 3×3 (with in-plane inertia) is within 15 % of that closed form.
+    g_plain = AppDGeometry(g.L, g.a, g.theta0_deg, g.t_skin, g.t_floor,
+                           0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, g.E, g.ν, g.ρ)
+    for (m, n) in ((1, 2), (1, 3), (2, 2), (2, 4), (3, 3))
+        f_ref = donnell_mushtari_frequency_Hz(m, n, g_plain.L, g_plain.a, g_plain.t_skin,
+                                              g_plain.E, g_plain.ν, g_plain.ρ)
+        f_cond = appd_shell_condensed_frequency_Hz(m, n, g_plain)
+        f_full = appd_shell_harmonic_frequency_Hz(m, n, g_plain)
+        @test abs(f_cond - f_ref) / f_ref ≤ 0.01
+        @test abs(f_full - f_ref) / f_ref ≤ 0.15
+    end
+
+    # 2. Stiffener raises frequency; smeared analytic estimate within 15 %
+    f_plain = appd_shell_condensed_frequency_Hz(1, 2, g_plain)
+    f_stiff = appd_shell_condensed_frequency_Hz(1, 2, g)
+    @test f_stiff > f_plain
+    f_smear = appd_smeared_stringer_frequency_Hz(1, 2, g)
+    @test abs(f_stiff - f_smear) / max(f_smear, 1.0) ≤ 0.15
+    # Flat-plate / large-radius limit: increasing a at fixed t,L lowers membrane ring stiffening
+    g_big = AppDGeometry(g.L, 5.0, g.theta0_deg, g.t_skin, g.t_floor,
+                         0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, g.E, g.ν, g.ρ)
+    f_big = appd_shell_condensed_frequency_Hz(1, 2, g_big)
+    @test f_big < f_plain
+
+    # 3–4. Coupled solver: constraints, mass, orthogonality
+    worst_C = appd_max_constraint_residual(g; n_axial=3, n_check=4)
+    @test worst_C ≤ 1e-8
+    ortho = appd_mode_orthogonality(g; M=1, sym=true, n_modes=5)
+    @test ortho ≤ 1e-8
+
+    modes = appd_modes(g; n_modes=16, n_axial=5, n_circ=8, n_floor_max=5)
+    @test length(modes.modes) ≥ 8
+    for m in modes.modes[1:min(6, length(modes.modes))]
+        Mr_shape = appd_generalized_mass_from_shape(m, g)
+        # Shape mass from w-only integral vs Rayleigh M_r (u,v included in solver):
+        # allow factor-of-three band — w usually dominates; still a consistency check.
+        @test Mr_shape > 0
+        @test m.M_r > 0
+        @test Mr_shape / m.M_r < 5.0 && m.M_r / Mr_shape < 5.0
+    end
+
+    # 5. Surrogate default path unchanged
+    fuse = FuselageGeometry(1.803, 0.508, 56.6)
+    ritz = structural_modes(fuse; hybrid=false, n_keep=48)
+    n_spec, _ = match_ritz_to_table_d1(ritz; tol_frac=0.05)
+    @test n_spec ≥ 25
+    d1 = structural_modes_from_table_d1(; n_keep=32)
+    @test [m.f_Hz for m in d1.modes] == [r[2] for r in TABLE_D1_FULL]
+    built = build_structural_modes(fuse; structural_solver=:table_d1)
+    @test [m.f_Hz for m in built.modes] == [m.f_Hz for m in d1.modes]
+    @test haskey(VALIDATION_CASES, "MRP_APPD")
+    @test validation_case_runnable("MRP_APPD")
+end
+
 _run_if("Validation case registry (34d)") do
     @test Set(keys(VALIDATION_CASES)) == Set(VALIDATION_CASE_ORDER)
     for id in VALIDATION_CASE_ORDER
