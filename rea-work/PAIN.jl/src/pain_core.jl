@@ -46,6 +46,9 @@ struct PainInputs
     allow_extrapolation::Bool
     ρ0::Float64
     c0::Float64
+    # Manual card 10: high-frequency crossover band centre [Hz]; `nothing` = estimate
+    # (lowest 1/3-oct with ≥ 10 three-dimensional acoustic modes; phase 38b).
+    crossover_band_Hz::Union{Nothing,Float64}
 end
 
 function PainInputs(fuse, prop, structural, acoustic, amplitudes, phases, pts, ΔA::Real;
@@ -54,14 +57,17 @@ function PainInputs(fuse, prop, structural, acoustic, amplitudes, phases, pts, �
                     mech::Union{Nothing,MechanicalPath}=nothing,
                     m_wall::Real=NaN, η_n_bare::Real=0.05, C_struc::Real=3.0,
                     q_max::Union{Nothing,Integer}=nothing, allow_extrapolation::Bool=false,
-                    ρ0::Real=1.225, c0::Real=340.0)
+                    ρ0::Real=1.225, c0::Real=340.0,
+                    crossover_band_Hz::Union{Nothing,Real}=nothing)
     (sidewall === nothing) == (endplates === nothing) ||
         error("PainInputs: give both `sidewall` and `endplates` trim stacks, or neither (bare cabin)")
     mech !== nothing && sidewall === nothing && error("PainInputs: `mech` needs a `sidewall` stack")
     m = isnan(m_wall) ? MRP_RHO_2024 * (MRP_T_SKIN + MRP_A_STRINGER / MRP_D_STRINGER + MRP_A_FRAME / MRP_ELL_FRAME) : float(m_wall)
+    xover = crossover_band_Hz === nothing ? nothing : float(crossover_band_Hz)
     return PainInputs(fuse, prop, structural, acoustic, amplitudes, phases, pts, float(ΔA),
                       sidewall, endplates, mech, m, float(η_n_bare), float(C_struc),
-                      q_max === nothing ? nothing : Int(q_max), allow_extrapolation, float(ρ0), float(c0))
+                      q_max === nothing ? nothing : Int(q_max), allow_extrapolation, float(ρ0), float(c0),
+                      xover)
 end
 
 """Trim stacks present (sidewall and end plates)?"""
@@ -74,9 +80,23 @@ sidewall_tau(inp::PainInputs, ω::Real) =
 
 struct InteriorSpectrum
     bpf_Hz::Float64
-    harmonic_SPL_dB::Vector{Float64}   # H = 1..n
+    harmonic_SPL_dB::Vector{Float64}   # H = 1..n (production; depends on tone_model)
     third_octave_SPL_dB::Dict{Float64,Float64}
     notes::String
+    # Phase 38b: both formulations always reported (Manual output 9(2)).
+    harmonic_SPL_eq8_dB::Vector{Float64}
+    harmonic_SPL_eq15_dB::Vector{Float64}
+    crossover_Hz::Float64
+    tone_model::Symbol
+end
+
+function InteriorSpectrum(bpf_Hz::Real, harmonic_SPL_dB::Vector{Float64},
+                          third_octave_SPL_dB::Dict{Float64,Float64}, notes::AbstractString;
+                          harmonic_SPL_eq8_dB::Vector{Float64}=copy(harmonic_SPL_dB),
+                          harmonic_SPL_eq15_dB::Vector{Float64}=copy(harmonic_SPL_dB),
+                          crossover_Hz::Real=NaN, tone_model::Symbol=:eq8)
+    return InteriorSpectrum(float(bpf_Hz), harmonic_SPL_dB, third_octave_SPL_dB, String(notes),
+                            harmonic_SPL_eq8_dB, harmonic_SPL_eq15_dB, float(crossover_Hz), tone_model)
 end
 
 """
@@ -388,19 +408,29 @@ function broadband_cabin_p2(inp::PainInputs, fc::Float64, p2_bl::Float64;
 end
 
 """
-    interior_spl(inp; bpf_Hz, n_harmonics=10, broadband=true) -> InteriorSpectrum
+    interior_spl(inp; bpf_Hz, n_harmonics=10, broadband=true, tone_model=:eq8) -> InteriorSpectrum
 
 Tonal SPL for propeller harmonics, plus HF broadband (Eq.19) into 1/3-oct (T2).
+
+`tone_model`: `:eq8` (default — unchanged production), `:eq15_16` (high-frequency
+expected value only), or `:auto` (Eq. 8 below the crossover band, Eqs. 15–16 at and
+above; Manual output 9(3)). Both formulations are always stored on the spectrum.
 """
 function interior_spl(inp::PainInputs; bpf_Hz::Float64, n_harmonics::Int=10,
-                      broadband::Bool=true, bb_α::Float64=2.0, bb_j2_scale::Float64=0.5)
+                      broadband::Bool=true, bb_α::Float64=2.0, bb_j2_scale::Float64=0.5,
+                      tone_model::Symbol=:eq8)
     nH = min(n_harmonics, size(inp.amplitudes, 3))
     spl = zeros(Float64, nH)
+    spl8 = zeros(Float64, nH)
+    spl15 = zeros(Float64, nH)
     pref = 20e-6
+    xover = resolve_crossover_Hz(inp)
     for H in 1:nH
         ωH = 2π * H * bpf_Hz
-        p2 = tone_mean_square_pressure(inp, H, ωH)
-        spl[H] = 10 * log10(p2 / pref^2 + 1e-30)
+        pair = tone_mean_square_pressure_pair(inp, H, ωH; tone_model, crossover_Hz=xover)
+        spl[H] = 10 * log10(pair.p2 / pref^2 + 1e-30)
+        spl8[H] = 10 * log10(pair.p2_eq8 / pref^2 + 1e-30)
+        spl15[H] = 10 * log10(pair.p2_eq15_16 / pref^2 + 1e-30)
     end
     bands = third_octave_centers()
     band_p2 = Dict{Float64,Float64}(b => 0.0 for b in bands)
@@ -409,7 +439,7 @@ function interior_spl(inp::PainInputs; bpf_Hz::Float64, n_harmonics::Int=10,
         b = nearest_third_octave(f, bands)
         band_p2[b] += pref^2 * 10^(spl[H] / 10)
     end
-    notes = "PAIN tones Eq. (8) (CR-3813 §3.2)"
+    notes = "PAIN tones (CR-3813 §3.2); tone_model=$tone_model; crossover=$(round(xover; digits=1)) Hz; both Eq.(8) and Eq.(15)–(16) reported"
     if broadband
         f_last = nH * bpf_Hz
         for b in bands
@@ -430,7 +460,9 @@ function interior_spl(inp::PainInputs; bpf_Hz::Float64, n_harmonics::Int=10,
         notes *= " tonal-only (no HF broadband)."
     end
     band_spl = Dict(b => 10 * log10(p2 / pref^2 + 1e-30) for (b, p2) in band_p2)
-    return InteriorSpectrum(bpf_Hz, spl, band_spl, notes)
+    return InteriorSpectrum(bpf_Hz, spl, band_spl, notes;
+                            harmonic_SPL_eq8_dB=spl8, harmonic_SPL_eq15_dB=spl15,
+                            crossover_Hz=xover, tone_model=tone_model)
 end
 
 function third_octave_centers()

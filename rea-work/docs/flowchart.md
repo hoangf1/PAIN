@@ -12,7 +12,7 @@ The user source is BEMT + F1A, which gives the free-field pressure at the 160 fu
 
 Grid extension (GEXT) appears only in diagram 2. It exists because the NASA paper measured one line of the grid.
 
-Status key: green = check exists and passes as stated; orange = planned, not independently checked, or the current code differs from CR-3813; blue = calibrated surrogate. Step numbers refer to `IMPLEMENTATION_PLAN.md`. **2026-10-22:** phase **38a** — reverberant NR Eqs. (17)–(18) (`noise_reduction.jl`); `E21_E22_NR` runnable. Phases 32–35 done. GUI Run tab = aircraft only; **Validation** + **Validation map** tabs. `REPRO_18b` = 18b-r (not met); `MRP_D1` = transcription `no_verdict`. No greyed cases. Aircraft path stays X-EXTRAP; 29b–31 deferred (B-4); 38b–38c HF models next.
+Status key: green = check exists and passes as stated; orange = planned, not independently checked, or the current code differs from CR-3813; blue = calibrated surrogate. Step numbers refer to `IMPLEMENTATION_PLAN.md`. **2026-10-22:** phase **38b** — high-frequency tone Eqs. (11)–(16) (`high_freq_tones.jl`); default `tone_model=:eq8`; `:auto` recorded vs REPRO_18b (I-18 H3 not explained). Phase **38a** NR Eqs. (17)–(18) remain. Phases 32–35 done. GUI Run tab = aircraft only; **Validation** + **Validation map** tabs. `REPRO_18b` = 18b-r (not met); `MRP_D1` = transcription `no_verdict`. Aircraft path stays X-EXTRAP; 29b–31 deferred (B-4); 38c HF NR next.
 
 **Test tooling (P1, 2026-10-22, no behaviour change).** `Pkg.test` accepts `test_args` substrings to select top-level testsets; list/times in `PAIN.jl/test/README.md`. Optional DaemonMode loop in `PAIN.jl/scripts/devtools/` (separate env; Revise loaded). Does not alter criteria, reports, or `src/`.
 
@@ -68,7 +68,7 @@ flowchart LR
     subgraph VAL["Validation: interior SPL"]
         direction TB
         V1["TESTS joint model vs tonal data<br/>E-16/17/18, H=1,2,3<br/>18a-r: 81.0, 75.0, 75.3 dB; no claim;<br/>GEXT bound (32): flips → T1 not claimable;<br/>REPRO_18b = 18b-r 82.73/75.73/77.05 (2 of 3);<br/>19i H3 not found"]
-        V2["TESTS joint model vs broadband<br/>E-9, +/-3.5 dB (T2 surrogate);<br/>E-21/E-22 NR Eq.(18) (38a)<br/>HF Eq.(19) still a surrogate until 38c"]
+        V2["TESTS joint model vs broadband<br/>E-9, +/-3.5 dB (T2 surrogate);<br/>E-21/E-22 NR Eq.(18) (38a);<br/>HF tones Eqs.(15)–(16) (38b);<br/>HF Eq.(19) still a surrogate until 38c"]
         V3["LOCALIZES a failure by band<br/>E-7, G1/G2/G3<br/>result: diagnostic, not validation"]
     end
 
@@ -193,7 +193,7 @@ flowchart LR
             F3["generalized force<br/>Psi_G, Eq 42 (Delta^4/2)<br/><i>Delta^4/2 implemented (17a, done);<br/>analytic limits tested (17e, done)</i>"]
             F4["trim, App A<br/>Eqs A.6-A.22, Fig A-2<br/><i>written (16a, done): trim_loss.jl;<br/>in the pipeline since 17a</i>"]
             F5["loss factors<br/>Eqs 77, 79-83, j_r rev Eqs 63-73<br/><i>written (16b, done); E-14 reproduction 7/18 bands;<br/>in the pipeline since 17a</i>"]
-            F6["tone pressure<br/>Eq 8 summed by Eq 3<br/><i>Eq. 8 as printed (17a); conservation 19a;<br/>η_T=0.5 Phase III (phase 20); 18b-r +3.7,+0.2,+9.1;<br/>19i: H3 omitted D-1 terms not found<br/>(h3_followup.md); H3 open for phase 33</i>"]
+            F6["tone pressure<br/>Eq 8 + HF Eqs 15–16 (38b)<br/><i>Eq. 8 default (tone_model=:eq8); :auto at crossover;<br/>both always reported; η_T=0.5; 18b-r Eq.8 not met;<br/>38b :auto H3 72.31 (Δ=+4.31) — I-18 not explained<br/>(phase38b_high_freq_tones.md)</i>"]
         end
         P_OUT["OUT: interior SPL<br/>per harmonic<br/>+ 1/3-octave spectrum"]
         P_IN --> F2 --> F3 --> F6

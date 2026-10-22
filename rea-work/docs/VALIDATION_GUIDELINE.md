@@ -631,9 +631,9 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **Code:** trim_loss.jl
 
 #### Block: P_EQ8
-**Title:** Coupling f′, Ψ_G, Eq. (8) tone sum
-**What this stage does:** Implemented in pain_core.jl.
-**Code:** pain_core.jl
+**Title:** Coupling f′, Ψ_G, Eq. (8) tone sum + HF Eqs. (15)–(16)
+**What this stage does:** Eq. (8) in `pain_core.jl`; high-frequency expected value Eqs. (11)–(16) and crossover card 10 in `high_freq_tones.jl` (38b). Default `tone_model=:eq8` (unchanged); `:auto` switches at the crossover band; both formulations always reported.
+**Code:** pain_core.jl, high_freq_tones.jl
 
 #### Block: P_REPRO
 **Title:** Interior SPL vs NASA's PAIN program
@@ -811,17 +811,17 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **Explanation:** Compares Eq. (78) band-average loss factor η̄ with NASA's calculated curve on Fig. E-14 (±25 %). Recorded 7/18 bands — criterion often not met; not tuned. Fig. E-13 has no calculated curve.
 
 ### Case: UT_EQ8
-**Title:** Eq. (8) coupling (Pkg.test)
+**Title:** Eq. (8) coupling + HF tones (Pkg.test)
 **Map / block:** pain / P_EQ8
 **Category:** verification
 **Kind:** pkgtest
-**Source:** CR-3813 Eqs. (8), (41)–(42), (52)
-**What it tests:** pain_core.jl coupling, Ψ_G, tone sum
-**Why it is here:** The core sum every SPL goes through
-**A pass means:** Analytic limits, scaling laws, independent re-implementation within 2e-3
-**Not covered:** No NASA Ψ_G or p² numbers exist
-**Recorded outcome:** Pkg.test pass ("Generalized force", "Eq. (8) tone pressure")
-**Explanation:** Pkg.test of the core coupling: generalized force f′, joint acceptance Ψ_G, and Eq. (8) tone sum (analytic limits, scaling, independent re-implementation). No NASA Ψ_G or interior p² numbers exist for a V-CODE check.
+**Source:** CR-3813 Eqs. (8), (11)–(16), (41)–(42), (52)
+**What it tests:** pain_core.jl coupling, Ψ_G, tone sum; high_freq_tones.jl E[g], Eq. (13) MC, crossover
+**Why it is here:** The core sum every SPL goes through; 38b adds the high-frequency expected value
+**A pass means:** Analytic limits, scaling laws, independent re-implementation within 2e-3; E[g] closed=quad 1e-8; default `:eq8` matches baselines
+**Not covered:** No NASA Ψ_G or p² numbers for V-UNIT; REPRO_18b `:auto` is a recorded comparison, not this pkgtest
+**Recorded outcome:** Pkg.test pass ("Generalized force", "Eq. (8) tone pressure", "High-frequency tones Eqs. (11)–(16) (38b)")
+**Explanation:** Pkg.test of the core coupling and the 38b high-frequency tone path (V-UNIT before any NASA comparison). Default production remains Eq. (8).
 
 ### Case: REPRO_18b
 **Title:** PAIN reproduction (18b-r)
@@ -833,8 +833,8 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **Why it is here:** Shows the chain computes what NASA's program computed
 **A pass means:** Code-to-code agreement within 4 dB per harmonic
 **Not covered:** η_T = 0.5 adopted after 19f showed the result (post-hoc); conditional on GEXT; amplitude convention fixed 2026-10-21, post-hoc
-**Recorded outcome:** 18b-r not met 1/3: 85.74, 78.74, 80.06 dB (pain_reproduction_e16.md; amplitude convention fixed 2026-10-21, post-hoc)
-**Explanation:** Code-to-code check: run the cabin chain on ANOPP Table 8 with R1 blocking and η_T = 0.5 (NASA's value) and compare interior SPL with NASA's PAIN circles on Fig. E-16 (±4 dB per harmonic). After the 2026-10-21 amplitude-convention fix (I-17: measured SPLs are rms; PAIN/F1A amplitudes are Fourier peaks), 18b-r records 85.74, 78.74, 80.06 dB = +6.7, +3.2, +12.1 vs NASA (1 of 3 harmonics). η_T = 0.5 was adopted after 19f showed the result → post-hoc. Conditional on GEXT.
+**Recorded outcome:** 18b-r not met 1/3: 85.74, 78.74, 80.06 dB (pain_reproduction_e16.md; amplitude convention fixed 2026-10-21, post-hoc). Phase 38b `:auto` (report only): 85.74, 16.89, 72.31 dB; H3 Δ=+4.31 (I-18 explains H3 = no); `phase38b_high_freq_tones.md`
+**Explanation:** Code-to-code check: run the cabin chain on ANOPP Table 8 with R1 blocking and η_T = 0.5 (NASA's value) and compare interior SPL with NASA's PAIN circles on Fig. E-16 (±4 dB per harmonic). After the 2026-10-21 amplitude-convention fix (I-17: measured SPLs are rms; PAIN/F1A amplitudes are Fourier peaks), 18b-r records 85.74, 78.74, 80.06 dB = +6.7, +3.2, +12.1 vs NASA (1 of 3 harmonics). η_T = 0.5 was adopted after 19f showed the result → post-hoc. Conditional on GEXT. Phase 38b recorded the high-frequency formulation beside Eq. (8) with fixed crossover; I-18 mirroring not adopted.
 
 ### Case: T1
 **Title:** Tonal interior SPL (T1)

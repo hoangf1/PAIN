@@ -29,6 +29,7 @@ include("freefield_digitized.jl")
 include("trim_loss.jl")
 include("pain_core.jl")
 include("noise_reduction.jl")
+include("high_freq_tones.jl")
 include("metrics.jl")
 include("validation_report.jl")
 include("validation_cases.jl")
@@ -65,6 +66,10 @@ export
     acoustic_modes_in_band, acoustic_crossover_band, apply_η_r_cap,
     w_in_reverberant, noise_reduction_band, noise_reduction_spectrum,
     noise_reduction_test_article_inputs,
+    g_resonance, expected_g_closed, expected_g_pi, expected_g_quad,
+    tone_Q_H, modes_in_tone_band, band_average_loss_factors,
+    tone_expected_value, tone_eq13_sample, resolve_crossover_Hz,
+    tone_mean_square_pressure_pair, third_octave_centers,
     InsulationTable, load_insulation_table, pf105_table, insulation_properties,
     TrimElement, InsulationLayer, LimpMass, TrimStack, element_matrix, stack_matrix, stack_extrapolated,
     trim_tau_insulation, trim_Cw, trim_admittance, trim_conductance, trim_tau,

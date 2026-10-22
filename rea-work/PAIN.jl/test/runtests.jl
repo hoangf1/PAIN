@@ -551,10 +551,12 @@ end
 # ---------------------------------------------------------------------------------------------
 function _rebuild(inp::PainInputs; structural=inp.structural, acoustic=inp.acoustic, amplitudes=inp.amplitudes,
                   phases=inp.phases, ΔA=inp.ΔA, sidewall=inp.sidewall, endplates=inp.endplates, mech=inp.mech,
-                  η_n_bare=inp.η_n_bare, C_struc=inp.C_struc, q_max=inp.q_max)
+                  η_n_bare=inp.η_n_bare, C_struc=inp.C_struc, q_max=inp.q_max,
+                  crossover_band_Hz=inp.crossover_band_Hz)
     return PainInputs(inp.fuse, inp.prop, structural, acoustic, amplitudes, phases, inp.pts, ΔA;
                       sidewall, endplates, mech, m_wall=inp.m_wall, η_n_bare, C_struc, q_max,
-                      allow_extrapolation=inp.allow_extrapolation, ρ0=inp.ρ0, c0=inp.c0)
+                      allow_extrapolation=inp.allow_extrapolation, ρ0=inp.ρ0, c0=inp.c0,
+                      crossover_band_Hz)
 end
 
 _run_if("Generalized force Ψ_G, Eq. (42) (17e, analytic limits)") do
@@ -1121,6 +1123,168 @@ _run_if("Noise reduction Eqs. (17)–(18) (38a)") do
         @test (r.verdict === :met) == expect
         @test occursin("crossover", r.reason)
         @test occursin("80", r.reason)
+    end
+end
+
+# Plan phase 38b: CR-3813 §3.2 high-frequency tone Eqs. (11)–(16) and crossover.
+# V-UNIT before any REPRO_18b :auto comparison; no parameter chosen from NASA tones.
+# ---------------------------------------------------------------------------------------------
+_run_if("High-frequency tones Eqs. (11)–(16) (38b)") do
+    cω = C_OMEGA_THIRD_OCTAVE
+    @testset "E[g] closed form = band integral (1e-8 relative)" begin
+        ωH = 2π * 1000.0
+        Δω = cω * ωH
+        for η̄ in (0.02, 0.05, 0.10, 0.20)
+            closed = expected_g_closed(ωH, η̄, Δω)
+            quad = expected_g_quad(ωH, η̄, Δω; N=200_000)
+            @test closed ≈ quad rtol = 1e-8
+        end
+        # π-limit when η̄ ω_H ≪ Δω (atan(x)→π/2; x=Δω/(ηω_H)=2.32e7 at η=1e-8 → |rel|≪1e-6)
+        η_small = 1e-8
+        @test expected_g_closed(ωH, η_small, Δω) ≈ expected_g_pi(ωH, η_small, Δω) rtol = 1e-6
+    end
+    @testset "Eq. (13) Monte-Carlo mean → expected value (large N, small η)" begin
+        # Dense band (N_n ≥ 10), seeded uniform draws of ω_n, ω_r. Tolerance from
+        # sampling error: SE = σ/√N_mc; allow 5·SE relative to the closed-form mean.
+        # Use a real blocked grid (e11) so Ψ_G indexing matches the points.
+        r = run_pain_pipeline(; source=:e11, n_harmonics=3, bpf_Hz=200.0, trim=:bare)
+        bare = PainInputs(r.inputs.fuse, r.inputs.prop, r.inputs.structural, r.inputs.acoustic,
+                          r.inputs.amplitudes, r.inputs.phases, r.inputs.pts, r.inputs.ΔA;
+                          η_n_bare=0.01)
+        xover = acoustic_crossover_band(bare)
+        # Prefer the crossover band (has ≥10 acoustic modes); if no structural modes
+        # there, step up through 1/3-oct centres until both counts are positive.
+        fc = xover.fc_Hz
+        band = modes_in_tone_band(bare, 2π * fc)
+        for fc_try in third_octave_centers()
+            fc_try < xover.fc_Hz && continue
+            b_try = modes_in_tone_band(bare, 2π * fc_try)
+            if length(b_try.ac_list) ≥ 10 && length(b_try.st_list) ≥ 1
+                fc, band = fc_try, b_try
+                break
+            end
+        end
+        ωH = 2π * fc
+        N_n, N_r = length(band.ac_list), length(band.st_list)
+        @test N_n ≥ 10 && N_r ≥ 1
+        H = 1
+        losses = band_average_loss_factors(bare, ωH, band)
+        η̄_n, η̄_r = losses.η̄_n, losses.η̄_r
+        @test isfinite(η̄_n) && isfinite(η̄_r) && η̄_n > 0 && η̄_r > 0
+        Egn = expected_g_closed(ωH, η̄_n, band.Δω)
+        Egr = expected_g_closed(ωH, η̄_r, band.Δω)
+        ρ0, c0 = bare.ρ0, bare.c0
+        V = cabin_volume(bare.fuse)
+        A = coupling_area(bare.fuse)
+        τ_t = PAIN.sidewall_tau(bare, ωH)
+        Q_H = 4 * (c0 / V)^2 * mass_law_factor(ρ0, c0, A, ωH) * ωH^6   # no τ_t; barred f̄'
+        sum_nr = 0.0
+        for mn in band.ac_list, mr in band.st_list
+            f = coupling_factor(mn.ac, mr.st, bare.fuse; τ_t, q=mn.q)
+            f == 0 && continue
+            Ψ = generalized_force(mr.st, H, bare.amplitudes, bare.phases, bare.pts, bare.fuse; ΔA=bare.ΔA)
+            sum_nr += mn.εn * f^2 * Ψ / mr.st.M_r^2
+        end
+        expect = (Q_H / ωH^8) * Egn * Egr * sum_nr
+        # Seeded LCG (no Random.jl dep in the test env): u ← (a u + c) mod 2^64 → [0,1)
+        rng_state = Ref(UInt64(38_002))
+        next_u01() = (rng_state[] = 0x5851_f42d_4c95_7f2d * rng_state[] + 0x1405_7b7e_f767_814f;
+                      (rng_state[] >>> 11) * 0x1p-53)
+        N_mc = 400
+        lo, hi = band.lo, band.hi
+        samples = Vector{Float64}(undef, N_mc)
+        ωn = Vector{Float64}(undef, N_n)
+        ωr = Vector{Float64}(undef, N_r)
+        for k in 1:N_mc
+            for i in 1:N_n
+                ωn[i] = lo + (hi - lo) * next_u01()
+            end
+            for j in 1:N_r
+                ωr[j] = lo + (hi - lo) * next_u01()
+            end
+            samples[k] = tone_eq13_sample(bare, H, ωH, ωn, ωr)
+        end
+        μ = sum(samples) / N_mc
+        σ = sqrt(sum((s - μ)^2 for s in samples) / max(N_mc - 1, 1))
+        se = σ / sqrt(N_mc)
+        rel_tol = max(5 * se / max(abs(expect), 1e-30), 1e-3)
+        @test μ ≈ expect rtol = rel_tol
+    end
+    @testset "default :eq8 reproduces current tone results exactly" begin
+        r = run_pain_pipeline(; source=:e11, n_harmonics=3, bpf_Hz=200.0, trim=:phase3)
+        inp = r.inputs
+        for H in 1:3
+            ωH = 2π * H * 200.0
+            p8 = tone_mean_square_pressure(inp, H, ωH)
+            pair = tone_mean_square_pressure_pair(inp, H, ωH; tone_model=:eq8)
+            @test pair.p2 == p8
+            @test pair.p2_eq8 == p8
+            @test pair.model === :eq8
+        end
+        # interior_spl default matches the previous Eq. (8)-only spectrum
+        spec_default = interior_spl(inp; bpf_Hz=200.0, n_harmonics=3, broadband=false)
+        @test spec_default.tone_model === :eq8
+        @test spec_default.harmonic_SPL_dB == spec_default.harmonic_SPL_eq8_dB
+        for H in 1:3
+            ωH = 2π * H * 200.0
+            p8 = tone_mean_square_pressure(inp, H, ωH)
+            @test spec_default.harmonic_SPL_dB[H] ≈ 10 * log10(p8 / (20e-6)^2 + 1e-30)
+            @test r.spectrum.harmonic_SPL_dB[H] ≈ spec_default.harmonic_SPL_dB[H]
+        end
+        # stored baselines (phase 17) still match under default tone_model
+        base = PAIN._read_csv_numeric(joinpath(@__DIR__, "..", "..", "data", "baselines", "phase17_baselines.csv"))
+        names = [split(l, ",")[1] for l in readlines(joinpath(@__DIR__, "..", "..", "data", "baselines", "phase17_baselines.csv")) if !startswith(l, "#") && !startswith(l, "name") && !isempty(strip(l))]
+        got = Dict{String,Float64}()
+        for trim in (:bare, :phase3)
+            rr = run_pain_pipeline(; source=:e11, n_harmonics=3, bpf_Hz=200.0, blocking=R2, trim=trim)
+            for H in 1:3
+                got["spl_$(trim)_H$H"] = rr.spectrum.harmonic_SPL_dB[H]
+            end
+        end
+        for (n, v) in zip(names, base[:value])
+            startswith(n, "spl_") || continue
+            @test got[n] ≈ v rtol = 1e-6 atol = 1e-12
+        end
+    end
+    @testset "crossover band ≥10 rule (test article + synthetic)" begin
+        inp = noise_reduction_test_article_inputs(; η_lining=0.5)
+        xover = acoustic_crossover_band(inp)
+        println("38b crossover (test article): fc=$(round(xover.fc_Hz; digits=1)) Hz, n_modes=$(xover.n_modes)")
+        @test xover.n_modes ≥ 10
+        @test isfinite(xover.fc_Hz)
+        # every lower band has fewer than 10
+        bands = third_octave_centers()
+        for fc in bands
+            fc ≥ xover.fc_Hz && break
+            @test acoustic_modes_in_band(inp, fc) < 10
+        end
+        # synthetic resonance list: 10 modes clustered at 500 Hz → first band with ≥10 is ~500 Hz
+        synth_f = [500.0 * (1 + 0.01 * (k - 5.5) / 5) for k in 1:10]
+        synth_count(fc) = begin
+            ω = 2π * fc
+            lo, hi = ω * (1 - cω / 2), ω * (1 + cω / 2)
+            count(f -> lo ≤ 2π * f ≤ hi, synth_f)
+        end
+        first_ge10 = nothing
+        for fc in bands
+            if synth_count(fc) ≥ 10
+                first_ge10 = fc
+                break
+            end
+        end
+        @test first_ge10 !== nothing
+        @test abs(first_ge10 - 500.0) / 500.0 < 0.05
+        @test synth_count(first_ge10) ≥ 10
+        for fc in bands
+            fc ≥ first_ge10 && break
+            @test synth_count(fc) < 10
+        end
+        # card-10 override
+        over = PainInputs(inp.fuse, inp.prop, inp.structural, inp.acoustic,
+                          inp.amplitudes, inp.phases, inp.pts, inp.ΔA;
+                          sidewall=inp.sidewall, endplates=inp.endplates, mech=inp.mech,
+                          m_wall=inp.m_wall, allow_extrapolation=true, crossover_band_Hz=1000.0)
+        @test resolve_crossover_Hz(over) == 1000.0
     end
 end
 
