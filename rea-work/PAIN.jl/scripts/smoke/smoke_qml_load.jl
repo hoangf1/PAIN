@@ -30,6 +30,7 @@ end
 
 # Phase 34f / 37i: plain load (auto-quit), then button-path case (exact Run handler).
 # Phase 38h: QML includes the Printed outputs tab (Observables present after load).
+# Phase 36: Cabin modes tab Observables present (display only).
 println("smoke_qml_load: calling main(; smoke_ms=1000)")
 main(; smoke_ms=1000)
 obs_after = PAIN._GUI_OBS[]
@@ -38,7 +39,12 @@ obs_after = PAIN._GUI_OBS[]
 @assert occursin("Ready", String(obs_after["po_status"][])) ||
         occursin("Done", String(obs_after["po_status"][])) ||
         occursin("printed", lowercase(String(obs_after["po_status"][])))
-println("smoke_qml_load: plain load PASS (Printed outputs Observables present)")
+@assert haskey(obs_after, "cm_status") && haskey(obs_after, "cm_mode") && haskey(obs_after, "cm_frame_path")
+@assert haskey(obs_after, "cm_f") && haskey(obs_after, "cm_Phi_G") && haskey(obs_after, "cm_symmetry")
+@assert haskey(obs_after, "cm_c0") && haskey(obs_after, "cm_theta0") && haskey(obs_after, "cm_NY")
+@assert occursin("Ready", String(obs_after["cm_status"][])) ||
+        occursin("Done", String(obs_after["cm_status"][]))
+println("smoke_qml_load: plain load PASS (Printed outputs + Cabin modes Observables present)")
 
 # Qt often cannot be started twice in one process — run the button-path check in a child.
 proj = abspath(joinpath(@__DIR__, ".."))

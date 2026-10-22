@@ -128,6 +128,30 @@ function make_gui_observables(;
         "po_text" => Observable(""),
         "po_json" => Observable("{}"),
         "po_report_path" => Observable(""),
+        # Phase 36 — Cabin modes panel (display only; fixed CYL2D_C1 inputs)
+        "cm_status" => Observable("Ready. Select mode and press Refresh."),
+        "cm_mode" => Observable(0.0),
+        "cm_q" => Observable(0.0),
+        "cm_speed" => Observable(1.0),
+        "cm_playing" => Observable(false),
+        "cm_frame_index" => Observable(0.0),
+        "cm_nframes" => Observable(24.0),
+        "cm_f" => Observable(""),
+        "cm_Phi_G" => Observable(""),
+        "cm_symmetry" => Observable(""),
+        "cm_fig_c3" => Observable(""),
+        "cm_c0" => Observable(string(CYL2D_C1_DISPLAY_INPUTS.c0)),
+        "cm_theta0" => Observable(string(CYL2D_C1_DISPLAY_INPUTS.theta0_deg)),
+        "cm_NY" => Observable(string(CYL2D_C1_DISPLAY_INPUTS.NY)),
+        "cm_frame_path" => Observable(""),
+        "cm_peak_path" => Observable(""),
+        "cm_gif_path" => Observable(""),
+        "cm_frame_paths_json" => Observable("[]"),
+        "cm_axial_note" => Observable(""),
+        "cm_struct_mode" => Observable(1.0),
+        "cm_struct_path" => Observable(""),
+        "cm_f_prime" => Observable(""),
+        "cm_note" => Observable("display only — interpolated for drawing; no criterion"),
     )
 end
 
@@ -269,6 +293,81 @@ function run_printed_outputs_gui!(obs::AbstractDict)
         obs["po_status"][] = "Error: $(sprint(showerror, e))"
         obs["po_text"][] = sprint(showerror, e)
         obs["po_json"][] = "{}"
+        return nothing
+    finally
+        obs["busy"][] = false
+    end
+end
+
+"""
+    fill_cabin_modes_gui!(obs)
+
+Build display-only cabin mode frames for the Cabin modes tab (fixed CYL2D_C1
+inputs). Writes PNG/GIF under `gui/cache/mode_anim` (not validation figures).
+Same cooperative `@async` path as Validation Run (37i) when called from QML.
+Optional 36d: structural ψ PNG and f′ for the selected structural mode.
+"""
+function fill_cabin_modes_gui!(obs::AbstractDict)
+    obs["busy"][] = true
+    obs["cm_status"][] = "Building cabin mode frames…"
+    try
+        mode = Int(round(Float64(obs["cm_mode"][])))
+        q = Int(round(Float64(obs["cm_q"][])))
+        nframes = Int(round(Float64(obs["cm_nframes"][])))
+        nframes = clamp(nframes, 4, 48)
+        mode = clamp(mode, 0, 19)
+        q = clamp(q, 0, 20)
+        obs["cm_mode"][] = Float64(mode)
+        obs["cm_q"][] = Float64(q)
+        obs["cm_nframes"][] = Float64(nframes)
+
+        inp = CYL2D_C1_DISPLAY_INPUTS
+        obs["cm_c0"][] = string(inp.c0)
+        obs["cm_theta0"][] = string(inp.theta0_deg)
+        obs["cm_NY"][] = string(inp.NY)
+
+        cy = cyl2d_c1_for_display()
+        fr = mode_animation_frames(cy, mode; nframes=nframes, grid=61)
+        cache = mode_animation_cache_dir()
+        stem = joinpath(cache, "mode_$(lpad(mode, 2, '0'))_q$(q)")
+        paths = render_mode_animation(stem * ".gif", fr; format=:gif, axial_q=q,
+                                      L=test_article_length())
+        frame_pngs = render_mode_frame_pngs(joinpath(cache, "frames_m$(mode)"), fr;
+                                            prefix="f")
+        obs["cm_f"][] = string(round(fr.f_Hz; digits=4))
+        obs["cm_Phi_G"][] = string(round(fr.Φ_G; digits=5))
+        obs["cm_symmetry"][] = fr.symmetric ? "symmetric" : "antisymmetric"
+        obs["cm_fig_c3"][] = fr.fig_c3 === nothing ? "" : _fig_c3_text(fr.fig_c3)
+        obs["cm_peak_path"][] = paths.png_path
+        obs["cm_gif_path"][] = paths.gif_path
+        obs["cm_frame_paths_json"][] = JSON3.write(frame_pngs)
+        obs["cm_frame_index"][] = 0.0
+        obs["cm_frame_path"][] = isempty(frame_pngs) ? paths.png_path : frame_pngs[1]
+        af0 = axial_factor(q, test_article_length())(0.0)
+        afL = axial_factor(q, test_article_length())(test_article_length())
+        obs["cm_axial_note"][] = "Eq. (C.9) q=$q: cos(qπz/L) at z=0 → $(round(af0; digits=4)), " *
+            "z=L → $(round(afL; digits=4))"
+        obs["cm_note"][] = fr.note
+
+        # 36d — structural shape + f′ (display only)
+        st_idx = clamp(Int(round(Float64(obs["cm_struct_mode"][]))), 1, 32)
+        obs["cm_struct_mode"][] = Float64(st_idx)
+        fuse = FuselageGeometry(test_article_length(), 0.508, inp.theta0_deg)
+        st = structural_modes_from_table_d1(; L=fuse.L, a=fuse.a,
+                                            theta0_deg=fuse.theta0_deg).modes[st_idx]
+        sdisp = structural_mode_display(st, fuse)
+        spath = joinpath(cache, "struct_$(lpad(st_idx, 2, '0')).png")
+        render_structural_mode_png(spath, sdisp)
+        obs["cm_struct_path"][] = spath
+        cd = coupling_display(cy.modes[mode + 1], st, fuse; q=q)
+        obs["cm_f_prime"][] = "f′(n=$(cd.acoustic_index), r=$(cd.structural_index), q=$q) = " *
+            string(round(cd.f_prime; digits=6))
+
+        obs["cm_status"][] = "Done mode $mode (q=$q): f=$(obs["cm_f"][]), " *
+            "$(obs["cm_symmetry"][]), $(nframes) frames."
+        return fr
+    catch e
+        obs["cm_status"][] = "Error: $(sprint(showerror, e))"
         return nothing
     finally
         obs["busy"][] = false

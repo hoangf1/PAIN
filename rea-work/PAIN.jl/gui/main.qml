@@ -214,6 +214,7 @@ ApplicationWindow {
             TabButton { text: "Validation" }
             TabButton { text: "Validation map" }
             TabButton { text: "Printed outputs" }
+            TabButton { text: "Cabin modes" }
         }
 
         StackLayout {
@@ -1308,6 +1309,207 @@ ApplicationWindow {
                                 font.pixelSize: 12
                                 selectByMouse: true
                                 background: null
+                            }
+                        }
+                    }
+                }
+            }
+
+            // ---- Cabin modes tab (phase 36; display only; own tab — cheaper than map detail) ----
+            ColumnLayout {
+                spacing: 10
+
+                Frame {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 96
+                    ColumnLayout {
+                        anchors.fill: parent
+                        anchors.margins: 12
+                        spacing: 4
+                        Text {
+                            text: "Cabin modes (display only)"
+                            font.bold: true
+                            font.pixelSize: 15
+                            color: root.ink
+                        }
+                        Text {
+                            text: "CYL2D App. C animation — no criterion, no verdict. Fixed CYL2D_C1 inputs (not editable). Interpolation for drawing only; node values unchanged."
+                            color: root.muted
+                            font.pixelSize: 11
+                            wrapMode: Text.WordWrap
+                            Layout.fillWidth: true
+                        }
+                        Text {
+                            text: "Inputs c0=" + pain.cm_c0 + " m/s, θ0=" + pain.cm_theta0 + "°, NY=" + pain.cm_NY
+                            color: root.muted
+                            font.pixelSize: 11
+                        }
+                    }
+                }
+
+                Frame {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 72
+                    RowLayout {
+                        anchors.fill: parent
+                        anchors.margins: 10
+                        spacing: 10
+                        Text { text: "Mode"; color: root.ink; font.pixelSize: 12 }
+                        SpinBox {
+                            from: 0; to: 19
+                            value: Math.round(pain.cm_mode)
+                            editable: true
+                            onValueModified: Julia.set_cabin_mode_from_qml(value)
+                        }
+                        Text { text: "q"; color: root.ink; font.pixelSize: 12 }
+                        SpinBox {
+                            from: 0; to: 20
+                            value: Math.round(pain.cm_q)
+                            editable: true
+                            onValueModified: Julia.set_cabin_q_from_qml(value)
+                        }
+                        Text { text: "Struct r"; color: root.ink; font.pixelSize: 12 }
+                        SpinBox {
+                            from: 1; to: 32
+                            value: Math.round(pain.cm_struct_mode)
+                            editable: true
+                            onValueModified: Julia.set_cabin_struct_from_qml(value)
+                        }
+                        Text { text: "Speed"; color: root.ink; font.pixelSize: 12 }
+                        SpinBox {
+                            from: 1; to: 8
+                            value: Math.round(pain.cm_speed)
+                            editable: true
+                            onValueModified: pain.cm_speed = value
+                        }
+                        Button {
+                            text: pain.cm_playing ? "Pause" : "Play"
+                            enabled: pain.cm_frame_path.length > 0
+                            onClicked: pain.cm_playing = !pain.cm_playing
+                        }
+                        Button {
+                            text: pain.busy ? "Building…" : "Refresh"
+                            enabled: !pain.busy
+                            highlighted: true
+                            onClicked: Julia.run_cabin_modes_from_qml()
+                        }
+                    }
+                }
+
+                Timer {
+                    interval: Math.max(40, Math.round(120 / Math.max(1, pain.cm_speed)))
+                    running: !!pain.cm_playing && pain.cm_frame_path.length > 0
+                    repeat: true
+                    onTriggered: Julia.cabin_modes_step_frame_from_qml(1)
+                }
+
+                Frame {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    RowLayout {
+                        anchors.fill: parent
+                        anchors.margins: 12
+                        spacing: 12
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                            spacing: 6
+                            Text {
+                                text: "Status: " + pain.cm_status
+                                color: root.muted
+                                font.pixelSize: 12
+                                wrapMode: Text.WordWrap
+                                Layout.fillWidth: true
+                            }
+                            Text {
+                                text: "f = " + pain.cm_f + " Hz   Φ_G = " + pain.cm_Phi_G + "   " + pain.cm_symmetry
+                                color: root.ink
+                                font.pixelSize: 13
+                                font.bold: true
+                                Layout.fillWidth: true
+                            }
+                            Text {
+                                text: pain.cm_axial_note
+                                color: root.muted
+                                font.pixelSize: 11
+                                wrapMode: Text.WordWrap
+                                Layout.fillWidth: true
+                            }
+                            Text {
+                                text: pain.cm_f_prime
+                                color: root.ink
+                                font.pixelSize: 12
+                                wrapMode: Text.WordWrap
+                                Layout.fillWidth: true
+                            }
+                            Text {
+                                text: pain.cm_note
+                                color: root.muted
+                                font.pixelSize: 11
+                                Layout.fillWidth: true
+                            }
+                            Item {
+                                Layout.fillWidth: true
+                                Layout.fillHeight: true
+                                Layout.preferredHeight: 360
+                                Image {
+                                    anchors.fill: parent
+                                    fillMode: Image.PreserveAspectFit
+                                    asynchronous: true
+                                    cache: false
+                                    visible: pain.cm_frame_path.length > 0
+                                    source: pain.cm_frame_path.length > 0
+                                            ? ("file:///" + String(pain.cm_frame_path).replace(/\\/g, "/"))
+                                            : ""
+                                }
+                                Text {
+                                    anchors.centerIn: parent
+                                    visible: pain.cm_frame_path.length === 0
+                                    text: "Press Refresh to build frames"
+                                    color: root.muted
+                                    font.pixelSize: 13
+                                }
+                            }
+                        }
+                        ColumnLayout {
+                            Layout.preferredWidth: 280
+                            Layout.fillHeight: true
+                            spacing: 8
+                            Text {
+                                text: "Fig. C-3 (modes 0–5)"
+                                font.bold: true
+                                color: root.ink
+                                font.pixelSize: 12
+                            }
+                            ScrollView {
+                                Layout.fillWidth: true
+                                Layout.preferredHeight: 200
+                                clip: true
+                                Text {
+                                    width: 250
+                                    text: pain.cm_fig_c3.length > 0 ? pain.cm_fig_c3 : "(select mode 0–5 and Refresh)"
+                                    color: root.ink
+                                    font.family: "Consolas"
+                                    font.pixelSize: 10
+                                    wrapMode: Text.WordWrap
+                                }
+                            }
+                            Text {
+                                text: "Structural ψ (36d)"
+                                font.bold: true
+                                color: root.ink
+                                font.pixelSize: 12
+                            }
+                            Image {
+                                Layout.fillWidth: true
+                                Layout.preferredHeight: 160
+                                fillMode: Image.PreserveAspectFit
+                                asynchronous: true
+                                cache: false
+                                visible: pain.cm_struct_path.length > 0
+                                source: pain.cm_struct_path.length > 0
+                                        ? ("file:///" + String(pain.cm_struct_path).replace(/\\/g, "/"))
+                                        : ""
                             }
                         }
                     }

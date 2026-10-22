@@ -221,6 +221,96 @@ _run_if("Table D-1 shapes, all 32 modes (transcription checks, V-CODE)") do
     @test structural_shell_psi(m2, 0.5, 90.0, 1.0) ≈ 1.0
 end
 
+_run_if("Cabin mode animation (phase 36)") do
+    cy = cyl2d_modes(56.6; n_modes=20, NY=10, c0=TABLE_C1_C0)
+    nframes = 12
+    # Mode 0 uniform; node field equals cyl2d_modes (no smoothing)
+    fr0 = mode_animation_frames(cy, 0; nframes=nframes, grid=41)
+    @test fr0.nframes == nframes
+    @test length(fr0.frames) == nframes
+    @test fr0.colour_limits[1] == -fr0.colour_limits[2]
+    @test fr0.clim ≈ fr0.colour_limits[2]
+    nodes0 = fr0.nodes
+    for (ix, m) in enumerate(nodes0.ms), (iy, n) in enumerate(nodes0.ns)
+        nodes0.mask[ix, iy] || continue
+        haskey(cy.modes[1].phi_nodes, (abs(m), n)) || continue
+        expected = cy.modes[1].phi_nodes[(abs(m), n)]  # mode 0 symmetric
+        @test nodes0.φ[ix, iy] ≈ expected atol=1e-12
+    end
+    cabin_vals = [nodes0.φ[ix, iy] for ix in eachindex(nodes0.ms), iy in eachindex(nodes0.ns) if nodes0.mask[ix, iy]]
+    @test !isempty(cabin_vals)
+    @test maximum(abs, cabin_vals) ≈ 1.0 atol=1e-9
+    @test all(isapprox(v, first(cabin_vals); atol=1e-9) for v in cabin_vals)
+
+    # Antisymmetric mode odd about the centreline (Table C-1 mode 1)
+    fr1 = mode_animation_frames(cy, 1; nframes=nframes, grid=41)
+    @test fr1.symmetric == false
+    n1 = fr1.nodes
+    for (ix, m) in enumerate(n1.ms)
+        m > 0 || continue
+        ixm = findfirst(==(-m), n1.ms)
+        ixm === nothing && continue
+        for iy in eachindex(n1.ns)
+            (n1.mask[ix, iy] && n1.mask[ixm, iy]) || continue
+            @test n1.φ[ixm, iy] ≈ -n1.φ[ix, iy] atol=1e-12
+        end
+    end
+    ix0 = findfirst(==(0), n1.ms)
+    if ix0 !== nothing
+        for iy in eachindex(n1.ns)
+            n1.mask[ix0, iy] || continue
+            @test abs(n1.φ[ix0, iy]) < 1e-12
+        end
+    end
+    # Frame k: φ · cos(2π k/nframes); colour limits fixed
+    for k in 0:(nframes - 1)
+        c = cos(2π * k / nframes)
+        @test maximum(abs, filter(!isnan, vec(fr1.frames[k + 1])); init=0.0) ≤ fr1.clim + 1e-12
+        # at a drawing cell that is finite in φ0, frame = φ0 * c
+        for I in eachindex(fr1.φ0)
+            isnan(fr1.φ0[I]) && continue
+            @test fr1.frames[k + 1][I] ≈ fr1.φ0[I] * c atol=1e-12
+            break
+        end
+    end
+    # Node values unchanged vs cyl2d_modes
+    for ((m, n), v) in cy.modes[2].phi_nodes
+        ix = findfirst(==(m), n1.ms)
+        iy = findfirst(==(n), n1.ns)
+        ix === nothing && continue
+        @test n1.φ[ix, iy] ≈ v atol=1e-12
+    end
+
+    # Output files written
+    cache = mktempdir()
+    out = joinpath(cache, "mode1.gif")
+    paths = render_mode_animation(out, fr1; format=:gif, axial_q=1)
+    @test isfile(paths.gif_path) && filesize(paths.gif_path) > 0
+    @test isfile(paths.png_path) && filesize(paths.png_path) > 0
+    @test axial_factor(1, 1.83)(0.0) ≈ 1.0
+    @test axial_factor(1, 1.83)(1.83) ≈ -1.0 atol=1e-12
+
+    # GUI fill path (offscreen Observables; no window)
+    obs = make_gui_observables()
+    obs["cm_mode"][] = 2.0
+    obs["cm_q"][] = 0.0
+    obs["cm_nframes"][] = 8.0
+    obs["cm_struct_mode"][] = 1.0
+    fr = fill_cabin_modes_gui!(obs)
+    @test fr !== nothing
+    @test startswith(String(obs["cm_status"][]), "Done")
+    @test !isempty(String(obs["cm_f"][]))
+    @test !isempty(String(obs["cm_Phi_G"][]))
+    @test occursin("symmetric", String(obs["cm_symmetry"][])) || occursin("antisymmetric", String(obs["cm_symmetry"][]))
+    @test isfile(String(obs["cm_frame_path"][]))
+    @test isfile(String(obs["cm_peak_path"][]))
+    @test !isempty(String(obs["cm_f_prime"][]))
+    @test isfile(String(obs["cm_struct_path"][]))
+    @test String(obs["cm_c0"][]) == string(TABLE_C1_C0)
+    @test String(obs["cm_theta0"][]) == "56.6"
+    @test String(obs["cm_NY"][]) == "10"
+end
+
 _run_if("CYL2D floor values") do
     cy = cyl2d_modes(56.6; n_modes=6, NY=10)
     @test all(m -> length(m.phi_floor) == length(m.x_floor_unit) == 11, cy.modes)

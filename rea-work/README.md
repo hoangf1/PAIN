@@ -152,13 +152,15 @@ Compares the propeller noise on the l = 1 line with ANOPP Table 8 and writes `do
 julia --project=. scripts/run_gui.jl
 ```
 
-Three tabs (phases 34–35). Cases are read-only: fixed inputs and criteria; not a calibration tool (CLAUDE.md).
+Tabs (phases 34–36, 38h). Cases are read-only: fixed inputs and criteria; not a calibration tool (CLAUDE.md).
 
 **Run tab:** source = `aircraft` only (BEMT + F1A; needs an aircraft JSON, e.g. `examples\aircraft_scale_hartzell.json`). `e11` / `synthetic` stay for scripts and `Pkg.test()`, not the GUI.
 
 **Validation tab:** list ordered by validation map and block. Pick a case → **Run** (or **Run all**). Selection updates Julia `val_selected` / `val_runnable`. Inputs are an echo; criterion text/date and verdict are fixed. Comparison plot (with error panel; optional `error_xlabel` when that panel's x differs from the main panel, e.g. `UT_GRID`) → `docs/validation_reports/figures/<case_id>.png`. Until Run: "Press Run to draw the comparison plot". **E21_E22_NR** (38a), **E18_TONES** (38d), **E15_STRUCT_LOSS** (38e) runnable; long source cases replay recorded CSVs.
 
 **Validation map tab:** pick Map 1 (cabin chain) or Map 2 (aircraft source) → read the intro and legend → click a case chip → detail panel shows source, what it verifies, why, what a pass means, what it does not cover, recorded outcome, explanation (with Inputs / Equations / Outputs lines), criterion + date → **Run** / **Open report** → code-vs-figure plot with error panel and source-figure page (display-only). Case texts come from [`VALIDATION_GUIDELINE.md` §2.13](docs/VALIDATION_GUIDELINE.md) (also feeds the Validation tab). `UT_GRID` is a runnable unit test with a γ-coloured 160-point grid figure.
+
+**Cabin modes tab (phase 36):** own tab (cheaper than embedding in the Validation map `CYL2D_C1` detail). Mode 0–19, axial q, play/pause/speed, Refresh. Shows f, Φ_G, symmetry; for modes 0–5 the printed Fig. C-3 one-decimal values; optional Table D-1 structural ψ and f′. Fixed `CYL2D_C1` inputs (c0, θ0, NY) — not editable. **Display only — no criterion, no verdict, no tuning**; frames are interpolated for drawing (node values unchanged). PNGs/GIFs under `PAIN.jl/gui/cache/mode_anim/` (not validation figures).
 
 ## Using PAIN from the Julia prompt (optional)
 

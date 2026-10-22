@@ -12,7 +12,7 @@ The user source is BEMT + F1A, which gives the free-field pressure at the 160 fu
 
 Grid extension (GEXT) appears only in diagram 2. It exists because the NASA paper measured one line of the grid.
 
-Status key: green = check exists and passes as stated; orange = planned, not independently checked, or the current code differs from CR-3813; blue = calibrated surrogate. Step numbers refer to `IMPLEMENTATION_PLAN.md`. **2026-10-22:** phases **38d–38e** — `E18_TONES` 2/3 vs NASA E-18 (not met); `E15_STRUCT_LOSS` η_r′ V-EXP info (no_verdict). Phase **38c** printed HF broadband; `T2_EQ19` 0/3. **38h** Manual §5.4.3 printed outputs (`printed_outputs.jl` + GUI tab; no criterion). **38g** printed App. D solver `mrp_appd.jl` / case `MRP_APPD`: **27/32** within 5 % → met (criterion ≥75 % of 32, fixed 2026-10-22; `mrp_appd_vs_d1.md`). Phases 38a–38b remain. Phases 32–35 done. GUI Run tab = aircraft only; **Validation** + **Validation map** + **Printed outputs** tabs. `REPRO_18b` = 18b-r (not met); `MRP_D1` = transcription `no_verdict`. Aircraft path stays X-EXTRAP; 29b–31 deferred (B-4).
+Status key: green = check exists and passes as stated; orange = planned, not independently checked, or the current code differs from CR-3813; blue = calibrated surrogate. Step numbers refer to `IMPLEMENTATION_PLAN.md`. **2026-10-22:** phases **38d–38e** — `E18_TONES` 2/3 vs NASA E-18 (not met); `E15_STRUCT_LOSS` η_r′ V-EXP info (no_verdict). Phase **38c** printed HF broadband; `T2_EQ19` 0/3. **38h** Manual §5.4.3 printed outputs (`printed_outputs.jl` + GUI tab; no criterion). **38g** printed App. D solver `mrp_appd.jl` / case `MRP_APPD`: **27/32** within 5 % → met (criterion ≥75 % of 32, fixed 2026-10-22; `mrp_appd_vs_d1.md`). **Phase 36** cabin mode animation (`mode_animation.jl` + GUI **Cabin modes** tab; display only, no claim). Phases 38a–38b remain. Phases 32–35 done. GUI Run tab = aircraft only; **Validation** + **Validation map** + **Printed outputs** + **Cabin modes** tabs. `REPRO_18b` = 18b-r (not met); `MRP_D1` = transcription `no_verdict`. Aircraft path stays X-EXTRAP; 29b–31 deferred (B-4).
 
 **Test tooling (P1, 2026-10-22, no behaviour change).** `Pkg.test` accepts `test_args` substrings to select top-level testsets; list/times in `PAIN.jl/test/README.md`. Optional DaemonMode loop in `PAIN.jl/scripts/devtools/` (separate env; Revise loaded). Does not alter criteria, reports, or `src/`.
 
@@ -32,7 +32,7 @@ flowchart LR
     S["<b>Shared cabin model</b><br/>blocking -> modes -> PAIN core<br/>(diagram 4)"]
     T["Tests T1 / T2<br/>vs NASA interior SPL"]
     M["dB(A), SIL<br/><i>extrapolated</i>"]
-    GUI["GUI Validation + map + Printed outputs<br/>case registry / CASE_INFO<br/>§5.4.3 tables (38h)"]
+    GUI["GUI Validation + map + Printed outputs + Cabin modes<br/>case registry / CASE_INFO<br/>§5.4.3 (38h); mode anim (36, display only)"]
 
     V --> G
     A --> G

@@ -19,3 +19,4 @@ rea-work/data/_scratch/
 **/__pycache__/
 *.pyc
 .ipynb_checkpoints/
+rea-work/PAIN.jl/gui/cache/

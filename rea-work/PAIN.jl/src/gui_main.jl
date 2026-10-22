@@ -134,6 +134,61 @@ function run_printed_outputs_from_qml()
     return nothing
 end
 
+"""QML Cabin modes tab: Refresh (cooperative `@async`, same as Validation / 37i)."""
+function run_cabin_modes_from_qml()
+    obs = _GUI_OBS[]
+    obs === nothing && return nothing
+    @async begin
+        try
+            yield()
+            fill_cabin_modes_gui!(obs)
+        catch e
+            obs["cm_status"][] = "Error: $(sprint(showerror, e))"
+            obs["busy"][] = false
+        end
+    end
+    return nothing
+end
+
+function set_cabin_mode_from_qml(mode)
+    obs = _GUI_OBS[]
+    obs === nothing && return nothing
+    obs["cm_mode"][] = Float64(clamp(Int(round(Float64(mode))), 0, 19))
+    return nothing
+end
+
+function set_cabin_q_from_qml(q)
+    obs = _GUI_OBS[]
+    obs === nothing && return nothing
+    obs["cm_q"][] = Float64(clamp(Int(round(Float64(q))), 0, 20))
+    return nothing
+end
+
+function set_cabin_struct_from_qml(r)
+    obs = _GUI_OBS[]
+    obs === nothing && return nothing
+    obs["cm_struct_mode"][] = Float64(clamp(Int(round(Float64(r))), 1, 32))
+    return nothing
+end
+
+"""Advance / set the displayed frame index (play Timer or scrubber)."""
+function cabin_modes_step_frame_from_qml(delta)
+    obs = _GUI_OBS[]
+    obs === nothing && return nothing
+    n = max(1, Int(round(Float64(obs["cm_nframes"][]))))
+    idx = Int(round(Float64(obs["cm_frame_index"][])))
+    idx = mod(idx + Int(round(Float64(delta))), n)
+    obs["cm_frame_index"][] = Float64(idx)
+    try
+        paths = JSON3.read(String(obs["cm_frame_paths_json"][]), Vector{String})
+        if 1 ≤ idx + 1 ≤ length(paths)
+            obs["cm_frame_path"][] = paths[idx + 1]
+        end
+    catch
+    end
+    return nothing
+end
+
 """
 Cooperative Qt event loop so Julia `@async` tasks (Validation Run buttons) can run.
 
@@ -194,6 +249,11 @@ function main(args=ARGS; smoke_ms::Real=0, smoke_case::AbstractString="")
     @qmlfunction reload_validation_docs_from_qml
     @qmlfunction open_validation_report_from_qml
     @qmlfunction run_printed_outputs_from_qml
+    @qmlfunction run_cabin_modes_from_qml
+    @qmlfunction set_cabin_mode_from_qml
+    @qmlfunction set_cabin_q_from_qml
+    @qmlfunction set_cabin_struct_from_qml
+    @qmlfunction cabin_modes_step_frame_from_qml
     @qmlfunction mark_gui_closed_from_qml
 
     qml_file = joinpath(@__DIR__, "..", "gui", "main.qml")

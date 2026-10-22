@@ -118,4 +118,24 @@ end
 @assert occursin("Modes per band", String(obs["po_text"][]))
 @assert occursin("lower-quarter", String(po_parsed.surface_lower_note))
 
-println("smoke_gui_model PASS (incl. Validation CYL2D_C1 / map R996_FIG14 / F2 §2.13 / 38h printed outputs)")
+# Phase 36 — Cabin modes panel Observables filled (display only; no window)
+@assert haskey(obs, "cm_status") && haskey(obs, "cm_frame_path") && haskey(obs, "cm_f")
+obs["cm_mode"][] = 0.0
+obs["cm_q"][] = 0.0
+obs["cm_nframes"][] = 8.0
+obs["cm_struct_mode"][] = 1.0
+cm = fill_cabin_modes_gui!(obs)
+@assert cm !== nothing "cabin modes fill failed: $(obs["cm_status"][])"
+@assert startswith(String(obs["cm_status"][]), "Done")
+@assert !isempty(String(obs["cm_f"][]))
+@assert !isempty(String(obs["cm_Phi_G"][]))
+@assert occursin("symmetric", String(obs["cm_symmetry"][]))
+@assert isfile(String(obs["cm_frame_path"][])) && filesize(String(obs["cm_frame_path"][])) > 0
+@assert isfile(String(obs["cm_peak_path"][]))
+@assert String(obs["cm_c0"][]) == string(TABLE_C1_C0)
+@assert String(obs["cm_theta0"][]) == "56.6"
+@assert String(obs["cm_NY"][]) == "10"
+@assert !isempty(String(obs["cm_f_prime"][]))
+@assert isfile(String(obs["cm_struct_path"][]))
+
+println("smoke_gui_model PASS (incl. Validation CYL2D_C1 / map R996_FIG14 / F2 §2.13 / 38h printed outputs / 36 cabin modes)")

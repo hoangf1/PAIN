@@ -16,7 +16,7 @@ Single source of truth for building this project without re-deriving context in 
 5. *(moved to §11)* Step 19i done 2026-10-21
 6. Source phases 21–28
 7. Aircraft-cabin phases 29–31
-8. Phases 32–35 *(done 2026-10-21; records in §11)*; Phase 36 cabin mode animation *(planned, not started)*; Phase 37 root-cause fixes *(done 2026-10-22; §11)*; Phase 38 CR-3813 / User Manual completeness *(38a–38e done 2026-10-22; 38f–38h to plan with the author)*
+8. Phases 32–35 *(done 2026-10-21; records in §11)*; Phase 36 cabin mode animation *(done 2026-10-22)*; Phase 37 root-cause fixes *(done 2026-10-22; §11)*; Phase 38 CR-3813 / User Manual completeness *(38a–38e done 2026-10-22; 38f–38h to plan with the author)*
 9. Reference appendices (BBN evidence, Report 996 figures and data, Pereira polar specification, variables)
 10. Optional future work, key formulas, file checklist
 11. Completed phases 0–22 + digitization/setup close-out + phases 32–35 (2026-10-21)
@@ -352,7 +352,7 @@ Not blockers (recorded so nobody stops on them): BBN tip geometry beyond 40 in. 
 | Q15 | Phase 33 | close-out | all | **Done 2026-10-21** |
 | Q16 | Phase 34 | `src/` + GUI [CONFIRM] | Q15 | **Done 2026-10-21** |
 | Q17 | Phase 35 | `src/` + GUI + docs | Q16 | **Done 2026-10-21** |
-| Q18 | Phase 36 — cabin mode animation in the GUI (§8) | GUI + `src/` [CONFIRM] | Q17 | **Planned 2026-10-21, not started — do not implement until the author says go** |
+| Q18 | Phase 36 — cabin mode animation in the GUI (§8) | GUI + `src/` [CONFIRM] | Q17 | **Done 2026-10-22** (author: "continue until no more phases are implemented"); steps 36a–36e |
 | Q19 | Phase 37 — root-cause fixes from the 2026-10-21 GUI review (§8) | GUI + `src/` + scripts (author asked "find all root causes and fix all of them") | Q17 | 37a done 2026-10-21; 37a–37i done 2026-10-22 |
 | Q19b | **R1 directory reorganization** (spec `docs/specs/R1_directory_reorg.md`): CR-3813 data → `data/cr3813/`, scripts → `scripts/{run,checks,digitize,setup,smoke}`, READMEs, every path reference updated | moves + path edits | P1 (done, `ef184d8`) | **Done 2026-10-22** (record in §11); reviewer runs full `Pkg.test()` |
 | Q20 | Phase 38 — CR-3813 / User Manual completeness (§8; audit `validation_reports/cr3813_completeness_audit.md`; 38a spec `docs/specs/38a_noise_reduction.md`, equation page images `docs/specs/cr3813_pages/`) | `src/` + cases (author: "the whole PAIN program is supposed to function just like it does in the PAIN Methodology") | Q19 (37b first: amplitude convention) | 38a done (`:not_met`); 38b done (I-18 rule not met); 38c done (T2 not met); 38d done (`:not_met`); 38e done (no verdict); 38f-1, 38f-2, 38h done; 38g done (`:met`, 27/32) in order; 38f–38h planned with the author before starting |
@@ -1008,6 +1008,8 @@ tests against analytic limits first (V-UNIT), then the NASA comparison with crit
 **Case explanations (2026-10-22, author request).** All 37 cases of `VALIDATION_GUIDELINE.md` §2.13 were rewritten in plain language: the Explanation starts with the kind of check (Unit test, Code-on-code, Experiment comparison, Input QA, Diagnostic, Replay) and ends with `Inputs:`, `Equations:`, `Outputs:` lines; map and block introductions expanded. Both GUI tabs read §2.13 (Validation tab `valInfo.explanation`, Validation map tab `mapDetail.explanation`, block and map texts); the Julia-side titles and criterion sentences were reworded for clarity only (no value, tolerance, date, label or verdict logic changed). `UT_GRID` is now a runnable case with a figure (160 grid points coloured by incidence angle, coordinate error panel vs Manual Fig. 3, 1e-9 criterion; `figures/UT_GRID.png`). Points the sources do not support are marked in the texts (GEXT form assumed; BBN reference-mic sign, Report 996 p. 12 stations, BBN blade data not stated).
 
 **PlotSpec `error_xlabel` (2026-10-22).** Optional error-panel x label (default `nothing` → reuse `xlabel`). Set for `UT_GRID` to `sample index (table row)` so the error panel is not labelled as axial z; audit found no other case where table.x differs from the main-panel x. Label wording only; `figures/UT_GRID.png` regenerated.
+
+**Phase 36 result (2026-10-22, display only; no criterion, verdict or tuning).** Done: `src/mode_animation.jl` (frame generator from `cyl2d_modes`, node values unchanged, interpolation for drawing only; GIF and peak-frame PNG; Eq. C.9 axial factor), GUI "Cabin modes" tab (mode 0–19, q, structural mode r, play/pause/speed, Refresh via the 37i cooperative loop; f, Φ_G, symmetry; Fig. C-3 values for modes 0–5; fixed `CYL2D_C1` inputs c0 = 341, θ₀ = 56.6°, NY = 10), and 36d (Table D-1 ψ shape image and f′). Cache under `gui/cache/mode_anim/` is git-ignored. Tests: 309 new pass, registry 1232 pass, `smoke_gui_model.jl` and `smoke_qml_load.jl` pass offscreen.
 
 **Rules.** No parameter is chosen by looking at a comparison result. Where the text is ambiguous, the reading is decided and
 recorded from the text before running. Delegated work follows R13 (snapshot, diff, rules, run the checks, spot-check numbers, docs).

@@ -29,6 +29,7 @@ include("polars.jl")
 include("freefield_digitized.jl")
 include("trim_loss.jl")
 include("pain_core.jl")
+include("mode_animation.jl")
 include("noise_reduction.jl")
 include("high_freq_tones.jl")
 include("hf_broadband.jl")
@@ -53,6 +54,10 @@ export
     extend_line_to_grid,
     cyl2d_modes, cyl2d_modes_search, Cyl2DResult, AcousticMode, TABLE_C1_FREQ_HZ, TABLE_C1_GENMASS, TABLE_C1_SYMMETRIC, TABLE_C1_C0,
     cabin_frequency_3d, cabin_eps_3d, axial_truncation, cabin_modes_3d,
+    mode_animation_frames, render_mode_animation, render_mode_frame_pngs, axial_factor,
+    FIG_C3_PRINTED_ROWS, CYL2D_C1_DISPLAY_INPUTS, cyl2d_c1_for_display, mode_animation_cache_dir,
+    structural_mode_display, coupling_display, render_structural_mode_png,
+    fill_cabin_modes_gui!,
     scale_acoustic_freq, acoustic_boundary_value,
     structural_modes, structural_modes_from_table_d1, fit_mrp_to_table_d1, match_ritz_to_table_d1,
     StructuralModes, StructuralMode, structural_shell_psi, structural_floor_psi, TABLE_D1_CORE, TABLE_D1_FULL,
@@ -112,7 +117,9 @@ export
     run_validation_gui!, run_all_validation_gui!, reload_validation_docs_gui!,
     structural_modes_in_band, modal_tone_contributions, printed_outputs,
     write_printed_outputs_md, format_printed_outputs_text, printed_outputs_gui_json,
-    run_printed_outputs_gui!
+    run_printed_outputs_gui!,
+    run_cabin_modes_from_qml, set_cabin_mode_from_qml, set_cabin_q_from_qml,
+    cabin_modes_step_frame_from_qml, set_cabin_struct_from_qml
 
 """
     run_pain_pipeline(; source=:aircraft | :e11 | :synthetic, trim=:auto, ...)
