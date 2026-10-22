@@ -412,7 +412,7 @@ Each row is a hard-coded NASA test-article constant that can reach an aircraft r
 
 | File | Symbol / site | Value | Source |
 |------|---------------|-------|--------|
-| `trim_loss.jl` | `phase3_trim` defaults `a`, `L`, `theta0_deg` | 0.508 m, `test_article_length()` (default 1.803 m), 56.6° | CR-3813 App. E test article; L via `TEST_ARTICLE_L` (post-hoc sensitivity 2026-10-22) |
+| `trim_loss.jl` | `phase3_trim` defaults `a`, `L`, `theta0_deg` | 0.508 m, `test_article_length()` (default 1.83 m), 56.6° | CR-3813 App. E test article; L via `TEST_ARTICLE_L` (I-22 default 1.83 m, 2026-10-22) |
 | `trim_loss.jl` | `phase3_trim` η_lining | 0.5 (Phase III); aircraft register default 0.05 | p. E-24 / register f |
 | `trim_loss.jl` | PF-105 / Fig. A-2 insulation table | `data/cr3813/fig_a2_pf105.csv` | App. A |
 | `trim_loss.jl` | Phase III sidewall/end stacks, septum 6.58 kg, facing 0.095 kg/m² | as coded | App. E p. E-8 |
@@ -420,8 +420,8 @@ Each row is a hard-coded NASA test-article constant that can reach an aircraft r
 | `pain_core.jl` | wall mass fallback from `MRP_*` when `m_wall` NaN | smeared skin | same |
 | `pain_core.jl` | `bb_j2_scale` default | 0.5 | stale T2 fit |
 | `pain_core.jl` | Spbl H=3 anchor, f⁻² slope, absorption curve | as coded | V-ASSUMED / educated |
-| `PAIN.jl` | `run_pain_pipeline` geometry defaults | L=`test_article_length()` (default 1.803), a=0.508, θ0=56.6, r_p=0.965 | test article |
-| `geometry.jl` | `TEST_ARTICLE_L` / `test_article_length()` | default 1.803 m; App. D `appd_test_article_geometry` keeps 1.83 until override is set | I-22; post-hoc sensitivity report `length_sensitivity.md` (2026-10-22; no length selected from any error) |
+| `PAIN.jl` | `run_pain_pipeline` geometry defaults | L=`test_article_length()` (default 1.83), a=0.508, θ0=56.6, r_p=0.965 | test article |
+| `geometry.jl` | `TEST_ARTICLE_L` / `test_article_length()` | default **1.83 m** (I-22); App. D follows `test_article_length()` | I-22 decision 2026-10-22; re-record `length_rerecord_before_after.md` (from `length_sensitivity.md`; no length selected from any error) |
 | `PAIN.jl` | hybrid Table D-1 modes when `use_table_d1=true` | 32 modes | Table D-1 |
 | `cyl2d.jl` / pipeline | CYL2D NY=10, c0=340, ρ0=1.225 | defaults | App. C / register |
 | `pain_core.jl` / pipeline | `L_c` default = fuse.L, `d` = 0; `rotation_direction` = +1; `bands` / `η_r_band` / `η_n_band` default `nothing` | card 9 / 36 / 3–6 / 11–18 defaults | Manual §5.4; 38f-1, 38f-2 |
@@ -773,7 +773,7 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **Why it is here:** The only check of the structural solver
 **A pass means:** Fit quality only: k_scale, edge_factor, floor_scale were fitted to this table
 **Not covered:** Not evidence; Eq. (D.25) not implemented (w-only surrogate)
-**Recorded outcome:** 26/32 within 5 % (re-recorded 2026-10-21); always no_verdict (calibrated surrogate)
+**Recorded outcome:** 29/32 within 5 % at L = 1.83 m (I-22 re-record 2026-10-22, post-hoc; was 26/32 at 1.803 m); always no_verdict (calibrated surrogate)
 **Explanation:** The raw structural solver is a simplified (w-only Donnell) surrogate with three scales (k_scale, edge_factor, floor_scale) fitted to Table D-1, not CR-3813 Eq. (D.25). Today 26/32 frequencies are within 5 %; the old record (30/32) predates the 2026-10-20 Table D-1 re-transcription whose shapes seed the solver. Always no_verdict (calibrated fit — CLAUDE.md forbids quoting a calibrated path as a pass). Production uses Table D-1 directly (MRP_D1).
 
 ### Case: MRP_APPD
@@ -864,8 +864,8 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **Why it is here:** Shows the chain computes what NASA's program computed
 **A pass means:** Code-to-code agreement within 4 dB per harmonic
 **Not covered:** η_T = 0.5 adopted after 19f showed the result (post-hoc); conditional on GEXT; amplitude convention fixed 2026-10-21, post-hoc
-**Recorded outcome:** 18b-r not met 1/3: 85.74, 78.74, 80.06 dB (pain_reproduction_e16.md; amplitude convention fixed 2026-10-21, post-hoc). Phase 38b `:auto` (report only): 85.74, 16.89, 72.31 dB; H3 Δ=+4.31 (I-18 explains H3 = no); `phase38b_high_freq_tones.md`
-**Explanation:** Code-to-code check: run the cabin chain on ANOPP Table 8 with R1 blocking and η_T = 0.5 (NASA's value) and compare interior SPL with NASA's PAIN circles on Fig. E-16 (±4 dB per harmonic). After the 2026-10-21 amplitude-convention fix (I-17: measured SPLs are rms; PAIN/F1A amplitudes are Fourier peaks), 18b-r records 85.74, 78.74, 80.06 dB = +6.7, +3.2, +12.1 vs NASA (1 of 3 harmonics). η_T = 0.5 was adopted after 19f showed the result → post-hoc. Conditional on GEXT. Phase 38b recorded the high-frequency formulation beside Eq. (8) with fixed crossover; I-18 mirroring not adopted.
+**Recorded outcome:** 18b-r not met 1/3: 85.90, 78.35, 79.82 dB at L = 1.83 m (I-22 re-record 2026-10-22, post-hoc; earlier 1.803 m: 85.74, 78.74, 80.06 — `length_sensitivity.md` / `pain_reproduction_e16.md`). Phase 38b `:auto` (report only): 85.90, 16.81, 72.24 dB; H3 Δ=+4.24 (I-18 explains H3 = no); `phase38b_high_freq_tones.md`
+**Explanation:** Code-to-code check: run the cabin chain on ANOPP Table 8 with R1 blocking and η_T = 0.5 (NASA's value) and compare interior SPL with NASA's PAIN circles on Fig. E-16 (±4 dB per harmonic). At L = 1.83 m (I-22): 85.90, 78.35, 79.82 dB = +6.9, +2.8, +11.8 vs NASA (1 of 3 harmonics). η_T = 0.5 was adopted after 19f showed the result → post-hoc. Conditional on GEXT. Phase 38b recorded the high-frequency formulation beside Eq. (8) with fixed crossover; I-18 mirroring not adopted.
 
 ### Case: E18_TONES
 **Title:** Fig. E-18 tones (η_T=1)
@@ -877,7 +877,7 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **Why it is here:** NASA's η_T = 1.0 / capped-η_r′ setting (same as E-21) on the tone path
 **A pass means:** |computed − NASA E-18 prediction| ≤ 4 dB at each of H1–H3 (bands 200, 400, 630 Hz)
 **Not covered:** :auto and measured mean/low/high are secondary (V-EXP held out); no parameter from E-18
-**Recorded outcome:** first run 2026-10-22; 2/3 within ±4 dB (89.02, 78.14, 77.70 dB); not met; e18_tones_eta1.md
+**Recorded outcome:** 2/3 within ±4 dB (88.67, 77.78, 77.55 dB) at L = 1.83 m (I-22 re-record 2026-10-22, post-hoc; earlier 1.803 m: 89.02, 78.14, 77.70); not met; e18_tones_eta1.md
 **Explanation:** Same free-field/blocking/grid as 18b-r but Phase III trim η_T = 1.0 and η_r_cap = 0.15 on the tone path (production tone_model=:eq8). H1–H3 map to 200, 400, 630 Hz (H3 at 3·BPF = 600 Hz → 630 Hz 1/3-octave band). Criterion dated 2026-10-21 (18b ±4 dB).
 
 ### Case: T1
@@ -890,8 +890,8 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **Why it is here:** Only end-to-end check of tonal SPL against measurement
 **A pass means:** In-sample consistency (gate A mean ± 4 dB, or gate B envelope + NASA ± 4 dB)
 **Not covered:** No claim: GEXT variants flip it; H3 fails; amplitude convention fixed 2026-10-21, post-hoc
-**Recorded outcome:** 84.05, 78.01, 78.30 dB (H1 fail, H2 pass, H3 fail); t1_tonal.md (amplitude convention fixed 2026-10-21, post-hoc)
-**Explanation:** End-to-end tonal interior SPL on the e11 measured free-field path vs Fig. E-16/E-17 (gate A: mean ± 4 dB, or gate B: envelope + NASA ± 4 dB). After I-17 (2026-10-21): 84.05, 78.01, 78.30 dB (H1 fail, H2 pass, H3 fail). No claim: GEXT variants flip the gate (GEXT_BOUND); amplitude convention fixed post-hoc.
+**Recorded outcome:** 84.21, 77.66, 78.06 dB at L = 1.83 m (H1 fail, H2 pass, H3 fail); t1_tonal.md (I-22 re-record 2026-10-22, post-hoc; earlier 1.803 m: 84.05, 78.01, 78.30)
+**Explanation:** End-to-end tonal interior SPL on the e11 measured free-field path vs Fig. E-16/E-17 (gate A: mean ± 4 dB, or gate B: envelope + NASA ± 4 dB). At L = 1.83 m: 84.21, 77.66, 78.06 dB (H1 fail, H2 pass, H3 fail). No claim: GEXT variants flip the gate (GEXT_BOUND).
 
 ### Case: T2
 **Title:** 1/3-octave (T2)
@@ -903,7 +903,7 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **Why it is here:** Tonal model puts no energy above 1 kHz
 **A pass means:** In-sample: bb_j2_scale = 0.5 was fitted to these bands earlier (stale)
 **Not covered:** Only 1.25–2 kHz; nothing above; amplitude convention fixed 2026-10-21, post-hoc
-**Recorded outcome:** 55.97, 53.63, 51.67 dB; t2_third_octave.md (amplitude convention fixed 2026-10-21, post-hoc)
+**Recorded outcome:** 55.92, 53.56, 51.59 dB at L = 1.83 m (I-22 re-record 2026-10-22, post-hoc; earlier 1.803 m: 55.97, 53.63, 51.67); t2_third_octave.md
 **Explanation:** 1/3-octave broadband path (Eq. 19) vs Fig. E-9 at 1.25–2 kHz. After I-17: 55.97, 53.63, 51.67 dB. bb_j2_scale = 0.5 was fitted earlier to these bands (stale) → calibrated / post-hoc. Only three bands; nothing above 2 kHz. Surrogate path kept; printed Eqs. (19)–(23) are case `T2_EQ19` (38c).
 
 ### Case: T2_EQ19
@@ -916,7 +916,7 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **Why it is here:** Replaces the surrogate / stale bb_j2_scale path for the first printed-model run
 **A pass means:** Same T2 criterion: |got − Fig. E-9 mean| ≤ 3.5 dB at 1.25, 1.6, 2 kHz (criterion unchanged)
 **Not covered:** Spbl ∝ f^−2 anchor remains V-ASSUMED; only three bands; no parameter chosen from E-9/E-21/E-22
-**Recorded outcome:** 0/3 PASS (38.59, 35.87, 34.94 dB vs 51/46/41.5); full-band E-21/E-22 V-CODE 1/13, V-EXP 0/15; phase38c_hf_broadband.md (first run 2026-10-22)
+**Recorded outcome:** 0/3 PASS (38.56, 35.81, 34.87 dB vs 51/46/41.5) at L = 1.83 m (I-22 re-record 2026-10-22, post-hoc; earlier 1.803 m: 38.59, 35.87, 34.94); full-band E-21/E-22 V-CODE 1/13, V-EXP 0/15; phase38c_hf_broadband.md
 **Explanation:** Interior 1/3-octave SPL with `broadband_model=:eq19` (printed τ_f, τ_R, ᾱ from Eq. 24/78, A_t/S/A′) vs Fig. E-9. Default `:surrogate` T2 path unchanged. Full-band E-21/E-22 with Eq. (18) below crossover and Eq. (19) at/above is reported only (38a thresholds dated 2026-10-21). First run not met; no parameter tuned.
 
 ### Case: E21_E22_NR

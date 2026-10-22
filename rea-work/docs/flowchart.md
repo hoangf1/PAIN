@@ -16,7 +16,7 @@ Status key: green = check exists and passes as stated; orange = planned, not ind
 
 **Test tooling (P1, 2026-10-22, no behaviour change).** `Pkg.test` accepts `test_args` substrings to select top-level testsets; list/times in `PAIN.jl/test/README.md`. Optional DaemonMode loop in `PAIN.jl/scripts/devtools/` (separate env; Revise loaded). Does not alter criteria, reports, or `src/`.
 
-**L sensitivity (post-hoc, 2026-10-22).** Source text prints both 1.803 m and 1.83 m (I-22). Override `TEST_ARTICLE_L` / `test_article_length()` (default 1.803, bit-identical); App. D geometry stays 1.83 until override is set. Report-only: `length_sensitivity.md` via `scripts/run/length_sensitivity.jl`. No default/criterion/reference change; no length selected from any error.
+**L = 1.83 m default (I-22, 2026-10-22, post-hoc).** Source text printed both 1.803 m and 1.83 m; decision from App. D body / App. E / hardware (not from error). `test_article_length()` default **1.83 m**; Table D-1 title 1.803 m = caption typo. Affected results re-recorded; before/after `length_rerecord_before_after.md` (from `length_sensitivity.md`). **No verdict flips.** Criteria/reference unchanged.
 
 **Directory layout (R1, 2026-10-22, moves only).** CR-3813 inputs under `data/cr3813/`; scripts under `PAIN.jl/scripts/{run,checks,digitize,setup,smoke}/` (`run_gui.jl` top-level). Path references updated; no change to criteria or recorded numeric results. See `data/README.md`, `PAIN.jl/scripts/README.md`.
 
