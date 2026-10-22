@@ -135,10 +135,15 @@ function freefield_from_e11_csv(amp_csv::AbstractString,
     pts = grid_points(fuse, prop, spec)
     ωH = [2π * H * bpf_Hz for H in 1:nH]
     amps, phases = extend_line_to_grid(line_amps, line_phases, pts; omega_H=ωH)
+    # Card 36: CSV phases assume +1 (Fig. 3); −1 flips blade-passage phase sign.
+    apply_rotation_direction_phases!(phases, prop.rotation_direction)
     notes = "SRC_TA: digitized Fig.E-11 measured SPL + ANOPP Table 8 phases; " *
             "grid extension V-ASSUMED. Digitization file: $(basename(amp_csv))."
     if anopp !== nothing
         notes *= " Broadband floor clip vs ANOPP where measured−ANOPP > $(broadband_clip_dB) dB (n_clip=$n_clip; V-ASSUMED)."
+    end
+    if prop.rotation_direction == -1
+        notes *= " rotation_direction=-1 (card 36): azimuth sense + phase sign flipped."
     end
     return FreeFieldHarmonicGrid(pts, collect(1:nH), amps, phases, :e11_digitized, notes, bpf_Hz)
 end

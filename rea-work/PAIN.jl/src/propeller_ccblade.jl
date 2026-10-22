@@ -77,7 +77,8 @@ function synthetic_freefield_grid(fuse::FuselageGeometry, prop::PropellerPlaceme
             A = p_ref / H * exp(-0.8 * abs(p.k - spec.k_p) / spec.k_max) *
                 max(cos(deg2rad(p.alpha_deg)), 0.05)
             amps[p.k, p.ell, H] = A / max(R, 0.05)
-            phases[p.k, p.ell, H] = -H * (p.x3 / 0.2)
+            # Axial delay; card 36 sense multiplies the blade-passage-like phase sign.
+            phases[p.k, p.ell, H] = prop.rotation_direction * (-H * (p.x3 / 0.2))
         end
     end
     return FreeFieldHarmonicGrid(pts, collect(1:n_harmonics), amps, phases,

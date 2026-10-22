@@ -5,11 +5,24 @@ struct FuselageGeometry
     theta0_deg::Float64 # floor angle θ₀ [deg]
 end
 
-"""Propeller hub placement relative to fuselage (User Manual Fig. 2)."""
+"""Propeller hub placement relative to fuselage (User Manual Fig. 2 / card 36)."""
 struct PropellerPlacement
     r_p::Float64   # radial distance hub→fuselage axis [m]
     phi_p_deg::Float64  # angular position from bottom [deg]
     z_p::Float64   # axial hub position [m]
+    # Manual card 36 cols 51–60: +1 = CCW in +z (Fig. 3, current default);
+    # −1 = CW in +z. Flips azimuth sense of the skin grid (θ_ℓ = φ_p ± α) and
+    # the blade-passage phase sign; does **not** mirror onto the lower quarter.
+    rotation_direction::Int
+end
+
+PropellerPlacement(r_p::Real, phi_p_deg::Real, z_p::Real) =
+    PropellerPlacement(float(r_p), float(phi_p_deg), float(z_p), 1)
+
+function PropellerPlacement(r_p::Real, phi_p_deg::Real, z_p::Real, rotation_direction::Integer)
+    rd = Int(rotation_direction)
+    abs(rd) == 1 || error("PropellerPlacement: rotation_direction must be ±1 (Manual card 36), got $rd")
+    return PropellerPlacement(float(r_p), float(phi_p_deg), float(z_p), rd)
 end
 
 """
@@ -37,26 +50,29 @@ ANOPP-style coordinates from User Manual §3:
   x₂ = −a sin[(ℓ−1)π/18]
   x₃ = (π a / 18) (k_p − k)
 
-Line ℓ = 1 lies at the propeller azimuth, θ_ℓ = φ_p + (ℓ−1)π/18, with ℓ increasing
-upward (User Manual p. 34 card-36 note and Figs. 2–3: the grid covers the upper quarter
-of the skin). `alpha_deg = (ℓ−1)·10°` is the angle from line ℓ = 1 and is what the
-free-field grid extension and the synthetic surrogate use for the falloff.
+Line ℓ = 1 lies at the propeller azimuth. With `rotation_direction = +1` (Manual card 36,
+Fig. 3): θ_ℓ = φ_p + (ℓ−1)π/18, ℓ increasing toward the top of the upper quarter.
+With `rotation_direction = −1` (CW in +z): θ_ℓ = φ_p − (ℓ−1)π/18 and the ANOPP
+circumferential coordinate x₂ flips sign — same upper-quarter grid, opposite azimuth
+sense; not a lower-quarter mirror. `alpha_deg = (ℓ−1)·10°` is the unsigned angle from
+line ℓ = 1 (falloff / GEXT); signed azimuth uses `rotation_direction`.
 """
 function grid_points(fuse::FuselageGeometry, prop::PropellerPlacement, spec::GridSpec=GridSpec())
     a = fuse.a
     rp = prop.r_p
     zp = prop.z_p
     phi_p = deg2rad(prop.phi_p_deg)
+    sense = prop.rotation_direction   # ±1
     pts = NamedTuple{(:k, :ell, :x1, :x2, :x3, :theta_deg, :alpha_deg, :z),
                      Tuple{Int,Int,Float64,Float64,Float64,Float64,Float64,Float64}}[]
     for k in 1:spec.k_max
         for ell in 1:spec.ell_max
             alpha = (ell - 1) * π / 18
             x1 = (rp - a) + a * (1 - cos(alpha))
-            x2 = -a * sin(alpha)
+            x2 = -sense * a * sin(alpha)
             x3 = (π * a / 18) * (spec.k_p - k)
-            # θ measured from the bottom centerline; ℓ = 1 at the propeller azimuth φ_p
-            theta = phi_p + alpha
+            # θ from bottom centerline; ℓ = 1 at φ_p; sense flips azimuth of ℓ > 1
+            theta = phi_p + sense * alpha
             z = zp + x3
             push!(pts, (; k, ell, x1, x2, x3, theta_deg=rad2deg(theta),
                         alpha_deg=rad2deg(alpha), z))

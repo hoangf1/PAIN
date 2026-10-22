@@ -71,6 +71,16 @@ function make_gui_observables(;
         "C_struc" => Observable(3.0),        # C of Eq. (80), CR-3813 range 2-4
         "eta_n_bare" => Observable(0.05),    # η_n of a bare cabin (input, register g)
         "trim" => Observable("auto"),        # auto | bare | phase3
+        # Manual cards 2, 9, 36 (38f-1); defaults = single-air / L_c=L / +1
+        "rho0" => Observable(1.225),
+        "c0" => Observable(340.0),
+        "rho_ext" => Observable(1.225),
+        "rho_int" => Observable(1.225),
+        "c_ext" => Observable(340.0),
+        "c_int" => Observable(340.0),
+        "L_c" => Observable(1.803),
+        "d_cavity" => Observable(0.0),
+        "rotation_direction" => Observable(1.0),
         "status" => Observable("Ready. Choose aircraft JSON and press Run."),
         "busy" => Observable(false),
         "smoke_ms" => Observable(0.0),
@@ -197,14 +207,26 @@ function run_pain_gui!(obs::AbstractDict)
         ηn = Float64(obs["eta_n_bare"][])
         trim = Symbol(String(obs["trim"][]))
         json_path = String(obs["aircraft_json"][])
+        ρ0 = Float64(obs["rho0"][])
+        c0 = Float64(obs["c0"][])
+        ρ_ext = Float64(obs["rho_ext"][])
+        ρ_int = Float64(obs["rho_int"][])
+        c_ext = Float64(obs["c_ext"][])
+        c_int = Float64(obs["c_int"][])
+        L_c = Float64(obs["L_c"][])
+        d_cav = Float64(obs["d_cavity"][])
+        rot = Int(round(Float64(obs["rotation_direction"][])))
 
         common = (
             L=L, a=a, theta0_deg=theta0,
             r_p=r_p, phi_p_deg=phi_p, z_p=z_p,
+            rotation_direction=rot,
             source=src, blocking=blk,
             n_harmonics=nH, bpf_Hz=bpf,
             C_struc=Cs, η_n_bare=ηn, trim=trim,
             use_synthetic=(src === :synthetic),
+            ρ0=ρ0, c0=c0, ρ_ext=ρ_ext, ρ_int=ρ_int, c_ext=c_ext, c_int=c_int,
+            L_c=L_c, d=d_cav,
         )
         result = if src === :aircraft
             isfile(json_path) || error("aircraft JSON not found: $json_path")

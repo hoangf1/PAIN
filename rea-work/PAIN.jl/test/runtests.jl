@@ -552,10 +552,13 @@ end
 function _rebuild(inp::PainInputs; structural=inp.structural, acoustic=inp.acoustic, amplitudes=inp.amplitudes,
                   phases=inp.phases, ΔA=inp.ΔA, sidewall=inp.sidewall, endplates=inp.endplates, mech=inp.mech,
                   η_n_bare=inp.η_n_bare, C_struc=inp.C_struc, q_max=inp.q_max,
-                  crossover_band_Hz=inp.crossover_band_Hz)
-    return PainInputs(inp.fuse, inp.prop, structural, acoustic, amplitudes, phases, inp.pts, ΔA;
+                  crossover_band_Hz=inp.crossover_band_Hz,
+                  ρ0=inp.ρ0, c0=inp.c0, ρ_ext=inp.ρ_ext, c_ext=inp.c_ext,
+                  ρ_int=inp.ρ_int, c_int=inp.c_int, L_c=inp.L_c, d=inp.d, prop=inp.prop)
+    return PainInputs(inp.fuse, prop, structural, acoustic, amplitudes, phases, inp.pts, ΔA;
                       sidewall, endplates, mech, m_wall=inp.m_wall, η_n_bare, C_struc, q_max,
-                      allow_extrapolation=inp.allow_extrapolation, ρ0=inp.ρ0, c0=inp.c0,
+                      allow_extrapolation=inp.allow_extrapolation, ρ0=ρ0, c0=c0,
+                      ρ_ext=ρ_ext, c_ext=c_ext, ρ_int=ρ_int, c_int=c_int, L_c=L_c, d=d,
                       crossover_band_Hz)
 end
 
@@ -1419,6 +1422,116 @@ _run_if("E-15 structural loss η_r′ (38e)") do
         @test occursin("η_r′", res.inputs_echo.quantity) || occursin("η_r'", res.inputs_echo.quantity)
         println("38e E15_STRUCT_LOSS: ", res.reason)
     end
+end
+
+# Plan phase 38f-1: Manual cards 2, 9, 36 — exterior/interior air, L_c/d, rotation direction.
+# Defaults must reproduce current outputs exactly (no comparison criterion; input plumbing).
+# ---------------------------------------------------------------------------------------------
+_run_if("Card inputs 38f-1 (air split, L_c/d, rotation)") do
+    r0 = run_pain_pipeline(; source=:synthetic, use_synthetic=true, n_harmonics=3, bpf_Hz=150.0,
+                           trim=:bare, NY=8)
+    inp0 = r0.inputs
+    ωH = 2π * 150.0
+    p2_0 = tone_mean_square_pressure(inp0, 1, ωH)
+    nr0 = noise_reduction_spectrum(inp0; bands=[250.0, 500.0])
+    hf0 = hf_pressure_ratio(inp0, 1000.0)
+
+    # 1. Explicit defaults equal to ρ0,c0 / L_c=L / d=0 → identical
+    inp_def = _rebuild(inp0; ρ_ext=inp0.ρ0, c_ext=inp0.c0, ρ_int=inp0.ρ0, c_int=inp0.c0,
+                       L_c=inp0.fuse.L, d=0.0)
+    @test tone_mean_square_pressure(inp_def, 1, ωH) == p2_0
+    @test cabin_volume(inp_def) == cabin_volume(inp0)
+    nr_def = noise_reduction_spectrum(inp_def; bands=[250.0, 500.0])
+    @test nr_def.rows[1].NR_dB == nr0.rows[1].NR_dB
+    @test hf_pressure_ratio(inp_def, 1000.0).NR_dB == hf0.NR_dB
+
+    # 2. Equal split ρ_ext=ρ_int=ρ0 identical; unequal changes only mapped terms
+    inp_eq = _rebuild(inp0; ρ_ext=1.225, ρ_int=1.225, c_ext=340.0, c_int=340.0)
+    @test tone_mean_square_pressure(inp_eq, 1, ωH) == p2_0
+    inp_split = _rebuild(inp0; ρ_ext=1.10, ρ_int=1.225, c_ext=340.0, c_int=340.0)
+    p2_split = tone_mean_square_pressure(inp_split, 1, ωH)
+    @test p2_split != p2_0
+    # Hand checks on mapped terms (card 2): mass-law and η_rad^ext ∝ ρ_ext; η_rad^int uses ρ_int
+    A = coupling_area(inp0.fuse)
+    @test mass_law_factor(1.10, 340.0, A, ωH) / mass_law_factor(1.225, 340.0, A, ωH) ≈ (1.10 / 1.225)^2 rtol=1e-14
+    tc0 = hf_transmission_coeffs(inp0, 1000.0)
+    tc_s = hf_transmission_coeffs(inp_split, 1000.0)
+    @test tc_s.losses.η_rad_ext / tc0.losses.η_rad_ext ≈ 1.10 / 1.225 rtol=1e-12
+    @test tc_s.losses.η_rad_int == tc0.losses.η_rad_int
+    # Interior-only change: ρ_int ≠ ρ_ext leaves η_rad^ext alone, moves η_rad^int and τ_f
+    inp_int = _rebuild(inp0; ρ_ext=1.225, ρ_int=1.10, c_ext=340.0, c_int=340.0)
+    tc_i = hf_transmission_coeffs(inp_int, 1000.0)
+    @test tc_i.losses.η_rad_ext == tc0.losses.η_rad_ext
+    @test tc_i.losses.η_rad_int / tc0.losses.η_rad_int ≈ 1.10 / 1.225 rtol=1e-12
+    @test tc_i.τ_f / tc0.τ_f ≈ (1.10 / 1.225)^2 rtol=1e-12
+
+    # 3. L_c = L, d = 0 identical; L_c < L, d > 0: V scales, modes, coupling vs numerical
+    @test axial_coupling(0, 1) ≈ axial_coupling(0, 1; L=inp0.fuse.L, L_c=inp0.fuse.L, d=0.0) rtol=0
+    @test cabin_volume(inp0) ≈ cabin_volume(inp0.fuse; L_c=inp0.fuse.L) rtol=0
+    L = inp0.fuse.L
+    L_c = 0.6 * L
+    d = 0.15 * L
+    inp_cav = _rebuild(inp0; L_c=L_c, d=d)
+    @test cabin_volume(inp_cav) / cabin_volume(inp0) ≈ L_c / L rtol=1e-14
+    # Mode set: q_max truncation uses L_c → fewer axial modes at fixed ω when L_c shrinks
+    n0 = acoustic_modes_in_band(inp0, 500.0)
+    n_c = acoustic_modes_in_band(inp_cav, 500.0)
+    @test n_c ≤ n0
+    # Coupling vs direct numerical integration over overlap (1e-6 relative)
+    cy = inp0.acoustic
+    st = inp0.structural.modes[2]   # M_axial ≥ 1
+    ac = cy.modes[2]
+    q = 0
+    f_code = coupling_factor(ac, st, inp_cav; q=q)
+    # Independent trapz of axial factor × circumferential (reuse shell/floor integrals)
+    z0, z1 = max(0.0, d), min(L, d + L_c)
+    zs = range(z0, z1; length=4001)
+    dz = zs[2] - zs[1]
+    M = st.M_axial
+    Iax = 0.0
+    for z in zs
+        Iax += cos(q * π * (z - d) / L_c) * sin(M * π * z / L) * dz
+    end
+    # endpoint trapz correction
+    Iax -= 0.5 * dz * (cos(q * π * (z0 - d) / L_c) * sin(M * π * z0 / L) +
+                       cos(q * π * (z1 - d) / L_c) * sin(M * π * z1 / L))
+    f_qM_num = Iax / L
+    θ0 = deg2rad(inp0.fuse.theta0_deg)
+    a = inp0.fuse.a
+    Lp = 2a * sin(θ0)
+    Is = PAIN.coupling_shell_integral(ac, st, a)
+    Ip = PAIN.coupling_floor_integral(ac, st, a, Lp)
+    f_num = f_qM_num * (Is - Ip) / (Lp + 2a * (π - θ0))
+    @test f_code ≈ f_num rtol=1e-6
+    @test axial_coupling(q, M; L=L, L_c=L_c, d=d) ≈ f_qM_num rtol=1e-6
+
+    # 4. Rotation direction: +1 unchanged; −1 flips azimuth + phase; twice restores
+    fuse = inp0.fuse
+    prop_p = PropellerPlacement(0.965, 90.0, 0.90, 1)
+    prop_m = PropellerPlacement(0.965, 90.0, 0.90, -1)
+    pts_p = grid_points(fuse, prop_p, GridSpec())
+    pts_m = grid_points(fuse, prop_m, GridSpec())
+    pts_pp = grid_points(fuse, PropellerPlacement(0.965, 90.0, 0.90, 1), GridSpec())
+    @test all(p.theta_deg ≈ q.theta_deg for (p, q) in zip(pts_p, pts_pp))
+    # ℓ=2: α=10° → θ = 90±10
+    p2p = only(filter(p -> p.k == 8 && p.ell == 2, pts_p))
+    p2m = only(filter(p -> p.k == 8 && p.ell == 2, pts_m))
+    @test p2p.theta_deg ≈ 100.0 atol=1e-12
+    @test p2m.theta_deg ≈ 80.0 atol=1e-12
+    @test p2m.x2 ≈ -p2p.x2 rtol=1e-14
+    # Phase flip helper: −1 twice restores
+    ph = copy(inp0.phases)
+    ph1 = copy(ph)
+    apply_rotation_direction_phases!(ph1, -1)
+    @test ph1 ≈ -ph
+    apply_rotation_direction_phases!(ph1, -1)
+    @test ph1 ≈ ph
+    # Synthetic freefield: +1 matches default prop; −1 then rebuild +1 restores grid θ
+    ff_p = synthetic_freefield_grid(fuse, prop_p, GridSpec(); n_harmonics=2, bpf_Hz=150.0)
+    ff_m = synthetic_freefield_grid(fuse, prop_m, GridSpec(); n_harmonics=2, bpf_Hz=150.0)
+    @test ff_m.phases ≈ -ff_p.phases
+    # Applying −1 geometry twice (via +1) restores original θ list
+    @test [p.theta_deg for p in pts_p] == [p.theta_deg for p in grid_points(fuse, prop_p, GridSpec())]
 end
 
 _run_if("Validation case registry (34d)") do

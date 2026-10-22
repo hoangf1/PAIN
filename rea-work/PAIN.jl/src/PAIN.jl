@@ -60,6 +60,7 @@ export
     apply_blocking,
     freefield_from_e11_csv, delta_dig_dB, default_e11_paths, spl_dB_to_Pa, spl_dB_to_peak_Pa, peak_Pa_to_spl_dB,
     PainInputs, InteriorSpectrum, interior_spl, cabin_volume, tone_mean_square_pressure, generalized_force, generalized_force_amplitude,
+    apply_rotation_direction_phases!,
     absorption_coefficient,
     C_OMEGA_THIRD_OCTAVE, nr_b, nr_c, nr_ln, nr_arctan, nr_D, nr_brace,
     nr_band_integral_closed, nr_band_integral_quad,
@@ -117,6 +118,7 @@ function run_pain_pipeline(;
         r_p::Float64=0.965,  # a+0.457 User Manual grid; tip clearance ≈0.076 m @ Rtip=0.381
         phi_p_deg::Float64=90.0,
         z_p::Float64=0.90,
+        rotation_direction::Int=1,
         aircraft_json::Union{Nothing,String}=nothing,
         source::Symbol=:aircraft,
         use_synthetic::Bool=false,   # legacy: true + no aircraft_json → :synthetic (tests)
@@ -134,17 +136,47 @@ function run_pain_pipeline(;
         C_struc::Float64=3.0,
         q_max::Union{Nothing,Int}=nothing,
         NY::Int=10,
-        allow_extrapolation::Bool=false)
+        allow_extrapolation::Bool=false,
+        ρ0::Float64=1.225,
+        c0::Float64=340.0,
+        ρ_ext::Union{Nothing,Float64}=nothing,
+        c_ext::Union{Nothing,Float64}=nothing,
+        ρ_int::Union{Nothing,Float64}=nothing,
+        c_int::Union{Nothing,Float64}=nothing,
+        L_c::Union{Nothing,Float64}=nothing,
+        d::Float64=0.0)
     trim in (:auto, :bare, :phase3) || error("trim must be :auto, :bare or :phase3")
     fuse = FuselageGeometry(L, a, theta0_deg)
-    prop = PropellerPlacement(r_p, phi_p_deg, z_p)
+    prop = PropellerPlacement(r_p, phi_p_deg, z_p, rotation_direction)
     spec = GridSpec()
 
     # Resolve source. User path is :aircraft. :e11 / :synthetic stay for validation scripts and tests
     # (phase 33g); the GUI does not offer them.
     src = source
+    cfg = nothing
     if aircraft_json !== nothing
         src = :aircraft
+        cfg = _load_aircraft_json(aircraft_json)
+        # Optional card 2 / 9 / 36 overrides from JSON (same paths as existing fuselage/prop keys).
+        fuse_j = _get(cfg, :fuselage, nothing)
+        if fuse_j !== nothing
+            L_c === nothing && (L_c = _get(fuse_j, :L_c_m, nothing))
+            d == 0.0 && (_d = _get(fuse_j, :d_m, nothing); d = _d === nothing ? d : float(_d))
+        end
+        air_j = _get(cfg, :air, nothing)
+        if air_j !== nothing
+            ρ_ext === nothing && (ρ_ext = _get(air_j, :rho_ext_kg_m3, nothing))
+            ρ_int === nothing && (ρ_int = _get(air_j, :rho_int_kg_m3, nothing))
+            c_ext === nothing && (c_ext = _get(air_j, :c_ext_mps, nothing))
+            c_int === nothing && (c_int = _get(air_j, :c_int_mps, nothing))
+        end
+        pp_j = _get(cfg, :propeller_placement, nothing)
+        if pp_j !== nothing
+            rd = _get(pp_j, :rotation_direction, nothing)
+            if rd !== nothing
+                prop = PropellerPlacement(r_p, phi_p_deg, z_p, Int(rd))
+            end
+        end
     elseif use_synthetic && source !== :e11
         src = :synthetic
     end
@@ -186,7 +218,9 @@ function run_pain_pipeline(;
                      bl.amplitudes, bl.phases, bl.pts, ΔA;
                      sidewall=sidewall, endplates=end_stack, mech=mech_used, m_wall=m_wall,
                      η_n_bare=η_n_bare, C_struc=C_struc, q_max=q_max,
-                     allow_extrapolation=allow_extrapolation)
+                     allow_extrapolation=allow_extrapolation,
+                     ρ0=ρ0, c0=c0, ρ_ext=ρ_ext, c_ext=c_ext, ρ_int=ρ_int, c_int=c_int,
+                     L_c=L_c, d=d)
     spec_out = interior_spl(inp; bpf_Hz=bl.bpf_Hz, n_harmonics=min(n_harmonics, size(bl.amplitudes, 3)))
     return (; fuse, prop, ff=bl, acoustic, structural, spectrum=spec_out, source=src,
               trim=trim_used, inputs=inp)

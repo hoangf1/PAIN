@@ -34,23 +34,31 @@
 #    (same reading as 38b §3). Optional `η_r_cap` as in 38a (default nothing).
 # 8. τ_R (p. 24): (2 n_r π² c0 η_rad^ext η_rad^int)/(ρ0 ω η̄_r) · (4 ρ c0 / Ā).
 #    τ_f Eq. (20): (32/π) ρ² (Ā/m²) Σ_{r∈Δω} [j_r²(ω)^rev]². τ = τ_f + τ_R.
-# 9. Densities: PainInputs has a single ρ0; ρ = ρ0 (same air inside/out).
+# 9. Densities (38f-1 card 2): ρ0 → ρ_ext, ρ → ρ_int; c0 exterior in η_rad^ext /
+#    τ_R ρ0-denominator / joint-acceptance k; c_int in η_n, ᾱ, η_rad^int, τ_R (4ρc/Ā).
 # 10. ⟨p_e²⟩_s,t = ⟨p_bl²⟩/2 (p. 23). Eq. (23) → ⟨p_i²⟩ = ⟨p_e²⟩ / ratio.
 # 11. Exterior blocked continuum `blocked_broadband_band_p2` (Spbl ∝ f^{−α}, H=3
 #     anchor) is unchanged V-ASSUMED input; only the cabin transmission uses the
 #     printed Eqs. (19)–(23). No scale on j², τ, A_t, S or A′.
 # =============================================================================
 
-"""Sidewall curved area and one end-plate area (E-14 / Eq. 78 usage)."""
-function hf_absorbing_areas(fuse::FuselageGeometry)
-    a, L = fuse.a, fuse.L
+"""Sidewall curved area and one end-plate area (E-14 / Eq. 78 usage).
+
+Cavity length `L_c` (card 9) sets V and the absorbing sidewall/end areas; structure
+length `fuse.L` is unchanged for transmitting/`Ā` elsewhere.
+"""
+function hf_absorbing_areas(fuse::FuselageGeometry; L_c::Real=fuse.L)
+    a = fuse.a
     θ0 = deg2rad(fuse.theta0_deg)
-    V = cabin_volume(fuse)
-    S_side = 2a * (π - θ0) * L
-    S_e = V / L
+    Lc = float(L_c)
+    V = cabin_volume(fuse; L_c=Lc)
+    S_side = 2a * (π - θ0) * Lc
+    S_e = V / Lc
     S = S_side + 2 * S_e
     return (; S, S_side, S_e, V)
 end
+
+hf_absorbing_areas(inp::PainInputs) = hf_absorbing_areas(inp.fuse; L_c=inp.L_c)
 
 """
 Trim / bare transmitting areas for Eqs. (19)–(23).
@@ -75,12 +83,12 @@ function hf_structural_band(inp::PainInputs, fc::Real; c_ω::Real=C_OMEGA_THIRD_
     Δω = c_ω * ω
     lo = ω * (1 - c_ω / 2)
     hi = ω * (1 + c_ω / 2)
-    a, L, c0 = inp.fuse.a, inp.fuse.L, inp.c0
+    a, L, c_ext = inp.fuse.a, inp.fuse.L, inp.c_ext
     in_band = NamedTuple[]
     j2s = Float64[]
     for st in inp.structural.modes
         ωr = 2π * st.f_Hz
-        j2 = structural_joint_acceptance(st, ω; a, L, c0)
+        j2 = structural_joint_acceptance(st, ω; a, L, c0=c_ext)
         if lo ≤ ωr ≤ hi
             push!(in_band, (; st, ωr, j2))
             push!(j2s, j2)
@@ -95,7 +103,7 @@ function hf_structural_band(inp::PainInputs, fc::Real; c_ω::Real=C_OMEGA_THIRD_
     end
     # Sparse / above Table D-1: asymptotic density + all-mode ⟨j²⟩ at band ω
     n_r = structural_modal_density(inp.structural, float(fc))
-    all_j2 = Float64[structural_joint_acceptance(st, ω; a, L, c0) for st in inp.structural.modes]
+    all_j2 = Float64[structural_joint_acceptance(st, ω; a, L, c0=c_ext) for st in inp.structural.modes]
     if isempty(all_j2)
         j2_mean = 2.5e-4
         j2sq_mean = j2_mean^2
@@ -115,26 +123,27 @@ function hf_band_loss_factors(inp::PainInputs, fc::Real, band;
                               η_r_cap::Union{Nothing,Float64}=nothing)
     fuse = inp.fuse
     a, L = fuse.a, fuse.L
-    ρ0, c0 = inp.ρ0, inp.c0
+    ρ_ext, c_ext = inp.ρ_ext, inp.c_ext
+    ρ_int, c_int = inp.ρ_int, inp.c_int
     ω = band.ω
     Abar = cylinder_surface_area(a, L)
-    areas = hf_absorbing_areas(fuse)
+    areas = hf_absorbing_areas(inp)
     ext = inp.allow_extrapolation
     trimmed = has_trim(inp)
     m = inp.m_wall
 
     if trimmed
-        ξ = trim_conductance(inp.sidewall, ω, m; ρ0, c0, allow_extrapolation=ext)
-        ξe = trim_conductance(inp.endplates, ω, Inf; ρ0, c0, allow_extrapolation=ext)
-        η̄_n = acoustic_loss_average(ω; V=areas.V, S=areas.S_side, S_e=areas.S_e, ξ, ξ_e=ξe, c0)
+        ξ = trim_conductance(inp.sidewall, ω, m; ρ0=ρ_int, c0=c_int, allow_extrapolation=ext)
+        ξe = trim_conductance(inp.endplates, ω, Inf; ρ0=ρ_int, c0=c_int, allow_extrapolation=ext)
+        η̄_n = acoustic_loss_average(ω; V=areas.V, S=areas.S_side, S_e=areas.S_e, ξ, ξ_e=ξe, c0=c_int)
     else
         η̄_n = inp.η_n_bare
     end
-    ᾱ = absorption_from_loss_factor(η̄_n, ω; V=areas.V, S=areas.S, c0)
+    ᾱ = absorption_from_loss_factor(η̄_n, ω; V=areas.V, S=areas.S, c0=c_int)
 
-    # η_rad from band-average joint acceptance (printed after Eq. 19)
-    η_rad_ext = radiation_loss_factor(band.j2_mean, ω; Abar, m, ρ0, c0)
-    η_rad_int = radiation_loss_factor(band.j2_mean, ω; Abar, m, ρ0=ρ0, c0)  # ρ = ρ0
+    # η_rad from band-average joint acceptance (printed after Eq. 19): ρ0 exterior, ρ interior
+    η_rad_ext = radiation_loss_factor(band.j2_mean, ω; Abar, m, ρ0=ρ_ext, c0=c_ext)
+    η_rad_int = radiation_loss_factor(band.j2_mean, ω; Abar, m, ρ0=ρ_int, c0=c_int)
 
     # ⟨η_r'⟩ over modes used for the j² average
     st_list = if !isempty(band.in_band)
@@ -145,7 +154,7 @@ function hf_band_loss_factors(inp::PainInputs, fc::Real, band;
     ηrp_vals = Float64[]
     for st in st_list
         ωr = 2π * st.f_Hz
-        ηr = structural_loss_total(st, ωr; a, L, m, C=inp.C_struc, ρ0, c0, Abar)
+        ηr = structural_loss_total(st, ωr; a, L, m, C=inp.C_struc, ρ0=ρ_ext, c0=c_ext, Abar)
         ηrp = trimmed ?
             structural_loss_with_trim(ηr, ωr, m, trim_Cw(inp.sidewall, ωr; allow_extrapolation=ext);
                                       η_r_cap) :
@@ -168,19 +177,20 @@ function hf_transmission_coeffs(inp::PainInputs, fc::Real;
                                 η_r_cap::Union{Nothing,Float64}=nothing)
     band = hf_structural_band(inp, fc; c_ω)
     losses = hf_band_loss_factors(inp, fc, band; η_r_cap)
-    ρ0, c0 = inp.ρ0, inp.c0
-    ρ = ρ0
+    ρ_ext, c_ext = inp.ρ_ext, inp.c_ext
+    ρ_int, c_int = inp.ρ_int, inp.c_int
     m = inp.m_wall
     Abar = cylinder_surface_area(inp.fuse.a, inp.fuse.L)
     ω = band.ω
-    # Eq. (20): τ_f = (32/π) ρ² (Ā/m²) Σ [j_r²]^2
-    τ_f = (32 / π) * ρ^2 * (Abar / m^2) * band.sum_j2sq
+    # Eq. (20): τ_f = (32/π) ρ² (Ā/m²) Σ [j_r²]^2  — ρ = interior
+    τ_f = (32 / π) * ρ_int^2 * (Abar / m^2) * band.sum_j2sq
     # τ_R = (2 n_r π² c0 η_rad^ext η_rad^int)/(ρ0 ω η̄_r) · (4 ρ c0 / Ā)
+    # printed: ρ0,c0 in the first factor exterior; ρ,c0 in (4ρc/Ā) interior (c_int)
     η̄_r = max(losses.η̄_r, floatmin(Float64))
-    τ_R = (2 * band.n_r * π^2 * c0 * losses.η_rad_ext * losses.η_rad_int) /
-          (ρ0 * ω * η̄_r) * (4 * ρ * c0 / Abar)
+    τ_R = (2 * band.n_r * π^2 * c_ext * losses.η_rad_ext * losses.η_rad_int) /
+          (ρ_ext * ω * η̄_r) * (4 * ρ_int * c_int / Abar)
     τ = τ_f + τ_R
-    return (; τ_f, τ_R, τ, band, losses, Abar, ω, ρ0, c0, m)
+    return (; τ_f, τ_R, τ, band, losses, Abar, ω, ρ0=ρ_ext, c0=c_ext, ρ=ρ_int, m)
 end
 
 """

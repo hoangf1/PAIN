@@ -76,11 +76,11 @@ function modes_in_tone_band(inp::PainInputs, ωH::Real; c_ω::Real=C_OMEGA_THIRD
                             q_max::Union{Nothing,Int}=nothing)
     lo = ωH * (1 - c_ω / 2)
     hi = ωH * (1 + c_ω / 2)
-    a, L, c0 = inp.fuse.a, inp.fuse.L, inp.c0
-    qtop = something(q_max, inp.q_max, axial_truncation(hi, L, c0))
+    a, L_c, c_int = inp.fuse.a, inp.L_c, inp.c_int
+    qtop = something(q_max, inp.q_max, axial_truncation(hi, L_c, c_int))
     ac_list = NamedTuple[]
     for q in 0:qtop, ac in inp.acoustic.modes
-        ωn = 2π * cabin_frequency_3d(ac, a, L, q; c0)
+        ωn = 2π * cabin_frequency_3d(ac, a, L_c, q; c0=c_int)
         (lo ≤ ωn ≤ hi) && push!(ac_list, (; ac, q, ωn, εn=cabin_eps_3d(ac, q)))
     end
     st_list = NamedTuple[]
@@ -96,18 +96,20 @@ function band_average_loss_factors(inp::PainInputs, ωH::Real, band;
                                    η_r_cap::Union{Nothing,Float64}=nothing)
     fuse = inp.fuse
     a, L = fuse.a, fuse.L
-    ρ0, c0 = inp.ρ0, inp.c0
-    V = cabin_volume(fuse)
+    L_c = inp.L_c
+    ρ_ext, c_ext = inp.ρ_ext, inp.c_ext
+    ρ_int, c_int = inp.ρ_int, inp.c_int
+    V = cabin_volume(inp)
     A = coupling_area(fuse)
     ext = inp.allow_extrapolation
     trimmed = has_trim(inp)
-    ξ = trimmed ? trim_conductance(inp.sidewall, ωH, inp.m_wall; ρ0, c0, allow_extrapolation=ext) : 0.0
-    ξe = trimmed ? trim_conductance(inp.endplates, ωH, Inf; ρ0, c0, allow_extrapolation=ext) : 0.0
+    ξ = trimmed ? trim_conductance(inp.sidewall, ωH, inp.m_wall; ρ0=ρ_int, c0=c_int, allow_extrapolation=ext) : 0.0
+    ξe = trimmed ? trim_conductance(inp.endplates, ωH, Inf; ρ0=ρ_int, c0=c_int, allow_extrapolation=ext) : 0.0
 
     ηn_vals = Float64[]
     for m in band.ac_list
         if trimmed
-            N = acoustic_loss_modal(m.ac, m.q, ωH, m.ωn; a, L, V, c0, ξ, ξ_e=ξe).N
+            N = acoustic_loss_modal(m.ac, m.q, ωH, m.ωn; a, L=L_c, V, c0=c_int, ξ, ξ_e=ξe).N
             η = m.ωn == 0 ? NaN : N / m.ωn^2
         else
             η = inp.η_n_bare
@@ -116,7 +118,7 @@ function band_average_loss_factors(inp::PainInputs, ωH::Real, band;
     end
     ηr_vals = Float64[]
     for m in band.st_list
-        ηr = structural_loss_total(m.st, m.ωr; a, L, m=inp.m_wall, C=inp.C_struc, ρ0, c0)
+        ηr = structural_loss_total(m.st, m.ωr; a, L, m=inp.m_wall, C=inp.C_struc, ρ0=ρ_ext, c0=c_ext)
         ηrp = trimmed ?
             structural_loss_with_trim(ηr, m.ωr, inp.m_wall,
                                       trim_Cw(inp.sidewall, m.ωr; allow_extrapolation=ext);
@@ -143,8 +145,9 @@ function tone_expected_value(inp::PainInputs, H::Int, ωH::Float64;
                              use_pi_limit::Bool=true)
     fuse = inp.fuse
     a, L = fuse.a, fuse.L
-    ρ0, c0 = inp.ρ0, inp.c0
-    V = cabin_volume(fuse)
+    ρ_ext, c_ext = inp.ρ_ext, inp.c_ext
+    ρ_int, c_int = inp.ρ_int, inp.c_int
+    V = cabin_volume(inp)
     A = coupling_area(fuse)
     τ_t = sidewall_tau(inp, ωH)
     band = modes_in_tone_band(inp, ωH; c_ω, q_max)
@@ -166,18 +169,18 @@ function tone_expected_value(inp::PainInputs, H::Int, ωH::Float64;
     n_r = N_r / Δω
 
     # --- Eq. (15) with barred f̄' and no extra τ_t (reading §4) ---
-    # E = (π² c0²/V²)(n_r n_n)/(η̄_r η̄_n) (mA/4)²τ_ML · [(1/N_r) Σ_r Ψ_G ⟨ε_n f̄′²⟩ / M_r²]
+    # E = (π² c_int²/V²)(n_r n_n)/(η̄_r η̄_n) (mA/4)²τ_ML(ext) · [(1/N_r) Σ_r Ψ_G ⟨ε_n f̄′²⟩ / M_r²]
     # When use_pi_limit=false, replace π²/(η̄_r η̄_n) path by E[g_n]E[g_r] via Eq. (14):
     #   (Q_H/ω_H^8) E[g_n] E[g_r] Σ_n Σ_r ε_n f̄′² Ψ_G/M_r²
     # with Q_H built without the printed τ_t (barred f̄' already carries √τ_t).
-    mA4_τML = mass_law_factor(ρ0, c0, A, ωH)   # (mA/4)² τ_ML, no τ_t
+    mA4_τML = mass_law_factor(ρ_ext, c_ext, A, ωH)   # (mA/4)² τ_ML, no τ_t
     sum_r_15 = 0.0
     for mr in band.st_list
         Ψ = generalized_force(mr.st, H, inp.amplitudes, inp.phases, inp.pts, fuse; ΔA=inp.ΔA)
         # ⟨ε_n f̄′²⟩_Δω = (1/N_n) Σ_n ε_n f̄′²(n,r)
         s_nf = 0.0
         for mn in band.ac_list
-            f = coupling_factor(mn.ac, mr.st, fuse; τ_t, q=mn.q)   # barred
+            f = coupling_factor(mn.ac, mr.st, inp; τ_t, q=mn.q)   # barred
             s_nf += mn.εn * f^2
         end
         avg_εf2 = s_nf / N_n
@@ -186,23 +189,23 @@ function tone_expected_value(inp::PainInputs, H::Int, ωH::Float64;
     sum_r_15 /= N_r
     if use_pi_limit
         # Eq. (15) prefactor without the printed τ_t^H (barred f̄')
-        p2_eq15 = (π^2 * c0^2 / V^2) * (n_r * n_n) / (η̄_r * η̄_n) * mA4_τML * sum_r_15
+        p2_eq15 = (π^2 * c_int^2 / V^2) * (n_r * n_n) / (η̄_r * η̄_n) * mA4_τML * sum_r_15
     else
-        Q_H = 4 * (c0 / V)^2 * mA4_τML * ωH^6   # no τ_t; barred f̄'
+        Q_H = 4 * (c_int / V)^2 * mA4_τML * ωH^6   # no τ_t; barred f̄'
         # Σ_n Σ_r ε_n f̄′² Ψ_G/M_r² = N_n N_r · (1/N_r) Σ_r Ψ_G ⟨ε_n f̄′²⟩/M_r²
         p2_eq15 = (Q_H / ωH^8) * E_g_n * E_g_r * (N_n * N_r) * sum_r_15
     end
 
     # --- Eq. (16) as printed: τ_t in the prefactor, j_r^rev replaces ⟨ε_n f′²⟩ ---
-    # E = (ω_H²/(c0 V)) (n_r τ_ML τ_t)/(η̄_r η̄_n) (mA/4)² [(1/N_r) Σ_r Ψ_G j_r^rev / M_r²]
+    # E = (ω_H²/(c_int V)) (n_r τ_ML τ_t)/(η̄_r η̄_n) (mA/4)² [(1/N_r) Σ_r Ψ_G j_r^rev / M_r²]
     sum_r_16 = 0.0
     for mr in band.st_list
         Ψ = generalized_force(mr.st, H, inp.amplitudes, inp.phases, inp.pts, fuse; ΔA=inp.ΔA)
-        j2 = structural_joint_acceptance(mr.st, ωH; a, L, c0)
+        j2 = structural_joint_acceptance(mr.st, ωH; a, L, c0=c_ext)
         sum_r_16 += Ψ * j2 / mr.st.M_r^2
     end
     sum_r_16 /= N_r
-    p2_16 = (ωH^2 / (c0 * V)) * (n_r * τ_t) / (η̄_r * η̄_n) * mA4_τML * sum_r_16
+    p2_16 = (ωH^2 / (c_int * V)) * (n_r * τ_t) / (η̄_r * η̄_n) * mA4_τML * sum_r_16
 
     return (; p2=p2_16, p2_eq15, p2_eq16=p2_16, N_n, N_r, η̄_n, η̄_r,
             E_g_n, E_g_r, n_n, n_r, Δω, τ_t, c_ω, use_pi_limit, sum_r_15, sum_r_16)
@@ -220,8 +223,9 @@ function tone_eq13_sample(inp::PainInputs, H::Int, ωH::Float64,
                           q_max::Union{Nothing,Int}=nothing,
                           η_r_cap::Union{Nothing,Float64}=nothing)
     fuse = inp.fuse
-    ρ0, c0 = inp.ρ0, inp.c0
-    V = cabin_volume(fuse)
+    ρ_ext, c_ext = inp.ρ_ext, inp.c_ext
+    c_int = inp.c_int
+    V = cabin_volume(inp)
     A = coupling_area(fuse)
     τ_t = sidewall_tau(inp, ωH)
     band = modes_in_tone_band(inp, ωH; c_ω, q_max)
@@ -232,12 +236,12 @@ function tone_eq13_sample(inp::PainInputs, H::Int, ωH::Float64,
     losses = band_average_loss_factors(inp, ωH, band; η_r_cap)
     η̄_n, η̄_r = losses.η̄_n, losses.η̄_r
     # Q_H without printed τ_t (barred f̄'); Eq. (13) as used with Eq. (8) convention
-    Q_H = 4 * (c0 / V)^2 * mass_law_factor(ρ0, c0, A, ωH) * ωH^6
+    Q_H = 4 * (c_int / V)^2 * mass_law_factor(ρ_ext, c_ext, A, ωH) * ωH^6
     s = 0.0
     for (i, mn) in enumerate(band.ac_list)
         gn = g_resonance(ωH, ωn_draw[i], η̄_n)
         for (j, mr) in enumerate(band.st_list)
-            f = coupling_factor(mn.ac, mr.st, fuse; τ_t, q=mn.q)
+            f = coupling_factor(mn.ac, mr.st, inp; τ_t, q=mn.q)
             f == 0 && continue
             gr = g_resonance(ωH, ωr_draw[j], η̄_r)
             Ψ = generalized_force(mr.st, H, inp.amplitudes, inp.phases, inp.pts, fuse; ΔA=inp.ΔA)

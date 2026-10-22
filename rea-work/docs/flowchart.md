@@ -177,7 +177,7 @@ flowchart LR
 
     subgraph CYL["CYL2D"]
         direction TB
-        C_IN["IN: floor angle theta0<br/>cavity length, radius"]
+        C_IN["IN: floor angle theta0<br/>cavity length L_c (card 9), radius"]
         C_FUNC["REIMPL (15a, done):<br/>App C half grid, NY = 10, Eqs C.1-C.6,<br/>node rule r &lt;= 1 + 0.4h,<br/>two tangential-gradient equations"]
         C_OUT["OUT: omega_n (C.7, q and i),<br/>boundary phi_i (Eq 51),<br/>Phi_G (C.10), eps_n (C.11)"]
         C_VAL["VERIFY (code-to-code), ratio form 2026-10-21:<br/>f_i/f_1 within 0.1% (c0-free; post-hoc);<br/>Phi_G / symmetry / Fig C-3 unchanged<br/><i>worst ratio 0.0003%; TABLE_C1_C0=341<br/>was back-solved from the table</i>"]
@@ -186,10 +186,10 @@ flowchart LR
 
     subgraph PAIN["PAIN Main - reimplemented"]
         direction TB
-        P_IN["IN: structural modes<br/>acoustic modes<br/>blocked pressures<br/>trim stack (App A), C (Eq 80),<br/>eta_n if bare; assumptions 13a"]
+        P_IN["IN: structural modes<br/>acoustic modes<br/>blocked pressures<br/>trim stack (App A), C (Eq 80),<br/>eta_n if bare; ρ_ext/ρ_int, c_ext/c_int (card 2);<br/>L_c, d (card 9); rotation ±1 (card 36); assumptions 13a"]
         subgraph FUNC["internal functions"]
             direction TB
-            F2["coupling f'(n,r), Eq 52<br/>(Eqs 46-49, 53-57, no clamp)<br/><i>implemented, tests pass (17f);<br/>boundary values from 15a (done)</i>"]
+            F2["coupling f'(n,r), Eq 52<br/>(Eqs 46-49, 53-57; axial overlap L_c,d)<br/><i>implemented, tests pass (17f); 38f-1 L≠L_c;<br/>boundary values from 15a (done)</i>"]
             F3["generalized force<br/>Psi_G, Eq 42 (Delta^4/2)<br/><i>Delta^4/2 implemented (17a, done);<br/>analytic limits tested (17e, done)</i>"]
             F4["trim, App A<br/>Eqs A.6-A.22, Fig A-2<br/><i>written (16a, done): trim_loss.jl;<br/>in the pipeline since 17a</i>"]
             F5["loss factors<br/>Eqs 77, 79-83, j_r rev Eqs 63-73<br/><i>written (16b, done); E-14 reproduction 7/18 bands;<br/>in the pipeline since 17a</i>"]

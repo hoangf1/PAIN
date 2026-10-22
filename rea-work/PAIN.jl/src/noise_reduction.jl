@@ -115,11 +115,11 @@ function acoustic_modes_in_band(inp::PainInputs, fc::Real; c_ω::Real=C_OMEGA_TH
     ω = 2π * fc
     lo = ω * (1 - c_ω / 2)
     hi = ω * (1 + c_ω / 2)
-    a, L, c0 = inp.fuse.a, inp.fuse.L, inp.c0
-    qtop = something(inp.q_max, axial_truncation(hi, L, c0))
+    a, L_c, c_int = inp.fuse.a, inp.L_c, inp.c_int
+    qtop = something(inp.q_max, axial_truncation(hi, L_c, c_int))
     n = 0
     for q in 0:qtop, ac in inp.acoustic.modes
-        ωn = 2π * cabin_frequency_3d(ac, a, L, q; c0)
+        ωn = 2π * cabin_frequency_3d(ac, a, L_c, q; c0=c_int)
         (lo ≤ ωn ≤ hi) && (n += 1)
     end
     return n
@@ -159,19 +159,21 @@ function w_in_reverberant(inp::PainInputs, fc::Real;
                           q_max::Union{Nothing,Int}=nothing)
     fuse = inp.fuse
     a, L = fuse.a, fuse.L
-    ρ0, c0 = inp.ρ0, inp.c0
+    L_c = inp.L_c
+    ρ_ext, c_ext = inp.ρ_ext, inp.c_ext
+    ρ_int, c_int = inp.ρ_int, inp.c_int
     ω = 2π * fc
     A = coupling_area(fuse)
     Abar = cylinder_surface_area(a, L)
-    V = cabin_volume(fuse)
+    V = cabin_volume(inp)
     ext = inp.allow_extrapolation
     trimmed = has_trim(inp)
     τ_t = sidewall_tau(inp, ω)
-    ξ = trimmed ? trim_conductance(inp.sidewall, ω, inp.m_wall; ρ0, c0, allow_extrapolation=ext) : 0.0
-    ξe = trimmed ? trim_conductance(inp.endplates, ω, Inf; ρ0, c0, allow_extrapolation=ext) : 0.0
-    mA4_τ = mass_law_factor(ρ0, c0, A, ω)
+    ξ = trimmed ? trim_conductance(inp.sidewall, ω, inp.m_wall; ρ0=ρ_int, c0=c_int, allow_extrapolation=ext) : 0.0
+    ξe = trimmed ? trim_conductance(inp.endplates, ω, Inf; ρ0=ρ_int, c0=c_int, allow_extrapolation=ext) : 0.0
+    mA4_τ = mass_law_factor(ρ_ext, c_ext, A, ω)
     hi = ω * (1 + c_ω / 2)
-    qtop = something(q_max, inp.q_max, axial_truncation(hi, L, c0))
+    qtop = something(q_max, inp.q_max, axial_truncation(hi, L_c, c_int))
 
     # per structural mode: ω_r, η_r', j_r²^rev(ω)
     nst = length(inp.structural.modes)
@@ -180,29 +182,29 @@ function w_in_reverberant(inp::PainInputs, fc::Real;
     j2 = Vector{Float64}(undef, nst)
     for (j, st) in enumerate(inp.structural.modes)
         ωr[j] = 2π * st.f_Hz
-        ηr = structural_loss_total(st, ωr[j]; a, L, m=inp.m_wall, C=inp.C_struc, ρ0, c0, Abar)
+        ηr = structural_loss_total(st, ωr[j]; a, L, m=inp.m_wall, C=inp.C_struc, ρ0=ρ_ext, c0=c_ext, Abar)
         η′ = trimmed ?
             structural_loss_with_trim(ηr, ωr[j], inp.m_wall,
                                       trim_Cw(inp.sidewall, ωr[j]; allow_extrapolation=ext);
                                       η_r_cap) : apply_η_r_cap(ηr, η_r_cap)
         ηrp[j] = η′
-        j2[j] = structural_joint_acceptance(st, ω; a, L, c0)
+        j2[j] = structural_joint_acceptance(st, ω; a, L, c0=c_ext)
     end
 
-    # Prefactor of Eq. (17): ⟨p_bl²⟩/(c_ω ω) · (2π Ā²)/(ρ V) · (mA/4)² τ_ML
-    pref = p_bl2 / (c_ω * ω) * (2π * Abar^2) / (ρ0 * V) * mA4_τ
+    # Prefactor of Eq. (17): ⟨p_bl²⟩/(c_ω ω) · (2π Ā²)/(ρ_int V) · (mA/4)² τ_ML(ρ_ext,c_ext)
+    pref = p_bl2 / (c_ω * ω) * (2π * Abar^2) / (ρ_int * V) * mA4_τ
     W = 0.0
     contribs = NamedTuple[]
     for q in 0:qtop, ac in inp.acoustic.modes
-        ωn = 2π * cabin_frequency_3d(ac, a, L, q; c0)
+        ωn = 2π * cabin_frequency_3d(ac, a, L_c, q; c0=c_int)
         ωn == 0 && continue   # rigid-body: η_n undefined / Inf; no band contribution in the closed form
         εn = cabin_eps_3d(ac, q)
-        N = trimmed ? acoustic_loss_modal(ac, q, ω, ωn; a, L, V, c0, ξ, ξ_e=ξe).N : inp.η_n_bare * ωn^2
+        N = trimmed ? acoustic_loss_modal(ac, q, ω, ωn; a, L=L_c, V, c0=c_int, ξ, ξ_e=ξe).N : inp.η_n_bare * ωn^2
         ηn = N / ωn^2
         for (j, st) in enumerate(inp.structural.modes)
-            f = coupling_factor(ac, st, fuse; τ_t, q)   # barred f̄'
+            f = coupling_factor(ac, st, inp; τ_t, q)   # barred f̄'
             f == 0 && continue
-            ηrpp = structural_loss_coupled(N, ωn, ωr[j], f, εn, st.M_r, V, A; ρ0, c0)
+            ηrpp = structural_loss_coupled(N, ωn, ωr[j], f, εn, st.M_r, V, A; ρ0=ρ_int, c0=c_int)
             ηrt = ηrp[j] + ηrpp
             t = nr_brace(ω, c_ω, ωn, ηn, ωr[j], ηrt)
             # { (2/π) ω² ω_n² / D_nr · […] }
@@ -247,19 +249,21 @@ function noise_reduction_band(inp::PainInputs, fc::Real;
 
     fuse = inp.fuse
     a, L = fuse.a, fuse.L
-    ρ0, c0 = inp.ρ0, inp.c0
+    L_c = inp.L_c
+    ρ_ext, c_ext = inp.ρ_ext, inp.c_ext
+    ρ_int, c_int = inp.ρ_int, inp.c_int
     ω = 2π * fc
     A = coupling_area(fuse)
     Abar = cylinder_surface_area(a, L)
-    V = cabin_volume(fuse)
+    V = cabin_volume(inp)
     ext = inp.allow_extrapolation
     trimmed = has_trim(inp)
     τ_t = sidewall_tau(inp, ω)
-    ξ = trimmed ? trim_conductance(inp.sidewall, ω, inp.m_wall; ρ0, c0, allow_extrapolation=ext) : 0.0
-    ξe = trimmed ? trim_conductance(inp.endplates, ω, Inf; ρ0, c0, allow_extrapolation=ext) : 0.0
-    mA4_τ = mass_law_factor(ρ0, c0, A, ω)
+    ξ = trimmed ? trim_conductance(inp.sidewall, ω, inp.m_wall; ρ0=ρ_int, c0=c_int, allow_extrapolation=ext) : 0.0
+    ξe = trimmed ? trim_conductance(inp.endplates, ω, Inf; ρ0=ρ_int, c0=c_int, allow_extrapolation=ext) : 0.0
+    mA4_τ = mass_law_factor(ρ_ext, c_ext, A, ω)
     hi = ω * (1 + c_ω / 2)
-    qtop = something(q_max, inp.q_max, axial_truncation(hi, L, c0))
+    qtop = something(q_max, inp.q_max, axial_truncation(hi, L_c, c_int))
 
     nst = length(inp.structural.modes)
     ωr = Vector{Float64}(undef, nst)
@@ -267,28 +271,28 @@ function noise_reduction_band(inp::PainInputs, fc::Real;
     j2 = Vector{Float64}(undef, nst)
     for (j, st) in enumerate(inp.structural.modes)
         ωr[j] = 2π * st.f_Hz
-        ηr = structural_loss_total(st, ωr[j]; a, L, m=inp.m_wall, C=inp.C_struc, ρ0, c0, Abar)
+        ηr = structural_loss_total(st, ωr[j]; a, L, m=inp.m_wall, C=inp.C_struc, ρ0=ρ_ext, c0=c_ext, Abar)
         η′ = trimmed ?
             structural_loss_with_trim(ηr, ωr[j], inp.m_wall,
                                       trim_Cw(inp.sidewall, ωr[j]; allow_extrapolation=ext);
                                       η_r_cap) : apply_η_r_cap(ηr, η_r_cap)
         ηrp[j] = η′
-        j2[j] = structural_joint_acceptance(st, ω; a, L, c0)
+        j2[j] = structural_joint_acceptance(st, ω; a, L, c0=c_ext)
     end
 
-    # Eq. (18) prefactor: 8/(c_ω ω) · Ā²/V² · (mA/4)² τ_ML · c0² · ω³
-    pref = 8 / (c_ω * ω) * (Abar / V)^2 * mA4_τ * c0^2 * ω^3
+    # Eq. (18) prefactor: 8/(c_ω ω) · Ā²/V² · (mA/4)² τ_ML(ext) · c_int² · ω³
+    pref = 8 / (c_ω * ω) * (Abar / V)^2 * mA4_τ * c_int^2 * ω^3
     ratio = 0.0
     for q in 0:qtop, ac in inp.acoustic.modes
-        ωn = 2π * cabin_frequency_3d(ac, a, L, q; c0)
+        ωn = 2π * cabin_frequency_3d(ac, a, L_c, q; c0=c_int)
         ωn == 0 && continue
         εn = cabin_eps_3d(ac, q)
-        N = trimmed ? acoustic_loss_modal(ac, q, ω, ωn; a, L, V, c0, ξ, ξ_e=ξe).N : inp.η_n_bare * ωn^2
+        N = trimmed ? acoustic_loss_modal(ac, q, ω, ωn; a, L=L_c, V, c0=c_int, ξ, ξ_e=ξe).N : inp.η_n_bare * ωn^2
         ηn = N / ωn^2
         for (j, st) in enumerate(inp.structural.modes)
-            f = coupling_factor(ac, st, fuse; τ_t, q)   # barred f̄' as printed in Eq. 18
+            f = coupling_factor(ac, st, inp; τ_t, q)   # barred f̄' as printed in Eq. 18
             f == 0 && continue
-            ηrpp = structural_loss_coupled(N, ωn, ωr[j], f, εn, st.M_r, V, A; ρ0, c0)
+            ηrpp = structural_loss_coupled(N, ωn, ωr[j], f, εn, st.M_r, V, A; ρ0=ρ_int, c0=c_int)
             ηrt = ηrp[j] + ηrpp
             t = nr_brace(ω, c_ω, ωn, ηn, ωr[j], ηrt)
             ratio += pref * εn * j2[j] * f^2 / (st.M_r^2 * t.D_nr) * t.brace

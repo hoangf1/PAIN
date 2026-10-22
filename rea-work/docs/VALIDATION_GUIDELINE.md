@@ -423,6 +423,7 @@ Each row is a hard-coded NASA test-article constant that can reach an aircraft r
 | `PAIN.jl` | `run_pain_pipeline` geometry defaults | L=1.803, a=0.508, θ0=56.6, r_p=0.965 | test article |
 | `PAIN.jl` | hybrid Table D-1 modes when `use_table_d1=true` | 32 modes | Table D-1 |
 | `cyl2d.jl` / pipeline | CYL2D NY=10, c0=340, ρ0=1.225 | defaults | App. C / register |
+| `pain_core.jl` / pipeline | `L_c` default = fuse.L, `d` = 0; `rotation_direction` = +1 | card 9 / 36 defaults | Manual §5.4; 38f-1 |
 | `trim_loss.jl` | end-plate 1.3 cm aluminium mass path | as coded | App. E |
 | `pain_core.jl` | η_n_bare default, C_struc default | 0.05, 3.0 | register g |
 
@@ -436,7 +437,7 @@ Written before the first run of the 14a–18a chain. A value here is changed onl
 |----|-----------|---------|----------------------|--------|----------------|
 | a | CYL2D node rule: a node is in the cabin when r ≤ 1 + 0.4h | 0.4h | 0.32h–0.47h gives the same paper grid, row counts and modes (run in 15a: 0.31h gives a 4-node second row, 0.48h a 7-node fourth row; both then fail the real-spectrum check) | Inferred from Fig. C-3 | On other grids run both ends of the window; record the change |
 | b | App. C on grids other than the paper's: the (C.4) tangential rule can make B_E singular | NY = 10 | Start at NY = 10, increase by 1 until B_E is non-singular and all eigenvalues are real to 1e-3; accept only if the next valid NY changes the first 20 frequencies by ≤ 1 % | Prototype (some θ0, NY combinations singular) | Record NY. No pseudo-inverse |
-| c | Sound speed and density | c0 = 341 m/s for the Table C-1 comparison only; pipeline c0 = 340 m/s, ρ0 = 1.225 kg/m³ (input) | none | 341 m/s is the speed implied by Table C-1 | — |
+| c | Sound speed and density | c0 = 341 m/s for the Table C-1 comparison only; pipeline c0 = 340 m/s, ρ0 = 1.225 kg/m³ (input). **38f-1:** optional split `ρ_ext,c_ext,ρ_int,c_int` (Manual card 2); omitted → both sides = ρ0,c0 (bitwise same path) | none | 341 m/s is the speed implied by Table C-1; Manual §5.4 card 2 | — |
 | d | Axial truncation of 3-D modes (V-ASSUMED) | q ≤ ⌈2ω_H L/(π c0)⌉ | Accept when q_max + 2 changes ⟨p²⟩ by ≤ 0.1 dB, else raise q_max | CR-3813 does not state it | Convergence in q at H1–H3 (met under Eq. (8), 17a, `q_convergence.md`) |
 | e | Insulation data: Fig. A-2 covers 100–6300 Hz and one material (PF-105, 9.6 kg/m³); Phase III default only | Fig. A-2 table | The aircraft trim is the user's table of λ_m, α, φ, \|W\| per frequency (29d). Outside the table range: error unless the user sets extrapolation; then log-log extension of the end segment, tagged X-EXTRAP and carried into the phase 31 band | CR-3813 App. A | — |
 | f | Phase III values CR-3813 does not give (V-ASSUMED): facing/septum loss factor | **0.5 for `phase3_trim` (test article; author decision 2026-10-20)**; **0.05 aircraft-case default** (unchanged; range revisited in phase 31) | Aircraft 0.01–0.10. CR-3813 p. E-24: η_T = 0.5 for Fig. E-16/E-17; 0.5 and 1.0 for E-14/E-15. 18b-r (η_T = 0.5): +3.7, +0.2, +9.1 dB (`phase20_baseline.md`); original 18b at 0.05 kept as "not met, wrong η_T" | CR-3813 p. E-24 | Default changed 2026-10-20; 19i (2026-10-21): omitted D-1 terms |δ| ≤ 0.057 **not found** as H3 cause (`h3_followup.md`) |

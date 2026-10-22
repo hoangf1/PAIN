@@ -17,14 +17,26 @@ to T1 or T2 (plan phase 17a).
 
 """
     PainInputs(fuse, prop, structural, acoustic, amplitudes, phases, pts, ΔA; sidewall, endplates, mech,
-               m_wall, η_n_bare, C_struc, q_max, allow_extrapolation, ρ0, c0)
+               m_wall, η_n_bare, C_struc, q_max, allow_extrapolation, ρ0, c0,
+               ρ_ext, c_ext, ρ_int, c_int, L_c, d, crossover_band_Hz)
 
 Inputs of the PAIN core. `sidewall`/`endplates` are the App. A trim stacks of the curved wall and of the end plates
 (`nothing` for both = bare cabin: τ_t = 1, η_n = `η_n_bare` for every mode, η_r' = η_r). `mech` is the mechanical
 trim path of Eq. (A.19) (`nothing` = insulation path only). `m_wall` [kg/m²] is the wall mass of Eqs. (81)–(82)
 (`NaN` = the smeared skin, stringer and frame mass of the Phase III article). `C_struc` is the C of Eq. (80),
-`q_max` the axial truncation of the cabin modes (`nothing` = ⌈2ω_H L/(π c0)⌉), `allow_extrapolation` lets the
+`q_max` the axial truncation of the cabin modes (`nothing` = ⌈2ω_H L_c/(π c_int)⌉), `allow_extrapolation` lets the
 insulation table be continued beyond its digitized range (the result is then X-EXTRAP).
+
+Manual card 2: `ρ0`,`c0` are the single-air entry points — when `ρ_ext`/`c_ext`/`ρ_int`/`c_int` are omitted they
+equal `ρ0`,`c0` (bitwise-identical to the pre-38f-1 single-air path). Card 9: `L_c` (default = structure length
+`fuse.L`) and offset `d` (default 0). Card 36 rotation sense lives on `prop.rotation_direction`.
+
+Card 2 term map (CR-3813 symbols ρ₀/c₀ exterior, ρ/c interior when distinguished; else single air):
+  exterior (ρ_ext, c_ext): mass-law (mA/4)²τ_ML; η_rad^ext; ρ₀ in τ_R; structural joint acceptance k=ω/c_ext;
+    exterior radiation part of η_r′; blocked-field side of Eqs. 19–23.
+  interior (ρ_int, c_int): cabin modes ω_n, axial truncation; V and 4c²/V² (Eq. 8); η_n (Eq. 77) and trim
+    conductance facing the cavity; η_r″ (Eq. 83); ᾱ / W_diss; η_rad^int; ρ and c₀ in τ_f and the (4ρ c₀/Ā)
+    factor of τ_R; cavity energy factor ρ in Eq. 17.
 """
 struct PainInputs
     fuse::FuselageGeometry
@@ -44,8 +56,14 @@ struct PainInputs
     C_struc::Float64
     q_max::Union{Nothing,Int}
     allow_extrapolation::Bool
-    ρ0::Float64
+    ρ0::Float64                 # single-air entry (sets both sides when split omitted)
     c0::Float64
+    ρ_ext::Float64
+    c_ext::Float64
+    ρ_int::Float64
+    c_int::Float64
+    L_c::Float64                # cavity length [m]; acoustic axial scale (card 9)
+    d::Float64                  # structure start relative to cavity start [m] (card 9)
     # Manual card 10: high-frequency crossover band centre [Hz]; `nothing` = estimate
     # (lowest 1/3-oct with ≥ 10 three-dimensional acoustic modes; phase 38b).
     crossover_band_Hz::Union{Nothing,Float64}
@@ -58,16 +76,25 @@ function PainInputs(fuse, prop, structural, acoustic, amplitudes, phases, pts, �
                     m_wall::Real=NaN, η_n_bare::Real=0.05, C_struc::Real=3.0,
                     q_max::Union{Nothing,Integer}=nothing, allow_extrapolation::Bool=false,
                     ρ0::Real=1.225, c0::Real=340.0,
+                    ρ_ext::Union{Nothing,Real}=nothing, c_ext::Union{Nothing,Real}=nothing,
+                    ρ_int::Union{Nothing,Real}=nothing, c_int::Union{Nothing,Real}=nothing,
+                    L_c::Union{Nothing,Real}=nothing, d::Real=0.0,
                     crossover_band_Hz::Union{Nothing,Real}=nothing)
     (sidewall === nothing) == (endplates === nothing) ||
         error("PainInputs: give both `sidewall` and `endplates` trim stacks, or neither (bare cabin)")
     mech !== nothing && sidewall === nothing && error("PainInputs: `mech` needs a `sidewall` stack")
     m = isnan(m_wall) ? MRP_RHO_2024 * (MRP_T_SKIN + MRP_A_STRINGER / MRP_D_STRINGER + MRP_A_FRAME / MRP_ELL_FRAME) : float(m_wall)
     xover = crossover_band_Hz === nothing ? nothing : float(crossover_band_Hz)
+    ρ0f, c0f = float(ρ0), float(c0)
+    ρe = float(something(ρ_ext, ρ0f))
+    ce = float(something(c_ext, c0f))
+    ρi = float(something(ρ_int, ρ0f))
+    ci = float(something(c_int, c0f))
+    Lc = float(something(L_c, fuse.L))
     return PainInputs(fuse, prop, structural, acoustic, amplitudes, phases, pts, float(ΔA),
                       sidewall, endplates, mech, m, float(η_n_bare), float(C_struc),
-                      q_max === nothing ? nothing : Int(q_max), allow_extrapolation, float(ρ0), float(c0),
-                      xover)
+                      q_max === nothing ? nothing : Int(q_max), allow_extrapolation, ρ0f, c0f,
+                      ρe, ce, ρi, ci, Lc, float(d), xover)
 end
 
 """Trim stacks present (sidewall and end plates)?"""
@@ -100,12 +127,76 @@ function InteriorSpectrum(bpf_Hz::Real, harmonic_SPL_dB::Vector{Float64},
 end
 
 """
-Axial factor f_qM = (1/L)∫₀ᴸ cos(qπz/L) sin(Mπz/L) dz, CR-3813 Eq. (57)
-(shell length L equal to cavity length Lc).
+Axial factor f_qM of CR-3813 Eq. (57), generalized for cavity ≠ structure (Manual card 9).
+
+When L = L_c and d = 0 (printed case): f_qM = (1/L)∫₀ᴸ cos(qπz/L) sin(Mπz/L) dz.
+
+Otherwise (Methodology §3.5: L ≠ L_c → Ref. [3]; Manual: d = structure start from cavity start):
+acoustic shape cos(qπ(z−d)/L_c) on the cavity interval [d, d+L_c], structural sin(Mπz/L) on [0, L],
+integral over the overlap, normalized by structure length L:
+
+    f_qM = (1/L) ∫_{overlap} cos(q π (z−d)/L_c) sin(M π z/L) dz,
+    overlap = [d, d+L_c] ∩ [0, L].
+
+Closed form; the L = L_c, d = 0 branch is the printed Eq. (57) (bitwise same as pre-38f-1).
 """
-function axial_coupling(q::Int, M::Int)
-    M == q && return 0.0
-    return (1 / (2π)) * ((1 - cos((M + q) * π)) / (M + q) + (1 - cos((M - q) * π)) / (M - q))
+function axial_coupling(q::Int, M::Int; L::Real=1.0, L_c::Real=L, d::Real=0.0)
+    Lf, Lcf, df = float(L), float(L_c), float(d)
+    if abs(Lf - Lcf) ≤ 1e-15 * max(Lf, 1.0) && abs(df) ≤ 1e-15 * max(Lf, 1.0)
+        M == q && return 0.0
+        # M = q already returned; M − q ≠ 0. M = 0 against q > 0: second term uses M − q.
+        return (1 / (2π)) * ((1 - cos((M + q) * π)) / (M + q) + (1 - cos((M - q) * π)) / (M - q))
+    end
+    z0 = max(0.0, df)
+    z1 = min(Lf, df + Lcf)
+    z1 ≤ z0 && return 0.0
+    return _axial_overlap_integral(q, M, Lf, Lcf, df, z0, z1) / Lf
+end
+
+"""∫_{z0}^{z1} cos(qπ(z−d)/L_c) sin(Mπz/L) dz (indefinite closed form)."""
+function _axial_overlap_integral(q::Int, M::Int, L::Float64, L_c::Float64, d::Float64,
+                                 z0::Float64, z1::Float64)
+    α = q * π / L_c
+    β = M * π / L
+    # cos(α(z−d)) = cos(αz)cos(αd) + sin(αz)sin(αd)
+    cφ, sφ = cos(α * d), sin(α * d)
+    return cφ * _int_cos_sin(α, β, z0, z1) + sφ * _int_sin_sin(α, β, z0, z1)
+end
+
+function _int_cos_sin(a::Float64, b::Float64, z0::Float64, z1::Float64)
+    # ∫ cos(az) sin(bz) dz
+    if abs(b) < 1e-15 && abs(a) < 1e-15
+        return 0.0
+    elseif abs(a) < 1e-15
+        return (-cos(b * z1) + cos(b * z0)) / b
+    elseif abs(b) < 1e-15
+        return 0.0
+    elseif abs(a - b) < 1e-14 * max(abs(a), abs(b), 1.0)
+        # ∫ cos(az) sin(az) = ∫ sin(2az)/2
+        return abs(a) < 1e-15 ? 0.0 : (-cos(2a * z1) + cos(2a * z0)) / (4a)
+    elseif abs(a + b) < 1e-14 * max(abs(a), abs(b), 1.0)
+        # ∫ cos(az) sin(−az) = −∫ cos sin = +cos(2az)/(4a) with b = −a
+        return abs(a) < 1e-15 ? 0.0 : (cos(2a * z1) - cos(2a * z0)) / (4a)
+    end
+    sp, sm = a + b, b - a
+    return 0.5 * ((-cos(sp * z1) + cos(sp * z0)) / sp + (-cos(sm * z1) + cos(sm * z0)) / sm)
+end
+
+function _int_sin_sin(a::Float64, b::Float64, z0::Float64, z1::Float64)
+    # ∫ sin(az) sin(bz) dz = ∫ [cos((a−b)z) − cos((a+b)z)] / 2
+    if abs(a) < 1e-15 && abs(b) < 1e-15
+        return 0.0
+    elseif abs(a) < 1e-15 || abs(b) < 1e-15
+        return 0.0
+    elseif abs(a - b) < 1e-14 * max(abs(a), abs(b), 1.0)
+        # ∫ sin²(az) = ∫ (1 − cos(2az))/2
+        return (z1 - z0) / 2 - (sin(2a * z1) - sin(2a * z0)) / (4a)
+    elseif abs(a + b) < 1e-14 * max(abs(a), abs(b), 1.0)
+        # ∫ sin(az) sin(−az) = −∫ sin²(az)
+        return -((z1 - z0) / 2 - (sin(2a * z1) - sin(2a * z0)) / (4a))
+    end
+    dm, dp = a - b, a + b
+    return 0.5 * ((sin(dm * z1) - sin(dm * z0)) / dm - (sin(dp * z1) - sin(dp * z0)) / dp)
 end
 
 """
@@ -169,19 +260,28 @@ and a violation raises an error, because it means a mode normalization or mode-s
 defect that must be fixed, not hidden.
 """
 function coupling_factor(ac::AcousticMode, st::StructuralMode,
-                         fuse::FuselageGeometry; τ_t::Float64=1.0, q::Int=0)
+                         fuse::FuselageGeometry; τ_t::Float64=1.0, q::Int=0,
+                         L_c::Real=fuse.L, d::Real=0.0)
     a = fuse.a
     θ0 = deg2rad(fuse.theta0_deg)
     Lp = 2a * sin(θ0)
     Is = coupling_shell_integral(ac, st, a)
     Ip = coupling_floor_integral(ac, st, a, Lp)
-    f = axial_coupling(q, st.M_axial) * (sqrt(τ_t) * Is - Ip) / (Lp + 2a * (π - θ0))
+    f = axial_coupling(q, st.M_axial; L=fuse.L, L_c, d) *
+        (sqrt(τ_t) * Is - Ip) / (Lp + 2a * (π - θ0))
     abs(f) <= 1 + 1e-6 ||
         error("f'(n,r) = $f exceeds 1 for acoustic mode $(ac.index), structural mode $(st.index): mode normalization or shape defect")
     return f
 end
 
-"""Sums S_c = Σ A cos φ ψ^r(x_m), S_s = Σ A sin φ ψ^r(x_m) of Eq. (42), over the whole grid."""
+coupling_factor(ac::AcousticMode, st::StructuralMode, inp::PainInputs; τ_t::Float64=1.0, q::Int=0) =
+    coupling_factor(ac, st, inp.fuse; τ_t, q, L_c=inp.L_c, d=inp.d)
+
+"""Sums S_c = Σ A cos φ ψ^r(x_m), S_s = Σ A sin φ ψ^r(x_m) of Eq. (42), over the whole grid.
+
+Blade-passage phase sense (Manual card 36) is applied when the free-field grid is built
+(`grid_points` azimuth and phase sign); Eq. (42) uses the stored φ_H as given.
+"""
 function generalized_force_sums(st::StructuralMode, H::Int,
                                 amps::Array{Float64,3}, phases::Array{Float64,3},
                                 pts, fuse::FuselageGeometry)
@@ -258,20 +358,23 @@ function tone_mean_square_pressure(inp::PainInputs, H::Int, ωH::Float64;
                                     η_r_cap::Union{Nothing,Float64}=nothing)
     fuse = inp.fuse
     a, L = fuse.a, fuse.L
+    L_c = inp.L_c
     θ0 = deg2rad(fuse.theta0_deg)
     Lp = 2a * sin(θ0)
-    A = L * (Lp + 2a * (π - θ0))
-    V = cabin_volume(fuse)
-    ρ0, c0 = inp.ρ0, inp.c0
+    A = L * (Lp + 2a * (π - θ0))   # transmitting structure area (length L)
+    V = cabin_volume(inp)          # cavity volume ∝ L_c
+    # Card 2 map: mass-law exterior; 4c²/V² and cabin modes / η_n / η_r'' interior
+    ρ_ext, c_ext = inp.ρ_ext, inp.c_ext
+    ρ_int, c_int = inp.ρ_int, inp.c_int
     ext = inp.allow_extrapolation
-    qtop = something(q_max, inp.q_max, axial_truncation(ωH, L, c0))
+    qtop = something(q_max, inp.q_max, axial_truncation(ωH, L_c, c_int))
 
     trimmed = has_trim(inp)
     τ_t = sidewall_tau(inp, ωH)
-    ξ = trimmed ? trim_conductance(inp.sidewall, ωH, inp.m_wall; ρ0, c0, allow_extrapolation=ext) : 0.0
-    ξe = trimmed ? trim_conductance(inp.endplates, ωH, Inf; ρ0, c0, allow_extrapolation=ext) : 0.0
+    ξ = trimmed ? trim_conductance(inp.sidewall, ωH, inp.m_wall; ρ0=ρ_int, c0=c_int, allow_extrapolation=ext) : 0.0
+    ξe = trimmed ? trim_conductance(inp.endplates, ωH, Inf; ρ0=ρ_int, c0=c_int, allow_extrapolation=ext) : 0.0
 
-    # per structural mode: Ψ_G, ω_r, η_r'
+    # per structural mode: Ψ_G, ω_r, η_r' (radiation uses exterior air)
     nst = length(inp.structural.modes)
     Ψ = Vector{Float64}(undef, nst)
     ωr = Vector{Float64}(undef, nst)
@@ -279,7 +382,7 @@ function tone_mean_square_pressure(inp::PainInputs, H::Int, ωH::Float64;
     for (j, st) in enumerate(inp.structural.modes)
         Ψ[j] = generalized_force(st, H, inp.amplitudes, inp.phases, inp.pts, fuse; ΔA=inp.ΔA)
         ωr[j] = 2π * st.f_Hz
-        ηr = structural_loss_total(st, ωr[j]; a, L, m=inp.m_wall, C=inp.C_struc, ρ0, c0)
+        ηr = structural_loss_total(st, ωr[j]; a, L, m=inp.m_wall, C=inp.C_struc, ρ0=ρ_ext, c0=c_ext)
         ηrp[j] = trimmed ?
             structural_loss_with_trim(ηr, ωr[j], inp.m_wall,
                                       trim_Cw(inp.sidewall, ωr[j]; allow_extrapolation=ext);
@@ -287,17 +390,19 @@ function tone_mean_square_pressure(inp::PainInputs, H::Int, ωH::Float64;
             (η_r_cap === nothing ? ηr : min(ηr, η_r_cap))
     end
 
-    pref = (c0 / V)^2 * (ρ0 * c0 * A)^2 * ωH^4
+    # (c_int/V)² · (ρ_ext c_ext A)² ω_H⁴  ≡  4 c_int²/V² · (ρ_ext c_ext A/(2ω_H))² · ω_H⁶ / ω_H² …
+    pref = (c_int / V)^2 * (ρ_ext * c_ext * A)^2 * ωH^4
     p2 = 0.0
     for q in 0:qtop, ac in inp.acoustic.modes
-        ωn = 2π * cabin_frequency_3d(ac, a, L, q; c0)
+        ωn = 2π * cabin_frequency_3d(ac, a, L_c, q; c0=c_int)
         εn = cabin_eps_3d(ac, q)
-        N = trimmed ? acoustic_loss_modal(ac, q, ωH, ωn; a, L, V, c0, ξ, ξ_e=ξe).N : inp.η_n_bare * ωn^2
+        N = trimmed ? acoustic_loss_modal(ac, q, ωH, ωn; a, L=L_c, V, c0=c_int, ξ, ξ_e=ξe).N :
+            inp.η_n_bare * ωn^2
         Dn = (ωn^2 - ωH^2)^2 + N^2
         for (j, st) in enumerate(inp.structural.modes)
-            f = coupling_factor(ac, st, fuse; τ_t, q)
+            f = coupling_factor(ac, st, inp; τ_t, q)
             f == 0 && continue
-            ηrpp = structural_loss_coupled(N, ωn, ωr[j], f, εn, st.M_r, V, A; ρ0, c0)
+            ηrpp = structural_loss_coupled(N, ωn, ωr[j], f, εn, st.M_r, V, A; ρ0=ρ_int, c0=c_int)
             Dr = (ωr[j]^2 - ωH^2)^2 + ((ηrp[j] + ηrpp) * ωr[j]^2)^2
             p2 += pref * εn * f^2 * Ψ[j] / (st.M_r^2 * Dn * Dr)
         end
@@ -305,11 +410,30 @@ function tone_mean_square_pressure(inp::PainInputs, H::Int, ωH::Float64;
     return p2
 end
 
-function cabin_volume(fuse::FuselageGeometry)
+"""
+Cabin (cavity) volume. CR-3813 App. C: V = a² L_c (π − θ₀ + cosθ₀ sinθ₀).
+`L_c` defaults to the structure length `fuse.L` (card 9 default L_c = L).
+"""
+function cabin_volume(fuse::FuselageGeometry; L_c::Real=fuse.L)
     θ0 = deg2rad(fuse.theta0_deg)
-    # V = a² L (π − θ0 + cosθ0 sinθ0) from CR-3813 App. C
-    a, L = fuse.a, fuse.L
-    return a^2 * L * (π - θ0 + cos(θ0) * sin(θ0))
+    a = fuse.a
+    return a^2 * float(L_c) * (π - θ0 + cos(θ0) * sin(θ0))
+end
+
+cabin_volume(inp::PainInputs) = cabin_volume(inp.fuse; L_c=inp.L_c)
+
+"""
+Apply Manual card 36 rotation sense to a free-field phase array built for +1 (Fig. 3).
+Negates every φ_H (blade-passage phase). Azimuth of `pts` must already match
+`prop.rotation_direction` via `grid_points`. No-op when direction is +1.
+"""
+function apply_rotation_direction_phases!(phases::AbstractArray{<:Real}, rotation_direction::Integer)
+    abs(Int(rotation_direction)) == 1 ||
+        error("rotation_direction must be ±1, got $rotation_direction")
+    if Int(rotation_direction) == -1
+        phases .*= -1
+    end
+    return phases
 end
 
 """
