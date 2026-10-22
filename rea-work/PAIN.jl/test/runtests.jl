@@ -1367,6 +1367,60 @@ _run_if("HF broadband Eqs. (19)–(23) (38c)") do
     end
 end
 
+# Plan phase 38d: Fig. E-18 tones (η_T = 1.0, η_r′ ≤ 0.15) vs NASA prediction.
+# V-UNIT: case runs; three harmonics; verdict follows |Δ| ≤ 4 dB on a synthetic reference.
+# ---------------------------------------------------------------------------------------------
+_run_if("E-18 tones η_T=1.0 (38d)") do
+    @testset "verdict follows |Δ| ≤ 4 dB on a synthetic reference" begin
+        # Same rule as _run_e18_tones: :met iff every harmonic with a NASA value is within 4 dB.
+        function e18_verdict(got, nasa; tol=4.0)
+            n = n_ok = 0
+            for (g, nref) in zip(got, nasa)
+                isfinite(nref) || continue
+                n += 1
+                n_ok += abs(g - nref) ≤ tol
+            end
+            return (n > 0 && n_ok == n) ? :met : :not_met
+        end
+        @test e18_verdict([88.0, 75.0, 67.0], [88.0, 75.0, 67.0]) === :met
+        @test e18_verdict([88.0, 75.0, 67.0], [88.0, 75.0, 67.0]; tol=4.0) === :met
+        @test e18_verdict([92.0, 75.0, 67.0], [88.0, 75.0, 67.0]) === :met   # |Δ|=4 exact
+        @test e18_verdict([92.1, 75.0, 67.0], [88.0, 75.0, 67.0]) === :not_met
+        @test e18_verdict([88.0, 75.0, 72.0], [88.0, 75.0, 67.0]) === :not_met  # H3 |Δ|=5
+    end
+    @testset "E18_TONES case runs; table has the three harmonics" begin
+        @test validation_case_runnable("E18_TONES")
+        res = run_validation_case("E18_TONES")
+        nasa_rows = filter(r -> startswith(r.quantity, "vs NASA E-18"), res.table)
+        @test length(nasa_rows) == 3
+        @test !isempty(res.series)
+        @test res.verdict in (:met, :not_met)
+        @test res.inputs_echo.η_T == 1.0
+        @test res.inputs_echo.η_r_cap == 0.15
+        @test res.inputs_echo.tone_model === :eq8
+        @test res.inputs_echo.cap_reaches_tone === true
+        expect = (res.inputs_echo.n_ok == res.inputs_echo.n_nasa) && res.inputs_echo.n_nasa > 0
+        @test (res.verdict === :met) == expect
+        println("38d E18_TONES: ", res.reason)
+    end
+end
+
+# Plan phase 38e: Fig. E-15 total structural loss factor η_r′ (V-EXP info, no pass mark).
+# ---------------------------------------------------------------------------------------------
+_run_if("E-15 structural loss η_r′ (38e)") do
+    @testset "E15_STRUCT_LOSS case runs; table non-empty" begin
+        @test validation_case_runnable("E15_STRUCT_LOSS")
+        res = run_validation_case("E15_STRUCT_LOSS")
+        @test !isempty(res.table)
+        @test !isempty(res.series)
+        @test res.verdict === :no_verdict
+        @test res.inputs_echo.η_T == 1.0
+        @test res.inputs_echo.η_r_cap == 0.15
+        @test occursin("η_r′", res.inputs_echo.quantity) || occursin("η_r'", res.inputs_echo.quantity)
+        println("38e E15_STRUCT_LOSS: ", res.reason)
+    end
+end
+
 _run_if("Validation case registry (34d)") do
     @test Set(keys(VALIDATION_CASES)) == Set(VALIDATION_CASE_ORDER)
     for id in VALIDATION_CASE_ORDER

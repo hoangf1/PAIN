@@ -281,6 +281,7 @@ const VALIDATION_SOURCE_FIGURE_FALLBACKS = Dict{String,String}(
     "E11_FREEFIELD" => "data/cr3813/pages/e11-135.png",
     "E12_BLOCK" => "data/cr3813/pages/e11_next-136.png",
     "E14_LOSS" => "data/cr3813/pages/e14-139.png",
+    "E15_STRUCT_LOSS" => "data/cr3813/pages/e15-141.png",
     "R996_FIG12" => "data/report996/qa/fig12a_overlay.png",
     "R996_FIG13A" => "data/report996/qa/fig13a_overlay.png",
     "R996_FIG14" => "data/report996/qa/fig14a_overlay.png",

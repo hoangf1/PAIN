@@ -1306,6 +1306,185 @@ function _run_t2_eq19()
     )
 end
 
+"""
+E-18 tones with η_T = 1.0 and η_r′ ≤ 0.15 (38d). Same free-field / blocking / grid as 18b-r
+(ANOPP Table 8, R1, GEXT off ℓ = 1), Phase III trim at η_lining = 1.0, production
+`tone_model=:eq8`. Harmonics H1–H3 map to 1/3-octave bands 200, 400, 630 Hz (H3 at
+3·BPF = 600 Hz falls in the 630 Hz band — NASA's E-18 H3 near 600 Hz). Criterion dated
+2026-10-21: |computed − NASA E-18 prediction| ≤ 4 dB for each harmonic with a NASA value.
+`:auto` and measured mean/low/high are secondary (V-EXP, held out).
+"""
+function _run_e18_tones()
+    targets = _data_path("cr3813", "e18_interior_pred_eta1.csv")
+    cols = _read_csv_numeric_nan(targets)
+    bands_csv = Float64.(cols[:band_Hz])
+    nasa_csv = Float64.(cols[:nasa_pred_dB])
+    mean_csv = Float64.(cols[:measured_mean_dB])
+    lo_csv = Float64.(cols[:low_dB])
+    hi_csv = Float64.(cols[:high_dB])
+    nasa_of = Dict(bands_csv[i] => nasa_csv[i] for i in eachindex(bands_csv))
+    mean_of = Dict(bands_csv[i] => mean_csv[i] for i in eachindex(bands_csv))
+    lo_of = Dict(bands_csv[i] => lo_csv[i] for i in eachindex(bands_csv))
+    hi_of = Dict(bands_csv[i] => hi_csv[i] for i in eachindex(bands_csv))
+
+    # H → CSV / ISO nominal 1/3-octave band (e18_interior_pred_eta1.csv):
+    # H1 = BPF = 200 Hz → 200; H2 = 400 Hz → 400; H3 = 3·BPF = 600 Hz → 630
+    # (NASA's H3 near 600 Hz sits in the 630 Hz band; nearest_third_octave(600) confirms).
+    bpf = 200.0
+    toc = third_octave_centers()
+    @assert nearest_third_octave(600.0, toc) ≈ nearest_third_octave(630.0, toc)
+    harm_bands = [(1, 200.0), (2, 400.0), (3, 630.0)]
+
+    paths = default_e11_paths()
+    p3 = phase3_trim(; η_lining=1.0)
+    r = run_pain_pipeline(; source=:e11, e11_amp_csv=paths.anopp_spl, n_harmonics=3, bpf_Hz=bpf,
+                          blocking=R1, sidewall_trim_stack=p3.sidewall, end_trim_stack=p3.ends,
+                          mech=p3.mech)
+    η_cap = 0.15
+    # Production path (:eq8) with η_r_cap on the tone sum (interior_spl forwards to pair)
+    spec = interior_spl(r.inputs; bpf_Hz=bpf, n_harmonics=3, broadband=false,
+                        tone_model=:eq8, η_r_cap=η_cap)
+    # Confirm the cap reaches the tone path (pressure differs unless every η_r' already ≤ cap)
+    p0 = tone_mean_square_pressure(r.inputs, 1, 2π * bpf)
+    p_cap = tone_mean_square_pressure(r.inputs, 1, 2π * bpf; η_r_cap=η_cap)
+    cap_reaches_tone = (p_cap != p0) || all(st -> begin
+        ωr = 2π * st.f_Hz
+        ηr = structural_loss_total(st, ωr; a=r.inputs.fuse.a, L=r.inputs.fuse.L,
+                                   m=r.inputs.m_wall, C=r.inputs.C_struc)
+        η′ = structural_loss_with_trim(ηr, ωr, r.inputs.m_wall, trim_Cw(r.inputs.sidewall, ωr))
+        η′ ≤ η_cap + 1e-15
+    end, r.inputs.structural.modes)
+    spec_auto = interior_spl(r.inputs; bpf_Hz=bpf, n_harmonics=3, broadband=false,
+                             tone_model=:auto, η_r_cap=η_cap)
+
+    tol = 4.0
+    table = ValidationTableRow[]
+    got = Float64[]
+    nasa_vals = Float64[]
+    bands_h = Float64[]
+    n_ok = 0
+    n_nasa = 0
+    auto_vals = Float64[]
+    for (H, band) in harm_bands
+        g = spec.harmonic_SPL_dB[H]
+        g_auto = spec_auto.harmonic_SPL_dB[H]
+        push!(got, g)
+        push!(auto_vals, g_auto)
+        push!(bands_h, band)
+        nasa = get(nasa_of, band, NaN)
+        push!(nasa_vals, nasa)
+        if isfinite(nasa)
+            n_nasa += 1
+            d = g - nasa
+            ok = abs(d) ≤ tol
+            n_ok += ok
+            push!(table, ValidationTableRow("vs NASA E-18 H=$H band=$(round(band; digits=0))",
+                                            band, nasa, g, d, ok, "vs NASA E-18 prediction"))
+        end
+        # Secondary: :auto (38b) — not part of the verdict
+        push!(table, ValidationTableRow(":auto H=$H band=$(round(band; digits=0))",
+                                        band, isfinite(nasa) ? nasa : NaN, g_auto,
+                                        isfinite(nasa) ? g_auto - nasa : NaN, false,
+                                        ":auto (secondary, not in verdict)"))
+        # Secondary: measured mean/low/high where present (V-EXP, held out)
+        m = get(mean_of, band, NaN)
+        lo = get(lo_of, band, NaN)
+        hi = get(hi_of, band, NaN)
+        if isfinite(m)
+            push!(table, ValidationTableRow("measured mean H=$H (V-EXP held out)",
+                                            band, m, g, g - m, false,
+                                            "V-EXP measured (held out)"))
+        end
+        if isfinite(lo) && isfinite(hi)
+            mid = (lo + hi) / 2
+            push!(table, ValidationTableRow("measured range H=$H (V-EXP held out)",
+                                            band, mid, g, g - mid, lo ≤ g ≤ hi,
+                                            "V-EXP measured range (held out)"))
+        end
+    end
+    all_ok = n_ok == n_nasa && n_nasa > 0
+    series = [
+        PlotSeries("NASA E-18 pred", :reference_points, bands_h, nasa_vals; panel=1),
+        PlotSeries("PAIN :eq8", :computed, bands_h, got; panel=1),
+        PlotSeries("PAIN :auto (secondary)", :computed, bands_h, auto_vals; panel=1),
+    ]
+    reason = "$n_ok/$n_nasa within ±4 dB of NASA E-18 prediction (H1–H3 → 200/400/630 Hz); " *
+             "η_T=1.0, η_r_cap=$η_cap reaches tone=$(cap_reaches_tone); " *
+             ":auto secondary $(join(round.(auto_vals; digits=2), ", ")) dB"
+    return ValidationCaseResult(
+        "E18_TONES", _today_iso(),
+        (; free_field="ANOPP Table 8 (GEXT)", blocking=:R1, η_T=1.0, η_r_cap=η_cap,
+         tone_model=:eq8, bpf_Hz=bpf,
+         harm_bands=(200.0, 400.0, 630.0),
+         n_ok, n_nasa, cap_reaches_tone,
+         auto_dB=auto_vals, eq8_dB=got,
+         criterion="|Δ|≤4 dB vs NASA E-18 pred per harmonic", date="2026-10-21",
+         csv=targets),
+        table, series, all_ok ? :met : :not_met, reason,
+        "V-CODE vs NASA E-18 prediction; V-EXP shown, held out; first run 2026-10-22",
+        joinpath(_VAL_REPORT_DIR, "e18_tones_eta1.md"),
+    )
+end
+
+"""
+E-15 total structural loss factor η_r′ (with trim) vs measured targets (38e). Fig. E-15
+caption: "MEASURED AND PREDICTED TOTAL STRUCTURAL LOSS FACTORS" with calculated curves at
+trim loss 0.5 and 1.0 and an upper-limit line at 0.15 — that is η_r′ of Eq. (82), not bare
+η_r. Inputs: Phase III trim η_T = 1.0, η_r_cap = 0.15 (E-18/E-21 setting, CR-3813 p. E-30).
+V-EXP info only; no pass mark (as recorded in 16b). Verdict `:no_verdict`.
+"""
+function _run_e15_struct_loss()
+    targets = _data_path("cr3813", "e15_structural_loss_targets.csv")
+    cols = _read_csv_numeric(targets)
+    fs = Float64.(cols[:f_Hz])
+    meas = Float64.(cols[:eta_meas])
+    tols = Float64.(cols[:tol_frac])
+    a, L, θ0d = 0.508, 1.803, 56.6
+    p3 = phase3_trim(; a=a, L=L, theta0_deg=θ0d, η_lining=1.0)
+    sm = structural_modes_from_table_d1(; L=L, a=a, theta0_deg=θ0d, n_keep=32)
+    ρ0, c0 = 1.225, 340.0
+    Abar = 2π * a * L
+    η_cap = 0.15  # E-18/E-21 upper limit on η_r′ (Fig. E-15 long-dashed line; p. E-30)
+    ext = false
+    # At each target frequency: nearest Table D-1 mode supplies the joint-acceptance shape;
+    # structural_loss_total / structural_loss_with_trim evaluated at the target ω (continuous
+    # curve vs frequency, matching Fig. E-15's calculated spectra).
+    got = Float64[]
+    table = ValidationTableRow[]
+    for i in eachindex(fs)
+        f = fs[i]
+        ω = 2π * f
+        # nearest mode by |f_r − f|; loss factors evaluated at the target frequency
+        dists = [abs(m.f_Hz - f) for m in sm.modes]
+        st = sm.modes[argmin(dists)]
+        ηr = structural_loss_total(st, ω; a, L, m=p3.m_wall, C=3.0, ρ0, c0, Abar)
+        Cw = trim_Cw(p3.sidewall, ω; allow_extrapolation=ext)
+        ηrp = structural_loss_with_trim(ηr, ω, p3.m_wall, Cw; η_r_cap=η_cap)
+        push!(got, ηrp)
+        ratio = ηrp / meas[i]
+        within = abs(ratio - 1) ≤ tols[i]   # info only; does not drive the verdict
+        push!(table, ValidationTableRow("η_r′ f=$(round(f; digits=0))", f, meas[i], ηrp,
+                                        ηrp - meas[i], within, "V-EXP η_r′ (info)"))
+    end
+    series = [
+        PlotSeries("measured", :reference_points, fs, meas; panel=1),
+        PlotSeries("η_r′ (η_T=1, cap 0.15)", :computed, fs, got; panel=1),
+    ]
+    n_within = count(r -> r.within_tolerance, table)
+    reason = "V-EXP info: $n_within/$(length(fs)) within CSV tol_frac (no pass mark); " *
+             "quantity = η_r′ (Eq. 82 with trim), not bare η_r; η_T=1.0, η_r_cap=$η_cap (E-18/E-21)"
+    return ValidationCaseResult(
+        "E15_STRUCT_LOSS", _today_iso(),
+        (; η_T=1.0, η_r_cap=η_cap, quantity="η_r′ (Eq. 82 with Phase III trim)",
+         figure="CR-3813 Fig. E-15 (total structural loss factor; trim curves + 0.15 upper limit)",
+         n_within, n_bands=length(fs),
+         criterion="none (V-EXP info; 16b)", date="2026-10-21", csv=targets),
+        table, series, :no_verdict, reason,
+        "V-EXP; Fig. E-15 η_r′ with η_T=1.0 and η_r_cap=0.15; no pass mark; first run 2026-10-22",
+        joinpath(_VAL_REPORT_DIR, "e15_structural_loss.md"),
+    )
+end
+
 function _finish_validation_registry!()
     empty!(VALIDATION_CASES)
     empty!(VALIDATION_CASE_ORDER)
@@ -1489,7 +1668,7 @@ function _finish_validation_registry!()
     ]
     append!(cases, extras)
 
-    # E21_E22_NR is runnable (38a); T2_EQ19 is runnable (38c); no greyed placeholders remain.
+    # E21_E22_NR (38a), T2_EQ19 (38c), E18_TONES (38d), E15_STRUCT_LOSS (38e); no greyed placeholders.
     push!(cases, ValidationCase(
         "E21_E22_NR", "Figs. E-21 / E-22 noise reduction", "38a",
         [_data_path("cr3813", "e21_noise_reduction_range.csv"),
@@ -1520,6 +1699,33 @@ function _finish_validation_registry!()
                  error_mode=:absolute, error_tol=3.5),
         "",
     ))
+    push!(cases, ValidationCase(
+        "E18_TONES", "Fig. E-18 tones (η_T = 1.0, η_r′ ≤ 0.15)", "38d",
+        [_data_path("cr3813", "e18_interior_pred_eta1.csv")],
+        FigureRef("CR-3813", "Fig. E-18", 145),
+        "38d (dated 2026-10-21): |computed − NASA E-18 prediction| ≤ 4 dB per harmonic H1–H3 " *
+        "(bands 200, 400, 630 Hz). Production tone_model=:eq8; η_r_cap=0.15 on the tone path.",
+        "2026-10-21",
+        "V-CODE vs NASA E-18 prediction; V-EXP shown, held out; first run 2026-10-22",
+        _run_e18_tones,
+        PlotSpec(; xlabel="band (Hz)", ylabel="interior SPL (dB)",
+                 panel_titles=["Fig. E-18"], error_mode=:absolute, error_tol=4.0, error_ylabel="dB vs NASA"),
+        "",
+    ))
+    push!(cases, ValidationCase(
+        "E15_STRUCT_LOSS", "Fig. E-15 total structural loss factor η_r′", "38e",
+        [_data_path("cr3813", "e15_structural_loss_targets.csv")],
+        FigureRef("CR-3813", "Fig. E-15", 141),
+        "38e: η_r′ (Eq. 82 with Phase III trim η_T = 1.0, η_r_cap = 0.15 = E-18/E-21 setting) " *
+        "vs measured targets; V-EXP info, no pass mark (as 16b).",
+        "2026-10-21",
+        "V-EXP; Fig. E-15 η_r′ with η_T=1.0 and η_r_cap=0.15; no pass mark; first run 2026-10-22",
+        _run_e15_struct_loss,
+        PlotSpec(; xlabel="frequency (Hz)", ylabel="structural loss factor",
+                 xscale=:log10, yscale=:log10, xlim=(100.0, 5000.0), ylim=(0.001, 1.0),
+                 panel_titles=["Fig. E-15"], error_mode=:relative_pct, error_tol=50.0),
+        "",
+    ))
 
     for c in cases
         VALIDATION_CASES[c.id] = c
@@ -1527,7 +1733,8 @@ function _finish_validation_registry!()
     # Map order for list/GUI; every registry id must appear in exactly one map block.
     order = [
         "E11_FREEFIELD", "GEXT_BOUND", "BLK_P68", "E12_BLOCK", "MRP_D1", "MRP_RITZ",
-        "CYL2D_C1", "E14_LOSS", "REPRO_18b", "T1", "T2", "T2_EQ19", "E21_E22_NR",
+        "CYL2D_C1", "E14_LOSS", "E15_STRUCT_LOSS", "REPRO_18b", "E18_TONES",
+        "T1", "T2", "T2_EQ19", "E21_E22_NR",
         "R996_LOADS", "PER_LOADS", "F1A_GUTIN", "R996_FIG14", "R996_FIG12", "R996_FIG13A",
         "R996_FIG6", "R996_FIG7", "BBN_KIN", "BBN_CIRC", "BBN_LONG", "R996_PHASE",
         "PER_FIG6", "PER_FIG7", "PER_FIG8", "PER_FIG9", "BBN_LEVELS",

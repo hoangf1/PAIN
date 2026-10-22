@@ -12,7 +12,7 @@ The user source is BEMT + F1A, which gives the free-field pressure at the 160 fu
 
 Grid extension (GEXT) appears only in diagram 2. It exists because the NASA paper measured one line of the grid.
 
-Status key: green = check exists and passes as stated; orange = planned, not independently checked, or the current code differs from CR-3813; blue = calibrated surrogate. Step numbers refer to `IMPLEMENTATION_PLAN.md`. **2026-10-22:** phase **38c** — printed HF broadband Eqs. (19)–(23) (`hf_broadband.jl`); `broadband_model=:surrogate` default unchanged; `:eq19` case `T2_EQ19` first run 0/3 vs E-9 (not met). Phases 38a–38b remain. Phases 32–35 done. GUI Run tab = aircraft only; **Validation** + **Validation map** tabs. `REPRO_18b` = 18b-r (not met); `MRP_D1` = transcription `no_verdict`. Aircraft path stays X-EXTRAP; 29b–31 deferred (B-4).
+Status key: green = check exists and passes as stated; orange = planned, not independently checked, or the current code differs from CR-3813; blue = calibrated surrogate. Step numbers refer to `IMPLEMENTATION_PLAN.md`. **2026-10-22:** phases **38d–38e** — `E18_TONES` 2/3 vs NASA E-18 (not met); `E15_STRUCT_LOSS` η_r′ V-EXP info (no_verdict). Phase **38c** printed HF broadband; `T2_EQ19` 0/3. Phases 38a–38b remain. Phases 32–35 done. GUI Run tab = aircraft only; **Validation** + **Validation map** tabs. `REPRO_18b` = 18b-r (not met); `MRP_D1` = transcription `no_verdict`. Aircraft path stays X-EXTRAP; 29b–31 deferred (B-4).
 
 **Test tooling (P1, 2026-10-22, no behaviour change).** `Pkg.test` accepts `test_args` substrings to select top-level testsets; list/times in `PAIN.jl/test/README.md`. Optional DaemonMode loop in `PAIN.jl/scripts/devtools/` (separate env; Revise loaded). Does not alter criteria, reports, or `src/`.
 
@@ -67,8 +67,8 @@ flowchart LR
 
     subgraph VAL["Validation: interior SPL"]
         direction TB
-        V1["TESTS joint model vs tonal data<br/>E-16/17/18, H=1,2,3<br/>18a-r: 81.0, 75.0, 75.3 dB; no claim;<br/>GEXT bound (32): flips → T1 not claimable;<br/>REPRO_18b = 18b-r 82.73/75.73/77.05 (2 of 3);<br/>19i H3 not found"]
-        V2["TESTS joint model vs broadband<br/>E-9, +/-3.5 dB (T2 surrogate + T2_EQ19);<br/>E-21/E-22 NR Eq.(18)/(19) (38a/38c);<br/>HF tones Eqs.(15)–(16) (38b);<br/>printed Eq.(19)–(23) first run 38c"]
+        V1["TESTS joint model vs tonal data<br/>E-16/17/18, H=1,2,3<br/>18a-r: 81.0, 75.0, 75.3 dB; no claim;<br/>GEXT bound (32): flips → T1 not claimable;<br/>REPRO_18b = 18b-r 82.73/75.73/77.05 (2 of 3);<br/>E18_TONES η_T=1.0 (38d): 2/3 not met;<br/>19i H3 not found"]
+        V2["TESTS joint model vs broadband<br/>E-9, +/-3.5 dB (T2 surrogate + T2_EQ19);<br/>E-21/E-22 NR Eq.(18)/(19) (38a/38c);<br/>E-15 η_r′ (38e, info); HF tones (38b);<br/>printed Eq.(19)–(23) first run 38c"]
         V3["LOCALIZES a failure by band<br/>E-7, G1/G2/G3<br/>result: diagnostic, not validation"]
     end
 
@@ -193,7 +193,7 @@ flowchart LR
             F3["generalized force<br/>Psi_G, Eq 42 (Delta^4/2)<br/><i>Delta^4/2 implemented (17a, done);<br/>analytic limits tested (17e, done)</i>"]
             F4["trim, App A<br/>Eqs A.6-A.22, Fig A-2<br/><i>written (16a, done): trim_loss.jl;<br/>in the pipeline since 17a</i>"]
             F5["loss factors<br/>Eqs 77, 79-83, j_r rev Eqs 63-73<br/><i>written (16b, done); E-14 reproduction 7/18 bands;<br/>in the pipeline since 17a</i>"]
-            F6["tone pressure<br/>Eq 8 + HF Eqs 15–16 (38b)<br/><i>Eq. 8 default (tone_model=:eq8); :auto at crossover;<br/>both always reported; η_T=0.5; 18b-r Eq.8 not met;<br/>38b :auto H3 72.31 (Δ=+4.31) — I-18 not explained<br/>(phase38b_high_freq_tones.md)</i>"]
+            F6["tone pressure<br/>Eq 8 + HF Eqs 15–16 (38b)<br/><i>Eq. 8 default (tone_model=:eq8); :auto at crossover;<br/>η_r_cap on tone path (38a/38d); 18b-r / E18_TONES not met;<br/>38b :auto H3 72.31 (Δ=+4.31) — I-18 not explained<br/>(phase38b_high_freq_tones.md; e18_tones_eta1.md)</i>"]
             F7["HF broadband<br/>Eqs 19–23 (38c) + surrogate<br/><i>broadband_model=:surrogate default;<br/>:eq19 = printed τ_f, τ_R, ᾱ;<br/>T2_EQ19 first run 0/3 vs E-9<br/>(phase38c_hf_broadband.md)</i>"]
         end
         P_OUT["OUT: interior SPL<br/>per harmonic<br/>+ 1/3-octave spectrum"]
@@ -239,9 +239,9 @@ flowchart TB
     P_BLK["P_BLK Blocking Eq.43<br/>BLK_P68 · verification<br/>E12_BLOCK · verification"]
     P_MRP["P_MRP Structural modes<br/>MRP_D1 · input_qa no_verdict<br/>MRP_RITZ · calibrated"]
     P_CYL["P_CYL Cabin modes<br/>CYL2D_C1 · verification"]
-    P_TRIM["P_TRIM Trim / loss<br/>UT_TRIM · verification<br/>E14_LOSS · verification"]
+    P_TRIM["P_TRIM Trim / loss<br/>UT_TRIM · verification<br/>E14_LOSS · verification<br/>E15_STRUCT_LOSS · experiment info"]
     P_EQ8["P_EQ8 Coupling / Eq.8<br/>UT_EQ8 · verification"]
-    P_REPRO["P_REPRO vs NASA PAIN<br/>REPRO_18b · calibrated<br/>82.73/75.73/77.05 not met"]
+    P_REPRO["P_REPRO vs NASA PAIN<br/>REPRO_18b · calibrated<br/>E18_TONES · verification (38d)"]
     P_MEAS["P_MEAS vs measurement<br/>T1 · T2 · calibrated<br/>E21_E22_NR · Eq.(18) 38a"]
 
     P_FF --> P_GRID --> P_BLK --> P_MRP --> P_CYL --> P_TRIM --> P_EQ8 --> P_REPRO --> P_MEAS

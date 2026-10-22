@@ -435,7 +435,7 @@ function interior_spl(inp::PainInputs; bpf_Hz::Float64, n_harmonics::Int=10,
     xover = resolve_crossover_Hz(inp)
     for H in 1:nH
         ωH = 2π * H * bpf_Hz
-        pair = tone_mean_square_pressure_pair(inp, H, ωH; tone_model, crossover_Hz=xover)
+        pair = tone_mean_square_pressure_pair(inp, H, ωH; tone_model, crossover_Hz=xover, η_r_cap)
         spl[H] = 10 * log10(pair.p2 / pref^2 + 1e-30)
         spl8[H] = 10 * log10(pair.p2_eq8 / pref^2 + 1e-30)
         spl15[H] = 10 * log10(pair.p2_eq15_16 / pref^2 + 1e-30)

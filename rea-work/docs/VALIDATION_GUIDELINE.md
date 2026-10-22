@@ -321,7 +321,8 @@ clickable case chips; Validation-tab list ordered by map and block. **Greyed (Ru
 I-20; `E21_E22_NR` runnable since 38a). **In-process runnable:** `CYL2D_C1`, `MRP_D1`, `MRP_RITZ`, `BLK_P68`,
 `F1A_GUTIN`, `T1`, `T2`, `REPRO_18b`, `E12_BLOCK`, `E11_FREEFIELD`, `E14_LOSS`, `GEXT_BOUND`, `BBN_KIN`, `R996_PHASE`,
 `E21_E22_NR` (Eq. 18, η_T = 1.0, η_r′ ≤ 0.15; criterion dated 2026-10-21), `T2_EQ19` (printed Eqs. 19–23; T2
-criterion unchanged; first run 2026-10-22).
+criterion unchanged; first run 2026-10-22), `E18_TONES` (Fig. E-18, η_T = 1.0, η_r′ ≤ 0.15; criterion dated
+2026-10-21; first run 2026-10-22), `E15_STRUCT_LOSS` (Fig. E-15 η_r′, V-EXP info, no pass mark; first run 2026-10-22).
 **CSV replays** (read recorded `f1a_results.csv` / `scale_factors.csv` / `pereira_results.csv` / `bbn_results.csv`; do not
 re-run F1A): `R996_FIG12/13A/14`, `R996_LOADS`, `R996_FIG6/7`, `PER_FIG6–9`, `PER_LOADS`, `BBN_CIRC`, `BBN_LEVELS`, `BBN_LONG`.
 All case numbers come from CSVs or transcribed constant tables; page images are display-only. (§2.13 CASE_INFO text for
@@ -811,6 +812,19 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **Recorded outcome:** 7/18 bands, not met (trim_loss_e13_e14_e15.md)
 **Explanation:** Compares Eq. (78) band-average loss factor η̄ with NASA's calculated curve on Fig. E-14 (±25 %). Recorded 7/18 bands — criterion often not met; not tuned. Fig. E-13 has no calculated curve.
 
+### Case: E15_STRUCT_LOSS
+**Title:** Fig. E-15 η_r′ (struct. loss)
+**Map / block:** pain / P_TRIM
+**Category:** experiment
+**Kind:** runnable
+**Source:** CR-3813 Fig. E-15, p.E-25 / PDF p.141
+**What it tests:** η_r′ of Eq. (82) with Phase III trim
+**Why it is here:** Total structural loss factor vs frequency (measured E-15)
+**A pass means:** — (V-EXP info; no pass mark, as 16b)
+**Not covered:** No frozen pass criterion; quantity is η_r′ (with trim), not bare η_r
+**Recorded outcome:** first run 2026-10-22; 4/8 within tol_frac (info); e15_structural_loss.md (no_verdict)
+**Explanation:** Fig. E-15 plots measured and predicted total structural loss factors with trim-loss curves at 0.5 and 1.0 and an upper-limit line at 0.15 — that is η_r′ of Eq. (82), not bare η_r. Case uses Phase III trim η_T = 1.0 and η_r_cap = 0.15 (E-18/E-21 setting, p. E-30). Per-band computed vs measured with CSV tol_frac reported as info only; verdict always no_verdict.
+
 ### Case: UT_EQ8
 **Title:** Eq. (8) coupling + HF tones (Pkg.test)
 **Map / block:** pain / P_EQ8
@@ -836,6 +850,19 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **Not covered:** η_T = 0.5 adopted after 19f showed the result (post-hoc); conditional on GEXT; amplitude convention fixed 2026-10-21, post-hoc
 **Recorded outcome:** 18b-r not met 1/3: 85.74, 78.74, 80.06 dB (pain_reproduction_e16.md; amplitude convention fixed 2026-10-21, post-hoc). Phase 38b `:auto` (report only): 85.74, 16.89, 72.31 dB; H3 Δ=+4.31 (I-18 explains H3 = no); `phase38b_high_freq_tones.md`
 **Explanation:** Code-to-code check: run the cabin chain on ANOPP Table 8 with R1 blocking and η_T = 0.5 (NASA's value) and compare interior SPL with NASA's PAIN circles on Fig. E-16 (±4 dB per harmonic). After the 2026-10-21 amplitude-convention fix (I-17: measured SPLs are rms; PAIN/F1A amplitudes are Fourier peaks), 18b-r records 85.74, 78.74, 80.06 dB = +6.7, +3.2, +12.1 vs NASA (1 of 3 harmonics). η_T = 0.5 was adopted after 19f showed the result → post-hoc. Conditional on GEXT. Phase 38b recorded the high-frequency formulation beside Eq. (8) with fixed crossover; I-18 mirroring not adopted.
+
+### Case: E18_TONES
+**Title:** Fig. E-18 tones (η_T=1)
+**Map / block:** pain / P_REPRO
+**Category:** verification
+**Kind:** runnable
+**Source:** CR-3813 Fig. E-18, p.E-29; e18_interior_pred_eta1.csv
+**What it tests:** tones with η_T = 1.0 and η_r′ ≤ 0.15 vs NASA E-18 prediction
+**Why it is here:** NASA's η_T = 1.0 / capped-η_r′ setting (same as E-21) on the tone path
+**A pass means:** |computed − NASA E-18 prediction| ≤ 4 dB at each of H1–H3 (bands 200, 400, 630 Hz)
+**Not covered:** :auto and measured mean/low/high are secondary (V-EXP held out); no parameter from E-18
+**Recorded outcome:** first run 2026-10-22; 2/3 within ±4 dB (89.02, 78.14, 77.70 dB); not met; e18_tones_eta1.md
+**Explanation:** Same free-field/blocking/grid as 18b-r but Phase III trim η_T = 1.0 and η_r_cap = 0.15 on the tone path (production tone_model=:eq8). H1–H3 map to 200, 400, 630 Hz (H3 at 3·BPF = 600 Hz → 630 Hz 1/3-octave band). Criterion dated 2026-10-21 (18b ±4 dB).
 
 ### Case: T1
 **Title:** Tonal interior SPL (T1)
