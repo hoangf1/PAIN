@@ -1099,6 +1099,82 @@ _run_if("Polar loader (25i, V-CODE)") do
     @test stb.clamped_Re >= 0
 end
 
+_run_if("Polar display cases") do
+    # No TN 1546 / TR 824 match for n16_507; chosen R996 section and NACA 4412 are non-empty.
+    @test isempty(measured_polar_series("n16_507"))
+    @test !isempty(measured_polar_series("n16_506"))
+    @test !isempty(measured_polar_series("naca4412"))
+
+    # interp_no_extrap never extrapolates.
+    @test interp_no_extrap([0.4, 0.55, 0.65], [1.0, 2.0, 3.0], 0.5) ≈ 1.0 + (2.0 - 1.0) * (0.5 - 0.4) / (0.55 - 0.4)
+    @test interp_no_extrap([0.4, 0.55], [1.0, 2.0], 0.3) === nothing
+    @test interp_no_extrap([0.4, 0.55], [1.0, 2.0], 0.72) === nothing
+    @test interp_no_extrap([0.4, 0.55], [1.0, 2.0], 0.4) ≈ 1.0
+    @test interp_no_extrap([0.4, 0.55], [1.0, 2.0], 0.55) ≈ 2.0
+
+    # Every overlaid TN 1546 Mach lies within that curve's sample range.
+    for m in measured_polar_series("n16_506")
+        m.kind === :cl_cd_at_M || continue
+        # Rebuild curve extents from the companion :cl_vs_M entries.
+        for α in m.alpha_cl
+            curves = filter(x -> x.kind === :cl_vs_M && x.alpha_deg == α,
+                            measured_polar_series("n16_506"))
+            @test !isempty(curves)
+            c = first(curves)
+            @test c.mach_lo - 1e-12 <= m.Mach <= c.mach_hi + 1e-12
+            @test interp_no_extrap(c.mach, c.cl, m.Mach) !== nothing
+        end
+    end
+
+    for id in ("POLAR_R996", "POLAR_PER")
+        @test haskey(VALIDATION_CASES, id)
+        @test CASE_INFO[id].category === :display
+        @test CASE_INFO[id].kind === :runnable
+        r = run_validation_case(id)
+        @test r.verdict === :no_verdict
+        panels = unique(s.panel for s in r.series)
+        @test length(panels) >= 3
+        @test count(s -> s.panel == 1, r.series) >= 1
+        @test count(s -> s.panel == 2, r.series) >= 1
+        @test count(s -> s.panel == 3, r.series) >= 1
+        if id == "POLAR_R996"
+            @test any(s -> s.panel == 4, r.series)
+            @test r.inputs_echo.section == "n16_506"
+            @test any(row -> startswith(row.quantity, "c_l XFOIL−TN1546"), r.table)
+        end
+        if id == "POLAR_PER"
+            @test any(s -> s.panel == 4, r.series)
+        end
+        cache = PAIN._POLAR_DISPLAY_CACHE[id]
+        @test !isempty(cache.measured)
+        cov = polar_coverage_recount(cache.points;
+            M_lo=cache.M_lo, M_hi=cache.M_hi, α_lo=cache.alpha_lo, α_hi=cache.alpha_hi)
+        # Per-run table n_out_M / n_out_α sum to the global recount.
+        sum_M = sum(row.n_out_M for row in cache.run_rows)
+        sum_α = sum(row.n_out_α for row in cache.run_rows)
+        @test sum_M == cov.n_out_M
+        @test sum_α == cov.n_out_α
+        for row in cache.run_rows
+            @test row.clamped_Re >= 0
+            @test row.clamped_M >= 0
+            @test row.viterna_evals >= 0
+            @test row.nearest_polar >= 0
+        end
+        # Empty per-panel overrides leave other cases' PlotSpec behaviour unchanged.
+        spec = VALIDATION_CASES[id].plot_spec
+        @test !isempty(spec.panel_xlabels)
+        png = plot_case(r, spec)
+        @test isfile(png)
+        @test filesize(png) > 0
+    end
+    # Registry PlotSpecs without per-panel overrides still construct and default to empty.
+    spec0 = PlotSpec(; xlabel="x", ylabel="y")
+    @test isempty(spec0.panel_xlabels)
+    @test isempty(spec0.panel_ylabels)
+    @test isempty(spec0.panel_xlims)
+    @test isempty(spec0.panel_ylims)
+end
+
 _run_if("Report 996 conversions + blade form (25b/25j, V-UNIT)") do
     # total_rms: two equal peak amplitudes A → √(A²) = A
     @test total_rms([2.0, 2.0]) ≈ 2.0 rtol=1e-12
@@ -2406,14 +2482,18 @@ _run_if("Validation case registry (34d)") do
         @test !occursin(".png", lowercase(blob))
         id in allowed_live_no_csv && continue
         csv_paths = String[p for p in c.reference_files if endswith(lowercase(p), ".csv")]
+        json_paths = String[p for p in c.reference_files if endswith(lowercase(p), ".json")]
         for v in values(r.inputs_echo)
-            if v isa AbstractString && endswith(lowercase(String(v)), ".csv")
-                push!(csv_paths, String(v))
+            if v isa AbstractString
+                s = String(v)
+                endswith(lowercase(s), ".csv") && push!(csv_paths, s)
+                endswith(lowercase(s), ".json") && push!(json_paths, s)
             end
         end
         has_csv = any(isfile, csv_paths)
+        has_json = any(isfile, json_paths)  # polar display cases use XFOIL JSON
         has_const = any(occursin(name, blob) for name in allowed_src_constants)
-        @test has_csv || has_const
+        @test has_csv || has_json || has_const
     end
 end
 

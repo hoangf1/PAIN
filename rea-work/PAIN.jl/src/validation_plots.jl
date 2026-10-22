@@ -22,6 +22,59 @@ function _error_xlabel(spec::PlotSpec)
     return spec.error_xlabel
 end
 
+"""Per-panel axis label; empty/missing entry falls back to `spec.xlabel` / `spec.ylabel`."""
+function _panel_xlabel(spec::PlotSpec, p::Int)
+    if p <= length(spec.panel_xlabels) && !isempty(spec.panel_xlabels[p])
+        return spec.panel_xlabels[p]
+    end
+    return spec.xlabel
+end
+
+function _panel_ylabel(spec::PlotSpec, p::Int)
+    if p <= length(spec.panel_ylabels) && !isempty(spec.panel_ylabels[p])
+        return spec.panel_ylabels[p]
+    end
+    return spec.ylabel
+end
+
+"""Per-panel axis limits; missing/nothing entry falls back to `spec.xlim` / `spec.ylim`."""
+function _panel_xlim(spec::PlotSpec, p::Int)
+    if p <= length(spec.panel_xlims) && spec.panel_xlims[p] !== nothing
+        return spec.panel_xlims[p]
+    end
+    return spec.xlim
+end
+
+function _panel_ylim(spec::PlotSpec, p::Int)
+    if p <= length(spec.panel_ylims) && spec.panel_ylims[p] !== nothing
+        return spec.panel_ylims[p]
+    end
+    return spec.ylim
+end
+
+"""Parse `M=0.4` (etc.) from a series name for Mach-matched colours."""
+function _mach_from_series_name(name::AbstractString)
+    m = match(r"M\s*=\s*([0-9]+(?:\.[0-9]+)?)", String(name))
+    m === nothing && return nothing
+    return parse(Float64, m.captures[1])
+end
+
+"""Parse `α=3.77` / `alpha=3.77` from a series name for α-matched colours (POLAR_R996 panel 4)."""
+function _alpha_from_series_name(name::AbstractString)
+    m = match(r"(?:α|alpha)\s*=\s*([-+]?[0-9]+(?:\.[0-9]+)?)", String(name))
+    m === nothing && return nothing
+    return parse(Float64, m.captures[1])
+end
+
+"""Assign a stable palette colour for one α; first-seen order."""
+function _color_for_alpha!(alpha_colors::Dict{Float64,Symbol}, alpha_order::Vector{Float64}, α::Float64)
+    if !haskey(alpha_colors, α)
+        push!(alpha_order, α)
+        alpha_colors[α] = _COMPUTED_COLORS[mod1(length(alpha_order), length(_COMPUTED_COLORS))]
+    end
+    return alpha_colors[α]
+end
+
 function _row_error(row::ValidationTableRow, mode::Symbol)
     if mode === :absolute
         # Prefer the stored residual (phase cases store a wrapped residual).
@@ -107,13 +160,18 @@ function plot_case(result::ValidationCaseResult, spec::PlotSpec; path::Union{Not
     pdf = replace(png, r"\.png$"i => ".pdf")
 
     n_panels = max(1, maximum(s.panel for s in result.series; init=1))
-    if isempty(spec.panel_titles)
+    # Display cases may stash per-run titles on inputs_echo.panel_titles (e.g. Re / section).
+    echo_titles = (:panel_titles in propertynames(result.inputs_echo)) ?
+        collect(String, result.inputs_echo.panel_titles) : String[]
+    if !isempty(echo_titles)
+        titles = echo_titles
+    elseif isempty(spec.panel_titles)
         titles = ["panel $i" for i in 1:n_panels]
     else
         titles = copy(spec.panel_titles)
-        while length(titles) < n_panels
-            push!(titles, "panel $(length(titles)+1)")
-        end
+    end
+    while length(titles) < n_panels
+        push!(titles, "panel $(length(titles)+1)")
     end
 
     show_error = spec.error_mode !== :none && !isempty(result.table)
@@ -131,30 +189,48 @@ function plot_case(result::ValidationCaseResult, spec::PlotSpec; path::Union{Not
     else
         for p in 1:n_panels
             ax = Axis(fig[p, 1]; title=titles[p],
-                      xlabel=spec.xlabel, ylabel=spec.ylabel,
+                      xlabel=_panel_xlabel(spec, p), ylabel=_panel_ylabel(spec, p),
                       xscale=spec.xscale === :log10 ? log10 : identity,
                       yscale=spec.yscale === :log10 ? log10 : identity)
-            if spec.xlim !== nothing
-                xlims!(ax, spec.xlim...)
+            xlim_p = _panel_xlim(spec, p)
+            ylim_p = _panel_ylim(spec, p)
+            if xlim_p !== nothing
+                xlims!(ax, xlim_p...)
             end
-            if spec.ylim !== nothing
-                ylims!(ax, spec.ylim...)
+            if ylim_p !== nothing
+                ylims!(ax, ylim_p...)
             end
             panel_xs = Float64[]
             panel_ys = Float64[]
             tol_drawn = false
             legend_n = 0
             computed_i = 0
+            mach_colors = Dict{Float64,Symbol}()
+            # POLAR_R996 panel 4: one colour per α shared by TN 1546 curve + XFOIL markers.
+            alpha_colors = Dict{Float64,Symbol}()
+            alpha_order = Float64[]
+            use_alpha_legend = any(s -> s.panel == p && _alpha_from_series_name(s.name) !== nothing,
+                                   result.series)
+            alpha_legend_elems = Any[]
+            alpha_legend_labs = String[]
             for s in result.series
                 s.panel == p || continue
                 append!(panel_xs, s.x)
                 append!(panel_ys, s.y)
-                label = legend_n < _MAX_DATA_LEGEND ? s.name : ""
+                Akey = _alpha_from_series_name(s.name)
+                # α-matched series use a compact legend; suppress per-series labels.
+                suppress_label = use_alpha_legend && (Akey !== nothing || s.kind === :reference_band)
+                label = (suppress_label || legend_n >= _MAX_DATA_LEGEND) ? "" : s.name
                 labeled = !isempty(label)
                 lkw = _legend_kw(label)
                 if s.kind === :reference_band && !isempty(s.ylow) && !isempty(s.yhigh)
                     band!(ax, s.x, s.ylow, s.yhigh; color=(:gray, 0.25), lkw...)
-                    labeled && (legend_n += 1)
+                    if use_alpha_legend
+                        push!(alpha_legend_elems, PolyElement(color=(:gray, 0.25)))
+                        push!(alpha_legend_labs, s.name)
+                    else
+                        labeled && (legend_n += 1)
+                    end
                 elseif s.kind === :reference_points
                     scatter!(ax, s.x, s.y; marker=:circle, markersize=10,
                              color=:transparent, strokewidth=1.5, strokecolor=:black, lkw...)
@@ -168,19 +244,47 @@ function plot_case(result::ValidationCaseResult, spec::PlotSpec; path::Union{Not
                         !isempty(tol_label) && (legend_n += 1)
                     end
                 elseif s.kind === :reference_curve
-                    lines!(ax, s.x, s.y; color=:black, linestyle=:dash, lkw...)
-                    labeled && (legend_n += 1)
+                    if Akey !== nothing
+                        col = _color_for_alpha!(alpha_colors, alpha_order, Akey)
+                        lines!(ax, s.x, s.y; color=col, linestyle=:dash, linewidth=2)
+                    else
+                        lines!(ax, s.x, s.y; color=:black, linestyle=:dash, lkw...)
+                        labeled && (legend_n += 1)
+                    end
                 elseif s.kind === :computed
                     computed_i += 1
                     col = _COMPUTED_COLORS[mod1(computed_i, length(_COMPUTED_COLORS))]
+                    Mkey = _mach_from_series_name(s.name)
+                    Mkey !== nothing && (mach_colors[Mkey] = col)
                     lines!(ax, s.x, s.y; color=col, linewidth=2, lkw...)
                     scatter!(ax, s.x, s.y; marker=:circle, markersize=8, color=col)
                     labeled && (legend_n += 1)
                 elseif s.kind === :computed_points
                     # Markers only (phase / single-station) — no connecting lines across wraps.
-                    computed_i += 1
-                    col = _COMPUTED_COLORS[mod1(computed_i, length(_COMPUTED_COLORS))]
-                    scatter!(ax, s.x, s.y; marker=:circle, markersize=10, color=col, lkw...)
+                    if Akey !== nothing
+                        col = _color_for_alpha!(alpha_colors, alpha_order, Akey)
+                        scatter!(ax, s.x, s.y; marker=:circle, markersize=10, color=col)
+                    else
+                        computed_i += 1
+                        col = _COMPUTED_COLORS[mod1(computed_i, length(_COMPUTED_COLORS))]
+                        scatter!(ax, s.x, s.y; marker=:circle, markersize=10, color=col, lkw...)
+                        labeled && (legend_n += 1)
+                    end
+                elseif s.kind === :inside_points
+                    # Coverage / in-grid markers (display cases) — neutral steel blue.
+                    scatter!(ax, s.x, s.y; marker=:circle, markersize=10, color=:steelblue, lkw...)
+                    labeled && (legend_n += 1)
+                elseif s.kind === :outside_points
+                    # Coverage / out-of-grid markers (display cases) — always red.
+                    scatter!(ax, s.x, s.y; marker=:circle, markersize=10, color=:red, lkw...)
+                    labeled && (legend_n += 1)
+                elseif s.kind === :measured_points
+                    # Digitized airfoil overlay; colour matches XFOIL series of the same Mach when present.
+                    Mkey = _mach_from_series_name(s.name)
+                    col = (Mkey !== nothing && haskey(mach_colors, Mkey)) ?
+                        mach_colors[Mkey] : :gray40
+                    scatter!(ax, s.x, s.y; marker=:diamond, markersize=12, color=col,
+                             strokewidth=1, strokecolor=:black, lkw...)
                     labeled && (legend_n += 1)
                 elseif s.kind === :colored_scatter
                     # x,y = plane coordinates; ylow = scalar colour (e.g. incidence γ).
@@ -194,13 +298,27 @@ function plot_case(result::ValidationCaseResult, spec::PlotSpec; path::Union{Not
                     labeled && (legend_n += 1)
                 end
             end
+            if use_alpha_legend && !isempty(alpha_order)
+                for α in alpha_order
+                    length(alpha_legend_labs) >= _MAX_DATA_LEGEND && break
+                    col = alpha_colors[α]
+                    push!(alpha_legend_elems, [
+                        LineElement(color=col, linestyle=:dash, linewidth=2),
+                        MarkerElement(marker=:circle, color=col, markersize=10),
+                    ])
+                    push!(alpha_legend_labs, "α=$(α)°: line=TN 1546, dots=XFOIL")
+                end
+            end
             if spec.xscale === :log10
                 _apply_log_ticks!(ax, panel_xs; dim=:x)
             end
             if spec.yscale === :log10
                 _apply_log_ticks!(ax, panel_ys; dim=:y)
             end
-            if legend_n > 0
+            if !isempty(alpha_legend_labs)
+                Legend(fig[p, 2], alpha_legend_elems, alpha_legend_labs;
+                       framevisible=false, labelsize=10)
+            elseif legend_n > 0
                 Legend(fig[p, 2], ax; framevisible=false, labelsize=10)
             end
         end

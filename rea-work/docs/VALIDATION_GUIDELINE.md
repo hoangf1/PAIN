@@ -1191,6 +1191,38 @@ Inputs: polar tables in package data / aircraft JSON as used by Pkg.test.
 Equations: none (loader); code `polars.jl`.
 Outputs: Pkg.test assertions only; no registry verdict.
 
+### Case: POLAR_R996
+**Title:** Report 996 polars (display)
+**Map / block:** total / A_GEO
+**Category:** display
+**Kind:** runnable
+**Source:** `polars_forced_merged.json` via `load_polar_set`; Viterna via CCBlade.viterna; TN 1546 measured overlay via `measured_polar_series`; section ops from CCBlade (same path as `evaluate_propeller_source`)
+**What it tests:** Nothing — display of the XFOIL/Viterna polars, TN 1546 measured overlay, Mach gap to tip, and where R996_LOADS / FIG12 / FIG13A / FIG14 blade sections operate (Mach, α, Re).
+**Why it is here:** The Validation tab shows BEMT/F1A results that use the polars, not the polars; many runs sit outside the polar grid (Mach ≤ 0.72, α −6°–14°, Re from 3×10⁵); tip Mach reaches 0.75–0.90 with no XFOIL data.
+**A pass means:** display only (verdict always `:no_verdict`; no criterion).
+**Not covered:** Not a load or acoustic check; measured data are display only (BEMT does not read them); Re in the coverage panel uses μ_air = 1.78×10⁻⁵ for display (production CCBlade still uses default μ = 1).
+**Recorded outcome:** display only; figures `POLAR_R996.png`
+**Explanation:** Display only: panels 1–2 show c_l, c_d vs α for section n16_506 (NACA 16-506; exact TN 1546 match nearest 0.75 R, blade-form station ≈0.87 R) at the Re nearest the median outer-blade operating Re, one XFOIL series per Mach, Viterna extension dashed, and TN 1546 markers at M = 0.4, 0.55, 0.65, 0.72 (c_d rows with `assignment=uncertain` skipped). Axes limited to the operating α band. Panel 3: α vs local Mach with the polar domain box; inside points steel blue, outside red. Panel 4: c_l vs Mach at TN 1546 α — one colour per α for both the measured dashed curve and the XFOIL filled markers (≤0.72); compact legend `α=…°: line=TN 1546, dots=XFOIL`; band 0.72–0.90 = tested tip Mach, no XFOIL. Table: per-run outside counts, PolarStats, and informational c_l (XFOIL − TN 1546) at each overlaid (α, M).
+Inputs: `data/report996/polars_forced_merged.json` primary/bracket via `load_polar_set`; blade form `naca_4-5-08-03/blade_form.csv`; `data/airfoil_measured/tn1546_fig3_cl_cd_vs_mach.csv` (display overlay only); same (β₇₅, M_t, B) configs as the Report 996 load/acoustic cases.
+Equations: CCBlade BEMT section solve (`ccblade_section_operating_points`); Viterna (`CCBlade.viterna`); no new aero model.
+Outputs: four panels + table; verdict `:no_verdict`.
+
+### Case: POLAR_PER
+**Title:** Pereira polars (display)
+**Map / block:** total / A_GEO
+**Category:** display
+**Kind:** runnable
+**Source:** `naca4412_xfoil_ncrit9.json` (plus ncrit5 / xtr005); Report 824 NACA 4412 via `measured_polar_series`; section ops from CCBlade (same path as `evaluate_propeller_source`)
+**What it tests:** Nothing — display of the Pereira XFOIL polars, Report 824 measured overlay, and where PER_LOADS / PER_FIG* blade sections operate.
+**Why it is here:** Same gap as POLAR_R996 for the forward-flight polar set.
+**A pass means:** display only (verdict always `:no_verdict`; no criterion).
+**Not covered:** Not a thrust or SPL check; measured data are display only (BEMT does not read them); Report 824 is Re 3–9×10⁶ while Pereira operates near 1.4×10⁵.
+**Recorded outcome:** display only; figures `POLAR_PER.png`
+**Explanation:** Display only: panels 1–2 show NACA 4412 c_l, c_d vs α at the Re nearest the median outer-blade Re (ncrit9 all Mach; ncrit5/xtr005 at one mid Mach) with Report 824 c_l(α) markers on panel 1. Panel 3: α vs local Mach for the three polar-set runs behind PER_LOADS / PER_FIG*; inside steel blue, outside red. Panel 4: c_d vs c_l (XFOIL + Report 824 markers) — simpler honest option vs remapping c_d through c_l(α) at mismatched Re. Title notes the Re mismatch. Table: per-run outside counts and PolarStats.
+Inputs: `data/pereira/naca4412_xfoil_*.json` via `load_polar_set`; geometry from `pereira_fig1b_chord_twist.csv` (same downsample as the Pereira script); `data/airfoil_measured/tr824_naca4412_cl_alpha.csv` and `tr824_naca4412_cd_cl.csv` (display overlay only).
+Equations: CCBlade BEMT section solve; no new aero model.
+Outputs: four panels + table; verdict `:no_verdict`.
+
 ### Case: R996_LOADS
 **Title:** Report 996 CCBlade loads
 **Map / block:** total / A_LOADS

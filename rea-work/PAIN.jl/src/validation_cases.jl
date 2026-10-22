@@ -34,14 +34,23 @@ struct PlotSpec
     error_ylabel::String
     error_tol::Union{Nothing,Float64}
     error_xlabel::Union{Nothing,String}  # nothing → reuse xlabel (main-panel x)
+    # Optional per-panel overrides (empty / missing → fall back to xlabel/ylabel/xlim/ylim).
+    panel_xlabels::Vector{String}
+    panel_ylabels::Vector{String}
+    panel_xlims::Vector{Union{Nothing,NTuple{2,Float64}}}
+    panel_ylims::Vector{Union{Nothing,NTuple{2,Float64}}}
 end
 
 PlotSpec(; xlabel="", ylabel="", xscale=:identity, yscale=:identity,
          xlim=nothing, ylim=nothing, panel_titles=String[],
          tolerance_band=nothing, error_mode=:absolute, error_ylabel="",
-         error_tol=nothing, error_xlabel=nothing) =
+         error_tol=nothing, error_xlabel=nothing,
+         panel_xlabels=String[], panel_ylabels=String[],
+         panel_xlims=Union{Nothing,NTuple{2,Float64}}[],
+         panel_ylims=Union{Nothing,NTuple{2,Float64}}[]) =
     PlotSpec(xlabel, ylabel, xscale, yscale, xlim, ylim, panel_titles, tolerance_band,
-             error_mode, error_ylabel, error_tol, error_xlabel)
+             error_mode, error_ylabel, error_tol, error_xlabel,
+             panel_xlabels, panel_ylabels, panel_xlims, panel_ylims)
 
 """Published figure citation for a case."""
 struct FigureRef

@@ -201,7 +201,7 @@ flowchart LR
 
 | Block | Status / evidence | Where |
 |-------|-------------------|-------|
-| Polars | Viterna fixed pre-comparison | UT_POLAR |
+| Polars | Viterna fixed pre-comparison; display of curves + measured overlay + coverage (`POLAR_R996` panel 4: one colour per α) | UT_POLAR, POLAR_R996, POLAR_PER |
 | CCBlade BEMT | T, Q / C_T, C_P | R996_LOADS, PER_LOADS |
 | F1A free-field p | Shared `evaluate_propeller_source` | `propeller_ccblade.jl` |
 | BBN phase | Common time base; I-19 pair φ_b−φ_a (post-hoc) | BBN_KIN, BBN_CIRC, BBN_LONG |

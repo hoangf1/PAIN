@@ -85,6 +85,7 @@ ApplicationWindow {
         if (cat === "calibrated") return "#8a4b08"
         if (cat === "input_qa") return "#5b4b8a"
         if (cat === "extrap") return "#b4500a"
+        if (cat === "display") return "#4a6670"
         return "#9aa3ae"  // deferred / unknown
     }
 

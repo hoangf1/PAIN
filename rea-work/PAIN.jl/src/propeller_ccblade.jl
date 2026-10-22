@@ -369,6 +369,66 @@ function evaluate_propeller_source(cfg, observers::Vector{Observer};
     return SourceResult(amplitude, phase, collect(1:n_harmonics), bpf, T, Q, CT, CQ, CP, echo)
 end
 
+"""Air viscosity used only for display Re of section operating points (Pa·s).
+CCBlade `OperatingPoint` still defaults to μ=1 (unchanged production path)."""
+const _DISPLAY_MU_AIR = 1.78e-5
+
+"""
+    ccblade_section_operating_points(cfg; af=nothing, allow_static=false)
+        -> NamedTuple
+
+Same CCBlade BEMT setup as `evaluate_propeller_source` (rotor, sections, ops, solve)
+without F1A. Returns per-section `r_m`, `r_over_R`, `alpha_deg`, `Mach`, `Re`
+(Re = ρ W₀ c / μ_air with μ_air = 1.78e-5 for display; Mach = W₀/c₀ as in CCBlade).
+"""
+function ccblade_section_operating_points(cfg; af=nothing, allow_static::Bool=false)
+    p = cfg.propeller
+    op = cfg.operating_point
+    B = Int(p.num_blades)
+    Rtip = Float64(p.tip_radius_m)
+    Rhub = Float64(p.hub_radius_m)
+    rpm = Float64(p.rpm)
+    Ω = rpm * 2π / 60
+    Vinf = Float64(_get(op, :forward_speed_mps, 20.0))
+    if Vinf < 1.0 && !allow_static
+        Vinf = 20.0
+    end
+    ρ = Float64(_get(op, :rho_kg_m3, 1.225))
+    c0 = Float64(_get(op, :c0_mps, 340.0))
+    pitch_off = Float64(_get(p, :pitch_offset_deg, 0.0))
+
+    if _get(p, :radii_m, nothing) !== nothing
+        r = Float64.(collect(p.radii_m))
+        chord = Float64.(collect(p.chord_m))
+        theta = Float64.(collect(p.twist_deg)) .* (π / 180) .+ deg2rad(pitch_off)
+        nsec = length(r)
+    else
+        nsec = 12
+        r = collect(range(Rhub + 1e-3, Rtip - 1e-3; length=nsec))
+        chord = fill(0.08 * Rtip, nsec)
+        theta = collect(range(40.0, 10.0; length=nsec)) .* (π / 180) .+ deg2rad(pitch_off)
+    end
+
+    af_fn = af === nothing ? _default_af : af
+    rotor = CCBlade.Rotor(Rhub, Rtip, B)
+    sections = [CCBlade.Section(r[i], chord[i], theta[i], af_fn) for i in 1:nsec]
+    ops = [CCBlade.OperatingPoint(Vinf, Ω * r[i], ρ; asound=c0) for i in 1:nsec]
+    outs = CCBlade.solve.(Ref(rotor), sections, ops)
+
+    alpha_deg = Float64[rad2deg(outs[i].alpha) for i in 1:nsec]
+    Mach = Float64[]
+    Re = Float64[]
+    for i in 1:nsec
+        W0 = hypot(ops[i].Vx, ops[i].Vy)
+        push!(Mach, W0 / c0)
+        push!(Re, ρ * W0 * chord[i] / _DISPLAY_MU_AIR)
+    end
+    return (
+        r_m=r, r_over_R=r ./ Rtip, chord_m=chord, alpha_deg=alpha_deg, Mach=Mach, Re=Re,
+        Rtip=Rtip, Vinf=Vinf, rho=ρ, c0=c0, B=B, rpm=rpm,
+    )
+end
+
 """
     apply_table8_calibration(grid, csv) -> (grid, scales)
 

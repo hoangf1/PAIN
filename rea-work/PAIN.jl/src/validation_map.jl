@@ -4,7 +4,7 @@
 struct CaseInfo
     id::String
     title::String
-    category::Symbol      # :verification | :experiment | :calibrated | :input_qa | :extrap | :deferred
+    category::Symbol      # :verification | :experiment | :calibrated | :input_qa | :extrap | :deferred | :display
     kind::Symbol          # :runnable | :replay | :report | :pkgtest | :deferred
     source::String
     verifies::String
@@ -161,7 +161,7 @@ function parse_validation_guideline_section(md::AbstractString)
             block_id = String(strip(parts_mb[2]))
             cat = Symbol(_field_value(fields, "Category"; id="Case: $id"))
             kind = Symbol(_field_value(fields, "Kind"; id="Case: $id"))
-            cat in (:verification, :experiment, :calibrated, :input_qa, :extrap, :deferred) ||
+            cat in (:verification, :experiment, :calibrated, :input_qa, :extrap, :deferred, :display) ||
                 error("VALIDATION_GUIDELINE.md §2.13: Case $id bad Category: $cat")
             kind in (:runnable, :replay, :report, :pkgtest, :deferred) ||
                 error("VALIDATION_GUIDELINE.md §2.13: Case $id bad Kind: $kind")

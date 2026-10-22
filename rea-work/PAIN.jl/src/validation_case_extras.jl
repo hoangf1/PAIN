@@ -1685,12 +1685,518 @@ function _run_unc_cover()
     )
 end
 
+# --- Polar display cases (display only; no criterion) ---------------------------------
+
+const _R996_POLAR_PATH = joinpath("report996", "polars_forced_merged.json")
+const _R996_BLADE_FORM = joinpath("report996", "naca_4-5-08-03", "blade_form.csv")
+# Representative section for polar display: exact TN 1546 match nearest 0.75 R.
+# n16_507 is at r/R = 0.75 but has no TN 1546 digitization; among TN matches,
+# n16_506 (blade-form t/c≈0.06 → r/R≈0.87) is nearer 0.75 than n16_509 (r/R≈0.60).
+const _R996_SECTION_REP = "n16_506"
+const _R996_SECTION_R_OVER_R = 0.87
+const _R996_CR75 = 0.1251  # c/R at 0.75 R (Viterna rotor argument)
+const _R996_M_LO, _R996_M_HI = 0.1, 0.72
+const _R996_A_LO, _R996_A_HI = -6.0, 14.0
+const _R996_TIP_M_LO, _R996_TIP_M_HI = 0.72, 0.90
+"""Last polar-display operating points (for recount tests; not a criterion)."""
+const _POLAR_DISPLAY_CACHE = Dict{String,NamedTuple}()
+
+"""Count sections outside Mach box / α box from operating-point rows `(Mach, alpha_deg)`."""
+function polar_coverage_recount(points; M_lo, M_hi, α_lo, α_hi)
+    n_out_M = count(p -> p.Mach < M_lo - 1e-12 || p.Mach > M_hi + 1e-12, points)
+    n_out_α = count(p -> p.alpha_deg < α_lo - 1e-12 || p.alpha_deg > α_hi + 1e-12, points)
+    return (n_out_M=n_out_M, n_out_α=n_out_α, n=length(points))
+end
+
+function _rpm_from_Mt(Mt; D=1.2192, a=340.3)
+    return Mt * a * 60 / (π * D)
+end
+
+function _r996_cfg(; beta75, Mt, B, D=1.2192)
+    g = blade_form_geometry(_data_path(splitpath(_R996_BLADE_FORM)...); D=D, beta75_target_deg=Float64(beta75))
+    return (
+        propeller = (
+            num_blades = B,
+            tip_radius_m = g.R,
+            hub_radius_m = g.radii_m[1],
+            rpm = _rpm_from_Mt(Mt; D=D),
+            thickness_over_chord = 0.0,
+            pitch_offset_deg = 0.0,
+            radii_m = collect(g.radii_m),
+            chord_m = collect(g.chord_m),
+            twist_deg = collect(g.twist_deg),
+        ),
+        operating_point = (forward_speed_mps = 0.0, rho_kg_m3 = 1.225, c0_mps = 340.3),
+        anopp_table8_calibrate = false,
+    )
+end
+
+"""Unique (β₇₅, M_t, B, polar_set) runs behind R996_LOADS / FIG12 / FIG13A / FIG14."""
+function _r996_display_runs()
+    # LOADS matrix (scripts/run/run_report996_loads.jl CASES) + acoustics configs.
+    loads = [
+        (10.0, 0.45, 2), (10.0, 0.60, 2), (15.0, 0.45, 2), (15.0, 0.60, 2),
+        (20.0, 0.60, 2), (8.0, 0.60, 2), (10.0, 0.75, 2), (10.0, 0.90, 2),
+    ]
+    runs = NamedTuple[]
+    for (β, Mt, B) in loads
+        for pset in (:primary, :bracket)
+            push!(runs, (name="LOADS β=$β Mt=$Mt $pset", beta75=β, Mt=Mt, B=B, polar_set=pset))
+        end
+    end
+    # FIG14: β=10, Mt∈{0.45,0.60,0.75,0.90}, primary+bracket
+    for Mt in (0.45, 0.60, 0.75, 0.90)
+        for pset in (:primary, :bracket)
+            push!(runs, (name="FIG14 Mt=$Mt $pset", beta75=10.0, Mt=Mt, B=2, polar_set=pset))
+        end
+    end
+    # FIG13A: β=15, Mt=0.75, primary+bracket
+    for pset in (:primary, :bracket)
+        push!(runs, (name="FIG13A $pset", beta75=15.0, Mt=0.75, B=2, polar_set=pset))
+    end
+    # FIG12: β=10, Mt∈{0.75,0.90}, primary only
+    for Mt in (0.75, 0.90)
+        push!(runs, (name="FIG12 Mt=$Mt primary", beta75=10.0, Mt=Mt, B=2, polar_set=:primary))
+    end
+    # Deduplicate by (β, Mt, B, polar_set) keeping first name.
+    seen = Set{NTuple{4,Any}}()
+    out = NamedTuple[]
+    for r in runs
+        key = (r.beta75, r.Mt, r.B, r.polar_set)
+        key in seen && continue
+        push!(seen, key)
+        push!(out, r)
+    end
+    return out
+end
+
+function _pereira_cfg_from_csv()
+    path = _data_path("pereira", "pereira_fig1b_chord_twist.csv")
+    lines = filter(l -> !startswith(strip(l), "#") && !isempty(strip(l)), readlines(path))
+    rows = lines[2:end]
+    rR = Float64[]; cR = Float64[]; tw = Float64[]
+    for row in rows
+        p = split(row, ',')
+        length(p) >= 3 || continue
+        push!(rR, parse(Float64, p[1]))
+        push!(cR, parse(Float64, p[2]))
+        push!(tw, parse(Float64, p[3]))
+    end
+    N = length(rR)
+    idx = N <= 25 ? collect(1:N) : unique(round.(Int, range(1, N; length=25)))
+    rR, cR, tw = rR[idx], cR[idx], tw[idx]
+    R = 0.15
+    keep = [i for i in eachindex(rR) if 0.30 - 1e-6 <= rR[i] <= 0.99 + 1e-6]
+    radii = [rR[i] * R for i in keep]
+    chord = [cR[i] * R for i in keep]
+    twist = [tw[i] for i in keep]
+    return (
+        propeller = (
+            num_blades = 2,
+            tip_radius_m = R,
+            hub_radius_m = radii[1],
+            rpm = 8000.0,
+            thickness_over_chord = 0.0,
+            pitch_offset_deg = 0.0,
+            radii_m = radii,
+            chord_m = chord,
+            twist_deg = twist,
+        ),
+        operating_point = (forward_speed_mps = 16.0, rho_kg_m3 = 1.225, c0_mps = 340.3),
+        anopp_table8_calibrate = false,
+    )
+end
+
+function _coverage_box_series(M_lo, M_hi, α_lo, α_hi; panel::Int)
+    # Closed rectangle on (Mach, α) axes for panel 3.
+    xs = [M_lo, M_hi, M_hi, M_lo, M_lo]
+    ys = [α_lo, α_lo, α_hi, α_hi, α_lo]
+    return PlotSeries("polar data domain", :reference_curve, xs, ys; panel=panel)
+end
+
+function _append_polar_curve_series!(series, tables, section, Re, Ms; panel_cl, panel_cd, tag_prefix, kind=:computed)
+    for M in Ms
+        key = (section, Re, Float64(M))
+        # Tolerate M key formatting 0.20 vs 0.2
+        pts = get(tables, key, nothing)
+        if pts === nothing
+            for (k, v) in tables
+                k[1] == section && k[2] == Re && abs(k[3] - Float64(M)) < 1e-9 || continue
+                pts = v; break
+            end
+        end
+        pts === nothing && continue
+        α = Float64[p[1] for p in pts]
+        cl = Float64[p[2] for p in pts]
+        cd = Float64[p[3] for p in pts]
+        name = "$tag_prefix M=$(M)"
+        push!(series, PlotSeries(name, kind, α, cl; panel=panel_cl))
+        push!(series, PlotSeries(name, kind, α, cd; panel=panel_cd))
+    end
+    return nothing
+end
+
+function _append_viterna_series!(series, tables, section, Re, Ms, cr75; panel_cl, panel_cd)
+    for M in Ms
+        pts = nothing
+        for (k, v) in tables
+            k[1] == section && k[2] == Re && abs(k[3] - Float64(M)) < 1e-9 || continue
+            pts = v; break
+        end
+        pts === nothing && continue
+        αe, cle, cde = _viterna_extension_curve(pts, cr75)
+        isempty(αe) && continue
+        name = "Viterna ext. M=$(M)"
+        push!(series, PlotSeries(name, :reference_curve, αe, cle; panel=panel_cl))
+        push!(series, PlotSeries(name, :reference_curve, αe, cde; panel=panel_cd))
+    end
+    return nothing
+end
+
+"""Look up one (section, Re, M) polar table (tolerates M key float formatting)."""
+function _polar_pts(tables, section, Re, M)
+    key = (section, Re, Float64(M))
+    pts = get(tables, key, nothing)
+    if pts === nothing
+        for (k, v) in tables
+            k[1] == section && k[2] == Re && abs(k[3] - Float64(M)) < 1e-9 || continue
+            return v
+        end
+    end
+    return pts
+end
+
+"""XFOIL c_l at α_deg on one polar table; `nothing` if α outside the table (no extrap)."""
+function _xfoil_cl_at_alpha(pts, α_deg)
+    pts === nothing && return nothing
+    isempty(pts) && return nothing
+    αs = Float64[p[1] for p in pts]
+    cls = Float64[p[2] for p in pts]
+    return interp_no_extrap(αs, cls, α_deg)
+end
+
+function _run_polar_r996()
+    polar_path = _data_path(splitpath(_R996_POLAR_PATH)...)
+    tab = _polar_tables(polar_path)
+    runs = _r996_display_runs()
+    all_pts = NamedTuple[]  # (run, Mach, alpha_deg, Re, r_over_R)
+    run_rows = NamedTuple[]
+    outer_Re = Float64[]
+
+    for run in runs
+        af, st = load_polar_set(polar_path; set=run.polar_set)
+        cfg = _r996_cfg(; beta75=run.beta75, Mt=run.Mt, B=run.B)
+        ops = ccblade_section_operating_points(cfg; af=af, allow_static=true)
+        n_sec = length(ops.Mach)
+        pts_run = NamedTuple[]
+        for i in 1:n_sec
+            p = (run=run.name, Mach=ops.Mach[i], alpha_deg=ops.alpha_deg[i],
+                 Re=ops.Re[i], r_over_R=ops.r_over_R[i])
+            push!(all_pts, p)
+            push!(pts_run, p)
+            ops.r_over_R[i] >= 0.70 && push!(outer_Re, ops.Re[i])
+        end
+        cov = polar_coverage_recount(pts_run; M_lo=_R996_M_LO, M_hi=_R996_M_HI,
+                                     α_lo=_R996_A_LO, α_hi=_R996_A_HI)
+        push!(run_rows, (
+            name=run.name, n_out_M=cov.n_out_M, n_out_α=cov.n_out_α, n_sec=n_sec,
+            clamped_Re=st.clamped_Re, clamped_M=st.clamped_M,
+            viterna_evals=st.viterna_evals, nearest_polar=st.nearest_polar,
+        ))
+    end
+
+    Re_med = isempty(outer_Re) ? tab.Res[1] : sort(outer_Re)[cld(length(outer_Re), 2)]
+    Re_rep = _nearest_grid(Re_med, tab.Res)
+    section = _R996_SECTION_REP
+    measured = measured_polar_series(section)
+
+    series = PlotSeries[]
+    _append_polar_curve_series!(series, tab.tables, section, Re_rep, tab.Ms;
+                                panel_cl=1, panel_cd=2, tag_prefix="XFOIL")
+    _append_viterna_series!(series, tab.tables, section, Re_rep, tab.Ms, _R996_CR75;
+                            panel_cl=1, panel_cd=2)
+
+    # TN 1546 overlays on panels 1–2 (c_l, c_d vs α at XFOIL Mach values TN covers).
+    for m in measured
+        m.kind === :cl_cd_at_M || continue
+        lab = "TN 1546 measured M=$(m.Mach)"
+        if !isempty(m.alpha_cl)
+            push!(series, PlotSeries(lab, :measured_points, m.alpha_cl, m.cl; panel=1))
+        end
+        if !isempty(m.alpha_cd)
+            push!(series, PlotSeries(lab, :measured_points, m.alpha_cd, m.cd; panel=2))
+        end
+    end
+
+    push!(series, _coverage_box_series(_R996_M_LO, _R996_M_HI, _R996_A_LO, _R996_A_HI; panel=3))
+    xin = Float64[]; yin = Float64[]; xout = Float64[]; yout = Float64[]
+    for p in all_pts
+        out = p.Mach < _R996_M_LO - 1e-12 || p.Mach > _R996_M_HI + 1e-12 ||
+              p.alpha_deg < _R996_A_LO - 1e-12 || p.alpha_deg > _R996_A_HI + 1e-12
+        if out
+            push!(xout, p.Mach); push!(yout, p.alpha_deg)
+        else
+            push!(xin, p.Mach); push!(yin, p.alpha_deg)
+        end
+    end
+    push!(series, PlotSeries("inside polar grid", :inside_points, xin, yin; panel=3))
+    push!(series, PlotSeries("outside polar grid", :outside_points, xout, yout; panel=3))
+
+    # Panel 4: c_l vs Mach — TN 1546 curves + XFOIL markers; tip-Mach band with no XFOIL.
+    for m in measured
+        m.kind === :cl_vs_M || continue
+        push!(series, PlotSeries("TN 1546 α=$(m.alpha_deg)°", :reference_curve,
+                                 m.mach, m.cl; panel=4))
+    end
+    # Tip Mach band (tested tip Mach 0.72–0.90; XFOIL grid stops at 0.72).
+    tip_x = [_R996_TIP_M_LO, _R996_TIP_M_HI]
+    tip_lo = [-2.0, -2.0]  # placeholder; band y range filled after we know cl span
+    tip_hi = [2.0, 2.0]
+    cl_panel4 = Float64[]
+    for m in measured
+        m.kind === :cl_vs_M || continue
+        append!(cl_panel4, m.cl)
+    end
+    if !isempty(cl_panel4)
+        clo, chi = extrema(cl_panel4)
+        pad = 0.05 * max(chi - clo, 0.2)
+        tip_lo = [clo - pad, clo - pad]
+        tip_hi = [chi + pad, chi + pad]
+    end
+    push!(series, PlotSeries("tested tip Mach (no XFOIL)", :reference_band,
+                             tip_x, tip_lo; ylow=tip_lo, yhigh=tip_hi, panel=4))
+
+    xfoil_Ms = Float64[M for M in tab.Ms if M <= _R996_M_HI + 1e-12]
+    for m in measured
+        m.kind === :cl_vs_M || continue
+        α = m.alpha_deg
+        Mx = Float64[]; clx = Float64[]
+        for M in xfoil_Ms
+            pts = _polar_pts(tab.tables, section, Re_rep, M)
+            clv = _xfoil_cl_at_alpha(pts, α)
+            clv === nothing && continue
+            push!(Mx, Float64(M)); push!(clx, clv)
+        end
+        isempty(Mx) && continue
+        push!(series, PlotSeries("XFOIL α=$(α)°", :computed_points, Mx, clx; panel=4))
+    end
+
+    table = ValidationTableRow[]
+    for (i, r) in enumerate(run_rows)
+        push!(table, ValidationTableRow("n_out_M $(r.name)", Float64(i), NaN, Float64(r.n_out_M), NaN, false, "n_out_M"))
+        push!(table, ValidationTableRow("n_out_α $(r.name)", Float64(i), NaN, Float64(r.n_out_α), NaN, false, "n_out_α"))
+        push!(table, ValidationTableRow("clamped_Re $(r.name)", Float64(i), NaN, Float64(r.clamped_Re), NaN, false, "PolarStats"))
+        push!(table, ValidationTableRow("clamped_M $(r.name)", Float64(i), NaN, Float64(r.clamped_M), NaN, false, "PolarStats"))
+        push!(table, ValidationTableRow("viterna_evals $(r.name)", Float64(i), NaN, Float64(r.viterna_evals), NaN, false, "PolarStats"))
+        push!(table, ValidationTableRow("nearest_polar $(r.name)", Float64(i), NaN, Float64(r.nearest_polar), NaN, false, "PolarStats"))
+    end
+    # Informational: c_l difference XFOIL − TN 1546 at each overlaid (α, M) point.
+    for m in measured
+        m.kind === :cl_cd_at_M || continue
+        pts = _polar_pts(tab.tables, section, Re_rep, m.Mach)
+        for (α, cl_m) in zip(m.alpha_cl, m.cl)
+            cl_x = _xfoil_cl_at_alpha(pts, α)
+            cl_x === nothing && continue
+            dcl = cl_x - cl_m
+            push!(table, ValidationTableRow(
+                "c_l XFOIL−TN1546 α=$(α) M=$(m.Mach)", Float64(m.Mach),
+                cl_m, cl_x, dcl, false, "cl_diff"))
+        end
+    end
+
+    panel_titles = [
+        "c_l vs α — $section @ Re=$(Re_rep) (r/R≈$(_R996_SECTION_R_OVER_R); median outer Re≈$(round(Re_med; sigdigits=3)))",
+        "c_d vs α — $section @ Re=$(Re_rep); TN 1546 c_d rows with assignment=uncertain skipped",
+        "Coverage: α vs local Mach (box Mach $(_R996_M_LO)–$(_R996_M_HI), α $(_R996_A_LO)°–$(_R996_A_HI)°)",
+        "c_l vs Mach — TN 1546 α curves + XFOIL markers (≤0.72); band $(_R996_TIP_M_LO)–$(_R996_TIP_M_HI) = tested tip Mach (no XFOIL)",
+    ]
+    _POLAR_DISPLAY_CACHE["POLAR_R996"] = (;
+        points=all_pts, run_rows=run_rows, section=section, Re_rep=Re_rep,
+        Re_median_outer=Re_med, M_lo=_R996_M_LO, M_hi=_R996_M_HI,
+        alpha_lo=_R996_A_LO, alpha_hi=_R996_A_HI, measured=measured,
+    )
+    return ValidationCaseResult(
+        "POLAR_R996", _today_iso(),
+        (; polar=polar_path, section=section, section_r_over_R=_R996_SECTION_R_OVER_R,
+         Re_rep=Re_rep, Re_median_outer=Re_med,
+         M_lo=_R996_M_LO, M_hi=_R996_M_HI, alpha_lo=_R996_A_LO, alpha_hi=_R996_A_HI,
+         n_points=length(all_pts), n_runs=length(run_rows), panel_titles=panel_titles,
+         criterion="display only", date="2026-10-22"),
+        table, series, :no_verdict,
+        "display only; section $section at r/R≈$(_R996_SECTION_R_OVER_R) (TN 1546 match nearest 0.75 R); Re_rep=$Re_rep",
+        "display only",
+        joinpath(_VAL_REPORT_DIR, "polar_display_r996.md"),
+    )
+end
+
+function _run_polar_per()
+    paths = (
+        ncrit9 = _data_path("pereira", "naca4412_xfoil_ncrit9.json"),
+        ncrit5 = _data_path("pereira", "naca4412_xfoil_ncrit5.json"),
+        xtr005 = _data_path("pereira", "naca4412_xfoil_xtr005.json"),
+    )
+    tab9 = _polar_tables(paths.ncrit9)
+    section = "naca4412"
+    cfg = _pereira_cfg_from_csv()
+    # PER_LOADS / PER_FIG* share one operating point; three polars (thickness does not change BEMT α).
+    run_defs = [
+        (name="PER ncrit9", path=paths.ncrit9, tag=:ncrit9),
+        (name="PER ncrit5", path=paths.ncrit5, tag=:ncrit5),
+        (name="PER xtr005", path=paths.xtr005, tag=:xtr005),
+    ]
+    all_pts = NamedTuple[]
+    run_rows = NamedTuple[]
+    outer_Re = Float64[]
+    M_lo = minimum(tab9.Ms)
+    M_hi = maximum(tab9.Ms)
+    # α domain from primary set at a mid Re/M for the box (XFOIL span −6… typically).
+    α_lo, α_hi = -6.0, 14.0
+    sample_pts = first(values(tab9.tables))
+    if !isempty(sample_pts)
+        α_lo = sample_pts[1][1]
+        α_hi = sample_pts[end][1]
+    end
+
+    for rd in run_defs
+        isfile(rd.path) || continue
+        af, st = load_polar_set(rd.path; set=:primary)
+        ops = ccblade_section_operating_points(cfg; af=af, allow_static=false)
+        n_sec = length(ops.Mach)
+        pts_run = NamedTuple[]
+        for i in 1:n_sec
+            p = (run=rd.name, Mach=ops.Mach[i], alpha_deg=ops.alpha_deg[i],
+                 Re=ops.Re[i], r_over_R=ops.r_over_R[i])
+            push!(all_pts, p)
+            push!(pts_run, p)
+            ops.r_over_R[i] >= 0.70 && push!(outer_Re, ops.Re[i])
+        end
+        cov = polar_coverage_recount(pts_run; M_lo=M_lo, M_hi=M_hi, α_lo=α_lo, α_hi=α_hi)
+        push!(run_rows, (
+            name=rd.name, n_out_M=cov.n_out_M, n_out_α=cov.n_out_α, n_sec=n_sec,
+            clamped_Re=st.clamped_Re, clamped_M=st.clamped_M,
+            viterna_evals=st.viterna_evals, nearest_polar=st.nearest_polar,
+        ))
+    end
+
+    Re_med = isempty(outer_Re) ? tab9.Res[1] : sort(outer_Re)[cld(length(outer_Re), 2)]
+    Re_rep = _nearest_grid(Re_med, tab9.Res)
+
+    series = PlotSeries[]
+    measured = measured_polar_series(section)
+    _append_polar_curve_series!(series, tab9.tables, section, Re_rep, tab9.Ms;
+                                panel_cl=1, panel_cd=2, tag_prefix="ncrit9")
+    # Extra polars at one mid Mach (cheap; keeps legend short).
+    M_mid = _nearest_grid(0.2, tab9.Ms)
+    for (tag, path) in ((:ncrit5, paths.ncrit5), (:xtr005, paths.xtr005))
+        isfile(path) || continue
+        t = _polar_tables(path)
+        Re_x = _nearest_grid(Re_med, t.Res)
+        _append_polar_curve_series!(series, t.tables, section, Re_x, [M_mid];
+                                    panel_cl=1, panel_cd=2, tag_prefix=String(tag))
+    end
+    # Report 824 c_l(α) overlay on panel 1 (display only).
+    for m in measured
+        m.kind === :cl_alpha || continue
+        lab = "TR 824 Re=$(m.reynolds)"
+        push!(series, PlotSeries(lab, :measured_points, m.alpha, m.cl; panel=1))
+    end
+
+    push!(series, _coverage_box_series(M_lo, M_hi, α_lo, α_hi; panel=3))
+    xin = Float64[]; yin = Float64[]; xout = Float64[]; yout = Float64[]
+    for p in all_pts
+        out = p.Mach < M_lo - 1e-12 || p.Mach > M_hi + 1e-12 ||
+              p.alpha_deg < α_lo - 1e-12 || p.alpha_deg > α_hi + 1e-12
+        if out
+            push!(xout, p.Mach); push!(yout, p.alpha_deg)
+        else
+            push!(xin, p.Mach); push!(yin, p.alpha_deg)
+        end
+    end
+    push!(series, PlotSeries("inside polar grid", :inside_points, xin, yin; panel=3))
+    push!(series, PlotSeries("outside polar grid", :outside_points, xout, yout; panel=3))
+
+    # Panel 4: c_d vs c_l — simpler honest option vs remapping c_d(c_l) through c_l(α) at mismatched Re.
+    for M in tab9.Ms
+        pts = _polar_pts(tab9.tables, section, Re_rep, M)
+        pts === nothing && continue
+        cl = Float64[p[2] for p in pts]
+        cd = Float64[p[3] for p in pts]
+        push!(series, PlotSeries("ncrit9 M=$(M)", :computed, cl, cd; panel=4))
+    end
+    for m in measured
+        m.kind === :cd_cl || continue
+        lab = "TR 824 Re=$(m.reynolds)"
+        push!(series, PlotSeries(lab, :measured_points, m.cl, m.cd; panel=4))
+    end
+
+    table = ValidationTableRow[]
+    for (i, r) in enumerate(run_rows)
+        push!(table, ValidationTableRow("n_out_M $(r.name)", Float64(i), NaN, Float64(r.n_out_M), NaN, false, "n_out_M"))
+        push!(table, ValidationTableRow("n_out_α $(r.name)", Float64(i), NaN, Float64(r.n_out_α), NaN, false, "n_out_α"))
+        push!(table, ValidationTableRow("clamped_Re $(r.name)", Float64(i), NaN, Float64(r.clamped_Re), NaN, false, "PolarStats"))
+        push!(table, ValidationTableRow("clamped_M $(r.name)", Float64(i), NaN, Float64(r.clamped_M), NaN, false, "PolarStats"))
+        push!(table, ValidationTableRow("viterna_evals $(r.name)", Float64(i), NaN, Float64(r.viterna_evals), NaN, false, "PolarStats"))
+        push!(table, ValidationTableRow("nearest_polar $(r.name)", Float64(i), NaN, Float64(r.nearest_polar), NaN, false, "PolarStats"))
+    end
+
+    re_note = "Report 824 Re 3–9×10⁶; Pereira operates near Re≈$(round(Re_med; sigdigits=2))"
+    panel_titles = [
+        "c_l vs α — $section @ Re=$(Re_rep) (median outer Re≈$(round(Re_med; sigdigits=3))); $re_note",
+        "c_d vs α — $section @ Re=$(Re_rep); ncrit5/xtr005 at M=$M_mid",
+        "Coverage: α vs local Mach (box Mach $(M_lo)–$(M_hi), α $(α_lo)°–$(α_hi)°)",
+        "c_d vs c_l — XFOIL + TR 824 measured (own panel; no Re-mismatched α remap); $re_note",
+    ]
+    _POLAR_DISPLAY_CACHE["POLAR_PER"] = (;
+        points=all_pts, run_rows=run_rows, section=section, Re_rep=Re_rep,
+        Re_median_outer=Re_med, M_lo=M_lo, M_hi=M_hi, alpha_lo=α_lo, alpha_hi=α_hi,
+        measured=measured,
+    )
+    return ValidationCaseResult(
+        "POLAR_PER", _today_iso(),
+        (; polar=paths.ncrit9, section=section, Re_rep=Re_rep, Re_median_outer=Re_med,
+         M_lo=M_lo, M_hi=M_hi, alpha_lo=α_lo, alpha_hi=α_hi,
+         n_points=length(all_pts), n_runs=length(run_rows), panel_titles=panel_titles,
+         criterion="display only", date="2026-10-22"),
+        table, series, :no_verdict,
+        "display only; section $section; Re_rep=$Re_rep; TR 824 overlay display only",
+        "display only",
+        joinpath(_VAL_REPORT_DIR, "polar_display_pereira.md"),
+    )
+end
+
 function _finish_validation_registry!()
     empty!(VALIDATION_CASES)
     empty!(VALIDATION_CASE_ORDER)
     cases = _make_registry()  # core cases CYL2D…REPRO
     # Runnable extras (not greyed)
     extras = [
+        ValidationCase("POLAR_R996", "Report 996 XFOIL polars and section coverage (display)", "display",
+            [_data_path("report996", "polars_forced_merged.json"),
+             _data_path("airfoil_measured", "tn1546_fig3_cl_cd_vs_mach.csv")],
+            FigureRef("NACA Report 996 / XFOIL", "polars_forced_merged", nothing),
+            "Display only — no pass criterion.",
+            "2026-10-22", "display only", _run_polar_r996,
+            PlotSpec(; xlabel="α (deg)", ylabel="c_l",
+                     panel_titles=["c_l vs α", "c_d vs α", "α vs Mach coverage", "c_l vs Mach"],
+                     panel_xlabels=["α (deg)", "α (deg)", "local Mach", "Mach"],
+                     panel_ylabels=["c_l", "c_d", "α (deg)", "c_l"],
+                     panel_xlims=Union{Nothing,NTuple{2,Float64}}[(-10.0, 35.0), (-10.0, 35.0), nothing, (0.25, 0.95)],
+                     panel_ylims=Union{Nothing,NTuple{2,Float64}}[nothing, (0.0, 0.5), nothing, nothing],
+                     error_mode=:none), ""),
+        ValidationCase("POLAR_PER", "Pereira NACA 4412 polars and section coverage (display)", "display",
+            [_data_path("pereira", "naca4412_xfoil_ncrit9.json"),
+             _data_path("airfoil_measured", "tr824_naca4412_cl_alpha.csv"),
+             _data_path("airfoil_measured", "tr824_naca4412_cd_cl.csv")],
+            FigureRef("Pereira et al. 2026 / XFOIL", "naca4412_xfoil", nothing),
+            "Display only — no pass criterion.",
+            "2026-10-22", "display only", _run_polar_per,
+            PlotSpec(; xlabel="α (deg)", ylabel="c_l",
+                     panel_titles=["c_l vs α", "c_d vs α", "α vs Mach coverage", "c_d vs c_l"],
+                     panel_xlabels=["α (deg)", "α (deg)", "local Mach", "c_l"],
+                     panel_ylabels=["c_l", "c_d", "α (deg)", "c_d"],
+                     panel_xlims=Union{Nothing,NTuple{2,Float64}}[(-10.0, 35.0), (-10.0, 35.0), nothing, nothing],
+                     panel_ylims=Union{Nothing,NTuple{2,Float64}}[nothing, (0.0, 0.5), nothing, nothing],
+                     error_mode=:none), ""),
         ValidationCase("UT_GRID", "Skin grid vs User Manual Fig. 3 (with figure)", "12", String[],
             FigureRef("PAIN User Manual", "Fig. 3", nothing),
             "Computed x1, x2, x3 and θ at sample (k, ℓ) points match User Manual Fig. 3 formulas within 1e-9; figure colours the 160 points by incidence angle γ.",
@@ -1969,6 +2475,7 @@ function _finish_validation_registry!()
         "E11_FREEFIELD", "UT_GRID", "GEXT_BOUND", "BLK_P68", "E12_BLOCK", "MRP_D1", "MRP_RITZ", "MRP_APPD",
         "CYL2D_C1", "E14_LOSS", "E15_STRUCT_LOSS", "REPRO_18b", "E18_TONES",
         "T1", "T2", "T2_EQ19", "E21_E22_NR", "UNC_COVER",
+        "POLAR_R996", "POLAR_PER",
         "R996_LOADS", "PER_LOADS", "F1A_GUTIN", "R996_FIG14", "R996_FIG12", "R996_FIG13A",
         "R996_FIG6", "R996_FIG7", "BBN_KIN", "BBN_CIRC", "BBN_LONG", "R996_PHASE",
         "PER_FIG6", "PER_FIG7", "PER_FIG8", "PER_FIG9", "BBN_LEVELS",
