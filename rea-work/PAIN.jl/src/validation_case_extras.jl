@@ -1095,6 +1095,125 @@ function _run_bbn_long()
     )
 end
 
+"""Read a numeric CSV allowing empty cells → NaN (E-21/E-22 nasa_pred gaps)."""
+function _read_csv_numeric_nan(path::AbstractString)
+    lines = String[]
+    for raw in eachline(path)
+        s = strip(raw)
+        isempty(s) && continue
+        startswith(s, '#') && continue
+        push!(lines, s)
+    end
+    isempty(lines) && error("empty CSV: $path")
+    headers = Symbol.(split(lines[1], ','))
+    cols = Dict{Symbol,Vector{Float64}}(h => Float64[] for h in headers)
+    for row in lines[2:end]
+        vals = split(row, ',')
+        for (i, h) in enumerate(headers)
+            cell = i ≤ length(vals) ? strip(vals[i]) : ""
+            push!(cols[h], isempty(cell) ? NaN : parse(Float64, cell))
+        end
+    end
+    return cols
+end
+
+"""
+Figs. E-21 / E-22 noise reduction (38a). Inputs as NASA p. E-30: Phase III trim η_T = 1.0,
+η_r' ≤ 0.15. End-plate allowance not applied: 80–160 Hz reported but excluded from both counts
+(V-ASSUMED). Counts only over bands **below** the crossover (38b rule). Criterion dated 2026-10-21.
+"""
+function _run_e21_e22_nr()
+    e21 = _read_csv_numeric_nan(_data_path("cr3813", "e21_noise_reduction_range.csv"))
+    e22 = _read_csv_numeric_nan(_data_path("cr3813", "e22_noise_reduction_ci.csv"))
+    bands = Float64.(e21[:band_Hz])
+    mean21 = Float64.(e21[:measured_mean_dB])
+    lo21 = Float64.(e21[:low_dB])
+    hi21 = Float64.(e21[:high_dB])
+    nasa = Float64.(e21[:nasa_pred_dB])
+    # E-22 95 % limits by band (match on band_Hz)
+    b22 = Float64.(e22[:band_Hz])
+    lo22 = Float64.(e22[:low_dB])
+    hi22 = Float64.(e22[:high_dB])
+    lo22_of = Dict(b22[i] => lo22[i] for i in eachindex(b22))
+    hi22_of = Dict(b22[i] => hi22[i] for i in eachindex(b22))
+
+    excluded = Set([80.0, 100.0, 125.0, 160.0])
+    inp = noise_reduction_test_article_inputs(; η_lining=1.0)
+    η_cap = 0.15
+    spec = noise_reduction_spectrum(inp; bands, η_r_cap=η_cap)
+    xover = spec.crossover.fc_Hz
+    got = Float64[r.NR_dB for r in spec.rows]
+    above = Bool[r.above_crossover for r in spec.rows]
+
+    table = ValidationTableRow[]
+    n_nasa_ok = 0
+    n_nasa = 0
+    n_e22_ok = 0
+    n_e22 = 0
+    n_range_ok = 0
+    n_range = 0
+    for i in eachindex(bands)
+        fc = bands[i]
+        g = got[i]
+        # Always report the band
+        if isfinite(nasa[i])
+            d = g - nasa[i]
+            ok_nasa = abs(d) ≤ 3.0
+            push!(table, ValidationTableRow("vs NASA prediction", fc, nasa[i], g, d, ok_nasa,
+                                           "vs NASA prediction"))
+        end
+        if haskey(lo22_of, fc) && isfinite(lo22_of[fc]) && isfinite(hi22_of[fc])
+            inside = lo22_of[fc] ≤ g ≤ hi22_of[fc]
+            mid = (lo22_of[fc] + hi22_of[fc]) / 2
+            push!(table, ValidationTableRow("vs E-22 95 % limits", fc, mid, g, g - mid, inside,
+                                           "vs E-22 95 % limits"))
+        end
+        # Counts: exclude 80–160 Hz; only bands below crossover; require NASA value for V-CODE
+        in_count = !(fc in excluded) && !above[i]
+        if in_count
+            if isfinite(nasa[i])
+                n_nasa += 1
+                n_nasa_ok += abs(g - nasa[i]) ≤ 3.0
+            end
+            if haskey(lo22_of, fc) && isfinite(lo22_of[fc]) && isfinite(hi22_of[fc])
+                n_e22 += 1
+                n_e22_ok += lo22_of[fc] ≤ g ≤ hi22_of[fc]
+            end
+            if isfinite(lo21[i]) && isfinite(hi21[i]) && isfinite(mean21[i])
+                n_range += 1
+                n_range_ok += lo21[i] ≤ g ≤ hi21[i]
+            end
+        end
+    end
+    frac_nasa = n_nasa == 0 ? 0.0 : n_nasa_ok / n_nasa
+    frac_e22 = n_e22 == 0 ? 0.0 : n_e22_ok / n_e22
+    met = frac_nasa ≥ 0.75 && frac_e22 ≥ 0.75
+    reason = "V-CODE $n_nasa_ok/$n_nasa (|Δ|≤3 dB vs NASA); V-EXP $n_e22_ok/$n_e22 (inside E-22 95%); " *
+             "E-21 range (secondary) $n_range_ok/$n_range; crossover=$(round(xover; digits=1)) Hz; " *
+             "excluded 80,100,125,160 Hz (end-plate V-ASSUMED); counts below crossover only"
+    series = [
+        PlotSeries("E-21 measured mean", :reference_points, bands, mean21; panel=1),
+        PlotSeries("E-21 range", :reference_band, bands, mean21; ylow=lo21, yhigh=hi21, panel=1),
+        PlotSeries("E-22 95 %", :reference_band, b22, (lo22 .+ hi22) ./ 2; ylow=lo22, yhigh=hi22, panel=1),
+        PlotSeries("NASA prediction", :reference_points,
+                   bands[isfinite.(nasa)], nasa[isfinite.(nasa)]; panel=1),
+        PlotSeries("Eq.(18) NR", :computed, bands, got; panel=1),
+    ]
+    return ValidationCaseResult(
+        "E21_E22_NR", _today_iso(),
+        (; η_lining=1.0, η_r_cap=η_cap, crossover_Hz=xover, crossover_n_modes=spec.crossover.n_modes,
+         n_nasa_ok, n_nasa, n_e22_ok, n_e22, n_range_ok, n_range,
+         excluded_Hz=(80, 100, 125, 160),
+         criterion="|Δ|≤3 dB vs NASA ≥75%; inside E-22 ≥75%; below crossover; 80–160 excluded",
+         date="2026-10-21",
+         csv_e21=_data_path("cr3813", "e21_noise_reduction_range.csv"),
+         csv_e22=_data_path("cr3813", "e22_noise_reduction_ci.csv")),
+        table, series, met ? :met : :not_met, reason,
+        "V-CODE (vs NASA) / V-EXP held out (vs E-22); first run 2026-10-21",
+        joinpath(_VAL_REPORT_DIR, "e21_e22_noise_reduction.md"),
+    )
+end
+
 function _finish_validation_registry!()
     empty!(VALIDATION_CASES)
     empty!(VALIDATION_CASE_ORDER)
@@ -1278,22 +1397,21 @@ function _finish_validation_registry!()
     ]
     append!(cases, extras)
 
-    # Still greyed: deferred B-4 / optional only (R996_FIG8 removed 2026-10-21 — out of scope M_t=1.0, I-20)
-    grey = [
-        ("E21_E22_NR", "Figs. E-21 / E-22 noise reduction", "31e", "CR-3813", "Figs. E-21, E-22", 149,
-         "Deferred with phase 31 (B-4); optional test-article coverage", "no verdict",
-         PlotSpec(; xlabel="band (Hz)", ylabel="NR (dB)", xscale=:log10, xlim=(63.0, 4000.0),
-                  panel_titles=["E-21 / E-22"])),
-    ]
-    for (id, title, phase, doc, fig, page, reason, label, spec) in grey
-        push!(cases, ValidationCase(
-            id, title, phase, String[], FigureRef(doc, fig, page),
-            "Criterion as frozen in VALIDATION_GUIDELINE.md §2.12.",
-            "2026-10-21", label,
-            (() -> _run_unavailable(id, reason, label, joinpath(_VAL_REPORT_DIR, "README.md"))),
-            spec, reason,
-        ))
-    end
+    # E21_E22_NR is runnable (38a); no greyed placeholders remain (R996_FIG8 removed 2026-10-21, I-20).
+    push!(cases, ValidationCase(
+        "E21_E22_NR", "Figs. E-21 / E-22 noise reduction", "38a",
+        [_data_path("cr3813", "e21_noise_reduction_range.csv"),
+         _data_path("cr3813", "e22_noise_reduction_ci.csv")],
+        FigureRef("CR-3813", "Figs. E-21, E-22", 149),
+        "38a (dated 2026-10-21): |NR−NASA|≤3 dB at ≥75% of bands below crossover with a NASA value " *
+        "(80–160 Hz excluded, V-ASSUMED end-plate); NR inside E-22 95% at ≥75% of the same; both for :met.",
+        "2026-10-21",
+        "V-CODE (vs NASA) / V-EXP held out (vs E-22); first run 2026-10-21",
+        _run_e21_e22_nr,
+        PlotSpec(; xlabel="band (Hz)", ylabel="NR (dB)", xscale=:log10, xlim=(63.0, 4000.0),
+                 panel_titles=["E-21 / E-22"], error_mode=:absolute, error_tol=3.0, error_ylabel="dB vs NASA"),
+        "",
+    ))
 
     for c in cases
         VALIDATION_CASES[c.id] = c

@@ -28,6 +28,7 @@ include("polars.jl")
 include("freefield_digitized.jl")
 include("trim_loss.jl")
 include("pain_core.jl")
+include("noise_reduction.jl")
 include("metrics.jl")
 include("validation_report.jl")
 include("validation_cases.jl")
@@ -58,6 +59,12 @@ export
     freefield_from_e11_csv, delta_dig_dB, default_e11_paths, spl_dB_to_Pa, spl_dB_to_peak_Pa, peak_Pa_to_spl_dB,
     PainInputs, InteriorSpectrum, interior_spl, cabin_volume, tone_mean_square_pressure, generalized_force, generalized_force_amplitude,
     absorption_coefficient,
+    C_OMEGA_THIRD_OCTAVE, nr_b, nr_c, nr_ln, nr_arctan, nr_D, nr_brace,
+    nr_band_integral_closed, nr_band_integral_quad,
+    cylinder_surface_area, coupling_area, mass_law_factor,
+    acoustic_modes_in_band, acoustic_crossover_band, apply_η_r_cap,
+    w_in_reverberant, noise_reduction_band, noise_reduction_spectrum,
+    noise_reduction_test_article_inputs,
     InsulationTable, load_insulation_table, pf105_table, insulation_properties,
     TrimElement, InsulationLayer, LimpMass, TrimStack, element_matrix, stack_matrix, stack_extrapolated,
     trim_tau_insulation, trim_Cw, trim_admittance, trim_conductance, trim_tau,

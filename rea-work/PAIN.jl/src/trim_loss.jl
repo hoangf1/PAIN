@@ -401,14 +401,20 @@ function structural_loss_total(mode::StructuralMode, ω_r::Real; a::Real, L::Rea
 end
 
 """
-    structural_loss_with_trim(η_r, ω_r, m, C_w) -> η_r'
+    structural_loss_with_trim(η_r, ω_r, m, C_w; η_r_cap=nothing) -> η_r'
 
 Eq. (82): η_r' = {|C_w|²/(m²ω_r⁴) − 2 C_w^I η_r/(mω_r²) + η_r²}^{1/2}, C_w from Eq. (A.8) at ω_r. An error if the radicand is not positive.
+
+`η_r_cap`: optional upper bound on η_r' after Eq. (82). Default `nothing` = no cap (tone path
+unchanged). NASA's E-18/E-21 run setting is `η_r_cap=0.15` (CR-3813 p. E-30); pass that only
+where those comparisons are intended — never fitted to the comparison data.
 """
-function structural_loss_with_trim(η_r::Real, ω_r::Real, m::Real, Cw::Complex)
+function structural_loss_with_trim(η_r::Real, ω_r::Real, m::Real, Cw::Complex;
+                                   η_r_cap::Union{Nothing,Float64}=nothing)
     v = abs2(Cw) / (m^2 * ω_r^4) - 2imag(Cw) * η_r / (m * ω_r^2) + η_r^2
     v > 0 || error("η_r'² = $v ≤ 0 (Eq. 82); the loss factor is undefined")
-    return sqrt(v)
+    η = sqrt(v)
+    return η_r_cap === nothing ? η : min(η, η_r_cap)
 end
 
 """

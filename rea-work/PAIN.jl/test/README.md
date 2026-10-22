@@ -39,6 +39,7 @@ Measured once on 2026-10-22 (Windows, Julia 1.13.2, full `Pkg.test()` wall **224
 | 0.00 | Trim / loss helpers |
 | 0.34 | App. A trim transfer matrices (16a) |
 | 0.12 | Loss factors, Eqs. (62)–(83) (16b) |
+| ~3 | Noise reduction Eqs. (17)–(18) (38a) |
 | 0.01 | Generalized force Ψ_G, Eq. (42) (17e, analytic limits) |
 | 0.07 | Resonance form of Eq. (8) (17g) |
 | 8.69 | Eq. (8) tone pressure: scaling laws and independent re-implementation (17a, 17h, 17i) |

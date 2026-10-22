@@ -12,7 +12,7 @@ The user source is BEMT + F1A, which gives the free-field pressure at the 160 fu
 
 Grid extension (GEXT) appears only in diagram 2. It exists because the NASA paper measured one line of the grid.
 
-Status key: green = check exists and passes as stated; orange = planned, not independently checked, or the current code differs from CR-3813; blue = calibrated surrogate. Step numbers refer to `IMPLEMENTATION_PLAN.md`. **2026-10-21:** phases 32–35 done. Source checks reported; GEXT flips → T1 not claimable; GUI Run tab = aircraft only; **Validation** + **Validation map** tabs → case registry / CASE_INFO → CairoMakie plots with error panels (`docs/validation_reports/figures/`). Greyed only E21_E22_NR / R996_FIG8. `REPRO_18b` = 18b-r inputs (82.73/75.73/77.05, not met); `MRP_D1` = transcription `no_verdict`; CYL2D = ratio form. Open: free-field amplitude convention (I-17). Aircraft path stays X-EXTRAP; 29b–31 deferred (B-4).
+Status key: green = check exists and passes as stated; orange = planned, not independently checked, or the current code differs from CR-3813; blue = calibrated surrogate. Step numbers refer to `IMPLEMENTATION_PLAN.md`. **2026-10-22:** phase **38a** — reverberant NR Eqs. (17)–(18) (`noise_reduction.jl`); `E21_E22_NR` runnable. Phases 32–35 done. GUI Run tab = aircraft only; **Validation** + **Validation map** tabs. `REPRO_18b` = 18b-r (not met); `MRP_D1` = transcription `no_verdict`. No greyed cases. Aircraft path stays X-EXTRAP; 29b–31 deferred (B-4); 38b–38c HF models next.
 
 **Test tooling (P1, 2026-10-22, no behaviour change).** `Pkg.test` accepts `test_args` substrings to select top-level testsets; list/times in `PAIN.jl/test/README.md`. Optional DaemonMode loop in `PAIN.jl/scripts/devtools/` (separate env; Revise loaded). Does not alter criteria, reports, or `src/`.
 
@@ -68,7 +68,7 @@ flowchart LR
     subgraph VAL["Validation: interior SPL"]
         direction TB
         V1["TESTS joint model vs tonal data<br/>E-16/17/18, H=1,2,3<br/>18a-r: 81.0, 75.0, 75.3 dB; no claim;<br/>GEXT bound (32): flips → T1 not claimable;<br/>REPRO_18b = 18b-r 82.73/75.73/77.05 (2 of 3);<br/>19i H3 not found"]
-        V2["TESTS joint model vs broadband<br/>E-9, +/-3.5 dB<br/>status: fails by 11-17 dB (untuned chain,<br/>stale bb_j2_scale); no claim (18a)<br/>HF path still a surrogate (30b);<br/>cannot constrain E1"]
+        V2["TESTS joint model vs broadband<br/>E-9, +/-3.5 dB (T2 surrogate);<br/>E-21/E-22 NR Eq.(18) (38a)<br/>HF Eq.(19) still a surrogate until 38c"]
         V3["LOCALIZES a failure by band<br/>E-7, G1/G2/G3<br/>result: diagnostic, not validation"]
     end
 
@@ -238,7 +238,7 @@ flowchart TB
     P_TRIM["P_TRIM Trim / loss<br/>UT_TRIM · verification<br/>E14_LOSS · verification"]
     P_EQ8["P_EQ8 Coupling / Eq.8<br/>UT_EQ8 · verification"]
     P_REPRO["P_REPRO vs NASA PAIN<br/>REPRO_18b · calibrated<br/>82.73/75.73/77.05 not met"]
-    P_MEAS["P_MEAS vs measurement<br/>T1 · T2 · calibrated<br/>E21_E22_NR · deferred"]
+    P_MEAS["P_MEAS vs measurement<br/>T1 · T2 · calibrated<br/>E21_E22_NR · Eq.(18) 38a"]
 
     P_FF --> P_GRID --> P_BLK --> P_MRP --> P_CYL --> P_TRIM --> P_EQ8 --> P_REPRO --> P_MEAS
 ```

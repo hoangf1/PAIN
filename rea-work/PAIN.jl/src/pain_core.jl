@@ -233,7 +233,9 @@ resonance denominators are multiplied out so that the rigid-body cabin mode (ω_
 at ω_H (`η_n_bare` ω_n² when there is no trim); η_r' from Eqs. (79)–(82) at ω_r; η_r'' from Eq. (83) for every (n, r)
 pair (register item i). Cabin modes are n = (q, i), q = 0…q_max (V-ASSUMED truncation).
 """
-function tone_mean_square_pressure(inp::PainInputs, H::Int, ωH::Float64; q_max::Union{Nothing,Int}=nothing)
+function tone_mean_square_pressure(inp::PainInputs, H::Int, ωH::Float64;
+                                    q_max::Union{Nothing,Int}=nothing,
+                                    η_r_cap::Union{Nothing,Float64}=nothing)
     fuse = inp.fuse
     a, L = fuse.a, fuse.L
     θ0 = deg2rad(fuse.theta0_deg)
@@ -260,7 +262,9 @@ function tone_mean_square_pressure(inp::PainInputs, H::Int, ωH::Float64; q_max:
         ηr = structural_loss_total(st, ωr[j]; a, L, m=inp.m_wall, C=inp.C_struc, ρ0, c0)
         ηrp[j] = trimmed ?
             structural_loss_with_trim(ηr, ωr[j], inp.m_wall,
-                                      trim_Cw(inp.sidewall, ωr[j]; allow_extrapolation=ext)) : ηr
+                                      trim_Cw(inp.sidewall, ωr[j]; allow_extrapolation=ext);
+                                      η_r_cap) :
+            (η_r_cap === nothing ? ηr : min(ηr, η_r_cap))
     end
 
     pref = (c0 / V)^2 * (ρ0 * c0 * A)^2 * ωH^4

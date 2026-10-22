@@ -1005,6 +1005,125 @@ _run_if("Report 996 conversions + blade form (25b/25j, V-UNIT)") do
     @test obs[1].x[1] ≈ (-1.0) * (-0.125) * g.D rtol=1e-12
 end
 
+# ---------------------------------------------------------------------------------------------
+# Plan phase 38a: CR-3813 §3.3 noise reduction (reverberant exterior), Eqs. (17)–(18).
+# V-UNIT before any E-21/E-22 comparison; no parameter chosen from those figures.
+# ---------------------------------------------------------------------------------------------
+_run_if("Noise reduction Eqs. (17)–(18) (38a)") do
+    cω = C_OMEGA_THIRD_OCTAVE
+    @testset "helpers: closed form = band integral of resonance product" begin
+        ω = 2π * 400
+        ωn, ωr = 2π * 350.0, 2π * 450.0
+        ηn, ηr = 0.05, 0.10
+        closed = nr_band_integral_closed(ω, cω, ωn, ηn, ωr, ηr)
+        quad = nr_band_integral_quad(ω, cω, ωn, ηn, ωr, ηr; N=80_000)
+        @test closed ≈ quad rtol = 1e-6
+        # second pair nearer resonance
+        closed2 = nr_band_integral_closed(ω, cω, 2π * 390, 0.08, 2π * 410, 0.12)
+        quad2 = nr_band_integral_quad(ω, cω, 2π * 390, 0.08, 2π * 410, 0.12; N=80_000)
+        @test closed2 ≈ quad2 rtol = 1e-6
+    end
+    @testset "limits: η→0 finite; far from resonances small; uncoupled → 0" begin
+        ω = 2π * 500
+        ωn, ωr = 2π * 480.0, 2π * 520.0
+        c = nr_band_integral_closed(ω, cω, ωn, 1e-12, ωr, 1e-12)
+        @test isfinite(c)
+        # far from both resonances → much smaller than near-resonance value
+        far = nr_band_integral_closed(ω, cω, 2π * 50, 0.05, 2π * 80, 0.05)
+        near = nr_band_integral_closed(ω, cω, ωn, 0.05, ωr, 0.05)
+        @test abs(far) < 1e-3 * abs(near)
+        # symmetry mismatch: coupling_factor → 0 ⇒ no contribution in the spectrum path
+        inp = noise_reduction_test_article_inputs(; η_lining=1.0)
+        fuse = inp.fuse
+        ac_s = first(m for m in inp.acoustic.modes if m.symmetric)
+        st_a = first(m for m in inp.structural.modes if !m.symmetric)
+        @test coupling_factor(ac_s, st_a, fuse; τ_t=1.0, q=0) == 0.0
+    end
+    @testset "η_r_cap=nothing leaves tone path unchanged" begin
+        r = run_pain_pipeline(; source=:e11, n_harmonics=3, bpf_Hz=200.0, trim=:phase3)
+        inp = r.inputs
+        ωH = 2π * 200.0
+        p0 = tone_mean_square_pressure(inp, 1, ωH)
+        p1 = tone_mean_square_pressure(inp, 1, ωH; η_r_cap=nothing)
+        @test p0 == p1
+        # with a tight cap the pressure must change (cap is active)
+        p_cap = tone_mean_square_pressure(inp, 1, ωH; η_r_cap=0.15)
+        @test p_cap != p0 || all(st -> begin
+            ωr = 2π * st.f_Hz
+            ηr = structural_loss_total(st, ωr; a=inp.fuse.a, L=inp.fuse.L, m=inp.m_wall, C=inp.C_struc)
+            η′ = structural_loss_with_trim(ηr, ωr, inp.m_wall, trim_Cw(inp.sidewall, ωr))
+            η′ ≤ 0.15 + 1e-15
+        end, inp.structural.modes)
+    end
+    @testset "Eq. (17)/(5) route equals Eq. (18) contribution" begin
+        # One (n,r) pair: printed Eq. (17) → ⟨p_n²⟩ → ratio equals Eq. (18) term
+        inp = noise_reduction_test_article_inputs(; η_lining=1.0)
+        fc = 315.0
+        ω = 2π * fc
+        p_bl2 = 1.0
+        p_e2 = p_bl2 / 2
+        fuse = inp.fuse
+        a, L, ρ0, c0 = fuse.a, fuse.L, inp.ρ0, inp.c0
+        A = coupling_area(fuse)
+        V = cabin_volume(fuse)
+        Abar = cylinder_surface_area(a, L)
+        τ_t = PAIN.sidewall_tau(inp, ω)
+        found = nothing
+        for qq in 0:2, aac in inp.acoustic.modes, sst in inp.structural.modes
+            ff = coupling_factor(aac, sst, fuse; τ_t, q=qq)
+            if ff != 0 && cabin_frequency_3d(aac, a, L, qq; c0) > 0
+                found = (aac, sst, qq, ff)
+                break
+            end
+        end
+        @test found !== nothing
+        ac, st, q, f = found
+        ωn = 2π * cabin_frequency_3d(ac, a, L, q; c0)
+        ωr = 2π * st.f_Hz
+        εn = cabin_eps_3d(ac, q)
+        ext = true
+        ξ = trim_conductance(inp.sidewall, ω, inp.m_wall; ρ0, c0, allow_extrapolation=ext)
+        ξe = trim_conductance(inp.endplates, ω, Inf; ρ0, c0, allow_extrapolation=ext)
+        N = acoustic_loss_modal(ac, q, ω, ωn; a, L, V, c0, ξ, ξ_e=ξe).N
+        ηn = N / ωn^2
+        ηr = structural_loss_total(st, ωr; a, L, m=inp.m_wall, C=inp.C_struc, ρ0, c0, Abar)
+        ηrp = structural_loss_with_trim(ηr, ωr, inp.m_wall,
+                                        trim_Cw(inp.sidewall, ωr; allow_extrapolation=ext); η_r_cap=0.15)
+        ηrpp = structural_loss_coupled(N, ωn, ωr, f, εn, st.M_r, V, A; ρ0, c0)
+        ηrt = ηrp + ηrpp
+        j2 = structural_joint_acceptance(st, ω; a, L, c0)
+        t = nr_brace(ω, cω, ωn, ηn, ωr, ηrt)
+        mA4 = mass_law_factor(ρ0, c0, A, ω)
+        pref17 = p_bl2 / (cω * ω) * (2π * Abar^2) / (ρ0 * V) * mA4
+        curly = (2 / π) * ω^2 * ωn^2 / t.D_nr * t.brace
+        Win = pref17 * εn * j2 * f^2 / st.M_r^2 * curly
+        # Link printed Eq. (17) → Eq. (18): ⟨p_n²⟩ = W_in · ρ c² ω / (V ω_n²).
+        # Tone Eq. 7 carries η_n/ω_n² so Eq. 5's η_n cancels; printed Eq. 17 omits that
+        # free η_n and Eq. 18 matches that omission (38a report).
+        p2_n = Win * ρ0 * c0^2 * ω / (V * ωn^2)
+        ratio_from_17 = p2_n / p_e2
+        pref18 = 8 / (cω * ω) * (Abar / V)^2 * mA4 * c0^2 * ω^3
+        ratio_18 = pref18 * εn * j2 * f^2 / (st.M_r^2 * t.D_nr) * t.brace
+        @test ratio_from_17 ≈ ratio_18 rtol = 1e-9
+        @test isfinite(ηn) && ηn > 0
+    end
+    @testset "E21_E22_NR case runs; verdict follows the counts" begin
+        @test validation_case_runnable("E21_E22_NR")
+        r = run_validation_case("E21_E22_NR")
+        @test !isempty(r.table)
+        @test !isempty(r.series)
+        @test r.verdict in (:met, :not_met)
+        n_nasa = r.inputs_echo.n_nasa
+        n_nasa_ok = r.inputs_echo.n_nasa_ok
+        n_e22 = r.inputs_echo.n_e22
+        n_e22_ok = r.inputs_echo.n_e22_ok
+        expect = (n_nasa_ok / max(n_nasa, 1) ≥ 0.75) && (n_e22_ok / max(n_e22, 1) ≥ 0.75)
+        @test (r.verdict === :met) == expect
+        @test occursin("crossover", r.reason)
+        @test occursin("80", r.reason)
+    end
+end
+
 _run_if("Validation case registry (34d)") do
     @test Set(keys(VALIDATION_CASES)) == Set(VALIDATION_CASE_ORDER)
     for id in VALIDATION_CASE_ORDER
@@ -1190,7 +1309,6 @@ _run_if("Validation case registry (34d)") do
     @test results_by_id["R996_FIG6"].verdict === :no_verdict
     @test results_by_id["GEXT_BOUND"].verdict === :no_verdict
     for id in VALIDATION_CASE_ORDER
-        id == "E21_E22_NR" && continue
         @test !isempty(results_by_id[id].series)
     end
     # Task F1 — every case with a table renders a PNG; error-panel legend ≤ 10 entries;

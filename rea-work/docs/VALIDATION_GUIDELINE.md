@@ -317,12 +317,14 @@ Per-case GUI text (titles, explanations, map/block copy) lives in **§2.13** —
 **GUI registry (phases 34–35).** Each row below that has a registry ID can be run from the GUI **Validation** tab (and from
 `run_validation_case(id)` / scripts). Plots go to `docs/validation_reports/figures/<id>.png` (with error panel since 2026-10-21).
 Cases are read-only. Third tab **"Validation map"** (`src/validation_map.jl`): Map 1 cabin chain, Map 2 aircraft source;
-clickable case chips; Validation-tab list ordered by map and block. **Greyed (Run disabled):** only `E21_E22_NR` (phase 31
-deferred, B-4) and `R996_FIG8` (optional multi-C_P). **In-process runnable:** `CYL2D_C1`, `MRP_D1`, `MRP_RITZ`, `BLK_P68`,
-`F1A_GUTIN`, `T1`, `T2`, `REPRO_18b`, `E12_BLOCK`, `E11_FREEFIELD`, `E14_LOSS`, `GEXT_BOUND`, `BBN_KIN`, `R996_PHASE`.
+clickable case chips; Validation-tab list ordered by map and block. **Greyed (Run disabled):** none (`R996_FIG8` removed
+I-20; `E21_E22_NR` runnable since 38a). **In-process runnable:** `CYL2D_C1`, `MRP_D1`, `MRP_RITZ`, `BLK_P68`,
+`F1A_GUTIN`, `T1`, `T2`, `REPRO_18b`, `E12_BLOCK`, `E11_FREEFIELD`, `E14_LOSS`, `GEXT_BOUND`, `BBN_KIN`, `R996_PHASE`,
+`E21_E22_NR` (Eq. 18, η_T = 1.0, η_r′ ≤ 0.15; criterion dated 2026-10-21).
 **CSV replays** (read recorded `f1a_results.csv` / `scale_factors.csv` / `pereira_results.csv` / `bbn_results.csv`; do not
 re-run F1A): `R996_FIG12/13A/14`, `R996_LOADS`, `R996_FIG6/7`, `PER_FIG6–9`, `PER_LOADS`, `BBN_CIRC`, `BBN_LEVELS`, `BBN_LONG`.
-All case numbers come from CSVs or transcribed constant tables; page images are display-only.
+All case numbers come from CSVs or transcribed constant tables; page images are display-only. (§2.13 CASE_INFO text for
+`E21_E22_NR` is updated by the reviewer; registry/`unavailable_reason` already runnable.)
 
 **How to read a PASS.** The class says what was compared. **V-UNIT**: the code matches a written equation. **V-CODE**: the code
 reproduces a NASA table or NASA program output. **V-EXP**: the result is compared with a measurement. A V-EXP pass is only as strong as

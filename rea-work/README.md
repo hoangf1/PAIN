@@ -44,7 +44,7 @@ The [flowcharts](docs/flowchart.md) show the NASA validation path (diagram 2), t
 | Report 996 / Pereira / BBN | **I-07 re-runs done 2026-10-21** against §2.12 freeze. Smoke raw Table-8 peaks −4.2/−5.3/−5.8 dB. BBN 24b **PASS**; 24c 23a **FAIL** (26/168). Report 996: I-08 L51C27 scale on Fig.13a; 23c scaled pressure 5/24 within ±2 dB, page-12 phase **FAIL**. Pereira 23d H1 0/9 within ±1.7 dB (Fig.9 H1=80 dB accepted as read). Loads still valid (phase 26 post-hoc label) |
 | dB(A) / SIL | **Done**; `overall_dBA` energy-sums A-weighted 1/3-octave bands (**fixed C5, 2026-10-21**; was tones-only) |
 
-**Status after phase 35 (2026-10-21):** Test audit + two validation maps + **"Validation map"** GUI tab (`src/validation_map.jl`). Plots have error panels. `REPRO_18b` runs 18b-r → **82.73 / 75.73 / 77.05 dB, not met** (2/3); CYL2D ratios; `MRP_D1` `no_verdict`; R996 replays (Fig.12 19/40 first verdict; loads 6/32 post-hoc). Run tab source = **aircraft only**. Cases read-only. Greyed only `E21_E22_NR` / `R996_FIG8`. Open: free-field amplitude convention (I-17). Aircraft cabin 29b–31 deferred (B-4).
+**Status after phase 38a (2026-10-22):** CR-3813 §3.3 reverberant noise reduction Eqs. (17)–(18) in `src/noise_reduction.jl`; case `E21_E22_NR` runnable (η_T = 1.0, η_r′ cap 0.15; criterion dated 2026-10-21). Phase 35 maps/GUI remain. `REPRO_18b` = 18b-r **not met**; `MRP_D1` `no_verdict`. Run tab source = **aircraft only**. No greyed cases (`R996_FIG8` removed, I-20). Aircraft cabin 29b–31 deferred (B-4).
 
 Source-block data: Report 996 in `data/report996/`; Pereira in `data/pereira/`; CR-3813 test-article CSVs and pages in `data/cr3813/` (see `data/README.md`); BBN phase Figs. 18–20 in `data/NASA_CR-159124/`. Scripts live under `PAIN.jl/scripts/{run,checks,digitize,setup,smoke}/` (`scripts/README.md`). Details in the [plan](docs/IMPLEMENTATION_PLAN.md).
 
@@ -154,7 +154,7 @@ Three tabs (phases 34–35). Cases are read-only: fixed inputs and criteria; not
 
 **Run tab:** source = `aircraft` only (BEMT + F1A; needs an aircraft JSON, e.g. `examples\aircraft_scale_hartzell.json`). `e11` / `synthetic` stay for scripts and `Pkg.test()`, not the GUI.
 
-**Validation tab:** list ordered by validation map and block. Pick a case → **Run** (or **Run all**). Selection updates Julia `val_selected` / `val_runnable`. Inputs are an echo; criterion text/date and verdict are fixed. Comparison plot (with error panel) → `docs/validation_reports/figures/<case_id>.png`. Until Run: "Press Run to draw the comparison plot". Only **E21_E22_NR** and **R996_FIG8** stay greyed; other long cases replay recorded CSVs.
+**Validation tab:** list ordered by validation map and block. Pick a case → **Run** (or **Run all**). Selection updates Julia `val_selected` / `val_runnable`. Inputs are an echo; criterion text/date and verdict are fixed. Comparison plot (with error panel) → `docs/validation_reports/figures/<case_id>.png`. Until Run: "Press Run to draw the comparison plot". **E21_E22_NR** is runnable (38a, Eq. 18); long source cases replay recorded CSVs.
 
 **Validation map tab:** pick Map 1 (cabin chain) or Map 2 (aircraft source) → read the intro and legend → click a case chip → detail panel shows source, what it verifies, why, what a pass means, what it does not cover, recorded outcome, criterion + date → **Run** / **Open report** → code-vs-figure plot with error panel and source-figure page (display-only).
 
