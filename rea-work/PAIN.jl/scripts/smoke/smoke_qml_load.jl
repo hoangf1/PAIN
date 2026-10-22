@@ -29,9 +29,16 @@ if get(ENV, "PAIN_SMOKE_CASE_ONLY", "") == "1"
 end
 
 # Phase 34f / 37i: plain load (auto-quit), then button-path case (exact Run handler).
+# Phase 38h: QML includes the Printed outputs tab (Observables present after load).
 println("smoke_qml_load: calling main(; smoke_ms=1000)")
 main(; smoke_ms=1000)
-println("smoke_qml_load: plain load PASS")
+obs_after = PAIN._GUI_OBS[]
+@assert obs_after !== nothing
+@assert haskey(obs_after, "po_status") && haskey(obs_after, "po_text") && haskey(obs_after, "po_json")
+@assert occursin("Ready", String(obs_after["po_status"][])) ||
+        occursin("Done", String(obs_after["po_status"][])) ||
+        occursin("printed", lowercase(String(obs_after["po_status"][])))
+println("smoke_qml_load: plain load PASS (Printed outputs Observables present)")
 
 # Qt often cannot be started twice in one process — run the button-path check in a child.
 proj = abspath(joinpath(@__DIR__, ".."))

@@ -9,6 +9,7 @@ Entry point: `run_gui.jl` (GUI). Run scripts with `julia --project=.` from `PAIN
 - `run_f1a_smoke.jl`, `f1a_line_reference.jl`, `compare_gext_vs_f1a_grid.jl`, `run_gext_bound.jl` — F1A smoke, line reference, grid comparison, G_ext bound.
 - `run_trim_loss_check.jl` — trim/loss (E-13..E-15) report. `e12_blocking.jl` — Fig. E-12 blocking check.
 - `mrp_ritz_vs_d1.jl` — Ritz MRP vs Table D-1. `write_cyl2d_report.jl` — CYL2D report.
+- `write_printed_outputs_report.jl` — Manual §5.4.3 printed-outputs markdown for REPRO_18b-r inputs (38h).
 - `freeze_baselines.jl` — writes `data/baselines/`. `viterna_extension.jl` — polar extension.
 
 ## checks/ — one-off checks and probes (each wrote a report in `docs/validation_reports/`)

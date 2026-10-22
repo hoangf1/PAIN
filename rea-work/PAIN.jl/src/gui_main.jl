@@ -118,6 +118,22 @@ function open_validation_report_from_qml()
     return nothing
 end
 
+"""QML Printed outputs tab: Run / Refresh (cooperative `@async`, same as Validation)."""
+function run_printed_outputs_from_qml()
+    obs = _GUI_OBS[]
+    obs === nothing && return nothing
+    @async begin
+        try
+            yield()
+            run_printed_outputs_gui!(obs)
+        catch e
+            obs["po_status"][] = "Error: $(sprint(showerror, e))"
+            obs["busy"][] = false
+        end
+    end
+    return nothing
+end
+
 """
 Cooperative Qt event loop so Julia `@async` tasks (Validation Run buttons) can run.
 
@@ -177,6 +193,7 @@ function main(args=ARGS; smoke_ms::Real=0, smoke_case::AbstractString="")
     @qmlfunction select_map_case_from_qml
     @qmlfunction reload_validation_docs_from_qml
     @qmlfunction open_validation_report_from_qml
+    @qmlfunction run_printed_outputs_from_qml
     @qmlfunction mark_gui_closed_from_qml
 
     qml_file = joinpath(@__DIR__, "..", "gui", "main.qml")

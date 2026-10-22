@@ -88,4 +88,34 @@ let
     @assert chip14 !== nothing "R996_FIG14 missing from aircraft map JSON after run"
     @assert String(chip14.last) == "met" "expected last=met, got $(chip14.last)"
 end
-println("smoke_gui_model PASS (incl. Validation CYL2D_C1 / map R996_FIG14 / F2 §2.13)")
+# Phase 38h — Printed outputs Observables for the example (Run-tab) case
+@assert haskey(obs, "po_status") && haskey(obs, "po_text") && haskey(obs, "po_json")
+obs["n_harmonics"][] = 3.0
+obs["bpf_Hz"][] = 150.0
+po = run_printed_outputs_gui!(obs)
+@assert po !== nothing "printed outputs run failed: $(obs["po_status"][])"
+@assert startswith(String(obs["po_status"][]), "Done")
+po_parsed = JSON3.read(obs["po_json"][])
+@assert length(po_parsed.modes_per_band) > 0
+@assert length(po_parsed.top5) > 0
+@assert Int(po_parsed.n_coupling) > 0
+@assert Int(po_parsed.n_psi_G) > 0
+@assert Int(po_parsed.n_surface_upper) > 0
+# Five largest sorted by rank; shares in [0,1]; sum of shares per H ≤ 1
+by_H = Dict{Int,Any}()
+for row in po_parsed.top5
+    H = Int(row.H)
+    push!(get!(() -> Any[], by_H, H), row)
+end
+for (H, rows) in by_H
+    sort!(rows; by=r -> Int(r.rank))
+    for (k, row) in enumerate(rows)
+        @assert Int(row.rank) == k "H$H top5 not sorted by rank"
+        @assert 0 ≤ Float64(row.share) ≤ 1
+    end
+    @assert sum(Float64(r.share) for r in rows) ≤ 1 + 1e-9
+end
+@assert occursin("Modes per band", String(obs["po_text"][]))
+@assert occursin("lower-quarter", String(po_parsed.surface_lower_note))
+
+println("smoke_gui_model PASS (incl. Validation CYL2D_C1 / map R996_FIG14 / F2 §2.13 / 38h printed outputs)")

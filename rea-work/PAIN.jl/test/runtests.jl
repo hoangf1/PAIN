@@ -1642,6 +1642,81 @@ _run_if("Card inputs 38f-2 (bands, η_r/η_n per band)") do
     @test haskey(inp_vec.η_n_band, subset[1])
 end
 
+# Plan phase 38h: Manual §5.4.3 printed outputs (read-only tables; no comparison criterion).
+# ---------------------------------------------------------------------------------------------
+_run_if("Printed outputs 38h (Manual §5.4.3)") do
+    r = run_pain_pipeline(; source=:synthetic, use_synthetic=true, n_harmonics=3, bpf_Hz=150.0,
+                          trim=:bare, NY=8)
+    inp = r.inputs
+    bpf = 150.0
+    nH = 3
+    out = printed_outputs(inp; bpf_Hz=bpf, n_harmonics=nH, broadband=false)
+
+    # 1. Five largest = top of full modal sum; shares in [0,1]; sum of shares ≤ 1
+    for H in 1:nH
+        ωH = 2π * H * bpf
+        parts, total = modal_tone_contributions(inp, H, ωH)
+        @test total ≈ tone_mean_square_pressure(inp, H, ωH) rtol = 1e-12
+        top = out.top5[findall(r -> r.H == H, out.top5)]
+        @test length(top) == min(5, length(parts))
+        for (k, row) in enumerate(top)
+            @test row.rank == k
+            @test 0 ≤ row.share ≤ 1
+            @test row.q == parts[k].q && row.i == parts[k].i && row.r == parts[k].r
+            @test row.p2 ≈ parts[k].p2 rtol = 1e-12
+        end
+        @test sum(r.share for r in top) ≤ 1 + 1e-12
+        @test sum(r.p2 for r in top) ≤ total + 1e-12 * max(total, 1.0)
+    end
+
+    # 2. Modes-per-band counts match helpers; crossover flagged
+    xover = acoustic_crossover_band(inp)
+    for row in out.modes_per_band
+        @test row.n_acoustic == acoustic_modes_in_band(inp, row.fc_Hz)
+        @test row.n_structural == structural_modes_in_band(inp, row.fc_Hz)
+        expect_x = isfinite(xover.fc_Hz) && row.fc_Hz == xover.fc_Hz
+        @test row.crossover == expect_x
+    end
+    @test out.crossover_Hz == xover.fc_Hz
+
+    # 3. Printed tone totals equal existing tone_mean_square_pressure / interior_spl exactly
+    spec = interior_spl(inp; bpf_Hz=bpf, n_harmonics=nH, broadband=false)
+    for row in out.tone_totals
+        ωH = 2π * row.H * bpf
+        @test row.p2 == tone_mean_square_pressure(inp, row.H, ωH)
+        @test row.SPL_dB ≈ spec.harmonic_SPL_dB[row.H] rtol = 1e-12
+    end
+    for row in out.harmonic_SPL
+        @test row.SPL_dB == spec.harmonic_SPL_dB[row.H]
+    end
+
+    # 4. Markdown writer has every table heading; defaults unchanged (registry separate)
+    mktempdir() do tmp
+        path = joinpath(tmp, "printed_outputs_test.md")
+        write_printed_outputs_md(path, out; title="Printed outputs test")
+        @test isfile(path)
+        md = read(path, String)
+        for heading in (
+            "## Modes per 1/3-octave band",
+            "## Acoustic/structural coupling f′(n,r)",
+            "## Propeller generalized forces Ψ_G(r,H)",
+            "## Five largest modal contributions (Eq. 8)",
+            "## Tone transmission (interior space-averaged MSP)",
+            "## Interior harmonic SPL",
+            "## Interior 1/3-octave SPL",
+            "## Propeller pressure amplitude and phase (upper quarter)",
+            "## Manual outputs omitted",
+        )
+            @test occursin(heading, md)
+        end
+        @test occursin("not computed — lower-quarter grid not adopted (I-18)", md)
+    end
+
+    @test length(out.surface_upper) == length(inp.pts) * nH
+    @test !isempty(out.coupling)
+    @test length(out.psi_G) == length(inp.structural.modes) * nH
+end
+
 _run_if("Validation case registry (34d)") do
     @test Set(keys(VALIDATION_CASES)) == Set(VALIDATION_CASE_ORDER)
     for id in VALIDATION_CASE_ORDER

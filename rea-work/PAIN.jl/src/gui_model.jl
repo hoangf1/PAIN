@@ -123,6 +123,11 @@ function make_gui_observables(;
         "map_aircraft_json" => Observable(validation_map_json("aircraft"; last=_GUI_LAST_VERDICTS)),
         "map_selected" => Observable(""),
         "map_detail_json" => Observable("{}"),
+        # Phase 38h — Manual §5.4.3 printed outputs (read-only)
+        "po_status" => Observable("Ready. Press Run / Refresh for the current Run-tab case."),
+        "po_text" => Observable(""),
+        "po_json" => Observable("{}"),
+        "po_report_path" => Observable(""),
     )
 end
 
@@ -195,6 +200,79 @@ function run_all_validation_gui!(obs::AbstractDict)
     end
     obs["val_status"][] = "Run all finished ($n runnable cases)."
     return true
+end
+
+"""
+    run_printed_outputs_gui!(obs)
+
+Build the current Run-tab case, fill Manual §5.4.3 printed-output Observables
+(read-only tables). Same cooperative `@async` path as Validation Run (37i).
+"""
+function run_printed_outputs_gui!(obs::AbstractDict)
+    obs["busy"][] = true
+    obs["po_status"][] = "Running printed outputs…"
+    try
+        src = Symbol(String(obs["source"][]))
+        blk = uppercase(String(obs["blocking"][])) == "R1" ? R1 : R2
+        L = Float64(obs["L"][])
+        a = Float64(obs["a"][])
+        theta0 = Float64(obs["theta0_deg"][])
+        r_p = Float64(obs["r_p"][])
+        phi_p = Float64(obs["phi_p_deg"][])
+        z_p = Float64(obs["z_p"][])
+        nH = Int(round(Float64(obs["n_harmonics"][])))
+        bpf = Float64(obs["bpf_Hz"][])
+        Cs = Float64(obs["C_struc"][])
+        ηn = Float64(obs["eta_n_bare"][])
+        trim = Symbol(String(obs["trim"][]))
+        json_path = String(obs["aircraft_json"][])
+        ρ0 = Float64(obs["rho0"][])
+        c0 = Float64(obs["c0"][])
+        ρ_ext = Float64(obs["rho_ext"][])
+        ρ_int = Float64(obs["rho_int"][])
+        c_ext = Float64(obs["c_ext"][])
+        c_int = Float64(obs["c_int"][])
+        L_c = Float64(obs["L_c"][])
+        d_cav = Float64(obs["d_cavity"][])
+        rot = Int(round(Float64(obs["rotation_direction"][])))
+        bands_kw, ηr_kw, ηn_kw = _parse_band_card_observables(obs)
+
+        common = (
+            L=L, a=a, theta0_deg=theta0,
+            r_p=r_p, phi_p_deg=phi_p, z_p=z_p,
+            rotation_direction=rot,
+            source=src, blocking=blk,
+            n_harmonics=nH, bpf_Hz=bpf,
+            C_struc=Cs, η_n_bare=ηn, trim=trim,
+            use_synthetic=(src === :synthetic),
+            ρ0=ρ0, c0=c0, ρ_ext=ρ_ext, ρ_int=ρ_int, c_ext=c_ext, c_int=c_int,
+            L_c=L_c, d=d_cav,
+            bands=bands_kw, η_r_band=ηr_kw, η_n_band=ηn_kw,
+        )
+        result = if src === :aircraft
+            isfile(json_path) || error("aircraft JSON not found: $json_path")
+            run_pain_pipeline(; common..., aircraft_json=json_path)
+        elseif src === :e11
+            run_pain_pipeline(; common...)
+        else
+            run_pain_pipeline(; common...)
+        end
+        out = printed_outputs(result.inputs; bpf_Hz=bpf, n_harmonics=nH)
+        obs["po_text"][] = format_printed_outputs_text(out)
+        obs["po_json"][] = printed_outputs_gui_json(out)
+        obs["po_report_path"][] = ""
+        obs["po_status"][] = "Done. modes=$(length(out.modes_per_band)) bands; " *
+            "top5=$(length(out.top5)); coupling=$(length(out.coupling)); " *
+            "surface_upper=$(length(out.surface_upper))."
+        return out
+    catch e
+        obs["po_status"][] = "Error: $(sprint(showerror, e))"
+        obs["po_text"][] = sprint(showerror, e)
+        obs["po_json"][] = "{}"
+        return nothing
+    finally
+        obs["busy"][] = false
+    end
 end
 
 """

@@ -424,6 +424,7 @@ Each row is a hard-coded NASA test-article constant that can reach an aircraft r
 | `PAIN.jl` | hybrid Table D-1 modes when `use_table_d1=true` | 32 modes | Table D-1 |
 | `cyl2d.jl` / pipeline | CYL2D NY=10, c0=340, ρ0=1.225 | defaults | App. C / register |
 | `pain_core.jl` / pipeline | `L_c` default = fuse.L, `d` = 0; `rotation_direction` = +1; `bands` / `η_r_band` / `η_n_band` default `nothing` | card 9 / 36 / 3–6 / 11–18 defaults | Manual §5.4; 38f-1, 38f-2 |
+| `printed_outputs.jl` (38h) | Manual §5.4.3 tables from existing APIs; lower-quarter pressures not computed (I-18 note); no criterion | report / GUI only | Manual §5.4.3; plan 38h |
 | `trim_loss.jl` | end-plate 1.3 cm aluminium mass path | as coded | App. E |
 | `pain_core.jl` | η_n_bare default, C_struc default | 0.05, 3.0 | register g |
 

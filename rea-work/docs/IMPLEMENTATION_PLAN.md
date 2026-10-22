@@ -991,6 +991,10 @@ tests against analytic limits first (V-UNIT), then the NASA comparison with crit
 
 **38f-2 result (2026-10-22).** Done: Manual cards 3–6 (`bands`: ≤ 26 standard 1/3-octave centres, ascending; default the fixed list) and cards 11–18 (`η_r_band`, `η_n_band`: a non-zero entry replaces the computed value in its band, 0 or absent computes as before; the containing band is found from the edges fc(1 ± c_ω/2)). Wired through `PainInputs`, the calculation paths, JSON and the GUI input echo. Report `validation_reports/phase38f2_card_inputs.md`. Tests: defaults reproduce all previous outputs; 49 new V-UNIT tests pass. No comparison criterion.
 
+**38h result (2026-10-22).** Done: `src/printed_outputs.jl` (`printed_outputs`, `write_printed_outputs_md`), read-only GUI "Printed outputs" page, example report `validation_reports/printed_outputs_REPRO_18b.md` (script `scripts/run/write_printed_outputs_report.jl`). Included from Manual §5.4.3: modes per band (crossover flagged), coupling f′(n,r) and Ψ_G(r,H) tables, five largest modal contributions per tone, tone and 1/3-octave interior spectrum (Eq. 8 and Eq. 15–16 totals), pressures on the upper 160-point grid (lower quarter: "not computed — lower-quarter grid not adopted (I-18)"). Omitted: band-averaged loss-factor and trim-data listings, full mode dumps (live in CYL2D/MRP). Tests: 162 V-UNIT pass, registry 1188 pass, offscreen `smoke_gui_model.jl` and `smoke_qml_load.jl` pass. No comparison criterion.
+
+**38g criterion addendum (2026-10-22, before any 38g run):** the plan row's "Table D-1 frequencies within 5 %" is counted as **at least 75 % of the 32 modes within 5 %** with no calibration input; spec `docs/specs/38g_appd_structural_solver.md`. Fig. D-2 shapes reported without a pass mark; a miss is recorded; the fitted MRP surrogate stays the default.
+
 **Rules.** No parameter is chosen by looking at a comparison result. Where the text is ambiguous, the reading is decided and
 recorded from the text before running. Delegated work follows R13 (snapshot, diff, rules, run the checks, spot-check numbers, docs).
 

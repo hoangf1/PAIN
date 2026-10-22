@@ -32,6 +32,7 @@ include("noise_reduction.jl")
 include("high_freq_tones.jl")
 include("hf_broadband.jl")
 include("metrics.jl")
+include("printed_outputs.jl")
 include("validation_report.jl")
 include("validation_cases.jl")
 include("validation_case_extras.jl")
@@ -98,7 +99,10 @@ export
     load_validation_docs!, reload_validation_docs!,
     validation_map_json, case_info_json, validation_map_case_order,
     f1a_gutin_h1_comparison,
-    run_validation_gui!, run_all_validation_gui!, reload_validation_docs_gui!
+    run_validation_gui!, run_all_validation_gui!, reload_validation_docs_gui!,
+    structural_modes_in_band, modal_tone_contributions, printed_outputs,
+    write_printed_outputs_md, format_printed_outputs_text, printed_outputs_gui_json,
+    run_printed_outputs_gui!
 
 """
     run_pain_pipeline(; source=:aircraft | :e11 | :synthetic, trim=:auto, ...)

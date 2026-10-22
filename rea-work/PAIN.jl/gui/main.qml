@@ -213,6 +213,7 @@ ApplicationWindow {
             TabButton { text: "Run" }
             TabButton { text: "Validation" }
             TabButton { text: "Validation map" }
+            TabButton { text: "Printed outputs" }
         }
 
         StackLayout {
@@ -1237,6 +1238,76 @@ ApplicationWindow {
                                     cursorShape: Qt.PointingHandCursor
                                     onClicked: Qt.openUrlExternally("file:///" + String(root.mapDetail.source_image).replace(/\\/g, "/"))
                                 }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // ---- Printed outputs tab (Manual §5.4.3, phase 38h; read-only) ----
+            ColumnLayout {
+                spacing: 10
+
+                Frame {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 72
+                    RowLayout {
+                        anchors.fill: parent
+                        anchors.margins: 12
+                        spacing: 12
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 2
+                            Text {
+                                text: "Printed outputs (Manual §5.4.3)"
+                                font.bold: true
+                                font.pixelSize: 15
+                                color: root.ink
+                            }
+                            Text {
+                                text: "Read-only tables for the current Run-tab case. No comparison criterion."
+                                color: root.muted
+                                font.pixelSize: 11
+                                wrapMode: Text.WordWrap
+                                Layout.fillWidth: true
+                            }
+                        }
+                        Button {
+                            text: pain.busy ? "Running…" : "Run / Refresh"
+                            enabled: !pain.busy
+                            highlighted: true
+                            onClicked: Julia.run_printed_outputs_from_qml()
+                        }
+                    }
+                }
+
+                Frame {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    ColumnLayout {
+                        anchors.fill: parent
+                        anchors.margins: 12
+                        spacing: 8
+                        Text {
+                            text: "Status: " + pain.po_status
+                            color: root.muted
+                            font.pixelSize: 12
+                            wrapMode: Text.WordWrap
+                            Layout.fillWidth: true
+                        }
+                        ScrollView {
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                            clip: true
+                            TextArea {
+                                readOnly: true
+                                wrapMode: TextEdit.Wrap
+                                text: pain.po_text
+                                color: root.ink
+                                font.family: "Consolas"
+                                font.pixelSize: 12
+                                selectByMouse: true
+                                background: null
                             }
                         }
                     }
