@@ -228,7 +228,7 @@ flowchart LR
 
 ## 5. Validation maps
 
-GUI tab **"Validation map"** (`src/validation_map.jl`). Cases are read-only; page images are display-only; numbers come from CSVs or transcribed tables. Per-case and per-block plain-language text (including Inputs / Equations / Outputs on every Explanation) is loaded from `VALIDATION_GUIDELINE.md` §2.13 into both the Validation and Validation map tabs. `UT_GRID` is runnable with figure `docs/validation_reports/figures/UT_GRID.png`.
+GUI tab **"Validation map"** (`src/validation_map.jl`). Cases are read-only; page images are display-only; numbers come from CSVs or transcribed tables. Per-case and per-block plain-language text (including Inputs / Equations / Outputs on every Explanation) is loaded from `VALIDATION_GUIDELINE.md` §2.13 into both the Validation and Validation map tabs. `UT_GRID` is runnable with figure `docs/validation_reports/figures/UT_GRID.png` (error panel uses `error_xlabel` = sample index, not axial z).
 
 ### Map 1 — PAIN verification (CR-3813 cabin chain)
 

@@ -16,6 +16,12 @@ function _error_ylabel(spec::PlotSpec)
     end
 end
 
+"""Error-panel x label: optional `error_xlabel`, else main-panel `xlabel`."""
+function _error_xlabel(spec::PlotSpec)
+    spec.error_xlabel === nothing && return spec.xlabel
+    return spec.error_xlabel
+end
+
 function _row_error(row::ValidationTableRow, mode::Symbol)
     if mode === :absolute
         # Prefer the stored residual (phase cases store a wrapped residual).
@@ -210,11 +216,14 @@ function plot_case(result::ValidationCaseResult, spec::PlotSpec; path::Union{Not
         ylim_e, clipped = _error_ylims(errs, spec.error_tol)
         title_e = "error per point (green = within criterion)"
         clipped && (title_e *= " — clipped")
+        # When error_xlabel is set, error-panel x is not the main-panel coordinate:
+        # keep linear scale and do not inherit main xlim / log ticks.
+        err_same_x = spec.error_xlabel === nothing
         ax_e = Axis(fig[err_row, 1];
                     title=title_e,
-                    xlabel=spec.xlabel, ylabel=_error_ylabel(spec),
-                    xscale=spec.xscale === :log10 ? log10 : identity)
-        if spec.xlim !== nothing
+                    xlabel=_error_xlabel(spec), ylabel=_error_ylabel(spec),
+                    xscale=(err_same_x && spec.xscale === :log10) ? log10 : identity)
+        if err_same_x && spec.xlim !== nothing
             xlims!(ax_e, spec.xlim...)
         end
         if ylim_e !== nothing
@@ -231,7 +240,7 @@ function plot_case(result::ValidationCaseResult, spec::PlotSpec; path::Union{Not
         hlines!(ax_e, [0.0]; color=:gray, linestyle=:dash, linewidth=1)
         if spec.error_tol !== nothing && !isempty(err_xs)
             tol = spec.error_tol
-            xlo, xhi = spec.xlim !== nothing ? spec.xlim : extrema(err_xs)
+            xlo, xhi = (err_same_x && spec.xlim !== nothing) ? spec.xlim : extrema(err_xs)
             band!(ax_e, [xlo, xhi], [-tol, -tol], [tol, tol]; color=(:steelblue, 0.12))
             hlines!(ax_e, [-tol, tol]; color=:steelblue, linestyle=:dash, linewidth=1)
         end
@@ -250,7 +259,7 @@ function plot_case(result::ValidationCaseResult, spec::PlotSpec; path::Union{Not
             col = row.within_tolerance ? :green : :red
             scatter!(ax_e, [row.x], [e]; marker=mk, markersize=10, color=col)
         end
-        if spec.xscale === :log10
+        if err_same_x && spec.xscale === :log10
             _apply_log_ticks!(ax_e, err_xs; dim=:x)
         end
         if !isempty(groups)

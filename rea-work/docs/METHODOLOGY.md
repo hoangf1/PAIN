@@ -283,4 +283,4 @@ Preferred cabin path (calibrated): `data/cr3813/e11_freefield_measured_A.csv` (w
 | Scripts by purpose (R1) | `PAIN.jl/scripts/{run,checks,digitize,setup,smoke}/` (`scripts/README.md`) |
 | Case registry + runners | `PAIN.jl/src/validation_cases.jl`, `validation_case_extras.jl` |
 | Validation maps (CASE_INFO, Map 1 / Map 2) + GUI map tab | `PAIN.jl/src/validation_map.jl` |
-| Case plots (error panel, source page) | `PAIN.jl/src/validation_plots.jl`; figures under `validation_reports/figures/` |
+| Case plots (error panel, source page) | `PAIN.jl/src/validation_plots.jl`; figures under `validation_reports/figures/`; optional `PlotSpec.error_xlabel` when error-panel x ≠ main-panel x (`UT_GRID`) |

@@ -1,0 +1,17 @@
+# Task — Phase 36: cabin mode animation (display only), steps 36a, 36b, 36c, 36e (36d optional structural view: do it too if 36a–36c pass cleanly)
+
+Repo `D:\code\PAIN\rea-work\PAIN.jl`. Read `D:\code\PAIN\CLAUDE.md` and `rea-work/docs/IMPLEMENTATION_PLAN.md` §8 "Phase 36" (the full description and step table; the author said go on 2026-10-22: "continue until no more phases are implemented").
+Display only: **no criterion, no verdict, no tuning**; nothing in the animation feeds any result. Read `src/cyl2d.jl` (`cyl2d_modes`, `Cyl2DResult`), `test/fig_c3_values.jl` (printed Fig. C-3 one-decimal node values), the validation-map / GUI wiring (`src/gui_model.jl`, `src/gui_main.jl`, `gui/main.qml`) and how the Validation map detail for `CYL2D_C1` is built.
+
+## 36a Frame generator (`src/mode_animation.jl`, include/export)
+`mode_animation_frames(res::Cyl2DResult, mode::Int; nframes=24, grid=…)` → NamedTuple (x, y grid of the **full** cabin section, a vector of frame matrices φ_n(x,y)·cos(2π k/nframes), symmetric colour limits fixed over the whole period, the nodal-line mask/contours, mode index, f at the given c0, Φ_G, symmetry). The half-cabin App. C grid is mirrored to the full section (antisymmetric modes change sign across the centreline); interpolation is for drawing only, the node values are unchanged (state this on the figure). Modes 0–19. Plus
+`render_mode_animation(path, frames; format=:gif)` using CairoMakie `record` (GIF; also a single PNG of the peak frame) with floor/wall outline, mode index, f, Φ_G, symmetry in the caption, "display only — interpolated for drawing" note. For modes 0–5 a side panel or overlay of the printed Fig. C-3 one-decimal node values. For 3-D modes (q, i): `axial_factor(q, L)` = cos(qπz/L) (Eq. C.9) as a side view option (selector q).
+## 36b GUI "Cabin modes" panel
+A panel (in the Validation map detail for `CYL2D_C1`, or its own tab — choose the cheaper and say which) with mode selector 0–19, q selector, play/pause, speed, showing f, Φ_G, symmetry and, for 0–5, the Fig. C-3 values. Use frame PNGs or the model's Observables as the existing GUI does for figures; it must run offscreen in the smoke test without opening a window; inputs c0, θ0, NY are shown as the fixed `CYL2D_C1` inputs (not editable). Follow the cooperative-loop pattern of 37i for any long task.
+## 36c Tests
+Frame data equal the `cyl2d_modes` node values at the nodes (no smoothing of the data); mode 0 is uniform; an antisymmetric mode is odd about the centreline; frame count; the output file is written; symmetric colour limits; the smoke scripts (`smoke_gui_model.jl`, `smoke_qml_load.jl`, offscreen) extended to check the panel model is filled and the QML loads.
+## 36d (optional) Structural shape and f′ view
+Table D-1 / App. D structural mode shapes ψ (Eqs. 46–49) on the shell and floor and the coupling f′ between a selected structural and acoustic mode; display only. Do it only if 36a–36c are green; otherwise say so in the report.
+## 36e Docs
+README (GUI section), flowchart, METHODOLOGY §4, VALIDATION_GUIDELINE §2.6 ("display only, no claim"), per CLAUDE.md. Do not write IMPLEMENTATION_PLAN entries (the reviewer does).
+Run only the new testset and "Validation case registry" via `Pkg.test("PAIN"; test_args=[...])` plus both smoke scripts offscreen (`QT_QPA_PLATFORM=offscreen`); do not run the full suite. No commit. Never open a GUI window. Do not touch regenerated validation figure files. Leave no helper scripts. Report: files, what the panel shows, tests and smoke results, whether 36d was done.

@@ -33,14 +33,15 @@ struct PlotSpec
     error_mode::Symbol   # :absolute | :relative_pct | :db_ratio | :none
     error_ylabel::String
     error_tol::Union{Nothing,Float64}
+    error_xlabel::Union{Nothing,String}  # nothing → reuse xlabel (main-panel x)
 end
 
 PlotSpec(; xlabel="", ylabel="", xscale=:identity, yscale=:identity,
          xlim=nothing, ylim=nothing, panel_titles=String[],
          tolerance_band=nothing, error_mode=:absolute, error_ylabel="",
-         error_tol=nothing) =
+         error_tol=nothing, error_xlabel=nothing) =
     PlotSpec(xlabel, ylabel, xscale, yscale, xlim, ylim, panel_titles, tolerance_band,
-             error_mode, error_ylabel, error_tol)
+             error_mode, error_ylabel, error_tol, error_xlabel)
 
 """Published figure citation for a case."""
 struct FigureRef
