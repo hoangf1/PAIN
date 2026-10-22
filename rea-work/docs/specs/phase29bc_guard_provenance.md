@@ -1,0 +1,19 @@
+# Task — Phase 29b (guard) and 29c (provenance tags) for the aircraft path (the author said go on 2026-10-22: "continue until no more phases are implemented")
+
+Repo `D:\code\PAIN\rea-work\PAIN.jl`. Read `D:\code\PAIN\CLAUDE.md`, `rea-work/docs/IMPLEMENTATION_PLAN.md` §6 "Phase 29" (table, Outputs paragraph) and `VALIDATION_GUIDELINE.md` §2.10 "Test-article-specific values reachable from the aircraft path" (the 29a audit table: it is the list of values to guard).
+Aircraft runs are `run_pipeline(...; aircraft_json=...)` / `source=:aircraft` (`PAIN.jl`, `gui_model.jl`); the validation/test-article paths (`:e11`, `:synthetic`, validation cases, scripts, tests) are NOT aircraft runs and must behave exactly as now (every existing output bit-identical; existing tests unchanged).
+No criterion/tuning involved; this is bookkeeping and warnings.
+
+## 29b Guard
+On an aircraft run, detect every test-article default that was used (rows of the 29a table: `phase3_trim` defaults and the Phase III stacks, the PF-105/Fig. A-2 table, wall mass from the `MRP_*` constants, Table D-1 hybrid modes, `bb_j2_scale`, H = 3 anchor/slope/absorption curve, CYL2D/c0/ρ0 defaults, `η_n_bare`/`C_struc` defaults, `L_c`/`d` defaults when the user geometry differs, etc.), and (a) issue a Julia `@warn` once per run naming each default and its value, (b) add `NASADefaultUsed` data to the run result (a field such as `result.provenance.nasa_defaults::Vector{NamedTuple(name, value, source)}`), (c) mark the printed report / `write_printed_outputs_md` header and the GUI status line "uses NASA test-article defaults: …". No silent fallback. An aircraft run that supplies all of them from the user JSON has an empty list.
+Add the aircraft-JSON keys needed to let the user supply each of these (follow the existing JSON loader style; only keys for values the code can already take as inputs — do not invent new physics).
+
+## 29c Provenance tags
+Input schema for aircraft JSON: any cabin input may be given as a plain number (tag "assumed" unless it matches the NASA default, then "nasa_default") or as `{"value": v, "tag": "measured"|"assumed"|"nasa_default"}`. The tag is carried into the run result (`result.provenance.inputs`), the printed report (a table: input, value, tag) and the GUI echo. Rule: an aircraft result that uses any `nasa_default` is labelled in the report header "NASA test article inputs used for: …, not the aircraft". Validate tags (reject unknown tag values with a clear error). The existing example JSON files must still load (plain numbers).
+## Tests (V-UNIT)
+1. A test-article-like aircraft JSON with no user-supplied cabin inputs reports every default from the 29a table that it uses; the warning is emitted once.
+2. An aircraft JSON that supplies all cabin inputs (use a fully specified example you add under `examples/` for the Hartzell working example's geometry; mark inputs "assumed" where invented for the test and say so in the file) has an empty `nasa_defaults`; tags round-trip into the result and the report table.
+3. Invalid tag raises; plain numbers load; `:e11`/`:synthetic` and every validation case have bit-identical outputs (Validation case registry testset unchanged and passing).
+4. The printed-outputs report header shows the label when NASA defaults are used.
+Run only the new testset and "Validation case registry" (and "Printed outputs" if touched) via `Pkg.test("PAIN"; test_args=[...])`; both smoke scripts offscreen; do not run the full suite. No commit. Never open a GUI window. Do not write IMPLEMENTATION_PLAN entries (the reviewer does); update README / flowchart / METHODOLOGY / VALIDATION_GUIDELINE (§2.10 table gets a "guard" column or note). Do not touch regenerated validation figure files. Leave no helper scripts.
+Report: the list of guarded defaults, the result/report fields added, JSON schema changes, tests.
