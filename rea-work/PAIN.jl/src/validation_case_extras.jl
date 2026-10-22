@@ -1633,6 +1633,42 @@ function _run_ut_grid()
     )
 end
 
+"""31e UNC_COVER: parametric test-article Monte Carlo P5–P95 vs measured E-16 means."""
+function _run_unc_cover()
+    means = e16_measured_means()
+    bands = Float64[200.0, 400.0, 630.0]
+    budget = uncertainty_budget(:testarticle; trimmed=true)
+    cache = build_testarticle_cache()
+    oat = oat_sweep(cache, budget)
+    kept = [r.name for r in oat if r.keep]
+    mc = monte_carlo_band(cache, budget, kept; N=UNC_MC_N, seed=UNC_MC_SEED, family=:uniform)
+    cov = coverage_check(mc; measured_means=means)
+    table = ValidationTableRow[]
+    for row in cov.rows
+        push!(table, ValidationTableRow(
+            "H$(row.H) measured mean inside P5–P95", bands[row.H], row.measured,
+            row.P50, row.measured - row.P50, row.inside))
+    end
+    p5 = Float64[mc.harm[H].P5 for H in 1:3]
+    p50 = Float64[mc.harm[H].P50 for H in 1:3]
+    p95 = Float64[mc.harm[H].P95 for H in 1:3]
+    series = [
+        PlotSeries("measured E-16 mean", :reference_points, bands, means[1:3]; panel=1),
+        PlotSeries("MC P5–P95", :reference_band, bands, p50; ylow=p5, yhigh=p95, panel=1),
+        PlotSeries("MC P50", :computed, bands, p50; panel=1),
+    ]
+    return ValidationCaseResult(
+        "UNC_COVER", _today_iso(),
+        (; source=:e11, cabin_blocks=:parametric, N=UNC_MC_N, seed=UNC_MC_SEED,
+         family=:uniform, kept=join(kept, ","), criterion_date="2026-10-22"),
+        table, series, cov.verdict,
+        "31e coverage $(cov.verdict); margins dB: " *
+            join(["H$(r.H)=$(round(r.margin_dB; digits=2))" for r in cov.rows], ", "),
+        "V-EXP vs measured E-16 means; first run 2026-10-22; pre-registered",
+        joinpath(_VAL_REPORT_DIR, "uncertainty_budget_testarticle.md"),
+    )
+end
+
 function _finish_validation_registry!()
     empty!(VALIDATION_CASES)
     empty!(VALIDATION_CASE_ORDER)
@@ -1890,6 +1926,22 @@ function _finish_validation_registry!()
                  panel_titles=["Fig. E-15"], error_mode=:relative_pct, error_tol=50.0),
         "",
     ))
+    push!(cases, ValidationCase(
+        "UNC_COVER", "Uncertainty coverage vs Fig. E-16 means (31e)", "31e",
+        [_data_path("cr3813", "t1_interior_targets.csv")],
+        FigureRef("CR-3813", "Fig. E-16", 142),
+        "31e (pre-registered 2026-10-22): P5–P95 band of the primary-distribution Monte Carlo " *
+        "(untuned parametric cabin, NASA free field, no tuned value, no E-16 envelope floor) " *
+        "contains the measured E-16 mean at each of H1, H2, H3; :met only if all three.",
+        "2026-10-22",
+        "V-EXP vs measured E-16 means; first run 2026-10-22; pre-registered",
+        _run_unc_cover,
+        PlotSpec(; xlabel="1/3-octave band (Hz)", ylabel="SPL (dB)",
+                 xscale=:log10, xlim=(160.0, 2000.0),
+                 panel_titles=["Fig. E-16 P5–P95 band vs measured means"],
+                 error_mode=:none),
+        "",
+    ))
 
     for c in cases
         VALIDATION_CASES[c.id] = c
@@ -1898,7 +1950,7 @@ function _finish_validation_registry!()
     order = [
         "E11_FREEFIELD", "UT_GRID", "GEXT_BOUND", "BLK_P68", "E12_BLOCK", "MRP_D1", "MRP_RITZ", "MRP_APPD",
         "CYL2D_C1", "E14_LOSS", "E15_STRUCT_LOSS", "REPRO_18b", "E18_TONES",
-        "T1", "T2", "T2_EQ19", "E21_E22_NR",
+        "T1", "T2", "T2_EQ19", "E21_E22_NR", "UNC_COVER",
         "R996_LOADS", "PER_LOADS", "F1A_GUTIN", "R996_FIG14", "R996_FIG12", "R996_FIG13A",
         "R996_FIG6", "R996_FIG7", "BBN_KIN", "BBN_CIRC", "BBN_LONG", "R996_PHASE",
         "PER_FIG6", "PER_FIG7", "PER_FIG8", "PER_FIG9", "BBN_LEVELS",

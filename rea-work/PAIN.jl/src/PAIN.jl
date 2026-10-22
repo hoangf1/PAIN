@@ -30,6 +30,7 @@ include("freefield_digitized.jl")
 include("trim_loss.jl")
 include("pain_core.jl")
 include("aircraft_provenance.jl")
+include("uncertainty.jl")
 include("mode_animation.jl")
 include("noise_reduction.jl")
 include("high_freq_tones.jl")
@@ -107,6 +108,12 @@ export
     parse_tagged_value, apply_aircraft_cabin_json, collect_nasa_defaults_used,
     provenance_header_labels, empty_provenance, NASA_DEFAULTS, nasa_default_m_wall,
     resolve_cabin_blocks, build_appd_geometry, parse_aircraft_trim_json,
+    UncertaintyBudgetRow, UncertaintyBudget, UncertaintyChainCache,
+    uncertainty_budget, active_budget_rows, nominal_sample,
+    build_testarticle_cache, build_aircraft_cache, evaluate_uncertainty_sample,
+    oat_sweep, monte_carlo_band, coverage_check, e16_measured_means,
+    phase_bounding_cases, bbn_h1_residual_gradient_ratio,
+    uncertainty_report_md, UNC_REQUIRED_STATEMENTS, UNC_MC_N, UNC_MC_SEED,
     main, make_gui_observables, run_pain_gui!,
     PlotSeries, PlotSpec, FigureRef, ValidationTableRow, ValidationCase, ValidationCaseResult,
     VALIDATION_CASES, VALIDATION_CASE_ORDER, list_validation_cases,

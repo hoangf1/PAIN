@@ -434,7 +434,7 @@ Each row is a hard-coded NASA test-article constant that can reach an aircraft r
 
 ### 2.11 Cabin pre-registration (plan phase 13; dated 2026-10-20, before any run of phases 14–18)
 
-Written before the first run of the 14a–18a chain. A value here is changed only with the change dated and the affected result relabelled calibrated with the parameter named (rule 3, §2.3.1). None of these values is tuned to T1 or T2. Each range is a sensitivity run recorded and carried into the uncertainty budget (plan phase 31).
+Written before the first run of the 14a–18a chain. A value here is changed only with the change dated and the affected result relabelled calibrated with the parameter named (rule 3, §2.3.1). None of these values is tuned to T1 or T2. Each range is a sensitivity run recorded and carried into the uncertainty budget (plan phase 31). **Phase 31 first run 2026-10-22** (`src/uncertainty.jl`, `UNC_COVER` `:not_met`, reports `uncertainty_budget_testarticle.md` / `uncertainty_aircraft_band.md`): MC N = 4000, seed 20261022, OAT keep > 3 dB; H1 inside P5–P95, H2/H3 miss (margins −5.46 / −8.09 dB); kept `freq_scale`+`eta_t` (test article) / `eta_n_bare` (aircraft); aircraft H1–H3 P5/P50/P95 99.31/101.41/104.21, 58.47/59.07/59.94, 35.45/35.65/36.26; k=−2.09, B=3; phase (i) dominates H2/H3. Nothing widened. The aircraft band is epistemic (not a CI, not a validation).
 
 #### 2.11.1 Assumption register for 15a–17a (13a)
 
@@ -813,6 +813,7 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **Title:** Coupling / Eq. 8
 **What this stage does:** Generalized force, joint acceptance Ψ_G, and the tonal mean-square pressure sum Eq. (8) in `pain_core.jl`; high-frequency expected-value Eqs. (11)–(16) and crossover card 10 in `high_freq_tones.jl` (38b). Default `tone_model=:eq8`; `:auto` switches at the crossover band. Last equation stage before interior SPL checks.
 **Code:** pain_core.jl, high_freq_tones.jl
+**Note:** Uncertainty (phase 31): epistemic band on cabin inputs — not a confidence interval; excludes scattering/refraction (V-ASSUMED)
 **Group:** G_PAIN
 **Role:** function
 **Position:** 10,2
@@ -838,6 +839,7 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 #### Block: P_MEAS
 **Title:** vs measurement
 **What this stage does:** End-to-end checks against measured cabin levels and noise reduction (T1, T2, E-21/E-22). Last on the map because they inherit every upstream assumption (especially GEXT); several are calibrated or not claimable.
+**Note:** Uncertainty (phase 31): UNC_COVER is the epistemic P5–P95 coverage check vs E-16 means — not NASA accuracy and not a CI
 **Group:** G_VAL
 **Role:** check
 **Position:** 12,3
@@ -846,7 +848,7 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 #### Block: A_CABIN
 **Title:** Aircraft cabin
 **What this stage does:** Hand-off note: aircraft free-field on the 160-point grid feeds the cabin chain. Aircraft cabin SPL stays X-EXTRAP — no aircraft interior measurement is used.
-**Note:** Aircraft cabin SPL is X-EXTRAP: no aircraft interior measurement is used
+**Note:** Aircraft cabin SPL is X-EXTRAP: no aircraft interior measurement is used; epistemic uncertainty band (phase 31) is not a validation
 **Group:** G_VAL
 **Role:** check
 **Position:** 12,5
@@ -1091,6 +1093,22 @@ Outputs: interior SPL_H1..H3 [dB]; verdict |Δ| ≤ 4 dB vs NASA PAIN prediction
 Inputs: `default_e11_paths()`; `phase3_trim(; η_lining=1.0)`; η_r_cap = 0.15; BPF = 200 Hz; L = 1.83 m; `e18_interior_pred_eta1.csv`.
 Equations: Eq. (8) tones; Eq. (82) capped η_r′; blocking as in pipeline.
 Outputs: interior SPL [dB] at 200/400/630 Hz; verdict ≤ 4 dB vs NASA E-18 prediction.
+
+### Case: UNC_COVER
+**Title:** Uncertainty coverage vs E-16 means (31e)
+**Map / block:** total / P_MEAS
+**Category:** experiment
+**Kind:** runnable
+**Source:** CR-3813 Fig. E-16 measured means; phase 31 pre-registration 2026-10-22
+**What it tests:** Whether the untuned parametric cabin Monte Carlo P5–P95 band (NASA free field, a-priori ranges) contains the measured E-16 mean at H1–H3.
+**Why it is here:** Coverage check on the test article before trusting the aircraft epistemic band; can fail without widening ranges in this run.
+**A pass means:** Measured mean at each of H1, H2, H3 lies inside the primary (uniform) MC P5–P95; `:met` only if all three.
+**Not covered:** Not a confidence interval; no E-16 envelope floor; no tuned value; scattering/refraction excluded (V-ASSUMED); aircraft source residuals not in this check.
+**Recorded outcome:** `:not_met` — H1 P5/P50/P95 88.95/89.87/91.06 vs mean 90 (inside, margin +1.05 dB); H2 85.46/91.3/92.86 vs 80 (miss −5.46); H3 73.09/74.78/77.59 vs 65 (miss −8.09); kept `freq_scale`, `eta_t`; `uncertainty_budget_testarticle.md` (first run 2026-10-22)
+**Explanation:** Experiment comparison (V-EXP vs measured E-16 means; first run 2026-10-22; pre-registered): untuned `:parametric` chain on the NASA test article with the phase-31 a-priori budget; OAT keep (>3 dB); primary Monte Carlo N=4000 seed 20261022; plot P5–P95 band with measured means. Failure means a missing contributor or ranges too narrow — do not widen here.
+Inputs: `cabin_blocks=:parametric`, `source=:e11`, Phase III trim path with η_t in 0.01–0.10 (nominal 0.05), C 2–4, freq scale 0.95–1.05, discrete CYL2D/q_max/blocking/trim alternatives; `t1_interior_targets.csv` measured means 90/80/65 dB; L = 1.83 m.
+Equations: App. D modes + Eq. (8) tones; App. A trim; no E-16 envelope in the band.
+Outputs: P5/P50/P95 [dB] per H1–H3; per-harmonic inside/margin; verdict `:met`|`:not_met`.
 
 ### Case: T1
 **Title:** Tonal interior SPL (T1)

@@ -212,6 +212,7 @@ flowchart LR
 | Open author | I-17 amplitude | `VALIDATION_GUIDELINE.md` |
 | Aircraft cabin guard / tags | 29b/29c done 2026-10-22 | `aircraft_provenance.jl`; §2.10 guard column |
 | Parametric cabin blocks | 30a–30d done 2026-10-22 | `cabin_blocks=:parametric` (aircraft default); App. D + Eq.19; `parametric_regression.md` |
+| Uncertainty (epistemic band) | 31a–31f done 2026-10-22 | `UNC_COVER` `:not_met` (H2/H3); aircraft H1–H3 band; phase dominates H2/H3; not a CI |
 
 ## 4. Shared cabin model
 

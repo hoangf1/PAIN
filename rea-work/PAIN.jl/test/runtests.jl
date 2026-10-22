@@ -2026,6 +2026,101 @@ _run_if("App. D structural solver 38g (V-UNIT)") do
     @test validation_case_runnable("MRP_APPD")
 end
 
+_run_if("Uncertainty budget (phase 31, V-UNIT)") do
+    budget = uncertainty_budget(:testarticle; trimmed=true)
+    @test any(r -> r.name == "eta_t" && r.type === :continuous, budget.rows)
+    @test any(r -> r.name == "eta_n_bare" && r.type === :excluded, budget.rows)
+    @test any(n -> occursin("η_T = 0.5", n) && occursin("0.01–0.10", n), budget.notes)
+
+    # OAT of a parameter with zero range → zero swing
+    cache = build_testarticle_cache()
+    @test cache.num_blades == 3
+    # Degenerate continuous row: lo = hi = nominal
+    zrow = UncertaintyBudgetRow("C_struc", 3.0, 3.0, 3.0, "zero-range unit test",
+                                "assumed", :continuous, Float64[], String[])
+    zbudget = UncertaintyBudget(:testarticle, [zrow], String[])
+    oat_z = oat_sweep(cache, zbudget; n_cont=3)
+    @test length(oat_z) == 1
+    @test oat_z[1].swing_dB == 0.0
+    @test oat_z[1].keep == false
+
+    # Strong nominal: η_t = 0.5 (phase3_trim default) and all other params at budget nominal
+    # match the parametric e11 pipeline tonal SPLs.
+    s_nom05 = nominal_sample(budget)
+    s_nom05["eta_t"] = 0.5
+    H_unc = evaluate_uncertainty_sample(cache, s_nom05).H
+    H_pipe = run_pain_pipeline(; source=:e11, n_harmonics=3, bpf_Hz=200.0,
+                               cabin_blocks=:parametric).spectrum.harmonic_SPL_dB[1:3]
+    for H in 1:3
+        @test H_unc[H] ≈ H_pipe[H] atol=1e-6
+    end
+
+    # Monte Carlo with all parameters at nominal (empty kept) → zero width, equals nominal
+    nom = evaluate_uncertainty_sample(cache, nominal_sample(budget)).H
+    mc0 = monte_carlo_band(cache, budget, String[]; N=20, seed=UNC_MC_SEED, family=:uniform)
+    for H in 1:3
+        p = mc0.harm[H]
+        @test p.P5 == p.P50 == p.P95
+        @test p.P50 ≈ nom[H] atol=1e-9
+        @test (p.P95 - p.P5) == 0.0
+    end
+
+    # Seeding reproducible
+    kept = ["C_struc"]
+    mc_a = monte_carlo_band(cache, budget, kept; N=40, seed=UNC_MC_SEED, family=:uniform)
+    mc_b = monte_carlo_band(cache, budget, kept; N=40, seed=UNC_MC_SEED, family=:uniform)
+    for H in 1:3
+        @test mc_a.harm[H].P5 == mc_b.harm[H].P5
+        @test mc_a.harm[H].P50 == mc_b.harm[H].P50
+        @test mc_a.harm[H].P95 == mc_b.harm[H].P95
+    end
+
+    # Percentiles ordered
+    for H in 1:3
+        p = mc_a.harm[H]
+        @test p.P5 ≤ p.P50 ≤ p.P95
+    end
+
+    # Coverage check on a synthetic known case
+    fake_mc = (; harm=[(; P5=80.0, P50=85.0, P95=90.0),
+                       (; P5=70.0, P50=75.0, P95=80.0),
+                       (; P5=60.0, P50=65.0, P95=70.0)])
+    cov_ok = coverage_check(fake_mc; measured_means=[85.0, 75.0, 65.0])
+    @test cov_ok.verdict === :met
+    @test all(r -> r.inside, cov_ok.rows)
+    cov_fail = coverage_check(fake_mc; measured_means=[95.0, 75.0, 65.0])
+    @test cov_fail.verdict === :not_met
+    @test cov_fail.rows[1].inside == false
+
+    # Phase case (i) with k = 0 → exactly nominal SPL
+    ph0 = phase_bounding_cases(cache, budget; k_override=0.0)
+    for H in 1:3
+        @test ph0.bbn_residual[H] == ph0.nominal[H]
+        @test ph0.spread_i_dB[H] == 0.0
+    end
+    @test ph0.k == 0.0
+    @test ph0.B == 3
+
+    # BBN residual gradient ratio is finite and negative
+    k = bbn_h1_residual_gradient_ratio()
+    @test isfinite(k)
+    @test k < 0
+
+    # Report template contains every required statement
+    md = uncertainty_report_md(; title="unit", budget)
+    for s in UNC_REQUIRED_STATEMENTS
+        @test occursin(s, md)
+    end
+    # :testarticle report points at the aircraft band for the diameter/provenance line
+    @test occursin("this report is the 31e coverage check", md)
+    @test !occursin("working-example provenance", md)
+
+    # Registry has UNC_COVER with the pre-registered label
+    @test haskey(VALIDATION_CASES, "UNC_COVER")
+    @test occursin("pre-registered", VALIDATION_CASES["UNC_COVER"].label)
+    @test VALIDATION_CASES["UNC_COVER"].criterion_date == "2026-10-22"
+end
+
 _run_if("Validation case registry (34d)") do
     @test Set(keys(VALIDATION_CASES)) == Set(VALIDATION_CASE_ORDER)
     for id in VALIDATION_CASE_ORDER
