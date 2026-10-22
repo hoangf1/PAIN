@@ -1807,6 +1807,78 @@ _run_if("Printed outputs 38h (Manual §5.4.3)") do
     @test length(out.psi_G) == length(inp.structural.modes) * nH
 end
 
+# Plan phase 29b/29c: NASA-default guard + provenance tags (aircraft path only).
+# ---------------------------------------------------------------------------------------------
+_run_if("Aircraft provenance 29b/29c (V-UNIT)") do
+    json_bare = joinpath(@__DIR__, "..", "examples", "aircraft_scale_hartzell.json")
+    json_full = joinpath(@__DIR__, "..", "examples", "aircraft_scale_hartzell_cabin_full.json")
+    @test isfile(json_bare) && isfile(json_full)
+
+    # 1. No cabin block → every used §2.10 default listed; warn once
+    r_bare = @test_logs (:warn, r"NASA test-article defaults") match_mode=:any begin
+        run_pain_pipeline(; source=:aircraft, aircraft_json=json_bare,
+                          n_harmonics=2, trim=:bare)
+    end
+    nd = r_bare.provenance.nasa_defaults
+    @test !isempty(nd)
+    names = Set(String(r.name) for r in nd)
+    for must in ("L_m", "a_m", "theta0_deg", "eta_n_bare", "C_struc", "m_wall_kg_m2",
+                 "structural_solver", "bb_j2_scale", "absorption_curve", "spbl_anchor_H",
+                 "NY", "c0_mps", "rho_kg_m3")
+        @test must in names
+    end
+    @test isempty(r_bare.provenance.inputs)  # no cabin.* tags supplied
+
+    # 2. Fully specified cabin → empty nasa_defaults; tags round-trip; report table
+    r_full = run_pain_pipeline(; source=:aircraft, aircraft_json=json_full,
+                               n_harmonics=2)
+    @test isempty(r_full.provenance.nasa_defaults)
+    @test !isempty(r_full.provenance.inputs)
+    @test all(r -> r.tag in ("measured", "assumed", "nasa_default"), r_full.provenance.inputs)
+    @test any(r -> r.name == "eta_n_bare" && r.tag == "assumed", r_full.provenance.inputs)
+    @test any(r -> r.name == "structural_solver" && r.value == "ritz", r_full.provenance.inputs)
+    mktempdir() do tmp
+        out = printed_outputs(r_full.inputs; bpf_Hz=r_full.spectrum.bpf_Hz, n_harmonics=2,
+                              broadband=false)
+        path = joinpath(tmp, "prov.md")
+        write_printed_outputs_md(path, out; provenance=r_full.provenance,
+                                 title="Provenance full cabin")
+        md = read(path, String)
+        @test occursin("## Input provenance (phase 29c)", md)
+        @test occursin("eta_n_bare", md) && occursin("assumed", md)
+        @test !occursin("uses NASA test-article defaults", md)
+    end
+
+    # 3. Invalid tag raises; plain numbers still load; :e11/:synthetic bit-identical extras
+    @test_throws ErrorException PAIN.parse_tagged_value(
+        (value=1.0, tag="guessed"); name="x")
+    cfg = PAIN._load_aircraft_json(json_bare)
+    @test cfg.fuselage.a_m == 0.508
+
+    r_e11_a = run_pain_pipeline(; source=:e11, n_harmonics=3, bpf_Hz=200.0, trim=:bare, NY=8)
+    r_e11_b = run_pain_pipeline(; source=:e11, n_harmonics=3, bpf_Hz=200.0, trim=:bare, NY=8)
+    @test r_e11_a.spectrum.harmonic_SPL_dB == r_e11_b.spectrum.harmonic_SPL_dB
+    @test isempty(r_e11_a.provenance.nasa_defaults)
+    r_syn_a = run_pain_pipeline(; source=:synthetic, use_synthetic=true, n_harmonics=3,
+                                bpf_Hz=150.0, trim=:bare, NY=8)
+    r_syn_b = run_pain_pipeline(; source=:synthetic, use_synthetic=true, n_harmonics=3,
+                                bpf_Hz=150.0, trim=:bare, NY=8)
+    @test r_syn_a.spectrum.harmonic_SPL_dB == r_syn_b.spectrum.harmonic_SPL_dB
+    @test r_syn_a.spectrum.third_octave_SPL_dB == r_syn_b.spectrum.third_octave_SPL_dB
+
+    # 4. Printed-outputs header labels NASA defaults when present
+    mktempdir() do tmp
+        out = printed_outputs(r_bare.inputs; bpf_Hz=r_bare.spectrum.bpf_Hz, n_harmonics=2,
+                              broadband=false)
+        path = joinpath(tmp, "nasa.md")
+        write_printed_outputs_md(path, out; provenance=r_bare.provenance,
+                                 title="Provenance NASA defaults")
+        md = read(path, String)
+        @test occursin("uses NASA test-article defaults:", md)
+        @test occursin("NASA test article inputs used for:", md)
+    end
+end
+
 _run_if("App. D structural solver 38g (V-UNIT)") do
     g = appd_test_article_geometry()
     @test g.L == 1.83                          # I-22 / App. E (test_article_length default)

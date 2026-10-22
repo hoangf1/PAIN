@@ -194,9 +194,9 @@ User-supplied for any aircraft run (working example diameter 2.64 m is not a fix
 - Trim stack: layer order, thicknesses, limp masses, loss factors; insulation table λ_m, α, φ, |W| vs frequency (Fig. A-2 form); mechanical connections
 - End-plate mass and trim
 - Bare-cabin η_n if untrimmed; C of Eq. (80)
-- Provenance tag per input: measured | assumed | nasa_default (29c, [CONFIRM])
+- Provenance tag per input: measured | assumed | nasa_default (29c done 2026-10-22)
 
-Until 29b/29c land, an aircraft run may silently use the test-article defaults listed in `VALIDATION_GUIDELINE.md` §2.10 (29a audit).
+**29b/29c (2026-10-22).** Aircraft JSON `cabin` (and 38f card keys) may give plain numbers or `{"value":v,"tag":…}`. Plain numbers that match a §2.10 NASA default are tagged `nasa_default`; others `assumed`. An aircraft run that still uses any test-article default warns once, sets `result.provenance.nasa_defaults`, and labels the printed-outputs header / GUI status (`uses NASA test-article defaults: …`; `NASA test article inputs used for: …, not the aircraft`). Fully specified example: `PAIN.jl/examples/aircraft_scale_hartzell_cabin_full.json`. Validation / `:e11` / `:synthetic` paths are bit-identical (no guard).
 
 ## 9. Claim register
 

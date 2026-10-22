@@ -407,28 +407,28 @@ named in the register. The MRP hybrid transcription (`MRP_D1`) and the calibrate
 as passes. The F1A smoke test is a sanity check. The source block gets an experimental check only after the Report 996 phases
 (§2.3.1). Free-field amplitude convention (I-17) is open.
 
-#### Test-article-specific values reachable from the aircraft path (phase 29a audit, 2026-10-21)
+#### Test-article-specific values reachable from the aircraft path (phase 29a audit, 2026-10-21; guard 29b/29c 2026-10-22)
 
-Each row is a hard-coded NASA test-article constant that can reach an aircraft run today. Guard/provenance (29b/29c) wait for [CONFIRM].
+Each row is a hard-coded NASA test-article constant that can reach an aircraft run. **29b/29c done 2026-10-22:** an aircraft run (`aircraft_json=…`) warns once, fills `result.provenance.nasa_defaults`, and labels the printed-outputs header / GUI status when any of these is used without a user `assumed`/`measured` tag. Cabin JSON keys under `cabin` (and existing 38f card keys) accept plain numbers or `{"value":v,"tag":"measured"|"assumed"|"nasa_default"}`. Validation / `:e11` / `:synthetic` paths are unchanged (no guard).
 
-| File | Symbol / site | Value | Source |
-|------|---------------|-------|--------|
-| `trim_loss.jl` | `phase3_trim` defaults `a`, `L`, `theta0_deg` | 0.508 m, `test_article_length()` (default 1.83 m), 56.6° | CR-3813 App. E test article; L via `TEST_ARTICLE_L` (I-22 default 1.83 m, 2026-10-22) |
-| `trim_loss.jl` | `phase3_trim` η_lining | 0.5 (Phase III); aircraft register default 0.05 | p. E-24 / register f |
-| `trim_loss.jl` | PF-105 / Fig. A-2 insulation table | `data/cr3813/fig_a2_pf105.csv` | App. A |
-| `trim_loss.jl` | Phase III sidewall/end stacks, septum 6.58 kg, facing 0.095 kg/m² | as coded | App. E p. E-8 |
-| `mrp.jl` | `MRP_T_SKIN`, stringer/frame areas and spacings, E, ν, ρ | 0.00081 m, … | App. D / MRP constants |
-| `pain_core.jl` | wall mass fallback from `MRP_*` when `m_wall` NaN | smeared skin | same |
-| `pain_core.jl` | `bb_j2_scale` default | 0.5 | stale T2 fit |
-| `pain_core.jl` | Spbl H=3 anchor, f⁻² slope, absorption curve | as coded | V-ASSUMED / educated |
-| `PAIN.jl` | `run_pain_pipeline` geometry defaults | L=`test_article_length()` (default 1.83), a=0.508, θ0=56.6, r_p=0.965 | test article |
-| `geometry.jl` | `TEST_ARTICLE_L` / `test_article_length()` | default **1.83 m** (I-22); App. D follows `test_article_length()` | I-22 decision 2026-10-22; re-record `length_rerecord_before_after.md` (from `length_sensitivity.md`; no length selected from any error) |
-| `PAIN.jl` | hybrid Table D-1 modes when `use_table_d1=true` | 32 modes | Table D-1 |
-| `cyl2d.jl` / pipeline | CYL2D NY=10, c0=340, ρ0=1.225 | defaults | App. C / register |
-| `pain_core.jl` / pipeline | `L_c` default = fuse.L, `d` = 0; `rotation_direction` = +1; `bands` / `η_r_band` / `η_n_band` default `nothing` | card 9 / 36 / 3–6 / 11–18 defaults | Manual §5.4; 38f-1, 38f-2 |
-| `printed_outputs.jl` (38h) | Manual §5.4.3 tables from existing APIs; lower-quarter pressures not computed (I-18 note); no criterion | report / GUI only | Manual §5.4.3; plan 38h |
-| `trim_loss.jl` | end-plate 1.3 cm aluminium mass path | as coded | App. E |
-| `pain_core.jl` | η_n_bare default, C_struc default | 0.05, 3.0 | register g |
+| File | Symbol / site | Value | Source | Guard (29b) |
+|------|---------------|-------|--------|-------------|
+| `trim_loss.jl` | `phase3_trim` defaults `a`, `L`, `theta0_deg` | 0.508 m, `test_article_length()` (default 1.83 m), 56.6° | CR-3813 App. E test article; L via `TEST_ARTICLE_L` (I-22 default 1.83 m, 2026-10-22) | yes — when `trim=:phase3` |
+| `trim_loss.jl` | `phase3_trim` η_lining | 0.5 (Phase III); aircraft register default 0.05 | p. E-24 / register f | yes — with Phase III path |
+| `trim_loss.jl` | PF-105 / Fig. A-2 insulation table | `data/cr3813/fig_a2_pf105.csv` | App. A | yes — with Phase III path |
+| `trim_loss.jl` | Phase III sidewall/end stacks, septum 6.58 kg, facing 0.095 kg/m² | as coded | App. E p. E-8 | yes — with Phase III path |
+| `mrp.jl` | `MRP_T_SKIN`, stringer/frame areas and spacings, E, ν, ρ | 0.00081 m, … | App. D / MRP constants | yes — via `m_wall` fallback |
+| `pain_core.jl` | wall mass fallback from `MRP_*` when `m_wall` NaN | smeared skin | same | yes — `m_wall_kg_m2` / `cabin.m_wall_kg_m2` |
+| `pain_core.jl` | `bb_j2_scale` default | 0.5 | stale T2 fit | yes — unless `broadband_model=eq19` or user supplies scale |
+| `pain_core.jl` | Spbl H=3 anchor, f⁻² slope, absorption curve | as coded | V-ASSUMED / educated | yes — `spbl_anchor_H`, `bb_alpha`; absorption when surrogate |
+| `PAIN.jl` | `run_pain_pipeline` geometry defaults | L=`test_article_length()` (default 1.83), a=0.508, θ0=56.6, r_p=0.965 | test article | yes — `cabin.L_m` / `a_m` / … |
+| `geometry.jl` | `TEST_ARTICLE_L` / `test_article_length()` | default **1.83 m** (I-22); App. D follows `test_article_length()` | I-22 decision 2026-10-22; re-record `length_rerecord_before_after.md` (from `length_sensitivity.md`; no length selected from any error) | yes — with `L_m` |
+| `PAIN.jl` | hybrid Table D-1 modes when `use_table_d1=true` | 32 modes | Table D-1 | yes — `cabin.structural_solver` |
+| `cyl2d.jl` / pipeline | CYL2D NY=10, c0=340, ρ0=1.225 | defaults | App. C / register | yes |
+| `pain_core.jl` / pipeline | `L_c` default = fuse.L, `d` = 0; `rotation_direction` = +1; `bands` / `η_r_band` / `η_n_band` default `nothing` | card 9 / 36 / 3–6 / 11–18 defaults | Manual §5.4; 38f-1, 38f-2 | yes |
+| `printed_outputs.jl` (38h) | Manual §5.4.3 tables from existing APIs; lower-quarter pressures not computed (I-18 note); no criterion | report / GUI only | Manual §5.4.3; plan 38h | report header echoes 29b/29c labels |
+| `trim_loss.jl` | end-plate 1.3 cm aluminium mass path | as coded | App. E | yes — with Phase III path |
+| `pain_core.jl` | η_n_bare default, C_struc default | 0.05, 3.0 | register g | yes |
 
 ### 2.11 Cabin pre-registration (plan phase 13; dated 2026-10-20, before any run of phases 14–18)
 

@@ -1,0 +1,70 @@
+{
+  "description": "Hartzell scale-model propeller (same as aircraft_scale_hartzell.json) with a fully specified cabin block for phase 29b/29c. Every cabin value is tagged assumed — invented for the guard/provenance test, not measured OEM data. Working-example fuselage geometry matches the scale-model case (L≈test article, a=0.508 m); propeller geometry unchanged.",
+  "validity_class": "X-EXTRAP",
+  "reference": "Pain Validation.pdf Tables 7–9; phase 29c provenance tags",
+  "propeller": {
+    "diameter_m": 0.762,
+    "num_blades": 3,
+    "rpm": 4000,
+    "hub_radius_m": 0.08,
+    "tip_radius_m": 0.381,
+    "radii_m": [0.085, 0.12, 0.16, 0.20, 0.24, 0.28, 0.32, 0.35, 0.37, 0.378],
+    "chord_m": [0.055, 0.070, 0.078, 0.080, 0.078, 0.072, 0.062, 0.050, 0.038, 0.028],
+    "twist_deg": [38.0, 32.0, 27.0, 23.0, 20.0, 17.0, 14.5, 12.5, 11.0, 10.0],
+    "pitch_offset_deg": -5.0,
+    "thickness_over_chord": 0.0,
+    "airfoil_polar_files": []
+  },
+  "operating_point": {
+    "forward_speed_mps": 20.0,
+    "altitude_m": 0.0,
+    "rho_kg_m3": 1.225,
+    "c0_mps": 340.0,
+    "pitch_deg": 15.0
+  },
+  "fuselage": {
+    "L_m": 1.803,
+    "a_m": 0.508,
+    "theta0_deg": 56.6,
+    "note": "Documentary only; pipeline geometry comes from cabin.* below (29c)."
+  },
+  "propeller_placement": {
+    "r_p_m": 0.965,
+    "phi_p_deg": 90.0,
+    "z_p_m": 0.90,
+    "rotation_direction": 1
+  },
+  "grid": {
+    "k_max": 16,
+    "ell_max": 10,
+    "k_p": 8
+  },
+  "harmonics": 5,
+  "acoustic_analogies": {
+    "num_src_times": 64,
+    "observer_periods_blade_pass": 2
+  },
+  "cabin": {
+    "note": "All values assumed (invented for the 29b/29c empty-nasa_defaults test). Numbers match the scale-model geometry / register defaults so the physics path is unchanged; tags are assumed so they are not silent NASA defaults.",
+    "L_m": {"value": 1.83, "tag": "assumed"},
+    "a_m": {"value": 0.508, "tag": "assumed"},
+    "theta0_deg": {"value": 56.6, "tag": "assumed"},
+    "r_p_m": {"value": 0.965, "tag": "assumed"},
+    "phi_p_deg": {"value": 90.0, "tag": "assumed"},
+    "z_p_m": {"value": 0.90, "tag": "assumed"},
+    "rotation_direction": {"value": 1, "tag": "assumed"},
+    "L_c_m": {"value": 1.83, "tag": "assumed"},
+    "d_m": {"value": 0.0, "tag": "assumed"},
+    "rho_kg_m3": {"value": 1.225, "tag": "assumed"},
+    "c0_mps": {"value": 340.0, "tag": "assumed"},
+    "eta_n_bare": {"value": 0.05, "tag": "assumed"},
+    "C_struc": {"value": 3.0, "tag": "assumed"},
+    "m_wall_kg_m2": {"value": 3.23, "tag": "assumed"},
+    "NY": {"value": 10, "tag": "assumed"},
+    "structural_solver": {"value": "ritz", "tag": "assumed"},
+    "broadband_model": {"value": "eq19", "tag": "assumed"},
+    "bb_alpha": {"value": 2.0, "tag": "assumed"},
+    "spbl_anchor_H": {"value": 3, "tag": "assumed"},
+    "trim": {"value": "bare", "tag": "assumed"}
+  }
+}

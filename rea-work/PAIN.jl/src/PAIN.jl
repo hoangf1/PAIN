@@ -29,6 +29,7 @@ include("polars.jl")
 include("freefield_digitized.jl")
 include("trim_loss.jl")
 include("pain_core.jl")
+include("aircraft_provenance.jl")
 include("mode_animation.jl")
 include("noise_reduction.jl")
 include("high_freq_tones.jl")
@@ -103,6 +104,8 @@ export
     a_weight_dB, sil_dB, overall_dBA, sil_from_third_octave,
     ValidationRecord, write_validation_record,
     run_pain_pipeline, evaluate_T1, evaluate_T2, validate_mrp_table_d1,
+    parse_tagged_value, apply_aircraft_cabin_json, collect_nasa_defaults_used,
+    provenance_header_labels, empty_provenance, NASA_DEFAULTS, nasa_default_m_wall,
     main, make_gui_observables, run_pain_gui!,
     PlotSeries, PlotSpec, FigureRef, ValidationTableRow, ValidationCase, ValidationCaseResult,
     VALIDATION_CASES, VALIDATION_CASE_ORDER, list_validation_cases,
@@ -173,56 +176,54 @@ function run_pain_pipeline(;
         d::Float64=0.0,
         bands=nothing,
         η_r_band=nothing,
-        η_n_band=nothing)
+        η_n_band=nothing,
+        m_wall::Float64=NaN,
+        bb_j2_scale::Float64=0.5,
+        bb_α::Float64=2.0,
+        broadband_model::Symbol=:surrogate,
+        spbl_anchor_H::Int=3)
     trim in (:auto, :bare, :phase3) || error("trim must be :auto, :bare or :phase3")
-    fuse = FuselageGeometry(L, a, theta0_deg)
-    prop = PropellerPlacement(r_p, phi_p_deg, z_p, rotation_direction)
-    spec = GridSpec()
 
     # Resolve source. User path is :aircraft. :e11 / :synthetic stay for validation scripts and tests
     # (phase 33g); the GUI does not offer them.
     src = source
     cfg = nothing
+    prov_inputs = NamedTuple[]
+    supplied = Set{String}()
     if aircraft_json !== nothing
         src = :aircraft
         cfg = _load_aircraft_json(aircraft_json)
-        # Optional card 2 / 9 / 36 / 3–6 / 11–18 overrides from JSON.
-        fuse_j = _get(cfg, :fuselage, nothing)
-        if fuse_j !== nothing
-            L_c === nothing && (L_c = _get(fuse_j, :L_c_m, nothing))
-            d == 0.0 && (_d = _get(fuse_j, :d_m, nothing); d = _d === nothing ? d : float(_d))
-        end
-        air_j = _get(cfg, :air, nothing)
-        if air_j !== nothing
-            ρ_ext === nothing && (ρ_ext = _get(air_j, :rho_ext_kg_m3, nothing))
-            ρ_int === nothing && (ρ_int = _get(air_j, :rho_int_kg_m3, nothing))
-            c_ext === nothing && (c_ext = _get(air_j, :c_ext_mps, nothing))
-            c_int === nothing && (c_int = _get(air_j, :c_int_mps, nothing))
-        end
-        pp_j = _get(cfg, :propeller_placement, nothing)
-        if pp_j !== nothing
-            rd = _get(pp_j, :rotation_direction, nothing)
-            if rd !== nothing
-                prop = PropellerPlacement(r_p, phi_p_deg, z_p, Int(rd))
-            end
-        end
-        # Cards 3–6 / 11–18 (38f-2)
-        if bands === nothing
-            bj = _get(cfg, :bands_Hz, nothing)
-            bj === nothing && (bj = _get(cfg, :bands, nothing))
-            bands = bj
-        end
-        if η_r_band === nothing
-            η_r_band = _get(cfg, :eta_r_band, nothing)
-            η_r_band === nothing && (η_r_band = _get(cfg, :η_r_band, nothing))
-        end
-        if η_n_band === nothing
-            η_n_band = _get(cfg, :eta_n_band, nothing)
-            η_n_band === nothing && (η_n_band = _get(cfg, :η_n_band, nothing))
-        end
+        # Phase 29b/29c: cabin provenance + existing 38f card keys (geometry L/a/θ0 only from cabin.*)
+        applied = apply_aircraft_cabin_json(cfg, (;
+            L, a, theta0_deg, r_p, phi_p_deg, z_p, rotation_direction,
+            η_n_bare, C_struc, NY, ρ0, c0, ρ_ext, c_ext, ρ_int, c_int,
+            L_c, d, use_table_d1, structural_solver, m_wall,
+            bb_j2_scale, bb_α, broadband_model, spbl_anchor_H, q_max, allow_extrapolation,
+            bands, η_r_band, η_n_band, trim))
+        kw = applied.kwargs
+        L = kw.L; a = kw.a; theta0_deg = kw.theta0_deg
+        r_p = kw.r_p; phi_p_deg = kw.phi_p_deg; z_p = kw.z_p
+        rotation_direction = kw.rotation_direction
+        η_n_bare = kw.η_n_bare; C_struc = kw.C_struc; NY = kw.NY
+        ρ0 = kw.ρ0; c0 = kw.c0
+        ρ_ext = kw.ρ_ext; c_ext = kw.c_ext; ρ_int = kw.ρ_int; c_int = kw.c_int
+        L_c = kw.L_c; d = kw.d
+        use_table_d1 = kw.use_table_d1; structural_solver = kw.structural_solver
+        m_wall = kw.m_wall
+        bb_j2_scale = kw.bb_j2_scale; bb_α = kw.bb_α
+        broadband_model = kw.broadband_model; spbl_anchor_H = kw.spbl_anchor_H
+        q_max = kw.q_max; allow_extrapolation = kw.allow_extrapolation
+        bands = kw.bands; η_r_band = kw.η_r_band; η_n_band = kw.η_n_band
+        trim = kw.trim
+        prov_inputs = applied.provenance_inputs
+        supplied = applied.supplied_names
     elseif use_synthetic && source !== :e11
         src = :synthetic
     end
+
+    fuse = FuselageGeometry(L, a, theta0_deg)
+    prop = PropellerPlacement(r_p, phi_p_deg, z_p, rotation_direction)
+    spec = GridSpec()
 
     paths = default_e11_paths()
     if src === :e11
@@ -253,24 +254,51 @@ function run_pain_pipeline(;
     ΔA = (π * a / 18)^2  # User Manual grid spacing scale
     trim_used = trim === :auto ? (src === :e11 ? :phase3 : :bare) : trim
     sidewall = end_stack = mech_used = nothing
-    m_wall = NaN
+    m_wall_eff = m_wall
+    m_wall_from_phase3 = false
     if sidewall_trim_stack !== nothing || end_trim_stack !== nothing
         sidewall, end_stack, mech_used = sidewall_trim_stack, end_trim_stack, mech
         trim_used = :custom
     elseif trim_used === :phase3
         p3 = phase3_trim(; a=a, L=L, theta0_deg=theta0_deg)
-        sidewall, end_stack, mech_used, m_wall = p3.sidewall, p3.ends, p3.mech, p3.m_wall
+        sidewall, end_stack, mech_used = p3.sidewall, p3.ends, p3.mech
+        if isnan(m_wall_eff)
+            m_wall_eff = p3.m_wall
+            m_wall_from_phase3 = true
+        end
     end
+    m_wall_was_fallback = isnan(m_wall_eff)  # PainInputs will fill from MRP_*
     inp = PainInputs(fuse, prop, structural, acoustic,
                      bl.amplitudes, bl.phases, bl.pts, ΔA;
-                     sidewall=sidewall, endplates=end_stack, mech=mech_used, m_wall=m_wall,
+                     sidewall=sidewall, endplates=end_stack, mech=mech_used, m_wall=m_wall_eff,
                      η_n_bare=η_n_bare, C_struc=C_struc, q_max=q_max,
                      allow_extrapolation=allow_extrapolation,
                      ρ0=ρ0, c0=c0, ρ_ext=ρ_ext, c_ext=c_ext, ρ_int=ρ_int, c_int=c_int,
                      L_c=L_c, d=d, bands=bands, η_r_band=η_r_band, η_n_band=η_n_band)
-    spec_out = interior_spl(inp; bpf_Hz=bl.bpf_Hz, n_harmonics=min(n_harmonics, size(bl.amplitudes, 3)))
+    spec_out = interior_spl(inp; bpf_Hz=bl.bpf_Hz,
+                            n_harmonics=min(n_harmonics, size(bl.amplitudes, 3)),
+                            bb_j2_scale=bb_j2_scale, bb_α=bb_α,
+                            spbl_anchor_H=spbl_anchor_H, broadband_model=broadband_model)
+
+    provenance = empty_provenance()
+    if src === :aircraft
+        nasa_defs = collect_nasa_defaults_used(;
+            L, a, theta0_deg, r_p, phi_p_deg, z_p, rotation_direction,
+            η_n_bare, C_struc, NY, ρ0, c0, L_c=inp.L_c, d,
+            m_wall_resolved=inp.m_wall,
+            m_wall_was_fallback=(m_wall_was_fallback || m_wall_from_phase3),
+            structural_solver=solver, use_table_d1,
+            bb_j2_scale, bb_α, broadband_model, spbl_anchor_H,
+            trim_used, sidewall_is_phase3=(trim_used === :phase3),
+            supplied, input_rows=prov_inputs)
+        # Fill deferred tags for kwargs that were not in JSON (still appear in report when tagged nasa)
+        # Report table = JSON-supplied inputs only; nasa_defaults is the guard list.
+        warn_nasa_defaults!(nasa_defs)
+        provenance = (; nasa_defaults=nasa_defs, inputs=prov_inputs)
+    end
+
     return (; fuse, prop, ff=bl, acoustic, structural, spectrum=spec_out, source=src,
-              trim=trim_used, inputs=inp)
+              trim=trim_used, inputs=inp, provenance)
 end
 
 """

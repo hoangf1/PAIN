@@ -287,9 +287,14 @@ function run_printed_outputs_gui!(obs::AbstractDict)
         obs["po_text"][] = format_printed_outputs_text(out)
         obs["po_json"][] = printed_outputs_gui_json(out)
         obs["po_report_path"][] = ""
-        obs["po_status"][] = "Done. modes=$(length(out.modes_per_band)) bands; " *
+        po_st = "Done. modes=$(length(out.modes_per_band)) bands; " *
             "top5=$(length(out.top5)); coupling=$(length(out.coupling)); " *
             "surface_upper=$(length(out.surface_upper))."
+        if hasproperty(result, :provenance)
+            labels = provenance_header_labels(result.provenance)
+            !isempty(labels.uses_defaults) && (po_st *= " — " * labels.uses_defaults)
+        end
+        obs["po_status"][] = po_st
         return out
     catch e
         obs["po_status"][] = "Error: $(sprint(showerror, e))"
@@ -455,7 +460,13 @@ function run_pain_gui!(obs::AbstractDict)
         else
             obs["t1_text"][] = "(T1/T2 gates apply to source=e11 only)"
             obs["t2_text"][] = "(T1/T2 gates apply to source=e11 only)"
-            obs["status"][] = "Done ($tag). source=$(result.source)"
+            st = "Done ($tag). source=$(result.source)"
+            if hasproperty(result, :provenance)
+                labels = provenance_header_labels(result.provenance)
+                !isempty(labels.uses_defaults) && (st *= " — " * labels.uses_defaults)
+                !isempty(labels.nasa_article) && (st *= " — " * labels.nasa_article)
+            end
+            obs["status"][] = st
         end
         return true
     catch e

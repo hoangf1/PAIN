@@ -209,21 +209,41 @@ function _po_md_table(io::IO, headers::Vector{String}, rows)
 end
 
 """
-    write_printed_outputs_md(path, out; title=…)
+    write_printed_outputs_md(path, out; title=…, provenance=nothing)
 
 Write the §5.4.3 tables from `printed_outputs` to a markdown report file.
+Optional `provenance` (phase 29b/29c) adds NASA-default header labels and an
+input/value/tag table; omitted for :e11/:synthetic so existing reports stay unchanged.
 """
 function write_printed_outputs_md(path::AbstractString, out;
-                                  title::AbstractString="Printed outputs (Manual §5.4.3)")
+                                  title::AbstractString="Printed outputs (Manual §5.4.3)",
+                                  provenance=nothing)
     mkpath(dirname(path))
     open(path, "w") do io
         println(io, "# $title")
         println(io)
+        if provenance !== nothing
+            labels = provenance_header_labels(provenance)
+            if !isempty(labels.uses_defaults)
+                println(io, "**$(labels.uses_defaults)**")
+                println(io)
+            end
+            if !isempty(labels.nasa_article)
+                println(io, "**$(labels.nasa_article)**")
+                println(io)
+            end
+        end
         println(io, "**bpf_Hz** = $(out.bpf_Hz); **n_harmonics** = $(out.n_harmonics); ",
                 "**crossover_Hz** = $(out.crossover_Hz).")
         println(io)
         println(io, "Read-only tables from existing computations (phase 38h). No comparison criterion.")
         println(io)
+        if provenance !== nothing && !isempty(provenance.inputs)
+            println(io, "## Input provenance (phase 29c)")
+            println(io)
+            _po_md_table(io, ["input", "value", "tag"],
+                         [(r.name, r.value, r.tag) for r in provenance.inputs])
+        end
 
         println(io, "## Modes per 1/3-octave band")
         println(io)

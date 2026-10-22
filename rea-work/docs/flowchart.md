@@ -209,7 +209,8 @@ flowchart LR
 | Pereira | Forward flight | PER_FIG6–9 |
 | Unit tests | V-CODE | F1A_GUTIN, BBN_KIN |
 | Shared cabin / dB(A) | X-EXTRAP | A_CABIN; Run tab |
-| Open author | I-17 amplitude; 29b/29c | `VALIDATION_GUIDELINE.md` |
+| Open author | I-17 amplitude | `VALIDATION_GUIDELINE.md` |
+| Aircraft cabin guard / tags | 29b/29c done 2026-10-22 | `aircraft_provenance.jl`; §2.10 guard column |
 
 ## 4. Shared cabin model
 

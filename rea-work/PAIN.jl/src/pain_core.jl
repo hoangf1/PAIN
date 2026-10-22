@@ -450,10 +450,10 @@ then a power-law continuum Spbl(f)∝f^{-α} (CR-3813 HF notes: broadband fills
 above the first few BPFs). **V-ASSUMED** slope until closed vs exterior spectra.
 """
 function blocked_broadband_band_p2(inp::PainInputs, fc::Float64, bpf_Hz::Float64;
-                                   α::Float64=2.0)
+                                   α::Float64=2.0, spbl_anchor_H::Int=3)
     nH = size(inp.amplitudes, 3)
     nH < 1 && return 0.0
-    H_anchor = min(nH, 3)
+    H_anchor = min(nH, max(1, spbl_anchor_H))
     f_anchor = H_anchor * bpf_Hz
     # Spatial mean of blocked tone amplitude²
     A = inp.amplitudes[:, :, H_anchor]
@@ -552,6 +552,7 @@ above; Manual output 9(3)). Both formulations are always stored on the spectrum.
 """
 function interior_spl(inp::PainInputs; bpf_Hz::Float64, n_harmonics::Int=10,
                       broadband::Bool=true, bb_α::Float64=2.0, bb_j2_scale::Float64=0.5,
+                      spbl_anchor_H::Int=3,
                       tone_model::Symbol=:eq8,
                       broadband_model::Symbol=:surrogate,
                       η_r_cap::Union{Nothing,Float64}=nothing)
@@ -587,7 +588,7 @@ function interior_spl(inp::PainInputs; bpf_Hz::Float64, n_harmonics::Int=10,
                 delete!(band_p2, b)   # outside the Fig. A-2 range and no extrapolation allowed: no value
                 continue
             end
-            p2_bl = blocked_broadband_band_p2(inp, b, bpf_Hz; α=bb_α)
+            p2_bl = blocked_broadband_band_p2(inp, b, bpf_Hz; α=bb_α, spbl_anchor_H=spbl_anchor_H)
             p2_i = if broadband_model === :eq19
                 hf_broadband_band_p2(inp, b, p2_bl; η_r_cap)
             else
