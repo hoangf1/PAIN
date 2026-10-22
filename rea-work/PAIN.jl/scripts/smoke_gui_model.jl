@@ -1,5 +1,7 @@
 using Pkg
 Pkg.activate(joinpath(@__DIR__, ".."))
+# Never show a window if anything under PAIN/QML starts a surface.
+ENV["QT_QPA_PLATFORM"] = get(ENV, "QT_QPA_PLATFORM", "offscreen")
 using PAIN
 using JSON3
 

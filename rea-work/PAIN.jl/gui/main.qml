@@ -125,11 +125,43 @@ ApplicationWindow {
         resetMapFlowScroll()
     }
 
+    onClosing: Julia.mark_gui_closed_from_qml()
+
     Timer {
         interval: Math.max(1, Math.round(pain.smoke_ms))
         running: pain.smoke_ms > 0
         repeat: false
-        onTriggered: Qt.quit()
+        onTriggered: {
+            Julia.mark_gui_closed_from_qml()
+            Qt.quit()
+        }
+    }
+
+    // Phase 37i smoke: same call as Validation Run button, then quit when Done.
+    Timer {
+        interval: 50
+        running: String(pain.smoke_case || "").length > 0
+        repeat: false
+        onTriggered: Julia.run_validation_from_qml(pain.smoke_case)
+    }
+    Timer {
+        property real elapsedMs: 0
+        interval: 200
+        running: String(pain.smoke_case || "").length > 0
+        repeat: true
+        onTriggered: {
+            elapsedMs += interval
+            var st = String(pain.val_status || "")
+            if (!pain.busy && st.indexOf("Done") === 0) {
+                running = false
+                Julia.mark_gui_closed_from_qml()
+                Qt.quit()
+            } else if (elapsedMs >= 120000) {
+                running = false
+                Julia.mark_gui_closed_from_qml()
+                Qt.quit()
+            }
+        }
     }
 
     ColumnLayout {

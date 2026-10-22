@@ -1,6 +1,13 @@
 # QML entry point. Call `main()` to launch the desktop GUI.
 
 const _GUI_OBS = Ref{Any}(nothing)
+const _GUI_CLOSED = Ref(false)
+
+"""QML window Closing / smoke quit → unblock `_exec_until_gui_closed`."""
+function mark_gui_closed_from_qml()
+    _GUI_CLOSED[] = true
+    return nothing
+end
 
 """QML Run button → Julia pipeline (registered with `@qmlfunction`)."""
 function run_pain_from_qml()
@@ -22,6 +29,7 @@ function run_validation_from_qml(id::AbstractString)
         return nothing
     end
     # Prefer @async on the Julia thread that services QML; yield so the UI can paint "Running…".
+    # Requires a cooperative Qt loop (`_exec_until_gui_closed`); blocking `exec()` never runs these tasks.
     @async begin
         try
             yield()
@@ -111,8 +119,31 @@ function open_validation_report_from_qml()
 end
 
 """
+Cooperative Qt event loop so Julia `@async` tasks (Validation Run buttons) can run.
+
+QML.jl docs: `exec()` fills the window but blocks the main process; `exec_async()` is
+similar but "will not block the main process" and "polls the QML interface periodically
+for events, using a timer in the Julia event loop." Stock `exec_async()` waits on a nested
+REPL (REPL use). For `main()` we use the same `process_events` + `sleep` poll until the
+window closes (Closing / smoke Timers call `mark_gui_closed_from_qml`).
+"""
+function _exec_until_gui_closed()
+    _GUI_CLOSED[] = false
+    while !_GUI_CLOSED[]
+        QML.process_eventloop_updates()
+        QML.process_events()
+        sleep(0.015)
+    end
+    QML.quit(QML.get_qmlengine())
+    QML.quit()
+    QML.cleanup()
+    QML.process_events()
+    return
+end
+
+"""
     main()
-    main(args; smoke_ms=0)
+    main(args; smoke_ms=0, smoke_case="")
 
 Launch the PAIN desktop GUI. Blocks until the window is closed.
 
@@ -122,13 +153,17 @@ main()
 ```
 
 `smoke_ms > 0` auto-quits after that many milliseconds (for smoke tests).
+`smoke_case` non-empty: after load, QML calls `run_validation_from_qml` (same as the Run
+button), waits until Done, then quits (for button-path smoke tests).
 """
-function main(args=ARGS; smoke_ms::Real=0)
+function main(args=ARGS; smoke_ms::Real=0, smoke_case::AbstractString="")
     ENV["QT_QUICK_CONTROLS_STYLE"] = get(ENV, "QT_QUICK_CONTROLS_STYLE", "Fusion")
 
     obs = make_gui_observables()
     smoke_ms > 0 && (obs["smoke_ms"][] = Float64(smoke_ms))
+    obs["smoke_case"] = Observable(String(smoke_case))
     _GUI_OBS[] = obs
+    _GUI_CLOSED[] = false
 
     props = JuliaPropertyMap()
     for (k, v) in obs
@@ -142,11 +177,12 @@ function main(args=ARGS; smoke_ms::Real=0)
     @qmlfunction select_map_case_from_qml
     @qmlfunction reload_validation_docs_from_qml
     @qmlfunction open_validation_report_from_qml
+    @qmlfunction mark_gui_closed_from_qml
 
     qml_file = joinpath(@__DIR__, "..", "gui", "main.qml")
     isfile(qml_file) || error("missing QML file: $qml_file")
     println("Loading GUI: ", qml_file)
     loadqml(qml_file; pain=props)
-    exec()
+    _exec_until_gui_closed()
     return 0
 end
