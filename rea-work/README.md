@@ -158,7 +158,7 @@ Three tabs (phases 34–35). Cases are read-only: fixed inputs and criteria; not
 
 **Validation tab:** list ordered by validation map and block. Pick a case → **Run** (or **Run all**). Selection updates Julia `val_selected` / `val_runnable`. Inputs are an echo; criterion text/date and verdict are fixed. Comparison plot (with error panel) → `docs/validation_reports/figures/<case_id>.png`. Until Run: "Press Run to draw the comparison plot". **E21_E22_NR** (38a), **E18_TONES** (38d), **E15_STRUCT_LOSS** (38e) runnable; long source cases replay recorded CSVs.
 
-**Validation map tab:** pick Map 1 (cabin chain) or Map 2 (aircraft source) → read the intro and legend → click a case chip → detail panel shows source, what it verifies, why, what a pass means, what it does not cover, recorded outcome, criterion + date → **Run** / **Open report** → code-vs-figure plot with error panel and source-figure page (display-only).
+**Validation map tab:** pick Map 1 (cabin chain) or Map 2 (aircraft source) → read the intro and legend → click a case chip → detail panel shows source, what it verifies, why, what a pass means, what it does not cover, recorded outcome, explanation (with Inputs / Equations / Outputs lines), criterion + date → **Run** / **Open report** → code-vs-figure plot with error panel and source-figure page (display-only). Case texts come from [`VALIDATION_GUIDELINE.md` §2.13](docs/VALIDATION_GUIDELINE.md) (also feeds the Validation tab). `UT_GRID` is a runnable unit test with a γ-coloured 160-point grid figure.
 
 ## Using PAIN from the Julia prompt (optional)
 

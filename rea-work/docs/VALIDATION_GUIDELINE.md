@@ -312,21 +312,21 @@ A-weighting, band sum → dB(A), SIL. Class: **X-EXTRAP** when driven by CCBlade
 
 ### 2.10 Test-case guide: what each test does, why it exists, how much it proves
 
-Per-case GUI text (titles, explanations, map/block copy) lives in **§2.13** — single source of truth; the GUI parses it.
+Per-case GUI text (titles, explanations, map/block copy) lives in **§2.13** — single source of truth; both the Validation and Validation map tabs parse it (`valInfo` / `mapDetail` / block `what_it_does` / map `what_is`).
 
 **GUI registry (phases 34–35).** Each row below that has a registry ID can be run from the GUI **Validation** tab (and from
 `run_validation_case(id)` / scripts). Plots go to `docs/validation_reports/figures/<id>.png` (with error panel since 2026-10-21).
 Cases are read-only. Third tab **"Validation map"** (`src/validation_map.jl`): Map 1 cabin chain, Map 2 aircraft source;
 clickable case chips; Validation-tab list ordered by map and block. **Greyed (Run disabled):** none (`R996_FIG8` removed
 I-20; `E21_E22_NR` runnable since 38a). **In-process runnable:** `CYL2D_C1`, `MRP_D1`, `MRP_RITZ`, `MRP_APPD`, `BLK_P68`,
-`F1A_GUTIN`, `T1`, `T2`, `REPRO_18b`, `E12_BLOCK`, `E11_FREEFIELD`, `E14_LOSS`, `GEXT_BOUND`, `BBN_KIN`, `R996_PHASE`,
+`F1A_GUTIN`, `T1`, `T2`, `REPRO_18b`, `E12_BLOCK`, `E11_FREEFIELD`, `UT_GRID`, `E14_LOSS`, `GEXT_BOUND`, `BBN_KIN`, `R996_PHASE`,
 `E21_E22_NR` (Eq. 18, η_T = 1.0, η_r′ ≤ 0.15; criterion dated 2026-10-21), `T2_EQ19` (printed Eqs. 19–23; T2
 criterion unchanged; first run 2026-10-22), `E18_TONES` (Fig. E-18, η_T = 1.0, η_r′ ≤ 0.15; criterion dated
 2026-10-21; first run 2026-10-22), `E15_STRUCT_LOSS` (Fig. E-15 η_r′, V-EXP info, no pass mark; first run 2026-10-22).
 **CSV replays** (read recorded `f1a_results.csv` / `scale_factors.csv` / `pereira_results.csv` / `bbn_results.csv`; do not
 re-run F1A): `R996_FIG12/13A/14`, `R996_LOADS`, `R996_FIG6/7`, `PER_FIG6–9`, `PER_LOADS`, `BBN_CIRC`, `BBN_LEVELS`, `BBN_LONG`.
-All case numbers come from CSVs or transcribed constant tables; page images are display-only. (§2.13 CASE_INFO text for
-`E21_E22_NR` is updated by the reviewer; registry/`unavailable_reason` already runnable.)
+All case numbers come from CSVs or transcribed constant tables; page images are display-only. Each §2.13 Explanation ends with
+Inputs / Equations / Outputs lines (parsed with newlines for both GUI tabs).
 
 **How to read a PASS.** The class says what was compared. **V-UNIT**: the code matches a written equation. **V-CODE**: the code
 reproduces a NASA table or NASA program output. **V-EXP**: the result is compared with a measurement. A V-EXP pass is only as strong as
@@ -597,92 +597,92 @@ Written before any BBN / Report 996 / Pereira comparison run that uses these tol
 
 ## 2.13 Validation case reference (read by the GUI)
 
-Machine-readable case/map/block text for the Validation and Validation-map tabs. Format: `### Map: id` / `#### Block: id` / `### Case: id` with bold `**Field:**` lines; the GUI parser in `src/validation_map.jl` depends on this layout.
+Machine-readable case/map/block text for the Validation and Validation-map tabs. Format: `### Map: id` / `#### Block: id` / `### Case: id` with bold `**Field:**` lines; the GUI parser in `src/validation_map.jl` depends on this layout. Both the Validation tab and the Validation map tab read these fields (`valInfo` / `mapDetail` / block `what_it_does` / map `what_is` / `how_to_read`). Abbreviations used below: ANOPP = NASA Aircraft NOise Prediction Program (free-field source tables); GEXT = assumed grid extension from one measured line to 160 skin points; T1 / T2 = tonal / 1/3-octave interior checks vs App. E; R1 / R2 = blocking Eq. (43) revisions; γ = incidence angle; ℓ = 1 = propeller-azimuth grid line; H1–H3 = blade-passage harmonics 1–3; BPF = blade-passage frequency; η_T = trim loss factor; F1A = Farassat formulation 1A.
 
 ### Map: pain
 **Title:** PAIN verification — CR-3813 cabin chain
-**What this map is:** Checks that the cabin chain computes what CR-3813 writes (V-UNIT: code = printed equation; V-CODE: code = NASA table or NASA PAIN output), then compares the end result with NASA's test-article measurements (in-sample, no claim). A pass here shows the equations are implemented as written; it does not show they are physically right, and none of it covers the aircraft source.
-**How to read it:** Blocks are pipeline stages in order from top to bottom. Chips are checks of that stage. Border colour is the kind of evidence (verification / experiment / calibrated / input QA / X-EXTRAP / deferred). The coloured dot is the last run verdict in this GUI session (green = met, red = not_met, grey = no_verdict, empty ring = not run). Kind tags: runnable = live code; replay = recorded script CSV re-plotted, not re-run; pkgtest = covered by Pkg.test; deferred = not built. The detail panel's error plot is green inside the criterion and red outside. "Replay" means the recorded script output is re-plotted, not re-computed.
+**What this map is:** Checks that the cabin chain computes what CR-3813 writes (V-UNIT: code = printed equation; V-CODE: code = NASA table or NASA PAIN output), then compares the end result with NASA's test-article measurements (in-sample, no claim). A pass here shows the equations are implemented as written; it does not show they are physically right, and none of it covers the aircraft source. Order follows the pipeline: free-field input → skin grid → blocking → structure → cabin acoustics → trim/loss → coupling → code-on-code interior → measured interior.
+**How to read it:** Blocks are pipeline stages in order from top to bottom. Chips are checks of that stage. Border colour is the kind of evidence (verification / experiment / calibrated / input QA / X-EXTRAP / deferred). The coloured dot is the last run verdict in this GUI session (green = met, red = not_met, grey = no_verdict, empty ring = not run). Kind tags: runnable = live code; replay = recorded script CSV re-plotted, not re-run; pkgtest = covered by Pkg.test; deferred = not built. The detail panel's error plot is green inside the criterion and red outside. "Replay" means the recorded script output is re-plotted, not re-computed. Each Explanation ends with Inputs / Equations / Outputs lines.
 
 #### Block: P_FF
 **Title:** Free field on the fuselage (test article)
-**What this stage does:** Fig. E-11 measured line; H3 and all phases from ANOPP Table 8 (code: freefield_digitized.jl)
+**What this stage does:** First stage: the exterior free-field sound-pressure level (SPL) that drives every App. E cabin run. Fig. E-11 is NASA's measured line along grid line ℓ = 1 with the fuselage absent; harmonic 3 (H3) and all phases come from ANOPP Table 8, not from the figure. Code: `freefield_digitized.jl`.
 **Code:** freefield_digitized.jl
 **Note:** Fig. E-11 measured line; H3 and all phases from ANOPP Table 8
 
 #### Block: P_GRID
 **Title:** 160-point grid and extension (GEXT)
-**What this stage does:** Implemented in geometry.jl, grid_extension.jl.
+**What this stage does:** Builds the 160 fuselage-skin observers (User Manual Fig. 3) and, on the e11 path only, fills 150 of them from the one measured line by an assumed amplitude falloff and geometric delay (GEXT). Comes after free-field input because every later pressure lives on this grid. Code: `geometry.jl`, `grid_extension.jl`.
 **Code:** geometry.jl, grid_extension.jl
 
 #### Block: P_BLK
 **Title:** Blocking, Eq. (43)
-**What this stage does:** Implemented in blocking.jl.
+**What this stage does:** Scales free-field amplitude at each skin point by Magliozzi's empirical factor F(γ) so a rigid fuselage "blocks" (reflects) the wave; phases unchanged. Comes after the grid because γ is computed from hub-to-skin geometry. Code: `blocking.jl`.
 **Code:** blocking.jl
 
 #### Block: P_MRP
 **Title:** Structural modes (Table D-1 / Ritz / App. D)
-**What this stage does:** Production Table D-1 seed and calibrated Ritz surrogate in `mrp.jl`; printed App. D solver (Eqs. D.17–D.26) in `mrp_appd.jl` (`structural_solver=:appd`).
+**What this stage does:** Fuselage structural modal frequencies and shapes that enter the coupling. Production uses the Table D-1 seed; a calibrated Ritz surrogate and the printed App. D solver are checked beside it. Comes before cabin acoustics and coupling. Code: `mrp.jl`, `mrp_appd.jl`.
 **Code:** mrp.jl, mrp_appd.jl
 
 #### Block: P_CYL
 **Title:** Cabin acoustic modes (App. C)
-**What this stage does:** Implemented in cyl2d.jl.
+**What this stage does:** Two-dimensional cabin acoustic modes (frequencies, generalized mass, shapes) from Appendix C. Needed with the structural modes before the Eq. (8) coupling sum. Code: `cyl2d.jl`.
 **Code:** cyl2d.jl
 
 #### Block: P_TRIM
 **Title:** Trim (App. A) and loss factors (§3.8)
-**What this stage does:** Implemented in trim_loss.jl.
+**What this stage does:** Sidewall/end trim transfer matrices and structural/acoustic loss factors that set every modal amplitude. Comes after modes and before the tone/broadband sums. Code: `trim_loss.jl`.
 **Code:** trim_loss.jl
 
 #### Block: P_EQ8
 **Title:** Coupling f′, Ψ_G, Eq. (8) tone sum + HF Eqs. (15)–(16)
-**What this stage does:** Eq. (8) in `pain_core.jl`; high-frequency expected value Eqs. (11)–(16) and crossover card 10 in `high_freq_tones.jl` (38b). Default `tone_model=:eq8` (unchanged); `:auto` switches at the crossover band; both formulations always reported.
+**What this stage does:** Generalized force, joint acceptance Ψ_G, and the tonal mean-square pressure sum Eq. (8) in `pain_core.jl`; high-frequency expected-value Eqs. (11)–(16) and crossover card 10 in `high_freq_tones.jl` (38b). Default `tone_model=:eq8`; `:auto` switches at the crossover band. Last equation stage before interior SPL checks.
 **Code:** pain_core.jl, high_freq_tones.jl
 
 #### Block: P_REPRO
 **Title:** Interior SPL vs NASA's PAIN program
-**What this stage does:** Stage in the pain map.
+**What this stage does:** Code-on-code: run this cabin chain on the same free-field/blocking/trim settings NASA used and compare interior tonal SPL with NASA's PAIN circles (Fig. E-16 / E-18). Comes after the equation stages so a miss can be blamed on the chain, not on a missing mode.
 
 #### Block: P_MEAS
 **Title:** Interior SPL vs test-article measurement
-**What this stage does:** Stage in the pain map.
+**What this stage does:** End-to-end checks against measured cabin levels and noise reduction (T1, T2, E-21/E-22). Last on the map because they inherit every upstream assumption (especially GEXT); several are calibrated or not claimable.
 
 ### Map: aircraft
 **Title:** Aircraft source validation — CCBlade BEMT + F1A
-**What this map is:** Checks the aircraft free-field source (CCBlade loads → AcousticAnalogies F1A pressure) against experiments it was not tuned to. Report 996 covers static near-field amplitude, BBN covers phase between points on a fuselage, Pereira covers forward flight in the far field. None covers a full aircraft cabin, so the aircraft cabin result stays X-EXTRAP. Criteria frozen 2026-10-21 (VALIDATION_GUIDELINE §2.12).
-**How to read it:** Blocks are pipeline stages in order from top to bottom. Chips are checks of that stage. Border colour is the kind of evidence (verification / experiment / calibrated / input QA / X-EXTRAP / deferred). The coloured dot is the last run verdict in this GUI session (green = met, red = not_met, grey = no_verdict, empty ring = not run). Kind tags: runnable = live code; replay = recorded script CSV re-plotted, not re-run; pkgtest = covered by Pkg.test; deferred = not built. The detail panel's error plot is green inside the criterion and red outside. "Replay" means the recorded script output is re-plotted, not re-computed.
+**What this map is:** Checks the aircraft free-field source (CCBlade blade-element momentum theory loads → AcousticAnalogies Farassat F1A pressure) against experiments it was not tuned to. Report 996 covers static near-field amplitude, BBN covers phase between points on a fuselage, Pereira covers forward flight in the far field. None covers a full aircraft cabin, so the aircraft cabin result stays X-EXTRAP. Criteria frozen 2026-10-21 (VALIDATION_GUIDELINE §2.12). Order: geometry → loads → amplitude → phase → forward flight → surface levels → cabin hand-off.
+**How to read it:** Blocks are pipeline stages in order from top to bottom. Chips are checks of that stage. Border colour is the kind of evidence (verification / experiment / calibrated / input QA / X-EXTRAP / deferred). The coloured dot is the last run verdict in this GUI session (green = met, red = not_met, grey = no_verdict, empty ring = not run). Kind tags: runnable = live code; replay = recorded script CSV re-plotted, not re-run; pkgtest = covered by Pkg.test; deferred = not built. The detail panel's error plot is green inside the criterion and red outside. "Replay" means the recorded script output is re-plotted, not re-computed. Each Explanation ends with Inputs / Equations / Outputs lines.
 
 #### Block: A_GEO
 **Title:** Blade geometry and polars
-**What this stage does:** Implemented in polars.jl, aircraft JSON.
+**What this stage does:** Loads airfoil lift/drag tables and aircraft JSON geometry that CCBlade needs before any thrust or noise. First aircraft stage. Code: `polars.jl`, aircraft JSON.
 **Code:** polars.jl, aircraft JSON
 
 #### Block: A_LOADS
 **Title:** CCBlade BEMT loads (T, Q)
-**What this stage does:** Implemented in propeller_ccblade.jl.
+**What this stage does:** Blade-element momentum theory thrust T and torque Q (coefficients C_T, C_P). Load error swamps acoustic error, so this sits before F1A amplitude checks. Code: `propeller_ccblade.jl`.
 **Code:** propeller_ccblade.jl
 
 #### Block: A_AMP
 **Title:** F1A amplitude, static near field
-**What this stage does:** Implemented in propeller_ccblade.jl (F1A).
+**What this stage does:** Farassat F1A harmonic amplitudes in the static near field (Report 996 figures) plus a far-field Gutin coding check. Comes after loads because several cases scale loads to measured T, Q. Code: `propeller_ccblade.jl` (F1A).
 **Code:** propeller_ccblade.jl (F1A)
 
 #### Block: A_PHASE
 **Title:** F1A phase between points
-**What this stage does:** Stage in the aircraft map.
+**What this stage does:** Phase differences between observers (kinematic hub-ring unit test, BBN circumferential/longitudinal, Report 996 one-point phase). Phase enters cabin coupling Ψ_G; checked after amplitude wiring.
 
 #### Block: A_FWD
 **Title:** F1A forward flight, far field
-**What this stage does:** Stage in the aircraft map.
+**What this stage does:** Pereira et al. 2026 forward-flight spectra, waveform phase, and directivity at 1 m — the only forward-flight experiment set. Comes after static amplitude/phase.
 
 #### Block: A_SURF
 **Title:** Levels on a fuselage surface
-**What this stage does:** Stage in the aircraft map.
+**What this stage does:** Relative in-plane levels on a fuselage-like microphone ring (BBN Tables 3–4). Surface shape check before any cabin claim.
 
 #### Block: A_CABIN
 **Title:** → PAIN cabin chain (Map 1)
-**What this stage does:** Aircraft cabin SPL is X-EXTRAP: no aircraft interior measurement is used
+**What this stage does:** Hand-off: aircraft free-field on the 160-point grid feeds Map 1. Aircraft cabin SPL stays X-EXTRAP — no aircraft interior measurement is used.
 **Note:** Aircraft cabin SPL is X-EXTRAP: no aircraft interior measurement is used
 
 ### Case: E11_FREEFIELD
@@ -690,52 +690,64 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **Map / block:** pain / P_FF
 **Category:** input_qa
 **Kind:** runnable
-**Source:** CR-3813 Fig. E-11, p.135
-**What it tests:** e11 free-field input
-**Why it is here:** The measured line drives every e11 run
-**A pass means:** The figure was read repeatably (two passes ≤ 1 dB)
-**Not covered:** Not accuracy; H3 and phases come from ANOPP Table 8
+**Source:** CR-3813 Fig. E-11, App. E p. E-19 / PDF p.135
+**What it tests:** Whether two independent digitizations of NASA's free-field microphone line agree within 1 dB (input quality only).
+**Why it is here:** That measured line (with ANOPP Table 8 for H3 and phases) drives every e11 cabin run.
+**A pass means:** The figure was read repeatably (digitization scatter δ_dig ≤ 1.0 dB). It does not mean the levels are physically right.
+**Not covered:** Physical accuracy of the free-field levels; H3 and all phases come from ANOPP Table 8, not from Fig. E-11.
 **Recorded outcome:** met, δmax = 1.0 dB at the limit (e11_delta_dig.md)
-**Explanation:** Input quality assurance (QA) only: two independent digitizations of CR-3813 Fig. E-11 must agree within 1.0 dB. It does not prove the free-field levels are physically right. Harmonic 3 (H3) and all phases are taken from ANOPP Table 8, not from the figure.
+**Explanation:** Input QA: Fig. E-11 is sound-pressure level (SPL, dB re 20 µPa) of harmonics H1–H3 measured by NASA with microphones at free-field positions around the model propeller with the fuselage absent, along grid line ℓ = 1 (Fig. E-4), plotted against distance from the propeller plane X/D (forward positive, aft negative). NASA also plotted its ANOPP prediction. This case checks only that two independent digitizations (passes A and B) of that figure agree within 1 dB — not that the levels match physics or ANOPP. Axes: X3/D vs SPL; curves are pass A, pass B, and their mean (the input).
+Inputs: Digitized CSVs from `default_e11_paths()` (`e11_freefield_measured_A.csv`, `e11_freefield_measured_B.csv`); geometry for X3/D via `grid_points` on ℓ = 1 (L = test_article_length() = 1.83 m, a = 0.508 m, φ_p = 90°, r_p = 0.965 m, z_p = 0.90 m); D = 0.762 m.
+Equations: none (digitization comparison only); helper `delta_dig_dB`.
+Outputs: δ_dig [dB] per harmonic and station; verdict uses max δ_dig ≤ 1.0 dB.
 
 ### Case: UT_GRID
-**Title:** Grid geometry (Pkg.test)
+**Title:** Skin grid vs User Manual Fig. 3 (with figure)
 **Map / block:** pain / P_GRID
 **Category:** verification
-**Kind:** pkgtest
+**Kind:** runnable
 **Source:** User Manual Fig. 3
-**What it tests:** geometry.jl grid points, azimuth, incidence
-**Why it is here:** Every observer, γ and area comes from the grid
-**A pass means:** Coordinates match the manual's formulas
-**Not covered:** Physics at the points
-**Recorded outcome:** Pkg.test pass ("Grid geometry", "Grid azimuth")
-**Explanation:** Unit test of the 160-point fuselage skin grid against the User Manual Fig. 3 formulas (coordinates, azimuth, incidence angle γ). Covered by Pkg.test ("Grid geometry", "Grid azimuth"). Geometry only — no acoustics.
+**What it tests:** That the 160 fuselage-skin grid points match the User Manual Fig. 3 coordinate and azimuth formulas, with a γ-coloured plot.
+**Why it is here:** Every observer, incidence angle γ, and panel area comes from this grid.
+**A pass means:** Sampled coordinates and azimuth agree with Fig. 3 formulas within 1e-9 (unit test with visualization).
+**Not covered:** Acoustics at the points; GEXT; how γ enters blocking physics.
+**Recorded outcome:** runnable unit test with figure (`docs/validation_reports/figures/UT_GRID.png`); Pkg.test "Grid geometry" / "Grid azimuth" remain.
+**Explanation:** Unit test with visualization: the PAIN/ANOPP skin grid is 16 axial stations (k) × 10 azimuth lines (ℓ) = 160 points on the unrolled cylinder. Line ℓ = 1 sits at the propeller azimuth φ_p; α = (ℓ−1)·10° is the unsigned angle from that line. Incidence angle γ is the angle between the surface→hub direction and the outward normal (γ = 0 head-on). Figure: axial z vs α, points coloured by γ, with the propeller plane z = z_p and ℓ = 1 marked. Table: Manual Fig. 3 x1, x2, x3, θ at a handful of (k, ℓ). No acoustics.
+Inputs: `FuselageGeometry(L=1.83 m, a=0.508 m, θ0=56.6°)`, `PropellerPlacement(r_p=0.965 m, φ_p=90°, z_p=0.90 m)`, `GridSpec()` (k_max=16, ell_max=10, k_p=8) — same family as the e11 path / Manual §5.2.
+Equations: User Manual Fig. 3 / §3: x1=(r_p−a)+a(1−cos α), x2=−a sin α, x3=(π a/18)(k_p−k), θ=φ_p+α; γ via `incidence_angle_deg` (CR-3813 §3.4). Code: `grid_points`, `incidence_angle_deg`.
+Outputs: x1,x2,x3 [m], θ [deg] vs formulas; figure γ [deg]; verdict on coordinate/azimuth residuals ≤ 1e-9.
 
 ### Case: GEXT_BOUND
-**Title:** GEXT importance bound
+**Title:** Grid-extension (GEXT) importance bound on T1
 **Map / block:** pain / P_GRID
 **Category:** calibrated
 **Kind:** runnable
 **Source:** derived (VALIDATION_GUIDELINE §2.2.1)
-**What it tests:** grid_extension.jl falloff/delay
-**Why it is here:** GEXT fills 150 of 160 points from one line; no data constrains it
-**A pass means:** Shows how much T1 moves with the assumed form
-**Not covered:** Cannot validate GEXT (unfalsifiable by published data); amplitude convention fixed 2026-10-21, post-hoc
+**What it tests:** How much the tonal interior check T1 moves when assumed GEXT falloff/delay options change.
+**Why it is here:** GEXT fills 150 of 160 points from one measured line; no published data constrain that assumption.
+**A pass means:** None — diagnostic with verdict always no_verdict; shows T1 is not claimable when variants flip its gate.
+**Not covered:** Cannot validate GEXT (unfalsifiable by published data); amplitude convention fixed 2026-10-21, post-hoc.
 **Recorded outcome:** no_verdict (diagnostic); variants flip T1 → T1 not claimable (gext_importance_bound.md; amplitude convention fixed 2026-10-21, post-hoc)
-**Explanation:** Diagnostic, no pass/fail verdict. Grid extension (GEXT) fills 150 of the 160 skin points from the one measured free-field line by an assumed amplitude falloff and geometric delay; no published data constrains that assumption. The case shows that the tonal interior check T1 moves by more than its gate when the assumption changes, so T1 cannot be claimed. Amplitude convention fixed 2026-10-21 (I-17), post-hoc.
+**Explanation:** Diagnostic (no pass mark): grid extension (GEXT) copies the measured ℓ = 1 free-field amplitudes onto the other azimuth lines with an assumed cosine-style amplitude falloff and a geometric travel-time phase delay — not a measured distribution. T1 is the end-to-end tonal interior SPL check vs Fig. E-16/E-17. This case re-runs the e11 cabin chain under GEXT option variants and plots how far each harmonic residual to the measured mean moves; when variants flip T1's gate, T1 cannot be claimed. Amplitude convention fixed 2026-10-21 (I-17), post-hoc.
+Inputs: `default_e11_paths()` free-field/phase CSVs; `extend_line_to_grid` options `falloff_exponent`, `falloff_floor`, `delay_scale`; cabin via e11 pipe (L = test_article_length(), a = 0.508 m, blocking R2, BPF = 200 Hz); T1 means from `t1_interior_targets.csv`.
+Equations: assumed GEXT falloff/delay in `extend_line_to_grid` (V-ASSUMED); cabin chain same as T1 (`run_pain_pipeline` path).
+Outputs: T1 residual [dB] per harmonic H1–H3 per variant; verdict always `:no_verdict`.
 
 ### Case: BLK_P68
-**Title:** Blocking Eq. (43) vs p.68
+**Title:** Blocking Eq. (43) vs printed p.68 values
 **Map / block:** pain / P_BLK
 **Category:** verification
 **Kind:** runnable
 **Source:** NASA-CR-172428 p.68; CR-3813 Eq. (43)
-**What it tests:** blocking.jl F(γ), R1/R2
-**Why it is here:** Blocking scales every pressure on the skin
-**A pass means:** Code matches the written equation within 0.06 dB
-**Not covered:** How γ is computed; physical correctness (scale-model blocking is 3–4 dB)
+**What it tests:** That `blocking.jl` reproduces the printed F(γ) / ΔL values on CR-172428 p.68 (code-on-code, not an experiment).
+**Why it is here:** Blocking scales every free-field pressure on the skin before the cabin chain.
+**A pass means:** Code matches the written equation within 0.06 dB at the p.68 checkpoints (V-UNIT).
+**Not covered:** How γ is computed from geometry; physical correctness (scale-model blocking is 3–4 dB near the plane).
 **Recorded outcome:** PASS (blocking_p68.md)
-**Explanation:** Eq. (43) is NASA's empirical blocking factor F(γ): how much louder the propeller noise is on the fuselage skin than in free space, as a function of the incidence angle γ (0° = wave hits the skin head-on, up to about +6 dB; 90° = grazing, 0 dB). R1 = Eq. (43) as originally programmed (max ≈ 6 dB). R2 = CR-172428 §5.3.2 revision: 0.8 × the R1 amplitude ratio, floored at 1 (max ≈ 4 dB), because scale-model tests showed 3–4 dB near the propeller plane. This case checks the code reproduces the printed p.68 values at γ = 0–90° within 0.06 dB (V-UNIT: code matches the written equation); it does not show Eq. (43) is physically right.
+**Explanation:** Code-on-code (against printed values): ANOPP/PAIN gives propeller pressure in free space; a rigid fuselage reflects ("blocks") the wave, so skin pressure is larger than free-field. Eq. (43) scales free-field amplitude by Magliozzi's empirical F(γ); phases unchanged. γ = incidence angle between the hub→skin line and the outward normal (0° = head-on, ~+6 dB; 90° = grazing, 0 dB). cos γ uses hub (r, φ, z_p) and skin (a, θ, z) as in CR-3813 §3.4. "P68" values are a printed table of that equation, not a test. R1 = full Eq. (43); R2 = 0.8× amplitude ratio floored at 1 (~4 dB max). Figure: γ vs ΔL with p.68 points and R1/R2 curves.
+Inputs: Checkpoint table `BLOCKING_P68_CHECKPOINTS` (γ = 0–90°); variants R1/R2; no geometry (γ given).
+Equations: Eq. (43) F(γ)=10^[0.3−0.000224 e^(0.08γ)]; ΔL=20 log10 F; R2 per CR-172428 §5.3.2. Code: `blocking_factor`, `delta_L_blocking_dB`.
+Outputs: ΔL [dB] vs p.68; verdict |Δ| ≤ 0.06 dB on all R1 checkpoints.
 
 ### Case: E12_BLOCK
 **Title:** Fig. E-12 blocked SPL
@@ -743,12 +755,15 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **Category:** verification
 **Kind:** runnable
 **Source:** CR-3813 Fig. E-12, p.136
-**What it tests:** Eq. (43) R1 on ANOPP Table 8
-**Why it is here:** Checks blocking on the ℓ = 1 line against NASA's predicted curve
-**A pass means:** Reproduces NASA's prediction within δ_dig + 0.5 = 3.41 dB
-**Not covered:** GEXT; measured circles are 1–7 dB lower (no pass mark)
+**What it tests:** Eq. (43) R1 applied to ANOPP Table 8 vs NASA's predicted blocked curve on ℓ = 1.
+**Why it is here:** Checks blocking on the measured line before GEXT enters.
+**A pass means:** Reproduces NASA's prediction within δ_dig + 0.5 = 3.41 dB.
+**Not covered:** GEXT; measured circles on the figure are 1–7 dB lower (no pass mark).
 **Recorded outcome:** 29/31, two H3 aft points FAIL (e12_blocking.md)
-**Explanation:** Applies blocking revision R1 of Eq. (43) to ANOPP Table 8 free-field levels and compares the blocked sound-pressure level (SPL) on the ℓ = 1 line with CR-3813 Fig. E-12. Pass if within digitization scatter δ_dig + 0.5 dB. Two H3 aft points miss. Measured circles on the figure are 1–7 dB lower and are not a pass criterion.
+**Explanation:** Experiment comparison on the prediction curve (V-CODE vs NASA's predicted E-12): "blocked pressure" is the pressure on a rigid cylinder (Fig. E-12). Free-field ANOPP Table 8 SPLs on ℓ = 1 are raised by R1 ΔL(γ) and compared with the digitized NASA predicted curve. Axes: X3/D vs blocked SPL; panels H1–H3. Measured circles are shown for context only.
+Inputs: ANOPP Table 8 CSV; `e12_predicted_A/B.csv`; geometry as E11 (a = 0.508 m, r_p = 0.965 m, φ_p = 90°, z_p = 0.90 m, L = 1.83 m); blocking R1; D = 0.762 m.
+Equations: Eq. (43) via `delta_L_blocking_dB`; γ via `incidence_angle_deg`; blocked SPL = free-field SPL + ΔL.
+Outputs: blocked SPL [dB] H1–H3; verdict |Δ| ≤ 3.41 dB vs digitized NASA prediction.
 
 ### Case: MRP_D1
 **Title:** MRP Table D-1 seed
@@ -756,12 +771,15 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **Category:** input_qa
 **Kind:** runnable
 **Source:** CR-3813 Table D-1, p.113
-**What it tests:** Table D-1 seed load
-**Why it is here:** Production structural modes come from Table D-1
-**A pass means:** Transcription only: residual 0 by construction
-**Not covered:** Says nothing about the Ritz solver
+**What it tests:** That production structural modes load Table D-1 frequencies exactly (transcription).
+**Why it is here:** Production structural modes come from Table D-1, not from the raw Ritz solve.
+**A pass means:** Residual 0 by construction — transcription only; verdict always no_verdict.
+**Not covered:** Says nothing about the Ritz or App. D solvers.
 **Recorded outcome:** by construction, no verdict
-**Explanation:** Production structural modes load CR-3813 Table D-1 frequencies and modal masses directly. Residual is 0 by construction — transcription check only (input QA). Always no_verdict. Says nothing about the Ritz solver (see MRP_RITZ).
+**Explanation:** Input QA: production `structural_modes_from_table_d1` copies CR-3813 Table D-1 frequencies and modal masses. Residual is 0 by construction. Always `:no_verdict`. See MRP_RITZ / MRP_APPD for solvers.
+Inputs: Constant table `TABLE_D1_FULL` (n_keep = 32); L does not change the seed frequencies.
+Equations: none (table load); code `structural_modes_from_table_d1`.
+Outputs: mode frequencies f [Hz] equal to Table D-1; verdict `:no_verdict`.
 
 ### Case: MRP_RITZ
 **Title:** MRP raw Ritz vs Table D-1
@@ -769,12 +787,15 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **Category:** calibrated
 **Kind:** runnable
 **Source:** CR-3813 Table D-1
-**What it tests:** mrp.jl raw Ritz solver
-**Why it is here:** The only check of the structural solver
-**A pass means:** Fit quality only: k_scale, edge_factor, floor_scale were fitted to this table
-**Not covered:** Not evidence; Eq. (D.25) not implemented (w-only surrogate)
+**What it tests:** Fit quality of the simplified (w-only) Ritz structural surrogate against Table D-1.
+**Why it is here:** The only check of the fitted structural surrogate (not Eq. D.25).
+**A pass means:** None — calibrated fit (k_scale, edge_factor, floor_scale fitted to this table); always no_verdict.
+**Not covered:** Not evidence; Eq. (D.25) not implemented in this path (w-only surrogate).
 **Recorded outcome:** 29/32 within 5 % at L = 1.83 m (I-22 re-record 2026-10-22, post-hoc; was 26/32 at 1.803 m); always no_verdict (calibrated surrogate)
-**Explanation:** The raw structural solver is a simplified (w-only Donnell) surrogate with three scales (k_scale, edge_factor, floor_scale) fitted to Table D-1, not CR-3813 Eq. (D.25). Today 26/32 frequencies are within 5 %; the old record (30/32) predates the 2026-10-20 Table D-1 re-transcription whose shapes seed the solver. Always no_verdict (calibrated fit — CLAUDE.md forbids quoting a calibrated path as a pass). Production uses Table D-1 directly (MRP_D1).
+**Explanation:** Diagnostic / calibrated: raw `structural_modes` uses three scales fitted to Table D-1, not the printed App. D operator. Live count is reported; CLAUDE.md forbids quoting a calibrated path as a pass. Production uses Table D-1 (MRP_D1).
+Inputs: `FuselageGeometry(test_article_length(), 0.508, 56.6)`; hybrid=false; n_keep=48; tol_frac=0.05; scales already in code (not re-fit here).
+Equations: simplified Donnell/Ritz surrogate in `mrp.jl` (not Eq. D.25).
+Outputs: f [Hz] vs Table D-1; fraction within 5 %; verdict always `:no_verdict`.
 
 ### Case: MRP_APPD
 **Title:** App. D Eqs. (D.17)–(D.26) vs Table D-1
@@ -782,12 +803,15 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **Category:** verification
 **Kind:** runnable
 **Source:** CR-3813 Table D-1 / Fig. D-2; App. D pp. D-3…D-10
-**What it tests:** `mrp_appd.jl` printed App. D structural solver (no fitted scale)
-**Why it is here:** Any geometry other than the test article needs Eqs. (D.17)–(D.26), not the Table-D-1 seed
-**A pass means:** ≥ 75 % of the 32 Table D-1 modes within 5 % (count rule fixed 2026-10-22 before any run); no calibration input
-**Not covered:** Fig. D-2 shapes reported without a pass mark; production default remains Table D-1 / fitted surrogate
+**What it tests:** Printed App. D structural solver (no fitted scale) vs Table D-1 frequencies.
+**Why it is here:** Any geometry other than the test article needs Eqs. (D.17)–(D.26), not the Table D-1 seed.
+**A pass means:** ≥ 75 % of the 32 Table D-1 modes within 5 % (count rule fixed 2026-10-22 before any run); no calibration input.
+**Not covered:** Fig. D-2 shapes reported without a pass mark; production default remains Table D-1 / fitted surrogate.
 **Recorded outcome:** **met**, 27/32 within 5 % (84.4 %); Fig. D-2 max \|Δw\| = 1.4534 (info, no pass mark). First run 2026-10-22 (`mrp_appd_vs_d1.md`)
-**Explanation:** Implements CR-3813 Appendix D (constraints D.17–D.21, constitutive D.23–D.24, operator D.25, eigenproblem D.22, shapes D.26–D.29) with physical geometry/material from App. E / Manual §5.2. No parameter is fitted to Table D-1. Label: V-CODE (vs NASA's solver outputs), first run of the printed App. D formulation 2026-10-22.
+**Explanation:** Code-on-code (against printed values / NASA solver outputs): implements App. D constraints D.17–D.21, constitutive D.23–D.24, operator D.25, eigenproblem D.22, shapes D.26–D.29 with physical geometry from App. E / Manual §5.2. No parameter fitted to Table D-1. Label V-CODE; first run 2026-10-22.
+Inputs: `appd_test_article_geometry()`; n_modes=48, n_axial=7, n_circ=8, n_floor_max=5; tol_frac=0.05; count rule ≥75 % of 32.
+Equations: App. D (D.17)–(D.26); code `appd_modes` in `mrp_appd.jl`.
+Outputs: f [Hz] vs Table D-1; Fig. D-2 shape residuals (info); verdict on count rule.
 
 ### Case: CYL2D_C1
 **Title:** CYL2D vs Table C-1 / Fig. C-3
@@ -795,12 +819,15 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **Category:** verification
 **Kind:** runnable
 **Source:** CR-3813 Table C-1, Fig. C-3
-**What it tests:** cyl2d.jl App. C scheme
-**Why it is here:** Cabin modes set resonances and coupling
-**A pass means:** App. C implemented as written: ratios, Φ_G, symmetry, Fig. C-3 nodes
-**Not covered:** c0 = 341 m/s back-solved from the table; not an experiment
+**What it tests:** Appendix C cabin acoustic mode scheme (ratios, Φ_G, symmetry, Fig. C-3 nodes).
+**Why it is here:** Cabin modes set resonances and coupling into Eq. (8).
+**A pass means:** App. C implemented as written: ratios, generalized mass Φ_G, symmetry, Fig. C-3 nodes.
+**Not covered:** c0 = 341 m/s back-solved from the table; absolute frequencies partly by construction; not an experiment.
 **Recorded outcome:** met (cyl2d_table_c1.md)
-**Explanation:** Implements CR-3813 Appendix C (cabin acoustic modes) and checks frequency ratios f_i/f_1, generalized mass Φ_G, symmetry, and Fig. C-3 nodes against Table C-1 / Fig. C-3 (V-CODE). Speed of sound c0 = 341 m/s was back-solved from the table; absolute frequencies are partly by construction. Not an experiment.
+**Explanation:** Code-on-code (against printed values): `cyl2d_modes` implements App. C. Frequency ratios f_i/f_1 (c0-free), Φ_G, symmetry vs Table C-1; Fig. C-3 nodes in Pkg.test. Sound speed c0 = 341 m/s was back-solved from the table. Not an experiment.
+Inputs: θ0 = 56.6°, NY = 10, c0 = TABLE_C1_C0 = 341 m/s, n_modes = 20.
+Equations: App. C scheme in `cyl2d.jl` (`cyl2d_modes`).
+Outputs: f [Hz], f/f1 [-], Φ_G [-], symmetry flags; verdict on ratios ≤0.1 %, Φ_G ≤0.1 %, symmetry equal.
 
 ### Case: UT_TRIM
 **Title:** Trim / loss (Pkg.test)
@@ -808,12 +835,15 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **Category:** verification
 **Kind:** pkgtest
 **Source:** CR-3813 App. A, §3.8
-**What it tests:** trim_loss.jl matrices, joint acceptance, loss factors
-**Why it is here:** Trim and losses set every modal amplitude
-**A pass means:** Exact limits, det = 1, passivity, quadrature agreement
-**Not covered:** No NASA numbers for τ_t; E-14 below
+**What it tests:** Trim transfer matrices, joint acceptance, and loss-factor helpers in `trim_loss.jl`.
+**Why it is here:** Trim and losses set every modal amplitude in the cabin chain.
+**A pass means:** Exact limits, det = 1, passivity, quadrature agreement in Pkg.test.
+**Not covered:** No NASA coupon numbers for τ_t; curve check is E14_LOSS. No GUI figure — algebraic unit checks, not a spatial field (cheap plot would not add information).
 **Recorded outcome:** Pkg.test pass ("App. A trim", "Loss factors")
-**Explanation:** Pkg.test coverage of App. A trim transfer matrices, joint acceptance, and §3.8 loss-factor helpers (exact limits, det = 1, passivity, quadrature). No NASA coupon numbers for trim transmission τ_t; the NASA curve check is E14_LOSS.
+**Explanation:** Unit test (Pkg.test only, no figure): App. A trim matrices and §3.8 loss helpers. Covered by Pkg.test titles "App. A trim" and "Loss factors". NASA curve comparison is E14_LOSS / E15_STRUCT_LOSS.
+Inputs: not run in the GUI registry; exercised in Pkg.test with synthetic stacks / App. A limits.
+Equations: App. A (A.10)–(A.22), Eqs. (63)–(83) helpers in `trim_loss.jl`.
+Outputs: matrix determinants, passivity, quadrature residuals in Pkg.test; no registry verdict.
 
 ### Case: E14_LOSS
 **Title:** Fig. E-14 loss factor
@@ -821,12 +851,15 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **Category:** verification
 **Kind:** runnable
 **Source:** CR-3813 Fig. E-14, p.139
-**What it tests:** Eq. (78) with App. A ξ
-**Why it is here:** Only NASA-calculated loss curve available
-**A pass means:** Within ±25 % of NASA's calculated η̄
-**Not covered:** E-13 has no calculated curve
+**What it tests:** Eq. (78) band-average acoustic loss η̄ vs NASA's calculated Fig. E-14 curves.
+**Why it is here:** Only NASA-calculated loss curve available for the acoustic-loss path.
+**A pass means:** Within ±25 % of NASA's calculated η̄.
+**Not covered:** E-13 has no calculated curve; not tuned when criterion fails.
 **Recorded outcome:** 7/18 bands, not met (trim_loss_e13_e14_e15.md)
-**Explanation:** Compares Eq. (78) band-average loss factor η̄ with NASA's calculated curve on Fig. E-14 (±25 %). Recorded 7/18 bands — criterion often not met; not tuned. Fig. E-13 has no calculated curve.
+**Explanation:** Code-on-code (against NASA calculated curve): Eq. (78) band-average loss with App. A trim conductance ξ vs digitized NASA calculated Fig. E-14. Axes: band Hz (log) vs loss factor (log). Recorded 7/18 within ±25 % — often not met; not tuned.
+Inputs: `e14_acoustic_loss_calculated.csv`; `phase3_trim(; η_lining=0.5)`; a = 0.508 m, L = 1.83 m, θ0 = 56.6°; c0 = 340 m/s, ρ0 = 1.225.
+Equations: Eq. (78) via `acoustic_loss_average`; trim conductance via `trim_conductance`.
+Outputs: η̄ [-] per band; verdict ±25 % vs NASA η_T = 0.5 curve.
 
 ### Case: E15_STRUCT_LOSS
 **Title:** Fig. E-15 η_r′ (struct. loss)
@@ -834,12 +867,15 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **Category:** experiment
 **Kind:** runnable
 **Source:** CR-3813 Fig. E-15, p.E-25 / PDF p.141
-**What it tests:** η_r′ of Eq. (82) with Phase III trim
-**Why it is here:** Total structural loss factor vs frequency (measured E-15)
+**What it tests:** Total structural loss factor η_r′ of Eq. (82) with Phase III trim vs measured E-15.
+**Why it is here:** Measured total structural loss vs frequency (with trim).
 **A pass means:** — (V-EXP info; no pass mark, as 16b)
-**Not covered:** No frozen pass criterion; quantity is η_r′ (with trim), not bare η_r
+**Not covered:** No frozen pass criterion; quantity is η_r′ (with trim), not bare η_r.
 **Recorded outcome:** first run 2026-10-22; 4/8 within tol_frac (info); e15_structural_loss.md (no_verdict)
-**Explanation:** Fig. E-15 plots measured and predicted total structural loss factors with trim-loss curves at 0.5 and 1.0 and an upper-limit line at 0.15 — that is η_r′ of Eq. (82), not bare η_r. Case uses Phase III trim η_T = 1.0 and η_r_cap = 0.15 (E-18/E-21 setting, p. E-30). Per-band computed vs measured with CSV tol_frac reported as info only; verdict always no_verdict.
+**Explanation:** Experiment comparison (info only): Fig. E-15 plots measured and predicted total structural loss with trim-loss curves at 0.5 and 1.0 and an upper-limit line at 0.15 — that is η_r′ of Eq. (82), not bare η_r. Uses Phase III trim η_T = 1.0 and η_r_cap = 0.15 (E-18/E-21 setting, p. E-30). Verdict always `:no_verdict`.
+Inputs: `e15_structural_loss_targets.csv`; `phase3_trim` with η_lining = 1.0; η_r_cap = 0.15; L = 1.83 m, a = 0.508 m, θ0 = 56.6°.
+Equations: Eq. (82) η_r′ in `trim_loss.jl` / structural-loss helpers.
+Outputs: η_r′ [-] vs measured; info counts within CSV tol_frac; verdict `:no_verdict`.
 
 ### Case: UT_EQ8
 **Title:** Eq. (8) coupling + HF tones (Pkg.test)
@@ -847,12 +883,15 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **Category:** verification
 **Kind:** pkgtest
 **Source:** CR-3813 Eqs. (8), (11)–(16), (41)–(42), (52)
-**What it tests:** pain_core.jl coupling, Ψ_G, tone sum; high_freq_tones.jl E[g], Eq. (13) MC, crossover
-**Why it is here:** The core sum every SPL goes through; 38b adds the high-frequency expected value
-**A pass means:** Analytic limits, scaling laws, independent re-implementation within 2e-3; E[g] closed=quad 1e-8; default `:eq8` matches baselines
-**Not covered:** No NASA Ψ_G or p² numbers for V-UNIT; REPRO_18b `:auto` is a recorded comparison, not this pkgtest
+**What it tests:** Core coupling, Ψ_G, tone sum, and high-frequency tone expected-value path.
+**Why it is here:** Every tonal SPL goes through this sum; 38b adds the high-frequency expected value.
+**A pass means:** Analytic limits, scaling laws, independent re-implementation within 2e-3; E[g] closed=quad 1e-8; default `:eq8` matches baselines.
+**Not covered:** No NASA Ψ_G or p² numbers for V-UNIT; REPRO_18b `:auto` is a recorded comparison, not this pkgtest. No GUI figure — scalar/analytic unit checks (not a spatial field).
 **Recorded outcome:** Pkg.test pass ("Generalized force", "Eq. (8) tone pressure", "High-frequency tones Eqs. (11)–(16) (38b)")
-**Explanation:** Pkg.test of the core coupling and the 38b high-frequency tone path (V-UNIT before any NASA comparison). Default production remains Eq. (8).
+**Explanation:** Unit test (Pkg.test only, no figure): coupling f′, joint acceptance Ψ_G, Eq. (8) tone mean-square pressure, and 38b Eqs. (11)–(16). Default production remains `tone_model=:eq8`.
+Inputs: synthetic / baseline cases inside Pkg.test; not a registry GUI run.
+Equations: Eqs. (8), (11)–(16), (41)–(42), (52) in `pain_core.jl`, `high_freq_tones.jl`.
+Outputs: Pkg.test residuals only; no registry verdict.
 
 ### Case: REPRO_18b
 **Title:** PAIN reproduction (18b-r)
@@ -860,12 +899,15 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **Category:** calibrated
 **Kind:** runnable
 **Source:** CR-3813 Fig. E-16 NASA PAIN circles, p.142
-**What it tests:** whole cabin chain on ANOPP Table 8, R1
-**Why it is here:** Shows the chain computes what NASA's program computed
-**A pass means:** Code-to-code agreement within 4 dB per harmonic
-**Not covered:** η_T = 0.5 adopted after 19f showed the result (post-hoc); conditional on GEXT; amplitude convention fixed 2026-10-21, post-hoc
+**What it tests:** Whole cabin chain on ANOPP Table 8 with R1 vs NASA's PAIN interior predictions.
+**Why it is here:** Shows whether this chain computes what NASA's program computed (code-on-code).
+**A pass means:** Code-to-code agreement within 4 dB per harmonic H1–H3.
+**Not covered:** η_T = 0.5 adopted after 19f showed the result (post-hoc); conditional on GEXT; amplitude convention fixed 2026-10-21, post-hoc.
 **Recorded outcome:** 18b-r not met 1/3: 85.90, 78.35, 79.82 dB at L = 1.83 m (I-22 re-record 2026-10-22, post-hoc; earlier 1.803 m: 85.74, 78.74, 80.06 — `length_sensitivity.md` / `pain_reproduction_e16.md`). Phase 38b `:auto` (report only): 85.90, 16.81, 72.24 dB; H3 Δ=+4.24 (I-18 explains H3 = no); `phase38b_high_freq_tones.md`
-**Explanation:** Code-to-code check: run the cabin chain on ANOPP Table 8 with R1 blocking and η_T = 0.5 (NASA's value) and compare interior SPL with NASA's PAIN circles on Fig. E-16 (±4 dB per harmonic). At L = 1.83 m (I-22): 85.90, 78.35, 79.82 dB = +6.9, +2.8, +11.8 vs NASA (1 of 3 harmonics). η_T = 0.5 was adopted after 19f showed the result → post-hoc. Conditional on GEXT. Phase 38b recorded the high-frequency formulation beside Eq. (8) with fixed crossover; I-18 mirroring not adopted.
+**Explanation:** Code-on-code (against printed values): run the cabin chain on ANOPP Table 8 with blocking R1 and Phase III trim η_T = 0.5 (NASA's value) and compare interior SPL with NASA's PAIN circles on Fig. E-16 (±4 dB per harmonic). Axes: harmonic band vs SPL; NASA circles vs this code. η_T = 0.5 was adopted after 19f → post-hoc. Conditional on GEXT.
+Inputs: `default_e11_paths().anopp_spl`; `phase3_trim(; η_lining=0.5)`; blocking R1; BPF = 200 Hz; n_harmonics = 3; L = 1.83 m; targets `t1_interior_targets.csv` (NASA PAIN column).
+Equations: full cabin chain; tone Eq. (8) via `run_pain_pipeline` / `tone_mean_square_pressure`; blocking Eq. (43) R1.
+Outputs: interior SPL_H1..H3 [dB]; verdict |Δ| ≤ 4 dB vs NASA PAIN prediction.
 
 ### Case: E18_TONES
 **Title:** Fig. E-18 tones (η_T=1)
@@ -873,12 +915,15 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **Category:** verification
 **Kind:** runnable
 **Source:** CR-3813 Fig. E-18, p.E-29; e18_interior_pred_eta1.csv
-**What it tests:** tones with η_T = 1.0 and η_r′ ≤ 0.15 vs NASA E-18 prediction
-**Why it is here:** NASA's η_T = 1.0 / capped-η_r′ setting (same as E-21) on the tone path
-**A pass means:** |computed − NASA E-18 prediction| ≤ 4 dB at each of H1–H3 (bands 200, 400, 630 Hz)
-**Not covered:** :auto and measured mean/low/high are secondary (V-EXP held out); no parameter from E-18
+**What it tests:** Tones with η_T = 1.0 and η_r′ ≤ 0.15 vs NASA E-18 prediction.
+**Why it is here:** NASA's η_T = 1.0 / capped-η_r′ setting (same as E-21) on the tone path.
+**A pass means:** |computed − NASA E-18 prediction| ≤ 4 dB at each of H1–H3 (bands 200, 400, 630 Hz).
+**Not covered:** :auto and measured mean/low/high are secondary (V-EXP held out); no parameter from E-18.
 **Recorded outcome:** 2/3 within ±4 dB (88.67, 77.78, 77.55 dB) at L = 1.83 m (I-22 re-record 2026-10-22, post-hoc; earlier 1.803 m: 89.02, 78.14, 77.70); not met; e18_tones_eta1.md
-**Explanation:** Same free-field/blocking/grid as 18b-r but Phase III trim η_T = 1.0 and η_r_cap = 0.15 on the tone path (production tone_model=:eq8). H1–H3 map to 200, 400, 630 Hz (H3 at 3·BPF = 600 Hz → 630 Hz 1/3-octave band). Criterion dated 2026-10-21 (18b ±4 dB).
+**Explanation:** Code-on-code (against NASA prediction): same free-field/blocking/grid as 18b-r but Phase III trim η_T = 1.0 and η_r_cap = 0.15 on the tone path (`tone_model=:eq8`). H1–H3 map to 200, 400, 630 Hz (H3 at 3·BPF = 600 Hz → 630 Hz 1/3-octave band). Criterion dated 2026-10-21 (same ±4 dB as 18b).
+Inputs: `default_e11_paths()`; `phase3_trim(; η_lining=1.0)`; η_r_cap = 0.15; BPF = 200 Hz; L = 1.83 m; `e18_interior_pred_eta1.csv`.
+Equations: Eq. (8) tones; Eq. (82) capped η_r′; blocking as in pipeline.
+Outputs: interior SPL [dB] at 200/400/630 Hz; verdict ≤ 4 dB vs NASA E-18 prediction.
 
 ### Case: T1
 **Title:** Tonal interior SPL (T1)
@@ -886,12 +931,15 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **Category:** calibrated
 **Kind:** runnable
 **Source:** CR-3813 Fig. E-16/E-17, p.142
-**What it tests:** e11 chain end to end
-**Why it is here:** Only end-to-end check of tonal SPL against measurement
-**A pass means:** In-sample consistency (gate A mean ± 4 dB, or gate B envelope + NASA ± 4 dB)
-**Not covered:** No claim: GEXT variants flip it; H3 fails; amplitude convention fixed 2026-10-21, post-hoc
+**What it tests:** End-to-end tonal interior SPL on the e11 measured free-field path vs Fig. E-16/E-17.
+**Why it is here:** Only end-to-end tonal SPL check against measurement (still not claimable after GEXT_BOUND).
+**A pass means:** In-sample consistency (gate A mean ± 4 dB, or gate B envelope + NASA ± 4 dB).
+**Not covered:** No claim: GEXT variants flip it; H3 fails; amplitude convention fixed 2026-10-21, post-hoc.
 **Recorded outcome:** 84.21, 77.66, 78.06 dB at L = 1.83 m (H1 fail, H2 pass, H3 fail); t1_tonal.md (I-22 re-record 2026-10-22, post-hoc; earlier 1.803 m: 84.05, 78.01, 78.30)
-**Explanation:** End-to-end tonal interior SPL on the e11 measured free-field path vs Fig. E-16/E-17 (gate A: mean ± 4 dB, or gate B: envelope + NASA ± 4 dB). At L = 1.83 m: 84.21, 77.66, 78.06 dB (H1 fail, H2 pass, H3 fail). No claim: GEXT variants flip the gate (GEXT_BOUND).
+**Explanation:** Experiment comparison (calibrated / in-sample): e11 free-field → GEXT → blocking R2 → modes → Eq. (8) → interior tonal SPL vs measured Fig. E-16/E-17. Gate A: |got − measured mean| ≤ 4 dB; gate B: inside measured envelope and |got − NASA PAIN| ≤ 4 dB. Axes: 1/3-octave band vs SPL. No claim after GEXT_BOUND.
+Inputs: `run_pain_pipeline(; source=:e11, n_harmonics=3, bpf_Hz=200, blocking=R2)`; η_T = 0.5 default path; `t1_interior_targets.csv`; L = 1.83 m.
+Equations: full chain; Eq. (8); GEXT; Eq. (43) R2.
+Outputs: SPL_H1..H3 [dB]; verdict on gates A/B (still labeled not claimable).
 
 ### Case: T2
 **Title:** 1/3-octave (T2)
@@ -899,12 +947,15 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **Category:** calibrated
 **Kind:** runnable
 **Source:** CR-3813 Fig. E-9, p.132
-**What it tests:** broadband path (Eq. 19)
-**Why it is here:** Tonal model puts no energy above 1 kHz
-**A pass means:** In-sample: bb_j2_scale = 0.5 was fitted to these bands earlier (stale)
-**Not covered:** Only 1.25–2 kHz; nothing above; amplitude convention fixed 2026-10-21, post-hoc
+**What it tests:** Broadband 1/3-octave interior SPL (surrogate path) vs Fig. E-9 at 1.25–2 kHz.
+**Why it is here:** Tonal model puts no energy above 1 kHz; this covers three high bands (surrogate).
+**A pass means:** In-sample: |got − measured mean| ≤ tol_dB from CSV; bb_j2_scale = 0.5 was fitted earlier (stale).
+**Not covered:** Only 1.25–2 kHz; nothing above; amplitude convention fixed 2026-10-21, post-hoc.
 **Recorded outcome:** 55.92, 53.56, 51.59 dB at L = 1.83 m (I-22 re-record 2026-10-22, post-hoc; earlier 1.803 m: 55.97, 53.63, 51.67); t2_third_octave.md
-**Explanation:** 1/3-octave broadband path (Eq. 19) vs Fig. E-9 at 1.25–2 kHz. After I-17: 55.97, 53.63, 51.67 dB. bb_j2_scale = 0.5 was fitted earlier to these bands (stale) → calibrated / post-hoc. Only three bands; nothing above 2 kHz. Surrogate path kept; printed Eqs. (19)–(23) are case `T2_EQ19` (38c).
+**Explanation:** Experiment comparison (calibrated): surrogate broadband path vs Fig. E-9 means at 1.25, 1.6, 2 kHz. bb_j2_scale = 0.5 fitted earlier → post-hoc. Printed Eqs. (19)–(23) are case T2_EQ19.
+Inputs: `run_pain_pipeline(; source=:e11, n_harmonics=5, bpf_Hz=200, blocking=R2)`; `t2_third_octave_targets.csv`; bb_j2_scale = 0.5; L = 1.83 m.
+Equations: surrogate broadband (not printed Eqs. 19–23); `evaluate_T2`.
+Outputs: 1/3-octave SPL [dB] at target bands; verdict vs CSV tol_dB.
 
 ### Case: T2_EQ19
 **Title:** 1/3-octave Eq.(19) (T2_EQ19)
@@ -912,25 +963,31 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **Category:** experiment
 **Kind:** runnable
 **Source:** CR-3813 Fig. E-9, p.132; Eqs. (19)–(23) pp.23–25
-**What it tests:** printed HF broadband Eqs. (19)–(23)
-**Why it is here:** Replaces the surrogate / stale bb_j2_scale path for the first printed-model run
-**A pass means:** Same T2 criterion: |got − Fig. E-9 mean| ≤ 3.5 dB at 1.25, 1.6, 2 kHz (criterion unchanged)
-**Not covered:** Spbl ∝ f^−2 anchor remains V-ASSUMED; only three bands; no parameter chosen from E-9/E-21/E-22
+**What it tests:** Printed high-frequency broadband Eqs. (19)–(23) vs Fig. E-9.
+**Why it is here:** First printed-model run replacing the surrogate / stale bb_j2_scale path.
+**A pass means:** Same T2 criterion: |got − Fig. E-9 mean| ≤ 3.5 dB at 1.25, 1.6, 2 kHz (criterion unchanged).
+**Not covered:** Spbl ∝ f^−2 anchor remains V-ASSUMED; only three bands; no parameter chosen from E-9/E-21/E-22.
 **Recorded outcome:** 0/3 PASS (38.56, 35.81, 34.87 dB vs 51/46/41.5) at L = 1.83 m (I-22 re-record 2026-10-22, post-hoc; earlier 1.803 m: 38.59, 35.87, 34.94); full-band E-21/E-22 V-CODE 1/13, V-EXP 0/15; phase38c_hf_broadband.md
-**Explanation:** Interior 1/3-octave SPL with `broadband_model=:eq19` (printed τ_f, τ_R, ᾱ from Eq. 24/78, A_t/S/A′) vs Fig. E-9. Default `:surrogate` T2 path unchanged. Full-band E-21/E-22 with Eq. (18) below crossover and Eq. (19) at/above is reported only (38a thresholds dated 2026-10-21). First run not met; no parameter tuned.
+**Explanation:** Experiment comparison: interior 1/3-octave SPL with `broadband_model=:eq19` (printed τ_f, τ_R, ᾱ from Eq. 24/78, A_t/S/A′) vs Fig. E-9. Default `:surrogate` T2 path unchanged. First run not met; no parameter tuned.
+Inputs: same e11 geometry/blocking as T2; `broadband_model=:eq19` via T2_EQ19 runner; targets CSV; L = 1.83 m.
+Equations: Eqs. (19)–(23) in `hf_broadband.jl`; related Eq. (24)/(78) absorptions.
+Outputs: SPL [dB] at 1.25/1.6/2 kHz; verdict ±3.5 dB; E-21/E-22 full-band counts reported only.
 
 ### Case: E21_E22_NR
 **Title:** Figs. E-21 / E-22 NR
 **Map / block:** pain / P_MEAS
-**Category:** deferred
-**Kind:** deferred
+**Category:** experiment
+**Kind:** runnable
 **Source:** CR-3813 Figs. E-21, E-22, p.149
-**What it tests:** noise reduction
-**Why it is here:** Held out of any calibration (23e)
-**A pass means:** —
-**Not covered:** Deferred with phase 31
-**Recorded outcome:** not run (deferred; criterion pending author approval)
-**Explanation:** Noise-reduction figures E-21 / E-22 are held out of any calibration (23e) and deferred with cabin phase 31. Not built; need a criterion frozen before any run (pending author approval).
+**What it tests:** Cabin noise reduction NR vs NASA E-21 prediction and E-22 measured confidence limits.
+**Why it is here:** Held out of any calibration (23e); first runnable NR check (38a).
+**A pass means:** |NR−NASA|≤3 dB at ≥75% of counted bands and NR inside E-22 95% at ≥75% (criterion dated 2026-10-21).
+**Not covered:** 80–160 Hz excluded (end-plate V-ASSUMED); counts below crossover only.
+**Recorded outcome:** first run 2026-10-21; V-CODE / V-EXP counts below crossover not met (`e21_e22_noise_reduction.md`); held out of calibration (23e).
+**Explanation:** Experiment comparison: noise reduction NR = 10 log10(⟨p_e²⟩/⟨p_i²⟩) from Eqs. (17)–(18) with Phase III trim η_T = 1.0 and η_r_cap = 0.15 (p. E-30). Compared with NASA E-21 prediction and E-22 95 % limits. Axes: band Hz vs NR [dB].
+Inputs: `noise_reduction_test_article_inputs(; η_lining=1.0)`; η_r_cap = 0.15; CSVs `e21_noise_reduction_range.csv`, `e22_noise_reduction_ci.csv`; L = 1.83 m.
+Equations: Eqs. (17)–(18) via `noise_reduction_band` / `noise_reduction_spectrum`.
+Outputs: NR(band) [dB]; verdict on NASA and E-22 fraction rules.
 
 ### Case: UT_POLAR
 **Title:** Polar loader (Pkg.test)
@@ -938,12 +995,15 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **Category:** verification
 **Kind:** pkgtest
 **Source:** XFOIL polars, tables.json
-**What it tests:** polars.jl loader
-**Why it is here:** Loads depend on the polars
-**A pass means:** Loader reads knots and applies the bracket k_cl
-**Not covered:** k_cl, k_cd were fitted to RM L9G06a (register)
+**What it tests:** That `polars.jl` reads polar knots and applies bracket factors k_cl / k_cd.
+**Why it is here:** CCBlade loads depend on the polars.
+**A pass means:** Loader reads knots and applies the bracket factors.
+**Not covered:** k_cl, k_cd were fitted to RM L9G06a (register), not to Report 996. No GUI figure — table/loader unit check only.
 **Recorded outcome:** Pkg.test pass ("Polar loader")
-**Explanation:** Pkg.test of the polar loader (knots, bracket factors k_cl / k_cd). k_cl and k_cd were fitted to RM L9G06a (register), not to Report 996.
+**Explanation:** Unit test (Pkg.test only, no figure): polar file loader. Bracket factors were fitted to other data (register).
+Inputs: polar tables in package data / aircraft JSON as used by Pkg.test.
+Equations: none (loader); code `polars.jl`.
+Outputs: Pkg.test assertions only; no registry verdict.
 
 ### Case: R996_LOADS
 **Title:** Report 996 CCBlade loads
@@ -951,12 +1011,15 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **Category:** calibrated
 **Kind:** replay
 **Source:** RM L8H25a, Report 996 Fig. 14 table, Fig. 7 legend
-**What it tests:** CCBlade T, Q (C_T, C_P)
-**Why it is here:** Load error swamps acoustic error
-**A pass means:** C_T, C_P within ±15 % (23c)
-**Not covered:** Criteria registered after the loads were computed (post-hoc); polars XFOIL + Viterna
+**What it tests:** CCBlade BEMT thrust and torque coefficients C_T, C_P vs measured.
+**Why it is here:** Load error swamps acoustic error.
+**A pass means:** C_T, C_P within ±15 % (23c).
+**Not covered:** Criteria registered after the loads were computed (post-hoc); polars XFOIL + Viterna.
 **Recorded outcome:** 6/32 within ±15 % (not met); post-hoc label; scale_factors.csv / report996_loads.md
-**Explanation:** CCBlade blade-element momentum theory (BEMT) thrust and torque vs RM L8H25a / Fig. 14 table / Fig. 7 legend (C_T, C_P within ±15 %, 23c). Recorded 6/32 within ±15 %. CCBlade thrust ≈ 20 % low (Q varies by polar set); the C_T/C_P definitions were checked and agree; the data folder's own BEM with the same XFOIL polars is 12–31 % low in thrust too, so the polars (forced-transition XFOIL + Viterna extension, k_cl/k_cd bracket fitted to other data) are the likely cause. Not tuned. Criterion registered after the loads were computed → post-hoc label.
+**Explanation:** Replay of a recorded result: CCBlade C_T, C_P vs RM L8H25a / Fig. 14 table / Fig. 7 legend (±15 %, 23c). Recorded 6/32. Criterion registered after the loads → post-hoc. Not tuned.
+Inputs: recorded `scale_factors.csv` from the Report 996 loads script; aircraft/polar set used in that run (see report996_loads.md).
+Equations: BEMT in CCBlade via `propeller_ccblade.jl` (recorded outputs replayed).
+Outputs: C_T, C_P [-]; verdict |ratio−1| ≤ 0.15 (replay).
 
 ### Case: PER_LOADS
 **Title:** Pereira Table 3 loads
@@ -964,12 +1027,15 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **Category:** experiment
 **Kind:** replay
 **Source:** Pereira et al. 2026, Table 3
-**What it tests:** CCBlade T, Q forward flight
-**Why it is here:** Forward-flight loads
-**A pass means:** informational (no load tolerance in 23d)
+**What it tests:** CCBlade T, Q in forward flight vs Pereira Table 3.
+**Why it is here:** Forward-flight loads beside the acoustic Pereira cases.
+**A pass means:** Informational (no load tolerance in frozen 23d).
 **Not covered:** —
 **Recorded outcome:** no_verdict (23d has no load tolerance); replay of pereira_results.csv
-**Explanation:** CCBlade T, Q vs Pereira et al. 2026 Table 3 in forward flight. No verdict: the frozen Pereira criterion (23d) covers only harmonic levels and phase, not thrust/torque.
+**Explanation:** Replay of a recorded result: CCBlade thrust T [N] and torque Q [N·m] vs Pereira Table 3. No verdict — 23d covers harmonic levels and phase only.
+Inputs: recorded `pereira_results.csv` / `pereira_tables3_4.csv` from the Pereira script.
+Equations: BEMT (replayed); not re-solved in the GUI case.
+Outputs: T, Q; verdict `:no_verdict`.
 
 ### Case: F1A_GUTIN
 **Title:** F1A vs Gutin (far field)
@@ -977,12 +1043,15 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **Category:** verification
 **Kind:** runnable
 **Source:** Gutin far-field closed form
-**What it tests:** F1A loading noise, static, far field
-**Why it is here:** Catches coding errors in the F1A path
-**A pass means:** F1A = Gutin within 1 dB on identical loads (V-CODE-like)
-**Not covered:** Not experimental; far field only
+**What it tests:** F1A loading-noise wiring vs Gutin's closed form on identical loads (far field).
+**Why it is here:** Catches coding errors in the F1A path before any experiment.
+**A pass means:** F1A = Gutin within 1 dB on identical loads (V-CODE-like).
+**Not covered:** Not experimental; far field only; thickness off.
 **Recorded outcome:** Pkg.test pass
-**Explanation:** F1A (Farassat formulation 1A, in AcousticAnalogies.jl) is the aircraft path's noise solver. Gutin's 1936 closed form gives the far-field loading-noise tone in the rotor plane from thrust and torque alone. Same loads in both → they must agree in the far field; agreement within 1 dB shows F1A is wired correctly (coding check, V-CODE), not that it matches an experiment.
+**Explanation:** Code-on-code (against printed values / closed form): Farassat F1A (AcousticAnalogies.jl) vs Gutin 1936 far-field loading-noise tone in the rotor plane from thrust and torque alone. Same loads → agree within 1 dB shows F1A is wired correctly.
+Inputs: synthetic identical loads; static; thickness off; observer at 100 R_tip in the rotor plane; first harmonic H1.
+Equations: F1A (AcousticAnalogies); Gutin closed form; comparison in `_run_f1a_gutin`.
+Outputs: SPL [dB]; verdict |Δ| ≤ 1 dB.
 
 ### Case: R996_FIG14
 **Title:** Report 996 Fig. 14(a)
@@ -990,12 +1059,15 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **Category:** experiment
 **Kind:** replay
 **Source:** NACA Report 996 Fig. 14(a), p.16
-**What it tests:** F1A harmonic amplitude vs M_t
-**Why it is here:** Static near-field amplitude at the fuselage-like distance
-**A pass means:** Scaled-load harmonic within ±2 dB at ≥ 75 % of points (23c)
-**Not covered:** Loads scaled to measured T, Q (calibrated input); static only; amplitude convention fixed 2026-10-21, post-hoc
+**What it tests:** F1A harmonic amplitude vs tip Mach M_t at fuselage-like distance.
+**Why it is here:** Static near-field amplitude check.
+**A pass means:** Scaled-load harmonic within ±2 dB at ≥ 75 % of points (23c).
+**Not covered:** Loads scaled to measured T, Q (calibrated input); static only; amplitude convention fixed 2026-10-21, post-hoc.
 **Recorded outcome:** met 20/24 within ±2 dB (report996_acoustics.md; amplitude convention fixed 2026-10-21, post-hoc)
-**Explanation:** Static near-field harmonic amplitude vs tip Mach number M_t at the fuselage-like distance (Report 996 Fig. 14(a)). Loads scaled to measured T, Q. After I-17 (rms measured pressures vs Fourier-peak PAIN/F1A; Report 996 p.10): 20/24 within ±2 dB → met (≥75 %). Post-hoc label on the amplitude-convention re-record.
+**Explanation:** Replay of a recorded result: static near-field harmonic amplitude vs M_t (Fig. 14(a)). Loads scaled to measured T, Q. After I-17: 20/24 within ±2 dB → met (≥75 %). Post-hoc label on the amplitude-convention re-record.
+Inputs: recorded `f1a_results.csv` from Report 996 acoustics script; scaled-load path.
+Equations: F1A (replayed); criterion 20 log10(A_rms/meas).
+Outputs: pressure [dyne/cm²] / SPL error [dB]; verdict ≥75 % within ±2 dB.
 
 ### Case: R996_FIG12
 **Title:** Report 996 Fig. 12(a)(b)
@@ -1003,12 +1075,15 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **Category:** experiment
 **Kind:** replay
 **Source:** Report 996 Fig. 12(a)(b), p.13
-**What it tests:** F1A harmonic amplitude vs x/D
-**Why it is here:** Axial shape of the near field
-**A pass means:** Scaled-load harmonic within ±2 dB at ≥ 75 % of points (23c)
-**Not covered:** Loads scaled to measured T, Q (calibrated input); static only; amplitude convention fixed 2026-10-21, post-hoc
+**What it tests:** F1A harmonic amplitude vs x/D (axial near-field shape).
+**Why it is here:** Axial shape of the near field.
+**A pass means:** Scaled-load harmonic within ±2 dB at ≥ 75 % of points (23c).
+**Not covered:** Loads scaled to measured T, Q (calibrated input); static only; amplitude convention fixed 2026-10-21, post-hoc.
 **Recorded outcome:** not_met 22/40 within ±2 dB (report996_acoustics.md; amplitude convention fixed 2026-10-21, post-hoc)
-**Explanation:** Axial shape of the near-field harmonics vs x/D (Fig. 12(a)(b)). After I-17: 22/40 within ±2 dB (not met; need ≥75 %). Scaled loads; static only; amplitude-convention fix post-hoc.
+**Explanation:** Replay of a recorded result: axial near-field harmonics vs x/D. After I-17: 22/40 within ±2 dB (not met; need ≥75 %). Scaled loads; amplitude-convention fix post-hoc.
+Inputs: recorded `f1a_results.csv`.
+Equations: F1A (replayed).
+Outputs: pressure vs x/D; verdict ≥75 % within ±2 dB.
 
 ### Case: R996_FIG13A
 **Title:** Report 996 Fig. 13(a)
@@ -1016,12 +1091,15 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **Category:** experiment
 **Kind:** replay
 **Source:** Report 996 Fig. 13(a), p.15
-**What it tests:** F1A first harmonic vs x/D (RM L51C27 loads)
-**Why it is here:** Ahead/behind asymmetry
-**A pass means:** Scaled-load harmonic within ±2 dB at ≥ 75 % of points (23c)
-**Not covered:** Loads scaled to RM L51C27 T, Q (calibrated input); static only; amplitude convention fixed 2026-10-21, post-hoc
+**What it tests:** F1A first harmonic vs x/D with RM L51C27 load scale (ahead/behind asymmetry).
+**Why it is here:** Ahead/behind asymmetry check.
+**A pass means:** Scaled-load harmonic within ±2 dB at ≥ 75 % of points (23c).
+**Not covered:** Loads scaled to RM L51C27 T, Q (calibrated input); static only; amplitude convention fixed 2026-10-21, post-hoc.
 **Recorded outcome:** not_met 8/14 within ±2 dB (report996_acoustics.md; amplitude convention fixed 2026-10-21, post-hoc)
-**Explanation:** First-harmonic amplitude vs x/D with RM L51C27 load scale (Fig. 13(a)). After I-17: 8/14 within ±2 dB (not met). Ahead/behind asymmetry check; amplitude-convention fix post-hoc.
+**Explanation:** Replay of a recorded result: first-harmonic amplitude vs x/D with L51C27 scale. After I-17: 8/14 within ±2 dB (not met). Amplitude-convention fix post-hoc.
+Inputs: recorded `f1a_results.csv` (L51C27 scale).
+Equations: F1A (replayed).
+Outputs: H1 pressure vs x/D; verdict ≥75 % within ±2 dB.
 
 ### Case: R996_FIG6
 **Title:** Report 996 Fig. 6
@@ -1029,12 +1107,15 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **Category:** experiment
 **Kind:** replay
 **Source:** Report 996 Fig. 6, p.11
-**What it tests:** F1A total rms vs x/D, B = 4
-**Why it is here:** Tip-clearance trend
-**A pass means:** shape and clearance ratios only (no B = 4 loads)
-**Not covered:** no measured T, Q for B = 4
+**What it tests:** F1A total rms vs x/D for B = 4 blades (tip-clearance trend).
+**Why it is here:** Tip-clearance trend with four blades.
+**A pass means:** Shape and clearance ratios only (no B = 4 loads) — informational.
+**Not covered:** no measured T, Q for B = 4.
 **Recorded outcome:** informational (no B = 4 loads); replay of f1a_results.csv
-**Explanation:** Total rms pressure vs x/D for B = 4 blades (Fig. 6). Plotted, no verdict: no measured T, Q for B = 4, so only shape and tip-clearance ratios. The frozen 23c rule is not applied.
+**Explanation:** Replay of a recorded result: total rms pressure vs x/D for B = 4. Plotted, no verdict: no measured T, Q for B = 4. Frozen 23c not applied.
+Inputs: recorded `f1a_results.csv`, `tr996_fig6_tip_clearance_pressure_vs_xD.csv`.
+Equations: F1A (replayed).
+Outputs: total rms [dyne/cm²]; no pass rule.
 
 ### Case: R996_FIG7
 **Title:** Report 996 Fig. 7
@@ -1042,12 +1123,15 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **Category:** experiment
 **Kind:** replay
 **Source:** Report 996 Fig. 7, p.11
-**What it tests:** p_c/C_P vs x/D
-**Why it is here:** Blade-loading trend
-**A pass means:** informational (script does not apply 23c to Fig. 7)
+**What it tests:** Blade-loading trend p_c/C_P vs x/D.
+**Why it is here:** Blade-loading trend beside Fig. 6.
+**A pass means:** Informational (script does not apply 23c to Fig. 7).
 **Not covered:** —
 **Recorded outcome:** informational (script does not apply 23c); replay of f1a_results.csv
-**Explanation:** Blade-loading trend p_c/C_P vs x/D (Fig. 7). Informational: the acoustics script does not apply the frozen 23c rule to Fig. 7.
+**Explanation:** Replay of a recorded result: p_c/C_P vs x/D (Fig. 7). Informational — acoustics script does not apply frozen 23c to Fig. 7.
+Inputs: recorded `f1a_results.csv`, `tr996_fig7_blade_loading_pc_over_CP_vs_xD.csv`.
+Equations: F1A (replayed).
+Outputs: p_c/C_P [-]; no pass rule.
 
 ### Case: BBN_KIN
 **Title:** BBN kinematic Δφ
@@ -1055,12 +1139,15 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **Category:** verification
 **Kind:** runnable
 **Source:** kinematics (23a′)
-**What it tests:** F1A phase on a hub ring
-**Why it is here:** Phase between grid points drives Ψ_G
-**A pass means:** Δφ = m·B·Δψ within 0.5°; reverse rotation flips sign
-**Not covered:** Sign convention is a free gauge; no measurement
+**What it tests:** F1A phase difference on a hub ring equals m·B·Δψ within 0.5°.
+**Why it is here:** Phase between grid points drives joint acceptance Ψ_G.
+**A pass means:** Δφ = m·B·Δψ within 0.5°; reverse rotation flips sign.
+**Not covered:** Sign convention is a free gauge; no measurement.
 **Recorded outcome:** PASS
-**Explanation:** V-UNIT kinematic check: F1A phase difference on a hub ring equals m·B·Δψ within 0.5°, and reverse rotation flips the sign. No measurement — coding check of phase wiring for Ψ_G.
+**Explanation:** Unit test: kinematic check that F1A phase difference on a hub ring equals m·B·Δψ within 0.5°, and reverse rotation flips the sign. Coding check of phase wiring for Ψ_G — no measurement.
+Inputs: synthetic hub-ring observers; blade count B; harmonics m; rotation ±1 (runner `_run_bbn_kin`).
+Equations: rigid-rotation kinematic Δφ = m·B·Δψ; F1A phase extraction.
+Outputs: Δφ [deg]; verdict |Δφ − m·B·Δψ| ≤ 0.5°.
 
 ### Case: BBN_CIRC
 **Title:** BBN circumferential phase
@@ -1068,12 +1155,15 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **Category:** experiment
 **Kind:** replay
 **Source:** NASA CR-158919 App. C, CR-159124
-**What it tests:** F1A circumferential phase
-**Why it is here:** First experimental phase check
-**A pass means:** ≥ 80 % of rows within 15°/35° (23a)
-**Not covered:** Reflecting surface; low coherence
+**What it tests:** F1A circumferential phase between fuselage microphones.
+**Why it is here:** First experimental phase check.
+**A pass means:** ≥ 80 % of coh≥0.15 rows within 15°/35° (23a).
+**Not covered:** Reflecting surface; low coherence; reference-mic sign not stated in the source.
 **Recorded outcome:** FAIL 26/168 within tolerance; replay of bbn_results.csv
-**Explanation:** First experimental circumferential phase check (CR-158919 App. C / CR-159124) under frozen 23a: ≥80 % of coh≥0.15 rows within 15°/35°. Fails 26/168 (15 %). F1A's phase magnitude matches the rigid-rotation value, but the measured phases often have the opposite sign; CR-158919 App. C (p. C-1) does not state which microphone of a pair is the reference, so the sign cannot be fixed from the source, and choosing the sign that fits would be tuning. Verdict stays.
+**Explanation:** Replay of a recorded result: circumferential phase (CR-158919 App. C / CR-159124) under frozen 23a. Fails 26/168 (15 %). Measured phases often opposite sign to F1A; source does not name the reference mic, so the sign is not fixed from the papers. Verdict stays.
+Inputs: recorded `bbn_results.csv` from BBN script.
+Equations: F1A phase (replayed); criterion 23a.
+Outputs: phase [deg]; verdict on 80 % within 15°/35°.
 
 ### Case: BBN_LONG
 **Title:** BBN longitudinal phase
@@ -1081,12 +1171,15 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **Category:** extrap
 **Kind:** replay
 **Source:** CR-159124 Figs. 19, 20
-**What it tests:** F1A axial phase
-**Why it is here:** Axial phase
-**A pass means:** —
-**Not covered:** Assumed blade (no chord/twist data)
+**What it tests:** F1A axial (longitudinal) phase pairs.
+**Why it is here:** Axial phase beside circumferential.
+**A pass means:** — (X-EXTRAP)
+**Not covered:** Assumed blade (no chord/twist data).
 **Recorded outcome:** X-EXTRAP; replay of bbn_results.csv
-**Explanation:** Axial (longitudinal) phase pairs from CR-159124 Figs. 19–20. X-EXTRAP: the BBN blade's chord, twist and airfoil are not published, so an assumed blade is used.
+**Explanation:** Replay of a recorded result: axial phase from CR-159124 Figs. 19–20. X-EXTRAP: BBN blade chord, twist and airfoil are not published, so an assumed blade is used.
+Inputs: recorded `bbn_results.csv`.
+Equations: F1A phase (replayed).
+Outputs: phase [deg]; no pass rule (X-EXTRAP).
 
 ### Case: R996_PHASE
 **Title:** Report 996 page-12 phase
@@ -1094,12 +1187,15 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **Category:** experiment
 **Kind:** replay
 **Source:** Report 996 p.12 text
-**What it tests:** F1A phase ahead/behind
-**Why it is here:** Only measured phase in Report 996
-**A pass means:** within ±15° of 155° (23c)
-**Not covered:** One data point
+**What it tests:** F1A phase ahead/behind vs the one measured value 155°.
+**Why it is here:** Only measured phase in Report 996.
+**A pass means:** within ±15° of 155° (23c).
+**Not covered:** One data point; stations ±0.125 used as candidates (report does not name them).
 **Recorded outcome:** FAIL 103.8° vs 155° (±15°); tr996_phase_values.csv + f1a_results.csv
-**Explanation:** Only measured phase in Report 996: one value 155° (p. 12 text). The report does not name the two x/D stations — the comparison uses ±0.125 as candidates; F1A gives 103.8°. Fails the ±15° rule (23c). Possible causes recorded; nothing tuned.
+**Explanation:** Replay of a recorded result: one measured phase 155° (p. 12). Comparison uses ±0.125 x/D as candidates; F1A gives 103.8°. Fails ±15° (23c). Nothing tuned.
+Inputs: recorded `tr996_phase_values.csv`, `f1a_results.csv`.
+Equations: F1A phase (replayed).
+Outputs: phase difference [deg]; verdict within ±15° of 155°.
 
 ### Case: PER_FIG6
 **Title:** Pereira Fig. 6 spectra
@@ -1107,12 +1203,15 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **Category:** experiment
 **Kind:** replay
 **Source:** Pereira et al. 2026 Fig. 6
-**What it tests:** F1A tones vs digitized peaks
-**Why it is here:** Only forward-flight check
-**A pass means:** informational (23d does not cover Fig. 6)
-**Not covered:** Motor noise above H2; far field only; amplitude convention fixed 2026-10-21, post-hoc
+**What it tests:** F1A tones vs digitized Fig. 6 peaks (informational).
+**Why it is here:** Only forward-flight spectral figure (23d does not cover it).
+**A pass means:** Informational (23d does not cover Fig. 6).
+**Not covered:** Motor noise above H2; far field only; amplitude convention fixed 2026-10-21, post-hoc.
 **Recorded outcome:** replay of pereira_results.csv (amplitude convention fixed 2026-10-21, post-hoc)
-**Explanation:** Forward-flight spectra vs digitized Pereira Fig. 6 peaks. Informational (23d does not cover Fig. 6). Motor noise above H2; far field only. Amplitude convention fixed 2026-10-21, post-hoc.
+**Explanation:** Replay of a recorded result: forward-flight spectra vs digitized Pereira Fig. 6 peaks. Informational. Motor noise above H2; far field only. Amplitude convention fixed 2026-10-21, post-hoc.
+Inputs: recorded `pereira_results.csv`, `pereira_fig6_peaks.csv`.
+Equations: F1A (replayed).
+Outputs: SPL [dB] vs BPF harmonic; no 23d pass rule.
 
 ### Case: PER_FIG7
 **Title:** Pereira Fig. 7 waveform
@@ -1120,12 +1219,15 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **Category:** experiment
 **Kind:** replay
 **Source:** Pereira et al. 2026 Fig. 7
-**What it tests:** F1A Δψ₁
-**Why it is here:** Only forward-flight check
-**A pass means:** Δψ₁ ±5° (23d)
-**Not covered:** Motor noise above H2; far field only
+**What it tests:** F1A first-harmonic phase shift Δψ₁ vs Fig. 7.
+**Why it is here:** Only forward-flight waveform/phase figure under 23d.
+**A pass means:** Δψ₁ ±5° (23d).
+**Not covered:** Motor noise above H2; far field only.
 **Recorded outcome:** replay of pereira_results.csv
-**Explanation:** Forward-flight waveform / first-harmonic phase Δψ₁ vs Fig. 7 (±5°, 23d). Far field; motor noise above H2.
+**Explanation:** Replay of a recorded result: Δψ₁(φ) = ψ₁(φ)−ψ₁(0°) vs Fig. 7 (±5°, 23d). Far field; motor noise above H2.
+Inputs: recorded `pereira_results.csv`, `pereira_fig7_harmonics.csv`.
+Equations: F1A phase (replayed).
+Outputs: Δψ₁ [deg]; verdict ±5°.
 
 ### Case: PER_FIG8
 **Title:** Pereira Fig. 8 directivity
@@ -1133,12 +1235,15 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **Category:** experiment
 **Kind:** replay
 **Source:** Pereira et al. 2026 Fig. 8
-**What it tests:** F1A forward flight 1 m
-**Why it is here:** Only forward-flight check
-**A pass means:** H1 ±1.7 dB, H2 ±3 dB (23d); H3+ informational
-**Not covered:** Motor noise above H2; far field only; amplitude convention fixed 2026-10-21, post-hoc
+**What it tests:** F1A forward-flight directivity at 1 m.
+**Why it is here:** Only forward-flight directivity under 23d.
+**A pass means:** H1 ±1.7 dB, H2 ±3 dB (23d); H3+ informational.
+**Not covered:** Motor noise above H2; far field only; amplitude convention fixed 2026-10-21, post-hoc.
 **Recorded outcome:** replay of pereira_results.csv (amplitude convention fixed 2026-10-21, post-hoc)
-**Explanation:** Forward-flight directivity at 1 m vs Fig. 8 (H1 ±1.7 dB, H2 ±3 dB). Amplitude convention fixed 2026-10-21, post-hoc.
+**Explanation:** Replay of a recorded result: directivity at 1 m vs Fig. 8 (H1 ±1.7 dB, H2 ±3 dB). Amplitude convention fixed 2026-10-21, post-hoc.
+Inputs: recorded `pereira_results.csv`, `pereira_fig8_directivity.csv`.
+Equations: F1A (replayed).
+Outputs: SPL [dB] vs φ; verdict on H1/H2 tolerances.
 
 ### Case: PER_FIG9
 **Title:** Pereira Fig. 9 harmonics
@@ -1146,12 +1251,15 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **Category:** experiment
 **Kind:** replay
 **Source:** Pereira et al. 2026 Fig. 9
-**What it tests:** F1A forward flight 1 m
-**Why it is here:** Only forward-flight check
-**A pass means:** H1 ±1.7 dB, H2 ±3 dB (23d)
-**Not covered:** Motor noise above H2; far field only; amplitude convention fixed 2026-10-21, post-hoc
+**What it tests:** F1A forward-flight harmonics at 1 m vs Fig. 9 Exp.
+**Why it is here:** Only forward-flight harmonic bar check under 23d.
+**A pass means:** H1 ±1.7 dB, H2 ±3 dB (23d).
+**Not covered:** Motor noise above H2; far field only; amplitude convention fixed 2026-10-21, post-hoc.
 **Recorded outcome:** not_met H1 3/9, H2 6/9; pereira_results.csv (amplitude convention fixed 2026-10-21, post-hoc)
-**Explanation:** Forward-flight harmonics at 1 m vs Fig. 9 Exp. After I-17: H1 3/9 within ±1.7 dB, H2 6/9 within ±3 dB (not met on H1). Amplitude convention fixed 2026-10-21, post-hoc.
+**Explanation:** Replay of a recorded result: harmonics at 1 m vs Fig. 9. After I-17: H1 3/9 within ±1.7 dB, H2 6/9 within ±3 dB (not met on H1). Amplitude convention fixed 2026-10-21, post-hoc.
+Inputs: recorded `pereira_results.csv`, `pereira_fig9_harmonics.csv`.
+Equations: F1A (replayed).
+Outputs: SPL [dB]; verdict on H1/H2 counts.
 
 ### Case: BBN_LEVELS
 **Title:** BBN relative levels
@@ -1159,12 +1267,15 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **Category:** extrap
 **Kind:** replay
 **Source:** CR-158919 Tables 3, 4
-**What it tests:** relative levels mics 3–6
-**Why it is here:** In-plane level shape
-**A pass means:** ±3 dB on SPL_i − SPL_4 (23b)
-**Not covered:** Assumed blade
+**What it tests:** Relative in-plane levels of microphones 3–6 vs mic 4.
+**Why it is here:** In-plane level shape on a fuselage-like ring.
+**A pass means:** ±3 dB on SPL_i − SPL_4 (23b) — reported X-EXTRAP.
+**Not covered:** Assumed blade.
 **Recorded outcome:** X-EXTRAP; replay of bbn_results.csv
-**Explanation:** Relative in-plane levels of microphones 3–6 vs mic 4 (CR-158919 Tables 3–4, ±3 dB). X-EXTRAP for the same unpublished-blade reason.
+**Explanation:** Replay of a recorded result: relative levels SPL_i − SPL_4 (Tables 3–4, ±3 dB). X-EXTRAP for the same unpublished-blade reason as BBN_LONG.
+Inputs: recorded `bbn_results.csv`, `bbn_levels_table3.csv`.
+Equations: F1A levels (replayed); criterion 23b.
+Outputs: relative level [dB]; reported X-EXTRAP.
 
 ---
 ## 3. What “valid recreation” means for this project

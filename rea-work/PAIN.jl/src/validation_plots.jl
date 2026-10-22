@@ -176,6 +176,13 @@ function plot_case(result::ValidationCaseResult, spec::PlotSpec; path::Union{Not
                     col = _COMPUTED_COLORS[mod1(computed_i, length(_COMPUTED_COLORS))]
                     scatter!(ax, s.x, s.y; marker=:circle, markersize=10, color=col, lkw...)
                     labeled && (legend_n += 1)
+                elseif s.kind === :colored_scatter
+                    # x,y = plane coordinates; ylow = scalar colour (e.g. incidence γ).
+                    cvals = isempty(s.ylow) ? fill(0.0, length(s.x)) : s.ylow
+                    sc = scatter!(ax, s.x, s.y; marker=:circle, markersize=10,
+                                  color=cvals, colormap=:viridis, lkw...)
+                    labeled && (legend_n += 1)
+                    Colorbar(fig[p, 3], sc; label=isempty(s.name) ? "value" : s.name, labelsize=10)
                 else
                     scatter!(ax, s.x, s.y; lkw...)
                     labeled && (legend_n += 1)

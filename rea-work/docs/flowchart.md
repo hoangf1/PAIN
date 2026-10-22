@@ -228,7 +228,7 @@ flowchart LR
 
 ## 5. Validation maps
 
-GUI tab **"Validation map"** (`src/validation_map.jl`). Cases are read-only; page images are display-only; numbers come from CSVs or transcribed tables.
+GUI tab **"Validation map"** (`src/validation_map.jl`). Cases are read-only; page images are display-only; numbers come from CSVs or transcribed tables. Per-case and per-block plain-language text (including Inputs / Equations / Outputs on every Explanation) is loaded from `VALIDATION_GUIDELINE.md` §2.13 into both the Validation and Validation map tabs. `UT_GRID` is runnable with figure `docs/validation_reports/figures/UT_GRID.png`.
 
 ### Map 1 — PAIN verification (CR-3813 cabin chain)
 
@@ -237,7 +237,7 @@ Verifies the cabin chain against its own printed equations, tables and NASA PAIN
 ```mermaid
 flowchart TB
     P_FF["P_FF Free field SRC_TA<br/>E11_FREEFIELD · input_qa"]
-    P_GRID["P_GRID Grid + GEXT<br/>UT_GRID · verification<br/>GEXT_BOUND · calibrated"]
+    P_GRID["P_GRID Grid + GEXT<br/>UT_GRID · unit test + figure<br/>GEXT_BOUND · calibrated"]
     P_BLK["P_BLK Blocking Eq.43<br/>BLK_P68 · verification<br/>E12_BLOCK · verification"]
     P_MRP["P_MRP Structural modes<br/>MRP_D1 · input_qa no_verdict<br/>MRP_RITZ · calibrated<br/>MRP_APPD · App. D (38g)"]
     P_CYL["P_CYL Cabin modes<br/>CYL2D_C1 · verification"]

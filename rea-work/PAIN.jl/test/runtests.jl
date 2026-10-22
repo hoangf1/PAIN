@@ -1875,8 +1875,8 @@ _run_if("Validation case registry (34d)") do
         dst = joinpath(tmp, "VALIDATION_GUIDELINE.md")
         md = read(src, String)
         md2 = replace(md,
-            "**Explanation:** Eq. (43) is NASA's empirical blocking factor F(γ):" =>
-            "**Explanation:** TEMP_DOC_PROBE_R2 Eq. (43) is NASA's empirical blocking factor F(γ):";
+            "**Explanation:** Code-on-code (against printed values): ANOPP/PAIN gives propeller pressure in free space;" =>
+            "**Explanation:** TEMP_DOC_PROBE_R2 Code-on-code (against printed values): ANOPP/PAIN gives propeller pressure in free space;";
             count=1)
         @test md2 != md
         write(dst, md2)
@@ -1941,13 +1941,14 @@ _run_if("Validation case registry (34d)") do
         "TABLE_D1_FULL", "BLOCKING_P68_CHECKPOINTS",
     )
     # Live in-process cross-checks with no digitized reference file:
-    allowed_live_no_csv = ("F1A_GUTIN", "BBN_KIN")
+    allowed_live_no_csv = ("F1A_GUTIN", "BBN_KIN", "UT_GRID")
     converted = ("PER_LOADS", "PER_FIG6", "PER_FIG7", "PER_FIG8", "PER_FIG9",
                  "R996_FIG6", "R996_FIG7", "BBN_CIRC", "BBN_LONG", "BBN_LEVELS")
     results_by_id = Dict{String,Any}()
     for id in VALIDATION_CASE_ORDER
         results_by_id[id] = run_validation_case(id)
     end
+    @test results_by_id["UT_GRID"].verdict === :met
     for id in converted
         r = results_by_id[id]
         @test !isempty(r.series)

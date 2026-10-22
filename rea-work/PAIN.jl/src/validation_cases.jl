@@ -389,10 +389,10 @@ function _make_registry()
     cases = ValidationCase[]
 
     push!(cases, ValidationCase(
-        "CYL2D_C1", "CYL2D vs Table C-1 / Fig. C-3", "15",
+        "CYL2D_C1", "Cabin acoustic modes (CYL2D) vs Table C-1 / Fig. C-3", "15",
         String[],
         FigureRef("CR-3813", "Table C-1 / Fig. C-3", nothing),
-        "Frequency ratios f_i/f_1 of modes 2–19 within 0.1 % of Table C-1 (c0-free; c0 = 341 m/s is back-solved from the table, so absolute frequencies are not a test); rigid mode < 0.01 Hz; Φ_G within 0.1 %; symmetry equal. Fig. C-3 node values are checked in Pkg.test. Ratio form re-stated 2026-10-21 after the result was known.",
+        "Frequency ratios f_i/f_1 of modes 2–19 within 0.1 % of Table C-1 (independent of sound speed c0; c0 = 341 m/s is back-solved from the table, so absolute frequencies are not a test); rigid mode < 0.01 Hz; generalized mass Φ_G within 0.1 %; symmetry equal. Fig. C-3 node values are checked in Pkg.test. Ratio form re-stated 2026-10-21 after the result was known.",
         "2026-10-20 (ratio form 2026-10-21, post-hoc)", "V-CODE", _run_cyl2d_c1,
         PlotSpec(; xlabel="mode number", ylabel="frequency (Hz) / Φ_G",
                  panel_titles=["frequency vs mode", "Φ_G vs mode"],
@@ -402,7 +402,7 @@ function _make_registry()
     ))
 
     push!(cases, ValidationCase(
-        "MRP_D1", "MRP Table D-1 seed frequencies", "15",
+        "MRP_D1", "Structural mode frequencies from Table D-1 seed (transcription)", "15",
         String[],
         FigureRef("CR-3813", "Table D-1 / Fig. D-2", 113),
         "Production seed frequencies equal Table D-1 (exact load): a transcription check, no verdict. Raw Ritz vs D-1 is a calibrated fit (MRP_RITZ), not evidence.",
@@ -414,10 +414,10 @@ function _make_registry()
     ))
 
     push!(cases, ValidationCase(
-        "T1", "Tonal interior SPL vs Fig. E-16 / E-17", "18",
+        "T1", "Tonal interior sound-pressure level vs Fig. E-16 / E-17", "18",
         [_data_path("cr3813", "t1_interior_targets.csv")],
         FigureRef("CR-3813", "Fig. E-16 / E-17", 142),
-        "H1–H3: |got − measured mean| ≤ 4 dB, or inside measured envelope and |got − NASA PAIN| ≤ 4 dB. Label: calibrated (in-sample); T1 not claimable after GEXT bound (phase 32). (amplitude convention fixed 2026-10-21, post-hoc)",
+        "Harmonics H1–H3: |computed − measured mean| ≤ 4 dB (gate A), or inside the measured envelope and |computed − NASA PAIN prediction| ≤ 4 dB (gate B). Label: calibrated (in-sample); T1 not claimable after the grid-extension (GEXT) importance bound (phase 32). (amplitude convention fixed 2026-10-21, post-hoc)",
         "2026-10-20", "calibrated (in-sample; amplitude convention fixed 2026-10-21, post-hoc)", _run_t1,
         PlotSpec(; xlabel="1/3-octave band (Hz)", ylabel="SPL (dB)",
                  xscale=:log10, xlim=(160.0, 2000.0),
@@ -427,10 +427,10 @@ function _make_registry()
     ))
 
     push!(cases, ValidationCase(
-        "T2", "1/3-octave vs Fig. E-9 / E-10", "18",
+        "T2", "1/3-octave interior sound-pressure level vs Fig. E-9 / E-10 (surrogate)", "18",
         filter(isfile, [_data_path("cr3813", "t2_third_octave_targets.csv"), _data_path("cr3813", "t2_third_octave_targets_B.csv")]),
         FigureRef("CR-3813", "Fig. E-9 / E-10", 132),
-        "Bands in targets CSV: |got − measured mean| ≤ tol_dB. Stale bb_j2_scale = 0.5; no claim. (amplitude convention fixed 2026-10-21, post-hoc)",
+        "Bands listed in the targets CSV: |computed − measured mean| ≤ tol_dB from that CSV. Uses stale broadband scale bb_j2_scale = 0.5; no claim. (amplitude convention fixed 2026-10-21, post-hoc)",
         "2026-10-20", "calibrated (in-sample; amplitude convention fixed 2026-10-21, post-hoc)", _run_t2,
         PlotSpec(; xlabel="1/3-octave band (Hz)", ylabel="SPL (dB)",
                  xscale=:log10, xlim=(1000.0, 2600.0),
@@ -440,10 +440,10 @@ function _make_registry()
     ))
 
     push!(cases, ValidationCase(
-        "REPRO_18b", "PAIN reproduction vs NASA predictions (18b-r)", "18",
+        "REPRO_18b", "Cabin-chain reproduction vs NASA PAIN predictions (18b-r)", "18",
         [_data_path("cr3813", "t1_interior_targets.csv")],
         FigureRef("CR-3813", "Fig. E-16 NASA PAIN pred", 142),
-        "|got − NASA PAIN prediction| ≤ 4 dB at H1–H3 (registered 2026-10-20). (amplitude convention fixed 2026-10-21, post-hoc)",
+        "|computed − NASA PAIN prediction| ≤ 4 dB at harmonics H1–H3 (registered 2026-10-20). (amplitude convention fixed 2026-10-21, post-hoc)",
         "2026-10-20", "post-hoc (η_T = 0.5 input correction; result known from 19f; amplitude convention fixed 2026-10-21, post-hoc)", _run_repro_18b,
         PlotSpec(; xlabel="harmonic band (Hz)", ylabel="SPL (dB)",
                  xscale=:log10, panel_titles=["vs NASA PAIN"], tolerance_band=4.0,

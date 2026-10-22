@@ -55,10 +55,22 @@ end
 
 function _parse_bold_fields(body::AbstractString)
     fields = Dict{String,String}()
+    last_key = nothing
     for line in eachline(IOBuffer(String(body)))
         m = match(r"^\*\*([^*]+):\*\*\s*(.*)$", line)
-        m === nothing && continue
-        fields[String(m.captures[1])] = String(m.captures[2])
+        if m !== nothing
+            last_key = String(m.captures[1])
+            fields[last_key] = String(m.captures[2])
+        elseif last_key !== nothing
+            # Continuation lines (Inputs:/Equations:/Outputs: under Explanation) keep newlines for QML Text.
+            fields[last_key] *= "\n" * String(line)
+        end
+    end
+    # Allow a single-line Explanation that embeds literal \n between the three labelled lines.
+    for (k, v) in pairs(fields)
+        if occursin("\\n", v)
+            fields[k] = replace(v, "\\n" => "\n")
+        end
     end
     return fields
 end

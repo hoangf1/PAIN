@@ -1564,68 +1564,144 @@ function _run_e15_struct_loss()
     )
 end
 
+"""
+UT_GRID — 160-point fuselage-skin grid vs User Manual Fig. 3 formulas, with a γ-coloured figure.
+Verdict :met if every compared coordinate / azimuth agrees to 1e-9. Label: Unit test with visualization.
+Existing Pkg.test suites \"Grid geometry\" / \"Grid azimuth\" remain.
+"""
+function _run_ut_grid()
+    # Same geometry family as the e11 cabin path (App. E / Manual §5.2 numbers used elsewhere).
+    L = test_article_length()
+    a = 0.508
+    fuse = FuselageGeometry(L, a, 56.6)
+    prop = PropellerPlacement(0.965, 90.0, 0.90)  # r_p [m], φ_p [deg], z_p [m]
+    spec = GridSpec()
+    pts = grid_points(fuse, prop, spec)
+    rp, zp, phi_p = prop.r_p, prop.z_p, deg2rad(prop.phi_p_deg)
+    kp = spec.k_p
+    # Handful of (k, ℓ) stations spanning axial and azimuth indices.
+    sample = [(1, 1), (8, 1), (8, 5), (16, 1), (16, 10), (4, 3), (12, 7)]
+    table = ValidationTableRow[]
+    n_ok = 0
+    n_tot = 0
+    tol = 1e-9
+    for (k, ell) in sample
+        p = first(q for q in pts if q.k == k && q.ell == ell)
+        alpha = (ell - 1) * π / 18
+        x1_ref = (rp - a) + a * (1 - cos(alpha))
+        x2_ref = -a * sin(alpha)   # rotation_direction = +1 (Manual Fig. 3)
+        x3_ref = (π * a / 18) * (kp - k)
+        theta_ref = rad2deg(phi_p + alpha)
+        for (qty, ref, got, xplot) in (
+            ("x1 k=$k ℓ=$ell", x1_ref, p.x1, Float64(k)),
+            ("x2 k=$k ℓ=$ell", x2_ref, p.x2, Float64(k)),
+            ("x3 k=$k ℓ=$ell", x3_ref, p.x3, Float64(k)),
+            ("theta_deg k=$k ℓ=$ell", theta_ref, p.theta_deg, Float64(ell)),
+        )
+            ok = abs(got - ref) ≤ tol
+            n_tot += 1
+            n_ok += ok
+            push!(table, ValidationTableRow(qty, xplot, ref, got, got - ref, ok))
+        end
+    end
+    # Unrolled cylinder: axial z vs azimuth α from ℓ = 1; colour = incidence γ.
+    xs = Float64[p.z for p in pts]
+    ys = Float64[p.alpha_deg for p in pts]
+    γs = Float64[incidence_angle_deg(fuse, prop, p.theta_deg, p.z) for p in pts]
+    z_plane = zp
+    # Propeller plane (vertical line at z = z_p) and ℓ = 1 (α = 0 horizontal).
+    α_span = Float64[0.0, 90.0]
+    z_span = Float64[minimum(xs), maximum(xs)]
+    series = [
+        PlotSeries("γ (deg)", :colored_scatter, xs, ys; ylow=γs, panel=1),
+        PlotSeries("propeller plane z=z_p", :reference_curve,
+                   fill(z_plane, 2), α_span; panel=1),
+        PlotSeries("ℓ = 1 (α = 0)", :reference_curve, z_span, [0.0, 0.0]; panel=1),
+    ]
+    all_ok = n_ok == n_tot && n_tot > 0
+    return ValidationCaseResult(
+        "UT_GRID", _today_iso(),
+        (; L_m=L, a_m=a, theta0_deg=56.6, r_p=rp, phi_p_deg=prop.phi_p_deg, z_p=zp,
+         k_max=spec.k_max, ell_max=spec.ell_max, k_p=kp, n_points=length(pts),
+         tol=tol, sample_points=length(sample),
+         criterion="Manual Fig. 3 x1,x2,x3,θ at sample points within 1e-9"),
+        table, series, all_ok ? :met : :not_met,
+        all_ok ? "$n_ok/$n_tot Manual Fig. 3 coordinates within $tol" :
+                 "$n_ok/$n_tot Manual Fig. 3 coordinates within $tol",
+        "Unit test with visualization",
+        joinpath(_VAL_REPORT_DIR, "ut_grid.md"),
+    )
+end
+
 function _finish_validation_registry!()
     empty!(VALIDATION_CASES)
     empty!(VALIDATION_CASE_ORDER)
     cases = _make_registry()  # core cases CYL2D…REPRO
     # Runnable extras (not greyed)
     extras = [
-        ValidationCase("E12_BLOCK", "Fig. E-12 blocked SPL", "14",
+        ValidationCase("UT_GRID", "Skin grid vs User Manual Fig. 3 (with figure)", "12", String[],
+            FigureRef("PAIN User Manual", "Fig. 3", nothing),
+            "Computed x1, x2, x3 and θ at sample (k, ℓ) points match User Manual Fig. 3 formulas within 1e-9; figure colours the 160 points by incidence angle γ.",
+            "2026-10-22", "Unit test with visualization", _run_ut_grid,
+            PlotSpec(; xlabel="axial position z (m)", ylabel="azimuth from ℓ = 1, α (deg)",
+                     panel_titles=["160-point skin grid (unrolled)"],
+                     error_mode=:absolute, error_tol=1e-9, error_ylabel="computed − Manual Fig. 3"), ""),
+        ValidationCase("E12_BLOCK", "Fig. E-12 blocked sound-pressure level on the skin", "14",
             [_data_path("cr3813", "e12", "e12_predicted_A.csv")],
             FigureRef("CR-3813", "Fig. E-12", 136),
-            "Eq. (43) R1 on Table 8 vs digitized NASA predicted E-12; |Δ| ≤ δ_pred+0.5 = 3.41 dB (phase 14a).",
+            "Blocking revision R1 of Eq. (43) applied to ANOPP Table 8 free-field levels, compared with digitized NASA predicted Fig. E-12; |Δ| ≤ digitization scatter δ_pred + 0.5 = 3.41 dB (phase 14a).",
             "2026-10-20", "V-CODE", _run_e12_block,
             PlotSpec(; xlabel="X3/D", ylabel="blocked SPL (dB)", panel_titles=["H1", "H2", "H3"],
                      error_tol=3.41), ""),
-        ValidationCase("E11_FREEFIELD", "Fig. E-11 free-field line", "12",
+        ValidationCase("E11_FREEFIELD", "Fig. E-11 free-field sound-pressure level line", "12",
             [_data_path("cr3813", "e11_freefield_measured_A.csv"), _data_path("cr3813", "e11_freefield_measured_B.csv")],
             FigureRef("CR-3813", "Fig. E-11", 135),
-            "Dual digitization δ_dig ≤ 1.0 dB (repeatability).",
+            "Two independent digitizations of Fig. E-11 must agree within digitization scatter δ_dig ≤ 1.0 dB (repeatability of reading only).",
             "2026-10-20", "V-ASSUMED", _run_e11_freefield,
             PlotSpec(; xlabel="X3/D", ylabel="free-field SPL (dB)", panel_titles=["H1", "H2", "H3"],
                      error_tol=1.0), ""),
-        ValidationCase("E14_LOSS", "Fig. E-14 loss factor", "16",
+        ValidationCase("E14_LOSS", "Fig. E-14 band-average acoustic loss factor", "16",
             [_data_path("cr3813", "e14_acoustic_loss_calculated.csv")],
             FigureRef("CR-3813", "Fig. E-14", 139),
-            "Eq. (78) band averages within ±25 % of NASA calculated curves.",
+            "Eq. (78) band-average loss factor η̄ within ±25 % of NASA's calculated curves on Fig. E-14.",
             "2026-10-20", "V-CODE", _run_e14_loss,
             PlotSpec(; xlabel="band (Hz)", ylabel="loss factor", xscale=:log10, yscale=:log10,
                      xlim=(10.0, 10000.0), ylim=(0.001, 1.0), panel_titles=["η"],
                      error_mode=:relative_pct, error_tol=25.0), ""),
-        ValidationCase("GEXT_BOUND", "GEXT importance bound (T1 residual)", "32", String[],
+        ValidationCase("GEXT_BOUND", "Grid-extension (GEXT) importance bound on tonal interior check T1", "32", String[],
             FigureRef("—", "derived (no figure)", nothing),
-            "diagnostic: shows how far T1 moves under the assumed GEXT variants; no pass criterion (phase 32) (amplitude convention fixed 2026-10-21, post-hoc)",
+            "Diagnostic only: shows how far the tonal interior check T1 moves when assumed grid-extension (GEXT) falloff/delay variants change; no pass criterion (phase 32) (amplitude convention fixed 2026-10-21, post-hoc).",
             "2026-10-21", "V-ASSUMED (amplitude convention fixed 2026-10-21, post-hoc)", _run_gext_bound,
             PlotSpec(; xlabel="variant", ylabel="T1 residual (dB)", panel_titles=["H1", "H2", "H3"],
                      error_tol=4.0), ""),
-        ValidationCase("BBN_KIN", "BBN kinematic Δφ (24b)", "24", String[],
+        ValidationCase("BBN_KIN", "BBN kinematic phase difference on a hub ring (24b)", "24", String[],
             FigureRef("—", "V-UNIT", nothing),
-            "|Δφ − m·B·Δψ| ≤ 0.5° on hub ring (23a′).",
+            "Absolute phase difference |Δφ − m·B·Δψ| ≤ 0.5° on a hub ring (frozen rule 23a′); reverse rotation flips the sign.",
             "2026-10-21", "V-UNIT", _run_bbn_kin,
             PlotSpec(; xlabel="harmonic", ylabel="Δφ (deg)", panel_titles=["pair1", "pair2", "pair3"],
                      error_tol=0.5, error_ylabel="deg"), ""),
-        ValidationCase("R996_PHASE", "Report 996 page-12 phase", "27",
+        ValidationCase("R996_PHASE", "Report 996 page-12 phase difference", "27",
             [_data_path("report996", "tr996_phase_values.csv"),
              _data_path("report996", "f1a_results.csv")],
             FigureRef("NACA Report 996", "p. 12 text", 12),
-            "F1A phase difference vs measured 155° (recorded FAIL).",
+            "F1A phase difference vs the one measured value 155° on Report 996 p. 12; within ±15° (23c). Recorded FAIL.",
             "2026-10-21", "X-EXTRAP", _run_r996_phase,
             PlotSpec(; xlabel="case", ylabel="phase difference (deg)", panel_titles=["page 12"],
                      error_tol=15.0, error_ylabel="deg"), ""),
-        ValidationCase("BLK_P68", "Blocking Eq. (43) vs CR-172428 p.68", "14", String[],
+        ValidationCase("BLK_P68", "Blocking Eq. (43) vs printed CR-172428 p.68 values", "14", String[],
             FigureRef("NASA-CR-172428", "p. 68 / Eq. (43)", 68),
-            "R1 ΔL within 0.06 dB of CR-172428 p.68 checkpoints",
+            "Blocking revision R1 sound-level increase ΔL = 20 log10 F(γ) within 0.06 dB of the CR-172428 p.68 printed checkpoints at γ = 0–90°.",
             "2026-10-19", "V-UNIT", _run_blk_p68,
             PlotSpec(; xlabel="γ (deg)", ylabel="ΔL (dB)", panel_titles=["blocking"],
                      error_mode=:absolute, error_tol=0.06, error_ylabel="dB"), ""),
-        ValidationCase("MRP_RITZ", "Raw Ritz vs Table D-1 (calibrated)", "15", String[],
+        ValidationCase("MRP_RITZ", "Raw structural Ritz solver vs Table D-1 (calibrated)", "15", String[],
             FigureRef("CR-3813", "Table D-1", 113),
             "Fit quality only (k_scale, edge_factor, floor_scale fitted to Table D-1); no pass mark.",
             "2026-10-21", "calibrated (k_scale, edge_factor, floor_scale fitted to Table D-1)",
             _run_mrp_ritz,
             PlotSpec(; xlabel="mode number", ylabel="frequency (Hz)", panel_titles=["Ritz vs D-1"],
                      error_mode=:relative_pct, error_tol=5.0), ""),
-        ValidationCase("MRP_APPD", "App. D Eqs. (D.17)–(D.26) vs Table D-1", "38g", String[],
+        ValidationCase("MRP_APPD", "Printed App. D structural solver vs Table D-1", "38g", String[],
             FigureRef("CR-3813", "Table D-1 / Fig. D-2", 113),
             "≥ 75 % of 32 modes within 5 % (count rule fixed 2026-10-22); no calibration; Fig. D-2 reported without pass mark.",
             "2026-10-22",
@@ -1633,121 +1709,121 @@ function _finish_validation_registry!()
             _run_mrp_appd,
             PlotSpec(; xlabel="mode number", ylabel="frequency (Hz)", panel_titles=["App. D vs D-1"],
                      error_mode=:relative_pct, error_tol=5.0), ""),
-        ValidationCase("F1A_GUTIN", "F1A vs Gutin far-field H1", "27", String[],
+        ValidationCase("F1A_GUTIN", "Farassat F1A vs Gutin far-field first harmonic", "27", String[],
             FigureRef("Gutin / Hubbard", "far-field closed form", nothing),
-            "|SPL_F1A − SPL_Gutin| ≤ 1 dB at H1, static, thickness off, 100 R_tip in the rotor plane (Pkg.test I-01 c)",
+            "|SPL_F1A − SPL_Gutin| ≤ 1 dB at first harmonic H1, static, thickness off, 100 tip radii in the rotor plane (Pkg.test I-01 c).",
             "2026-10-21", "V-CODE (cross-implementation)", _run_f1a_gutin,
             PlotSpec(; xlabel="harmonic", ylabel="SPL (dB)", panel_titles=["H1"],
                      error_mode=:absolute, error_tol=1.0, error_ylabel="dB"), ""),
-        ValidationCase("R996_FIG14", "Report 996 Fig. 14(a) (replay)", "27",
+        ValidationCase("R996_FIG14", "Report 996 Fig. 14(a) harmonic amplitude vs tip Mach (replay)", "27",
             [_data_path("report996", "f1a_results.csv")],
             FigureRef("NACA Report 996", "Fig. 14(a)", 16),
-            "Scaled-load harmonic |20 log10(A_rms/meas)| ≤ 2 dB at ≥ 75 % of points (23c). (amplitude convention fixed 2026-10-21, post-hoc)",
+            "With loads scaled to measured thrust and torque: |20 log10(A_rms/measured)| ≤ 2 dB at ≥ 75 % of points (23c). (amplitude convention fixed 2026-10-21, post-hoc)",
             "2026-10-21", "V-EXP, calibrated loads (replay of recorded run; amplitude convention fixed 2026-10-21, post-hoc)", _run_r996_fig14,
             PlotSpec(; xlabel="M_t", ylabel="dyne/cm²", yscale=:log10, panel_titles=["Fig. 14(a)"],
                      error_mode=:db_ratio, error_tol=2.0), ""),
-        ValidationCase("R996_FIG12", "Report 996 Fig. 12(a)(b) (replay)", "27",
+        ValidationCase("R996_FIG12", "Report 996 Fig. 12(a)(b) harmonic amplitude vs x/D (replay)", "27",
             [_data_path("report996", "f1a_results.csv")],
             FigureRef("NACA Report 996", "Fig. 12", 13),
-            "Scaled-load harmonic |20 log10(A_rms/meas)| ≤ 2 dB at ≥ 75 % of points (23c). (amplitude convention fixed 2026-10-21, post-hoc)",
+            "With loads scaled to measured thrust and torque: |20 log10(A_rms/measured)| ≤ 2 dB at ≥ 75 % of points (23c). (amplitude convention fixed 2026-10-21, post-hoc)",
             "2026-10-21", "V-EXP, calibrated loads (replay of recorded run; amplitude convention fixed 2026-10-21, post-hoc)", _run_r996_fig12,
             PlotSpec(; xlabel="x/D", ylabel="dyne/cm²", panel_titles=["Fig. 12(a)(b)"],
                      error_mode=:db_ratio, error_tol=2.0), ""),
-        ValidationCase("R996_FIG13A", "Report 996 Fig. 13(a) (replay)", "27",
+        ValidationCase("R996_FIG13A", "Report 996 Fig. 13(a) first harmonic vs x/D (replay)", "27",
             [_data_path("report996", "f1a_results.csv")],
             FigureRef("NACA Report 996", "Fig. 13(a)", 15),
-            "Scaled-load harmonic |20 log10(A_rms/meas)| ≤ 2 dB at ≥ 75 % of points (23c). (amplitude convention fixed 2026-10-21, post-hoc)",
+            "With loads scaled to RM L51C27 thrust and torque: |20 log10(A_rms/measured)| ≤ 2 dB at ≥ 75 % of points (23c). (amplitude convention fixed 2026-10-21, post-hoc)",
             "2026-10-21", "V-EXP, calibrated loads (replay of recorded run; amplitude convention fixed 2026-10-21, post-hoc)", _run_r996_fig13a,
             PlotSpec(; xlabel="x/D", ylabel="dyne/cm²", panel_titles=["Fig. 13(a)"],
                      error_mode=:db_ratio, error_tol=2.0), ""),
-        ValidationCase("R996_LOADS", "Report 996 CCBlade loads (replay)", "26",
+        ValidationCase("R996_LOADS", "Report 996 CCBlade thrust and torque coefficients (replay)", "26",
             [_data_path("report996", "scale_factors.csv")],
             FigureRef("RM L8H25a / Report 996", "Figs. 10, 11 / scale_factors", nothing),
-            "|C_T, C_P CCBlade/measured − 1| ≤ 0.15 (23c).",
+            "|C_T, C_P (CCBlade/measured) − 1| ≤ 0.15 (23c).",
             "2026-10-21", "post-hoc (criteria registered after the loads were computed)",
             _run_r996_loads,
             PlotSpec(; xlabel="M_t", ylabel="C_T / C_P", panel_titles=["C_T", "C_P"],
                      error_mode=:relative_pct, error_tol=15.0), ""),
-        ValidationCase("R996_FIG6", "Report 996 Fig. 6 (replay)", "27",
+        ValidationCase("R996_FIG6", "Report 996 Fig. 6 total rms vs x/D, four blades (replay)", "27",
             [_data_path("report996", "f1a_results.csv"),
              _data_path("report996", "tr996_fig6_tip_clearance_pressure_vs_xD.csv")],
             FigureRef("NACA Report 996", "Fig. 6", 11),
-            "Informational (no B = 4 loads); shape and clearance ratios only (§2.3.1).",
+            "Informational (no measured thrust/torque for B = 4 blades); shape and tip-clearance ratios only (§2.3.1).",
             "2026-10-21", "X-EXTRAP", _run_r996_fig6,
             PlotSpec(; xlabel="x/D", ylabel="total rms (dyne/cm²)",
                      panel_titles=["d/D=0.042", "d/D=0.083", "d/D=0.167", "d/D=0.333"],
                      error_mode=:none), ""),
-        ValidationCase("R996_FIG7", "Report 996 Fig. 7 (replay)", "27",
+        ValidationCase("R996_FIG7", "Report 996 Fig. 7 blade-loading trend p_c/C_P (replay)", "27",
             [_data_path("report996", "f1a_results.csv"),
              _data_path("report996", "tr996_fig7_blade_loading_pc_over_CP_vs_xD.csv")],
             FigureRef("NACA Report 996", "Fig. 7", 11),
-            "Informational shape (script does not apply 23c pressure rule to Fig. 7).",
+            "Informational shape only (the acoustics script does not apply the frozen 23c pressure rule to Fig. 7).",
             "2026-10-21", "X-EXTRAP", _run_r996_fig7,
             PlotSpec(; xlabel="x/D", ylabel="p_c/C_P", panel_titles=["β₇₅=15°"],
                      error_mode=:none), ""),
-        ValidationCase("PER_LOADS", "Pereira Table 3 loads (replay)", "28",
+        ValidationCase("PER_LOADS", "Pereira Table 3 forward-flight thrust and torque (replay)", "28",
             [_data_path("pereira", "pereira_results.csv"),
              _data_path("pereira", "pereira_tables3_4.csv")],
             FigureRef("Pereira et al. (2026)", "Table 3", 5),
-            "Informational (no load tolerance in 23d).",
+            "Informational (frozen Pereira criterion 23d has no thrust/torque tolerance).",
             "2026-10-21", "X-EXTRAP", _run_per_loads,
             PlotSpec(; xlabel="case index", ylabel="T / Q", panel_titles=["T (N)", "Q (N·m)"],
                      error_mode=:none), ""),
-        ValidationCase("PER_FIG9", "Pereira Fig. 9 harmonics (replay)", "28",
+        ValidationCase("PER_FIG9", "Pereira Fig. 9 forward-flight harmonics at 1 m (replay)", "28",
             [_data_path("pereira", "pereira_results.csv"),
              _data_path("pereira", "pereira_fig9_harmonics.csv")],
             FigureRef("Pereira et al. (2026)", "Fig. 9", 10),
-            "23d: H1 ±1.7 dB, H2 ±3 dB; excluded cells excluded. (amplitude convention fixed 2026-10-21, post-hoc)",
+            "Frozen 23d: first harmonic H1 within ±1.7 dB, second harmonic H2 within ±3 dB; excluded cells excluded. (amplitude convention fixed 2026-10-21, post-hoc)",
             "2026-10-21", "X-EXTRAP (amplitude convention fixed 2026-10-21, post-hoc)", _run_per_fig9,
             PlotSpec(; xlabel="BPF harmonic", ylabel="SPL (dB)",
                      panel_titles=["φ=0°", "φ=20°", "φ=40°"],
                      error_mode=:absolute, error_tol=1.7, error_ylabel="dB"), ""),
-        ValidationCase("PER_FIG8", "Pereira Fig. 8 directivity (replay)", "28",
+        ValidationCase("PER_FIG8", "Pereira Fig. 8 forward-flight directivity at 1 m (replay)", "28",
             [_data_path("pereira", "pereira_results.csv"),
              _data_path("pereira", "pereira_fig8_directivity.csv")],
             FigureRef("Pereira et al. (2026)", "Fig. 8", 9),
-            "23d: H1 ±1.7 dB, H2 ±3 dB; H3+ informational; excluded cells excluded. (amplitude convention fixed 2026-10-21, post-hoc)",
+            "Frozen 23d: H1 within ±1.7 dB, H2 within ±3 dB; H3 and higher informational; excluded cells excluded. (amplitude convention fixed 2026-10-21, post-hoc)",
             "2026-10-21", "X-EXTRAP (amplitude convention fixed 2026-10-21, post-hoc)", _run_per_fig8,
             PlotSpec(; xlabel="φ (deg)", ylabel="SPL (dB)",
                      panel_titles=["H1", "H2", "H3", "H4", "H5", "H6"],
                      error_mode=:absolute, error_tol=1.7, error_ylabel="dB"), ""),
-        ValidationCase("PER_FIG7", "Pereira Fig. 7 Δψ₁ (replay)", "28",
+        ValidationCase("PER_FIG7", "Pereira Fig. 7 first-harmonic phase shift Δψ₁ (replay)", "28",
             [_data_path("pereira", "pereira_results.csv"),
              _data_path("pereira", "pereira_fig7_harmonics.csv")],
             FigureRef("Pereira et al. (2026)", "Fig. 7", 8),
-            "23d: ψ₁(φ) − ψ₁(0°) within ±5°.",
+            "Frozen 23d: first-harmonic phase shift ψ₁(φ) − ψ₁(0°) within ±5°.",
             "2026-10-21", "X-EXTRAP", _run_per_fig7,
             PlotSpec(; xlabel="φ (deg)", ylabel="Δψ₁ (deg)", panel_titles=["Δψ₁"],
                      error_mode=:absolute, error_tol=5.0, error_ylabel="deg"), ""),
-        ValidationCase("PER_FIG6", "Pereira Fig. 6 tones (replay)", "28",
+        ValidationCase("PER_FIG6", "Pereira Fig. 6 forward-flight spectra (replay)", "28",
             [_data_path("pereira", "pereira_results.csv"),
              _data_path("pereira", "pereira_fig6_peaks.csv")],
             FigureRef("Pereira et al. (2026)", "Fig. 6", 7),
-            "Informational tones vs digitized peaks (23d does not cover Fig. 6). (amplitude convention fixed 2026-10-21, post-hoc)",
+            "Informational tones vs digitized peaks (frozen 23d does not cover Fig. 6). (amplitude convention fixed 2026-10-21, post-hoc)",
             "2026-10-21", "X-EXTRAP (amplitude convention fixed 2026-10-21, post-hoc)", _run_per_fig6,
             PlotSpec(; xlabel="BPF harmonic", ylabel="SPL (dB)",
                      panel_titles=["φ=0°", "φ=20°", "φ=40°"],
                      error_mode=:none), ""),
-        ValidationCase("BBN_CIRC", "BBN circumferential phase (replay)", "24",
+        ValidationCase("BBN_CIRC", "BBN circumferential phase between fuselage microphones (replay)", "24",
             [_data_path("NASA_CR-158919", "bbn_results.csv")],
             FigureRef("CR-158919 / CR-159124", "App. C/D", 86),
-            "23a: coh ≥ 0.15 rows, ≥ 80 % within 15°/35°.",
+            "Frozen 23a: among rows with coherence ≥ 0.15, ≥ 80 % within 15° or 35° (pair-dependent).",
             "2026-10-21", "X-EXTRAP", _run_bbn_circ,
             PlotSpec(; xlabel="harmonic", ylabel="phase (deg)",
                      panel_titles=["pair 4-3", "pair 5-3", "pair 4-5"],
                      error_mode=:absolute, error_tol=15.0, error_ylabel="deg"), ""),
-        ValidationCase("BBN_LEVELS", "BBN relative levels (replay)", "24",
+        ValidationCase("BBN_LEVELS", "BBN relative in-plane levels vs microphone 4 (replay)", "24",
             [_data_path("NASA_CR-158919", "bbn_results.csv"),
              _data_path("NASA_CR-158919", "bbn_levels_table3.csv")],
             FigureRef("CR-158919", "Tables 3, 4", nothing),
-            "23b ±3 dB on SPL_i − SPL_4; reported X-EXTRAP.",
+            "Frozen 23b: ±3 dB on relative level SPL_i − SPL_4; reported X-EXTRAP (assumed blade).",
             "2026-10-21", "X-EXTRAP", _run_bbn_levels,
             PlotSpec(; xlabel="microphone", ylabel="relative level (dB)", panel_titles=["levels"],
                      error_mode=:absolute, error_tol=3.0, error_ylabel="dB"), ""),
-        ValidationCase("BBN_LONG", "BBN longitudinal phase (replay)", "24",
+        ValidationCase("BBN_LONG", "BBN longitudinal (axial) phase (replay)", "24",
             [_data_path("NASA_CR-158919", "bbn_results.csv")],
             FigureRef("CR-159124", "Figs. 19, 20", 56),
-            "X-EXTRAP plot only (no pass rule).",
+            "X-EXTRAP plot only (no pass rule); blade chord/twist/airfoil not published.",
             "2026-10-21", "X-EXTRAP", _run_bbn_long,
             PlotSpec(; xlabel="harmonic", ylabel="phase (deg)",
                      panel_titles=["Fig. 19 (wrapped ±180°)", "Fig. 20 (wrapped ±180°)"],
@@ -1757,12 +1833,12 @@ function _finish_validation_registry!()
 
     # E21_E22_NR (38a), T2_EQ19 (38c), E18_TONES (38d), E15_STRUCT_LOSS (38e); no greyed placeholders.
     push!(cases, ValidationCase(
-        "E21_E22_NR", "Figs. E-21 / E-22 noise reduction", "38a",
+        "E21_E22_NR", "Figs. E-21 / E-22 cabin noise reduction", "38a",
         [_data_path("cr3813", "e21_noise_reduction_range.csv"),
          _data_path("cr3813", "e22_noise_reduction_ci.csv")],
         FigureRef("CR-3813", "Figs. E-21, E-22", 149),
-        "38a (dated 2026-10-21): |NR−NASA|≤3 dB at ≥75% of bands below crossover with a NASA value " *
-        "(80–160 Hz excluded, V-ASSUMED end-plate); NR inside E-22 95% at ≥75% of the same; both for :met.",
+        "38a (dated 2026-10-21): |noise reduction NR − NASA| ≤ 3 dB at ≥ 75 % of bands below crossover with a NASA value " *
+        "(80–160 Hz excluded, V-ASSUMED end-plate); NR inside E-22 95 % confidence at ≥ 75 % of the same; both required for :met.",
         "2026-10-21",
         "V-CODE (vs NASA) / V-EXP held out (vs E-22); first run 2026-10-21",
         _run_e21_e22_nr,
@@ -1771,11 +1847,11 @@ function _finish_validation_registry!()
         "",
     ))
     push!(cases, ValidationCase(
-        "T2_EQ19", "1/3-octave vs Fig. E-9 (printed Eq. 19–23)", "38c",
+        "T2_EQ19", "1/3-octave vs Fig. E-9 (printed high-frequency Eqs. 19–23)", "38c",
         filter(isfile, [_data_path("cr3813", "t2_third_octave_targets.csv"),
                         _data_path("cr3813", "t2_third_octave_targets_B.csv")]),
         FigureRef("CR-3813", "Fig. E-9 / E-10", 132),
-        "Same T2 criterion (±3.5 dB, 1.25–2 kHz vs Fig. E-9 mean); printed Eqs. (19)–(23); " *
+        "Same T2 criterion (±3.5 dB at 1.25, 1.6, 2 kHz vs Fig. E-9 measured mean); printed Eqs. (19)–(23); " *
         "no j²/τ/area scale. First run 2026-10-22.",
         "2026-10-20 (T2 criterion; Eq.19 path first run 2026-10-22)",
         "V-EXP; printed Eq. (19)–(23), first run 2026-10-22; T2 criterion unchanged",
@@ -1787,7 +1863,7 @@ function _finish_validation_registry!()
         "",
     ))
     push!(cases, ValidationCase(
-        "E18_TONES", "Fig. E-18 tones (η_T = 1.0, η_r′ ≤ 0.15)", "38d",
+        "E18_TONES", "Fig. E-18 interior tones (trim loss η_T = 1.0, structural loss capped)", "38d",
         [_data_path("cr3813", "e18_interior_pred_eta1.csv")],
         FigureRef("CR-3813", "Fig. E-18", 145),
         "38d (dated 2026-10-21): |computed − NASA E-18 prediction| ≤ 4 dB per harmonic H1–H3 " *
@@ -1803,8 +1879,8 @@ function _finish_validation_registry!()
         "E15_STRUCT_LOSS", "Fig. E-15 total structural loss factor η_r′", "38e",
         [_data_path("cr3813", "e15_structural_loss_targets.csv")],
         FigureRef("CR-3813", "Fig. E-15", 141),
-        "38e: η_r′ (Eq. 82 with Phase III trim η_T = 1.0, η_r_cap = 0.15 = E-18/E-21 setting) " *
-        "vs measured targets; V-EXP info, no pass mark (as 16b).",
+        "38e: total structural loss factor η_r′ (Eq. 82 with Phase III trim loss η_T = 1.0 and η_r_cap = 0.15 = E-18/E-21 setting) " *
+        "vs measured targets; experiment comparison reported as info only, no pass mark (as 16b).",
         "2026-10-21",
         "V-EXP; Fig. E-15 η_r′ with η_T=1.0 and η_r_cap=0.15; no pass mark; first run 2026-10-22",
         _run_e15_struct_loss,
@@ -1819,7 +1895,7 @@ function _finish_validation_registry!()
     end
     # Map order for list/GUI; every registry id must appear in exactly one map block.
     order = [
-        "E11_FREEFIELD", "GEXT_BOUND", "BLK_P68", "E12_BLOCK", "MRP_D1", "MRP_RITZ", "MRP_APPD",
+        "E11_FREEFIELD", "UT_GRID", "GEXT_BOUND", "BLK_P68", "E12_BLOCK", "MRP_D1", "MRP_RITZ", "MRP_APPD",
         "CYL2D_C1", "E14_LOSS", "E15_STRUCT_LOSS", "REPRO_18b", "E18_TONES",
         "T1", "T2", "T2_EQ19", "E21_E22_NR",
         "R996_LOADS", "PER_LOADS", "F1A_GUTIN", "R996_FIG14", "R996_FIG12", "R996_FIG13A",
