@@ -10,6 +10,8 @@ import math
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+CR3813 = ROOT / "cr3813"
+RAW = CR3813 / "raw_exports"
 PEREIRA = ROOT / "pereira"
 BBN = ROOT / "NASA_CR-159124"
 PI = math.pi
@@ -38,7 +40,7 @@ def num_or_blank(v: str):
 
 
 def convert_e16() -> None:
-    src = ROOT / "Fig E-16.txt"
+    src = RAW / "Fig E-16.txt"
     rows_all = []
     with src.open(encoding="utf-8") as f:
         r = csv.DictReader(f)
@@ -55,14 +57,14 @@ def convert_e16() -> None:
             )
     hdr = [
         "# Source: CR-3813 Fig. E-16, PDF p. 142 (printed E-26), Pain Methodology.pdf",
-        "# Method: author, WebPlotDigitizer; converted from data/Fig E-16.txt (I-15); values unchanged",
+        "# Method: author, WebPlotDigitizer; converted from data/cr3813/raw_exports/Fig E-16.txt (I-15); values unchanged",
         "# Uncertainty: author digitization; see raw export beside this file",
         "# Digitized 2026-10-21 by author; converted 2026-10-21; script data/digitizers/convert_i15_author_exports.py",
         "# Conventions: dB re 20 µPa; space-average SPL; NASA PAIN = open circles where present",
         "# I-15 notes: (a)–(c) band alignment fixed in .txt before conversion (B-2); pass A t1_interior_targets.csv stays frozen",
     ]
     write_csv(
-        ROOT / "e16_interior_all_bands_B.csv",
+        CR3813 / "e16_interior_all_bands_B.csv",
         hdr,
         ["band_Hz", "measured_mean_dB", "low_dB", "high_dB", "nasa_pred_dB"],
         rows_all,
@@ -85,10 +87,10 @@ def convert_e16() -> None:
                 )
             )
     write_csv(
-        ROOT / "t1_interior_targets_B.csv",
+        CR3813 / "t1_interior_targets_B.csv",
         hdr
         + [
-            "# Schema: second pass of T1 targets (D-17); does not replace data/t1_interior_targets.csv",
+            "# Schema: second pass of T1 targets (D-17); does not replace data/cr3813/t1_interior_targets.csv",
         ],
         [
             "harmonic",
@@ -104,7 +106,7 @@ def convert_e16() -> None:
 
 
 def convert_e17() -> None:
-    src = ROOT / "Fig E-17.txt"
+    src = RAW / "Fig E-17.txt"
     rows = []
     with src.open(encoding="utf-8") as f:
         for row in csv.DictReader(f):
@@ -119,10 +121,10 @@ def convert_e17() -> None:
                 )
             )
     write_csv(
-        ROOT / "e17_interior_ci.csv",
+        CR3813 / "e17_interior_ci.csv",
         [
             "# Source: CR-3813 Fig. E-17, PDF p. 143 (printed E-27), Pain Methodology.pdf",
-            "# Method: author, WebPlotDigitizer; converted from data/Fig E-17.txt (I-15); values unchanged",
+            "# Method: author, WebPlotDigitizer; converted from data/cr3813/raw_exports/Fig E-17.txt (I-15); values unchanged",
             "# Uncertainty: author digitization",
             "# Digitized 2026-10-21 by author; converted 2026-10-21; script data/digitizers/convert_i15_author_exports.py",
             "# Conventions: 95% CI envelope; PAIN = open circles",
@@ -134,7 +136,7 @@ def convert_e17() -> None:
 
 
 def convert_e18() -> None:
-    src = ROOT / "Fig E-18.txt"
+    src = RAW / "Fig E-18.txt"
     rows = []
     with src.open(encoding="utf-8") as f:
         for row in csv.DictReader(f):
@@ -149,10 +151,10 @@ def convert_e18() -> None:
                 )
             )
     write_csv(
-        ROOT / "e18_interior_pred_eta1.csv",
+        CR3813 / "e18_interior_pred_eta1.csv",
         [
             "# Source: CR-3813 Fig. E-18, PDF p. 145 (printed E-29), Pain Methodology.pdf",
-            "# Method: author, WebPlotDigitizer; converted from data/Fig E-18.txt (I-15); values unchanged",
+            "# Method: author, WebPlotDigitizer; converted from data/cr3813/raw_exports/Fig E-18.txt (I-15); values unchanged",
             "# NOTE: η_T=1.0 predictions — NOT the reproduction target of 18b (that is E-16 with η_T=0.5)",
             "# Digitized 2026-10-21 by author; converted 2026-10-21; script data/digitizers/convert_i15_author_exports.py",
             "# I-15 (b): band alignment fixed in .txt before conversion (B-2); blanks at 160 and 630 Hz measured = not read",
@@ -164,7 +166,7 @@ def convert_e18() -> None:
 
 
 def convert_e9_e10() -> None:
-    src9 = ROOT / "Fig E-9.txt"
+    src9 = RAW / "Fig E-9.txt"
     rows9 = []
     with src9.open(encoding="utf-8") as f:
         for row in csv.DictReader(f):
@@ -178,10 +180,10 @@ def convert_e9_e10() -> None:
                 )
             )
     write_csv(
-        ROOT / "t2_third_octave_targets_B.csv",
+        CR3813 / "t2_third_octave_targets_B.csv",
         [
             "# Source: CR-3813 Fig. E-9, PDF p. 132 (printed E-16), Pain Methodology.pdf",
-            "# Method: author, WebPlotDigitizer; converted from data/Fig E-9.txt (I-15); values unchanged",
+            "# Method: author, WebPlotDigitizer; converted from data/cr3813/raw_exports/Fig E-9.txt (I-15); values unchanged",
             "# Digitized 2026-10-21 by author; converted 2026-10-21; script data/digitizers/convert_i15_author_exports.py",
             "# I-15 (a): band column fixed in .txt before conversion (B-2); does not replace t2_third_octave_targets.csv",
             "# Conventions: second pass of T2 envelope; pass A stays frozen",
@@ -189,7 +191,7 @@ def convert_e9_e10() -> None:
         ["fc_Hz", "measured_mean_SPL_dB", "low_dB", "high_dB"],
         rows9,
     )
-    src10 = ROOT / "Fig E-10.txt"
+    src10 = RAW / "Fig E-10.txt"
     rows10 = []
     with src10.open(encoding="utf-8") as f:
         for row in csv.DictReader(f):
@@ -203,10 +205,10 @@ def convert_e9_e10() -> None:
                 )
             )
     write_csv(
-        ROOT / "e10_interior_ci.csv",
+        CR3813 / "e10_interior_ci.csv",
         [
             "# Source: CR-3813 Fig. E-10, PDF p. 133 (printed E-17), Pain Methodology.pdf",
-            "# Method: author, WebPlotDigitizer; converted from data/Fig E-10.txt (I-15); values unchanged",
+            "# Method: author, WebPlotDigitizer; converted from data/cr3813/raw_exports/Fig E-10.txt (I-15); values unchanged",
             "# Digitized 2026-10-21 by author; converted 2026-10-21; script data/digitizers/convert_i15_author_exports.py",
             "# I-15 (c): 250/315 Hz values swapped in .txt before conversion (B-2)",
             "# Conventions: 95% CI envelope",
@@ -217,7 +219,7 @@ def convert_e9_e10() -> None:
 
 
 def convert_e21_e22() -> None:
-    src21 = ROOT / "Fig E-21.txt"
+    src21 = RAW / "Fig E-21.txt"
     rows21 = []
     with src21.open(encoding="utf-8") as f:
         for row in csv.DictReader(f):
@@ -232,10 +234,10 @@ def convert_e21_e22() -> None:
                 )
             )
     write_csv(
-        ROOT / "e21_noise_reduction_range.csv",
+        CR3813 / "e21_noise_reduction_range.csv",
         [
             "# Source: CR-3813 Fig. E-21, PDF p. 149 (printed E-33), Pain Methodology.pdf",
-            "# Method: author, WebPlotDigitizer; converted from data/Fig E-21.txt (I-15); values unchanged",
+            "# Method: author, WebPlotDigitizer; converted from data/cr3813/raw_exports/Fig E-21.txt (I-15); values unchanged",
             "# Digitized 2026-10-21 by author; converted 2026-10-21; script data/digitizers/convert_i15_author_exports.py",
             "# I-15 (g): at 100 Hz minimum equals average (16 dB) as read; single author pass (no independent B2 in export)",
             "# Conventions: envelope = measured max/min; PAIN = open triangles",
@@ -243,7 +245,7 @@ def convert_e21_e22() -> None:
         ["band_Hz", "measured_mean_dB", "low_dB", "high_dB", "nasa_pred_dB"],
         rows21,
     )
-    src22 = ROOT / "Fig E-22.txt"
+    src22 = RAW / "Fig E-22.txt"
     rows22 = []
     with src22.open(encoding="utf-8") as f:
         for row in csv.DictReader(f):
@@ -258,10 +260,10 @@ def convert_e21_e22() -> None:
                 )
             )
     write_csv(
-        ROOT / "e22_noise_reduction_ci.csv",
+        CR3813 / "e22_noise_reduction_ci.csv",
         [
             "# Source: CR-3813 Fig. E-22, PDF p. 150 (printed E-34), Pain Methodology.pdf",
-            "# Method: author, WebPlotDigitizer; converted from data/Fig E-22.txt (I-15); values unchanged",
+            "# Method: author, WebPlotDigitizer; converted from data/cr3813/raw_exports/Fig E-22.txt (I-15); values unchanged",
             "# Digitized 2026-10-21 by author; converted 2026-10-21; script data/digitizers/convert_i15_author_exports.py",
             "# Conventions: 95% CI envelope; PAIN triangles",
         ],

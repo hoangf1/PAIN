@@ -1,7 +1,7 @@
 # Pereira forward flight (phase 28)
 
 Re-recorded 2026-10-21 after the amplitude-convention fix (I-17; sources cited); result known in advance in direction, therefore post-hoc.
-Generated 2026-10-21 by `scripts/run_pereira.jl`.
+Generated 2026-10-21 by `scripts/run/run_pereira.jl`.
 **Re-run after plan I-01/I-02 (2026-10-21).** Criterion: VALIDATION_GUIDELINE §2.12 / 23d frozen 2026-10-21.
 D=0.30 m, B=2, 8000 rpm, V=16 m/s (J=0.4), observers on 1 m arc, `v_obs=[16,0,0]`.
 Geometry: `pereira_fig1b_chord_twist.csv` downsampled to 25 stations; area-mean chord 25.89 mm. **I-10:** paper's 22.85 mm is the 0.75R chord (digitized c/R≈0.152 → 22.9 mm), not an area mean; geometry not rescaled.

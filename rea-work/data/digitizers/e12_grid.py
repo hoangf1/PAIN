@@ -16,4 +16,4 @@ for h, (lo, hi) in rng.items():
         if v % 4 == 0: p.insert_text(fitz.Point(xb*k+1, yb*k-1), str(v), fontsize=6, color=(0.2, 0.4, 1))
 d_ = {1: fitz.Rect(150, 75, 440, 285), 2: fitz.Rect(150, 285, 440, 470), 3: fitz.Rect(150, 465, 440, 650)}
 for h, r in d_.items():
-    p.get_pixmap(dpi=200, clip=r).save(f'data/e12/qa_grid_panel{h}.png')
+    p.get_pixmap(dpi=200, clip=r).save(f'data/cr3813/e12/qa_grid_panel{h}.png')

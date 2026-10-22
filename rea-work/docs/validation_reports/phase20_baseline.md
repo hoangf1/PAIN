@@ -6,7 +6,7 @@ Taken after phases 12–19 and after the author's decision on the Phase III trim
 
 **1758 of 1758 checks pass** (wall time 42.6 s). The phase 17 regression baselines (`data/baselines/phase17_baselines.csv`) were renewed on the same date for η_T = 0.5; the 0.05 file is kept as `phase17_baselines_etaT0p05_archive.csv`.
 
-## 2. e11 path, T1 and T2 (`scripts/run_pain.jl`, `run_pain_pipeline(; source=:e11, n_harmonics=3, bpf_Hz=200.0, blocking=R2)`)
+## 2. e11 path, T1 and T2 (`scripts/run/run_pain.jl`, `run_pain_pipeline(; source=:e11, n_harmonics=3, bpf_Hz=200.0, blocking=R2)`)
 
 Phase III trim with η_T = 0.5. Criteria unchanged from 18a. Label: **18a-r, input correction, result partly known from 19f**; the η_T = 0.05 numbers of 18a stay in the record as "wrong η_T".
 
@@ -21,11 +21,11 @@ Phase III trim with η_T = 0.5. Criteria unchanged from 18a. Label: **18a-r, inp
 
 Reading: the chain now follows NASA's own PAIN predictions at H1 and H2 but no longer sits within 4 dB of the measured mean (NASA's own predictions are 11 and 4.5 dB below it as well, Fig. E-16). T1 stays **no claim**; H3 is open (plan 19i). T2 still carries the stale `bb_j2_scale` = 0.5 from an earlier fit, so its 1 of 3 pass is not a claim (30b replaces it). Other outputs of the same run: Table C-1 / D-1 checks unchanged (CYL2D within 0.3 % in the driver's c0 = 340 m/s comparison, 32/32 Table D-1 seed), δ_dig = 1.0 dB.
 
-## 3. 18b-r (`scripts/run_pain_reproduction.jl`, `pain_reproduction_e16.md`)
+## 3. 18b-r (`scripts/run/run_pain_reproduction.jl`, `pain_reproduction_e16.md`)
 
 R1 blocking, Table 8, η_T = 0.5: 82.73, 75.73, 77.05 dB = +3.7 (within the criterion, margin 0.3 dB), +0.2, +9.1 dB against 79.0, 75.5, 68.0: criterion (4 dB at each harmonic) **not met, 2 of 3**. The original 18b (η_T = 0.05): 91.92, 80.01, 84.87 dB, 0 of 3.
 
-## 4. F1A smoke (`scripts/run_f1a_smoke.jl`, `ccblade_f1a_smoke.md`)
+## 4. F1A smoke (`scripts/run/run_f1a_smoke.jl`, `ccblade_f1a_smoke.md`)
 
 l = 1 peak free-field SPL after the Table-8 peak calibration: 125.7, 118.6, 111.3 dB against ANOPP Table 8 125.7, 118.6, 111.3 (deltas 0.0, 0.0, −0.0; agreement is by construction of the calibration, X-EXTRAP, a sanity check). Wall time 17.9 s for the l = 1-only F1A run, the reference for the cost comparison of phase 21 (about 10× or more expected for 160 observers).
 

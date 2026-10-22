@@ -30,7 +30,7 @@ The [flowcharts](docs/flowchart.md) show the NASA validation path (diagram 2), t
 | Blocking Eq. (43) R1/R2 | **Done** <= 0.06 dB |
 | Grid + assumed extension | **Done** (e11 path). Grid azimuth fixed 2026-10-20 (12b): line l = 1 at the propeller azimuth phi_p, upper quarter, theta_l = phi_p + (l-1)·10°; incidence gamma measured from the surface-to-hub direction (0 at l = 1, k = k_p). Results from before this date used the bottom of the fuselage and are void |
 | Cabin pre-registration (phase 13) | **Done 2026-10-20** (documentation only, no code change). Assumption register for 15a-17a and the loss/trim pass criteria are dated in [`VALIDATION_GUIDELINE.md` §2.11](docs/VALIDATION_GUIDELINE.md). Cabin phase 17 is partly done (2026-10-20); phase 18 is next |
-| Fig. E-12 blocking check (phase 14a) | **Done 2026-10-20** (no `src/` change). Eq. (43) on ANOPP Table 8 reproduces NASA's predicted E-12 curve at 29 of 31 points within delta_dig + 0.5 = 3.41 dB; FAIL at H3 aft (+4.3, +3.8 dB), recorded. delta_dig = 2.91 dB (E-11 gate of 1 dB not met). Prediction is 1-7 dB above the measured circles. Report `docs/validation_reports/e12_blocking.md`; script `PAIN.jl/scripts/e12_blocking.jl` |
+| Fig. E-12 blocking check (phase 14a) | **Done 2026-10-20** (no `src/` change). Eq. (43) on ANOPP Table 8 reproduces NASA's predicted E-12 curve at 29 of 31 points within delta_dig + 0.5 = 3.41 dB; FAIL at H3 aft (+4.3, +3.8 dB), recorded. delta_dig = 2.91 dB (E-11 gate of 1 dB not met). Prediction is 1-7 dB above the measured circles. Report `docs/validation_reports/e12_blocking.md`; script `PAIN.jl/scripts/run/e12_blocking.jl` |
 | CYL2D (phase 15, App. C) | **Done 2026-10-20; criterion re-stated 2026-10-21 (post-hoc).** App. C as written. `TABLE_C1_C0 = 341 m/s` is back-solved from Table C-1 (absolute-f check was partly by construction). **Ratio form:** f_i/f_1 (modes 2–19) within 0.1 % (c0-free; worst 0.0003 %); Φ_G, symmetry, Fig. C-3 unchanged. Three-dimensional modes (q, i) and q-convergence as before (`q_convergence.md`) |
 | MRP | **Done**; Fig. D-2 mode 1: shell within print quantization, floor 0.057 vs 0.05 (19g); production/`MRP_D1` = Table D-1 transcription (`no_verdict`); raw Ritz/`MRP_RITZ` calibrated guard — live **26/32** within 5 % (report 30/32 stale) |
 | Coupling f'(n,r) | Implements CR-3813 Eq. (52) (shell and floor terms, no clamp; an out-of-range value raises an error); Table D-1 shapes for all 32 modes; its tests pass. No |f'| > 1 error occurred in the phase 17 runs |
@@ -39,14 +39,14 @@ The [flowcharts](docs/flowchart.md) show the NASA validation path (diagram 2), t
 | **T1 tonal vs E-16** | **18a-r (η_T = 0.5):** 81.04, 75.00, 75.29 dB — H1/H2 pass by NASA route only, H3 fails; **no claim**. GEXT importance bound **run 2026-10-21**: flat falloff and delay ×2 flip the T1 gate → **T1 depends on GEXT, not claimable** (`gext_importance_bound.md`) |
 | **T2 1/3-oct vs E-9** | **18a-r:** 52.96 (pass), 50.62, 48.66 dB (fail) against 51.0, 46.0, 41.5; `bb_j2_scale` = 0.5 stale; replaced in 30b. Original 18a 62.3/60.3/58.5 kept as wrong η_T. **No claim** |
 | **PAIN reproduction vs NASA (18b-r)** | **Not met, 2 of 3** (η_T = 0.5): 82.73, 75.73, 77.05 dB = +3.7, +0.2, +9.1 dB vs 79.0, 75.5, 68.0. Original 18b at 0.05 (91.9, 80.0, 84.9, 0 of 3) kept. **19i:** omitted D-1 terms not found as H3 cause (`h3_followup.md`). Report `pain_reproduction_e16.md` |
-| Trim / loss (phase 16, App. A + section 3.8) | **Done 2026-10-20.** Written from the printed equations, no fitted parameter: App. A transfer matrices (A.10)-(A.12), tau_t (A.22), C_w, beta (A.16), mechanical path (A.19)-(A.21), Phase III stacks; Si/Cin, joint acceptances (63)-(73), eta_n (77), eta_r (79)-(81), eta_r' (82), eta_r'' (83). Fig. A-2 digitized in `data/fig_a2_pf105.csv`. Eq. (78) against NASA's calculated Fig. E-14 curves: **7 of 18 bands within +-25 %** at trim loss 0.5 and at 1.0 (criterion not met, recorded, not tuned); Fig. E-13 has no calculated curve. Printed-equation findings (factor 2 in Eqs. 69-70, the Eq. 82 limp-mass limit) in the [plan](docs/IMPLEMENTATION_PLAN.md). In the pipeline since 17a (2026-10-20). Report: `docs/validation_reports/trim_loss_e13_e14_e15.md` (`julia --project=. scripts/run_trim_loss_check.jl`) |
+| Trim / loss (phase 16, App. A + section 3.8) | **Done 2026-10-20.** Written from the printed equations, no fitted parameter: App. A transfer matrices (A.10)-(A.12), tau_t (A.22), C_w, beta (A.16), mechanical path (A.19)-(A.21), Phase III stacks; Si/Cin, joint acceptances (63)-(73), eta_n (77), eta_r (79)-(81), eta_r' (82), eta_r'' (83). Fig. A-2 digitized in `data/cr3813/fig_a2_pf105.csv`. Eq. (78) against NASA's calculated Fig. E-14 curves: **7 of 18 bands within +-25 %** at trim loss 0.5 and at 1.0 (criterion not met, recorded, not tuned); Fig. E-13 has no calculated curve. Printed-equation findings (factor 2 in Eqs. 69-70, the Eq. 82 limp-mass limit) in the [plan](docs/IMPLEMENTATION_PLAN.md). In the pipeline since 17a (2026-10-20). Report: `docs/validation_reports/trim_loss_e13_e14_e15.md` (`julia --project=. scripts/run/run_trim_loss_check.jl`) |
 | CCBlade -> F1A | **Done** (phase 21 + **I-01/I-02 fix 2026-10-21**): all 160 points via `evaluate_propeller_source`, no GEXT; source span = 2 revolutions; phase referenced to absolute observer time. Table-8 peak calibration optional post-step (never compared to Table 8 when on — I-12/B-5). Class **X-EXTRAP** |
 | Report 996 / Pereira / BBN | **I-07 re-runs done 2026-10-21** against §2.12 freeze. Smoke raw Table-8 peaks −4.2/−5.3/−5.8 dB. BBN 24b **PASS**; 24c 23a **FAIL** (26/168). Report 996: I-08 L51C27 scale on Fig.13a; 23c scaled pressure 5/24 within ±2 dB, page-12 phase **FAIL**. Pereira 23d H1 0/9 within ±1.7 dB (Fig.9 H1=80 dB accepted as read). Loads still valid (phase 26 post-hoc label) |
 | dB(A) / SIL | **Done**; `overall_dBA` energy-sums A-weighted 1/3-octave bands (**fixed C5, 2026-10-21**; was tones-only) |
 
 **Status after phase 35 (2026-10-21):** Test audit + two validation maps + **"Validation map"** GUI tab (`src/validation_map.jl`). Plots have error panels. `REPRO_18b` runs 18b-r → **82.73 / 75.73 / 77.05 dB, not met** (2/3); CYL2D ratios; `MRP_D1` `no_verdict`; R996 replays (Fig.12 19/40 first verdict; loads 6/32 post-hoc). Run tab source = **aircraft only**. Cases read-only. Greyed only `E21_E22_NR` / `R996_FIG8`. Open: free-field amplitude convention (I-17). Aircraft cabin 29b–31 deferred (B-4).
 
-Source-block data: Report 996 in `data/report996/`; Pereira in `data/pereira/`; CR-3813 E-16…E-22 / E-9/E-10 pass-B CSVs in `data/`; BBN phase Figs. 18–20 in `data/NASA_CR-159124/`. Details in the [plan](docs/IMPLEMENTATION_PLAN.md).
+Source-block data: Report 996 in `data/report996/`; Pereira in `data/pereira/`; CR-3813 test-article CSVs and pages in `data/cr3813/` (see `data/README.md`); BBN phase Figs. 18–20 in `data/NASA_CR-159124/`. Scripts live under `PAIN.jl/scripts/{run,checks,digitize,setup,smoke}/` (`scripts/README.md`). Details in the [plan](docs/IMPLEMENTATION_PLAN.md).
 
 The cabin path checked against NASA data is: digitized Fig. E-11 -> GEXT -> blocking R2 -> hybrid Table D-1 MRP + CYL2D -> PAIN core.
 T1 and T2 are recorded results of the untuned CR-3813 chain (T2 keeps one stale fitted parameter, `bb_j2_scale`), not independent validation; which test proves what, and which parameters were fitted,
@@ -130,7 +130,7 @@ Titles and typical times: [`PAIN.jl/test/README.md`](PAIN.jl/test/README.md). Op
 ### Step 4 - Run the full pipeline and validation checks
 
 ```powershell
-julia --project=. scripts/run_pain.jl
+julia --project=. scripts/run/run_pain.jl
 ```
 
 Prints the interior tone levels, the T1/T2 checks, and a summary of PASS/FAIL lines. It writes reports to
@@ -139,7 +139,7 @@ Prints the interior tone levels, the T1/T2 checks, and a summary of PASS/FAIL li
 ### Step 5 - Run the CCBlade + F1A smoke test (aircraft source)
 
 ```powershell
-julia --project=. scripts/run_f1a_smoke.jl
+julia --project=. scripts/run/run_f1a_smoke.jl
 ```
 
 Compares the propeller noise on the l = 1 line with ANOPP Table 8 and writes `docs\validation_reports\ccblade_f1a_smoke.md`.

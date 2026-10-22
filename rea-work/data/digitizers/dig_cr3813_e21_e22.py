@@ -12,8 +12,9 @@ import numpy as np
 from PIL import Image, ImageDraw
 
 ROOT = Path(__file__).resolve().parents[1]
+CR3813 = ROOT / "cr3813"
 SCRATCH = ROOT / "_scratch"
-QA = ROOT / "qa"
+QA = CR3813 / "qa"
 QA.mkdir(parents=True, exist_ok=True)
 
 # Standard 1/3-octave centres in the figure range
@@ -180,13 +181,13 @@ def main():
     e22 = SCRATCH / "e21_e22-150.png"
     r21 = digitize_page(
         e21,
-        ROOT / "e21_noise_reduction_range.csv",
+        CR3813 / "e21_noise_reduction_range.csv",
         "Fig. E-21 (PDF p. 149 / printed E-33)",
         "measured max/min range",
     )
     r22 = digitize_page(
         e22,
-        ROOT / "e22_noise_reduction_ci.csv",
+        CR3813 / "e22_noise_reduction_ci.csv",
         "Fig. E-22 (PDF p. 150 / printed E-34)",
         "measured 95% confidence limits",
     )

@@ -252,7 +252,7 @@ Until 29b/29c land, an aircraft run may silently use the test-article defaults l
 
 ## 12. Preferred cabin path and code notes
 
-Preferred cabin path (calibrated): `data/e11_freefield_measured_A.csv` (with the ANOPP phase and H3 cleanup) -> GEXT -> blocking R2
+Preferred cabin path (calibrated): `data/cr3813/e11_freefield_measured_A.csv` (with the ANOPP phase and H3 cleanup) -> GEXT -> blocking R2
 -> Table D-1 hybrid MRP + CYL2D -> PAIN core with per-harmonic T(ω)/η and Eq. 19 high-frequency broadband -> T1/T2.
 
 - Always pass `asound = c0` into `CCBlade.OperatingPoint` (the package default is 1.0 m/s).
@@ -272,7 +272,8 @@ Preferred cabin path (calibrated): `data/e11_freefield_measured_A.csv` (with the
 | Testset titles / filter / typical times (P1) | `PAIN.jl/test/README.md` |
 | Persistent Julia for checks (DaemonMode; not a PAIN dep) | `PAIN.jl/scripts/devtools/README.md` |
 | Validation reports | `validation_reports/` |
-| Digitized data and READMEs with uncertainties | `../data/` (`report996/`, `pereira/`, `e11_*`, `t1_*`, `e14_*`, `e15_*`) |
+| Digitized data and READMEs with uncertainties | `../data/` (`cr3813/` for E-11/T1/T2/E-14/E-15/…, `report996/`, `pereira/`; see `data/README.md`) |
+| Scripts by purpose (R1) | `PAIN.jl/scripts/{run,checks,digitize,setup,smoke}/` (`scripts/README.md`) |
 | Case registry + runners | `PAIN.jl/src/validation_cases.jl`, `validation_case_extras.jl` |
 | Validation maps (CASE_INFO, Map 1 / Map 2) + GUI map tab | `PAIN.jl/src/validation_map.jl` |
 | Case plots (error panel, source page) | `PAIN.jl/src/validation_plots.jl`; figures under `validation_reports/figures/` |

@@ -11,7 +11,7 @@ No calibration that makes a test pass by construction: never fit, scale, tune, s
 Code changes delegated to Cursor (scripts\cursor-exec.ps1, write mode) must be checked before they are accepted or built on. After every Cursor run:
 1. Diff: snapshot the files before the run and review every changed file against it; revert or redo any edit outside the files the task names.
 2. Rules: confirm no criterion, tolerance, reference/digitized data file, recorded result or fitted parameter changed unless the task named it, and that any re-stated check carries a dated post-hoc label (rule above).
-3. Run: run the affected checks yourself and read the output; do not rely on Cursor's report. Code in PAIN.jl\src or test: `julia --project=. -e "using Pkg; Pkg.test()"` from rea-work\PAIN.jl. GUI code: scripts\smoke_gui_model.jl and scripts\smoke_qml_load.jl, plus a look at the window.
+3. Run: run the affected checks yourself and read the output; do not rely on Cursor's report. Code in PAIN.jl\src or test: `julia --project=. -e "using Pkg; Pkg.test()"` from rea-work\PAIN.jl. GUI code: scripts\smoke\smoke_gui_model.jl and scripts\smoke\smoke_qml_load.jl, plus a look at the window.
 4. Numbers: spot-check the numbers Cursor reports against the recorded reports in rea-work\docs\validation_reports.
 5. Docs: confirm the five documents above were updated for the change.
 A failed check is fixed (or the task re-sent to Cursor with the failure) before the next task starts; one Cursor writer at a time.

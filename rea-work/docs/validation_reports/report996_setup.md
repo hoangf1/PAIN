@@ -1,6 +1,6 @@
 # Report 996 setup (phase 25k)
 
-Generated 2026-10-21 by `scripts/report996_setup.jl`.
+Generated 2026-10-21 by `scripts/run/report996_setup.jl`.
 
 ## 25a static probe
 

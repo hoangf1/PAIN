@@ -146,7 +146,7 @@ end
 """Default data-dir paths relative to repo root (parent of PAIN.jl)."""
 function default_e11_paths()
     root = normpath(joinpath(@__DIR__, "..", ".."))
-    data = joinpath(root, "data")
+    data = joinpath(root, "data", "cr3813")
     return (
         A = joinpath(data, "e11_freefield_measured_A.csv"),
         B = joinpath(data, "e11_freefield_measured_B.csv"),

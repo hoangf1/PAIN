@@ -105,7 +105,7 @@ If sign flip and ×2 are both exactly null on T1, delay moves to the sanity buck
 | Grid contract | Same geometry as User Manual Fig. 3 / §3: `k = 1…k_max`, `ℓ = 1…10`, typically `k_max = 16` → **160 points**; ANOPP `(x₁,x₂,x₃)` mapping retained for observer placement |
 | Class | **X-EXTRAP** for the aircraft application |
 | Source-block check | NACA Report 996 (Hubbard & Regier, 1950): CCBlade thrust/torque and F1A pressures vs measured free-space total rms pressures near the propeller tips. Static, loading-only; see `IMPLEMENTATION_PLAN.md` phases 25–27. Forward flight (far field) is checked separately against Pereira et al. (2026), phase 28. Neither covers the aircraft case. Both checks and the production 160-point grid call the same source-evaluation function (plan phase 21), so what is checked is what runs. |
-| Smoke test | `scripts/run_f1a_smoke.jl` compares peak SPL on the `ℓ = 1` line with ANOPP Table 8 from CR-172428. It is a sanity check, not a validation. |
+| Smoke test | `scripts/run/run_f1a_smoke.jl` compares peak SPL on the `ℓ = 1` line with ANOPP Table 8 from CR-172428. It is a sanity check, not a validation. |
 
 **Known NASA limitation (CR-172428 §6 / ANOPP section):** ANOPP accuracy degrades by ~4th–5th harmonic; do not treat high-H exterior predictions as truth. F1A tonal methods have analogous limits—document harmonic cutoff in reports.
 
@@ -410,7 +410,7 @@ Each row is a hard-coded NASA test-article constant that can reach an aircraft r
 |------|---------------|-------|--------|
 | `trim_loss.jl` | `phase3_trim` defaults `a`, `L`, `theta0_deg` | 0.508 m, 1.803 m, 56.6° | CR-3813 App. E test article |
 | `trim_loss.jl` | `phase3_trim` η_lining | 0.5 (Phase III); aircraft register default 0.05 | p. E-24 / register f |
-| `trim_loss.jl` | PF-105 / Fig. A-2 insulation table | `data/fig_a2_pf105.csv` | App. A |
+| `trim_loss.jl` | PF-105 / Fig. A-2 insulation table | `data/cr3813/fig_a2_pf105.csv` | App. A |
 | `trim_loss.jl` | Phase III sidewall/end stacks, septum 6.58 kg, facing 0.095 kg/m² | as coded | App. E p. E-8 |
 | `mrp.jl` | `MRP_T_SKIN`, stringer/frame areas and spacings, E, ν, ρ | 0.00081 m, … | App. D / MRP constants |
 | `pain_core.jl` | wall mass fallback from `MRP_*` when `m_wall` NaN | smeared skin | same |
@@ -444,7 +444,7 @@ Written before the first run of the 14a–18a chain. A value here is changed onl
 | h | Areas: A in Eqs. (8) and (52); Ā in Eq. (81); A in Eq. (A.19) | A = L(Lp + 2a(π − θ0)); Ā = 2πaL; A = 2a(π − θ0)L | none | Normalization of Eq. (52); full-circumference coordinates of Eqs. (62)–(65); curved sidewall | — |
 | i | η_r'' of Eq. (83) | Applied to every (n, r) pair (its own resonance factor limits it) | Variant restricted to \|ω_r − ω_n\| ≤ η_nω_n/2 ("typically", §3.8.2), reported | CR-3813 §3.8.2 | Both reported |
 | j | Plate modal density n = A√3/(2πhc) in Eq. (A.19) | as written | none | V-ASSUMED | — |
-| k | Table D-1 shapes, all 32 modes, transcribed from the page scans 2026-10-20 (modes 2 and 16 frequencies corrected); Ritz shapes converted to the Eqs. (46)–(49) convention | as transcribed | — | CR-3813 Table D-1 | Comparison in 17d: equal to `data/digitized_table_D1.csv` in all 32 modes. 19g: Fig. D-2 mode-1 shell shape within the print-column quantization (0.026 of the figure's peak 1.0, criterion 0.05 met); floor shape 0.057 from the figure at the outer points (criterion 0.05 **not met**, digitization ±0.005; omitted Table D-1 terms are a possible cause, untested) (`fig_d2_check.md`) |
+| k | Table D-1 shapes, all 32 modes, transcribed from the page scans 2026-10-20 (modes 2 and 16 frequencies corrected); Ritz shapes converted to the Eqs. (46)–(49) convention | as transcribed | — | CR-3813 Table D-1 | Comparison in 17d: equal to `data/cr3813/digitized_table_D1.csv` in all 32 modes. 19g: Fig. D-2 mode-1 shell shape within the print-column quantization (0.026 of the figure's peak 1.0, criterion 0.05 met); floor shape 0.057 from the figure at the outer points (criterion 0.05 **not met**, digitization ±0.005; omitted Table D-1 terms are a possible cause, untested) (`fig_d2_check.md`) |
 
 #### 2.11.2 Pass criteria for the loss and trim comparisons (13b)
 
@@ -461,30 +461,30 @@ The E-12 criteria (14a, now run) and the CYL2D criteria (15a) are stated in thei
 
 #### 2.11.3 Run definition for the 16a–16b comparisons (fixed 2026-10-20, written before the comparison was run)
 
-The statistic and inputs below were fixed before `scripts/run_trim_loss_check.jl` was first run; the numbers in 13b above are unchanged.
+The statistic and inputs below were fixed before `scripts/run/run_trim_loss_check.jl` was first run; the numbers in 13b above are unchanged.
 
 | Item | Definition |
 |------|------------|
 | E-14 statistic (V-CODE) | Eq. (78), η̄_n = 8c0/(4ωV)[ξS + 2ξ_eS_e], evaluated at each one-third-octave band centre 100–5000 Hz (18 bands), with ξ = Re β and ξ_e = Re β_e from Eq. (A.16) |
 | E-14 inputs | Phase III stacks of App. E p. E-8 (`phase3_trim`): sidewall = four layers (1.3 cm PF-105 + 0.095 kg/m² facing each, facing on the cabin side) + septum 6.58 kg over 2a(π − θ0)L; end plates = one layer + facing on a rigid backing; wall mass m = 3.23 kg/m² (smeared skin, `MRP_*` constants); S = 2a(π − θ0)L, S_e = V/L, V = `cabin_volume`; c0 = 340 m/s, ρ0 = 1.225 kg/m³. Facing and septum loss factor 0.5 and 1.0, the two values NASA used for its curves (not the register default 0.05, which is for the aircraft case) |
-| E-14 target | `data/e14_acoustic_loss_calculated.csv`, digitized from the two calculated curves |
+| E-14 target | `data/cr3813/e14_acoustic_loss_calculated.csv`, digitized from the two calculated curves |
 | E-14 pass rule | Each band: \|η̄_computed/η̄_NASA − 1\| ≤ 0.25. Reported: bands passing of 18, per trim loss factor. A miss is recorded, not tuned |
 | Eq. (77) mode averages | Diagnostic, recorded without a pass mark: mean of η_n over the cabin modes whose frequency falls in the band |
 | E-13 | Fig. E-13 holds **measured** points only (no calculated curve), so the ±0.05 criterion of 13b has no target. ᾱ from Eq. (24) is compared with the measured points as V-EXP, no pass mark. Recorded 2026-10-20 |
 | Fig. A-2 / App. A | τ_t, C_w, β are checked by the exact limits of 16a (empty stack, limp mass alone, zero thickness, det = 1, passivity Re β ≥ 0); no NASA numbers exist for them |
 
-**Result and status (16a–16b done 2026-10-20).** E-14 (V-CODE): 7 of 18 bands within ±25 % at trim loss 0.5 and 7 of 18 at 1.0; the criterion is not met (`trim_loss_e13_e14_e15.md`; per-band table and the failing bands in the plan, phase 16). Register items e (Fig. A-2 as `data/fig_a2_pf105.csv`, range error and flagged extrapolation), f (`phase3_trim` keywords), g (`C` of Eq. 80, bare η_n is an input to 17a) and j (plate modal density in `MechanicalPath`) are implemented. Added V-ASSUMED items: end plates on a rigid backing (mass not stated in CR-3813; it sets ξ_e and so the E-14 result above 600 Hz), wave-impedance phase sign W = |W|e^{+iφ} (checked by Re β ≥ 0), and Fig. A-2 read at six frequencies (|W| at 1000 Hz from the curve, not the marker). The sensitivity runs of the register ranges were made with the Eq. (8) chain on 2026-10-20 (`scripts/probe_t1_levels.jl`, table in `validation_reports/pain_core_eq8_phase17.md` §5): η_n 0.02–0.10 moves H2, H3 by up to 4.5 and 6.7 dB, C 2–4 by ≤ 0.1 dB, lining loss 0.01–0.10 by up to 2.4 dB (H1) and 5.1 dB (H3), the facing side by 2.5 dB at H1; no range brings H3 within 13 dB of the measured mean. Item d (q truncation) is met under Eq. (8). Printed-equation findings carried to 17a: Eqs. (69), (70), (63) are half the mode-normalized joint acceptance for n > 0 (`mode_normalized` option, default as printed); the Eq. (82) limp-mass limit.
+**Result and status (16a–16b done 2026-10-20).** E-14 (V-CODE): 7 of 18 bands within ±25 % at trim loss 0.5 and 7 of 18 at 1.0; the criterion is not met (`trim_loss_e13_e14_e15.md`; per-band table and the failing bands in the plan, phase 16). Register items e (Fig. A-2 as `data/cr3813/fig_a2_pf105.csv`, range error and flagged extrapolation), f (`phase3_trim` keywords), g (`C` of Eq. 80, bare η_n is an input to 17a) and j (plate modal density in `MechanicalPath`) are implemented. Added V-ASSUMED items: end plates on a rigid backing (mass not stated in CR-3813; it sets ξ_e and so the E-14 result above 600 Hz), wave-impedance phase sign W = |W|e^{+iφ} (checked by Re β ≥ 0), and Fig. A-2 read at six frequencies (|W| at 1000 Hz from the curve, not the marker). The sensitivity runs of the register ranges were made with the Eq. (8) chain on 2026-10-20 (`scripts/checks/probe_t1_levels.jl`, table in `validation_reports/pain_core_eq8_phase17.md` §5): η_n 0.02–0.10 moves H2, H3 by up to 4.5 and 6.7 dB, C 2–4 by ≤ 0.1 dB, lining loss 0.01–0.10 by up to 2.4 dB (H1) and 5.1 dB (H3), the facing side by 2.5 dB at H1; no range brings H3 within 13 dB of the measured mean. Item d (q truncation) is met under Eq. (8). Printed-equation findings carried to 17a: Eqs. (69), (70), (63) are half the mode-normalized joint acceptance for n > 0 (`mode_normalized` option, default as printed); the Eq. (82) limp-mass limit.
 
 #### 2.11.4 Criterion for the PAIN reproduction check (18b; dated 2026-10-20, written before the run)
 
 | Item | Definition |
 |------|------------|
 | Purpose | Show the chain computes what NASA's PAIN computes (V-CODE), separately from agreement with measurement (18a) |
-| Inputs | ANOPP Table 8 free field (`data/anopp_table8_spl_dB.csv`, `anopp_table8_phases_deg.csv`) in place of the measured Fig. E-11 line; full Eq. (43) blocking, variant R1; Phase III trim stacks (`phase3_trim`, register defaults); 20 CYL2D modes, 32 Table D-1 modes, q ≤ ⌈2ω_H L/(π c0)⌉; BPF 200 Hz. Off-line grid points by GEXT on Table 8 (17j found no full-grid ANOPP output), so the result is conditional on GEXT (V-ASSUMED, phase 32) |
-| Target | `nasa_pain_pred_dB` of `data/t1_interior_targets.csv` (NASA PAIN circles of Fig. E-16): 79.0, 75.5, 68.0 dB at H1–H3 |
+| Inputs | ANOPP Table 8 free field (`data/cr3813/anopp_table8_spl_dB.csv`, `anopp_table8_phases_deg.csv`) in place of the measured Fig. E-11 line; full Eq. (43) blocking, variant R1; Phase III trim stacks (`phase3_trim`, register defaults); 20 CYL2D modes, 32 Table D-1 modes, q ≤ ⌈2ω_H L/(π c0)⌉; BPF 200 Hz. Off-line grid points by GEXT on Table 8 (17j found no full-grid ANOPP output), so the result is conditional on GEXT (V-ASSUMED, phase 32) |
+| Target | `nasa_pain_pred_dB` of `data/cr3813/t1_interior_targets.csv` (NASA PAIN circles of Fig. E-16): 79.0, 75.5, 68.0 dB at H1–H3 |
 | Criterion | \|computed − target\| ≤ 2 dB (Fig. E-16 digitization uncertainty) + 2 dB = **4 dB at each harmonic** |
 | A miss | A finding on the chain, localized with 17c–17i; not a reason to tune |
-| Result (run 2026-10-20) | **Not met, 0 of 3.** R1, Phase III trim: 91.92, 80.01, 84.87 dB, i.e. +12.9, +4.5, +16.9 dB against 79.0, 75.5, 68.0. Diagnostics (not the criterion): R2 90.06, 78.20 (within 4 dB), 83.15; bare cabin 92.22, 83.65, 83.58. At H1 modes 8 (318.7 Hz) and 6 (301.9 Hz) carry 91 % of the sum with τ_t = 15.6. `pain_reproduction_e16.md`, `scripts/probe_modal_contributions.jl`. **Phase 19 (2026-10-20) isolated the largest cause: the registered run used the facing/septum loss factor η_T = 0.05, NASA's text gives η_T = 0.5 for these predictions (p. E-24).** Swapping only that input (whole trim rebuilt): 82.73, 75.73, 77.05 dB, i.e. +3.7, +0.2, +9.1 dB, H1 and H2 within 4 dB, H3 not (η_T = 1.0: +0.3, −0.7, +6.7). Not adopted and not a re-registered pass: the registered result stays "not met". Ruled out as the cause (each swap moves a harmonic by < 3 dB toward NASA, or in the wrong direction): the Eq. (8) algebra and (mA/4)²τ_ML (19a–19b), ε_n for q > 0 (19c: read as printed), mirroring (19d: 160 points, no mirroring), the W phase sign, facing side or septum (19e), the E-14 η_n and E-15 η_r (19f), the unbarred f′ of Eq. (83), Fig. D-2 and Eqs. (D.22)–(D.26) (19g: not on the production path), the η_r normalization (19h, as printed). Open: H3 at +9.1 dB (+6.7 at η_T = 1.0). Reports: `bisect_18b.md`, `tau_t_variants.md`, `eps_n_quadrature.md`, `grid_mirroring.md`, `fig_d2_check.md`, `eta_r_normalization.md` |
+| Result (run 2026-10-20) | **Not met, 0 of 3.** R1, Phase III trim: 91.92, 80.01, 84.87 dB, i.e. +12.9, +4.5, +16.9 dB against 79.0, 75.5, 68.0. Diagnostics (not the criterion): R2 90.06, 78.20 (within 4 dB), 83.15; bare cabin 92.22, 83.65, 83.58. At H1 modes 8 (318.7 Hz) and 6 (301.9 Hz) carry 91 % of the sum with τ_t = 15.6. `pain_reproduction_e16.md`, `scripts/checks/probe_modal_contributions.jl`. **Phase 19 (2026-10-20) isolated the largest cause: the registered run used the facing/septum loss factor η_T = 0.05, NASA's text gives η_T = 0.5 for these predictions (p. E-24).** Swapping only that input (whole trim rebuilt): 82.73, 75.73, 77.05 dB, i.e. +3.7, +0.2, +9.1 dB, H1 and H2 within 4 dB, H3 not (η_T = 1.0: +0.3, −0.7, +6.7). Not adopted and not a re-registered pass: the registered result stays "not met". Ruled out as the cause (each swap moves a harmonic by < 3 dB toward NASA, or in the wrong direction): the Eq. (8) algebra and (mA/4)²τ_ML (19a–19b), ε_n for q > 0 (19c: read as printed), mirroring (19d: 160 points, no mirroring), the W phase sign, facing side or septum (19e), the E-14 η_n and E-15 η_r (19f), the unbarred f′ of Eq. (83), Fig. D-2 and Eqs. (D.22)–(D.26) (19g: not on the production path), the η_r normalization (19h, as printed). Open: H3 at +9.1 dB (+6.7 at η_T = 1.0). Reports: `bisect_18b.md`, `tau_t_variants.md`, `eps_n_quadrature.md`, `grid_mirroring.md`, `fig_d2_check.md`, `eta_r_normalization.md` |
 
 #### 2.11.5 Criteria for the input-corrected re-runs 18b-r and 18a-r (dated 2026-10-20, written before the runs)
 
@@ -1124,6 +1124,10 @@ Do **not** claim that replacing ANOPP with CCBlade/F1A inherits NASA’s exterio
 ## 3.1 Test runner notes (P1, 2026-10-22)
 
 `Pkg.test("PAIN"; test_args=[…])` selects top-level testsets by case-insensitive title substring. Empty args run the full suite. This is a developer convenience only: **no assertion, tolerance, reference file or recorded result changes.** Titles and measured times: `PAIN.jl/test/README.md`. Optional DaemonMode under `PAIN.jl/scripts/devtools/` (separate Project.toml; Revise loaded in the daemon).
+
+## 3.2 Directory layout (R1, 2026-10-22)
+
+CR-3813 digitized inputs live under `data/cr3813/`; validation/report scripts under `PAIN.jl/scripts/{run,checks,digitize,setup,smoke}/` (`run_gui.jl` remains at `scripts/run_gui.jl`). See `data/README.md` and `PAIN.jl/scripts/README.md`. **Moves and path edits only** — no change to pass criteria, tolerances or recorded numeric results.
 
 ---
 

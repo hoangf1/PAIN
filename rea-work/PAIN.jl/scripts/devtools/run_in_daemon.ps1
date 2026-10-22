@@ -1,5 +1,5 @@
 # Run a Julia script (and optional args) on the PAIN DaemonMode server.
-# Usage:  .\scripts\devtools\run_in_daemon.ps1 scripts\smoke_gui_model.jl
+# Usage:  .\scripts\devtools\run_in_daemon.ps1 scripts\smoke\smoke_gui_model.jl
 #         .\scripts\devtools\run_in_daemon.ps1 scripts\devtools\run_tests_in_daemon.jl CYL2D
 #         .\scripts\devtools\run_in_daemon.ps1 scripts\devtools\run_tests_in_daemon.jl CYL2D "Validation case registry"
 #

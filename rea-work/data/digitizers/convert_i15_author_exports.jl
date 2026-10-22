@@ -3,6 +3,8 @@
 # Uses only the Julia standard library.
 
 const ROOT = normpath(joinpath(@__DIR__, ".."))
+const CR3813 = joinpath(ROOT, "cr3813")
+const RAW = joinpath(CR3813, "raw_exports")
 const PEREIRA = joinpath(ROOT, "pereira")
 const BBN = joinpath(ROOT, "NASA_CR-159124")
 
@@ -83,7 +85,7 @@ function fmt(v)
 end
 
 function convert_e16()
-    _, rows = read_table(joinpath(ROOT, "Fig E-16.txt"))
+    _, rows = read_table(joinpath(RAW, "Fig E-16.txt"))
     allrows = []
     for r in rows
         b = Int(parse_f(r[1]))
@@ -91,12 +93,12 @@ function convert_e16()
     end
     hdr = [
         "# Source: CR-3813 Fig. E-16, PDF p. 142 (printed E-26), Pain Methodology.pdf",
-        "# Method: author, WebPlotDigitizer; converted from data/Fig E-16.txt (I-15); values unchanged",
+        "# Method: author, WebPlotDigitizer; converted from data/cr3813/raw_exports/Fig E-16.txt (I-15); values unchanged",
         "# Digitized 2026-10-21 by author; converted 2026-10-21; script data/digitizers/convert_i15_author_exports.jl",
         "# Conventions: dB re 20 µPa; space-average SPL; NASA PAIN = open circles where present",
         "# I-15 notes: (a)–(c) band alignment fixed in .txt before conversion (B-2)",
     ]
-    write_csv(joinpath(ROOT, "e16_interior_all_bands_B.csv"), hdr,
+    write_csv(joinpath(CR3813, "e16_interior_all_bands_B.csv"), hdr,
               ["band_Hz", "measured_mean_dB", "low_dB", "high_dB", "nasa_pred_dB"], allrows)
     want = Dict(200 => 1, 400 => 2, 630 => 3)
     tonal = []
@@ -106,29 +108,29 @@ function convert_e16()
         f_Hz = b == 630 ? 600 : b
         push!(tonal, [string(want[b]), string(f_Hz), string(b), r[2], r[3], r[4], r[5]])
     end
-    write_csv(joinpath(ROOT, "t1_interior_targets_B.csv"),
-              vcat(hdr, ["# Schema: second pass of T1 targets (D-17); does not replace data/t1_interior_targets.csv"]),
+    write_csv(joinpath(CR3813, "t1_interior_targets_B.csv"),
+              vcat(hdr, ["# Schema: second pass of T1 targets (D-17); does not replace data/cr3813/t1_interior_targets.csv"]),
               ["harmonic", "f_Hz", "band_Hz", "measured_mean_SPL_dB", "measured_low_dB", "measured_high_dB", "nasa_pain_pred_dB"],
               tonal)
 end
 
 function convert_e17()
-    _, rows = read_table(joinpath(ROOT, "Fig E-17.txt"))
+    _, rows = read_table(joinpath(RAW, "Fig E-17.txt"))
     out = [[string(Int(parse_f(r[1]))), at(r, 3), at(r, 2), at(r, 4), at(r, 5)] for r in rows]
-    write_csv(joinpath(ROOT, "e17_interior_ci.csv"), [
+    write_csv(joinpath(CR3813, "e17_interior_ci.csv"), [
         "# Source: CR-3813 Fig. E-17, PDF p. 143 (printed E-27), Pain Methodology.pdf",
-        "# Method: author, WebPlotDigitizer; converted from data/Fig E-17.txt (I-15); values unchanged",
+        "# Method: author, WebPlotDigitizer; converted from data/cr3813/raw_exports/Fig E-17.txt (I-15); values unchanged",
         "# Digitized 2026-10-21 by author; converted 2026-10-21; script data/digitizers/convert_i15_author_exports.jl",
         "# I-15: replaces void agent file (I-03)",
     ], ["band_Hz", "measured_mean_dB", "ci_low_dB", "ci_high_dB", "nasa_pred_dB"], out)
 end
 
 function convert_e18()
-    _, rows = read_table(joinpath(ROOT, "Fig E-18.txt"))
+    _, rows = read_table(joinpath(RAW, "Fig E-18.txt"))
     out = [[string(Int(parse_f(r[1]))), at(r, 5), at(r, 3), at(r, 2), at(r, 4)] for r in rows]
-    write_csv(joinpath(ROOT, "e18_interior_pred_eta1.csv"), [
+    write_csv(joinpath(CR3813, "e18_interior_pred_eta1.csv"), [
         "# Source: CR-3813 Fig. E-18, PDF p. 145 (printed E-29), Pain Methodology.pdf",
-        "# Method: author, WebPlotDigitizer; converted from data/Fig E-18.txt (I-15); values unchanged",
+        "# Method: author, WebPlotDigitizer; converted from data/cr3813/raw_exports/Fig E-18.txt (I-15); values unchanged",
         "# NOTE: η_T=1.0 predictions — NOT the reproduction target of 18b",
         "# Digitized 2026-10-21 by author; converted 2026-10-21; script data/digitizers/convert_i15_author_exports.jl",
         "# I-15 (b): band alignment fixed in .txt before conversion (B-2)",
@@ -136,38 +138,38 @@ function convert_e18()
 end
 
 function convert_e9_e10()
-    _, rows = read_table(joinpath(ROOT, "Fig E-9.txt"))
+    _, rows = read_table(joinpath(RAW, "Fig E-9.txt"))
     out9 = [[string(Int(parse_f(r[1]))), at(r, 3), at(r, 4), at(r, 2)] for r in rows]
-    write_csv(joinpath(ROOT, "t2_third_octave_targets_B.csv"), [
+    write_csv(joinpath(CR3813, "t2_third_octave_targets_B.csv"), [
         "# Source: CR-3813 Fig. E-9, PDF p. 132 (printed E-16), Pain Methodology.pdf",
-        "# Method: author, WebPlotDigitizer; converted from data/Fig E-9.txt (I-15); values unchanged",
+        "# Method: author, WebPlotDigitizer; converted from data/cr3813/raw_exports/Fig E-9.txt (I-15); values unchanged",
         "# Digitized 2026-10-21 by author; converted 2026-10-21; script data/digitizers/convert_i15_author_exports.jl",
         "# I-15 (a): band column fixed in .txt before conversion (B-2)",
     ], ["fc_Hz", "measured_mean_SPL_dB", "low_dB", "high_dB"], out9)
-    _, rows10 = read_table(joinpath(ROOT, "Fig E-10.txt"))
+    _, rows10 = read_table(joinpath(RAW, "Fig E-10.txt"))
     out10 = [[string(Int(parse_f(r[1]))), at(r, 3), at(r, 2), at(r, 4)] for r in rows10]
-    write_csv(joinpath(ROOT, "e10_interior_ci.csv"), [
+    write_csv(joinpath(CR3813, "e10_interior_ci.csv"), [
         "# Source: CR-3813 Fig. E-10, PDF p. 133 (printed E-17), Pain Methodology.pdf",
-        "# Method: author, WebPlotDigitizer; converted from data/Fig E-10.txt (I-15); values unchanged",
+        "# Method: author, WebPlotDigitizer; converted from data/cr3813/raw_exports/Fig E-10.txt (I-15); values unchanged",
         "# Digitized 2026-10-21 by author; converted 2026-10-21; script data/digitizers/convert_i15_author_exports.jl",
         "# I-15 (c): 250/315 Hz values swapped in .txt before conversion (B-2)",
     ], ["fc_Hz", "measured_mean_dB", "ci_low_dB", "ci_high_dB"], out10)
 end
 
 function convert_e21_e22()
-    _, rows = read_table(joinpath(ROOT, "Fig E-21.txt"))
+    _, rows = read_table(joinpath(RAW, "Fig E-21.txt"))
     out21 = [[string(Int(parse_f(r[1]))), at(r, 2), at(r, 4), at(r, 3), at(r, 5)] for r in rows]
-    write_csv(joinpath(ROOT, "e21_noise_reduction_range.csv"), [
+    write_csv(joinpath(CR3813, "e21_noise_reduction_range.csv"), [
         "# Source: CR-3813 Fig. E-21, PDF p. 149 (printed E-33), Pain Methodology.pdf",
-        "# Method: author, WebPlotDigitizer; converted from data/Fig E-21.txt (I-15); values unchanged",
+        "# Method: author, WebPlotDigitizer; converted from data/cr3813/raw_exports/Fig E-21.txt (I-15); values unchanged",
         "# Digitized 2026-10-21 by author; converted 2026-10-21; script data/digitizers/convert_i15_author_exports.jl",
         "# I-15 (g): at 100 Hz minimum equals average (16 dB) as read; single author pass",
     ], ["band_Hz", "measured_mean_dB", "low_dB", "high_dB", "nasa_pred_dB"], out21)
-    _, rows22 = read_table(joinpath(ROOT, "Fig E-22.txt"))
+    _, rows22 = read_table(joinpath(RAW, "Fig E-22.txt"))
     out22 = [[string(Int(parse_f(r[1]))), at(r, 2), at(r, 3), at(r, 4), at(r, 5)] for r in rows22]
-    write_csv(joinpath(ROOT, "e22_noise_reduction_ci.csv"), [
+    write_csv(joinpath(CR3813, "e22_noise_reduction_ci.csv"), [
         "# Source: CR-3813 Fig. E-22, PDF p. 150 (printed E-34), Pain Methodology.pdf",
-        "# Method: author, WebPlotDigitizer; converted from data/Fig E-22.txt (I-15); values unchanged",
+        "# Method: author, WebPlotDigitizer; converted from data/cr3813/raw_exports/Fig E-22.txt (I-15); values unchanged",
         "# Digitized 2026-10-21 by author; converted 2026-10-21; script data/digitizers/convert_i15_author_exports.jl",
     ], ["band_Hz", "measured_mean_dB", "low_dB", "high_dB", "nasa_pred_dB"], out22)
 end

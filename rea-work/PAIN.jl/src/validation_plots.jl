@@ -275,17 +275,17 @@ end
 
 """Published / digitized source pages for the GUI “source figure” panel (paths relative to `rea-work/`)."""
 const VALIDATION_SOURCE_FIGURE_FALLBACKS = Dict{String,String}(
-    "T1" => "data/figures/e16-142.png",
-    "REPRO_18b" => "data/figures/e16-142.png",
-    "T2" => "data/figures/e9-132.png",
-    "E11_FREEFIELD" => "data/figures/e11-135.png",
-    "E12_BLOCK" => "data/figures/e11_next-136.png",
-    "E14_LOSS" => "data/figures/e14-139.png",
+    "T1" => "data/cr3813/pages/e16-142.png",
+    "REPRO_18b" => "data/cr3813/pages/e16-142.png",
+    "T2" => "data/cr3813/pages/e9-132.png",
+    "E11_FREEFIELD" => "data/cr3813/pages/e11-135.png",
+    "E12_BLOCK" => "data/cr3813/pages/e11_next-136.png",
+    "E14_LOSS" => "data/cr3813/pages/e14-139.png",
     "R996_FIG12" => "data/report996/qa/fig12a_overlay.png",
     "R996_FIG13A" => "data/report996/qa/fig13a_overlay.png",
     "R996_FIG14" => "data/report996/qa/fig14a_overlay.png",
     "PER_FIG6" => "data/pereira/qa/pereira_fig6_overlay.png",
-    "PER_FIG7" => "data/figures/pereira_fig7_overlay.png",
+    "PER_FIG7" => "data/pereira/qa/pereira_fig7_overlay.png",
     "PER_FIG8" => "data/pereira/qa/pereira_fig8_overlay.png",
     "PER_FIG9" => "data/pereira/qa/pereira_fig9_overlay.png",
 )

@@ -1,7 +1,7 @@
 # Report 996 Acoustics (phase 27)
 
 Re-recorded 2026-10-21 after the amplitude-convention fix (I-17; sources cited); result known in advance in direction, therefore post-hoc.
-Generated 2026-10-21 by `scripts/run_report996_acoustics.jl`.
+Generated 2026-10-21 by `scripts/run/run_report996_acoustics.jl`.
 **Re-run after plan I-01/I-02/I-08 (2026-10-21).** Criterion: VALIDATION_GUIDELINE §2.12 / 23c frozen 2026-10-21.
 x_sign=−1 (report behind → AA +X). Thickness off. Harmonic A vs measured: A_rms = A_Pa/√2 (Report 996 p.10 rms).
 

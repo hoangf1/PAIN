@@ -1,0 +1,17 @@
+# Source: CR-3813 Fig. E-9, PDF p. 132 (printed E-16), Pain Methodology.pdf
+# Method: author, WebPlotDigitizer; converted from data/cr3813/raw_exports/Fig E-9.txt (I-15); values unchanged
+# Digitized 2026-10-21 by author; converted 2026-10-21; script data/digitizers/convert_i15_author_exports.jl
+# I-15 (a): band column fixed in .txt before conversion (B-2)
+fc_Hz,measured_mean_SPL_dB,low_dB,high_dB
+160,69.5,52.5,76.0
+200,90.0,65.0,97.0
+250,73.0,57.0,82.0
+315,62.0,51.0,71.0
+400,80.0,62.0,87.0
+500,64.0,53.0,71.0
+630,65.0,51.0,73.0
+800,54.0,47.0,60.0
+1000,52.5,46.5,58.0
+1250,51.0,45.0,59.0
+1600,46.0,40.5,50.0
+2000,41.5,35.0,49.0

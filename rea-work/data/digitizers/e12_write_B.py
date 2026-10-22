@@ -9,7 +9,7 @@ Be = {2: [(-0.213, 109.3)], 3: [(0.22, 103.7), (-0.208, 98.7)]}
 
 
 def w(kind, data, ends=None):
-    with open(f'data/e12/e12_{kind}_B.csv', 'w') as f:
+    with open(f'data/cr3813/e12/e12_{kind}_B.csv', 'w') as f:
         f.write(f"# Digitization B of Fig. E-12 {kind} blocked SPL (CR-3813 App. E, p. E-20, PDF page 136), line l=1, dB re 20 uPa.\n")
         f.write("# Second pass: read from a 0.1 X3/D x 2 dB grid overlay (data/digitizers/e12_grid.py) without the A table in view; same reader, different method from A (pixel calibration).\n")
         f.write("# Not read in pass B: the H2 measured marker at X3/D = 0.69 (outside the grid crops). Dashed-curve end points without a circle: point_type=end.\n")

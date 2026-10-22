@@ -15,8 +15,9 @@ import numpy as np
 from PIL import Image, ImageDraw
 
 ROOT = Path(__file__).resolve().parents[1]
+CR3813 = ROOT / "cr3813"
 SCRATCH = ROOT / "_scratch"
-QA = ROOT / "qa"
+QA = CR3813 / "qa"
 QA.mkdir(parents=True, exist_ok=True)
 
 BANDS = [
@@ -268,10 +269,10 @@ def main():
     if not e21.exists():
         e21 = SCRATCH / "e21_e22-149.png"
         e22 = SCRATCH / "e21_e22-150.png"
-    write_hand(ROOT / "e21_noise_reduction_range_B2.csv")
+    write_hand(CR3813 / "e21_noise_reduction_range_B2.csv")
     r21, d21 = digitize(
         e21,
-        ROOT / "e21_noise_reduction_range.csv",
+        CR3813 / "e21_noise_reduction_range.csv",
         "Fig. E-21 (PDF p. 149 / printed E-33)",
         "measured max/min range",
         hand=HAND_B2,
@@ -279,7 +280,7 @@ def main():
     # E-22: same sampler; CI envelope is tighter — still use outer ink as CI proxy
     r22, _ = digitize(
         e22,
-        ROOT / "e22_noise_reduction_ci.csv",
+        CR3813 / "e22_noise_reduction_ci.csv",
         "Fig. E-22 (PDF p. 150 / printed E-34)",
         "measured 95% confidence limits",
         hand=HAND_B2,

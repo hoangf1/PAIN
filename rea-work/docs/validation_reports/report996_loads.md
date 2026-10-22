@@ -1,6 +1,6 @@
 # Report 996 CCBlade loads (phase 26)
 
-Generated 2026-10-21 by `scripts/run_report996_loads.jl`. Static V=0, `allow_static=true`.
+Generated 2026-10-21 by `scripts/run/run_report996_loads.jl`. Static V=0, `allow_static=true`.
 Polars: `polars_forced_merged.json` primary + bracket. **Pass/fail waits on 23c [AUTHOR].**
 
 | polar | β₇₅ | M_t | B | C_T ccb | C_P ccb | C_T meas | C_P meas | s_T | s_Q | source |

@@ -1,7 +1,7 @@
 # Pereira et al. (2026) digitized data
 
 Source: Pereira, Ragni, Romani, Casalino, *Aerosp. Sci. Technol.* 177 (2026) 112963 (`Pereira.pdf` in `rea-work\references`).
-Raster figures extracted from the PDF at 300 ppi and traced by colour; QA overlays are in `data/figures/`.
+Raster figures extracted from the PDF at 300 ppi and traced by colour; QA overlays are in `data/cr3813/pages/`.
 Scripts: `data/digitizers/dig_per7.py`, `harm_per7.py`, `dig_per1b.py` (they expect the extracted page images in the working folder; paths inside are from the session that produced them).
 
 | File | Figure | Content |

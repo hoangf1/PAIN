@@ -16,6 +16,8 @@ Status key: green = check exists and passes as stated; orange = planned, not ind
 
 **Test tooling (P1, 2026-10-22, no behaviour change).** `Pkg.test` accepts `test_args` substrings to select top-level testsets; list/times in `PAIN.jl/test/README.md`. Optional DaemonMode loop in `PAIN.jl/scripts/devtools/` (separate env; Revise loaded). Does not alter criteria, reports, or `src/`.
 
+**Directory layout (R1, 2026-10-22, moves only).** CR-3813 inputs under `data/cr3813/`; scripts under `PAIN.jl/scripts/{run,checks,digitize,setup,smoke}/` (`run_gui.jl` top-level). Path references updated; no change to criteria or recorded numeric results. See `data/README.md`, `PAIN.jl/scripts/README.md`.
+
 **Grid azimuth (12b, done 2026-10-20).** The 160-point grid lies on the upper quarter of the fuselage with line ℓ = 1 at the propeller azimuth φ_p, θ_ℓ = φ_p + (ℓ−1)π/18 (User Manual p. 34 and Fig. 3), and γ is the angle between the surface→hub direction and the outward normal (γ = 0 at ℓ = 1, k = k_p). Before the fix the code put ℓ = 1 at the bottom centerline, so e11 results computed before 2026-10-20 used the wrong incidence angle and the wrong shell region and are void. Results in diagram 2 now come from the corrected grid but now use the untuned CR-3813 cabin chain (Eq. 8, App. A trim, §3.8 losses; 17a, 2026-10-20), regraded in 18a. Order of work: `IMPLEMENTATION_PLAN.md`, phases numbered in run order (12 grid fix, 13 pre-registration and 14 E-12 check, done; 15–18 cabin chain, 19–27 source checks, 28–30 aircraft cabin, 31 GEXT bound, 32 close-out).
 
 ## 1. Overview

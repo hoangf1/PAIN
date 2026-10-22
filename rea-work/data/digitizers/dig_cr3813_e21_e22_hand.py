@@ -11,6 +11,7 @@ import csv
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+CR3813 = ROOT / "cr3813"
 
 BANDS = [
     63, 80, 100, 125, 160, 200, 250, 315, 400, 500, 630, 800,
@@ -133,7 +134,7 @@ def main():
     dmax, n = delta_means(r1, r2)
     status = "PASS" if dmax <= 1.0 else "FAIL"
     write_csv(
-        ROOT / "e21_noise_reduction_range.csv",
+        CR3813 / "e21_noise_reduction_range.csv",
         [
             "# Source: CR-3813 Fig. E-21 (PDF p. 149 / printed E-33), Pain Methodology.pdf",
             "# Envelope: measured max/min range; PAIN = open triangles; η_T=1.0, η_struc≤0.15",
@@ -144,7 +145,7 @@ def main():
         r1,
     )
     write_csv(
-        ROOT / "e21_noise_reduction_range_B2.csv",
+        CR3813 / "e21_noise_reduction_range_B2.csv",
         [
             "# E-21 pass B2 second independent hand reading",
             f"# δ_dig vs B1 means = {dmax:.2f} dB → {status}",
@@ -153,7 +154,7 @@ def main():
         r2,
     )
     write_csv(
-        ROOT / "e22_noise_reduction_ci.csv",
+        CR3813 / "e22_noise_reduction_ci.csv",
         [
             "# Source: CR-3813 Fig. E-22 (PDF p. 150 / printed E-34), Pain Methodology.pdf",
             "# Envelope: measured 95% CI (±≈3–5 dB hand); means from E-21 pass B1",

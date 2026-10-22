@@ -13,8 +13,9 @@ import csv
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+CR3813 = ROOT / "cr3813"
 SCRATCH = ROOT / "_scratch"
-QA = ROOT / "qa"
+QA = CR3813 / "qa"
 QA.mkdir(parents=True, exist_ok=True)
 
 # ---------------------------------------------------------------------------
@@ -264,7 +265,7 @@ def main():
     ]
     dmax_vs_A = 0.0
     # Compare to pass A file if present
-    pa = ROOT / "t1_interior_targets.csv"
+    pa = CR3813 / "t1_interior_targets.csv"
     if pa.exists():
         import re
         A = []
@@ -278,7 +279,7 @@ def main():
             if i < len(A):
                 dmax_vs_A = max(dmax_vs_A, abs(r["measured_mean_SPL_dB"] - A[i]))
     write_csv(
-        ROOT / "t1_interior_targets_B.csv",
+        CR3813 / "t1_interior_targets_B.csv",
         [
             "# T1 tonal interior SPL — Fig. E-16 pass B (CR-3813 PDF p. 142 / E-26)",
             "# Method: hand read on 300 dpi render; did not consult pass A while reading",
@@ -298,7 +299,7 @@ def main():
     )
 
     write_csv(
-        ROOT / "e16_interior_all_bands_B.csv",
+        CR3813 / "e16_interior_all_bands_B.csv",
         [
             "# Fig. E-16 all bands pass B (optional companion to t1_interior_targets_B.csv)",
             "# Digitized 2026-10-21; dig_cr3813_hand_passB.py",
@@ -317,7 +318,7 @@ def main():
     )
 
     write_csv(
-        ROOT / "e17_interior_ci.csv",
+        CR3813 / "e17_interior_ci.csv",
         [
             "# Source: CR-3813 Fig. E-17 (PDF p. 143 / printed E-27), Pain Methodology.pdf",
             "# Envelope: 95% confidence limits; PAIN = open circles",
@@ -339,7 +340,7 @@ def main():
     )
 
     write_csv(
-        ROOT / "e18_interior_pred_eta1.csv",
+        CR3813 / "e18_interior_pred_eta1.csv",
         [
             "# Source: CR-3813 Fig. E-18 (PDF p. 145 / printed E-29), Pain Methodology.pdf",
             "# Caption: trim loss factor = 1.0, total structural loss factor limited to 0.15 maximum",
@@ -361,7 +362,7 @@ def main():
     )
 
     write_csv(
-        ROOT / "t2_third_octave_targets_B.csv",
+        CR3813 / "t2_third_octave_targets_B.csv",
         [
             "# T2 third-octave — Fig. E-9 pass B (CR-3813 PDF p. 132 / E-16 printed)",
             "# Method: hand read; does not replace t2_third_octave_targets.csv",
@@ -375,7 +376,7 @@ def main():
     )
 
     write_csv(
-        ROOT / "e10_interior_ci.csv",
+        CR3813 / "e10_interior_ci.csv",
         [
             "# Source: CR-3813 Fig. E-10 (PDF p. 133 / printed E-17), Pain Methodology.pdf",
             "# Envelope: 95% confidence limits",

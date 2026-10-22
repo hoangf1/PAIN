@@ -117,7 +117,7 @@ function propeller_freefield_grid(aircraft_json_path::AbstractString,
     if cal === true || cal === "true"
         tab = _get(cfg, :anopp_table8_csv, nothing)
         csv = tab === nothing ?
-            joinpath(@__DIR__, "..", "..", "data", "anopp_table8_spl_dB.csv") :
+            joinpath(@__DIR__, "..", "..", "data", "cr3813", "anopp_table8_spl_dB.csv") :
             String(tab)
         grid, scales = apply_table8_calibration(grid, csv)
         !isempty(scales) && (cal_note = " Table8 peak-cal scales=$(round.(scales; digits=3));")
@@ -136,7 +136,7 @@ function _load_aircraft_json(path::AbstractString)
     try
         return JSON3.read(txt)
     catch e
-        error("JSON3 required to load aircraft.json. Run scripts/add_deps.jl. Cause: $e")
+        error("JSON3 required to load aircraft.json. Run scripts/setup/add_deps.jl. Cause: $e")
     end
 end
 

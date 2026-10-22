@@ -1,6 +1,6 @@
 # GEXT vs full-grid F1A (phase 21i diagnostic)
 
-Generated 2026-10-21 by `scripts/compare_gext_vs_f1a_grid.jl`. **Re-run after plan I-01/I-02 (2026-10-21).** Same Table-8 calibration on both; only the off-line fill differs. Wall time full-grid (nH=3, nsrc=32): 7.9 s.
+Generated 2026-10-21 by `scripts/run/compare_gext_vs_f1a_grid.jl`. **Re-run after plan I-01/I-02 (2026-10-21).** Same Table-8 calibration on both; only the off-line fill differs. Wall time full-grid (nH=3, nsrc=32): 7.9 s.
 
 | H | max \|ΔSPL\| dB (144 off-line) | RMS ΔSPL dB | max \|Δphase\| rad |
 |---:|---:|---:|---:|

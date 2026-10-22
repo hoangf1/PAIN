@@ -16,7 +16,7 @@ This creates `Manifest.toml` in this folder only. **Do not** add DaemonMode or R
 ```powershell
 .\scripts\devtools\start_daemon.ps1
 # wait until scripts\devtools\daemon.out.log mentions DaemonMode.serve
-.\scripts\devtools\run_in_daemon.ps1 scripts\smoke_gui_model.jl
+.\scripts\devtools\run_in_daemon.ps1 scripts\smoke\smoke_gui_model.jl
 .\scripts\devtools\run_in_daemon.ps1 scripts\devtools\run_tests_in_daemon.jl CYL2D
 .\scripts\devtools\stop_daemon.ps1
 ```

@@ -350,6 +350,6 @@
     "cd_max_rule": "max(max converged cd, 1.11 + 0.018/cr75)",
     "ccblade": "1.0.0 viterna(alpha, cl, cd, cr75, nalpha=50)",
     "nalpha_per_side": 50,
-    "script": "PAIN.jl/scripts/viterna_extension.jl",
+    "script": "PAIN.jl/scripts/run/viterna_extension.jl",
     "re_m_clamp_rule": "clamp evaluation Re, M to the grid range of the set; bilinear in (log Re, M) inside; no extrapolation"
 }

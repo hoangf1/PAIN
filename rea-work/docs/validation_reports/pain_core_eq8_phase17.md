@@ -1,6 +1,6 @@
 # Phase 17 — Eq. (8) tone pressure and PAIN-core verification (run 2026-10-20)
 
-Verification against the written equations of CR-3813, analytic limits and an independent re-implementation. **Not validation:** NASA publishes no Ψ_G, p² or power-balance numbers. Code: `src/pain_core.jl`, `src/PAIN.jl`, `src/trim_loss.jl`; tests in `test/runtests.jl`; diagnostics `scripts/probe_q_convergence.jl`, `probe_trim.jl`, `probe_t1_levels.jl`.
+Verification against the written equations of CR-3813, analytic limits and an independent re-implementation. **Not validation:** NASA publishes no Ψ_G, p² or power-balance numbers. Code: `src/pain_core.jl`, `src/PAIN.jl`, `src/trim_loss.jl`; tests in `test/runtests.jl`; diagnostics `scripts/checks/probe_q_convergence.jl`, `probe_trim.jl`, `probe_t1_levels.jl`.
 
 Equation numbers and the printed forms of Eqs. (7), (8), (41) and (42) were read from the page images (PDF pages 25 and 41, printed pp. 15 and 31) on 2026-10-20.
 
@@ -32,7 +32,7 @@ Equation numbers and the printed forms of Eqs. (7), (8), (41) and (42) were read
 | 17g | Done. D = (ω0² − ω²)² + (ηω0²)²: peak value, half-power width, and the finite ω_n → 0 limit; a cabin of the rigid-body mode alone gives a finite positive p². |
 | 17h | **Partly done.** Independent re-implementation: Eq. (8) in its direct (not multiplied-out) form, f̄' by midpoint quadrature (20 000 points) of Eq. (52), Ψ_G from the double sum of Eq. (41), against the code on a bare cabin without the rigid-body mode: agree to rtol 2e-3 (test). Open: the W_in = W_diss conservation check with coupled resonators (the relation between Eqs. (7) and (8) was not derived here). |
 | 17i | Done. p² ∝ amplitude²; zero amplitude gives 0; global phase shift changes nothing; f̄' = 0 gives 0; scaling a cabin mode shape (ε_n ∝ 1/s², φ ∝ s) leaves p² unchanged, with and without trim; scaling a structural shape (M_r ∝ s²) leaves f̄'²Ψ_G/M_r² and η_r'' unchanged. **Finding:** the radiation loss η_r of Eqs. (79)–(81) uses C_Mn² unnormalized (j_r² ∝ s²), so the full p² is not invariant under a shape scaling; the Table D-1 coefficients are taken as already normalized. |
-| 17j | Done: **no reference output exists.** CR-172425 §5.4.3 lists the printed quantities without numbers and §6 gives control cards and input only; Table D-1 remains the only example output (modes). Searched the extracted text of CR-172425 and CR-172428 (OCR quality limits the search); no ANOPP free field at all 160 points was found; `data/anopp_table8_*.csv` covers ℓ = 1 only. 18b uses GEXT on Table 8 and is conditional on it. |
+| 17j | Done: **no reference output exists.** CR-172425 §5.4.3 lists the printed quantities without numbers and §6 gives control cards and input only; Table D-1 remains the only example output (modes). Searched the extracted text of CR-172425 and CR-172428 (OCR quality limits the search); no ANOPP free field at all 160 points was found; `data/cr3813/anopp_table8_*.csv` covers ℓ = 1 only. 18b uses GEXT on Table 8 and is conditional on it. |
 | 17k | Open (after phase 18). |
 
 ## 3. Axial truncation (register d), Eq. (8), `q_convergence.md`

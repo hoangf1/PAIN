@@ -42,4 +42,4 @@ Five values checked against PDF page images (typed CSVs; exact as printed):
 3. Table 3 location 4 run4: 133.1 dB (PDF p. 17).
 4. Table 8 pair 4-3 run4: 217 m/s (PDF p. 41).
 5. Fig. 1 mic 5: x=0, y=0, tip distance 0.178 m (PDF p. 9).
-Long reshape: `PAIN.jl/scripts/bbn_data.jl` → 748 rows (CR-158919 + CR-159124).
+Long reshape: `PAIN.jl/scripts/run/bbn_data.jl` → 748 rows (CR-158919 + CR-159124).

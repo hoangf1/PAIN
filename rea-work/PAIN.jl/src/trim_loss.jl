@@ -61,8 +61,8 @@ function load_insulation_table(path::AbstractString; name::String="PF-105", dens
     return InsulationTable(name, density, f, c[:lambda_m], c[:alpha_dB_per_m], c[:phi_deg], c[:W_rayl], String(path))
 end
 
-"""Fig. A-2 (Owens-Corning PF-105, 9.6 kg/m³), digitized at its six marked frequencies, 100–6300 Hz (`data/fig_a2_pf105.csv`)."""
-pf105_table() = load_insulation_table(joinpath(_TRIM_DATA_DIR, "fig_a2_pf105.csv"))
+"""Fig. A-2 (Owens-Corning PF-105, 9.6 kg/m³), digitized at its six marked frequencies, 100–6300 Hz (`data/cr3813/fig_a2_pf105.csv`)."""
+pf105_table() = load_insulation_table(joinpath(_TRIM_DATA_DIR, "cr3813", "fig_a2_pf105.csv"))
 
 function _interp_logf(f::Float64, fs::Vector{Float64}, ys::AbstractVector{Float64})
     x = log10(f)

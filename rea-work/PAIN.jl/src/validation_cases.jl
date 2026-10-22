@@ -238,7 +238,7 @@ end
 
 """T1 tonal vs Fig. E-16 / E-17 (e11 path; no claim per phase 32/33)."""
 function _run_t1()
-    targets = _data_path("t1_interior_targets.csv")
+    targets = _data_path("cr3813", "t1_interior_targets.csv")
     r = run_pain_pipeline(; source=:e11, n_harmonics=3, bpf_Hz=200.0, blocking=R2)
     cols = _read_csv_numeric(targets)
     bands = Float64[haskey(cols, :band_Hz) ? cols[:band_Hz][i] : i * 200.0 for i in eachindex(cols[:harmonic])]
@@ -291,7 +291,7 @@ end
 
 """18b-r reproduction vs NASA PAIN predictions on Fig. E-16 (±4 dB)."""
 function _run_repro_18b()
-    targets = _data_path("t1_interior_targets.csv")
+    targets = _data_path("cr3813", "t1_interior_targets.csv")
     paths = default_e11_paths()
     p3 = phase3_trim(; η_lining=0.5)
     r = run_pain_pipeline(; source=:e11, e11_amp_csv=paths.anopp_spl, n_harmonics=3, bpf_Hz=200.0,
@@ -335,8 +335,8 @@ end
 
 """T2 1/3-octave vs Fig. E-9 (stale bb_j2_scale; no claim)."""
 function _run_t2()
-    targets = _data_path("t2_third_octave_targets.csv")
-    isfile(targets) || (targets = _data_path("t2_third_octave_targets_B.csv"))
+    targets = _data_path("cr3813", "t2_third_octave_targets.csv")
+    isfile(targets) || (targets = _data_path("cr3813", "t2_third_octave_targets_B.csv"))
     r = run_pain_pipeline(; source=:e11, n_harmonics=5, bpf_Hz=200.0, blocking=R2)
     recs = evaluate_T2(r.spectrum; targets_csv=targets)
     cols = _read_csv_numeric(targets)
@@ -415,7 +415,7 @@ function _make_registry()
 
     push!(cases, ValidationCase(
         "T1", "Tonal interior SPL vs Fig. E-16 / E-17", "18",
-        [_data_path("t1_interior_targets.csv")],
+        [_data_path("cr3813", "t1_interior_targets.csv")],
         FigureRef("CR-3813", "Fig. E-16 / E-17", 142),
         "H1–H3: |got − measured mean| ≤ 4 dB, or inside measured envelope and |got − NASA PAIN| ≤ 4 dB. Label: calibrated (in-sample); T1 not claimable after GEXT bound (phase 32). (amplitude convention fixed 2026-10-21, post-hoc)",
         "2026-10-20", "calibrated (in-sample; amplitude convention fixed 2026-10-21, post-hoc)", _run_t1,
@@ -428,7 +428,7 @@ function _make_registry()
 
     push!(cases, ValidationCase(
         "T2", "1/3-octave vs Fig. E-9 / E-10", "18",
-        filter(isfile, [_data_path("t2_third_octave_targets.csv"), _data_path("t2_third_octave_targets_B.csv")]),
+        filter(isfile, [_data_path("cr3813", "t2_third_octave_targets.csv"), _data_path("cr3813", "t2_third_octave_targets_B.csv")]),
         FigureRef("CR-3813", "Fig. E-9 / E-10", 132),
         "Bands in targets CSV: |got − measured mean| ≤ tol_dB. Stale bb_j2_scale = 0.5; no claim. (amplitude convention fixed 2026-10-21, post-hoc)",
         "2026-10-20", "calibrated (in-sample; amplitude convention fixed 2026-10-21, post-hoc)", _run_t2,
@@ -441,7 +441,7 @@ function _make_registry()
 
     push!(cases, ValidationCase(
         "REPRO_18b", "PAIN reproduction vs NASA predictions (18b-r)", "18",
-        [_data_path("t1_interior_targets.csv")],
+        [_data_path("cr3813", "t1_interior_targets.csv")],
         FigureRef("CR-3813", "Fig. E-16 NASA PAIN pred", 142),
         "|got − NASA PAIN prediction| ≤ 4 dB at H1–H3 (registered 2026-10-20). (amplitude convention fixed 2026-10-21, post-hoc)",
         "2026-10-20", "post-hoc (η_T = 0.5 input correction; result known from 19f; amplitude convention fixed 2026-10-21, post-hoc)", _run_repro_18b,

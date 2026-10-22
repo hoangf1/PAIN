@@ -1,6 +1,6 @@
 # f1a_line_reference.csv — phase 21b equivalence reference (ℓ = 1 only)
 # Date: 2026-10-21
-# Script: scripts/f1a_line_reference.jl
+# Script: scripts/run/f1a_line_reference.jl
 # JSON: examples/aircraft_scale_hartzell.json
 # n_harmonics=3; num_src_times=32
 # Notes: current code path is ℓ=1 + GEXT; this file stores the ℓ=1 line before/after Table-8 calibration.

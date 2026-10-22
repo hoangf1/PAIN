@@ -1,6 +1,6 @@
 # BBN / Wilby phase check (phase 24)
 
-Generated 2026-10-21 by `scripts/run_bbn_phase.jl`.
+Generated 2026-10-21 by `scripts/run/run_bbn_phase.jl`.
 **Re-run after plan I-01/I-02/I-09 (2026-10-21).** Criteria: VALIDATION_GUIDELINE §2.12 / 23a–23b frozen 2026-10-21.
 
 ## Geometry and sense (I-09)
