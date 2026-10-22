@@ -1,0 +1,34 @@
+# NACA Report 824 (Abbott, von Doenhoff, Stivers 1945) p. 141, NACA 4412, smooth, 24-inch chord: c_l vs alpha (data markers).
+# Re = all: the 3, 6 and 9 x10^6 markers coincide within the marker size (alpha < 9 deg). Digitized 2026-10-22; README.md.
+reynolds,alpha_deg,cl,marker,match_score
+3e6,9.35,1.3299,circle,0.77
+3e6,11.55,1.444,circle,0.68
+3e6,12.96,1.5281,circle,0.76
+3e6,13.61,1.5135,circle,0.49
+3e6,14.79,1.4571,circle,0.93
+3e6,15.92,1.4024,circle,0.59
+3e6,17.93,1.3303,circle,0.75
+3e6,19.9,1.2733,circle,0.64
+6e6,11.72,1.5627,square,0.56
+6e6,13.33,1.628,square,0.5
+6e6,14.79,1.6462,square,0.73
+6e6,15.87,1.6008,square,0.64
+6e6,17.97,1.4702,square,0.69
+6e6,20.03,1.3368,square,0.74
+9e6,9.51,1.413,diamond,0.57
+9e6,11.62,1.5622,diamond,0.69
+9e6,13.55,1.6731,diamond,0.57
+9e6,14.36,1.6789,diamond,0.53
+9e6,15.81,1.6633,diamond,0.68
+9e6,16.8,1.6548,diamond,0.9
+9e6,17.9,1.6516,diamond,0.71
+9e6,19.99,1.5246,diamond,0.59
+all,-8.37,-0.4528,circle,0.61
+all,-6.38,-0.2687,diamond,0.58
+all,-4.4,-0.0382,diamond,0.67
+all,-2.35,0.1753,diamond,0.54
+all,-0.45,0.4088,diamond,0.52
+all,1.48,0.6061,circle,0.68
+all,3.48,0.8365,diamond,0.69
+all,5.53,1.0335,diamond,0.64
+all,7.47,1.2431,diamond,0.68
