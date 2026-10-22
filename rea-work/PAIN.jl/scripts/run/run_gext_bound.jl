@@ -16,7 +16,7 @@ t2tg = PAIN._read_csv_numeric(joinpath(dirname(paths.A), "t2_third_octave_target
 """Build e11 FreeFieldHarmonicGrid with explicit GEXT options (script-local override)."""
 function e11_with_gext(; falloff_exponent=1.0, falloff_floor=0.0, delay_scale=1.0,
                         n_harmonics=3, bpf_Hz=200.0)
-    fuse = FuselageGeometry(1.803, 0.508, 56.6)
+    fuse = FuselageGeometry(test_article_length(), 0.508, 56.6)
     prop = PropellerPlacement(0.965, 90.0, 0.90)
     spec = GridSpec()
     amp = PAIN._read_csv_numeric(paths.A)
@@ -58,9 +58,9 @@ function pipeline_from_ff(fuse, prop, ff; blocking=R2,
                           C_struc=3.0, η_lining=0.5, mass_scale=1.0, bb_j2_scale=0.5)
     bl = apply_blocking(ff, fuse, prop; variant=blocking)
     acoustic = cyl2d_modes(56.6; n_modes=20, NY=10)
-    structural = structural_modes_from_table_d1(; L=1.803, a=0.508, theta0_deg=56.6, n_keep=32)
+    structural = structural_modes_from_table_d1(; L=test_article_length(), a=0.508, theta0_deg=56.6, n_keep=32)
     ΔA = (π * 0.508 / 18)^2
-    p3 = phase3_trim(; a=0.508, L=1.803, theta0_deg=56.6, η_lining=η_lining)
+    p3 = phase3_trim(; a=0.508, L=test_article_length(), theta0_deg=56.6, η_lining=η_lining)
     m_wall = p3.m_wall * mass_scale
     mech = p3.mech
     # Scale trim-path masses with mass_scale (32e trim-mass ±20 %)
@@ -97,7 +97,7 @@ delay_vars = [(1.0, 0.0, 0.0), (1.0, 0.0, -1.0), (1.0, 0.0, 0.5), (1.0, 0.0, 2.0
 
 io = IOBuffer()
 println(io, "# GEXT importance bound (phase 32)\n")
-println(io, "Re-recorded 2026-10-21 after the amplitude-convention fix (I-17; sources cited); result known in advance in direction, therefore post-hoc.\n")
+println(io, "Re-recorded 2026-10-22 at L = 1.83 m (I-22, post-hoc; earlier 1.803 m values: see length_sensitivity.md)\n")
 println(io, "Generated $(Dates.today()) by `scripts/run/run_gext_bound.jl`. Criteria: `VALIDATION_GUIDELINE.md` §2.2.1, re-dated 2026-10-21 for cabin inputs = 18a-r (η_T = 0.5). Flip = any H changing pass↔fail vs nominal (any-H rule).\n")
 
 # Identity / nominal

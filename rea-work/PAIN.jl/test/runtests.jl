@@ -186,7 +186,7 @@ end
 
 _run_if("Three-dimensional cabin modes (Eqs. C.7, C.9, C.12)") do
     cy = cyl2d_modes(56.6; n_modes=20, NY=10, c0=340.0)
-    a, L = 0.508, 1.803
+    a, L = 0.508, 1.83
     m = cy.modes[2]
     @test cabin_frequency_3d(m, a, L, 0; c0=340.0) ≈ m.f_Hz_unit / a rtol=1e-12
     @test cabin_frequency_3d(m, a, L, 2; c0=340.0) ≈ sqrt((m.f_Hz_unit / a)^2 + (340.0 * 2 / (2L))^2) rtol=1e-12
@@ -230,7 +230,7 @@ end
 _run_if("Coupling f'(n,r) Eq.(52) (V-CODE, analytic limits)") do
     θ0d = 56.6
     θ0 = deg2rad(θ0d)
-    a, L = 0.508, 1.803
+    a, L = 0.508, 1.83
     fuse = FuselageGeometry(L, a, θ0d)
     Lp = 2a * sin(θ0)
     den = Lp + 2a * (π - θ0)
@@ -286,7 +286,7 @@ _run_if("Fig E-11 digitization path (SRC_TA)") do
     @test isfile(paths.phases)
     δmax, δH = delta_dig_dB(paths.A, paths.B)
     @test δmax ≤ 1.0  # dual digitization agreement gate (CLAIMS / plan)
-    fuse = FuselageGeometry(1.803, 0.508, 56.6)
+    fuse = FuselageGeometry(1.83, 0.508, 56.6)
     prop = PropellerPlacement(0.508 + 0.05, 90.0, 0.90)
     ff = freefield_from_e11_csv(paths.A, paths.phases, fuse, prop; bpf_Hz=200.0, n_harmonics=3)
     @test ff.source === :e11_digitized
@@ -406,7 +406,7 @@ _run_if("App. A trim transfer matrices (16a)") do
         @test p3.septum_mass_per_area * p3.A_curved ≈ 6.58 rtol = 1e-12
         @test 0.22 - 0.013 * 9.61 ≈ 0.095 atol = 1e-3                 # facing = layer surface density − fiberglass
         @test length(p3.ends.elements) == 2
-        @test p3.A_curved ≈ 2 * 0.508 * (π - deg2rad(56.6)) * 1.803
+        @test p3.A_curved ≈ 2 * 0.508 * (π - deg2rad(56.6)) * 1.83
         # mechanical path: no connections, no transmission; positive and below the series limit otherwise
         mp0 = PAIN.MechanicalPath(; (f => getfield(p3.mech, f) for f in (:m_t, :A_t, :h_t, :c_t, :η_t, :m, :A, :h, :c_l))...)
         @test trim_tau_mechanical(mp0, 2π * 1000) == 0
@@ -488,9 +488,9 @@ _run_if("Loss factors, Eqs. (62)–(83) (16b)") do
     @testset "structural mode joint acceptance and η_r (Eqs. 66–81)" begin
         ω = 2π * 300
         for m in sm.modes[1:8]
-            j2 = structural_joint_acceptance(m, ω; a=0.508, L=1.803)
+            j2 = structural_joint_acceptance(m, ω; a=0.508, L=1.83)
             @test isfinite(j2) && j2 ≥ -1e-12
-            @test isfinite(structural_loss_total(m, 2π * m.f_Hz; a=0.508, L=1.803, m=3.2))
+            @test isfinite(structural_loss_total(m, 2π * m.f_Hz; a=0.508, L=1.83, m=3.2))
         end
         @test structural_loss_vacuo(300.0; C=3.0) ≈ 0.01
         @test radiation_loss_factor(0.1, 1000.0; Abar=2.0, m=3.0) ≈ 2 * 1.225 * 1000 * 2.0 / (π * 3.0 * 340.0) * 0.1
@@ -510,21 +510,21 @@ _run_if("Loss factors, Eqs. (62)–(83) (16b)") do
     end
     @testset "η_n of Eq. (77) and η_r'' of Eq. (83)" begin
         cy = cyl2d_modes(56.6; n_modes=6, NY=10)
-        V = cabin_volume(FuselageGeometry(1.803, 0.508, 56.6))
+        V = cabin_volume(FuselageGeometry(1.83, 0.508, 56.6))
         for q in (0, 1, 3), md in cy.modes[1:4]
-            ω_n = 2π * cabin_frequency_3d(md, 0.508, 1.803, q)
-            r = acoustic_loss_modal(md, q, 1000.0, ω_n; a=0.508, L=1.803, V=V, ξ=0.05, ξ_e=0.02)
+            ω_n = 2π * cabin_frequency_3d(md, 0.508, 1.83, q)
+            r = acoustic_loss_modal(md, q, 1000.0, ω_n; a=0.508, L=1.83, V=V, ξ=0.05, ξ_e=0.02)
             @test r.N > 0 && isfinite(r.η_n) || ω_n == 0
-            z = acoustic_loss_modal(md, q, 1000.0, ω_n; a=0.508, L=1.803, V=V, ξ=0.0, ξ_e=0.0)
+            z = acoustic_loss_modal(md, q, 1000.0, ω_n; a=0.508, L=1.83, V=V, ξ=0.0, ξ_e=0.0)
             @test z.N == 0
             # linear in ξ and ξ_e
-            r2 = acoustic_loss_modal(md, q, 1000.0, ω_n; a=0.508, L=1.803, V=V, ξ=0.10, ξ_e=0.04)
+            r2 = acoustic_loss_modal(md, q, 1000.0, ω_n; a=0.508, L=1.83, V=V, ξ=0.10, ξ_e=0.04)
             @test r2.N ≈ 2 * r.N rtol = 1e-12
         end
         # rigid-body mode (ω_n = 0): N finite, η_n = Inf
         md0 = cy.modes[1]
         @test md0.f_Hz_unit < 1e-3                       # the rigid-body mode (Table C-1: 0 Hz)
-        r0 = acoustic_loss_modal(md0, 0, 1000.0, 0.0; a=0.508, L=1.803, V=V, ξ=0.05, ξ_e=0.02)
+        r0 = acoustic_loss_modal(md0, 0, 1000.0, 0.0; a=0.508, L=1.83, V=V, ξ=0.05, ξ_e=0.02)
         @test isfinite(r0.N) && r0.N > 0 && r0.η_n == Inf
         # Eq. (83): finite at ω_n = 0, equals the printed form elsewhere, peak value pref/N on resonance
         pref(f, ε, M) = 1.225 * 340.0^2 * 2.0^2 * ε * f^2 / (M * V)
@@ -564,14 +564,14 @@ function _rebuild(inp::PainInputs; structural=inp.structural, acoustic=inp.acous
 end
 
 _run_if("Generalized force Ψ_G, Eq. (42) (17e, analytic limits)") do
-    fuse = FuselageGeometry(1.803, 0.508, 56.6)
+    fuse = FuselageGeometry(1.83, 0.508, 56.6)
     ΔA = (π * 0.508 / 18)^2
     # a mode uniform in θ: ψ = sin(Mπz/L) (symmetric, n = 0, C = 1)
     st = StructuralMode(1, 200.0, true, 1.0, 1, [1.0], [0], Float64[], Int[])
     pts = [(k=1, ell=1, z=0.45, theta_deg=80.0), (k=2, ell=1, z=0.45, theta_deg=100.0)]
     amps = fill(0.0, 2, 1, 1); phs = fill(0.0, 2, 1, 1)
     amps[1, 1, 1] = 3.0; amps[2, 1, 1] = 3.0
-    ψ = sin(π * 0.45 / 1.803)
+    ψ = sin(π * 0.45 / 1.83)
     # in phase: S = 2Aψ, Ψ_G = (Δ⁴/2)(2Aψ)²  (closed form for uniform A and ψ)
     @test generalized_force(st, 1, amps, phs, pts, fuse; ΔA) ≈ ΔA^2 / 2 * (2 * 3.0 * ψ)^2 rtol = 1e-13
     # two equal points π apart cancel
@@ -600,8 +600,8 @@ _run_if("Generalized force Ψ_G, Eq. (42) (17e, analytic limits)") do
     Δ = π * 0.508 / 18
     st0 = StructuralMode(3, 200.0, true, 1.0, 1, [1.0], [0], Float64[], Int[])
     ring = [p for p in g if p.ell == 1]
-    num = Δ * sum(sin(π * p.z / 1.803) for p in ring)
-    ana = 1.803 / π * (cos(π * (minimum(zs) - Δ / 2) / 1.803) - cos(π * (maximum(zs) + Δ / 2) / 1.803))
+    num = Δ * sum(sin(π * p.z / 1.83) for p in ring)
+    ana = 1.83 / π * (cos(π * (minimum(zs) - Δ / 2) / 1.83) - cos(π * (maximum(zs) + Δ / 2) / 1.83))
     @test num ≈ ana rtol = 5e-3
 end
 
@@ -638,7 +638,7 @@ _run_if("Eq. (8) tone pressure: scaling laws and independent re-implementation (
     # a global phase shift changes nothing
     @test tone_mean_square_pressure(_rebuild(inp; phases=inp.phases .+ 0.9), 1, ωH) ≈ p2 rtol = 1e-10
     # f̄' = 0 for every pair gives p² = 0: structural modes with all-zero coefficients
-    zero_modes = StructuralModes([StructuralMode(1, 200.0, true, 1.0, 1, [0.0], [2], [0.0], [0])], 1.803, 0.508, 56.6, "zero")
+    zero_modes = StructuralModes([StructuralMode(1, 200.0, true, 1.0, 1, [0.0], [2], [0.0], [0])], 1.83, 0.508, 56.6, "zero")
     @test tone_mean_square_pressure(_rebuild(inp; structural=zero_modes), 1, ωH) == 0.0
     # units Pa²: the SPL of the baseline is a plausible tone level (finite, positive)
     @test 20 < 10log10(p2 / (20e-6)^2) < 160
@@ -661,7 +661,7 @@ _run_if("Eq. (8) tone pressure: scaling laws and independent re-implementation (
     Ψ1 = generalized_force(st, 1, inp.amplitudes, inp.phases, inp.pts, fuse; ΔA=inp.ΔA)
     Ψ2 = generalized_force(sst, 1, inp.amplitudes, inp.phases, inp.pts, fuse; ΔA=inp.ΔA)
     @test f2^2 * Ψ2 / sst.M_r^2 ≈ f1^2 * Ψ1 / st.M_r^2 rtol = 1e-10
-    V, A = cabin_volume(fuse), 1.803 * (2 * 0.508 * sin(deg2rad(56.6)) + 2 * 0.508 * (π - deg2rad(56.6)))
+    V, A = cabin_volume(fuse), 1.83 * (2 * 0.508 * sin(deg2rad(56.6)) + 2 * 0.508 * (π - deg2rad(56.6)))
     @test structural_loss_coupled(1.0e4, 3000.0, 2π * st.f_Hz, f2, ac.eps_n, sst.M_r, V, A) ≈
           structural_loss_coupled(1.0e4, 3000.0, 2π * st.f_Hz, f1, ac.eps_n, st.M_r, V, A) rtol = 1e-10
 
@@ -773,7 +773,7 @@ _run_if("Phase 17 regression baselines (17k, frozen 2026-10-20)") do
 end
 
 _run_if("MRP raw Ritz: regression guard of a calibrated fit (not evidence)") do
-    fuse = FuselageGeometry(1.803, 0.508, 56.6)
+    fuse = FuselageGeometry(1.83, 0.508, 56.6)
     ritz = structural_modes(fuse; hybrid=false, n_keep=48)
     n_spec, _ = match_ritz_to_table_d1(ritz; tol_frac=0.05)
     # k_scale, edge_factor, floor_scale were fitted by fit_mrp_to_table_d1 to maximize this same
@@ -833,7 +833,7 @@ _run_if("Shared source function (21, V-CODE)") do
     # n_harmonics=3, num_src_times=32 to bound runtime.
     # Pre-I-01 f1a_line_reference.csv is void (I-01); equivalence vs that file removed.
     json = joinpath(@__DIR__, "..", "examples", "aircraft_scale_hartzell.json")
-    fuse = FuselageGeometry(1.803, 0.508, 56.6)
+    fuse = FuselageGeometry(1.83, 0.508, 56.6)
     prop = PropellerPlacement(0.965, 90.0, 0.90)
     spec = GridSpec()
     nH, nsrc = 3, 32
@@ -1719,7 +1719,7 @@ end
 
 _run_if("App. D structural solver 38g (V-UNIT)") do
     g = appd_test_article_geometry()
-    @test g.L == 1.83                          # App. E text (not program 1.803)
+    @test g.L == 1.83                          # I-22 / App. E (test_article_length default)
     @test g.t_skin == PAIN.MRP_T_SKIN
     @test APPD_READINGS.attachment === :rigid
     @test APPD_READINGS.asterisk_terms === false
@@ -1771,7 +1771,7 @@ _run_if("App. D structural solver 38g (V-UNIT)") do
     end
 
     # 5. Surrogate default path unchanged
-    fuse = FuselageGeometry(1.803, 0.508, 56.6)
+    fuse = FuselageGeometry(1.83, 0.508, 56.6)
     ritz = structural_modes(fuse; hybrid=false, n_keep=48)
     n_spec, _ = match_ritz_to_table_d1(ritz; tol_frac=0.05)
     @test n_spec ≥ 25
@@ -1915,11 +1915,11 @@ _run_if("Validation case registry (34d)") do
     end
     rr = run_validation_case("REPRO_18b")
     @test rr.verdict === :not_met
-    # regression against re-recorded 18b-r after amplitude-convention fix (I-17 / F4 2026-10-21; not a criterion)
-    # Expected: old + 10*log10(2) = +3.0103 dB → 85.74, 78.74, 80.06
-    @test rr.table[1].computed ≈ 85.74 atol=0.01
-    @test rr.table[2].computed ≈ 78.74 atol=0.01
-    @test rr.table[3].computed ≈ 80.06 atol=0.01
+    # regression at L = 1.83 m (I-22, 2026-10-22, post-hoc; earlier 1.803 m: see length_sensitivity.md)
+    # Expected from length_sensitivity @ 1.83: 85.90, 78.35, 79.82
+    @test rr.table[1].computed ≈ 85.90 atol=0.01
+    @test rr.table[2].computed ≈ 78.35 atol=0.01
+    @test rr.table[3].computed ≈ 79.82 atol=0.01
     png = plot_case(r1, VALIDATION_CASES["CYL2D_C1"].plot_spec)
     @test isfile(png)
     @test filesize(png) > 0
@@ -2013,51 +2013,51 @@ end
 
 
 
-# Post-hoc length override plumbing (2026-10-22). Default stays 1.803; no length selected
-# from any error. App. D keeps its own 1.83 default until the override is set.
+# Length override plumbing (I-22). Default is 1.83 m; override still scales geometry.
+# No length selected from any error.
 _run_if("Length override") do
     reset_test_article_length!()
-    @test test_article_length() == 1.803
+    @test test_article_length() == 1.83
     @test !test_article_length_overridden()
 
-    # Default path: identical numbers to the unmodified hard-coded 1.803
+    # Default path: identical to hard-coded 1.83
     fuse0 = FuselageGeometry(test_article_length(), 0.508, 56.6)
     V0 = cabin_volume(fuse0)
-    @test V0 == cabin_volume(FuselageGeometry(1.803, 0.508, 56.6))
+    @test V0 == cabin_volume(FuselageGeometry(1.83, 0.508, 56.6))
     p3_0 = phase3_trim()
-    @test p3_0.A_curved == phase3_trim(; L=1.803).A_curved
+    @test p3_0.A_curved == phase3_trim(; L=1.83).A_curved
     sm0 = structural_modes_from_table_d1(; n_keep=4)
-    @test sm0.L == 1.803
+    @test sm0.L == 1.83
     g_appd0 = appd_test_article_geometry()
-    @test g_appd0.L == 1.83   # App. D keeps text default until override is set
-    @test run_pain_pipeline(; source=:synthetic, n_harmonics=1, use_synthetic=true).inputs.fuse.L == 1.803
+    @test g_appd0.L == 1.83   # App. D follows test_article_length()
+    @test run_pain_pipeline(; source=:synthetic, n_harmonics=1, use_synthetic=true).inputs.fuse.L == 1.83
 
-    # Override to 1.83: cabin volume scales with L; App. D follows the override
-    with_test_article_length(1.83) do
-        @test test_article_length() == 1.83
+    # Override to former caption value 1.803: cabin volume scales with L
+    with_test_article_length(1.803) do
+        @test test_article_length() == 1.803
         @test test_article_length_overridden()
         fuse1 = FuselageGeometry(test_article_length(), 0.508, 56.6)
         V1 = cabin_volume(fuse1)
-        @test V1 / V0 ≈ 1.83 / 1.803 rtol=1e-14
-        @test phase3_trim().A_curved / p3_0.A_curved ≈ 1.83 / 1.803 rtol=1e-14
-        @test structural_modes_from_table_d1(; n_keep=4).L == 1.83
-        @test appd_test_article_geometry().L == 1.83
+        @test V1 / V0 ≈ 1.803 / 1.83 rtol=1e-14
+        @test phase3_trim().A_curved / p3_0.A_curved ≈ 1.803 / 1.83 rtol=1e-14
+        @test structural_modes_from_table_d1(; n_keep=4).L == 1.803
+        @test appd_test_article_geometry().L == 1.803
         # L_c default follows structure length
         inp = noise_reduction_test_article_inputs(; η_lining=1.0)
-        @test inp.fuse.L == 1.83
-        @test inp.L_c == 1.83
+        @test inp.fuse.L == 1.803
+        @test inp.L_c == 1.803
     end
 
     # Restored after with_test_article_length
-    @test test_article_length() == 1.803
+    @test test_article_length() == 1.83
     @test !test_article_length_overridden()
     @test appd_test_article_geometry().L == 1.83
 
     # Restored even when the body errors
-    @test_throws ErrorException with_test_article_length(1.83) do
+    @test_throws ErrorException with_test_article_length(1.803) do
         error("probe")
     end
-    @test test_article_length() == 1.803
+    @test test_article_length() == 1.83
     @test !test_article_length_overridden()
 end
 

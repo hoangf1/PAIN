@@ -5,7 +5,9 @@
 using Pkg; Pkg.activate(joinpath(@__DIR__, "..", ".."))
 include(joinpath(@__DIR__, "bisect_18b_chain.jl"))       # local tone sum with switches, the registered 18b inputs (inp0, inp05) and nasa
 const Pk = PAIN
-d1 = [split(l, ",") for l in readlines(joinpath(@__DIR__, "..", "..", "..", "data", "cr3813", "digitized_table_D1.csv"))[2:end] if !isempty(strip(l))]
+_d1path = joinpath(@__DIR__, "..", "..", "..", "data", "cr3813", "digitized_table_D1.csv")
+_d1raw = [l for l in readlines(_d1path) if !isempty(strip(l)) && !startswith(strip(l), '#')]
+d1 = [split(l, ",") for l in _d1raw[2:end]]
 shellmass = Dict{Int,Float64}(); cur = 0
 for r in d1
     if !isempty(r[1]); global cur = parse(Int, r[1]); shellmass[cur] = parse(Float64, r[11]); end

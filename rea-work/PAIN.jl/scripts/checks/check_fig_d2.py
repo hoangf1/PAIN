@@ -90,7 +90,8 @@ theta_F = (sh_stars[0]["cy"] - label_star["cy"]) * theta_per_px if label_star el
 steps = sorted(set(round(abs(offsets_px[i + 1] - offsets_px[i])) for i in range(len(offsets_px) - 1)))
 
 # ---------------------------------------------------------------- model: Table D-1 mode 1 (digitized_table_D1.csv = mrp.jl, equal to 1e-5 in 17d)
-rows = [l.split(",") for l in open(os.path.join(ROOT, "data", "cr3813", "digitized_table_D1.csv"), encoding="utf-8").read().splitlines()[1:] if l.strip()]
+_raw = [l for l in open(os.path.join(ROOT, "data", "cr3813", "digitized_table_D1.csv"), encoding="utf-8").read().splitlines() if l.strip() and not l.strip().startswith("#")]
+rows = [l.split(",") for l in _raw[1:]]
 shell_terms, plate_terms = [], []
 for i, r in enumerate(rows):
     if i > 0 and r[0]:

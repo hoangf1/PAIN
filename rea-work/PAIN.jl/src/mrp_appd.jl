@@ -27,9 +27,9 @@ const APPD_READINGS = (
     # θ in (D.3)/(D.26) from the bottom centerline; floor angle θ0 = 56.6°
     # (App. E p. E-3 / Fig. D-1). Junctions at ±θ0.
     theta_origin = :bottom_centerline,
-    # Length: App. E p. E-1 prints 1.83 m (72 in.); `mrp.jl` uses 1.803.
-    # Spec: use the text when they differ.
-    L_source = "App. E p. E-1: 1.83 m",
+    # Length: App. E p. E-1 / I-22 decision 2026-10-22: 1.83 m (72 in.).
+    # Table D-1 title 1.803 m is a caption typo.
+    L_source = "App. E p. E-1 / I-22: 1.83 m (test_article_length)",
     # Material: App. E p. E-3 "2024-T3 aluminum"; E, ν, ρ from Manual §5.2 /
     # existing MRP_* (no separate printed E in App. D).
     material_source = "MRP_E_2024 / MRP_NU_2024 / MRP_RHO_2024 (Manual §5.2)",
@@ -61,12 +61,10 @@ end
 """
 Test-article geometry from CR-3813 App. E (pp. E-1…E-3) + Manual §5.2 material.
 Areas / inertias reuse `MRP_*` (derived from the same printed dimensions).
-Default L = 1.83 m from the text (not the program's 1.803). When the test-article
-length override is set (`set_test_article_length!`), L follows that override
-(post-hoc sensitivity; no length selected from any error).
+L follows `test_article_length()` (I-22 default 1.83 m; override for sensitivity).
 """
 function appd_test_article_geometry()
-    L = test_article_length_overridden() ? test_article_length() : 1.83
+    L = test_article_length()
     return AppDGeometry(
         L,
         0.508,                 # diameter 1.016 m (App. E Fig. E-2)
@@ -623,7 +621,6 @@ function build_structural_modes(fuse::FuselageGeometry;
     elseif structural_solver === :ritz || structural_solver === :surrogate
         return structural_modes(fuse; n_keep=n_keep)
     elseif structural_solver === :appd
-        # Test-article defaults use App. E length 1.83 m when fuse still carries 1.803
         g = appd_test_article_geometry()
         if abs(fuse.L - g.L) > 1e-9 || abs(fuse.a - g.a) > 1e-9 ||
            abs(fuse.theta0_deg - g.theta0_deg) > 1e-9

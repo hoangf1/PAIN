@@ -2,7 +2,7 @@ using Pkg
 Pkg.activate(joinpath(@__DIR__, "..", ".."))
 using PAIN
 
-fuse = FuselageGeometry(1.803, 0.508, 56.6)
+fuse = FuselageGeometry(test_article_length(), 0.508, 56.6)
 
 ritz = structural_modes(fuse; hybrid=false, n_keep=48)
 n_spec, pairs = match_ritz_to_table_d1(ritz; tol_frac=0.05)

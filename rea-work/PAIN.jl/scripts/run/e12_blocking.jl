@@ -60,7 +60,7 @@ end
 predM, measM = meancurve(predA, predB), meancurve(measA, measB)
 
 # Eq. (43) on the l = 1 line: F(γ) from the test-cylinder geometry of the e11 path (run_pain_pipeline defaults)
-fuse = FuselageGeometry(1.803, 0.508, 56.6)
+fuse = FuselageGeometry(test_article_length(), 0.508, 56.6)
 prop = PropellerPlacement(0.965, 90.0, 0.90)
 pts = [p for p in grid_points(fuse, prop, GridSpec()) if p.ell == 1]
 D = 0.762

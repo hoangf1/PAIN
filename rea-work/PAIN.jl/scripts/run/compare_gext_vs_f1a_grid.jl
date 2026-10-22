@@ -4,7 +4,7 @@ using Pkg; Pkg.activate(joinpath(@__DIR__, "..", ".."))
 using PAIN, Printf, Dates, Statistics
 
 json = joinpath(@__DIR__, "..", "..", "examples", "aircraft_scale_hartzell.json")
-fuse = FuselageGeometry(1.803, 0.508, 56.6)
+fuse = FuselageGeometry(test_article_length(), 0.508, 56.6)
 prop = PropellerPlacement(0.965, 90.0, 0.90)
 spec = GridSpec()
 t0 = time()

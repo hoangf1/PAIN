@@ -55,7 +55,7 @@ println(e11.spectrum.notes)
 for (H, L) in enumerate(e11.spectrum.harmonic_SPL_dB)
     println("  H=$H  f=$(H * e11.spectrum.bpf_Hz) Hz  SPL=$(round(L; digits=1)) dB")
 end
-const _I17_HEADER = "Re-recorded 2026-10-21 after the amplitude-convention fix (I-17; sources cited); result known in advance in direction, therefore post-hoc."
+const _I17_HEADER = "Re-recorded 2026-10-22 at L = 1.83 m (I-22, post-hoc; earlier 1.803 m values: see length_sensitivity.md)"
 t1 = evaluate_T1(e11.spectrum)
 t1_path = joinpath(REPORTS, "t1_tonal.md")
 write_validation_record(t1_path, t1; header=_I17_HEADER)

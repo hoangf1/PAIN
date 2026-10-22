@@ -7,8 +7,8 @@ Pkg.activate(joinpath(@__DIR__, "..", ".."))
 using PAIN
 using Dates
 
-const L_SHORT = 1.803   # Table D-1 title / program default (71 in.)
-const L_LONG = 1.83     # App. D body / App. E / validation report (72 in.)
+const L_SHORT = 1.803   # Table D-1 title caption typo (71 in.)
+const L_LONG = 1.83     # I-22 / App. D body / App. E / validation report (72 in.)
 
 # Runnable registry cases whose computed result depends on the test-article length
 # (search of FuselageGeometry / phase3_trim / run_pain_pipeline / appd / noise_reduction
@@ -50,7 +50,7 @@ end
 
 function main()
     reset_test_article_length!()
-    @assert test_article_length() == L_SHORT
+    L_default = test_article_length()
     @assert !test_article_length_overridden()
 
     results = Dict{String,NamedTuple}()
@@ -60,7 +60,7 @@ function main()
         println("=== $id @ L=$L_LONG ===")
         r_long = _run_at(L_LONG, id)
         # Ensure restore between cases
-        @assert test_article_length() == L_SHORT
+        @assert test_article_length() == L_default
         @assert !test_article_length_overridden()
         Δ_verdict = r_short.verdict != r_long.verdict
         # Pairwise residual differences on shared table rows (by index)
@@ -87,8 +87,7 @@ function main()
         println(io, "validation report print **1.83 m (72 in.)**. This report measures how much the")
         println(io, "recorded validation results move under that choice. Defaults, criteria,")
         println(io, "reference/digitized files and existing validation reports are unchanged.")
-        println(io, "Program default remains 1.803 m; App. D solver default remains 1.83 m unless")
-        println(io, "the override is set.")
+        println(io, "Program default at generation time: $(L_default) m.")
         println(io)
         println(io, "## Cases")
         println(io)
@@ -135,7 +134,7 @@ function main()
         end
         println(io, "## Restore check")
         println(io)
-        println(io, "After every case, `test_article_length()` == $L_SHORT and the override flag is clear.")
+        println(io, "After every case, `test_article_length()` == $L_default and the override flag is clear.")
         println(io, "Final: L=$(test_article_length()), overridden=$(test_article_length_overridden()).")
         println(io)
         println(io, "Generated $(Dates.now()) by `PAIN.jl/scripts/run/length_sensitivity.jl`.")

@@ -9,7 +9,7 @@ using Printf
 const DATA = joinpath(@__DIR__, "..", "..", "..", "data", "cr3813")
 const OUT = joinpath(@__DIR__, "..", "..", "..", "docs", "validation_reports", "trim_loss_e13_e14_e15.md")
 
-a, L, θ0d = 0.508, 1.803, 56.6
+a, L, θ0d = 0.508, test_article_length(), 56.6
 θ0 = deg2rad(θ0d)
 fuse = FuselageGeometry(L, a, θ0d)
 V = cabin_volume(fuse)

@@ -1,12 +1,12 @@
-# Test-article cylinder length [m]. Table D-1 title / App. D example list: 1.803 m (71 in.);
-# App. D body / App. E / validation report: 1.83 m (72 in.). Default stays 1.803 so every
-# existing output is bit-identical. Override is for post-hoc sensitivity only (2026-10-22);
-# no length is selected on the basis of any error.
-const TEST_ARTICLE_L_DEFAULT = 1.803
+# Test-article cylinder length [m]. I-22 decision 2026-10-22: default is 1.83 m (72 in.)
+# from App. D body / App. E / validation report. Table D-1 title prints 1.803 m (71 in.)
+# — read as a caption typo (see digitized_table_D1.csv header / data README). Override
+# `TEST_ARTICLE_L` remains for sensitivity; no length is selected from any error.
+const TEST_ARTICLE_L_DEFAULT = 1.83
 const TEST_ARTICLE_L = Ref(TEST_ARTICLE_L_DEFAULT)
 const _TEST_ARTICLE_L_OVERRIDE = Ref(false)
 
-"""Current test-article length [m] (default 1.803)."""
+"""Current test-article length [m] (default 1.83)."""
 test_article_length() = TEST_ARTICLE_L[]
 
 """True when `set_test_article_length!` has been called and not yet reset."""
@@ -19,7 +19,7 @@ function set_test_article_length!(L::Real)
     return TEST_ARTICLE_L[]
 end
 
-"""Restore the default test-article length (1.803 m) and clear the override flag."""
+"""Restore the default test-article length (1.83 m) and clear the override flag."""
 function reset_test_article_length!()
     TEST_ARTICLE_L[] = TEST_ARTICLE_L_DEFAULT
     _TEST_ARTICLE_L_OVERRIDE[] = false

@@ -5,7 +5,8 @@
 using Pkg; Pkg.activate(joinpath(@__DIR__, "..", ".."))
 using PAIN, Printf, Statistics
 csv = joinpath(@__DIR__, "..", "..", "..", "data", "cr3813", "digitized_table_D1.csv")
-rows = [split(l, ",") for l in readlines(csv)[2:end] if !isempty(strip(l))]
+raw = [l for l in readlines(csv) if !isempty(strip(l)) && !startswith(strip(l), '#')]
+rows = [split(l, ",") for l in raw[2:end]]
 modes = Dict{Int,Any}(); global cur = 0
 for r in rows
     if !isempty(r[1])
@@ -37,7 +38,7 @@ end
 println("coefficient/frequency/mass comparison: ", isempty(bad) ? "all 32 modes equal" : "$(length(bad)) differences")
 foreach(println, bad)
 # exploratory: implied area densities
-a, L, θ0 = 0.508, 1.803, deg2rad(56.6); Lp = 2a * sin(θ0); N = 4000
+a, L, θ0 = 0.508, test_article_length(), deg2rad(56.6); Lp = 2a * sin(θ0); N = 4000
 ρs = Float64[]; ρp = Float64[]
 for (i, m) in enumerate(sm.modes)
     d = modes[i]
