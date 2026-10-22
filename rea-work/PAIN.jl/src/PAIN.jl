@@ -30,6 +30,7 @@ include("trim_loss.jl")
 include("pain_core.jl")
 include("noise_reduction.jl")
 include("high_freq_tones.jl")
+include("hf_broadband.jl")
 include("metrics.jl")
 include("validation_report.jl")
 include("validation_cases.jl")
@@ -66,6 +67,8 @@ export
     acoustic_modes_in_band, acoustic_crossover_band, apply_η_r_cap,
     w_in_reverberant, noise_reduction_band, noise_reduction_spectrum,
     noise_reduction_test_article_inputs,
+    hf_absorbing_areas, hf_trim_areas, hf_structural_band, hf_band_loss_factors,
+    hf_transmission_coeffs, hf_pressure_ratio, hf_broadband_band_p2, hf_broadband_spectrum,
     g_resonance, expected_g_closed, expected_g_pi, expected_g_quad,
     tone_Q_H, modes_in_tone_band, band_average_loss_factors,
     tone_expected_value, tone_eq13_sample, resolve_crossover_Hz,

@@ -216,16 +216,35 @@ function w_in_reverberant(inp::PainInputs, fc::Real;
 end
 
 """
-    noise_reduction_band(inp, fc; η_r_cap=nothing, c_ω=…) -> NamedTuple
+    noise_reduction_band(inp, fc; η_r_cap=nothing, c_ω=…, hf_model=:none) -> NamedTuple
 
 Eq. (18): ⟨p_i²⟩/⟨p_e²⟩ for one 1/3-octave band, with ⟨p_e²⟩ = ⟨p_bl²⟩/2 (p. 23).
 NR(band) = 10 log10(⟨p_e²⟩/⟨p_i²⟩) = −10 log10(Eq. 18).
+
+`hf_model`: `:none` (default — always Eq. 18) or `:eq19` (printed Eqs. 19–23 when
+`fc` is at/above the crossover; Eq. 18 below). Default behaviour unchanged.
 """
 function noise_reduction_band(inp::PainInputs, fc::Real;
                               η_r_cap::Union{Nothing,Float64}=nothing,
                               c_ω::Real=C_OMEGA_THIRD_OCTAVE,
                               q_max::Union{Nothing,Int}=nothing,
-                              crossover_fc::Union{Nothing,Float64}=nothing)
+                              crossover_fc::Union{Nothing,Float64}=nothing,
+                              hf_model::Symbol=:none)
+    hf_model in (:none, :eq19) || error("hf_model must be :none or :eq19 (got $hf_model)")
+    xover = crossover_fc === nothing ? acoustic_crossover_band(inp; c_ω).fc_Hz : crossover_fc
+    above = isfinite(xover) && fc ≥ xover - 1e-9
+    n_in_band = acoustic_modes_in_band(inp, fc; c_ω)
+
+    if hf_model === :eq19 && above
+        pr = hf_pressure_ratio(inp, fc; c_ω, η_r_cap)
+        # Eq. 23 gives ⟨p_e²⟩/⟨p_i²⟩; Eq. 18 stores ⟨p_i²⟩/⟨p_e²⟩ as `ratio`
+        ratio_i_over_e = pr.ratio > 0 && isfinite(pr.ratio) ? 1 / pr.ratio : Inf
+        return (; ratio=ratio_i_over_e, NR_dB=pr.NR_dB, n_modes_in_band=n_in_band,
+                above_crossover=above, crossover_fc_Hz=xover, fc_Hz=float(fc),
+                pref=NaN, A=pr.A_t + pr.A′, Abar=pr.Abar, V=pr.losses.areas.V, ω=pr.ω,
+                τ_t=pr.τ_t, η_r_cap, hf_model=:eq19, eq23_ratio=pr.ratio)
+    end
+
     fuse = inp.fuse
     a, L = fuse.a, fuse.L
     ρ0, c0 = inp.ρ0, inp.c0
@@ -241,7 +260,6 @@ function noise_reduction_band(inp::PainInputs, fc::Real;
     mA4_τ = mass_law_factor(ρ0, c0, A, ω)
     hi = ω * (1 + c_ω / 2)
     qtop = something(q_max, inp.q_max, axial_truncation(hi, L, c0))
-    n_in_band = acoustic_modes_in_band(inp, fc; c_ω)
 
     nst = length(inp.structural.modes)
     ωr = Vector{Float64}(undef, nst)
@@ -278,25 +296,27 @@ function noise_reduction_band(inp::PainInputs, fc::Real;
     end
     # NR = 10 log10(⟨p_e²⟩/⟨p_i²⟩) = −10 log10(ratio); guard non-positive
     NR = ratio > 0 ? -10 * log10(ratio) : Inf
-    xover = crossover_fc === nothing ? acoustic_crossover_band(inp; c_ω).fc_Hz : crossover_fc
-    above = isfinite(xover) && fc ≥ xover - 1e-9
     return (; ratio, NR_dB=NR, n_modes_in_band=n_in_band, above_crossover=above,
-            crossover_fc_Hz=xover, fc_Hz=float(fc), pref, A, Abar, V, ω, τ_t, η_r_cap)
+            crossover_fc_Hz=xover, fc_Hz=float(fc), pref, A, Abar, V, ω, τ_t, η_r_cap,
+            hf_model=:eq18)
 end
 
 """
-    noise_reduction_spectrum(inp; bands, η_r_cap, c_ω) -> NamedTuple
+    noise_reduction_spectrum(inp; bands, η_r_cap, c_ω, hf_model=:none) -> NamedTuple
 
 Eq. (18) for every band in `bands` (default 1/3-octave centres). Reports the crossover
-band; values at and above it are marked `above_crossover` (high-frequency model needed, 38c).
+band; values at and above it are marked `above_crossover`. With `hf_model=:eq19`, bands
+at/above crossover use printed Eqs. (19)–(23) instead (38c).
 """
 function noise_reduction_spectrum(inp::PainInputs;
                                   bands::AbstractVector{<:Real}=third_octave_centers(),
                                   η_r_cap::Union{Nothing,Float64}=nothing,
-                                  c_ω::Real=C_OMEGA_THIRD_OCTAVE)
+                                  c_ω::Real=C_OMEGA_THIRD_OCTAVE,
+                                  hf_model::Symbol=:none)
     xover = acoustic_crossover_band(inp; bands, c_ω)
-    rows = [noise_reduction_band(inp, fc; η_r_cap, c_ω, crossover_fc=xover.fc_Hz) for fc in bands]
-    return (; bands=float.(collect(bands)), rows, crossover=xover, η_r_cap, c_ω)
+    rows = [noise_reduction_band(inp, fc; η_r_cap, c_ω, crossover_fc=xover.fc_Hz, hf_model)
+            for fc in bands]
+    return (; bands=float.(collect(bands)), rows, crossover=xover, η_r_cap, c_ω, hf_model)
 end
 
 """

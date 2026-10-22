@@ -1288,6 +1288,85 @@ _run_if("High-frequency tones Eqs. (11)–(16) (38b)") do
     end
 end
 
+# Plan phase 38c: CR-3813 §3.3 HF broadband Eqs. (19)–(23) as printed.
+# V-UNIT before any Fig. E-9 / E-21 comparison; no parameter chosen from those figures.
+# ---------------------------------------------------------------------------------------------
+_run_if("HF broadband Eqs. (19)–(23) (38c)") do
+    @testset "Limits of Eqs. (20)–(23): closed-form stack" begin
+        # Hand values (SI): A_t=2, A′=0, S=5, ᾱ=0.4, τ_t=0.25, τ_f=0.01, τ_R=0.02
+        # → τ=0.03; Eq.23 (A′=0): ⟨p_e²⟩/⟨p_i²⟩ = ᾱ S/(τ_t τ A_t) = 2/(0.25·0.03·2) = 400/3
+        A_t, A′, S = 2.0, 0.0, 5.0
+        ᾱ, τ_t, τ_f, τ_R = 0.4, 0.25, 0.01, 0.02
+        τ = τ_f + τ_R
+        ratio = (ᾱ * S + (τ_f + τ_R * 1.0) * A′) / (τ_t * τ * A_t + τ * A′)
+        @test ratio ≈ (0.4 * 5) / (0.25 * 0.03 * 2) atol = 1e-12
+        @test ratio ≈ 400 / 3 atol = 1e-12
+        NR = 10 * log10(ratio)
+        @test NR ≈ 10 * log10(400 / 3) atol = 1e-12
+        # Eq. (20) with a known sum: τ_f = (32/π) ρ² (Ā/m²) Σ[j²]²
+        ρ, Ā, m, sum_j2sq = 1.225, 10.0, 3.23, 1.0e-6
+        τ_f20 = (32 / π) * ρ^2 * (Ā / m^2) * sum_j2sq
+        @test τ_f20 ≈ (32 / π) * (1.225)^2 * (10 / 3.23^2) * 1e-6 rtol = 1e-12
+        # Bare limit A_t=0, τ_t=1: ratio = (ᾱ S + [τ_f+τ_R η̄_r/η_rad] A′)/(τ A′)
+        A_t2, A′2 = 0.0, 2.0
+        η̄_r, η_rad = 0.05, 0.02
+        ratio_bare = (ᾱ * S + (τ_f + τ_R * (η̄_r / η_rad)) * A′2) / (1.0 * τ * A_t2 + τ * A′2)
+        @test ratio_bare ≈ (0.4 * 5 + (0.01 + 0.02 * 2.5) * 2) / (0.03 * 2) rtol = 1e-12
+    end
+    @testset "Energy/reciprocity: η̄_r large → τ_R→0; p² positive finite 1–4 kHz" begin
+        inp = noise_reduction_test_article_inputs(; η_lining=0.5)
+        # Artificial large structural loss via η_r_cap does not force τ_R→0; instead
+        # check the analytic limit: η̄_r → ∞ ⇒ τ_R → 0, and with A′=0,
+        # ⟨p_i²⟩ = (⟨p_bl²⟩/2) · τ_t τ_f A_t / (ᾱ S) ≥ 0.
+        for fc in (1000.0, 1250.0, 1600.0, 2000.0, 2500.0, 3150.0, 4000.0)
+            tc = hf_transmission_coeffs(inp, fc)
+            @test tc.τ_f ≥ 0 && isfinite(tc.τ_f)
+            @test tc.τ_R ≥ 0 && isfinite(tc.τ_R)
+            @test tc.τ ≈ tc.τ_f + tc.τ_R
+            # Large η̄_r limit of the printed τ_R formula
+            τ_R_big = (2 * tc.band.n_r * π^2 * tc.c0 * tc.losses.η_rad_ext * tc.losses.η_rad_int) /
+                      (tc.ρ0 * tc.ω * 1e6) * (4 * tc.ρ0 * tc.c0 / tc.Abar)
+            @test τ_R_big < 1e-6 || τ_R_big < 1e-3 * max(tc.τ_R, 1e-30)
+            p2 = hf_broadband_band_p2(inp, fc, 1.0)
+            @test p2 ≥ 0 && isfinite(p2)
+            pr = hf_pressure_ratio(inp, fc)
+            @test pr.ratio > 0 && isfinite(pr.ratio)
+            @test pr.NR_dB > -Inf && isfinite(pr.NR_dB)
+        end
+    end
+    @testset "default :surrogate reproduces current T2 results exactly" begin
+        r = run_pain_pipeline(; source=:e11, n_harmonics=5, bpf_Hz=200.0, blocking=R2)
+        inp = r.inputs
+        spec_def = interior_spl(inp; bpf_Hz=200.0, n_harmonics=5, broadband=true)
+        spec_surr = interior_spl(inp; bpf_Hz=200.0, n_harmonics=5, broadband=true,
+                                 broadband_model=:surrogate, bb_j2_scale=0.5)
+        @test spec_def.third_octave_SPL_dB == spec_surr.third_octave_SPL_dB
+        # Match pipeline spectrum (also default :surrogate)
+        for (b, v) in r.spectrum.third_octave_SPL_dB
+            @test spec_def.third_octave_SPL_dB[b] ≈ v atol = 1e-12
+        end
+        # Surrogate T2 case numbers unchanged vs evaluate_T2 on default spectrum
+        t2_pipe = evaluate_T2(r.spectrum)
+        t2_def = evaluate_T2(spec_def)
+        @test length(t2_pipe) == length(t2_def)
+        for (a, b) in zip(t2_pipe, t2_def)
+            @test a.result == b.result
+            @test a.notes == b.notes
+        end
+    end
+    @testset "T2_EQ19 case runs; table/series non-empty" begin
+        @test validation_case_runnable("T2_EQ19")
+        res = run_validation_case("T2_EQ19")
+        @test !isempty(res.table)
+        @test !isempty(res.series)
+        @test res.verdict in (:met, :not_met)
+        @test occursin("Eq. (19)", res.label) || occursin("printed", res.label)
+        @test haskey(res.inputs_echo, :broadband_model)
+        @test res.inputs_echo.broadband_model === :eq19
+        println("38c T2_EQ19: ", res.reason)
+    end
+end
+
 _run_if("Validation case registry (34d)") do
     @test Set(keys(VALIDATION_CASES)) == Set(VALIDATION_CASE_ORDER)
     for id in VALIDATION_CASE_ORDER

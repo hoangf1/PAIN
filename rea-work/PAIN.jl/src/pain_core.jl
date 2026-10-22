@@ -408,17 +408,25 @@ function broadband_cabin_p2(inp::PainInputs, fc::Float64, p2_bl::Float64;
 end
 
 """
-    interior_spl(inp; bpf_Hz, n_harmonics=10, broadband=true, tone_model=:eq8) -> InteriorSpectrum
+    interior_spl(inp; bpf_Hz, n_harmonics=10, broadband=true, tone_model=:eq8,
+                 broadband_model=:surrogate) -> InteriorSpectrum
 
-Tonal SPL for propeller harmonics, plus HF broadband (Eq.19) into 1/3-oct (T2).
+Tonal SPL for propeller harmonics, plus HF broadband into 1/3-oct (T2).
 
 `tone_model`: `:eq8` (default — unchanged production), `:eq15_16` (high-frequency
 expected value only), or `:auto` (Eq. 8 below the crossover band, Eqs. 15–16 at and
 above; Manual output 9(3)). Both formulations are always stored on the spectrum.
+
+`broadband_model`: `:surrogate` (default — existing `broadband_cabin_p2` with
+`bb_j2_scale`; outputs unchanged) or `:eq19` (printed Eqs. 19–23; no j² scale).
 """
 function interior_spl(inp::PainInputs; bpf_Hz::Float64, n_harmonics::Int=10,
                       broadband::Bool=true, bb_α::Float64=2.0, bb_j2_scale::Float64=0.5,
-                      tone_model::Symbol=:eq8)
+                      tone_model::Symbol=:eq8,
+                      broadband_model::Symbol=:surrogate,
+                      η_r_cap::Union{Nothing,Float64}=nothing)
+    broadband_model in (:surrogate, :eq19) ||
+        error("broadband_model must be :surrogate or :eq19 (got $broadband_model)")
     nH = min(n_harmonics, size(inp.amplitudes, 3))
     spl = zeros(Float64, nH)
     spl8 = zeros(Float64, nH)
@@ -450,10 +458,18 @@ function interior_spl(inp::PainInputs; bpf_Hz::Float64, n_harmonics::Int=10,
                 continue
             end
             p2_bl = blocked_broadband_band_p2(inp, b, bpf_Hz; α=bb_α)
-            p2_i = broadband_cabin_p2(inp, b, p2_bl; j2_scale=bb_j2_scale)
+            p2_i = if broadband_model === :eq19
+                hf_broadband_band_p2(inp, b, p2_bl; η_r_cap)
+            else
+                broadband_cabin_p2(inp, b, p2_bl; j2_scale=bb_j2_scale)
+            end
             band_p2[b] += p2_i
         end
-        notes *= " + HF Eq.19 modal-density with τ_t of Eq. (A.22) (surrogate α_abs, Spbl∝f^{-$(bb_α)}; phase 29b)."
+        if broadband_model === :eq19
+            notes *= " + HF Eqs.(19)–(23) as printed (ᾱ from Eq.24/78; Spbl∝f^{-$(bb_α)}; phase 38c)."
+        else
+            notes *= " + HF Eq.19 modal-density with τ_t of Eq. (A.22) (surrogate α_abs, Spbl∝f^{-$(bb_α)}; phase 29b)."
+        end
         has_trim(inp) && !inp.allow_extrapolation &&
             (notes *= " Bands above the Fig. A-2 range omitted (allow_extrapolation=false).")
     else

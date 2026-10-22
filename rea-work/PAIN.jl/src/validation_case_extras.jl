@@ -1214,6 +1214,98 @@ function _run_e21_e22_nr()
     )
 end
 
+"""
+T2 with printed Eqs. (19)–(23) (`broadband_model=:eq19`). Same Fig. E-9 targets and
+±3.5 dB tolerance as T2 (criterion dated before this run; unchanged). Label: first run
+of the printed model 2026-10-22. Also records full-band E-21/E-22 counts with Eq. (18)
+below crossover and Eq. (19) at/above (38a thresholds; report only).
+"""
+function _run_t2_eq19()
+    targets = _data_path("cr3813", "t2_third_octave_targets.csv")
+    isfile(targets) || (targets = _data_path("cr3813", "t2_third_octave_targets_B.csv"))
+    r = run_pain_pipeline(; source=:e11, n_harmonics=5, bpf_Hz=200.0, blocking=R2)
+    # Recompute spectrum with printed HF model (pipeline default remains :surrogate)
+    spec = interior_spl(r.inputs; bpf_Hz=200.0, n_harmonics=min(5, size(r.inputs.amplitudes, 3)),
+                        broadband=true, broadband_model=:eq19)
+    cols = _read_csv_numeric(targets)
+    fcs = Float64[cols[:fc_Hz][i] for i in eachindex(cols[:fc_Hz])]
+    mean_v = Float64[cols[:measured_mean_SPL_dB][i] for i in eachindex(cols[:fc_Hz])]
+    tols = Float64[cols[:tol_dB][i] for i in eachindex(cols[:fc_Hz])]
+    got = Float64[]
+    table = ValidationTableRow[]
+    n_ok = 0
+    third = spec.third_octave_SPL_dB
+    for i in eachindex(fcs)
+        b = nearest_third_octave(fcs[i], collect(keys(third)))
+        g = get(third, b, NaN)
+        push!(got, g)
+        ok = isfinite(g) && abs(g - mean_v[i]) ≤ tols[i]
+        n_ok += ok
+        push!(table, ValidationTableRow("1/3-oct fc=$(round(fcs[i]; digits=0))", fcs[i],
+                                        mean_v[i], g, g - mean_v[i], ok))
+    end
+    all_ok = n_ok == length(fcs) && !isempty(fcs)
+
+    # Full-band E-21/E-22 with Eq. 18 below crossover + Eq. 19 at/above (report only)
+    e21 = _read_csv_numeric_nan(_data_path("cr3813", "e21_noise_reduction_range.csv"))
+    e22 = _read_csv_numeric_nan(_data_path("cr3813", "e22_noise_reduction_ci.csv"))
+    bands_nr = Float64.(e21[:band_Hz])
+    nasa = Float64.(e21[:nasa_pred_dB])
+    b22 = Float64.(e22[:band_Hz])
+    lo22 = Float64.(e22[:low_dB])
+    hi22 = Float64.(e22[:high_dB])
+    lo22_of = Dict(b22[i] => lo22[i] for i in eachindex(b22))
+    hi22_of = Dict(b22[i] => hi22[i] for i in eachindex(b22))
+    excluded = Set([80.0, 100.0, 125.0, 160.0])
+    inp_nr = noise_reduction_test_article_inputs(; η_lining=1.0)
+    η_cap = 0.15
+    spec_nr = noise_reduction_spectrum(inp_nr; bands=bands_nr, η_r_cap=η_cap, hf_model=:eq19)
+    xover = spec_nr.crossover.fc_Hz
+    n_nasa = n_nasa_ok = n_e22 = n_e22_ok = 0
+    for i in eachindex(bands_nr)
+        fc = bands_nr[i]
+        g = spec_nr.rows[i].NR_dB
+        fc in excluded && continue
+        if isfinite(nasa[i])
+            n_nasa += 1
+            n_nasa_ok += abs(g - nasa[i]) ≤ 3.0
+        end
+        if haskey(lo22_of, fc) && isfinite(lo22_of[fc]) && isfinite(hi22_of[fc])
+            n_e22 += 1
+            n_e22_ok += lo22_of[fc] ≤ g ≤ hi22_of[fc]
+        end
+        push!(table, ValidationTableRow("E-21/E-22 NR fc=$(round(fc; digits=0))", fc,
+                                        isfinite(nasa[i]) ? nasa[i] : NaN, g,
+                                        isfinite(nasa[i]) ? g - nasa[i] : NaN,
+                                        isfinite(nasa[i]) && abs(g - nasa[i]) ≤ 3.0,
+                                        "full-band NR (Eq.18/<xover, Eq.19/≥xover)"))
+    end
+    frac_nasa = n_nasa == 0 ? 0.0 : n_nasa_ok / n_nasa
+    frac_e22 = n_e22 == 0 ? 0.0 : n_e22_ok / n_e22
+    e21_met = frac_nasa ≥ 0.75 && frac_e22 ≥ 0.75
+
+    series = [
+        PlotSeries("measured mean", :reference_points, fcs, mean_v; panel=1),
+        PlotSeries("±tol", :reference_band, fcs, mean_v;
+                   ylow=mean_v .- tols, yhigh=mean_v .+ tols, panel=1),
+        PlotSeries("PAIN Eq.(19) 1/3-oct", :computed, fcs, got; panel=1),
+    ]
+    reason = "$n_ok/$(length(fcs)) PASS vs Fig. E-9 (±3.5 dB); " *
+             "full-band E-21/E-22: V-CODE $n_nasa_ok/$n_nasa, V-EXP $n_e22_ok/$n_e22 " *
+             "(crossover=$(round(xover; digits=1)) Hz; 80–160 excluded; Eq.18 below / Eq.19 at+above)"
+    return ValidationCaseResult(
+        "T2_EQ19", _today_iso(),
+        (; source=:e11, bpf_Hz=200.0, bands="1.25–2 kHz (targets CSV)", broadband_model=:eq19,
+         n_ok, n_bands=length(fcs),
+         e21_n_nasa_ok=n_nasa_ok, e21_n_nasa=n_nasa, e21_n_e22_ok=n_e22_ok, e21_n_e22=n_e22,
+         e21_fullband_met=e21_met, crossover_Hz=xover,
+         csv=targets),
+        table, series, all_ok ? :met : :not_met, reason,
+        "V-EXP; printed Eq. (19)–(23), first run 2026-10-22; T2 criterion unchanged",
+        joinpath(_VAL_REPORT_DIR, "phase38c_hf_broadband.md"),
+    )
+end
+
 function _finish_validation_registry!()
     empty!(VALIDATION_CASES)
     empty!(VALIDATION_CASE_ORDER)
@@ -1397,7 +1489,7 @@ function _finish_validation_registry!()
     ]
     append!(cases, extras)
 
-    # E21_E22_NR is runnable (38a); no greyed placeholders remain (R996_FIG8 removed 2026-10-21, I-20).
+    # E21_E22_NR is runnable (38a); T2_EQ19 is runnable (38c); no greyed placeholders remain.
     push!(cases, ValidationCase(
         "E21_E22_NR", "Figs. E-21 / E-22 noise reduction", "38a",
         [_data_path("cr3813", "e21_noise_reduction_range.csv"),
@@ -1412,6 +1504,22 @@ function _finish_validation_registry!()
                  panel_titles=["E-21 / E-22"], error_mode=:absolute, error_tol=3.0, error_ylabel="dB vs NASA"),
         "",
     ))
+    push!(cases, ValidationCase(
+        "T2_EQ19", "1/3-octave vs Fig. E-9 (printed Eq. 19–23)", "38c",
+        filter(isfile, [_data_path("cr3813", "t2_third_octave_targets.csv"),
+                        _data_path("cr3813", "t2_third_octave_targets_B.csv")]),
+        FigureRef("CR-3813", "Fig. E-9 / E-10", 132),
+        "Same T2 criterion (±3.5 dB, 1.25–2 kHz vs Fig. E-9 mean); printed Eqs. (19)–(23); " *
+        "no j²/τ/area scale. First run 2026-10-22.",
+        "2026-10-20 (T2 criterion; Eq.19 path first run 2026-10-22)",
+        "V-EXP; printed Eq. (19)–(23), first run 2026-10-22; T2 criterion unchanged",
+        _run_t2_eq19,
+        PlotSpec(; xlabel="1/3-octave band (Hz)", ylabel="SPL (dB)",
+                 xscale=:log10, xlim=(1000.0, 2600.0),
+                 panel_titles=["Fig. E-9 (Eq. 19)"],
+                 error_mode=:absolute, error_tol=3.5),
+        "",
+    ))
 
     for c in cases
         VALIDATION_CASES[c.id] = c
@@ -1419,7 +1527,7 @@ function _finish_validation_registry!()
     # Map order for list/GUI; every registry id must appear in exactly one map block.
     order = [
         "E11_FREEFIELD", "GEXT_BOUND", "BLK_P68", "E12_BLOCK", "MRP_D1", "MRP_RITZ",
-        "CYL2D_C1", "E14_LOSS", "REPRO_18b", "T1", "T2", "E21_E22_NR",
+        "CYL2D_C1", "E14_LOSS", "REPRO_18b", "T1", "T2", "T2_EQ19", "E21_E22_NR",
         "R996_LOADS", "PER_LOADS", "F1A_GUTIN", "R996_FIG14", "R996_FIG12", "R996_FIG13A",
         "R996_FIG6", "R996_FIG7", "BBN_KIN", "BBN_CIRC", "BBN_LONG", "R996_PHASE",
         "PER_FIG6", "PER_FIG7", "PER_FIG8", "PER_FIG9", "BBN_LEVELS",

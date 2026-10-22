@@ -12,7 +12,7 @@ The user source is BEMT + F1A, which gives the free-field pressure at the 160 fu
 
 Grid extension (GEXT) appears only in diagram 2. It exists because the NASA paper measured one line of the grid.
 
-Status key: green = check exists and passes as stated; orange = planned, not independently checked, or the current code differs from CR-3813; blue = calibrated surrogate. Step numbers refer to `IMPLEMENTATION_PLAN.md`. **2026-10-22:** phase **38b** — high-frequency tone Eqs. (11)–(16) (`high_freq_tones.jl`); default `tone_model=:eq8`; `:auto` recorded vs REPRO_18b (I-18 H3 not explained). Phase **38a** NR Eqs. (17)–(18) remain. Phases 32–35 done. GUI Run tab = aircraft only; **Validation** + **Validation map** tabs. `REPRO_18b` = 18b-r (not met); `MRP_D1` = transcription `no_verdict`. Aircraft path stays X-EXTRAP; 29b–31 deferred (B-4); 38c HF NR next.
+Status key: green = check exists and passes as stated; orange = planned, not independently checked, or the current code differs from CR-3813; blue = calibrated surrogate. Step numbers refer to `IMPLEMENTATION_PLAN.md`. **2026-10-22:** phase **38c** — printed HF broadband Eqs. (19)–(23) (`hf_broadband.jl`); `broadband_model=:surrogate` default unchanged; `:eq19` case `T2_EQ19` first run 0/3 vs E-9 (not met). Phases 38a–38b remain. Phases 32–35 done. GUI Run tab = aircraft only; **Validation** + **Validation map** tabs. `REPRO_18b` = 18b-r (not met); `MRP_D1` = transcription `no_verdict`. Aircraft path stays X-EXTRAP; 29b–31 deferred (B-4).
 
 **Test tooling (P1, 2026-10-22, no behaviour change).** `Pkg.test` accepts `test_args` substrings to select top-level testsets; list/times in `PAIN.jl/test/README.md`. Optional DaemonMode loop in `PAIN.jl/scripts/devtools/` (separate env; Revise loaded). Does not alter criteria, reports, or `src/`.
 
@@ -63,12 +63,12 @@ flowchart LR
         E3["BOUNDS the dependence on E1<br/>variants, cabin fixed; T1 flip test<br/>not a validation; does not measure circularity<br/><i>phase 32, runs after 18a (12b done)</i>"]
     end
 
-    CAB["TRANSMITS grid -> interior SPL<br/>shared cabin (diagram 4)<br/>CR-3813 equations, no tuning (15a-17a done)<br/>grid azimuth fixed (12b)<br/>HF path still a surrogate (30b)"]
+    CAB["TRANSMITS grid -> interior SPL<br/>shared cabin (diagram 4)<br/>CR-3813 equations, no tuning (15a-17a done)<br/>grid azimuth fixed (12b)<br/>HF Eq.(19) printed + surrogate selector (38c)"]
 
     subgraph VAL["Validation: interior SPL"]
         direction TB
         V1["TESTS joint model vs tonal data<br/>E-16/17/18, H=1,2,3<br/>18a-r: 81.0, 75.0, 75.3 dB; no claim;<br/>GEXT bound (32): flips → T1 not claimable;<br/>REPRO_18b = 18b-r 82.73/75.73/77.05 (2 of 3);<br/>19i H3 not found"]
-        V2["TESTS joint model vs broadband<br/>E-9, +/-3.5 dB (T2 surrogate);<br/>E-21/E-22 NR Eq.(18) (38a);<br/>HF tones Eqs.(15)–(16) (38b);<br/>HF Eq.(19) still a surrogate until 38c"]
+        V2["TESTS joint model vs broadband<br/>E-9, +/-3.5 dB (T2 surrogate + T2_EQ19);<br/>E-21/E-22 NR Eq.(18)/(19) (38a/38c);<br/>HF tones Eqs.(15)–(16) (38b);<br/>printed Eq.(19)–(23) first run 38c"]
         V3["LOCALIZES a failure by band<br/>E-7, G1/G2/G3<br/>result: diagnostic, not validation"]
     end
 
@@ -194,11 +194,14 @@ flowchart LR
             F4["trim, App A<br/>Eqs A.6-A.22, Fig A-2<br/><i>written (16a, done): trim_loss.jl;<br/>in the pipeline since 17a</i>"]
             F5["loss factors<br/>Eqs 77, 79-83, j_r rev Eqs 63-73<br/><i>written (16b, done); E-14 reproduction 7/18 bands;<br/>in the pipeline since 17a</i>"]
             F6["tone pressure<br/>Eq 8 + HF Eqs 15–16 (38b)<br/><i>Eq. 8 default (tone_model=:eq8); :auto at crossover;<br/>both always reported; η_T=0.5; 18b-r Eq.8 not met;<br/>38b :auto H3 72.31 (Δ=+4.31) — I-18 not explained<br/>(phase38b_high_freq_tones.md)</i>"]
+            F7["HF broadband<br/>Eqs 19–23 (38c) + surrogate<br/><i>broadband_model=:surrogate default;<br/>:eq19 = printed τ_f, τ_R, ᾱ;<br/>T2_EQ19 first run 0/3 vs E-9<br/>(phase38c_hf_broadband.md)</i>"]
         end
         P_OUT["OUT: interior SPL<br/>per harmonic<br/>+ 1/3-octave spectrum"]
         P_IN --> F2 --> F3 --> F6
         P_IN --> F4 --> F5 --> F6
+        F5 --> F7
         F6 --> P_OUT
+        F7 --> P_OUT
     end
 
     GRID --> B_IN
@@ -211,6 +214,7 @@ flowchart LR
     style F4 fill:#dbe9ff
     style F5 fill:#dbe9ff
     style F6 fill:#fff4e8
+    style F7 fill:#fff4e8
     style B_VAL fill:#e8ffe8
     style B_VAL2 fill:#fff4e8
     style C_VAL fill:#fff4e8

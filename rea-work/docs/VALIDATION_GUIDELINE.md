@@ -320,7 +320,8 @@ Cases are read-only. Third tab **"Validation map"** (`src/validation_map.jl`): M
 clickable case chips; Validation-tab list ordered by map and block. **Greyed (Run disabled):** none (`R996_FIG8` removed
 I-20; `E21_E22_NR` runnable since 38a). **In-process runnable:** `CYL2D_C1`, `MRP_D1`, `MRP_RITZ`, `BLK_P68`,
 `F1A_GUTIN`, `T1`, `T2`, `REPRO_18b`, `E12_BLOCK`, `E11_FREEFIELD`, `E14_LOSS`, `GEXT_BOUND`, `BBN_KIN`, `R996_PHASE`,
-`E21_E22_NR` (Eq. 18, η_T = 1.0, η_r′ ≤ 0.15; criterion dated 2026-10-21).
+`E21_E22_NR` (Eq. 18, η_T = 1.0, η_r′ ≤ 0.15; criterion dated 2026-10-21), `T2_EQ19` (printed Eqs. 19–23; T2
+criterion unchanged; first run 2026-10-22).
 **CSV replays** (read recorded `f1a_results.csv` / `scale_factors.csv` / `pereira_results.csv` / `bbn_results.csv`; do not
 re-run F1A): `R996_FIG12/13A/14`, `R996_LOADS`, `R996_FIG6/7`, `PER_FIG6–9`, `PER_LOADS`, `BBN_CIRC`, `BBN_LEVELS`, `BBN_LONG`.
 All case numbers come from CSVs or transcribed constant tables; page images are display-only. (§2.13 CASE_INFO text for
@@ -860,7 +861,20 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **A pass means:** In-sample: bb_j2_scale = 0.5 was fitted to these bands earlier (stale)
 **Not covered:** Only 1.25–2 kHz; nothing above; amplitude convention fixed 2026-10-21, post-hoc
 **Recorded outcome:** 55.97, 53.63, 51.67 dB; t2_third_octave.md (amplitude convention fixed 2026-10-21, post-hoc)
-**Explanation:** 1/3-octave broadband path (Eq. 19) vs Fig. E-9 at 1.25–2 kHz. After I-17: 55.97, 53.63, 51.67 dB. bb_j2_scale = 0.5 was fitted earlier to these bands (stale) → calibrated / post-hoc. Only three bands; nothing above 2 kHz.
+**Explanation:** 1/3-octave broadband path (Eq. 19) vs Fig. E-9 at 1.25–2 kHz. After I-17: 55.97, 53.63, 51.67 dB. bb_j2_scale = 0.5 was fitted earlier to these bands (stale) → calibrated / post-hoc. Only three bands; nothing above 2 kHz. Surrogate path kept; printed Eqs. (19)–(23) are case `T2_EQ19` (38c).
+
+### Case: T2_EQ19
+**Title:** 1/3-octave Eq.(19) (T2_EQ19)
+**Map / block:** pain / P_MEAS
+**Category:** experiment
+**Kind:** runnable
+**Source:** CR-3813 Fig. E-9, p.132; Eqs. (19)–(23) pp.23–25
+**What it tests:** printed HF broadband Eqs. (19)–(23)
+**Why it is here:** Replaces the surrogate / stale bb_j2_scale path for the first printed-model run
+**A pass means:** Same T2 criterion: |got − Fig. E-9 mean| ≤ 3.5 dB at 1.25, 1.6, 2 kHz (criterion unchanged)
+**Not covered:** Spbl ∝ f^−2 anchor remains V-ASSUMED; only three bands; no parameter chosen from E-9/E-21/E-22
+**Recorded outcome:** 0/3 PASS (38.59, 35.87, 34.94 dB vs 51/46/41.5); full-band E-21/E-22 V-CODE 1/13, V-EXP 0/15; phase38c_hf_broadband.md (first run 2026-10-22)
+**Explanation:** Interior 1/3-octave SPL with `broadband_model=:eq19` (printed τ_f, τ_R, ᾱ from Eq. 24/78, A_t/S/A′) vs Fig. E-9. Default `:surrogate` T2 path unchanged. Full-band E-21/E-22 with Eq. (18) below crossover and Eq. (19) at/above is reported only (38a thresholds dated 2026-10-21). First run not met; no parameter tuned.
 
 ### Case: E21_E22_NR
 **Title:** Figs. E-21 / E-22 NR
