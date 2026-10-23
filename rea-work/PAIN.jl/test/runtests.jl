@@ -3056,6 +3056,31 @@ _run_if("CR-172428 reproduction (phase 44)") do
         end
     end
     @test PAIN.tone_mean_square_pressure(inp, H, ωH) ≈ p2 rtol = 1e-10
+    # 44f: the bare f′ against the f′ implied by NASA's printed η_r″ (Eq. 83 solved with NASA's own ε_n, η_n, M_r).
+    # Recorded 2026-10-23 (post-hoc): 4000 rpm pairs chose the sign; 5000 rpm pairs are out of sample. Pairs with
+    # η_r″ printed to one significant digit (< 1e-4) are skipped.
+    let ac_tab = PAIN._read_csv_numeric_nan(PAIN._data_path("cr172428", "appB_acoustic_modes.csv")),
+        st_tab = PAIN._read_csv_numeric_nan(PAIN._data_path("cr172428", "appB_structural_modes.csv"))
+        θ0r = deg2rad(fuse.theta0_deg); Lp = 2fuse.a * sin(θ0r)
+        Aw = fuse.L * (Lp + 2fuse.a * (π - θ0r)); Vc = PAIN.cabin_volume(inp)
+        n_checked = 0
+        for file in ("appB_contributors_4000rpm.csv", "appB_contributors_5000rpm.csv")
+            c = PAIN._read_csv_numeric_nan(PAIN._data_path("cr172428", file))
+            for i in eachindex(c[:H])
+                c[:eta_r_hash][i] < 1e-4 && continue
+                ia = findfirst(==(c[:ac_mode][i]), ac_tab[:mode]); ia === nothing && continue
+                r = Int(c[:st_mode][i]); q = Int(c[:Q][i]); I = Int(c[:I][i])
+                ωn = 2π * ac_tab[:f_Hz][ia]; N = ac_tab[:loss_factor][ia] * ωn^2; ε = ac_tab[:epsilon][ia]
+                ωr = 2π * st_tab[:f_Hz][r]; Mr = st_tab[:M_total_kg][r]
+                fN = sqrt(c[:eta_r_hash][i] * Mr * Vc / (inp.ρ_int * inp.c_int^2 * Aw^2 * ε) * ((ωn^2 - ωr^2)^2 + N^2) / N)
+                ac = inp.acoustic.modes[findfirst(m -> m.index == I, inp.acoustic.modes)]
+                fo = coupling_factor(ac, inp.structural.modes[r], inp; τ_t=1.0, q)
+                @test abs(abs(fo) / fN - 1) ≤ 0.05
+                n_checked += 1
+            end
+        end
+        @test n_checked ≥ 15
+    end
     # Grid: 16 × 19 points, θ = 0..180°, printed z from the forward end
     f = r172428_appb_field(4000)
     @test length(f.pts) == 16 * 19 && f.n_missing == 16    # p. 204 row L = 1 below the page edge

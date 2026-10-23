@@ -47,3 +47,25 @@ Method: read-only inventory of every physics function in `PAIN.jl/src` (geometry
 | UNC_COVER | whole parametric chain | attributed through the above; no single block |
 
 Plan: phases 39–42 in `IMPLEMENTATION_PLAN.md` §8. Criteria are dated 2026-10-23, before any of these tests is run.
+
+## Status after phases 40–45 (updated 2026-10-23)
+
+The table above is the audit record of 2026-10-23. This section records what each block has now; case details are in `VALIDATION_GUIDELINE.md` §2.13, and results after the 44f sign fix are post-hoc where they had been seen before.
+
+| Block | Isolated check now | Result |
+|-------|--------------------|--------|
+| Free-field input | ISO_FF_CONV, ISO_TABLE8 (40) | met |
+| Grid extension (GEXT) | ISO_GEXT_LINE (40); off-line field compared with F1A (T1_F1A_FILL, 43f) | on-line identity met; off-line field remains V-ASSUMED |
+| Blocking on the full grid | ISO_BLOCKING (40); App. B L = 10 row vs Table 8 (44a) | met; NASA's increase is 3.6–4.1 dB, position-dependent (not a flat 4 dB) |
+| CYL2D | ISO_CYL2D_EXACT, ISO_CYL2D_BOUNDARY (40); App. B acoustic modes (44b) | met; ε exact and frequencies within 0.9 % of NASA's printout |
+| Structural modes | Ritz closed form (40f, not met); App. B shell masses (44) | Table D-1 shapes reproduce App. B "SHELL W" (median 0.19 %, max 3.8 %) |
+| Trim (App. A) | TRIM_CLOSED (41b); R172428_TRIM (44, diagnostic) | met; NASA's printed trim factor within 0.15 dB at 250–1000 Hz |
+| Loss factors | E15_STRUCT_LOSS; R172428_ETA (44c/d) | App. A η_r′ within 13 % of NASA for modes 1–12; 17/32 within ±25 % (not met) |
+| PAIN core Eq. (8) | T1_FROM_E12 (41a); R172428_CODE / R172428_PAIRS (44) | two code fixes found against NASA's printout: Eq. (83) bare f′, and the Eq. (52) floor-term sign (44f). 12 of 15 printed modal pairs within ±3.7 dB; R172428_CODE 4/9 (not met); open: (0,1) × mode 8 (Q22) |
+| Noise reduction Eqs. (17)–(18) | NR_BAND_HAND (41c); NR_TP1964 (43d) | hand band met; TP-1964 6/18 (not met: modal Eq. 18 above ~1 kHz) |
+| High-frequency broadband Eqs. (19)–(23) | HF_MASSLAW (41d); NR_TP1964_XOVER (45) | met (mass law); TP-1964 with the changeover 9/18, Eq. (19) bands 4/4 within ±2.5 dB |
+| Broadband helpers | ISO_BB_BAND, ISO_MODAL_DENSITY (40) | met (band integral fixed in 40i) |
+| BEMT, F1A | BEMT_HAND, F1A_INDEP (41) | met |
+| Output level | LOUDEST_PT (42) | loudest-point dB(A) reported; the pre-registered 1 % average check is not met with interior nodes only (wall antinodes left out) |
+
+**Remaining gaps:** the exterior broadband input of T2 (not measured anywhere, 43e) and the (0,1) × mode 8 coupling difference (Q22). Every other block has an isolated check.

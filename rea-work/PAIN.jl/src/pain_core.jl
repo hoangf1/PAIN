@@ -279,7 +279,8 @@ with ψ_p built from the Table D-1 / MRP plate coefficients as printed. CR-3813 
 with "ψ_p positive upward"; CR-172428 App. A records that the original program misread MRP's
 sign convention for exactly this term, and the η_r″ values NASA's corrected program printed
 (App. B p. 207, "ETA R#") are reproduced by the bare f′ only with the plus sign on the raw
-coefficients (8 of 9 printed pairs within 2.5 %; the minus is 15–80 % off). Code-on-code fix of
+coefficients (8 of 9 printed pairs within 2.5 % at 4000 rpm; 9 of 10 further pairs at 5000 rpm,
+App. B p. 212, within 1.1 % out of sample; the minus is 15–80 % off). Code-on-code fix of
 2026-10-23 (Phase 44f); results computed after it are labelled post-hoc where they were seen before.
 
 `τ_t` is the sidewall trim transmission coefficient at the harmonic (τ_t = 1 bare,

@@ -19,7 +19,9 @@ Downloaded 2026-10-22 from the NASA Technical Reports Server (public use permitt
 |------|--------|------|
 | `NASA_TP_1964.pdf` | Willis, Daniels: *Experimental study of noise reduction for an unstiffened cylindrical model of an airplane fuselage*, NASA TP-1964, 1981 (0.508 m bare cylinder; reverberant and propeller noise reduction; reverberation times) | https://ntrs.nasa.gov/citations/19820007006 |
 | `NASA_TP_2444.pdf` | Willis, Mayes, Daniels: *Effects of propeller rotation direction on airplane interior noise levels*, NASA TP-2444, 1985 | https://ntrs.nasa.gov/citations/19850022454 |
+| `NASA_CR_159363.pdf` | Pope, Rennison, Wilby: *Analytical prediction of the interior noise for cylindrical models of aircraft fuselages for prescribed exterior noise fields, Phase I*, NASA CR-159363, 1980 (CR-3813 Ref. [3]: f_qM for L ≠ L_c, Eq. 25; downloaded 2026-10-23) | https://ntrs.nasa.gov/citations/19810010273 |
 | `NASA_CR_172384.pdf` | Wilby, Wilby: *Application of stiffened cylinder analysis to ATP interior noise studies*, NASA CR-172384, 1984 | https://ntrs.nasa.gov/citations/19840025076 |
 - `NASA_TP_1964.pdf`: SHA-256 `3aa1e8ec731d0453bb8b7256f0bcd7713b50c198c062b9b4a2a8d97f74a5473e`
 - `NASA_TP_2444.pdf`: SHA-256 `f4ad05c839de9a6ff9b80cc9c886e27534f37ef1b21952d286ab6c3d5caef202`
+- `NASA_CR_159363.pdf`: SHA-256 `10b21b9ce3ad2ab29182abc7e6f40f34d237bd2b95ec8e31898fc714141f884e`
 - `NASA_CR_172384.pdf`: SHA-256 `05681043fe82e2d7e63ebf040c710f71cc05929c415627c9d74df016d8af8764`
