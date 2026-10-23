@@ -12,3 +12,14 @@ Downloaded 2026-10-22 from the NASA Technical Reports Server (public use permitt
 **Report 824.** Low-speed section data (Langley two-dimensional tunnel, Re 3–9×10⁶), including NACA 4412 for the Pereira case.
 
 **Tool (not in the repo).** XFOIL 6.99 (Windows build), from https://web.mit.edu/drela/Public/web/xfoil/XFOIL6.99.zip, installed at `C:\Users\francis\tools\XFOIL6.99\xfoil.exe` (SHA-256 `c17342f84ae260c2b11a74cd0e2fb8189a5f8954c6bb7a8467a0f27055c7faea`). `data/polars/xfoil_polars.py` reads it through `XFOIL_EXE`.
+
+## Added 2026-10-23 (block validation, phases 41–43)
+
+| File | Report | NTRS |
+|------|--------|------|
+| `NASA_TP_1964.pdf` | Willis, Daniels: *Experimental study of noise reduction for an unstiffened cylindrical model of an airplane fuselage*, NASA TP-1964, 1981 (0.508 m bare cylinder; reverberant and propeller noise reduction; reverberation times) | https://ntrs.nasa.gov/citations/19820007006 |
+| `NASA_TP_2444.pdf` | Willis, Mayes, Daniels: *Effects of propeller rotation direction on airplane interior noise levels*, NASA TP-2444, 1985 | https://ntrs.nasa.gov/citations/19850022454 |
+| `NASA_CR_172384.pdf` | Wilby, Wilby: *Application of stiffened cylinder analysis to ATP interior noise studies*, NASA CR-172384, 1984 | https://ntrs.nasa.gov/citations/19840025076 |
+- `NASA_TP_1964.pdf`: SHA-256 `3aa1e8ec731d0453bb8b7256f0bcd7713b50c198c062b9b4a2a8d97f74a5473e`
+- `NASA_TP_2444.pdf`: SHA-256 `f4ad05c839de9a6ff9b80cc9c886e27534f37ef1b21952d286ab6c3d5caef202`
+- `NASA_CR_172384.pdf`: SHA-256 `05681043fe82e2d7e63ebf040c710f71cc05929c415627c9d74df016d8af8764`
