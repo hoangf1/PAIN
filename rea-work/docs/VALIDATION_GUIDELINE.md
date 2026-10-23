@@ -1896,6 +1896,44 @@ Inputs: as NR_TP1964_XOVER.
 Equations: as NR_TP1964_XOVER.
 Outputs: NR per band [dB].
 
+### Case: NR_PROP_TP2444
+**Title:** TP-2444 model 2: measured propeller-noise NR vs model (47c)
+**Map / block:** total / P_MEAS
+**Category:** experiment
+**Kind:** runnable
+**Source:** NASA TP-2444 Fig. 17 (exterior and interior narrowband spectra of this test article, 4000 rpm), digitized 2026-10-23; criterion fixed 2026-10-23 before any run (plan Phase 47)
+**What it tests:** The noise reduction of the test article under propeller excitation. Measured: exterior minus interior broadband 1/3-octave level, tones removed, B = 5 Hz assumed. Model: Eq. (18) below the card-10 changeover (1260 Hz band) and Eqs. (19)–(23) at and above it, with the CR-172428 App. B trim.
+**Why it is here:** It is the first test of the cabin transmission with this article's own measured exterior and interior.
+**A pass means:** Within ±5 dB in ≥ 75 % of the broadband bands 315–1250 Hz.
+**Not covered:** The TP-2444 fiberglass trim has no printed properties (the App. B trim is used); the microphone positions are not stated; B is assumed.
+**Recorded outcome:** **not_met**, 1/7 (2026-10-23). Measured NR is 30.0–36.0 dB in every band. The model gives 16.6, 13.5, 7.5, 5.0 and 8.7 dB at 315–800 Hz, 34.0 dB at 1000 Hz and 49.1 dB at 1260 Hz. The Phase III trim, reported with no criterion, gives 10.9–55.7 dB.
+**Explanation:** Experiment comparison. `narrowband_third_octave` converts the digitized traces (pass A). `noise_reduction_band` on `r172428_inputs(4000)` gives the model.
+Inputs: `data/tp2444/tp2444_fig17_*_passA.csv`; CR-172428 article and App. B trim.
+Equations: Eq. (18); Eqs. (19)–(23); 1/3-octave energy sum.
+Outputs: NR per band [dB].
+
+### Case: T2_MEAS_EXT
+**Title:** T2 with the measured TP-2444 exterior spectrum (47d)
+**Map / block:** total / P_MEAS
+**Category:** experiment
+**Kind:** runnable
+**Source:** NASA TP-2444 Fig. 17 (exterior, 4000 rpm), CR-172428 Fig. 14 (slope to 2 kHz), CR-3813 Fig. E-9; criterion fixed 2026-10-23 before any run (plan Phase 47)
+**What it tests:** T2's cabin path, Eqs. (19)–(23) with the T2 inputs, fed with the measured exterior band level instead of the modelled one.
+**Why it is here:** T2 could not be checked end to end until a measured exterior of the article was found.
+**A pass means:** The 1250 Hz interior within ±3.5 dB of Fig. E-9 (51.0 dB). 1600 and 2000 Hz use the same gate, labelled extrapolated exterior.
+**Not covered:** The microphone is taken as the blocked surface pressure (position not stated); B = 5 Hz is assumed; the 1600/2000 Hz exterior is extrapolated.
+**Recorded outcome:** **not_met** (2026-10-23).
+- The measured exterior is 85.4 dB at 1250 Hz. It gives an interior of 21.3 dB against 51.0 dB.
+- 1600 and 2000 Hz give 19.7 and 19.9 dB against 46.0 and 41.5 dB.
+- The secondary comparison, against the Fig. 17 interior (51.5 dB), is not met.
+- The measured data agree with each other: 85.4 − 33.9 = 51.5 dB.
+- PAIN's high-frequency noise reduction is too high, and NASA's E-21/E-22 predictions show the same.
+- Post-hoc information: the production surrogate gives 38.6 dB, and T2's modelled exterior is 102.7 dB.
+**Explanation:** Experiment comparison. p_bl² from the measured band level goes into `hf_broadband_band_p2` with the T2 pipeline inputs.
+Inputs: `data/tp2444/tp2444_fig17_exterior_passA.csv`; `data/cr172428/cr172428_fig14_mic1_5000rpm_passA.csv`; E-9 targets.
+Equations: Eqs. (19)–(23); 1/3-octave energy sum.
+Outputs: interior SPL at 1250/1600/2000 Hz [dB].
+
 ### Case: LOUDEST_PT
 **Title:** Interior level at the loudest point (42)
 **Map / block:** total / X_OUT

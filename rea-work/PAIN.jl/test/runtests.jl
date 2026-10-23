@@ -3096,6 +3096,46 @@ _run_if("Isolated checks for T1/T2 functions (phase 46)") do
     @test w1.W_in ≈ sum(c -> c.term, w1.contributions) rtol = 1e-10
 end
 
+_run_if("T2 with the measured TP-2444 exterior (phase 47)") do
+    # Criteria fixed 2026-10-23 (plan §8d Phase 47); 47b–47d implementation decisions fixed the same day
+    # before any band level was computed. Recorded: NR_PROP_TP2444 not met 1/7, T2_MEAS_EXT not met.
+    # 47b conversion on synthetic spectra (exact results)
+    f = collect(0.0:1.0:2500.0); L = fill(60.0, length(f))
+    b = PAIN.narrowband_third_octave(f, L, 1000.0)
+    @test b.n_bins == 46                                         # bins 895 … 1120 Hz in [891, 1122.5)
+    @test b.L_total ≈ 60 + 10log10(46) atol = 1e-9
+    @test b.L_bb ≈ b.L_total atol = 1e-9
+    Ls = copy(L); Ls[abs.(f .- 1000.0) .≤ 2.5] .= 80.0           # one tone bin (all its columns) 20 dB up
+    bt = PAIN.narrowband_third_octave(f, Ls, 1000.0; tone_Hz=[1000.0])
+    @test bt.L_total ≈ 10log10(45 * 10^6 + 10^8) atol = 1e-9
+    @test bt.L_bb ≈ 60 + 10log10(46) atol = 1e-9
+    @test bt.n_tone == 5
+    keep = f .≤ 1000.0                                           # partial coverage: flat density assumed
+    bp = PAIN.narrowband_third_octave(f[keep], L[keep], 1000.0)
+    @test bp.n_covered == 22
+    @test bp.L_total ≈ 60 + 10log10(46) atol = 1e-9
+    @test isnan(PAIN.narrowband_third_octave(f[f .≤ 950.0], L[f .≤ 950.0], 1000.0).L_total)  # 12/46 < 40 %
+    @test PAIN.narrowband_third_octave(f, L, 1000.0; B=10.0).L_total ≈ 60 + 10log10(23) atol = 1e-9
+    # 47a data: the Fig. 17 exterior tone peaks sit at H·200 Hz within 7 Hz
+    c = PAIN._read_csv_numeric_nan(PAIN._p47_csv(:ext, 'A'))
+    pk = PAIN._p47_tone_peaks(c[:f_Hz], c[:L_top_dB], 200.0, 7)
+    @test all(abs.(pk .- 200.0 .* (1:7)) .≤ 7.5)
+    # recorded results
+    r = run_validation_case("NR_PROP_TP2444")
+    @test r.verdict === :not_met && r.inputs_echo.n_ok == 1 && r.inputs_echo.n == 7
+    @test r.inputs_echo.changeover_band_Hz ≈ 1000 * 2^(1 / 3)
+    @test all(25 .< r.inputs_echo.NR_meas .< 40)
+    r2 = run_validation_case("T2_MEAS_EXT")
+    @test r2.verdict === :not_met
+    @test r2.inputs_echo.L_ext_1250_bb ≈ 85.42 atol = 0.01
+    @test r2.inputs_echo.interior_dB[1] ≈ 21.25 atol = 0.01
+    @test r2.inputs_echo.L_int_fig17_1250_bb ≈ 51.51 atol = 0.01
+    for (id, rr) in (("NR_PROP_TP2444", r), ("T2_MEAS_EXT", r2))
+        png = plot_case(rr, VALIDATION_CASES[id].plot_spec; path=joinpath(TEST_OUT, "$(id).png"))
+        @test isfile(png) && filesize(png) > 0
+    end
+end
+
 _run_if("T2 HF path on TP-1964 (phase 45)") do
     # Criteria pre-registered 2026-10-23 (plan §8c); recorded not met 9/18 and 8/18.
     for (id, n_ok) in (("NR_TP1964_XOVER", 9), ("NR_TP1964_XOVER_REF2", 8))

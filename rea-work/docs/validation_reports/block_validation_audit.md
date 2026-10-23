@@ -68,6 +68,12 @@ The table above is the audit record of 2026-10-23. This section records what eac
 | BEMT, F1A | BEMT_HAND, F1A_INDEP (41) | met |
 | Output level | LOUDEST_PT (42) | loudest-point dB(A) reported; the pre-registered 1 % average check is not met with interior nodes only (wall antinodes left out) |
 
+**Phase 47 (2026-10-23):** T2's cabin path was run with a measured exterior: TP-2444 Fig. 17, this article at 4000 rpm.
+- `T2_MEAS_EXT` and `NR_PROP_TP2444` are both not met.
+- The measured exterior, interior and E-9 agree with each other.
+- The high-frequency noise reduction (Eqs. 19–23) of the trimmed article is 15–27 dB too high, and NASA's printed E-21/E-22 predictions show the same.
+- The T2 block that fails is therefore identified: the trimmed-wall transmission above about 1 kHz. See `t2_measured_exterior.md`.
+
 **Phase 46 (2026-10-23):** the five functions on the T1/T2 paths that had no isolated check now have one, all met (`broadband_cabin_p2`, `tone_expected_value`, `hf_structural_band`, `hf_band_loss_factors`, `coupling_loss_factor_21`). So do the T1/T2-path functions that the full-suite coverage run showed were never executed (`tone_Q_H`, the α = 1 branch of `blocked_broadband_band_p2`, `w_in_reverberant`). Never executed by the suite but off the T1/T2 paths: the aircraft trim JSON parsing (`parse_aircraft_trim_json` and helpers), `build_aircraft_cache` and `_rand_triangular` (uncertainty), `fit_mrp_to_table_d1`, `appd_constraint_residuals`, `scale_acoustic_freq`, `hf_broadband_spectrum`. Registry builders also show as unexecuted, because they run when the package loads.
 
 **Remaining gaps (corrected 2026-10-23):** the q = 0 coupling difference against NASA (Q22). T2's exterior input was thought unmeasured (43e), but NASA TP-2444 Fig. 17 is a measured exterior and interior spectrum of this article at 4000 rpm (to 1.5 kHz); plan Phases 47–48.

@@ -358,8 +358,8 @@ Not blockers (recorded so nobody stops on them): BBN tip geometry beyond 40 in. 
 | Q20 | Phase 38 — CR-3813 / User Manual completeness (§8; audit `validation_reports/cr3813_completeness_audit.md`; 38a spec `docs/specs/38a_noise_reduction.md`, equation page images `docs/specs/cr3813_pages/`) | `src/` + cases (author: "the whole PAIN program is supposed to function just like it does in the PAIN Methodology") | Q19 (37b first: amplitude convention) | 38a done (`:not_met`); 38b done (I-18 rule not met); 38c done (T2 not met); 38d done (`:not_met`); 38e done (no verdict); 38f-1, 38f-2, 38h done; 38g done (`:met`, 27/32) in order; 38f–38h planned with the author before starting |
 | Q21 | **Phases 39–44 — block validation program** (§8b, at the bottom; audit `validation_reports/block_validation_audit.md`) | `src/` + tests + cases + GUI map | Q20 | **done 2026-10-23** (39–44); results in §8b |
 | Q24 | **Phase 46 — isolated checks for the five untested T1/T2 functions** (§8d) | tests in `runtests.jl` | Q21 | **done 2026-10-23**: 37/37 met |
-| Q25 | **Phase 47 — T2 with a measured exterior spectrum** (TP-2444 Fig. 17 = this article at 4000 rpm; §8d) | `data/tp2444/`, new cases | Q24 | planned |
-| Q26 | **Phase 48 — exterior broadband from physics (NASA RP-1218)** (§8d) | new source module, cases | Q25 | planned |
+| Q25 | **Phase 47 — T2 with a measured exterior spectrum** (TP-2444 Fig. 17 = this article at 4000 rpm; §8d) | `data/tp2444/`, new cases | Q24 | **done 2026-10-23**: not met (47a not met as written, 47b met, 47c 1/7, 47d 21.3 vs 51.0 dB); the cabin's high-frequency NR is the gap, also in NASA's own E-21/E-22 predictions |
+| Q26 | **Phase 48 — exterior broadband from physics (NASA RP-1218)** (§8d) | new source module, cases | Q25 | planned; 48d cannot pass with the printed cabin path (Phase 47) |
 | Q23 | **Phase 45 — T2's high-frequency path on the TP-1964 bare cylinder** (pre-registered 2026-10-23 before any run; §8c) | `hf_broadband.jl` via `PainInputs`, new case | Q21 | **done 2026-10-23**: not met 9/18; Eq. (19) bands 4/4 within ±2.5 dB |
 | Q22 | **q = 0 cabin modes against CR-172428 App. B** (after 44f). On NASA's printed pairs at 5000 rpm we agree within 0–6 dB, most within 1 dB. But our largest contributors have axially uniform (q = 0) cabin modes, e.g. (0,1) × mode 8 (5.6 Pa² against NASA's 4000 rpm H1 total of 0.59), and none of NASA's 25 printed top pairs has q = 0. Diagnostic only, not adopted: with q = 0 excluded, R172428_CODE would give 8/9 within ±3 dB. CR-3813 Eq. (57) and its Ref. [3] (CR-159363 Eq. 25, downloaded 2026-10-23) both give f₀M = 2/(Mπ) ≠ 0, so the documents do not explain NASA's output; no change without a documentary basis | `pain_core.jl` coupling, Ψ_G of antisymmetric modes | Q21 | open |
 
@@ -430,20 +430,9 @@ Moved to §11. Summary: base H1–H3 = 82.73, 75.73, 77.05 dB (= 18b-r); H3 top 
 
 ## 8b. Block validation program: phases 39–44 *(done 2026-10-23 except open item 44f in §3; moved to the bottom of this file on 2026-10-23; section number kept)*
 
-## 8c. Phase 45 — T2's high-frequency path on an independent experiment *(done 2026-10-23; pre-registered 2026-10-23, before any run of it)*
+## 8c. Phase 45 *(done 2026-10-23; moved to the bottom of this file on 2026-10-23; section number kept)*
 
-T2 (CR-3813 Fig. E-9, 1.25–2 kHz) cannot be validated end to end: no measured exterior broadband spectrum of the test article exists (43e), so its input is V-ASSUMED. The cabin part of T2 is the high-frequency transmission of Eqs. (19)–(23), which 43d did not test: it applied the modal Eq. (18) up to 5 kHz.
-
-| Step | What | Pass criterion (fixed 2026-10-23, before the run) |
-|------|------|---------------------------------------------------|
-| 45a | `NR_TP1964_XOVER`: TP-1964 bare cylinder (inputs as 43d: R = 0.252 m, L = 1.193 m, t = 1.63 mm aluminium, closed ends, no trim, no floor; Donnell shell modes; η_n and η_r′ from the measured reverberation times, η = 2.2/(f T₆₀)). PAIN's own switch: Eq. (18) below the card-10 changeover band (the band containing f = 4.1 c₀/∛V), Eqs. (19)–(23) at and above it. The cylinder is taken as θ₀ → 0 (no floor; absorbing area S = 2πRL + 2πR²); the Eq. (19) inputs are the Donnell modes with the measured η | V-EXP: within ±5 dB of the measured NR in ≥ 75 % of the 1/3-octave bands 100–5000 Hz (as 43d); reported separately for the bands at and above the changeover |
-| 45b | The same against NASA's predicted curve on the figure (ref. 2) | V-CODE: within ±3 dB in ≥ 75 % of those bands |
-
-No parameter is chosen from Fig. 8: all inputs are the 43d inputs, and the changeover follows the card-10 rule of 43a.
-
-**Result (2026-10-23; criteria unchanged).** 45a `NR_TP1964_XOVER` **not met**, 9/18 within ±5 dB; 45b **not met**, 8/18. The four bands on Eqs. (19)–(23) (2.5–5 kHz) agree with the measurement within ±2.5 dB. The misses are all modal Eq. (18) bands: negative NR at 1–2 kHz and 100–315 Hz. The first run the same day (8/18 and 7/18) put the 2500 Hz band on Eq. (18) because the code compared exact against nominal band centres (2520 vs 2500 Hz); that was fixed to the written rule, the band containing f. **Reading for T2:** the high-frequency transmission block T2 uses (Eqs. 19–23) is supported by an independent experiment above the changeover. T2's input, the exterior broadband spectrum, remains unmeasured (V-ASSUMED), so T2 itself cannot be validated.
-
-## 8d. Phases 46–48: isolated checks for the last T1/T2 functions, and T2 with a measured exterior spectrum *(planned 2026-10-23; author request "yes make the plan"; criteria below dated 2026-10-23, before any of these checks is written or run)*
+## 8d. Phases 46–48: isolated checks for the last T1/T2 functions, and T2 with a measured exterior spectrum *(46 and 47 done 2026-10-23 and moved to the bottom of this file; 48 planned; planned 2026-10-23; author request "yes make the plan"; criteria below dated 2026-10-23, before any of these checks is written or run)*
 
 **Why.**
 
@@ -460,44 +449,6 @@ No parameter is chosen from Fig. 8: all inputs are the 43d inputs, and the chang
   - CR-172428 Fig. 14: free-field exterior spectrum, 5000 rpm, 0–2 kHz, no fuselage.
   - TP-2444 Fig. 19: model 2 space-averaged interior 1/3-octave spectrum, 4000 rpm, propeller at θ_p = 135°, to 6.3 kHz.
 
-### Phase 46 — Isolated checks for the five untested T1/T2 functions *(done 2026-10-23; V-UNIT; criteria fixed 2026-10-23)*
-
-Each check computes the printed equation by hand in the test, for stated inputs. The hand path is written from the equation in CR-3813, not by calling the function's helpers, so the check fails if the function departs from the equation (CLAUDE.md check 6).
-
-| Step | Function | Check | Pass criterion (fixed 2026-10-23) |
-|------|----------|-------|-----------------------------------|
-| 46a | `broadband_cabin_p2` | Two bands of the T1/T2 test-article inputs: its documented formula by hand (τ_t, ⟨j²⟩_rev, χ = n/n_ref, absorption, `j2_scale`); linearity in `p2_bl` and in `j2_scale`; zero for `p2_bl` ≤ 0 | relative difference ≤ 1e-9; linearity exact to 1e-12 |
-| 46b | `tone_expected_value` | Synthetic cabin with one acoustic and one structural mode in the band: Eqs. (14)–(16) by hand (mode counts, η̄_n, η̄_r, E[g]). N-mode scaling: doubling every in-band mode, with identical properties, doubles the Eq. (16) mode sums | ≤ 1e-9 relative; scaling exact to 1e-12 |
-| 46c | `hf_structural_band`, `hf_band_loss_factors` | Synthetic `StructuralModes` with three modes inside the band and two outside, with known joint acceptances: n_r, ⟨j²⟩, Σ(j²)², and the asymptotic branch when no mode is in the band; η̄_n, ᾱ (Eq. 24) and η_rad (Eq. 81) by hand | ≤ 1e-12 relative; branch selected as specified |
-| 46d | `coupling_loss_factor_21` | Eqs. (A.20)–(A.21) by hand for stated m, h, c_l, m_t, h_t, c_t, N and line length; zero when N = 0 and the line length is 0; point and line parts additive | ≤ 1e-12 relative |
-| 46e | whole suite | Line coverage of the full suite (`Pkg.test(coverage=true)`, run started 2026-10-23): every physics function with a never-executed branch either gets a test or is listed with the reason | list recorded; no criterion beyond completeness |
-
-**Result (2026-10-23; criteria unchanged).** Phase 46 is **met**: 37/37 checks in testset "Isolated checks for T1/T2 functions (phase 46)".
-- 46a `broadband_cabin_p2`: matches its formula assembled by hand at 1250 and 2000 Hz within 1e-9; linear in `p2_bl` and `j2_scale`; zero for `p2_bl` ≤ 0.
-- 46b `tone_expected_value`:
-  - Eq. (16) by hand at 600 Hz within 1e-9.
-  - η̄_n and η̄_r band averages exact.
-  - The closed-form E[g] path reduces to the π-limit Eq. (15) when E[g] = πω_H/(2η̄Δω).
-  - Doubling every in-band structural mode doubles Eq. (16).
-  - An empty band (125 Hz) gives zero.
-- 46c `hf_structural_band` / `hf_band_loss_factors` (synthetic set, 3 modes in band, 2 outside): n_r, ⟨j²⟩, Σ(j²)², the asymptotic branch, η̄_n, ᾱ (Eq. 24), η_rad (Eq. 81) and η̄_r′ all exact to 1e-12.
-- 46d `coupling_loss_factor_21`: Eqs. (A.20)–(A.21) by hand within 1e-12; zero with no connections; the point part alone equals Eq. (A.20).
-- 46e, from the full-suite coverage run of 2026-10-23: the functions on the T1/T2 paths that the suite never executed now have checks:
-  - `tone_Q_H`: Q_H of p. 17 by hand.
-  - The α = 1 branch of `blocked_broadband_band_p2`: it is the limit of the power-law branch within 1e-5.
-  - `w_in_reverberant`: linear in p_bl², and the total equals the sum of its contributions.
-  - Never-executed functions off the T1/T2 paths are listed in `block_validation_audit.md`.
-
-### Phase 47 — T2 with a measured exterior spectrum of the test article *(planned; criteria fixed 2026-10-23)*
-
-| Step | What | Pass criterion (fixed 2026-10-23) |
-|------|------|-----------------------------------|
-| 47a | Digitize into `data/tp2444/` and `data/cr172428/`: TP-2444 Fig. 17 (exterior and interior traces, 0–1500 Hz), CR-172428 Fig. 14 (0–2000 Hz) and TP-2444 Fig. 19 (1/3-octave, both rotation directions). Two independent digitizations of each trace, QA overlays, tone peaks marked; figure and page references in the headers | the two digitizations agree within 1 dB median and 3 dB at the 95th percentile of points; tone frequencies at H·200 Hz within one analysis bin |
-| 47b | Narrowband → 1/3-octave: energy sum of the trace over each band, with the tone peaks (H·BPF ± 2 bins) removed for the broadband level. TP-2444 does not state the analysis bandwidth B. **B = 5 Hz is assumed** (V-ASSUMED), because the same laboratory's CR-172428 Fig. 17 states 5 Hz; the sensitivity for B = 2.5–10 Hz (±3 dB) is reported. Band ratios (47c) do not depend on B | conversion code checked on a synthetic flat spectrum (exact band level) |
-| 47c | `NR_PROP_TP2444`: measured broadband noise reduction of the article under propeller excitation, NR = L_ext − L_int per 1/3-octave band, against the model's noise reduction for the same article. Primary inputs: the CR-172428 App. B trim (the documented trim of this article closest in date to TP-2444; the TP-2444 fiberglass trim has no printed properties) and the card-10 changeover (Eq. 18 below, Eqs. 19–23 at and above). The CR-3813 Phase III trim is reported alongside, with no criterion | V-EXP: within ±5 dB in ≥ 75 % of the broadband 1/3-octave bands 315–1250 Hz (tone bands excluded) |
-| 47d | `T2_MEAS_EXT`: T2 with the measured exterior. The 1250 Hz exterior band level from 47b is taken as the blocked surface pressure (V-ASSUMED: it is the microphone recording the "exterior noise applied to the model", position not stated). It goes through T2's production cabin path (Eqs. 19–23, T2 inputs) and is compared with CR-3813 Fig. E-9. The 1600 and 2000 Hz exterior levels are extrapolated with the slope of CR-172428 Fig. 14 between its 1250 and 2000 Hz bands (shape V-ASSUMED) and reported separately | V-EXP: the 1250 Hz band within ±3.5 dB of E-9 (51.0 dB), T2's gate. 1600/2000 Hz: same gate, labelled "extrapolated exterior". Secondary: the 1250 Hz interior against TP-2444 Fig. 17's own interior trace (same run), ±3.5 dB |
-| 47e | Consistency loop (data only): E-9 interior + model NR (47c inputs) against the measured exterior floor of 47b | reported (no criterion) |
-
 ### Phase 48 — Predict the exterior broadband from physics *(planned; criteria fixed 2026-10-23)*
 
 | Step | What | Pass criterion (fixed 2026-10-23) |
@@ -506,6 +457,8 @@ Each check computes the printed equation by hand in the test, for stated inputs.
 | 48b | Propeller broadband at a field point from 48a: the BEMT section loads (CCBlade, as R996_LOADS) of the 0.76 m propeller, strip sum and Doppler factor | — (model) |
 | 48c | `PROP_BB_FIG14` / `PROP_BB_FIG17`: 48b against the broadband floors of CR-172428 Fig. 14 (5000 rpm, free field) and TP-2444 Fig. 17 (4000 rpm), after 47b | V-EXP: within ±5 dB in ≥ 75 % of the 1/3-octave bands 315–2000 Hz (Fig. 17: to 1250 Hz) |
 | 48d | T2 fully predictive: 48b exterior → T2 cabin path → E-9 | V-EXP: T2's gate (±3.5 dB, 1250–2000 Hz) |
+
+**Note after Phase 47 (2026-10-23; criteria unchanged).** 47 shows that the T2 gap is in the cabin path, not only the exterior. 48d cannot pass with the printed Eqs. (19)–(23), which overpredict this article's noise reduction by 15–27 dB at 1250 Hz. 48a–48c, the exterior broadband, stay meaningful on their own.
 
 **Rules.** No parameter is chosen from E-9, from the Fig. 17 interior trace or from Fig. 19. The analysis bandwidth, trim, microphone treatment and extrapolation shape are fixed above, before any digitization. Anything decided after a result is post-hoc and labelled.
 
@@ -1895,3 +1848,105 @@ Nothing is fitted: η_T = 0.13 and all other inputs are NASA's documented values
 - REPRO_18b, E18_TONES and E21_E22_NR lose sub-points, since they compare with NASA's pre-correction runs.
 - Phase 17 baselines re-recorded (29 values, dated).
 **Out-of-sample confirmation (2026-10-23):** ten further pairs from the 5000 rpm page (App. B p. 212), which were not used to choose the sign, give NASA's implied |f′| = |I_s + I_p| within 1.1 % for nine. One of them is antisymmetric mode 8 with (2,1): 0.0741 against 0.0747, where the old sign gives 0.0151. The tenth has η_r″ printed as 0.00001, too coarse to compare. Data: `appB_contributors_5000rpm.csv`; regression test over the 19 pairs printed to two or more digits (within 5 %, recorded post-hoc). The remaining large difference is the single pair (0,1) × mode 8 at H1, open as Q22.
+
+## 8c. Phase 45 — T2's high-frequency path on an independent experiment *(done 2026-10-23; pre-registered 2026-10-23, before any run of it; moved to the bottom 2026-10-23)*
+
+T2 (CR-3813 Fig. E-9, 1.25–2 kHz) cannot be validated end to end: no measured exterior broadband spectrum of the test article exists (43e), so its input is V-ASSUMED. The cabin part of T2 is the high-frequency transmission of Eqs. (19)–(23), which 43d did not test: it applied the modal Eq. (18) up to 5 kHz.
+
+| Step | What | Pass criterion (fixed 2026-10-23, before the run) |
+|------|------|---------------------------------------------------|
+| 45a | `NR_TP1964_XOVER`: TP-1964 bare cylinder (inputs as 43d: R = 0.252 m, L = 1.193 m, t = 1.63 mm aluminium, closed ends, no trim, no floor; Donnell shell modes; η_n and η_r′ from the measured reverberation times, η = 2.2/(f T₆₀)). PAIN's own switch: Eq. (18) below the card-10 changeover band (the band containing f = 4.1 c₀/∛V), Eqs. (19)–(23) at and above it. The cylinder is taken as θ₀ → 0 (no floor; absorbing area S = 2πRL + 2πR²); the Eq. (19) inputs are the Donnell modes with the measured η | V-EXP: within ±5 dB of the measured NR in ≥ 75 % of the 1/3-octave bands 100–5000 Hz (as 43d); reported separately for the bands at and above the changeover |
+| 45b | The same against NASA's predicted curve on the figure (ref. 2) | V-CODE: within ±3 dB in ≥ 75 % of those bands |
+
+No parameter is chosen from Fig. 8: all inputs are the 43d inputs, and the changeover follows the card-10 rule of 43a.
+
+**Result (2026-10-23; criteria unchanged).** 45a `NR_TP1964_XOVER` **not met**, 9/18 within ±5 dB; 45b **not met**, 8/18. The four bands on Eqs. (19)–(23) (2.5–5 kHz) agree with the measurement within ±2.5 dB. The misses are all modal Eq. (18) bands: negative NR at 1–2 kHz and 100–315 Hz. The first run the same day (8/18 and 7/18) put the 2500 Hz band on Eq. (18) because the code compared exact against nominal band centres (2520 vs 2500 Hz); that was fixed to the written rule, the band containing f. **Reading for T2:** the high-frequency transmission block T2 uses (Eqs. 19–23) is supported by an independent experiment above the changeover. *Qualified by Phase 47 (2026-10-23): that holds for the bare cylinder. For the trimmed test article, the same equations overpredict noise reduction by 15–27 dB at 1250 Hz.* T2's input, the exterior broadband spectrum, remains unmeasured (V-ASSUMED), so T2 itself cannot be validated.
+
+## 8d (done part). Phases 46–47 *(done 2026-10-23; moved to the bottom 2026-10-23; Phase 48 stays in §8d)*
+
+### Phase 46 — Isolated checks for the five untested T1/T2 functions *(done 2026-10-23; V-UNIT; criteria fixed 2026-10-23)*
+
+Each check computes the printed equation by hand in the test, for stated inputs. The hand path is written from the equation in CR-3813, not by calling the function's helpers, so the check fails if the function departs from the equation (CLAUDE.md check 6).
+
+| Step | Function | Check | Pass criterion (fixed 2026-10-23) |
+|------|----------|-------|-----------------------------------|
+| 46a | `broadband_cabin_p2` | Two bands of the T1/T2 test-article inputs: its documented formula by hand (τ_t, ⟨j²⟩_rev, χ = n/n_ref, absorption, `j2_scale`); linearity in `p2_bl` and in `j2_scale`; zero for `p2_bl` ≤ 0 | relative difference ≤ 1e-9; linearity exact to 1e-12 |
+| 46b | `tone_expected_value` | Synthetic cabin with one acoustic and one structural mode in the band: Eqs. (14)–(16) by hand (mode counts, η̄_n, η̄_r, E[g]). N-mode scaling: doubling every in-band mode, with identical properties, doubles the Eq. (16) mode sums | ≤ 1e-9 relative; scaling exact to 1e-12 |
+| 46c | `hf_structural_band`, `hf_band_loss_factors` | Synthetic `StructuralModes` with three modes inside the band and two outside, with known joint acceptances: n_r, ⟨j²⟩, Σ(j²)², and the asymptotic branch when no mode is in the band; η̄_n, ᾱ (Eq. 24) and η_rad (Eq. 81) by hand | ≤ 1e-12 relative; branch selected as specified |
+| 46d | `coupling_loss_factor_21` | Eqs. (A.20)–(A.21) by hand for stated m, h, c_l, m_t, h_t, c_t, N and line length; zero when N = 0 and the line length is 0; point and line parts additive | ≤ 1e-12 relative |
+| 46e | whole suite | Line coverage of the full suite (`Pkg.test(coverage=true)`, run started 2026-10-23): every physics function with a never-executed branch either gets a test or is listed with the reason | list recorded; no criterion beyond completeness |
+
+**Result (2026-10-23; criteria unchanged).** Phase 46 is **met**: 37/37 checks in testset "Isolated checks for T1/T2 functions (phase 46)".
+- 46a `broadband_cabin_p2`: matches its formula assembled by hand at 1250 and 2000 Hz within 1e-9; linear in `p2_bl` and `j2_scale`; zero for `p2_bl` ≤ 0.
+- 46b `tone_expected_value`:
+  - Eq. (16) by hand at 600 Hz within 1e-9.
+  - η̄_n and η̄_r band averages exact.
+  - The closed-form E[g] path reduces to the π-limit Eq. (15) when E[g] = πω_H/(2η̄Δω).
+  - Doubling every in-band structural mode doubles Eq. (16).
+  - An empty band (125 Hz) gives zero.
+- 46c `hf_structural_band` / `hf_band_loss_factors` (synthetic set, 3 modes in band, 2 outside): n_r, ⟨j²⟩, Σ(j²)², the asymptotic branch, η̄_n, ᾱ (Eq. 24), η_rad (Eq. 81) and η̄_r′ all exact to 1e-12.
+- 46d `coupling_loss_factor_21`: Eqs. (A.20)–(A.21) by hand within 1e-12; zero with no connections; the point part alone equals Eq. (A.20).
+- 46e, from the full-suite coverage run of 2026-10-23: the functions on the T1/T2 paths that the suite never executed now have checks:
+  - `tone_Q_H`: Q_H of p. 17 by hand.
+  - The α = 1 branch of `blocked_broadband_band_p2`: it is the limit of the power-law branch within 1e-5.
+  - `w_in_reverberant`: linear in p_bl², and the total equals the sum of its contributions.
+  - Never-executed functions off the T1/T2 paths are listed in `block_validation_audit.md`.
+
+### Phase 47 — T2 with a measured exterior spectrum of the test article *(done 2026-10-23; criteria fixed 2026-10-23)*
+
+| Step | What | Pass criterion (fixed 2026-10-23) |
+|------|------|-----------------------------------|
+| 47a | Digitize into `data/tp2444/` and `data/cr172428/`: TP-2444 Fig. 17 (exterior and interior traces, 0–1500 Hz), CR-172428 Fig. 14 (0–2000 Hz) and TP-2444 Fig. 19 (1/3-octave, both rotation directions). Two independent digitizations of each trace, QA overlays, tone peaks marked; figure and page references in the headers | the two digitizations agree within 1 dB median and 3 dB at the 95th percentile of points; tone frequencies at H·200 Hz within one analysis bin |
+| 47b | Narrowband → 1/3-octave: energy sum of the trace over each band, with the tone peaks (H·BPF ± 2 bins) removed for the broadband level. TP-2444 does not state the analysis bandwidth B. **B = 5 Hz is assumed** (V-ASSUMED), because the same laboratory's CR-172428 Fig. 17 states 5 Hz; the sensitivity for B = 2.5–10 Hz (±3 dB) is reported. Band ratios (47c) do not depend on B | conversion code checked on a synthetic flat spectrum (exact band level) |
+| 47c | `NR_PROP_TP2444`: measured broadband noise reduction of the article under propeller excitation, NR = L_ext − L_int per 1/3-octave band, against the model's noise reduction for the same article. Primary inputs: the CR-172428 App. B trim (the documented trim of this article closest in date to TP-2444; the TP-2444 fiberglass trim has no printed properties) and the card-10 changeover (Eq. 18 below, Eqs. 19–23 at and above). The CR-3813 Phase III trim is reported alongside, with no criterion | V-EXP: within ±5 dB in ≥ 75 % of the broadband 1/3-octave bands 315–1250 Hz (tone bands excluded) |
+| 47d | `T2_MEAS_EXT`: T2 with the measured exterior. The 1250 Hz exterior band level from 47b is taken as the blocked surface pressure (V-ASSUMED: it is the microphone recording the "exterior noise applied to the model", position not stated). It goes through T2's production cabin path (Eqs. 19–23, T2 inputs) and is compared with CR-3813 Fig. E-9. The 1600 and 2000 Hz exterior levels are extrapolated with the slope of CR-172428 Fig. 14 between its 1250 and 2000 Hz bands (shape V-ASSUMED) and reported separately | V-EXP: the 1250 Hz band within ±3.5 dB of E-9 (51.0 dB), T2's gate. 1600/2000 Hz: same gate, labelled "extrapolated exterior". Secondary: the 1250 Hz interior against TP-2444 Fig. 17's own interior trace (same run), ±3.5 dB |
+| 47e | Consistency loop (data only): E-9 interior + model NR (47c inputs) against the measured exterior floor of 47b | reported (no criterion) |
+
+**Implementation decisions for 47b–47d (fixed 2026-10-23, after 47a and before any band level, NR or interior level was computed).** The plan text above leaves these open:
+- **Bins.** Each trace is sampled at 5 Hz bin centres (k·B), at the mean of the digitized columns within ±B/2. A band holds the bins with centres in [f_c·2^(−1/6), f_c·2^(1/6)), where f_c is the exact centre 1000·2^(k/3).
+- **Tone bins.** A bin is a tone bin if it lies within ±2 bins (±10 Hz) of H·BPF **or** of the observed tone peak, whichever is further out. The observed peak is the maximum of the top of the ink within H·BPF ± 0.15 BPF, as in the 47a QA. The union is used because the CR-172428 Fig. 14 peaks sit 9–22 Hz below H·250 Hz (47a: the frequency axis is offset from the trace). Peak positions are a property of the figure's registration, not of any data a case is compared with.
+- **Filling the tone bins.** For the broadband level, removed tone bins are filled with the mean mean-square of the kept bins in the same band. A flat spectrum therefore gives the exact band level with or without tones.
+- **Partial bands.** A band that the trace covers only in part is scaled by (number of bins in the band)/(number of bins covered), which assumes a flat density over the uncovered part. This applies to Fig. 14's 2000 Hz band, whose trace ends at 1981 Hz. The coverage is reported, and a band less than 40 % covered gets no value.
+- **47c bands.** "Tone bands excluded" is read as: use the broadband level (tones removed as above) in all seven bands 315–1250 Hz. The strict reading, bands that contain no H·200 Hz (315 and 500 Hz only), is reported alongside with no criterion.
+- **47c model.** `noise_reduction_band` on `r172428_inputs(4000)`: Eq. (18) below the card-10 band (`volume_crossover_band`), Eqs. (19)–(23) at and above it, no η_r′ cap. The Phase III alternative swaps in the sidewall, end and mechanical trim of `phase3_trim(η_lining = 1.0)` and keeps the article's shell.
+- **47d path.** p_bl² = p_ref²·10^(L_ext/10) into `hf_broadband_band_p2(T2 inputs, b, p_bl²)`. That is T2's production broadband path with `broadband_model = :eq19` and the T2 pipeline inputs (`:e11`, R2, 5 harmonics, BPF 200 Hz). The extrapolation is L(1600) = L(1250) + S/2 and L(2000) = L(1250) + S, with S = L_bb,2000 − L_bb,1250 from Fig. 14 pass A.
+- **Pass A is primary** for every figure. Pass B is reported as the digitizing sensitivity.
+- **47d exterior level.** The broadband (tone-removed) 1250 Hz band level is used. T2's 1250–2000 Hz bands carry only broadband energy, because its tones stop at H5 = 1000 Hz. The total band level (tones included) is reported alongside.
+
+**Result (2026-10-23; criteria and the implementation decisions above unchanged).** Report: `validation_reports/t2_measured_exterior.md`.
+
+- **47a: not met as written** (Fig. 19 met). Two-pass agreement, median / p95 of all points:
+
+  | Trace | Median (dB) | p95 (dB) |
+  |-------|-------------|----------|
+  | Fig. 17 exterior | 0.63 | 7.62 |
+  | Fig. 17 interior | 0.65 | 4.75 |
+  | Fig. 14 | 0.87 | 4.07 |
+  | Fig. 19 | 0.17 | 2.17 |
+
+  - The all-points misses are near-vertical tone lines, where the centre and top-of-ink rules differ.
+  - Broadband points alone give 0.60/1.73 (Fig. 17 exterior), 0.62/2.68 (interior) and 0.83/3.69 dB (Fig. 14).
+  - Tone peaks:
+    - Fig. 17 exterior: 5 of 7 within one 5 Hz bin (H1 +6 Hz, H3 +7 Hz).
+    - Fig. 17 interior: H1–H3 within one bin; H4–H7 not identifiable.
+    - Fig. 14: all 9–22 Hz below H·250 Hz. Its frequency axis is offset from the trace.
+- **47b: met.** The conversion is exact on synthetic spectra: flat, with a tone, partly covered, and B = 10 Hz. Changing B moves the 1250 Hz exterior level by +4.3 dB (B = 2.5 Hz) and −3.9 dB (B = 10 Hz).
+- **47c `NR_PROP_TP2444`: not met, 1/7** (only 1000 Hz). The strict reading gives 0/2.
+  - The measured broadband NR is 30.0–36.0 dB in every band from 315 to 1250 Hz.
+  - The model (App. B trim) gives 16.6, 13.5, 7.5, 5.0 and 8.7 dB at 315–800 Hz (Eq. 18: 18–26 dB too little), 34.0 dB at 1000 Hz, and 49.1 dB at 1260 Hz (Eqs. 19–23: 15 dB too much).
+  - Phase III trim (no criterion): 10.9–19.0 dB below 1000 Hz, 41.9 dB at 1000 Hz, 55.7 dB at 1260 Hz.
+- **47d `T2_MEAS_EXT`: not met.**
+  - The measured exterior at 1250 Hz, 85.4 dB broadband, gives an interior of 21.3 dB against E-9's 51.0 dB.
+  - With the extrapolated exterior (Fig. 14 slope +0.3 dB): 19.7 and 19.9 dB at 1600 and 2000 Hz, against 46.0 and 41.5 dB.
+  - Secondary, the Fig. 17 interior (51.5 dB): not met.
+  - Post-hoc information: the production surrogate gives 38.6 dB with the same exterior. T2's own modelled blocked broadband is 102.7 dB, 17 dB above the measured exterior.
+- **47e (no criterion).** E-9 plus the model NR exceeds the measured exterior by 14.6, 18.9 and 25.5 dB at 1250, 1600 and 2000 Hz.
+
+**Reading.** The measurements agree with each other: exterior 85.4 dB less measured NR 33.9 dB gives 51.5 dB, and E-9 is 51.0 dB. What fails is PAIN's predicted noise reduction of the trimmed article.
+- Above about 1 kHz the printed Eqs. (19)–(23) give 15–27 dB too much.
+- NASA's own printed predictions show the same excess: CR-3813 Figs. E-21/E-22 give 52–69 dB at 1250–2500 Hz, against 19.5–32 dB measured. This code gives 60–62 dB with the E-21 inputs.
+- Below the changeover, Eq. (18) gives too little.
+
+**What this means for T2.** T2 cannot be shown right with the printed method. Its production result near E-9 rests on a modelled exterior 17 dB above the measurement and on the calibrated `bb_j2_scale`. Phase 45's support for Eqs. (19)–(23) holds for the bare cylinder only.
+
+**Candidate cause, not tested.** In Eq. (23) the trim and the wall transmit in series (τ_t·τ), with no path that bypasses the trim.
