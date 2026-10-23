@@ -122,7 +122,7 @@ It is done when the PowerShell prompt returns without an `ERROR`.
 julia --project=. -e "using Pkg; Pkg.test()"
 ```
 
-Expected: a test summary ending with all tests passed.
+Expected: a test summary ending with all tests passed. The suite writes reports and figures only under a temp dir (`TEST_OUT`), so it leaves the git tree clean.
 
 To run only some top-level testsets (substring match on the title, case-insensitive):
 

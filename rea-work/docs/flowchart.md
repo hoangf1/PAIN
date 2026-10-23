@@ -16,7 +16,7 @@ Colour key in diagrams: green = check exists and passes as stated; orange = plan
 - **Phases 38d–38e / 38c / 38h / 38g / 36:** E18_TONES, E15_STRUCT_LOSS, HF broadband, printed outputs, MRP_APPD, cabin mode animation — see `IMPLEMENTATION_PLAN.md`.
 - **L = 1.83 m (I-22, post-hoc):** `test_article_length()` default; re-records in `length_rerecord_before_after.md`; no verdict flips.
 - **Grid azimuth (12b):** ℓ = 1 at propeller azimuth; pre-2026-10-20 e11 results void.
-- **Test tooling (P1):** `Pkg.test` `test_args` substrings; DaemonMode optional under `scripts/devtools/`.
+- **Test tooling (P1):** `Pkg.test` `test_args` substrings; DaemonMode optional under `scripts/devtools/`. Tests write only to a temp dir; a final check fails if the suite modifies tracked docs/data (2026-10-23).
 - **Layout (R1):** CR-3813 data under `data/cr3813/`; scripts under `PAIN.jl/scripts/{run,checks,digitize,setup,smoke}/`.
 
 ## 1. Overview

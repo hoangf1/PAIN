@@ -6,10 +6,15 @@ using Statistics
 # Top-level testset filter (task P1). Empty ARGS → run everything.
 # Pkg.test("PAIN"; test_args=["CYL2D"]) puts substrings in ARGS (case-insensitive match on title).
 # Helpers are defined once so DaemonMode can re-include this file with shared=true.
+# All test-generated reports/figures go under TEST_OUT so Pkg.test() leaves the git tree clean.
 if !isdefined(@__MODULE__, :_run_if)
     const _TEST_FILTER = String[]
     const _TESTSETS_RAN = String[]
     const _TESTSETS_SKIPPED = String[]
+    const TEST_OUT = mktempdir()
+    # Pre-existing dirty tracked docs/data paths (repo-relative → content hash) at suite start.
+    const _DOCS_DATA_BASELINE = Dict{String,String}()
+    const _DOCS_DATA_REPO = Ref{String}("")
 
     function _want_testset(title::AbstractString)
         isempty(_TEST_FILTER) && return true
@@ -34,12 +39,66 @@ if !isdefined(@__MODULE__, :_run_if)
         end
         return nothing
     end
+
+    """Parse `git status --porcelain` lines into tracked docs/data paths (repo-relative, `/`).
+    Skips untracked (`??`) and VALIDATION_MAP_TOTAL*.png under validation_reports/figures."""
+    function _parse_docs_data_porcelain(raw::AbstractString)
+        dirty = String[]
+        for line in split(raw, '\n'; keepempty=false)
+            length(line) < 4 && continue
+            line[1:2] == "??" && continue  # ignore untracked
+            path = strip(line[3:end])
+            if startswith(path, "\"") && endswith(path, "\"")
+                path = path[2:end-1]
+            end
+            occursin(" -> ", path) && (path = split(path, " -> "; limit=2)[2])
+            path = replace(path, '\\' => '/')
+            # Smoke scripts write these on purpose; the suite itself must not.
+            endswith(path, ".png") && occursin("VALIDATION_MAP_TOTAL", basename(path)) &&
+                occursin("validation_reports/figures", path) && continue
+            under = startswith(path, "rea-work/docs/") || startswith(path, "rea-work/data/") ||
+                    startswith(path, "docs/") || startswith(path, "data/")
+            under && push!(dirty, path)
+        end
+        return dirty
+    end
+
+    function _docs_data_abspath(repo::AbstractString, rel::AbstractString)
+        return normpath(joinpath(repo, split(rel, '/')...))
+    end
+
+    # Content hash via git (SHA-1 blob id); avoids needing SHA.jl in the test env.
+    function _file_content_hash(path::AbstractString)
+        isfile(path) || return ""
+        return readchomp(`git hash-object -- $path`)
+    end
 end
 
 empty!(_TEST_FILTER)
 append!(_TEST_FILTER, lowercase.(String.(ARGS)))
 empty!(_TESTSETS_RAN)
 empty!(_TESTSETS_SKIPPED)
+
+# Snapshot already-dirty docs/data so mid-task edits are not blamed on the suite.
+empty!(_DOCS_DATA_BASELINE)
+_DOCS_DATA_REPO[] = ""
+let rea = abspath(joinpath(@__DIR__, "..", ".."))  # rea-work
+    if Sys.which("git") !== nothing
+        inside = try
+            readchomp(`git -C $rea rev-parse --is-inside-work-tree`) == "true"
+        catch
+            false
+        end
+        if inside
+            repo = abspath(readchomp(`git -C $rea rev-parse --show-toplevel`))
+            _DOCS_DATA_REPO[] = repo
+            raw = read(`git -C $repo status --porcelain -- $rea`, String)
+            for p in _parse_docs_data_porcelain(raw)
+                _DOCS_DATA_BASELINE[p] = _file_content_hash(_docs_data_abspath(repo, p))
+            end
+        end
+    end
+end
 
 _run_if("Blocking Eq.43 vs CR-172428 p.68 (V-UNIT)") do
     tol = 0.06
@@ -65,8 +124,7 @@ _run_if("Blocking Eq.43 vs CR-172428 p.68 (V-UNIT)") do
         "got=$(round(dL0_R2; digits=4)) dB",
     ))
     @test blocked_amplitude(2.5, 0.0; variant=R1) ≈ blocking_factor(0.0) * 2.5
-    out = joinpath(@__DIR__, "..", "..", "docs", "validation_reports", "blocking_p68.md")
-    mkpath(dirname(out))
+    out = joinpath(TEST_OUT, "blocking_p68.md")
     write_validation_record(out, records)
 end
 
@@ -365,8 +423,7 @@ _run_if("Table D-1 seed load (transcription check; residual 0 by construction)")
     @test length(s.modes) == 32
     records = validate_mrp_table_d1(s; tol_frac=0.001, label="transcription (by construction)")
     @test all(r -> r.result == "PASS", records)
-    out = joinpath(@__DIR__, "..", "..", "docs", "validation_reports", "mrp_table_d1.md")
-    mkpath(dirname(out))
+    out = joinpath(TEST_OUT, "mrp_table_d1.md")
     write_validation_record(out, records)
 end
 
@@ -388,7 +445,7 @@ _run_if("Fig E-11 digitization path (SRC_TA)") do
             "δ_dig max |A-B|", "≤ 1.0 dB", δmax ≤ 1.0 ? "PASS" : "FAIL",
             "δmax=$(round(δmax; digits=2)) dB; H1=$(round(δH[1]; digits=2)) H2=$(round(δH[2]; digits=2)) H3=$(round(δH[3]; digits=2))"),
     ]
-    out = joinpath(@__DIR__, "..", "..", "docs", "validation_reports", "e11_delta_dig.md")
+    out = joinpath(TEST_OUT, "e11_delta_dig.md")
     write_validation_record(out, records)
 end
 
@@ -408,10 +465,10 @@ _run_if("E-11 pipeline: T1/T2 recorded, not asserted (Eq. 8 chain, no tuning)") 
     # Since phase 17a no parameter of the tone path is fitted to T1 or T2, so the outcome is a result, not a gate.
     i17_header = "Re-recorded 2026-10-21 after the amplitude-convention fix (I-17; sources cited); result known in advance in direction, therefore post-hoc."
     t1 = evaluate_T1(r.spectrum)
-    write_validation_record(joinpath(@__DIR__, "..", "..", "docs", "validation_reports", "t1_tonal.md"), t1; header=i17_header)
+    write_validation_record(joinpath(TEST_OUT, "t1_tonal.md"), t1; header=i17_header)
     @test length(t1) == 3
     t2 = evaluate_T2(r.spectrum)
-    write_validation_record(joinpath(@__DIR__, "..", "..", "docs", "validation_reports", "t2_third_octave.md"), t2; header=i17_header)
+    write_validation_record(joinpath(TEST_OUT, "t2_third_octave.md"), t2; header=i17_header)
     @test !isempty(t2)
     @info "T1/T2 recorded (not asserted)" T1 = [rec.result for rec in t1] T2 = [rec.result for rec in t2]
 end
@@ -1163,7 +1220,7 @@ _run_if("Polar display cases") do
         # Empty per-panel overrides leave other cases' PlotSpec behaviour unchanged.
         spec = VALIDATION_CASES[id].plot_spec
         @test !isempty(spec.panel_xlabels)
-        png = plot_case(r, spec)
+        png = plot_case(r, spec; path=joinpath(TEST_OUT, "$(r.id).png"))
         @test isfile(png)
         @test filesize(png) > 0
     end
@@ -2642,7 +2699,8 @@ _run_if("Validation case registry (34d)") do
     @test rr.table[1].computed ≈ 85.90 atol=0.01
     @test rr.table[2].computed ≈ 78.35 atol=0.01
     @test rr.table[3].computed ≈ 79.82 atol=0.01
-    png = plot_case(r1, VALIDATION_CASES["CYL2D_C1"].plot_spec)
+    png = plot_case(r1, VALIDATION_CASES["CYL2D_C1"].plot_spec;
+                    path=joinpath(TEST_OUT, "CYL2D_C1.png"))
     @test isfile(png)
     @test filesize(png) > 0
     # R996_FIG8 removed 2026-10-21 (I-20: M_t=1.0 out of scope)
@@ -2700,7 +2758,8 @@ _run_if("Validation case registry (34d)") do
     for id in VALIDATION_CASE_ORDER
         r = results_by_id[id]
         isempty(r.table) && continue
-        png = plot_case(r, VALIDATION_CASES[id].plot_spec)
+        png = plot_case(r, VALIDATION_CASES[id].plot_spec;
+                        path=joinpath(TEST_OUT, "$(id).png"))
         @test isfile(png) && filesize(png) > 0
         groups = unique(String[isempty(row.group) ? PAIN._error_quantity_group(row.quantity) : row.group
                                for row in r.table
@@ -2788,6 +2847,55 @@ _run_if("Length override") do
     end
     @test test_article_length() == 1.83
     @test !test_article_length_overridden()
+end
+
+_run_if("Git porcelain docs/data parse helper") do
+    synthetic = """
+ M rea-work/docs/flowchart.md
+?? rea-work/docs/untracked.md
+R  rea-work/docs/old.md -> rea-work/docs/renamed.md
+ M "rea-work/docs/quoted name.md"
+ M rea-work/src/not_docs.jl
+ M rea-work/docs/validation_reports/figures/VALIDATION_MAP_TOTAL_x.png
+ M rea-work/data/foo.csv
+"""
+    got = _parse_docs_data_porcelain(synthetic)
+    @test got == [
+        "rea-work/docs/flowchart.md",
+        "rea-work/docs/renamed.md",
+        "rea-work/docs/quoted name.md",
+        "rea-work/data/foo.csv",
+    ]
+end
+
+_run_if("Suite leaves tree clean") do
+    rea = abspath(joinpath(@__DIR__, "..", ".."))  # rea-work
+    if Sys.which("git") === nothing
+        @info "Suite leaves tree clean: skipped (git unavailable)"
+        return
+    end
+    inside = try
+        readchomp(`git -C $rea rev-parse --is-inside-work-tree`) == "true"
+    catch
+        false
+    end
+    if !inside
+        @info "Suite leaves tree clean: skipped (package dir not inside a git work tree)"
+        return
+    end
+    repo = abspath(readchomp(`git -C $rea rev-parse --show-toplevel`))
+    raw = read(`git -C $repo status --porcelain -- $rea`, String)
+    # Flag only paths the suite newly dirtied or further changed vs start-of-run snapshot.
+    dirty = String[]
+    for path in _parse_docs_data_porcelain(raw)
+        h = _file_content_hash(_docs_data_abspath(repo, path))
+        baseline = get(_DOCS_DATA_BASELINE, path, nothing)
+        if baseline === nothing || baseline != h
+            push!(dirty, path)
+        end
+    end
+    @test isempty(dirty)
+    isempty(dirty) || @info "Tracked docs/data files modified by suite" dirty
 end
 
 println()
