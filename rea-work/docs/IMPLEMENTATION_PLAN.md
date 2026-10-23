@@ -356,6 +356,7 @@ Not blockers (recorded so nobody stops on them): BBN tip geometry beyond 40 in. 
 | Q19 | Phase 37 — root-cause fixes from the 2026-10-21 GUI review (§8) | GUI + `src/` + scripts (author asked "find all root causes and fix all of them") | Q17 | 37a done 2026-10-21; 37a–37i done 2026-10-22 |
 | Q19b | **R1 directory reorganization** (spec `docs/specs/R1_directory_reorg.md`): CR-3813 data → `data/cr3813/`, scripts → `scripts/{run,checks,digitize,setup,smoke}`, READMEs, every path reference updated | moves + path edits | P1 (done, `ef184d8`) | **Done 2026-10-22** (record in §11); reviewer runs full `Pkg.test()` |
 | Q20 | Phase 38 — CR-3813 / User Manual completeness (§8; audit `validation_reports/cr3813_completeness_audit.md`; 38a spec `docs/specs/38a_noise_reduction.md`, equation page images `docs/specs/cr3813_pages/`) | `src/` + cases (author: "the whole PAIN program is supposed to function just like it does in the PAIN Methodology") | Q19 (37b first: amplitude convention) | 38a done (`:not_met`); 38b done (I-18 rule not met); 38c done (T2 not met); 38d done (`:not_met`); 38e done (no verdict); 38f-1, 38f-2, 38h done; 38g done (`:met`, 27/32) in order; 38f–38h planned with the author before starting |
+| Q21 | **Phases 39–42 — block validation program** (§8b; audit `validation_reports/block_validation_audit.md`) | `src/` + tests + cases + GUI map | Q20 | 39 done 2026-10-23; 40, 41, 42 planned in that order |
 
 If a queue item is blocked on data, skip to the next unblocked item and say which data item blocks it.
 
@@ -421,6 +422,49 @@ Moved to §11. Summary: base H1–H3 = 82.73, 75.73, 77.05 dB (= 18b-r); H3 top 
 ## 6–8. Source phases 21–28, aircraft-cabin phases 29–31, phases 32–38 *(all done; moved to the bottom of this file, after §11, on 2026-10-22; section numbers kept)*
 
 ---
+
+## 8b. Block validation program: phases 39–42 *(planned 2026-10-23; author request; criteria below dated 2026-10-23, before any of these tests is run)*
+
+**Why.** The final level passes through about fifteen blocks; several are tested only through the end-to-end chain or only against tables from CR-3813 itself, so a miss of 5–13 dB at the end (T1, T2, E-21) cannot be attributed. Each block gets its own case that feeds it the test's own inputs and compares its output with an analytic result or an independent source. Audit: `validation_reports/block_validation_audit.md`.
+
+**Rules for these phases.** Nothing is fitted, scaled or selected to make a test pass. An isolated test against an analytic result that fails means a code error: it is fixed as a documented code-on-code bug fix and every affected recorded result is re-run and labelled. An experimental case that still misses after its blocks pass isolation is recorded as **model fidelity** (the method, not the code), with the isolation case named next to it. Author decisions stay open and are not settled here: TN 1546 polars above M 0.72, forced-transition XFOIL, revised Phase 31 ranges, I-21, `:appd` as default, I-18 mirroring. Tests write only to `TEST_OUT` (the suite must leave the tree clean). Every new case appears on the Validation map in the block it tests.
+
+### Phase 39 — Audit record *(done 2026-10-23)*
+`validation_reports/block_validation_audit.md`: every physics function, its tests and cases, isolated or not, status (VERIFIED / PASS-EXP / FAIL / INCONCLUSIVE / NONE), and the isolation test that attributes each failing case.
+
+### Phase 40 — Isolated analytic checks for blocks without one *(planned; V-UNIT / V-CODE; criteria fixed 2026-10-23)*
+
+| Step | Block / function | Isolated check | Pass criterion |
+|------|------------------|----------------|----------------|
+| 40a | `apply_blocking` (full grid) | synthetic free-field amplitudes and phases on all 160 points; compare with F(γ)·A from `blocking_factor` and the geometry's γ, phases unchanged | max relative difference ≤ 1e-12 |
+| 40b | free-field conversions, `freefield_from_e11_csv` | SPL → Pa and back for the convention recorded after I-17; the ℓ = 1 line of the loaded grid against a hand conversion of the CSV | ≤ 1e-12 relative |
+| 40c | `extend_line_to_grid` | on the ℓ = 1 line the extension returns its input (falloff 1, delay 0) for every harmonic and option | ≤ 1e-12; off-line values stay V-ASSUMED (no reference exists) |
+| 40d | `apply_table8_calibration` | identity when the Table-8 peaks equal the current ℓ = 1 peaks | ≤ 1e-12 |
+| 40e | `cyl2d_modes` (App. C) | floorless circular section against the exact rigid-walled circular cross-modes f = c·j′ₘₖ/(2πa) (zeros of J′ₘ); if the code cannot remove the floor, the smallest floor the geometry allows, stated | first 10 modes within 2 % at NY = 20, and the error at NY = 20 smaller than at NY = 10 |
+| 40f | `structural_modes` (Ritz, unstiffened) | stringers, frames and floor removed: Ritz frequencies against the closed-form Donnell–Mushtari frequencies already used for App. D | within 1 % for the first 10 shell modes |
+| 40g | `structural_joint_acceptance` | against direct numerical quadrature of the joint-acceptance integral for three modes | ≤ 1e-4 relative |
+| 40h | `structural_modal_density`, `band_joint_acceptance` | modal density against the count of modes in each 1/3-octave band; band average against quadrature | count exact; ≤ 1e-6 relative |
+| 40i | `blocked_broadband_band_p2` | band integral of S ∝ f^(−α) over 1/3-octave limits against the closed form | ≤ 1e-9 relative |
+| 40j | `acoustic_boundary_value`, `cabin_modes_3d` | boundary values reconstructed from the node values; (q, i) list complete and sorted | ≤ 1e-9; exact |
+| 40k | `sil_dB`, `sil_from_third_octave` | hand-computed SIL from a known band spectrum | ≤ 1e-9 dB |
+| 40l | `absorption_coefficient` (surrogate) | none possible: a fitted surrogate used only by `:surrogate`; recorded as such on the map | — |
+
+### Phase 41 — Isolation tests for the failing cases *(planned; criteria fixed 2026-10-23)*
+
+| Step | Failing case(s) | Isolation case | Reference | Pass criterion |
+|------|-----------------|----------------|-----------|----------------|
+| 41a | T1, REPRO_18b | `T1_FROM_E12`: interior tones from the **measured** blocked pressures of Fig. E-12 instead of the predicted source and blocking (GEXT as in T1 where E-12 does not cover a point, stated) | measured E-16 means | T1's gate unchanged (±4 dB of the measured mean, H1–H3); a pass with T1 failing attributes T1 to source/blocking, a fail to the cabin chain |
+| 41b | E14_LOSS, E15 | `TRIM_CLOSED`: `trim_conductance` / `trim_tau` of a two-layer stack (limp septum on a porous layer, App. A form) against the closed-form transfer-matrix product written in the test | analytic | ≤ 1e-9 relative at the Fig. A-2 frequencies |
+| 41c | E21_E22_NR | `NR_BAND_HAND`: one band of `noise_reduction_band` with stated inputs against a hand evaluation of Eqs. (17)–(18) in the test | analytic | ≤ 1e-9 dB |
+| 41d | T2, T2_EQ19 | `HF_MASSLAW`: `hf_transmission_coeffs` for a single limp layer against the normal-incidence mass law τ = 1/(1 + (ωm/2ρc)²) | analytic | ≤ 1e-9 relative |
+| 41e | R996_LOADS | `BEMT_HAND`: CCBlade thrust and torque for a constant-chord blade with a linear lift curve and zero drag against a hand blade-element/momentum solution written in the test | analytic | within 1 % |
+| 41f | R996_FIG12/13A, R996_PHASE, BBN_CIRC, PER_FIG7/8/9 | `F1A_INDEP`: the same loads through an independent time-domain compact-source implementation written in the test, at the Fig. 12 / page-12 observers | code-on-code | amplitude within 0.5 dB, phase within 2° |
+
+A case that passes its isolation test while its experimental case still fails is labelled "model fidelity" on the map and in VALIDATION_GUIDELINE, with the isolation case named.
+
+### Phase 42 — Interior level at the loudest point *(planned; criteria fixed 2026-10-23)*
+
+PAIN reports the space-average level (Eq. 3). Added: the tone pressure at interior points from the coherent modal sum of the same Eq. (8) terms (mode shapes from CYL2D node values × the axial factor of Eq. C.9), and the overall dB(A) at the loudest point. **Points (fixed now):** every interior CYL2D node of the cross-section (wall and floor nodes excluded) at 21 equally spaced axial stations from 0 to L. Broadband bands are diffuse and enter every point at their space-average level. Output: space-average dB(A) (unchanged) and loudest-point dB(A) with its position, for the test article and the aircraft examples. **Checks (V-UNIT):** the volume average of the point mean-square pressures equals the space-average ⟨p²⟩ within 1 % (quadrature over the points); the loudest point is ≥ the space average; one mode alone reproduces |φ| shape. No experimental criterion (E-16 means are space averages); the loudest-point level is a derived output, X-EXTRAP for the aircraft.
 
 ## 9. Reference appendices
 
