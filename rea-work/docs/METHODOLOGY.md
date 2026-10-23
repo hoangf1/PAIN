@@ -225,7 +225,13 @@ User-supplied for any aircraft run (working example diameter 2.64 m is not a fix
 | `H3_ATTRIB` (43c): NASA-value swaps on REPRO_18b | diagnostic | first run 2026-10-23; `h3_attribution.md` |
 | `NR_TP1964` / `NR_TP1964_REF2` (43d): bare cylinder Eqs. (17)–(18) | V-EXP / V-CODE | **not_met** 6/18 and 6/18 (2026-10-23, after removing a 4× band mode window that gave NR = +Inf at 100–160 Hz; first run 5/18 and 4/18) |
 | T2 exterior broadband (43e) | V-ASSUMED | none found in CR-3813 / CR-172428 / TP-1964 / TP-2444 / CR-172384; HF path → NR_TP1964 |
-| `T1_F1A_FILL` (43f): T1 with F1A-relative off-line fill | V-EXP (T1 gate) | first run 2026-10-23, **not_met** 2/3 (79.61, 71.19, 71.30) |
+| `T1_F1A_FILL` (43f): T1 with F1A-relative off-line fill | V-EXP (T1 gate) | first run 2026-10-23, **not_met** 2/3 (79.61, 71.19, 71.30); after the Eq. (83) fix 79.65, 71.17, 71.06 |
+| CR-172428 App. A η_r′ (44c): Eq. (82) with m̄_r = m M_r / M_r^X, M_r^X = shell bending generalized mass (GMASS(IR,2)) | model correction, option `η_r_trimmed_area` (on for the R172428 cases; off = CR-3813 printed Eq. (82)) | V-UNIT met (reduces to m when M_r^X = M_r); M_r^X within 0.7 % of App. B |
+| Eq. (83) η_r″ with the bare f′(n,r) (CR-3813 p. 43) instead of the trim-weighted f̄′ | code-on-code fix 2026-10-23 (production) | T1 84.24, 77.63, 77.80 dB; verdicts unchanged; Phase 17 baselines re-recorded |
+| `R172428_CODE` (44d): this code on NASA's printed CR-172428 inputs vs NASA's printed predictions | V-CODE | first run 2026-10-23, **not_met** 3/9 within ±3 dB |
+| `R172428_EXP` (44e): the same vs measured Table 5 | V-EXP | first run 2026-10-23, **not_met** 1/9 within ±4 dB (NASA's own predictions 5/9) |
+| `R172428_ETA` (44c/44d): η_r′ of 32 modes vs App. B | V-CODE | **not_met** 17/32 within ±25 % (modes 1–12 within 13 %) |
+| `R172428_TRIM`, `R172428_PAIRS`: trim block and top modal pairs vs App. B | diagnostic | trim factor within 0.15 dB 250–1000 Hz; floor/antisymmetric pairs differ (open item 44f) |
 | Table D-1 (32 modes) hybrid production path | transcription / `no_verdict` (was circular "met"); Fig. D-2 mode-1 shape: shell met, floor not met (19g) | `mrp_table_d1.md`, `fig_d2_check.md` |
 | Raw Ritz coverage of D-1 | V-CODE (partial), calibrated; live 26/32 within 5 % (2026-10-21); report records 30/32 (stale); always `no_verdict` | `mrp_ritz_vs_d1.md` |
 | Fig. E-11 dual digitization δ_dig ≤ 1.0 dB | V-EXP input (repeatability only) | `e11_delta_dig.md` |

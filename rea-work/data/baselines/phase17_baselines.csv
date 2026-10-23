@@ -1,3 +1,4 @@
+# Re-recorded 2026-10-23: spl_phase3_H1..H3 only, after the Phase 44 code-on-code fix of Eq. (83) (eta_r'' uses the bare f'(n,r), CR-3813 p. 43; was the trim-weighted f-bar'): previous values 84.2101723, 77.65565218, 78.05937629. Bare-cabin values unchanged (tau_t = 1).
 # Re-recorded 2026-10-23: band_1250/1600/2000 only, after the Phase 40i code-on-code fix of blocked_broadband_band_p2 (exact band integral instead of a rounded band-centre rectangle): -0.0082 dB each; previous values 55.91681354, 53.55877432, 51.58505637.
 # Re-recorded 2026-10-22 at L = 1.83 m (I-22, post-hoc; earlier 1.803 m values: see length_sensitivity.md)
 # Phase 17 regression baselines (prior: 2026-10-21 amplitude-convention I-17/F4; 2026-10-20 eta_T=0.5). e11 source, R2 blocking, BPF 200 Hz, 3 harmonics. name,value
@@ -150,9 +151,9 @@ fprime_n5_r5,-0.005678559589
 fprime_n5_r6,0.1065035092
 fprime_n5_r7,-0.006281401035
 fprime_n5_r8,0
-spl_phase3_H1,84.2101723
-spl_phase3_H2,77.65565218
-spl_phase3_H3,78.05937629
+spl_phase3_H1,84.24297514
+spl_phase3_H2,77.62908855
+spl_phase3_H3,77.8033043
 band_1250,55.90863155
 band_1600,53.55059234
 band_2000,51.57687438

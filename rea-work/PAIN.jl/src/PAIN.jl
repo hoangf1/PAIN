@@ -43,6 +43,7 @@ include("validation_cases.jl")
 include("validation_case_iso40.jl")   # before extras: registry finish calls _iso40_validation_cases
 include("validation_case_iso41.jl")   # phase 41 isolation of failing cases
 include("validation_case_iso43.jl")   # phase 43 T1/T2 root causes + TP-1964
+include("validation_case_iso44.jl")   # phase 44 CR-172428 reproduction (App. A / App. B)
 include("validation_case_extras.jl")
 include("validation_map.jl")
 include("validation_plots.jl")
@@ -90,6 +91,8 @@ export
     cylinder_surface_area, coupling_area, mass_law_factor,
     acoustic_modes_in_band, acoustic_crossover_band, apply_η_r_cap,
     volume_crossover_frequency_Hz, volume_crossover_band,
+    trimmed_modal_mass, app_a_modal_mass_per_area, r172428_appb_field, r172428_inputs,
+    write_h3_attribution_report,
     w_in_reverberant, noise_reduction_band, noise_reduction_spectrum,
     noise_reduction_test_article_inputs,
     CircularAcousticMode, circular_cavity_modes, besselj_prime_zeros,
@@ -216,7 +219,8 @@ function run_pain_pipeline(;
         f1a_pattern_amps::Union{Nothing,Array{Float64,3}}=nothing,
         f1a_pattern_phases::Union{Nothing,Array{Float64,3}}=nothing,
         tone_model::Symbol=:eq8,
-        η_r_band_is_prime::Bool=false)
+        η_r_band_is_prime::Bool=false,
+        η_r_trimmed_area::Bool=false)
     trim in (:auto, :bare, :phase3, :custom) ||
         error("trim must be :auto, :bare, :phase3 or :custom")
 
@@ -339,7 +343,7 @@ function run_pain_pipeline(;
                      allow_extrapolation=allow_extrapolation,
                      ρ0=ρ0, c0=c0, ρ_ext=ρ_ext, c_ext=c_ext, ρ_int=ρ_int, c_int=c_int,
                      L_c=L_c, d=d, bands=bands, η_r_band=η_r_band, η_n_band=η_n_band,
-                     η_r_band_is_prime=η_r_band_is_prime)
+                     η_r_band_is_prime=η_r_band_is_prime, η_r_trimmed_area=η_r_trimmed_area)
     # Parametric HF path: Eqs. 19–23 (I-21 open readings → X-EXTRAP); η_r_cap=nothing
     spec_out = interior_spl(inp; bpf_Hz=bl.bpf_Hz,
                             n_harmonics=min(n_harmonics, size(bl.amplitudes, 3)),

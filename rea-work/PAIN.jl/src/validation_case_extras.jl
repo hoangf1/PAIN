@@ -2422,6 +2422,7 @@ function _finish_validation_registry!()
     append!(cases, _iso40_validation_cases())  # phase 40 isolated analytic checks
     append!(cases, _iso41_validation_cases())  # phase 41 isolation of failing cases
     append!(cases, _iso43_validation_cases())  # phase 43 T1/T2 root causes + TP-1964
+    append!(cases, _iso44_validation_cases())  # phase 44 CR-172428 reproduction
 
     # E21_E22_NR (38a), T2_EQ19 (38c), E18_TONES (38d), E15_STRUCT_LOSS (38e); no greyed placeholders.
     push!(cases, ValidationCase(
@@ -2514,6 +2515,7 @@ function _finish_validation_registry!()
         "T1", "T1_FROM_E12", "T2", "T2_EQ19", "E21_E22_NR", "UNC_COVER",
         "T1_MEAS_DAMPING", "H3_ATTRIB", "NR_TP1964", "NR_TP1964_REF2",
         "T1_F1A_FILL", "T1_F1A_MEAS_DAMP",
+        "R172428_CODE", "R172428_EXP", "R172428_ETA", "R172428_TRIM", "R172428_PAIRS",
         "POLAR_R996", "POLAR_PER",
         "R996_LOADS", "BEMT_HAND", "PER_LOADS", "F1A_GUTIN", "F1A_INDEP",
         "R996_FIG14", "R996_FIG12", "R996_FIG13A",

@@ -80,6 +80,9 @@ struct PainInputs
     # When true, η_r_band overrides are final η_r′ (skip Eq. 82 trim); for measured
     # decay inputs (phase 43b). Default false keeps Manual card 11–14 = pre-trim η_r.
     η_r_band_is_prime::Bool
+    # CR-172428 App. A (phase 44c): Eq. (82) with m̄_r = m M_r / M_r^X (trimmed-area modal
+    # mass); false = CR-3813 printed Eq. (82) (trim taken to cover the whole surface).
+    η_r_trimmed_area::Bool
 end
 
 function PainInputs(fuse, prop, structural, acoustic, amplitudes, phases, pts, ΔA::Real;
@@ -94,7 +97,8 @@ function PainInputs(fuse, prop, structural, acoustic, amplitudes, phases, pts, �
                     L_c::Union{Nothing,Real}=nothing, d::Real=0.0,
                     crossover_band_Hz::Union{Nothing,Real}=nothing,
                     bands=nothing, η_r_band=nothing, η_n_band=nothing,
-                    η_r_band_is_prime::Bool=false)
+                    η_r_band_is_prime::Bool=false,
+                    η_r_trimmed_area::Bool=false)
     (sidewall === nothing) == (endplates === nothing) ||
         error("PainInputs: give both `sidewall` and `endplates` trim stacks, or neither (bare cabin)")
     mech !== nothing && sidewall === nothing && error("PainInputs: `mech` needs a `sidewall` stack")
@@ -111,7 +115,7 @@ function PainInputs(fuse, prop, structural, acoustic, amplitudes, phases, pts, �
                       sidewall, endplates, mech, m, float(η_n_bare), float(C_struc),
                       q_max === nothing ? nothing : Int(q_max), allow_extrapolation, ρ0f, c0f,
                       ρe, ce, ρi, ci, Lc, float(d), xover, bands_n, ηr_n, ηn_n,
-                      η_r_band_is_prime)
+                      η_r_band_is_prime, η_r_trimmed_area)
 end
 
 """Trim stacks present (sidewall and end plates)?"""
@@ -414,7 +418,10 @@ function tone_mean_square_pressure(inp::PainInputs, H::Int, ωH::Float64;
         for (j, st) in enumerate(inp.structural.modes)
             f = coupling_factor(ac, st, inp; τ_t, q)
             f == 0 && continue
-            ηrpp = structural_loss_coupled(N, ωn, ωr[j], f, εn, st.M_r, V, A; ρ0=ρ_int, c0=c_int)
+            # Eq. (83) uses the bare f′(n,r) (no trim weighting; CR-3813 p. 43, CR-172428 p. 177/178:
+            # TONE line 107 / NRED line 79). f̄′ (with √τ_t) is only for transmission (Eq. 8 / 18).
+            f′ = τ_t == 1 ? f : coupling_factor(ac, st, inp; τ_t=1.0, q)
+            ηrpp = structural_loss_coupled(N, ωn, ωr[j], f′, εn, st.M_r, V, A; ρ0=ρ_int, c0=c_int)
             Dr = (ωr[j]^2 - ωH^2)^2 + ((ηrp[j] + ηrpp) * ωr[j]^2)^2
             p2 += pref * εn * f^2 * Ψ[j] / (st.M_r^2 * Dn * Dr)
         end
@@ -783,12 +790,49 @@ function structural_η_r_prime(inp::PainInputs, st::StructuralMode, ωr::Real;
          structural_loss_total(st, ωr; a, L, m=inp.m_wall, C=inp.C_struc,
                                ρ0=inp.ρ_ext, c0=inp.c_ext, Abar=Ab)
     if has_trim(inp)
-        return structural_loss_with_trim(ηr, ωr, inp.m_wall,
+        m_eq82 = inp.η_r_trimmed_area ? app_a_modal_mass_per_area(st, fuse, inp.m_wall) : inp.m_wall
+        return structural_loss_with_trim(ηr, ωr, m_eq82,
                                          trim_Cw(inp.sidewall, ωr; allow_extrapolation=inp.allow_extrapolation);
                                          η_r_cap)
     else
         return apply_η_r_cap(ηr, η_r_cap)
     end
+end
+
+"""
+    trimmed_modal_mass(st, fuse, m) -> M_r^X [kg]
+
+CR-172428 App. A, as programmed (p. 178, subroutine ETASTR lines 47/50: M_s^X = GMASS(IR,2)):
+the shell bending generalized mass m ∫ ψ_r² dA over the whole shell circumference and length
+(App. B prints it as "GENERALIZED MASS, SHELL W"; this integral reproduces those values within
+0.7 % for the Table D-1 modes). Shell shape of Eqs. (46)–(49): Σ C_n (−1)^n cos nθ (symmetric)
+or −Σ C_n (−1)^n sin nθ (antisymmetric), times sin(Mπx/L), so ∫ sin² dx = L/2. Midpoint rule
+in θ (2000 points; the integrand is a trigonometric polynomial).
+"""
+function trimmed_modal_mass(st::StructuralMode, fuse::FuselageGeometry, m::Real; nθ::Int=2000)
+    s = 0.0
+    for j in 1:nθ
+        θ = 2π * (j - 0.5) / nθ
+        ψ = 0.0
+        for (C, n) in zip(st.C_shell, st.n_shell)
+            ψ += st.symmetric ? C * (-1)^n * cos(n * θ) : -C * (-1)^n * sin(n * θ)
+        end
+        s += ψ^2
+    end
+    return float(m) * s * 2π / nθ * fuse.a * fuse.L / 2
+end
+
+"""
+    app_a_modal_mass_per_area(st, fuse, m) -> m̄_r = m M_r / M_r^X
+
+Surface mass that replaces m in Eq. (82) (CR-172428 App. A; program change ETASTR lines 47/50
+scale C_w by M_r^X/M_r). Equals m when M_r^X = M_r. A mode with no sidewall motion
+(M_r^X = 0) gets m̄_r = Inf, so the trim adds no damping to it (η_r′ = η_r).
+"""
+function app_a_modal_mass_per_area(st::StructuralMode, fuse::FuselageGeometry, m::Real)
+    MX = trimmed_modal_mass(st, fuse, m)
+    MX > 0 || return Inf
+    return float(m) * st.M_r / MX
 end
 
 """

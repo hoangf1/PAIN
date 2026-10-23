@@ -239,7 +239,10 @@ function w_in_reverberant(inp::PainInputs, fc::Real;
         for (j, st) in enumerate(inp.structural.modes)
             f = coupling_factor(ac, st, inp; τ_t, q)   # barred f̄'
             f == 0 && continue
-            ηrpp = structural_loss_coupled(N, ωn, ωr[j], f, εn, st.M_r, V, A; ρ0=ρ_int, c0=c_int)
+            # Eq. (83) uses the bare f′(n,r) (no trim weighting; CR-3813 p. 43, CR-172428 p. 177/178:
+            # TONE line 107 / NRED line 79). f̄′ (with √τ_t) is only for transmission (Eq. 8 / 18).
+            f′ = τ_t == 1 ? f : coupling_factor(ac, st, inp; τ_t=1.0, q)
+            ηrpp = structural_loss_coupled(N, ωn, ωr[j], f′, εn, st.M_r, V, A; ρ0=ρ_int, c0=c_int)
             ηrt = ηrp[j] + ηrpp
             t = nr_brace(ω, c_ω, ωn, ηn, ωr[j], ηrt)
             # { (2/π) ω² ω_n² / D_nr · […] }
@@ -324,7 +327,10 @@ function noise_reduction_band(inp::PainInputs, fc::Real;
         for (j, st) in enumerate(inp.structural.modes)
             f = coupling_factor(ac, st, inp; τ_t, q)   # barred f̄' as printed in Eq. 18
             f == 0 && continue
-            ηrpp = structural_loss_coupled(N, ωn, ωr[j], f, εn, st.M_r, V, A; ρ0=ρ_int, c0=c_int)
+            # Eq. (83) uses the bare f′(n,r) (no trim weighting; CR-3813 p. 43, CR-172428 p. 177/178:
+            # TONE line 107 / NRED line 79). f̄′ (with √τ_t) is only for transmission (Eq. 8 / 18).
+            f′ = τ_t == 1 ? f : coupling_factor(ac, st, inp; τ_t=1.0, q)
+            ηrpp = structural_loss_coupled(N, ωn, ωr[j], f′, εn, st.M_r, V, A; ρ0=ρ_int, c0=c_int)
             ηrt = ηrp[j] + ηrpp
             t = nr_brace(ω, c_ω, ωn, ηn, ωr[j], ηrt)
             ratio += pref * εn * j2[j] * f^2 / (st.M_r^2 * t.D_nr) * t.brace

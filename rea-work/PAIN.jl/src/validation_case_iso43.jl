@@ -139,6 +139,9 @@ end
 
 # --- 43c H3 attribution (diagnostic) -----------------------------------------
 
+const _H3_LABELS = ["baseline REPRO_18b", "η_n := E-14 calc (η_T=0.5)", "η_r′ := E-15 calc (η_T=0.5)",
+                    "both η_n + η_r′", "ℓ=1 := measured E-12 (as T1_FROM_E12)"]
+
 function _run_h3_attrib()
     # REPRO_18b conditions: ANOPP Table 8, R1, Phase III η_T=0.5, no η_r cap, GEXT
     paths = default_e11_paths()
@@ -172,8 +175,7 @@ function _run_h3_attrib()
     s_both = _spl_with(; η_n_band=η_n_nasa, η_r_band=η_r_nasa)
     s_e12 = _iso43_repro_from_e12()
 
-    labels = ["baseline REPRO_18b", "η_n := E-14 calc (η_T=0.5)", "η_r′ := E-15 calc (η_T=0.5)",
-              "both η_n + η_r′", "ℓ=1 := measured E-12 (as T1_FROM_E12)"]
+    labels = _H3_LABELS
     spls = [base_spl, s_ηn, s_ηr, s_both, s_e12]
     table = ValidationTableRow[]
     for (lab, s) in zip(labels, spls)
@@ -181,25 +183,6 @@ function _run_h3_attrib()
             d = s[H] - base_spl[H]
             push!(table, ValidationTableRow("$lab H$H", Float64(H), base_spl[H], s[H], d, true))
         end
-    end
-    # Write diagnostic report (TEST_OUT when under test; else validation_reports)
-    report = joinpath(_VAL_REPORT_DIR, "h3_attribution.md")
-    try
-        open(report, "w") do io
-            println(io, "# H3 attribution on REPRO_18b (phase 43c)\n")
-            println(io, "Diagnostic only — no criterion. E-17 conditions: η_T = 0.5, no η_r′ cap, R1,")
-            println(io, "ANOPP Table 8 + GEXT. Swaps use NASA's printed intermediate values (no tuning).\n")
-            println(io, "| swap | H1 [dB] | H2 [dB] | H3 [dB] | ΔH1 | ΔH2 | ΔH3 |")
-            println(io, "|---|---:|---:|---:|---:|---:|---:|")
-            for (lab, s) in zip(labels, spls)
-                d = s .- base_spl
-                println(io, "| $lab | $(round(s[1]; digits=2)) | $(round(s[2]; digits=2)) | $(round(s[3]; digits=2)) | " *
-                            "$(round(d[1]; digits=2)) | $(round(d[2]; digits=2)) | $(round(d[3]; digits=2)) |")
-            end
-            println(io, "\nGenerated $(_today_iso()).")
-        end
-    catch
-        # under TEST_OUT redirect _VAL_REPORT_DIR may be temp — still ok
     end
     xs = [1.0, 2.0, 3.0]
     series = [
@@ -219,7 +202,7 @@ function _run_h3_attrib()
         "η_r=$(round(s_ηr[3]-base_spl[3]; digits=2)), " *
         "both=$(round(s_both[3]-base_spl[3]; digits=2)), " *
         "E12=$(round(s_e12[3]-base_spl[3]; digits=2))",
-        "diagnostic", report,
+        "diagnostic", "",
     )
 end
 
@@ -519,4 +502,34 @@ function _iso43_validation_cases()
             PlotSpec(; xlabel="harmonic band (Hz)", ylabel="interior SPL (dB)",
                      panel_titles=["T1_F1A_MEAS_DAMP"], error_mode=:none), ""),
     ]
+end
+
+"""
+    write_h3_attribution_report(path=docs/validation_reports/h3_attribution.md) -> path
+
+Runs `H3_ATTRIB` and writes its table as Markdown. Not called by the case or the test suite
+(the suite must not modify tracked docs); run it by hand to refresh the recorded report.
+"""
+function write_h3_attribution_report(path::AbstractString=joinpath(_VAL_REPORT_DIR, "h3_attribution.md"))
+    r = run_validation_case("H3_ATTRIB")
+    e = r.inputs_echo
+    labels = _H3_LABELS
+    spls = [e.baseline, e.eta_n, e.eta_r, e.both, e.e12]
+    open(path, "w") do io
+        println(io, "# H3 attribution on REPRO_18b (phase 43c)
+")
+        println(io, "Diagnostic only — no criterion. E-17 conditions: η_T = 0.5, no η_r′ cap, R1,")
+        println(io, "ANOPP Table 8 + GEXT. Swaps use NASA's printed intermediate values (no tuning).
+")
+        println(io, "| swap | H1 [dB] | H2 [dB] | H3 [dB] | ΔH1 | ΔH2 | ΔH3 |")
+        println(io, "|---|---:|---:|---:|---:|---:|---:|")
+        for (lab, s) in zip(labels, spls)
+            d = s .- e.baseline
+            println(io, "| $lab | $(round(s[1]; digits=2)) | $(round(s[2]; digits=2)) | $(round(s[3]; digits=2)) | " *
+                        "$(round(d[1]; digits=2)) | $(round(d[2]; digits=2)) | $(round(d[3]; digits=2)) |")
+        end
+        println(io, "
+Generated $(_today_iso()).")
+    end
+    return path
 end

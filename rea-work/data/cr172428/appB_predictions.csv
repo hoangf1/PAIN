@@ -1,0 +1,16 @@
+# NASA CR-172428 interior predictions (eta_T = 0.13, 4 dB blocked-pressure limit) and measured space averages.
+# 4000 rpm rows: App. B p. 206 (printed -196-), Pa^2 and dB re 20 uPa as printed (H1-H3 also in Table 10).
+# 3000/5000 rpm rows: Table 10 (printed -79-), predicted (from Fig. 34) and measured (Table 5).
+# Transcribed 2026-10-23 (phase 44b).
+rpm,H,f_Hz,nasa_pred_Pa2,nasa_pred_dB,measured_dB
+4000,1,200,0.58974,91.69,90.3
+4000,2,400,0.026351,78.19,80.3
+4000,3,600,0.0053939,71.30,65.2
+4000,4,800,7.6416e-05,52.81,
+4000,5,1000,2.2966e-06,37.59,
+3000,1,150,,63.3,81.0
+3000,2,300,,66.2,69.1
+3000,3,450,,59.5,52.9
+5000,1,250,,86.4,100.2
+5000,2,500,,91.1,91.5
+5000,3,750,,75.7,74.0

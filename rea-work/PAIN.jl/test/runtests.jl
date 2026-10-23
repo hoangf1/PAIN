@@ -2713,10 +2713,11 @@ _run_if("Validation case registry (34d)") do
     rr = run_validation_case("REPRO_18b")
     @test rr.verdict === :not_met
     # regression at L = 1.83 m (I-22, 2026-10-22, post-hoc; earlier 1.803 m: see length_sensitivity.md)
-    # Expected from length_sensitivity @ 1.83: 85.90, 78.35, 79.82
-    @test rr.table[1].computed ≈ 85.90 atol=0.01
-    @test rr.table[2].computed ≈ 78.35 atol=0.01
-    @test rr.table[3].computed ≈ 79.82 atol=0.01
+    # Expected from length_sensitivity @ 1.83: 85.90, 78.35, 79.82; re-recorded 2026-10-23 after the
+    # Phase 44 code-on-code fix of Eq. (83) (η_r'' with the bare f'): 85.93, 78.32, 79.57
+    @test rr.table[1].computed ≈ 85.93 atol=0.01
+    @test rr.table[2].computed ≈ 78.32 atol=0.01
+    @test rr.table[3].computed ≈ 79.57 atol=0.01
     png = plot_case(r1, VALIDATION_CASES["CYL2D_C1"].plot_spec;
                     path=joinpath(TEST_OUT, "CYL2D_C1.png"))
     @test isfile(png)
@@ -2970,6 +2971,72 @@ _run_if("T1/T2 root causes (phase 43)") do
         @test !isempty(r.table)
         png = plot_case(r, VALIDATION_CASES[id].plot_spec;
                         path=joinpath(TEST_OUT, "$(id).png"))
+        @test isfile(png) && filesize(png) > 0
+    end
+end
+
+_run_if("CR-172428 reproduction (phase 44)") do
+    # Criteria fixed 2026-10-23 in IMPLEMENTATION_PLAN.md §8b Phase 44 (before transcription or run).
+    inp = r172428_inputs(4000)
+    fuse = inp.fuse
+    # 44c V-UNIT: App. A m̄_r reduces to m when the shell bending mass equals the total modal mass.
+    st0 = inp.structural.modes[13]
+    MX = trimmed_modal_mass(st0, fuse, inp.m_wall)
+    st_full = PAIN.StructuralMode(st0.index, st0.f_Hz, st0.symmetric, MX, st0.M_axial,
+                                  st0.C_shell, st0.n_shell, st0.C_floor, st0.n_floor)
+    @test abs(app_a_modal_mass_per_area(st_full, fuse, inp.m_wall) - inp.m_wall) ≤ 1e-12 * inp.m_wall
+    # mode with no shell motion: no trim damping (m̄ = Inf → η_r′ = η_r)
+    st_floor = PAIN.StructuralMode(1, 200.0, true, 1.0, 1, Float64[], Int[], [1.0], [0])
+    @test app_a_modal_mass_per_area(st_floor, fuse, inp.m_wall) == Inf
+    # Shell bending mass (App. A GMASS(IR,2)) against App. B "SHELL W" (code check; values read 2026-10-23)
+    sm = PAIN._read_csv_numeric_nan(PAIN._data_path("cr172428", "appB_structural_modes.csv"))
+    for (i, mode) in enumerate(Int.(sm[:mode]))
+        mode ≤ length(inp.structural.modes) || continue
+        st = inp.structural.modes[mode]
+        ref = sm[:M_shell_kg][i]
+        ref < 0.05 && continue                 # 4-decimal print: relative check meaningless below 0.05 kg
+        @test abs(trimmed_modal_mass(st, fuse, inp.m_wall) / ref - 1) ≤ 0.01
+    end
+    # Eq. (83) uses the bare f′ (τ = 1), Eq. (8) the trimmed f̄′: an independent sum must equal the code.
+    H = 1; ωH = 2π * 200.0
+    a, L = fuse.a, fuse.L; θ0 = deg2rad(fuse.theta0_deg); Lp = 2a * sin(θ0)
+    A = L * (Lp + 2a * (π - θ0)); V = PAIN.cabin_volume(inp)
+    τ = PAIN.sidewall_tau(inp, ωH)
+    @test τ > 1                                 # trim resonance at 200 Hz: f̄′ ≠ f′
+    ξ = PAIN.trim_conductance(inp.sidewall, ωH, inp.m_wall; ρ0=inp.ρ_int, c0=inp.c_int)
+    ξe = PAIN.trim_conductance(inp.endplates, ωH, Inf; ρ0=inp.ρ_int, c0=inp.c_int)
+    pref = (inp.c_int / V)^2 * (inp.ρ_ext * inp.c_ext * A)^2 * ωH^4
+    qtop = PAIN.axial_truncation(ωH, inp.L_c, inp.c_int)
+    p2 = 0.0
+    for q in 0:qtop, ac in inp.acoustic.modes
+        ωn = 2π * PAIN.cabin_frequency_3d(ac, a, inp.L_c, q; c0=inp.c_int)
+        εn = PAIN.cabin_eps_3d(ac, q)
+        N = PAIN.acoustic_N(inp, ac, q, 200.0, ωn; ξ, ξ_e=ξe, V)
+        for st in inp.structural.modes
+            fbar = coupling_factor(ac, st, inp; τ_t=τ, q)
+            fbar == 0 && continue
+            fprime = coupling_factor(ac, st, inp; τ_t=1.0, q)
+            ωr = 2π * st.f_Hz
+            Ψ = generalized_force(st, H, inp.amplitudes, inp.phases, inp.pts, fuse; ΔA=inp.ΔA)
+            ηpp = inp.ρ_int * inp.c_int^2 * A^2 * εn * fprime^2 / (st.M_r * V) * N / ((ωn^2 - ωr^2)^2 + N^2)
+            ηp = PAIN.structural_η_r_prime(inp, st, ωr)
+            Dn = (ωn^2 - ωH^2)^2 + N^2
+            Dr = (ωr^2 - ωH^2)^2 + ((ηp + ηpp) * ωr^2)^2
+            p2 += pref * εn * fbar^2 * Ψ / (st.M_r^2 * Dn * Dr)
+        end
+    end
+    @test PAIN.tone_mean_square_pressure(inp, H, ωH) ≈ p2 rtol = 1e-10
+    # Grid: 16 × 19 points, θ = 0..180°, printed z from the forward end
+    f = r172428_appb_field(4000)
+    @test length(f.pts) == 16 * 19 && f.n_missing == 16    # p. 204 row L = 1 below the page edge
+    @test extrema(p.theta_deg for p in f.pts) == (0.0, 180.0)
+    expected = (("R172428_CODE", :not_met), ("R172428_EXP", :not_met), ("R172428_ETA", :not_met),
+                ("R172428_TRIM", :no_verdict), ("R172428_PAIRS", :no_verdict))
+    for (id, verd) in expected
+        r = run_validation_case(id)
+        @test r.verdict === verd
+        @test !isempty(r.table)
+        png = plot_case(r, VALIDATION_CASES[id].plot_spec; path=joinpath(TEST_OUT, "$(id).png"))
         @test isfile(png) && filesize(png) > 0
     end
 end

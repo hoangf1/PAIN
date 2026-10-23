@@ -63,7 +63,10 @@ function modal_tone_contributions(inp::PainInputs, H::Int, ωH::Float64;
         for (j, st) in enumerate(inp.structural.modes)
             f = coupling_factor(ac, st, inp; τ_t, q)
             f == 0 && continue
-            ηrpp = structural_loss_coupled(N, ωn, ωr[j], f, εn, st.M_r, V, A; ρ0=ρ_int, c0=c_int)
+            # Eq. (83) uses the bare f′(n,r) (no trim weighting; CR-3813 p. 43, CR-172428 p. 177/178:
+            # TONE line 107 / NRED line 79). f̄′ (with √τ_t) is only for transmission (Eq. 8 / 18).
+            f′ = τ_t == 1 ? f : coupling_factor(ac, st, inp; τ_t=1.0, q)
+            ηrpp = structural_loss_coupled(N, ωn, ωr[j], f′, εn, st.M_r, V, A; ρ0=ρ_int, c0=c_int)
             Dr = (ωr[j]^2 - ωH^2)^2 + ((ηrp[j] + ηrpp) * ωr[j]^2)^2
             p2 = pref * εn * f^2 * Ψ[j] / (st.M_r^2 * Dn * Dr)
             p2 == 0 && continue
