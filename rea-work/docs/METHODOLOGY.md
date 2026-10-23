@@ -208,9 +208,16 @@ User-supplied for any aircraft run (working example diameter 2.64 m is not a fix
 | Claim | Grade | Evidence |
 |-------|-------|----------|
 | Blocking Eq. (43) R1 matches CR-172428 p.68 within 0.06 dB; R2 maximum about 4 dB | V-UNIT | `validation_reports/blocking_p68.md` |
+| `apply_blocking` full grid = F(γ)·A, phases unchanged (40a `ISO_BLOCKING`) | V-UNIT | first run 2026-10-23, met |
+| Free-field SPL↔peak Pa (I-17) and e11 ℓ=1 loader (40b `ISO_FF_CONV`); Table-8 cal identity (40d `ISO_TABLE8`) | V-UNIT | first run 2026-10-23, met |
 | 160-point grid geometry matches the User Manual contract | V-UNIT | tests |
 | GEXT cosine falloff and geometric delay implement the flowchart | V-ASSUMED, unfalsifiable by published data; no fitted parameters, form attested a priori | unit tests; **phase 32:** any variant flips T1 → **T1 not claimable** (`gext_importance_bound.md`) |
+| GEXT on ℓ=1 is identity for every option (40c `ISO_GEXT_LINE`); off-line stays V-ASSUMED | V-UNIT | first run 2026-10-23, met |
 | CYL2D (App. C scheme): frequency ratios f_i/f_1 (modes 2–19) within 0.1 % of Table C-1 (c0-free; post-hoc re-statement 2026-10-21); Φ_G / symmetry / Fig. C-3 unchanged. Absolute-f check at c0 = 341 was partly by construction | V-CODE | `cyl2d_table_c1.md` |
+| CYL2D vs exact circle J′ zeros at θ0=0° (40e `ISO_CYL2D_EXACT`); boundary/list (40j `ISO_CYL2D_BOUNDARY`) | V-UNIT | first run 2026-10-23, met (max \|e\| NY20 0.966 %) |
+| Raw Ritz vs closed-form Donnell with stiffeners/floor removed (40f) | not registered — `structural_modes` always smears `MRP_I_STRINGER`/`MRP_I_FRAME` into Ds; no option zeros them | plan §8b note |
+| `structural_joint_acceptance` vs quadrature (40g); modal density / band JA (40h); broadband band integral (40i); SIL (40k) | V-UNIT | 2026-10-23: all met; 40i reference = closed-form ∫ over exact 1/3-oct edges (α = 2, 1.5); code fixed to that integral (was band-centre rectangle) |
+| `absorption_coefficient` (40l) | fitted surrogate for `:surrogate` only; no isolated analytic case | docstring + map note |
 | Table D-1 (32 modes) hybrid production path | transcription / `no_verdict` (was circular "met"); Fig. D-2 mode-1 shape: shell met, floor not met (19g) | `mrp_table_d1.md`, `fig_d2_check.md` |
 | Raw Ritz coverage of D-1 | V-CODE (partial), calibrated; live 26/32 within 5 % (2026-10-21); report records 30/32 (stale); always `no_verdict` | `mrp_ritz_vs_d1.md` |
 | Fig. E-11 dual digitization δ_dig ≤ 1.0 dB | V-EXP input (repeatability only) | `e11_delta_dig.md` |

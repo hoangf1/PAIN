@@ -323,7 +323,11 @@ I-20; `E21_E22_NR` runnable since 38a). **In-process runnable:** `CYL2D_C1`, `MR
 `F1A_GUTIN`, `T1`, `T2`, `REPRO_18b`, `E12_BLOCK`, `E11_FREEFIELD`, `UT_GRID`, `E14_LOSS`, `GEXT_BOUND`, `BBN_KIN`, `R996_PHASE`,
 `E21_E22_NR` (Eq. 18, η_T = 1.0, η_r′ ≤ 0.15; criterion dated 2026-10-21), `T2_EQ19` (printed Eqs. 19–23; T2
 criterion unchanged; first run 2026-10-22), `E18_TONES` (Fig. E-18, η_T = 1.0, η_r′ ≤ 0.15; criterion dated
-2026-10-21; first run 2026-10-22), `E15_STRUCT_LOSS` (Fig. E-15 η_r′, V-EXP info, no pass mark; first run 2026-10-22).
+2026-10-21; first run 2026-10-22), `E15_STRUCT_LOSS` (Fig. E-15 η_r′, V-EXP info, no pass mark; first run 2026-10-22),
+phase-40 `ISO_BLOCKING` / `ISO_FF_CONV` / `ISO_GEXT_LINE` / `ISO_TABLE8` / `ISO_CYL2D_EXACT` / `ISO_JOINT_ACC` /
+`ISO_MODAL_DENSITY` / `ISO_BB_BAND` / `ISO_CYL2D_BOUNDARY` / `ISO_SIL` (criteria 2026-10-23; all met;
+`ISO_BB_BAND` reference corrected to the closed-form integral and code matched 2026-10-23;
+`ISO_RITZ_DONNELL` not registered — Ritz stiffener I not removable via options).
 **CSV replays** (read recorded `f1a_results.csv` / `scale_factors.csv` / `pereira_results.csv` / `bbn_results.csv`; do not
 re-run F1A): `R996_FIG12/13A/14`, `R996_LOADS`, `R996_FIG6/7`, `PER_FIG6–9`, `PER_LOADS`, `BBN_CIRC`, `BBN_LEVELS`, `BBN_LONG`.
 All case numbers come from CSVs or transcribed constant tables; page images are display-only. Each §2.13 Explanation ends with
@@ -681,7 +685,7 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **Title:** e11 free field
 **What this stage does:** Exterior free-field SPL that drives every App. E cabin run. Fig. E-11 is NASA's measured line along grid line ℓ = 1 with the fuselage absent; harmonic 3 (H3) and all phases come from ANOPP Table 8, not from the figure. Code: `freefield_digitized.jl`.
 **Code:** freefield_digitized.jl
-**Note:** Fig. E-11 measured line; H3 and all phases from ANOPP Table 8
+**Note:** Fig. E-11 measured line; H3 and all phases from ANOPP Table 8; ISO_FF_CONV / ISO_TABLE8 (phase 40)
 **Group:** G_FF
 **Group title:** Free field
 **Role:** input
@@ -700,6 +704,7 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **Title:** 160-point grid
 **What this stage does:** Builds the 160 fuselage-skin observers (User Manual Fig. 3) and, on the e11 path only, fills 150 of them from the one measured line by an assumed amplitude falloff and geometric delay (GEXT). Comes after free-field input because every later pressure lives on this grid. Code: `geometry.jl`, `grid_extension.jl`.
 **Code:** geometry.jl, grid_extension.jl
+**Note:** ISO_GEXT_LINE (40c): on-line identity; off-line GEXT stays V-ASSUMED
 **Group:** G_GRID
 **Group title:** Grid and blocking
 **Role:** function
@@ -710,6 +715,7 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **Title:** Blocking Eq. 43
 **What this stage does:** Scales free-field amplitude at each skin point by Magliozzi's empirical factor F(γ) so a rigid fuselage "blocks" (reflects) the wave; phases unchanged. Comes after the grid because γ is computed from hub-to-skin geometry. Code: `blocking.jl`.
 **Code:** blocking.jl
+**Note:** ISO_BLOCKING (40a): full-grid apply_blocking vs F(γ)·A
 **Group:** G_GRID
 **Role:** function
 **Position:** 7,2
@@ -736,6 +742,7 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **Title:** Structural modes
 **What this stage does:** Fuselage structural modal frequencies and shapes that enter the coupling. Production uses the Table D-1 seed; a calibrated Ritz surrogate and the printed App. D solver are checked beside it. Comes before cabin acoustics and coupling. Code: `mrp.jl`, `mrp_appd.jl`.
 **Code:** mrp.jl, mrp_appd.jl
+**Note:** Phase 40f ISO_RITZ_DONNELL not registered: `structural_modes` always smears stringer/frame I into Ds (no option zeros MRP_I_*); cannot remove stiffeners without solver physics changes
 **Group:** G_MRP
 **Role:** function
 **Position:** 7,5
@@ -762,6 +769,7 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **Title:** CYL2D
 **What this stage does:** Two-dimensional cabin acoustic modes (frequencies, generalized mass, shapes) from Appendix C. Needed with the structural modes before the Eq. (8) coupling sum. Code: `cyl2d.jl`.
 **Code:** cyl2d.jl
+**Note:** ISO_CYL2D_EXACT (40e, θ0=0° vs J′ zeros); ISO_CYL2D_BOUNDARY (40j)
 **Group:** G_CYL
 **Role:** function
 **Position:** 7,7
@@ -788,6 +796,7 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **Title:** Trim and loss
 **What this stage does:** Sidewall/end trim transfer matrices and structural/acoustic loss factors that set every modal amplitude. Comes after modes and before the tone/broadband sums. Code: `trim_loss.jl`.
 **Code:** trim_loss.jl
+**Note:** ISO_JOINT_ACC (40g). `absorption_coefficient` is a fitted surrogate used only by `:surrogate` (40l; no isolated case)
 **Group:** G_TRIM
 **Role:** function
 **Position:** 7,9
@@ -814,7 +823,7 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 **Title:** Coupling / Eq. 8
 **What this stage does:** Generalized force, joint acceptance Ψ_G, and the tonal mean-square pressure sum Eq. (8) in `pain_core.jl`; high-frequency expected-value Eqs. (11)–(16) and crossover card 10 in `high_freq_tones.jl` (38b). Default `tone_model=:eq8`; `:auto` switches at the crossover band. Last equation stage before interior SPL checks.
 **Code:** pain_core.jl, high_freq_tones.jl
-**Note:** Uncertainty (phase 31): epistemic band on cabin inputs — not a confidence interval; excludes scattering/refraction (V-ASSUMED)
+**Note:** Uncertainty (phase 31): epistemic band on cabin inputs — not a CI. ISO_MODAL_DENSITY / ISO_BB_BAND (40h–40i). `absorption_coefficient` fitted surrogate for `:surrogate` only (40l)
 **Group:** G_PAIN
 **Role:** function
 **Position:** 10,2
@@ -823,6 +832,7 @@ Machine-readable case/map/block text for the Validation and Validation-map tabs.
 #### Block: X_OUT
 **Title:** Interior SPL
 **What this stage does:** Interior tonal and 1/3-octave SPL from the cabin chain; feeds the vs-NASA-PAIN and vs-measurement comparisons. Aircraft cabin use stays X-EXTRAP.
+**Note:** ISO_SIL (40k): hand SIL from a known band spectrum
 **Group:** G_PAIN
 **Role:** output
 **Position:** 11,2
@@ -1494,6 +1504,166 @@ Outputs: SPL [dB]; verdict on H1/H2 counts.
 Inputs: recorded `bbn_results.csv`, `bbn_levels_table3.csv`.
 Equations: F1A levels (replayed); criterion 23b.
 Outputs: relative level [dB]; reported X-EXTRAP.
+
+### Case: ISO_BLOCKING
+**Title:** apply_blocking full grid vs F(γ)·A
+**Map / block:** total / P_BLK
+**Category:** verification
+**Kind:** runnable
+**Source:** CR-3813 Eq. (43); phase 40a criterion 2026-10-23
+**What it tests:** That `apply_blocking` on all 160 points equals F(γ)·A from `blocking_factor` and the geometry's γ, with phases unchanged.
+**Why it is here:** Isolates full-grid blocking from the cabin chain (BLK_P68 only checks F at given γ).
+**A pass means:** Max relative difference ≤ 1e-12 on amplitudes and phases (V-UNIT).
+**Not covered:** Physical correctness of Eq. (43); γ from geometry is used but not separately gated here.
+**Recorded outcome:** **met**, 960/960 (first run 2026-10-23)
+**Explanation:** Isolated analytic check: synthetic free-field amplitudes/phases on the 160-point grid; reference is F(γ)·A with γ from `incidence_angle_deg` and F from `blocking_factor` (same Eq. 43, not `apply_blocking`). Phases must be identical to the input.
+Inputs: synthetic A, φ on `grid_points` (test-article geometry); variant R1.
+Equations: Eq. (43) via `blocking_factor`; `apply_blocking` under test.
+Outputs: A_bl, φ_bl; verdict every row ≤ 1e-12 relative (phases absolute near zero).
+
+### Case: ISO_FF_CONV
+**Title:** Free-field SPL↔Pa and e11 ℓ=1 loader
+**Map / block:** total / P_FF
+**Category:** verification
+**Kind:** runnable
+**Source:** I-17 amplitude convention; Fig. E-11 / Table 8 CSVs; phase 40b criterion 2026-10-23
+**What it tests:** SPL → peak Pa → SPL round-trip after I-17, and the ℓ = 1 line of `freefield_from_e11_csv` against a hand conversion of the CSV.
+**Why it is here:** Conversions and the e11 loader had no isolated check (audit NONE).
+**A pass means:** ≤ 1e-12 relative on every conversion and ℓ = 1 amplitude/phase row.
+**Not covered:** Off-line GEXT values; broadband clip policy beyond matching the loader's written rule.
+**Recorded outcome:** **met**, 111/111 (first run 2026-10-23)
+**Explanation:** Isolated analytic check: hand formulas A = √2·20μPa·10^(SPL/20) and the inverse; ℓ = 1 from the loader vs the same hand conversion of the digitized CSV (with the loader's ANOPP H≥3 / clip rule written in the case).
+Inputs: synthetic SPL values; `default_e11_paths()` amp/phase/ANOPP CSVs; test-article geometry.
+Equations: I-17 peak convention; `spl_dB_to_peak_Pa` / `peak_Pa_to_spl_dB` / `freefield_from_e11_csv`.
+Outputs: Pa and dB; verdict ≤ 1e-12 relative.
+
+### Case: ISO_TABLE8
+**Title:** apply_table8_calibration identity
+**Map / block:** total / P_FF
+**Category:** verification
+**Kind:** runnable
+**Source:** phase 40d criterion 2026-10-23
+**What it tests:** That `apply_table8_calibration` is the identity when ℓ = 1 peaks already equal the Table-8 peaks.
+**Why it is here:** Calibration helper was untested in isolation.
+**A pass means:** ≤ 1e-12 relative on all amplitudes; scales = 1.
+**Not covered:** Non-identity scaling behaviour (clamped ±20 dB path).
+**Recorded outcome:** **met**, 483/483 (first run 2026-10-23)
+**Explanation:** Isolated analytic check: grid filled with Table-8 peak amplitudes; after calibration every point and every scale must match the input within 1e-12.
+Inputs: ANOPP Table 8 SPL CSV; synthetic grid at Table-8 peaks.
+Equations: scale = peak_Table8 / peak_ℓ1 (identity ⇒ 1).
+Outputs: amplitudes and scales; verdict ≤ 1e-12.
+
+### Case: ISO_GEXT_LINE
+**Title:** extend_line_to_grid identity on ℓ = 1
+**Map / block:** total / P_GRID
+**Category:** verification
+**Kind:** runnable
+**Source:** phase 40c criterion 2026-10-23
+**What it tests:** On ℓ = 1 the extension returns its input (falloff 1, delay 0) for every harmonic and option set.
+**Why it is here:** On-line identity is the only GEXT check with a reference; off-line stays V-ASSUMED.
+**A pass means:** ≤ 1e-12 on ℓ = 1 amplitudes and phases for all exercised options.
+**Not covered:** Off-line falloff/delay physics (no reference).
+**Recorded outcome:** **met**, 480/480 (first run 2026-10-23)
+**Explanation:** Isolated analytic check: synthetic line amplitudes/phases; for each importance-bound option set, every ℓ = 1 point must equal the line input.
+Inputs: synthetic line_amps/phases; `grid_points`; option sets (n, floor, delay_scale).
+Equations: GEXT on-line identity (α = 0 ⇒ falloff = 1, R = R0 ⇒ delay = 0).
+Outputs: A, φ on ℓ = 1; verdict ≤ 1e-12.
+
+### Case: ISO_CYL2D_EXACT
+**Title:** cyl2d_modes vs exact circle J′ zeros
+**Map / block:** total / P_CYL
+**Category:** verification
+**Kind:** runnable
+**Source:** Neumann circular duct; phase 40e criterion 2026-10-23
+**What it tests:** Floorless circular section (θ0 = 0°) against f = c·j′_{m,s}/(2πa) from independent J′ zeros.
+**Why it is here:** CYL2D_C1 only compares to App. C tables of the same report.
+**A pass means:** First 10 modes within 2 % at NY = 20, and max relative error at NY = 20 smaller than at NY = 10.
+**Not covered:** Floored cabin (θ0 = 56.6°); Φ_G / shapes.
+**Recorded outcome:** **met**, max |e| NY20 = 0.966 %, NY10 = 6.676 % (first run 2026-10-23)
+**Explanation:** Isolated analytic check: θ0 = 0° makes the floor width zero (floor at y = −1, wall-tangent). Reference frequencies from scan+bisection zeros of J′_m (series Bessel written in the case). NY = 10 and NY = 20 both reported; pass uses the 2026-10-23 gate.
+Inputs: θ0 = 0°, c0 = 340 m/s, a = 1 (unit), n_modes = 10, NY = 10 and 20.
+Equations: f = c0·j′/(2π); `cyl2d_modes`.
+Outputs: f [Hz]; verdict on 2 % @ NY20 and error improvement.
+
+### Case: ISO_CYL2D_BOUNDARY
+**Title:** acoustic_boundary_value and cabin_modes_3d list
+**Map / block:** total / P_CYL
+**Category:** verification
+**Kind:** runnable
+**Source:** App. C; phase 40j criterion 2026-10-23
+**What it tests:** Boundary φ reconstructed from stored node values; (q, i) list complete and sorted.
+**Why it is here:** Boundary interpolation and 3-D mode enumeration had no isolated gate.
+**A pass means:** ≤ 1e-9 on reconstructed φ; list length/completeness/sort exact; f matches Eq. (C.7)/(C.12).
+**Not covered:** Absolute CYL2D eigenvalues (see ISO_CYL2D_EXACT / CYL2D_C1).
+**Recorded outcome:** **met**, 173/173 (first run 2026-10-23)
+**Explanation:** Isolated analytic check: at each stored wall angle, `acoustic_boundary_value` must return the stored φ; `cabin_modes_3d` must list every (q,i) once, sorted by frequency, with f from the printed formula written in the case.
+Inputs: `cyl2d_modes(56.6°; NY=10)`; a = 0.508 m, L = test_article_length(), q_max = 3.
+Equations: linear interpolate in θ; f_n = (c0/2π)√(λ_i/a² + (qπ/L)²).
+Outputs: φ, f; verdict ≤ 1e-9 / exact list.
+
+### Case: ISO_JOINT_ACC
+**Title:** structural_joint_acceptance vs quadrature
+**Map / block:** total / P_TRIM
+**Category:** verification
+**Kind:** runnable
+**Source:** CR-3813 Eqs. (63)–(73); phase 40g criterion 2026-10-23
+**What it tests:** `structural_joint_acceptance` against direct numerical quadrature of the joint-acceptance integral for three Table D-1 modes.
+**Why it is here:** Previously only self-consistency / coarse unit-test quadrature.
+**A pass means:** ≤ 1e-4 relative (mode-normalized and printed forms).
+**Not covered:** End-to-end η_r vs Fig. E-15.
+**Recorded outcome:** **met**, 6/6, max rel ≈ 2.7e-5 (first run 2026-10-23)
+**Explanation:** Isolated analytic check: independent ring and axial sinc-kernel quadratures written in the case; product compared to `structural_joint_acceptance` at ω = ω_r for three modes.
+Inputs: Table D-1 modes 1, 4, 8; a = 0.508 m, L = test_article_length(), c0 = 340 m/s.
+Equations: Eqs. (63)–(73) via quadrature; code `structural_joint_acceptance`.
+Outputs: j²; verdict ≤ 1e-4 relative.
+
+### Case: ISO_MODAL_DENSITY
+**Title:** structural_modal_density and band_joint_acceptance
+**Map / block:** total / P_EQ8
+**Category:** verification
+**Kind:** runnable
+**Source:** phase 40h criterion 2026-10-23
+**What it tests:** Modal density equals the count of modes in each 1/3-octave band / Δω; band-average joint acceptance matches an independent discrete average.
+**Why it is here:** Broadband helpers were untested in isolation (audit NONE).
+**A pass means:** Count exact; band JA ≤ 1e-6 relative.
+**Not covered:** Asymptotic fallback when a band is empty; experimental broadband levels.
+**Recorded outcome:** **met**, 12/12 (first run 2026-10-23)
+**Explanation:** Isolated analytic check: for bands that contain Table D-1 modes, `structural_modal_density` must equal n_count/Δω; `band_joint_acceptance` must equal the mean of j² from Eq. 42 sums and the j² formula written in the case (mode-shaped blocked field; reference applies the same 1e-6 clamp floor as the function).
+Inputs: Table D-1 modes; blocked grid A = 1 + ψ_1; test-article geometry.
+Equations: third-octave Δf/f = 0.2316; discrete Ψ and j² as in §3.5–3.6.
+Outputs: n(ω), ⟨j²⟩; verdict count exact / ≤ 1e-6.
+
+### Case: ISO_BB_BAND
+**Title:** blocked_broadband_band_p2 vs closed-form band integral
+**Map / block:** total / P_EQ8
+**Category:** verification
+**Kind:** runnable
+**Source:** phase 40i criterion 2026-10-23
+**What it tests:** Band integral of S ∝ f^(−α) over exact 1/3-octave limits against the closed form (not the band-centre rectangle).
+**Why it is here:** Band integral helper was untested (and previously compared to the same rectangle the code used, so it passed by construction).
+**A pass means:** ≤ 1e-9 relative.
+**Not covered:** Cabin broadband ⟨p²⟩ path / Fig. E-9.
+**Recorded outcome:** **met**, 8/8 (reference corrected 2026-10-23; code fixed to the exact integral the same day — code-on-code). First registration had compared the rectangle to itself (4/4, void as evidence).
+**Explanation:** Isolated analytic check: Spbl_a from the H = 3 tone spatial mean spread by Δω_a = 0.232·2π·f_a (same anchor as `blocked_broadband_band_p2` in `pain_core.jl`); reference = ∫_{f1}^{f2} Spbl_a (f_a/f)^α · 2π df with f1 = fc·2^(−1/6), f2 = fc·2^(1/6) (α = 1 uses the log form). Compared to `blocked_broadband_band_p2` after the 2026-10-23 integral fix (was Spbl(fc)·0.232·2π·fc).
+Inputs: synthetic blocked amplitudes; α ∈ {2.0, 1.5}; bpf = 200 Hz; fc ∈ {1000,1250,1600,2000} Hz.
+Equations: closed-form power-law band integral; code `blocked_broadband_band_p2`.
+Outputs: ⟨p²⟩_bl [Pa²]; verdict ≤ 1e-9 relative. Dependent recorded results that multiply this ⟨p²⟩_bl (T2 / T2_EQ19 / parametric HF bands, default α = 2) shift by −0.0082 dB at 1.25/1.6/2 kHz — not re-recorded here.
+
+### Case: ISO_SIL
+**Title:** sil_dB / sil_from_third_octave hand spectrum
+**Map / block:** total / X_OUT
+**Category:** verification
+**Kind:** runnable
+**Source:** phase 40k criterion 2026-10-23
+**What it tests:** Hand-computed SIL from a known octave / 1/3-octave spectrum.
+**Why it is here:** SIL helpers had only finite-value checks.
+**A pass means:** ≤ 1e-9 dB.
+**Not covered:** A-weighting / overall dB(A) (separate unit tests).
+**Recorded outcome:** **met**, 2/2 (first run 2026-10-23)
+**Explanation:** Isolated analytic check: SIL = mean of 500/1000/2000/4000 Hz octave SPLs; 1/3-octave path energy-sums bands into those octaves then averages — both formulas written in the case.
+Inputs: stated octave and 1/3-octave dicts.
+Equations: `sil_dB`, `sil_from_third_octave`.
+Outputs: SIL [dB]; verdict ≤ 1e-9 dB.
 
 ---
 ## 3. What “valid recreation” means for this project

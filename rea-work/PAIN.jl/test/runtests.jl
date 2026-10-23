@@ -2624,7 +2624,7 @@ _run_if("Validation case registry (34d)") do
         "X_F1A", "X_FF", "X_SRC", "X_BLK_OUT", "X_OUT",
     ]) ⊆ Set(b.id for b in total.blocks)
     blk_p68 = only(b for b in total.blocks if b.id == "P_BLK")
-    @test blk_p68.cases == ["BLK_P68", "E12_BLOCK"]
+    @test blk_p68.cases == ["BLK_P68", "E12_BLOCK", "ISO_BLOCKING"]
     amp = only(b for b in total.blocks if b.id == "A_AMP")
     @test amp.cases ==
           ["F1A_GUTIN", "R996_FIG14", "R996_FIG12", "R996_FIG13A", "R996_FIG6", "R996_FIG7"]
@@ -2721,7 +2721,10 @@ _run_if("Validation case registry (34d)") do
         "TABLE_D1_FULL", "BLOCKING_P68_CHECKPOINTS",
     )
     # Live in-process cross-checks with no digitized reference file:
-    allowed_live_no_csv = ("F1A_GUTIN", "BBN_KIN", "UT_GRID")
+    allowed_live_no_csv = ("F1A_GUTIN", "BBN_KIN", "UT_GRID",
+        "ISO_BLOCKING", "ISO_FF_CONV", "ISO_GEXT_LINE", "ISO_TABLE8",
+        "ISO_CYL2D_EXACT", "ISO_CYL2D_BOUNDARY", "ISO_JOINT_ACC",
+        "ISO_MODAL_DENSITY", "ISO_BB_BAND", "ISO_SIL")
     converted = ("PER_LOADS", "PER_FIG6", "PER_FIG7", "PER_FIG8", "PER_FIG9",
                  "R996_FIG6", "R996_FIG7", "BBN_CIRC", "BBN_LONG", "BBN_LEVELS")
     results_by_id = Dict{String,Any}()
@@ -2866,6 +2869,35 @@ R  rea-work/docs/old.md -> rea-work/docs/renamed.md
         "rea-work/docs/quoted name.md",
         "rea-work/data/foo.csv",
     ]
+end
+
+_run_if("Isolated block checks (phase 40, V-UNIT)") do
+    # Criteria fixed 2026-10-23 in IMPLEMENTATION_PLAN.md §8b. Verdicts below are from
+    # the first recorded run of this testset; table sizes are asserted with the verdict.
+    # ISO_RITZ_DONNELL (40f) is not registered: Ritz cannot drop stringer/frame I via options.
+    expected = (
+        ("ISO_BLOCKING", :met, 960),          # 160 pts × 3 H × 2 (A,φ)
+        ("ISO_FF_CONV", :met, 111),           # 5 SPL×3 + ℓ=1 A/φ rows
+        ("ISO_GEXT_LINE", :met, 480),         # 5 option sets × 16 k × 3 H × 2
+        ("ISO_TABLE8", :met, 483),            # 160×3 + 3 scales
+        ("ISO_CYL2D_EXACT", :met, 21),        # 10 modes ×2 (NY20+NY10 info) + improve row
+        ("ISO_JOINT_ACC", :met, 6),           # 3 modes × 2 forms
+        ("ISO_MODAL_DENSITY", :met, 12),      # 6 bands × (density + JA)
+        ("ISO_BB_BAND", :met, 8),             # α∈{2,1.5} × 4 centres
+        ("ISO_CYL2D_BOUNDARY", :met, 173),
+        ("ISO_SIL", :met, 2),
+    )
+    for (id, verd, ntab) in expected
+        @test haskey(VALIDATION_CASES, id)
+        r = run_validation_case(id)
+        @test r.verdict === verd
+        ntab === nothing || @test length(r.table) == ntab
+        # Write figures only under TEST_OUT (suite must leave the tree clean).
+        png = plot_case(r, VALIDATION_CASES[id].plot_spec;
+                        path=joinpath(TEST_OUT, "$(id).png"))
+        @test isfile(png) && filesize(png) > 0
+    end
+    @test !haskey(VALIDATION_CASES, "ISO_RITZ_DONNELL")
 end
 
 _run_if("Suite leaves tree clean") do

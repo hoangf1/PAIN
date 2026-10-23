@@ -443,11 +443,17 @@ function apply_rotation_direction_phases!(phases::AbstractArray{<:Real}, rotatio
 end
 
 """
-Estimate band-limited blocked mean-square pressure ⟨p²⟩_bl for a 1/3-oct band.
+Band-limited blocked mean-square pressure ⟨p²⟩_bl for a 1/3-oct band.
 
 Uses spatial-mean |A|² of the highest available tone as an anchor at H·BPF,
 then a power-law continuum Spbl(f)∝f^{-α} (CR-3813 HF notes: broadband fills
 above the first few BPFs). **V-ASSUMED** slope until closed vs exterior spectra.
+
+Anchor density: Spbl_a = ⟨|A|²⟩ / (c_ω·2π·f_anchor) with c_ω = 0.232 (CR-3813
+p. 10; same constant as `C_OMEGA_THIRD_OCTAVE`). Band integral (code-on-code
+fix 2026-10-23, Phase 40i): ∫_{f1}^{f2} Spbl_a (f_anchor/f)^α · 2π df with
+exact 1/3-octave edges f1 = fc·2^{-1/6}, f2 = fc·2^{1/6} (closed form; α = 1
+uses the log branch). Replaces the prior Spbl(fc)·c_ω·2π·fc rectangle.
 """
 function blocked_broadband_band_p2(inp::PainInputs, fc::Float64, bpf_Hz::Float64;
                                    α::Float64=2.0, spbl_anchor_H::Int=3)
@@ -458,13 +464,16 @@ function blocked_broadband_band_p2(inp::PainInputs, fc::Float64, bpf_Hz::Float64
     # Spatial mean of blocked tone amplitude²
     A = inp.amplitudes[:, :, H_anchor]
     p2_tone = sum(abs2, A) / length(A)
-    # Spread tone power into continuum density; one-third-oct Δω/ω = 0.232
+    # Spread tone power into continuum density; one-third-oct Δω/ω = 0.232 (anchor only)
     cw = 0.232
     Δω_a = cw * 2π * f_anchor
     Spbl_a = p2_tone / max(Δω_a, 1e-12)   # (Pa²)/ (rad/s)
-    Spbl_fc = Spbl_a * (f_anchor / max(fc, 1.0))^α
-    Δω = cw * 2π * fc
-    return Spbl_fc * Δω
+    f1 = fc * 2.0^(-1 / 6)
+    f2 = fc * 2.0^(1 / 6)
+    if abs(α - 1.0) < 1e-14
+        return Spbl_a * f_anchor * 2π * log(f2 / f1)
+    end
+    return Spbl_a * f_anchor^α * 2π * (f2^(1 - α) - f1^(1 - α)) / (1 - α)
 end
 
 """

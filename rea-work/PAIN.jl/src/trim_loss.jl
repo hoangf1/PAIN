@@ -16,6 +16,11 @@ Band-average absorption α(f) — Fig. E-13 / Sabine architecture for trim cabin
 
 Educated fit to App. E fiberglass+trim: rises through mid-band, saturates ~0.4–0.6.
 Used by Eq. (19)/(24) HF path and η_a = α c S / (4 ω V) high-frequency limit.
+
+Phase 40l (2026-10-23): this is a **fitted surrogate** used only by `cabin_blocks=:surrogate`
+(and the default surrogate broadband path). No isolated analytic check is possible; the
+Validation map records it as such. The printed Eq. (19)–(23) path (`:eq19` / `:parametric`)
+does not call this function.
 """
 function absorption_coefficient(f_Hz::Real)
     f = max(float(f_Hz), 50.0)

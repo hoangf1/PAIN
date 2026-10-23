@@ -356,7 +356,7 @@ Not blockers (recorded so nobody stops on them): BBN tip geometry beyond 40 in. 
 | Q19 | Phase 37 — root-cause fixes from the 2026-10-21 GUI review (§8) | GUI + `src/` + scripts (author asked "find all root causes and fix all of them") | Q17 | 37a done 2026-10-21; 37a–37i done 2026-10-22 |
 | Q19b | **R1 directory reorganization** (spec `docs/specs/R1_directory_reorg.md`): CR-3813 data → `data/cr3813/`, scripts → `scripts/{run,checks,digitize,setup,smoke}`, READMEs, every path reference updated | moves + path edits | P1 (done, `ef184d8`) | **Done 2026-10-22** (record in §11); reviewer runs full `Pkg.test()` |
 | Q20 | Phase 38 — CR-3813 / User Manual completeness (§8; audit `validation_reports/cr3813_completeness_audit.md`; 38a spec `docs/specs/38a_noise_reduction.md`, equation page images `docs/specs/cr3813_pages/`) | `src/` + cases (author: "the whole PAIN program is supposed to function just like it does in the PAIN Methodology") | Q19 (37b first: amplitude convention) | 38a done (`:not_met`); 38b done (I-18 rule not met); 38c done (T2 not met); 38d done (`:not_met`); 38e done (no verdict); 38f-1, 38f-2, 38h done; 38g done (`:met`, 27/32) in order; 38f–38h planned with the author before starting |
-| Q21 | **Phases 39–42 — block validation program** (§8b; audit `validation_reports/block_validation_audit.md`) | `src/` + tests + cases + GUI map | Q20 | 39 done 2026-10-23; 40, 41, 42, 43 planned in that order |
+| Q21 | **Phases 39–42 — block validation program** (§8b; audit `validation_reports/block_validation_audit.md`) | `src/` + tests + cases + GUI map | Q20 | 39, 40 done 2026-10-23; 41, 42, 43 planned in that order |
 
 If a queue item is blocked on data, skip to the next unblocked item and say which data item blocks it.
 
@@ -432,7 +432,7 @@ Moved to §11. Summary: base H1–H3 = 82.73, 75.73, 77.05 dB (= 18b-r); H3 top 
 ### Phase 39 — Audit record *(done 2026-10-23)*
 `validation_reports/block_validation_audit.md`: every physics function, its tests and cases, isolated or not, status (VERIFIED / PASS-EXP / FAIL / INCONCLUSIVE / NONE), and the isolation test that attributes each failing case.
 
-### Phase 40 — Isolated analytic checks for blocks without one *(planned; V-UNIT / V-CODE; criteria fixed 2026-10-23)*
+### Phase 40 — Isolated analytic checks for blocks without one *(done 2026-10-23; V-UNIT / V-CODE; criteria fixed 2026-10-23)*
 
 | Step | Block / function | Isolated check | Pass criterion |
 |------|------------------|----------------|----------------|
@@ -448,6 +448,8 @@ Moved to §11. Summary: base H1–H3 = 82.73, 75.73, 77.05 dB (= 18b-r); H3 top 
 | 40j | `acoustic_boundary_value`, `cabin_modes_3d` | boundary values reconstructed from the node values; (q, i) list complete and sorted | ≤ 1e-9; exact |
 | 40k | `sil_dB`, `sil_from_third_octave` | hand-computed SIL from a known band spectrum | ≤ 1e-9 dB |
 | 40l | `absorption_coefficient` (surrogate) | none possible: a fitted surrogate used only by `:surrogate`; recorded as such on the map | — |
+
+**Phase 40 result (2026-10-23).** Ten of the eleven checks are cases on the Validation map and all ten are met against their pre-registered criteria: ISO_BLOCKING (0 vs ≤1e-12), ISO_FF_CONV (7e-15), ISO_GEXT_LINE (0), ISO_TABLE8 (0), ISO_CYL2D_EXACT (floorless circle θ₀ = 0 against exact J′ zeros from an independent root finder: largest error 0.97 % at NY = 20, 6.7 % at NY = 10), ISO_JOINT_ACC (2.7e-5 against independent 2-D quadrature, mode-normalized and printed forms), ISO_MODAL_DENSITY (exact count), ISO_BB_BAND, ISO_CYL2D_BOUNDARY (0), ISO_SIL (0 dB). **40f not built:** `structural_modes` (Ritz) always includes the stringer and frame bending stiffness (constants, not options) and always assembles the floor, so the unstiffened shell cannot be isolated without changing solver physics; recorded as a gap (App. D's unstiffened limit is already verified against Donnell). **40l:** `absorption_coefficient` is a fitted surrogate used only by `:surrogate`; recorded as such. **Code error found and fixed (code-on-code, 40i):** `blocked_broadband_band_p2` integrated the band as a band-centre rectangle with a rounded width 0.232 instead of the exact integral of S ∝ f^(−α) between 2^(∓1/6)·f_c; the first version of ISO_BB_BAND compared the function with its own formula (caught in review, check 6). Fixed to the closed-form integral (anchor unchanged); the T2/T2_EQ19 broadband bands move by −0.008 dB (below their recorded precision; not re-recorded). Review: a printed-form joint-acceptance reference assumed all shell terms n > 0; now applies the printed halving term by term. Checks: "Isolated block checks (phase 40, V-UNIT)" 41/41, registry 1751/1751, "Suite leaves tree clean" pass, both smoke scripts pass offscreen; full suite in a worktree before the push.
 
 ### Phase 41 — Isolation tests for the failing cases *(planned; criteria fixed 2026-10-23)*
 
