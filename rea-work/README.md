@@ -51,6 +51,17 @@ The [flowcharts](docs/flowchart.md) show the total program overview (diagram 1),
 | Phase 40 isolated analytics (2026-10-23) | **Done** V-UNIT: `ISO_BLOCKING`, `ISO_FF_CONV`, `ISO_GEXT_LINE`, `ISO_TABLE8`, `ISO_CYL2D_EXACT`, `ISO_JOINT_ACC`, `ISO_MODAL_DENSITY`, `ISO_BB_BAND`, `ISO_CYL2D_BOUNDARY`, `ISO_SIL` all **met**. **40i:** reference is the closed-form ∫ Spbl·2π df (α = 2 and 1.5); `blocked_broadband_band_p2` fixed to that integral (was Spbl(fc)·0.232·2π·fc rectangle; T2-path Δ ≈ −0.008 dB at α = 2, not re-recorded). **40f skipped:** Ritz cannot drop stringer/frame I via options (no `ISO_RITZ_DONNELL`). **40l:** `absorption_coefficient` noted as fitted `:surrogate` only |
 | Phase 41 isolation of failing cases (2026-10-23) | **Done.** `TRIM_CLOSED`, `NR_BAND_HAND`, `HF_MASSLAW`, `BEMT_HAND`, `F1A_INDEP` **met**. `T1_FROM_E12` **not_met** 2/3 (H1–H3 = 81.66, 75.29, 77.89 vs T1 84.21, 77.66, 78.06) → cabin chain implicated. Where isolation passes, experimental misses labelled model fidelity (method), not code. Optional `use_tip_correction` on BEMT wrapper (default on). |
 | Phase 42 loudest point (2026-10-23) | **Done (criteria fixed 2026-10-23).** Tone pressure at interior CYL2D nodes × 21 axial stations from the same Eq. (8) terms; overall dB(A) at the loudest point. Test article 79.1 dB(A) space average, 83.7 dB(A) loudest point (80.4 / 85.5 after 44f, post-hoc); aircraft example 93.8 / 98.4 dB(A) (X-EXTRAP). `LOUDEST_PT` **not_met**: the 1 % average check fails because the pre-registered point set excludes the wall nodes (0.83–0.94; all-node quadrature 0.99–1.03, post-hoc). |
+| Phase 48 exterior broadband from RP-1218 (2026-10-23) | **Done.**
+- `BPM_RP1218` met: NASA's airfoil self-noise code is ported and reproduces its printed output, 270/270 points within 1 dB.
+- The propeller broadband prediction (assumed blade) is 3–15 dB below the measured floors: `PROP_BB_FIG14` 3/9, `PROP_BB_FIG17` 2/7.
+- `T2_PRED_BB` not met, because of the cabin path.
+- Report: `docs/validation_reports/phase48_exterior_broadband.md`. |
+| Phase 49 trim and high-frequency inputs (2026-10-23) | **Done.**
+- τ_t hand check met.
+- No measured trim transmission loss exists in the documents. NASA states the trim model over-estimates the sidewall treatment and is valid to about 1 kHz.
+- Eq. (20) now sums the modes below the band, as printed (effect ≤ 0.3 dB).
+- No input correction closes T2's gap.
+- Report: `docs/validation_reports/phase49_trim_hf_inputs.md`. |
 | Phase 47 T2 with the measured TP-2444 exterior (2026-10-23) | **Not met** (criteria fixed before the run).
 - TP-2444 Fig. 17 (this article, 4000 rpm) is digitized into `data/tp2444/`; CR-172428 Fig. 14 into `data/cr172428/`.
 - `NR_PROP_TP2444` 1/7: measured NR 30–36 dB; the model gives 5–17 dB below 1 kHz and 49 dB at 1260 Hz.

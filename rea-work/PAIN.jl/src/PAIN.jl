@@ -46,7 +46,10 @@ include("validation_case_iso41.jl")   # phase 41 isolation of failing cases
 include("validation_case_iso43.jl")   # phase 43 T1/T2 root causes + TP-1964
 include("validation_case_iso44.jl")   # phase 44 CR-172428 reproduction (App. A / App. B)
 include("validation_case_iso45.jl")   # phase 45 T2 HF path on TP-1964
+include("bpm_airfoil_noise.jl")      # phase 48 airfoil self-noise (NASA RP-1218)
+include("prop_broadband.jl")         # phase 48 propeller broadband at a field point
 include("validation_case_iso47.jl")   # phase 47 T2 with the measured TP-2444 exterior
+include("validation_case_iso48.jl")   # phase 48 exterior broadband from RP-1218
 include("validation_case_extras.jl")
 include("validation_map.jl")
 include("validation_plots.jl")

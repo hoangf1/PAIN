@@ -91,12 +91,17 @@ function hf_structural_band(inp::PainInputs, fc::Real; c_ω::Real=C_OMEGA_THIRD_
     a, L, c_ext = inp.fuse.a, inp.fuse.L, inp.c_ext
     in_band = NamedTuple[]
     j2s = Float64[]
+    # Eq. (20): "the summation r<Δω ... implies a sum over all structural modes ω_r that are
+    # resonant below the frequency band of concern" (CR-3813 p. 24; CR-159363 Eq. 16)
+    sum_j2sq_below = 0.0
     for st in inp.structural.modes
         ωr = 2π * st.f_Hz
         j2 = structural_joint_acceptance(st, ω; a, L, c0=c_ext)
         if lo ≤ ωr ≤ hi
             push!(in_band, (; st, ωr, j2))
             push!(j2s, j2)
+        elseif ωr < lo
+            sum_j2sq_below += j2^2
         end
     end
     if !isempty(j2s)
@@ -104,7 +109,7 @@ function hf_structural_band(inp::PainInputs, fc::Real; c_ω::Real=C_OMEGA_THIRD_
         j2_mean = sum(j2s) / length(j2s)
         sum_j2sq = sum(x -> x^2, j2s)
         j2sq_mean = sum_j2sq / length(j2s)
-        return (; ω, Δω, lo, hi, n_r, j2_mean, sum_j2sq, j2sq_mean, in_band, asymptotic=false)
+        return (; ω, Δω, lo, hi, n_r, j2_mean, sum_j2sq, j2sq_mean, sum_j2sq_below, in_band, asymptotic=false)
     end
     # Sparse / above Table D-1: asymptotic density + all-mode ⟨j²⟩ at band ω
     n_r = structural_modal_density(inp.structural, float(fc))
@@ -118,7 +123,7 @@ function hf_structural_band(inp::PainInputs, fc::Real; c_ω::Real=C_OMEGA_THIRD_
     end
     N_eff = max(n_r * Δω, 0.0)
     sum_j2sq = N_eff * j2sq_mean
-    return (; ω, Δω, lo, hi, n_r, j2_mean, sum_j2sq, j2sq_mean, in_band, asymptotic=true)
+    return (; ω, Δω, lo, hi, n_r, j2_mean, sum_j2sq, j2sq_mean, sum_j2sq_below, in_band, asymptotic=true)
 end
 
 """
@@ -178,8 +183,9 @@ function hf_transmission_coeffs(inp::PainInputs, fc::Real;
     m = inp.m_wall
     Abar = cylinder_surface_area(inp.fuse.a, inp.fuse.L)
     ω = band.ω
-    # Eq. (20): τ_f = (32/π) ρ² (Ā/m²) Σ [j_r²]^2  — ρ = interior
-    τ_f = (32 / π) * ρ_int^2 * (Abar / m^2) * band.sum_j2sq
+    # Eq. (20): τ_f = (32/π) ρ² (Ā/m²) Σ_{r<Δω} [j_r²]^2 over the modes resonant below the band — ρ = interior
+    # (before 2026-10-23 the sum ran over the in-band modes; Phase 49 reading correction)
+    τ_f = (32 / π) * ρ_int^2 * (Abar / m^2) * band.sum_j2sq_below
     # τ_R = (2 n_r π² c0 η_rad^ext η_rad^int)/(ρ0 ω η̄_r) · (4 ρ c0 / Ā)
     # printed: ρ0,c0 in the first factor exterior; ρ,c0 in (4ρc/Ā) interior (c_int)
     η̄_r = max(losses.η̄_r, floatmin(Float64))

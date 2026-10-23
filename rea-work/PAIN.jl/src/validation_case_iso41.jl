@@ -503,10 +503,12 @@ function _run_hf_masslaw()
     c_ω = C_OMEGA_THIRD_OCTAVE
     ρ_ext = ρ_int = 1.225
     c_ext = c_int = 340.0
-    # Single structural mode resonant in the band about fc
+    # One structural mode resonant in the band about fc (τ_R) and one resonant below it (τ_f): Eq. (20)
+    # sums the modes resonant below the band (CR-3813 p. 24; reading corrected 2026-10-23, Phase 49)
     f_mode = fc
     st = StructuralMode(1, f_mode, true, 2.0, 1, [1.0], [2], Float64[], Int[])
-    structural = StructuralModes([st], L, a, 56.6, "HF_MASSLAW single limp mode")
+    st_lo = StructuralMode(2, 0.7fc, true, 2.0, 1, [1.0], [1], Float64[], Int[])
+    structural = StructuralModes([st_lo, st], L, a, 56.6, "HF_MASSLAW one in-band and one below-band limp mode")
     acoustic = cyl2d_modes(56.6; n_modes=3, NY=10, c0=c_int)
     pts = grid_points(fuse, prop, GridSpec())
     amps = ones(Float64, 16, 10, 1)
@@ -516,10 +518,10 @@ function _run_hf_masslaw()
                      m_wall=m, η_n_bare=0.05,
                      ρ0=ρ_ext, c0=c_ext, ρ_ext=ρ_ext, c_ext=c_ext, ρ_int=ρ_int, c_int=c_int)
     tc = hf_transmission_coeffs(inp, fc; c_ω)
-    # Hand Eq. (20): τ_f = (32/π) ρ_int² (Ā/m²) Σ [j_r²]²
+    # Hand Eq. (20): τ_f = (32/π) ρ_int² (Ā/m²) Σ_{r<Δω} [j_r²]², the below-band mode only
     ω = 2π * fc
     Abar = cylinder_surface_area(a, L)
-    j2 = structural_joint_acceptance(st, ω; a, L, c0=c_ext)
+    j2 = structural_joint_acceptance(st_lo, ω; a, L, c0=c_ext)
     τ_f_ref = (32 / π) * ρ_int^2 * (Abar / m^2) * j2^2
     # Hand τ_R (printed p. 24) with the same band averages the function uses
     band = tc.band
@@ -556,7 +558,7 @@ function _run_hf_masslaw()
         "HF_MASSLAW", _today_iso(),
         (; criterion="≤ 1e-9 relative", date="2026-10-23",
          formula="field-incidence Eq. (20) τ_f + printed τ_R (not normal-incidence mass law)",
-         m_wall=m, fc_Hz=fc, single_mode_Hz=f_mode),
+         m_wall=m, fc_Hz=fc, single_mode_Hz=f_mode, below_mode_Hz=0.7fc),
         table, series, n_ok == 3 ? :met : :not_met,
         "$n_ok/3 within ≤1e-9 relative (max rel=$(max_rel))",
         "V-UNIT", "",

@@ -1726,13 +1726,13 @@ Outputs: NR [dB]; verdict ≤ 1e-9 dB.
 **Category:** verification
 **Kind:** runnable
 **Source:** CR-3813 Eq. (20) / p. 24; phase 41d criterion 2026-10-23
-**What it tests:** `hf_transmission_coeffs` for a single limp wall mode against the documented field-incidence Eq. (20) τ_f + printed τ_R (not the normal-incidence mass law).
+**What it tests:** `hf_transmission_coeffs` against the documented field-incidence Eq. (20) τ_f plus the printed τ_R (not the normal-incidence mass law). It uses one limp wall mode in the band (τ_R) and one below it (τ_f). Eq. (20) sums the modes resonant below the band (CR-3813 p. 24); the in-band reading was corrected on 2026-10-23 (Phase 49).
 **Why it is here:** Isolates HF transmission for failing T2 / T2_EQ19.
 **A pass means:** ≤ 1e-9 relative.
 **Not covered:** Normal-incidence τ = 1/(1+(ωm/2ρc)²) — the function documents field-incidence Eq. (20).
-**Recorded outcome:** **met**, 3/3 (first run 2026-10-23)
-**Explanation:** Isolated analytic check: hand Eq. (20) and printed τ_R for one structural mode at fc = 1000 Hz vs `hf_transmission_coeffs`.
-Inputs: bare cabin; m_wall = 8 kg/m²; one mode at 1000 Hz.
+**Recorded outcome:** **met**, 3/3 (first run 2026-10-23; re-run 2026-10-23 after the Phase 49 correction, met)
+**Explanation:** Isolated analytic check: hand Eq. (20) and printed τ_R at fc = 1000 Hz against `hf_transmission_coeffs`.
+Inputs: bare cabin; m_wall = 8 kg/m²; one mode at 1000 Hz and one at 700 Hz.
 Equations: Eq. (20); printed τ_R; code `hf_transmission_coeffs`.
 Outputs: τ_f, τ_R, τ; verdict ≤ 1e-9 relative.
 
@@ -1933,6 +1933,70 @@ Outputs: NR per band [dB].
 Inputs: `data/tp2444/tp2444_fig17_exterior_passA.csv`; `data/cr172428/cr172428_fig14_mic1_5000rpm_passA.csv`; E-9 targets.
 Equations: Eqs. (19)–(23); 1/3-octave energy sum.
 Outputs: interior SPL at 1250/1600/2000 Hz [dB].
+
+### Case: BPM_RP1218
+**Title:** Airfoil self-noise (BPM) vs NASA's printed code output, RP-1218 Tables D2/D3 (48a)
+**Map / block:** total / P_FF
+**Category:** verification
+**Kind:** runnable
+**Source:** NASA RP-1218 App. D Tables D2 and D3 (printed output of NASA's prediction code); criterion fixed 2026-10-23
+**What it tests:** The Julia port of the Brooks–Pope–Marcolini airfoil self-noise model (TBL-TE pressure and suction side, separation, LBL-VS, tip vortex) against NASA's own printed code output for two test cases.
+**Why it is here:** Phase 48 predicts the propeller exterior broadband from this model.
+**A pass means:** Within 1 dB at ≥ 90 % of the printed points.
+**Not covered:** Trailing-edge bluntness noise (not ported); the rotor application.
+**Recorded outcome:** **met**, 270/270 (max 0.19 dB; first run 2026-10-23).
+**Explanation:** Code-on-code. `bpm_spectrum` is run with the App. D inputs.
+Inputs: `data/rp1218/rp1218_tableD2.csv`, `rp1218_tableD3.csv`.
+Equations: RP-1218 Eqs. 2–67, App. B directivity.
+Outputs: 1/3-octave SPL per mechanism [dB].
+
+### Case: PROP_BB_FIG14
+**Title:** Propeller broadband (BPM) vs CR-172428 Fig. 14 free field, 5000 rpm (48c)
+**Map / block:** total / P_FF
+**Category:** experiment
+**Kind:** runnable
+**Source:** CR-172428 Fig. 14 (microphone 1, run 8113), digitized in Phase 47; criterion and decisions fixed 2026-10-23
+**What it tests:** The blade-segment BPM sum (RP-1218 App. C procedure) at microphone 1 against the measured broadband floor.
+**Why it is here:** A physics prediction of the exterior broadband would replace T2's assumed f⁻² extrapolation.
+**A pass means:** Within ±5 dB in ≥ 75 % of the bands 315–2000 Hz.
+**Not covered:** The real blade (proprietary; the NACA 4-(5)(08)-03 planform is a stand-in); inflow-turbulence noise; the observer is in the near field.
+**Recorded outcome:** **not_met**, 3/9 (2026-10-23); BPM is 3–10 dB low.
+**Explanation:** Experiment comparison. `propeller_broadband_spectrum` with `p48_propeller_cfg(5000)`.
+Inputs: Fig. 14 pass A; assumed blade; 23.8 m/s.
+Equations: RP-1218 §5 and App. C.
+Outputs: 1/3-octave SPL [dB].
+
+### Case: PROP_BB_FIG17
+**Title:** Propeller broadband (BPM) vs TP-2444 Fig. 17 exterior, 4000 rpm (48c)
+**Map / block:** total / P_FF
+**Category:** experiment
+**Kind:** runnable
+**Source:** TP-2444 Fig. 17 exterior, digitized in Phase 47; criterion and decisions fixed 2026-10-23
+**What it tests:** As PROP_BB_FIG14, at the fuselage surface in the propeller plane, 4000 rpm.
+**Why it is here:** This is the exterior that T2's cabin path receives.
+**A pass means:** Within ±5 dB in ≥ 75 % of the bands 315–1250 Hz.
+**Not covered:** As PROP_BB_FIG14; the microphone position is not stated (V-ASSUMED).
+**Recorded outcome:** **not_met**, 2/7 (2026-10-23); 1000 and 1250 Hz within 3.6 and 3.1 dB, 315–800 Hz 7–15 dB low.
+**Explanation:** Experiment comparison. As PROP_BB_FIG14 at 4000 rpm.
+Inputs: Fig. 17 exterior pass A.
+Equations: RP-1218 §5 and App. C.
+Outputs: 1/3-octave SPL [dB].
+
+### Case: T2_PRED_BB
+**Title:** T2 fully predictive: BPM exterior → T2 cabin path → E-9 (48d)
+**Map / block:** total / P_MEAS
+**Category:** experiment
+**Kind:** runnable
+**Source:** CR-3813 Fig. E-9; criterion fixed 2026-10-23
+**What it tests:** T2 with no measured input: the BPM exterior at the Fig. 17 point through T2's Eqs. (19)–(23).
+**Why it is here:** It is the end-to-end predictive form of T2.
+**A pass means:** ±3.5 dB of E-9 at 1250, 1600 and 2000 Hz.
+**Not covered:** As PROP_BB_FIG17.
+**Recorded outcome:** **not_met**, 0/3 (2026-10-23): 18.4, 17.4 and 17.9 dB against 51.0, 46.0 and 41.5 dB. The cabin path's noise reduction is the cause.
+**Explanation:** Experiment comparison. `hf_broadband_band_p2` with the T2 pipeline inputs.
+Inputs: The 48b exterior; T2 inputs.
+Equations: Eqs. (19)–(23).
+Outputs: interior SPL [dB].
 
 ### Case: LOUDEST_PT
 **Title:** Interior level at the loudest point (42)

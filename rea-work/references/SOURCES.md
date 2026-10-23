@@ -25,3 +25,10 @@ Downloaded 2026-10-22 from the NASA Technical Reports Server (public use permitt
 - `NASA_TP_2444.pdf`: SHA-256 `f4ad05c839de9a6ff9b80cc9c886e27534f37ef1b21952d286ab6c3d5caef202`
 - `NASA_CR_159363.pdf`: SHA-256 `10b21b9ce3ad2ab29182abc7e6f40f34d237bd2b95ec8e31898fc714141f884e`
 - `NASA_CR_172384.pdf`: SHA-256 `05681043fe82e2d7e63ebf040c710f71cc05929c415627c9d74df016d8af8764`
+
+## Added 2026-10-23 (Phase 48)
+
+| File | Report | NTRS |
+|------|--------|------|
+| `NASA_RP_1218.pdf` | Brooks, Pope, Marcolini: *Airfoil self-noise and prediction*, NASA RP-1218, 1989 (BPM model; App. D code listing and Tables D2/D3) | https://ntrs.nasa.gov/citations/19890016302 |
+- `NASA_RP_1218.pdf`: SHA-256 `0c22690c6216c4355c0da7e09ce0d1a1dd96a2b88d3d8abda30e293b3db76006`

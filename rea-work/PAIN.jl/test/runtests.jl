@@ -3096,6 +3096,72 @@ _run_if("Isolated checks for T1/T2 functions (phase 46)") do
     @test w1.W_in ≈ sum(c -> c.term, w1.contributions) rtol = 1e-10
 end
 
+_run_if("Exterior broadband from RP-1218 (phase 48)") do
+    # Criteria fixed 2026-10-23 (plan §8d Phase 48); 48b–48d decisions fixed before any comparison.
+    r = run_validation_case("BPM_RP1218")
+    @test r.verdict === :met && r.inputs_echo.n_ok == r.inputs_echo.n == 270
+    # scaling laws of the port: span L → +3 dB per doubling, distance r → −6 dB, M⁵ in U at fixed Strouhal
+    a = PAIN.bpm_tbl_te(1000.0, 0.3, 0.4, 1.2, 90.0, 90.0, 3.0, 50.0)
+    b = PAIN.bpm_tbl_te(1000.0, 0.3, 0.8, 1.2, 90.0, 90.0, 3.0, 50.0)
+    c = PAIN.bpm_tbl_te(1000.0, 0.3, 0.4, 2.4, 90.0, 90.0, 3.0, 50.0)
+    @test b.s - a.s ≈ 10log10(2) atol = 1e-9
+    @test a.s - c.s ≈ 20log10(2) atol = 1e-9
+    @test PAIN.bpm_directivity(90.0, 90.0, 0.2)[1] ≈ 1.0 atol = 1e-12
+    @test PAIN.bpm_directivity(0.0, 90.0, 0.2)[1] ≈ 0.0 atol = 1e-12        # no TE radiation straight downstream
+    # recorded results (first run 2026-10-23)
+    for (id, n_ok) in (("PROP_BB_FIG14", 3), ("PROP_BB_FIG17", 2), ("T2_PRED_BB", 0))
+        rr = run_validation_case(id)
+        @test rr.verdict === :not_met && rr.inputs_echo.n_ok == n_ok
+        png = plot_case(rr, VALIDATION_CASES[id].plot_spec; path=joinpath(TEST_OUT, "$(id).png"))
+        @test isfile(png) && filesize(png) > 0
+    end
+end
+
+_run_if("Trim and high-frequency inputs (phase 49)") do
+    # Criteria fixed 2026-10-23 (plan §8e Phase 49) before these checks were written or run.
+    # 49a τ_t of Eq. (A.22), insulation path: |a11|⁻² rebuilt by hand, element by element (skin side first),
+    # from the material table and the limp-mass law, without element_matrix / stack_matrix
+    function a11_hand(st, ω)
+        p, v = 1.0 + 0im, 0.0 + 0im
+        for el in st.elements
+            if el isa PAIN.InsulationLayer
+                q = PAIN.insulation_properties(el.material, ω / 2π; allow_extrapolation=true)
+                γd = complex(q.alpha_Np_per_m, -2π / q.lambda_m) * el.thickness
+                W = q.W_abs * cis(PAIN.W_PHASE_SIGN * q.phi_rad)
+                p, v = cosh(γd) * p + im * ω * W * sinh(γd) * v, -im * sinh(γd) / (ω * W) * p + cosh(γd) * v
+            else
+                p = p + ω^2 * el.m * (1 + im * el.η) * v
+            end
+        end
+        return p
+    end
+    p3 = phase3_trim(; η_lining=1.0)
+    appb = PAIN.r172428_inputs(4000).sidewall
+    for st in (p3.sidewall, appb), f in (250.0, 1000.0, 2000.0)
+        @test PAIN.trim_tau_insulation(st, 2π * f; allow_extrapolation=true) ≈ 1 / abs2(a11_hand(st, 2π * f)) rtol = 1e-12
+    end
+    # limits: one layer alone gives |cosh γd|⁻²; a limp mass alone on the blocked face transmits fully
+    lay = PAIN.InsulationLayer(0.05, PAIN.pf105_table())
+    q = PAIN.insulation_properties(lay.material, 1000.0)
+    γd = complex(q.alpha_Np_per_m, -2π / q.lambda_m) * 0.05
+    @test PAIN.trim_tau_insulation(PAIN.TrimStack(PAIN.TrimElement[lay]), 2π * 1000) ≈ 1 / abs2(cosh(γd)) rtol = 1e-12
+    @test PAIN.trim_tau_insulation(PAIN.TrimStack(PAIN.TrimElement[PAIN.LimpMass(2.0, 0.5)]), 2π * 1000) ≈ 1.0 rtol = 1e-12
+    # Eq. (20) reading (CR-3813 p. 24): τ_f sums the modes resonant below the band, not the in-band modes
+    r = run_pain_pipeline(; source=:e11, n_harmonics=1, bpf_Hz=200.0, blocking=R2)
+    inp = r.inputs; a, L = inp.fuse.a, inp.fuse.L
+    proto = inp.structural.modes[13]
+    mk(i, f) = PAIN.StructuralMode(i, f, proto.symmetric, proto.M_r, proto.M_axial, proto.C_shell, proto.n_shell,
+                                   proto.C_floor, proto.n_floor)
+    syn = PAIN.StructuralModes([mk(1, 300.0), mk(2, 400.0), mk(3, 500.0), mk(4, 900.0)], L, a, inp.fuse.theta0_deg, "49 synthetic")
+    inp_s = PAIN._with_fields(inp; structural=syn)
+    ω = 2π * 500.0
+    j2(f) = PAIN.structural_joint_acceptance(mk(0, f), ω; a, L, c0=inp.c_ext)
+    b = PAIN.hf_structural_band(inp_s, 500.0)
+    @test b.sum_j2sq_below ≈ j2(300.0)^2 + j2(400.0)^2 rtol = 1e-12
+    tc = PAIN.hf_transmission_coeffs(inp_s, 500.0)
+    @test tc.τ_f ≈ (32 / π) * inp.ρ_int^2 * (PAIN.cylinder_surface_area(a, L) / inp.m_wall^2) * (j2(300.0)^2 + j2(400.0)^2) rtol = 1e-12
+end
+
 _run_if("T2 with the measured TP-2444 exterior (phase 47)") do
     # Criteria fixed 2026-10-23 (plan §8d Phase 47); 47b–47d implementation decisions fixed the same day
     # before any band level was computed. Recorded: NR_PROP_TP2444 not met 1/7, T2_MEAS_EXT not met.
@@ -3128,7 +3194,7 @@ _run_if("T2 with the measured TP-2444 exterior (phase 47)") do
     r2 = run_validation_case("T2_MEAS_EXT")
     @test r2.verdict === :not_met
     @test r2.inputs_echo.L_ext_1250_bb ≈ 85.42 atol = 0.01
-    @test r2.inputs_echo.interior_dB[1] ≈ 21.25 atol = 0.01
+    @test r2.inputs_echo.interior_dB[1] ≈ 21.55 atol = 0.01            # 21.25 before the Phase 49 Eq. (20) reading correction
     @test r2.inputs_echo.L_int_fig17_1250_bb ≈ 51.51 atol = 0.01
     for (id, rr) in (("NR_PROP_TP2444", r), ("T2_MEAS_EXT", r2))
         png = plot_case(rr, VALIDATION_CASES[id].plot_spec; path=joinpath(TEST_OUT, "$(id).png"))

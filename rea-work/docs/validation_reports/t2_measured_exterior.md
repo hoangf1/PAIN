@@ -90,6 +90,10 @@ E-9 interior plus model NR (47c inputs) exceeds the measured or extrapolated ext
 | 1600 | 18.9 |
 | 2000 | 25.5 |
 
+## Knock-on of Phase 49 (2026-10-23)
+
+Eq. (20) now sums the modes below the band, as printed. Changes: T2_MEAS_EXT 1250 Hz interior 21.25 → 21.55 dB (1600/2000 Hz: 19.80, 19.92 dB); NR_PROP_TP2444 at 1260 Hz 49.08 → 49.01 dB. No verdict changes.
+
 ## Reading
 
 **The measurements agree with each other.** TP-2444's exterior at 1250 Hz (85.4 dB) less its measured noise reduction (33.9 dB) gives 51.5 dB inside. E-9's mean for the CR-3813 test article at 4000 rpm is 51.0 dB.
