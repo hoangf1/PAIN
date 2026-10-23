@@ -2979,6 +2979,123 @@ _run_if("T1/T2 root causes (phase 43)") do
     end
 end
 
+_run_if("Isolated checks for T1/T2 functions (phase 46)") do
+    # Criteria fixed 2026-10-23 (plan §8d Phase 46) before these checks were written or run.
+    r = run_pain_pipeline(; source=:e11, n_harmonics=3, bpf_Hz=200.0, blocking=R2)
+    inp = r.inputs
+    fuse = inp.fuse
+    a, L = fuse.a, fuse.L
+
+    # 46a broadband_cabin_p2: its documented formula assembled by hand at two bands
+    for fc in (1250.0, 2000.0)
+        ω = 2π * fc
+        τ_t = PAIN.sidewall_tau(inp, ω)
+        α = max(PAIN.absorption_coefficient(fc), 1e-3)
+        j2 = PAIN.band_joint_acceptance(inp, fc)
+        χ = clamp(PAIN.structural_modal_density(inp.structural, fc) / (3.0 / (2π * 0.2316 * 1500)), 0.25, 4.0)
+        A_fc = π * a * L
+        S = 2π * a * L + 2π * a^2
+        for (p2, js) in ((1.0, 1.0), (3.7, 0.5))
+            hand = p2 * 4τ_t * A_fc / (α * S) * j2 * χ * js
+            @test abs(PAIN.broadband_cabin_p2(inp, fc, p2; j2_scale=js) / hand - 1) ≤ 1e-9
+        end
+        @test PAIN.broadband_cabin_p2(inp, fc, 2.0) ≈ 2 * PAIN.broadband_cabin_p2(inp, fc, 1.0) rtol = 1e-12
+        @test PAIN.broadband_cabin_p2(inp, fc, 1.0; j2_scale=0.3) ≈ 0.3 * PAIN.broadband_cabin_p2(inp, fc, 1.0) rtol = 1e-12
+        @test PAIN.broadband_cabin_p2(inp, fc, 0.0) == 0.0
+        @test PAIN.broadband_cabin_p2(inp, fc, -1.0) == 0.0
+    end
+
+    # 46b tone_expected_value: Eq. (16) by hand from the in-band mode lists; Eq. (15) π-limit identity
+    H = 3; ωH = 2π * 600.0
+    ev = PAIN.tone_expected_value(inp, H, ωH)
+    band = PAIN.modes_in_tone_band(inp, ωH)
+    @test ev.N_n == length(band.ac_list) && ev.N_r == length(band.st_list) && ev.N_r > 0
+    η̄_n = sum(m -> PAIN.acoustic_N(inp, m.ac, m.q, 600.0, m.ωn;
+                                   ξ=PAIN.trim_conductance(inp.sidewall, ωH, inp.m_wall; ρ0=inp.ρ_int, c0=inp.c_int),
+                                   ξ_e=PAIN.trim_conductance(inp.endplates, ωH, Inf; ρ0=inp.ρ_int, c0=inp.c_int),
+                                   V=PAIN.cabin_volume(inp)) / m.ωn^2, band.ac_list) / ev.N_n
+    η̄_r = sum(m -> PAIN.structural_η_r_prime(inp, m.st, m.ωr), band.st_list) / ev.N_r
+    @test ev.η̄_n ≈ η̄_n rtol = 1e-12
+    @test ev.η̄_r ≈ η̄_r rtol = 1e-12
+    Δω = PAIN.C_OMEGA_THIRD_OCTAVE * ωH
+    V = PAIN.cabin_volume(inp); A = PAIN.coupling_area(fuse)
+    mA4 = (inp.ρ_ext * inp.c_ext * A / (2ωH))^2                 # (mA/4)² τ_ML
+    s16 = sum(m -> PAIN.generalized_force(m.st, H, inp.amplitudes, inp.phases, inp.pts, fuse; ΔA=inp.ΔA) *
+                   PAIN.structural_joint_acceptance(m.st, ωH; a, L, c0=inp.c_ext) / m.st.M_r^2, band.st_list) / ev.N_r
+    p16 = ωH^2 / (inp.c_int * V) * (ev.N_r / Δω) * PAIN.sidewall_tau(inp, ωH) / (η̄_r * η̄_n) * mA4 * s16
+    @test abs(ev.p2 / p16 - 1) ≤ 1e-9
+    # Eq. (14) with E[g] closed form reduces to the π-limit Eq. (15) when E[g] = π ω_H/(2 η̄ Δω)
+    evc = PAIN.tone_expected_value(inp, H, ωH; use_pi_limit=false)
+    egπ = PAIN.expected_g_pi(ωH, ev.η̄_n, Δω) * PAIN.expected_g_pi(ωH, ev.η̄_r, Δω)
+    @test evc.p2_eq15 * egπ / (evc.E_g_n * evc.E_g_r) ≈ ev.p2_eq15 rtol = 1e-12
+    # scaling: n_r = N_r/Δω enters Eq. (16) linearly (two copies of every in-band structural mode)
+    sm2 = PAIN.StructuralModes(vcat(inp.structural.modes,
+                                    [PAIN.StructuralMode(100 + m.st.index, m.st.f_Hz, m.st.symmetric, m.st.M_r, m.st.M_axial,
+                                                         m.st.C_shell, m.st.n_shell, m.st.C_floor, m.st.n_floor)
+                                     for m in band.st_list]),
+                               inp.structural.L, inp.structural.a, inp.structural.theta0_deg, "46b doubled")
+    ev2 = PAIN.tone_expected_value(PAIN._with_fields(inp; structural=sm2), H, ωH)
+    @test ev2.p2 ≈ 2 * ev.p2 rtol = 1e-12
+    # empty band (no structural mode resonant near 125 Hz; first mode 188.5 Hz) → no high-frequency contribution
+    @test PAIN.tone_expected_value(inp, 1, 2π * 125.0).p2 == 0.0
+
+    # 46c hf_structural_band / hf_band_loss_factors on a synthetic mode set: 3 modes in the 500 Hz band, 2 outside
+    proto = inp.structural.modes[13]
+    mk(i, f) = PAIN.StructuralMode(i, f, proto.symmetric, proto.M_r, proto.M_axial, proto.C_shell, proto.n_shell,
+                                   proto.C_floor, proto.n_floor)
+    syn = PAIN.StructuralModes([mk(1, 300.0), mk(2, 480.0), mk(3, 500.0), mk(4, 520.0), mk(5, 900.0)],
+                               L, a, fuse.theta0_deg, "46c synthetic")
+    ηn_set = 0.031
+    inp_s = PAIN._with_fields(inp; structural=syn, η_n_band=Dict(500.0 => ηn_set, 2000.0 => ηn_set))
+    fc = 500.0; ω = 2π * fc; cω = PAIN.C_OMEGA_THIRD_OCTAVE
+    b = PAIN.hf_structural_band(inp_s, fc)
+    j2s = [PAIN.structural_joint_acceptance(mk(i, f), ω; a, L, c0=inp.c_ext) for (i, f) in ((2, 480.0), (3, 500.0), (4, 520.0))]
+    @test length(b.in_band) == 3 && !b.asymptotic
+    @test b.n_r ≈ 3 / (cω * ω) rtol = 1e-12
+    @test b.j2_mean ≈ sum(j2s) / 3 rtol = 1e-12
+    @test b.sum_j2sq ≈ sum(j2s .^ 2) rtol = 1e-12
+    bA = PAIN.hf_structural_band(inp_s, 2000.0)                 # no mode within 2000 Hz ± c_ω/2
+    @test bA.asymptotic && isempty(bA.in_band)
+    @test bA.n_r ≈ PAIN.structural_modal_density(syn, 2000.0) rtol = 1e-12
+    lf = PAIN.hf_band_loss_factors(inp_s, fc, b)
+    areas = PAIN.hf_absorbing_areas(inp_s)
+    Abar = PAIN.cylinder_surface_area(a, L)
+    @test lf.η̄_n ≈ ηn_set rtol = 1e-12
+    @test lf.ᾱ ≈ 4ω * areas.V * ηn_set / (inp.c_int * areas.S) rtol = 1e-12
+    @test lf.η_rad_ext ≈ 2 * inp.ρ_ext * ω * Abar / (π * inp.m_wall * inp.c_ext) * b.j2_mean rtol = 1e-12
+    @test lf.η̄_r′ ≈ sum(PAIN.structural_η_r_prime(inp_s, m.st, m.ωr; Abar) for m in b.in_band) / 3 rtol = 1e-12
+    @test lf.η̄_r ≈ lf.η_rad_ext + lf.η̄_r′ rtol = 1e-12
+
+    # 46d coupling_loss_factor_21: Eqs. (A.20)–(A.21) by hand
+    mp = PAIN.MechanicalPath(; m_t=1.6, A_t=4.0, h_t=0.0008, c_t=3200.0, η_t=0.5,
+                             m=3.2, A=5.0, h=0.0008, c_l=5300.0, N_points=9, line_length=3.66)
+    ω = 2π * 400.0
+    Zs, Zt = mp.m * mp.h * mp.c_l, mp.m_t * mp.h_t * mp.c_t
+    A20 = 4 * 9 / (sqrt(3) * 4.0) * (mp.h_t * mp.c_t / ω) * Zs * Zt / (Zs + Zt)^2
+    Ys, Yt = mp.m * mp.h^0.5 * mp.c_l^0.5, mp.m_t * mp.h_t^0.5 * mp.c_t^0.5
+    A21 = (2 / 3)^0.25 / 4.0 * (mp.h_t * mp.c_t / ω)^0.5 * Ys * Yt / (Ys + Yt)^2 * 3.66
+    @test abs(PAIN.coupling_loss_factor_21(mp, ω) / (A20 + A21) - 1) ≤ 1e-12
+    mp0 = PAIN.MechanicalPath(; m_t=1.6, A_t=4.0, h_t=0.0008, c_t=3200.0, η_t=0.5, m=3.2, A=5.0, h=0.0008, c_l=5300.0)
+    @test PAIN.coupling_loss_factor_21(mp0, ω) == 0.0
+    mpN = PAIN.MechanicalPath(; m_t=1.6, A_t=4.0, h_t=0.0008, c_t=3200.0, η_t=0.5, m=3.2, A=5.0, h=0.0008, c_l=5300.0, N_points=9)
+    @test abs(PAIN.coupling_loss_factor_21(mpN, ω) / A20 - 1) ≤ 1e-12
+
+    # 46e (functions the full-suite coverage run of 2026-10-23 never executed, on the T1/T2 paths)
+    # tone_Q_H: Q_H of p. 17 = 4 c²/V² (ρ c A/(2ω))² τ_t ω⁶
+    @test PAIN.tone_Q_H(1.2, 343.0, 5.0, 1.3, 2π * 600.0, 0.4) ≈
+          4 * (343.0 / 1.3)^2 * (1.2 * 343.0 * 5.0 / (2 * 2π * 600.0))^2 * 0.4 * (2π * 600.0)^6 rtol = 1e-12
+    # blocked_broadband_band_p2: α = 1 (log branch) is the limit of the power-law branch
+    p_1 = PAIN.blocked_broadband_band_p2(inp, 1600.0, 200.0; α=1.0)
+    p_lo = PAIN.blocked_broadband_band_p2(inp, 1600.0, 200.0; α=1.0 - 1e-7)
+    p_hi = PAIN.blocked_broadband_band_p2(inp, 1600.0, 200.0; α=1.0 + 1e-7)
+    @test p_1 > 0 && abs(p_lo / p_1 - 1) ≤ 1e-5 && abs(p_hi / p_1 - 1) ≤ 1e-5
+    # w_in_reverberant: linear in the blocked mean-square pressure; total = sum of its modal contributions
+    w1 = PAIN.w_in_reverberant(inp, 500.0; p_bl2=1.0)
+    w2 = PAIN.w_in_reverberant(inp, 500.0; p_bl2=2.5)
+    @test w2.W_in ≈ 2.5 * w1.W_in rtol = 1e-12
+    @test w1.W_in ≈ sum(c -> c.term, w1.contributions) rtol = 1e-10
+end
+
 _run_if("T2 HF path on TP-1964 (phase 45)") do
     # Criteria pre-registered 2026-10-23 (plan §8c); recorded not met 9/18 and 8/18.
     for (id, n_ok) in (("NR_TP1964_XOVER", 9), ("NR_TP1964_XOVER_REF2", 8))

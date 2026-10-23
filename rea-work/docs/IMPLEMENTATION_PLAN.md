@@ -357,7 +357,7 @@ Not blockers (recorded so nobody stops on them): BBN tip geometry beyond 40 in. 
 | Q19b | **R1 directory reorganization** (spec `docs/specs/R1_directory_reorg.md`): CR-3813 data → `data/cr3813/`, scripts → `scripts/{run,checks,digitize,setup,smoke}`, READMEs, every path reference updated | moves + path edits | P1 (done, `ef184d8`) | **Done 2026-10-22** (record in §11); reviewer runs full `Pkg.test()` |
 | Q20 | Phase 38 — CR-3813 / User Manual completeness (§8; audit `validation_reports/cr3813_completeness_audit.md`; 38a spec `docs/specs/38a_noise_reduction.md`, equation page images `docs/specs/cr3813_pages/`) | `src/` + cases (author: "the whole PAIN program is supposed to function just like it does in the PAIN Methodology") | Q19 (37b first: amplitude convention) | 38a done (`:not_met`); 38b done (I-18 rule not met); 38c done (T2 not met); 38d done (`:not_met`); 38e done (no verdict); 38f-1, 38f-2, 38h done; 38g done (`:met`, 27/32) in order; 38f–38h planned with the author before starting |
 | Q21 | **Phases 39–44 — block validation program** (§8b, at the bottom; audit `validation_reports/block_validation_audit.md`) | `src/` + tests + cases + GUI map | Q20 | **done 2026-10-23** (39–44); results in §8b |
-| Q24 | **Phase 46 — isolated checks for the five untested T1/T2 functions** (§8d) | tests in `runtests.jl` | Q21 | planned |
+| Q24 | **Phase 46 — isolated checks for the five untested T1/T2 functions** (§8d) | tests in `runtests.jl` | Q21 | **done 2026-10-23**: 37/37 met |
 | Q25 | **Phase 47 — T2 with a measured exterior spectrum** (TP-2444 Fig. 17 = this article at 4000 rpm; §8d) | `data/tp2444/`, new cases | Q24 | planned |
 | Q26 | **Phase 48 — exterior broadband from physics (NASA RP-1218)** (§8d) | new source module, cases | Q25 | planned |
 | Q23 | **Phase 45 — T2's high-frequency path on the TP-1964 bare cylinder** (pre-registered 2026-10-23 before any run; §8c) | `hf_broadband.jl` via `PainInputs`, new case | Q21 | **done 2026-10-23**: not met 9/18; Eq. (19) bands 4/4 within ±2.5 dB |
@@ -460,7 +460,7 @@ No parameter is chosen from Fig. 8: all inputs are the 43d inputs, and the chang
   - CR-172428 Fig. 14: free-field exterior spectrum, 5000 rpm, 0–2 kHz, no fuselage.
   - TP-2444 Fig. 19: model 2 space-averaged interior 1/3-octave spectrum, 4000 rpm, propeller at θ_p = 135°, to 6.3 kHz.
 
-### Phase 46 — Isolated checks for the five untested T1/T2 functions *(planned; V-UNIT; criteria fixed 2026-10-23)*
+### Phase 46 — Isolated checks for the five untested T1/T2 functions *(done 2026-10-23; V-UNIT; criteria fixed 2026-10-23)*
 
 Each check computes the printed equation by hand in the test, for stated inputs. The hand path is written from the equation in CR-3813, not by calling the function's helpers, so the check fails if the function departs from the equation (CLAUDE.md check 6).
 
@@ -471,6 +471,22 @@ Each check computes the printed equation by hand in the test, for stated inputs.
 | 46c | `hf_structural_band`, `hf_band_loss_factors` | Synthetic `StructuralModes` with three modes inside the band and two outside, with known joint acceptances: n_r, ⟨j²⟩, Σ(j²)², and the asymptotic branch when no mode is in the band; η̄_n, ᾱ (Eq. 24) and η_rad (Eq. 81) by hand | ≤ 1e-12 relative; branch selected as specified |
 | 46d | `coupling_loss_factor_21` | Eqs. (A.20)–(A.21) by hand for stated m, h, c_l, m_t, h_t, c_t, N and line length; zero when N = 0 and the line length is 0; point and line parts additive | ≤ 1e-12 relative |
 | 46e | whole suite | Line coverage of the full suite (`Pkg.test(coverage=true)`, run started 2026-10-23): every physics function with a never-executed branch either gets a test or is listed with the reason | list recorded; no criterion beyond completeness |
+
+**Result (2026-10-23; criteria unchanged).** Phase 46 is **met**: 37/37 checks in testset "Isolated checks for T1/T2 functions (phase 46)".
+- 46a `broadband_cabin_p2`: matches its formula assembled by hand at 1250 and 2000 Hz within 1e-9; linear in `p2_bl` and `j2_scale`; zero for `p2_bl` ≤ 0.
+- 46b `tone_expected_value`:
+  - Eq. (16) by hand at 600 Hz within 1e-9.
+  - η̄_n and η̄_r band averages exact.
+  - The closed-form E[g] path reduces to the π-limit Eq. (15) when E[g] = πω_H/(2η̄Δω).
+  - Doubling every in-band structural mode doubles Eq. (16).
+  - An empty band (125 Hz) gives zero.
+- 46c `hf_structural_band` / `hf_band_loss_factors` (synthetic set, 3 modes in band, 2 outside): n_r, ⟨j²⟩, Σ(j²)², the asymptotic branch, η̄_n, ᾱ (Eq. 24), η_rad (Eq. 81) and η̄_r′ all exact to 1e-12.
+- 46d `coupling_loss_factor_21`: Eqs. (A.20)–(A.21) by hand within 1e-12; zero with no connections; the point part alone equals Eq. (A.20).
+- 46e, from the full-suite coverage run of 2026-10-23: the functions on the T1/T2 paths that the suite never executed now have checks:
+  - `tone_Q_H`: Q_H of p. 17 by hand.
+  - The α = 1 branch of `blocked_broadband_band_p2`: it is the limit of the power-law branch within 1e-5.
+  - `w_in_reverberant`: linear in p_bl², and the total equals the sum of its contributions.
+  - Never-executed functions off the T1/T2 paths are listed in `block_validation_audit.md`.
 
 ### Phase 47 — T2 with a measured exterior spectrum of the test article *(planned; criteria fixed 2026-10-23)*
 
