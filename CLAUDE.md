@@ -14,4 +14,8 @@ Code changes delegated to Cursor (scripts\cursor-exec.ps1, write mode) must be c
 3. Run: run the affected checks yourself and read the output; do not rely on Cursor's report. Code in PAIN.jl\src or test: `julia --project=. -e "using Pkg; Pkg.test()"` from rea-work\PAIN.jl. GUI code: scripts\smoke\smoke_gui_model.jl and scripts\smoke\smoke_qml_load.jl, plus a look at the window.
 4. Numbers: spot-check the numbers Cursor reports against the recorded reports in rea-work\docs\validation_reports.
 5. Docs: confirm the five documents above were updated for the change.
-A failed check is fixed (or the task re-sent to Cursor with the failure) before the next task starts; one Cursor writer at a time.
+6. Substance: for every new or changed test, confirm it would fail if the behaviour were wrong (no test that compares a function with itself or passes by construction); for physics changes, confirm the change has the intended physical effect.
+7. Labels: check that every user-facing label, unit and verdict text says what the number is (criterion vs no criterion, units from the case's own definition).
+8. Interrupted run: if a Cursor run stops early, review its partial edits like a finished run, then re-send with "resume from the edits in the tree".
+9. Before commit: run /code-review on the diff and fix or explicitly skip each finding; no stray helper scripts, regenerated figures, or machine-specific paths remain; tests write only to the temp output dir.
+A failed check is fixed (or the task re-sent to Cursor with the failure) before the next task starts; one Cursor writer at a time, and "one writer" counts every agent on the checkout, including other Claude sessions.
