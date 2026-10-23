@@ -15,7 +15,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent.parent                      # rea-work
-XFOIL = os.environ.get("XFOIL_EXE") or shutil.which("xfoil") or r"C:\Users\FrancisHoang\Downloads\XFOIL6.99\xfoil.exe"
+XFOIL = os.environ.get("XFOIL_EXE") or shutil.which("xfoil") or r"C:\Users\francis\tools\XFOIL6.99\xfoil.exe"
 XFOIL_VERSION = "6.99 (stock Windows build, single precision; the sibling-repo set used a Linux double-precision build)"
 ITER = 200
 RMS_OK = 1e-4

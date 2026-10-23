@@ -397,7 +397,7 @@ not an independent validation.
 | NACA 4412 XFOIL settings (fixed 2026-10-20, phase 11): N_crit 9 primary, N_crit 5 and forced x_tr 0.05 brackets; 180 panels; ITER 200; Re 2×10⁴–3×10⁵ (8 values); M 0–0.4 (5 values); α −10° to 20° | `data\pereira
 aca4412_xfoil_*.json` | Chosen before the comparison (plan phase 11, 28). Stock Windows XFOIL 6.99 | Pereira loads |
 | Report 996 polar gap fill (fixed 2026-10-20, phase 11a): forced x_tr 0.02, 240 panels, Re 3×10⁵ and M 0.1 added to the sibling grid, α −6° to 14° | `data
-eport996\polars_forced_merged.json` | Chosen before the comparison. Merged grid mixes XFOIL builds (sibling: Linux double precision; new: Windows 6.99) | Report 996 loads |
+eport996\polars_forced_merged.json` | Chosen before the comparison. Merged grid mixes XFOIL builds (sibling: Linux double precision; new: Windows 6.99). 2026-10-22: 1,420 points added to 109 entries that were empty or stopped below α = 8° (same settings, streamed sweeps with restart after a hang; existing points unchanged; 50 thin-section entries still short, listed in the file header); `data/polars/xfoil_regen_2026_10_22.py` | Report 996 loads |
 | Viterna extension (fixed 2026-10-20, phase 11c): CCBlade 1.0.0 `viterna`, 50 points per side, α_stall = α at max converged c_l, c_d,max = max(max c_d, 1.11 + 0.018/cr75), cr75 0.1251 (Report 996) / 0.1558 (Pereira); Re, M clamped to the set's grid range, bilinear in (log Re, M); non-extendable polars replaced by the nearest usable (Re, M) of the same section | `data\polarsiterna_extension.json` | Rules chosen before the comparison. Stall values: Report 996 median α_stall 7.5°, c_l,max 0.94; Pereira N_crit 9 median 15.0°, 1.37. 143 of 300 Report 996 polars end before a true stall | Inboard loads |
 
 **What can be quoted as validation today.** The blocking formula, the grid geometry, and the cabin-mode solver against Table C-1
@@ -592,7 +592,7 @@ Written before any BBN / Report 996 / Pereira comparison run that uses these tol
 - **23a′ / 24b:** PASS (`Pkg.test()`).
 - **23a / 24c:** Pre-registered FAIL 26/168 (15%) on record (2026-10-21, reversed pair reading). Post-hoc re-run 2026-10-22 with CR-158919 §3.4/Table 8 pair convention: **134/168** (79.8 %, below the 80 % pass rule) → FAIL (`bbn_phase.md`); registry `BBN_CIRC` replays the CSV.
 - **23b / 24d:** reported X-EXTRAP in `bbn_phase.md`; `BBN_LEVELS` no verdict (20/32 within ±3 dB, X-EXTRAP).
-- **23c / 27:** FAIL — scaled Fig.14 sample 5/24 within ±2 dB; page-12 |Δφ−155°|=51.2° (`report996_acoustics.md`; I-08 L51C27 on Fig.13a). **Registry replays (phase 35):** `R996_FIG14` not met 5/24 (= recorded); `R996_FIG13A` not met 6/14 (= recorded); `R996_FIG12` not met **19/40** (first verdict under the frozen 23c rule; no count was recorded before); `R996_PHASE` reads 155°/165° from `tr996_phase_values.csv` and F1A 103.8° from `f1a_results.csv`.
+- **23c / 27:** FAIL — scaled Fig.14 sample 5/24 within ±2 dB; page-12 |Δφ−155°|=51.2° (`report996_acoustics.md`; I-08 L51C27 on Fig.13a). **Registry replays (phase 35):** `R996_FIG14` not met 5/24 (= recorded); `R996_FIG13A` not met 6/14 (= recorded); `R996_FIG12` not met **19/40** (first verdict under the frozen 23c rule; no count was recorded before); `R996_PHASE` reads 155°/165° from `tr996_phase_values.csv` and F1A 103.8° from `f1a_results.csv`. **Polar re-run 2026-10-22 (post-hoc, 23c unchanged):** R996_LOADS 6/32 (unchanged), R996_FIG14 20/24 met (unchanged), R996_FIG13A 8/14 (unchanged), R996_FIG12 21/40 (was 22/40), page-12 phase 109.0° (was 103.8°; FAIL); Fig. 14 table scale factors at M_t 0.75/0.90 move to s_T 1.275/1.316 (from 1.364/1.521); Viterna evaluations per loads run 2511 → 2284.
 - **23d / 28:** FAIL on H1 (0/9 within ±1.7 dB vs Fig.9 Exp at 80 dB as read); H2 6/9 within ±3 dB (`pereira_forward_flight.md`). Replays: `PER_FIG9` not met (H1 0/9, H2 6/9); `PER_FIG8` not met (H1 1/7, H2 6/7); `PER_FIG7` not met (Δψ₁ 2/3 within ±5°); `PER_FIG6` / `PER_LOADS` no verdict (no frozen criterion).
 - Phase **26** loads keep the post-hoc label "criteria registered after the loads were computed"; registry `R996_LOADS` 6/32 within ±15 % (not met; same post-hoc label).
 
@@ -1297,8 +1297,8 @@ Outputs: pressure [dyne/cm²] / SPL error [dB]; verdict ≥75 % within ±2 dB.
 **Why it is here:** Axial shape of the near field.
 **A pass means:** Scaled-load harmonic within ±2 dB at ≥ 75 % of points (23c).
 **Not covered:** Loads scaled to measured T, Q (calibrated input); static only; amplitude convention fixed 2026-10-21, post-hoc.
-**Recorded outcome:** not_met 22/40 within ±2 dB (report996_acoustics.md; amplitude convention fixed 2026-10-21, post-hoc)
-**Explanation:** Replay of a recorded result: axial near-field harmonics vs x/D. After I-17: 22/40 within ±2 dB (not met; need ≥75 %). Scaled loads; amplitude-convention fix post-hoc.
+**Recorded outcome:** not_met 21/40 within ±2 dB (re-run 2026-10-22 with regenerated polar entries, post-hoc; first recorded 22/40) (report996_acoustics.md; amplitude convention fixed 2026-10-21, post-hoc)
+**Explanation:** Replay of a recorded result: axial near-field harmonics vs x/D. After I-17: 22/40 within ±2 dB (not met; need ≥75 %); polar re-run 2026-10-22 (post-hoc): 21/40. Scaled loads; amplitude-convention fix post-hoc.
 Inputs: recorded `f1a_results.csv`.
 Equations: F1A (replayed).
 Outputs: pressure vs x/D; verdict ≥75 % within ±2 dB.
@@ -1409,8 +1409,8 @@ Outputs: phase [deg]; no pass rule (X-EXTRAP).
 **Why it is here:** Only measured phase in Report 996.
 **A pass means:** within ±15° of 155° (23c).
 **Not covered:** One data point; stations ±0.125 used as candidates (report does not name them).
-**Recorded outcome:** FAIL 103.8° vs 155° (±15°); tr996_phase_values.csv + f1a_results.csv
-**Explanation:** Replay of a recorded result: one measured phase 155° (p. 12). Comparison uses ±0.125 x/D as candidates; F1A gives 103.8°. Fails ±15° (23c). Nothing tuned.
+**Recorded outcome:** FAIL 109.0° vs 155° (±15°) after the 2026-10-22 polar re-run (post-hoc; first recorded 103.8°); tr996_phase_values.csv + f1a_results.csv
+**Explanation:** Replay of a recorded result: one measured phase 155° (p. 12). Comparison uses ±0.125 x/D as candidates; F1A gives 109.0° (103.8° before the polar re-run). Fails ±15° (23c). Nothing tuned.
 Inputs: recorded `tr996_phase_values.csv`, `f1a_results.csv`.
 Equations: F1A phase (replayed).
 Outputs: phase difference [deg]; verdict within ±15° of 155°.

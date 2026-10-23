@@ -51,7 +51,7 @@ function process(path, cr75)
             alpha_stall_deg = q(stalls), cl_max = q(clmaxs), cd_max = q(cdmaxs))
 end
 
-cr75_996 = cr75_from_csv("C:/Users/FrancisHoang/git/propeller_sizing_and_analysis/propeller_sizing_and_analysis/propellers/naca_4-5-08-03/blade_form.csv", 1, 2)
+cr75_996 = cr75_from_csv(joinpath(ROOT, "data", "report996", "naca_4-5-08-03", "blade_form.csv"), 1, 2)
 cr75_per = cr75_from_csv(joinpath(ROOT, "data", "pereira", "pereira_fig1b_chord_twist.csv"), 1, 2)
 
 sets = Any[("report996_forced_merged", joinpath(ROOT, "data", "report996", "polars_forced_merged.json"), cr75_996)]
