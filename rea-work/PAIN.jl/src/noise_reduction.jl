@@ -123,20 +123,61 @@ function acoustic_modes_in_band(inp::PainInputs, fc::Real; c_ω::Real=C_OMEGA_TH
 end
 
 """
-    acoustic_crossover_band(inp; bands, c_ω, n_min=10) -> (; fc_Hz, n_modes, band_index)
+    volume_crossover_frequency_Hz(inp; c0) -> f [Hz]
 
-Lowest 1/3-octave band whose count of 3-D acoustic modes in the band is ≥ `n_min`
-(CR-3813 §3.3 / phase 38b rule, fixed before any run).
+User Manual card 10 option a (pp. 17–18): f = 4.1 c₀ / V^(1/3) with V = cabin volume [m³]
+and c₀ = interior speed of sound [m/s].
+"""
+function volume_crossover_frequency_Hz(inp::PainInputs; c0::Union{Nothing,Real}=nothing)
+    c = c0 === nothing ? inp.c_int : float(c0)
+    V = cabin_volume(inp)
+    V > 0 || error("volume_crossover_frequency_Hz: cabin volume must be positive")
+    return 4.1 * c / V^(1 / 3)
+end
+
+"""
+    volume_crossover_band(inp; bands, c0) -> (; fc_Hz, f_Hz, n_modes, band_index, rule)
+
+1/3-octave band **containing** f = 4.1 c₀/∛V (Manual card 10 option a). `n_modes` is the
+acoustic-mode count in that band (informational).
+"""
+function volume_crossover_band(inp::PainInputs;
+                               bands::Union{Nothing,AbstractVector{<:Real}}=nothing,
+                               c0::Union{Nothing,Real}=nothing,
+                               c_ω::Real=C_OMEGA_THIRD_OCTAVE)
+    bs = bands === nothing ? resolve_bands(inp) : collect(float.(bands))
+    f = volume_crossover_frequency_Hz(inp; c0)
+    fc = containing_third_octave(f, bs; c_ω)
+    fc === nothing && (fc = nearest_third_octave(f, bs))
+    i = findfirst(==(fc), bs)
+    n = acoustic_modes_in_band(inp, fc; c_ω)
+    return (; fc_Hz=float(fc), f_Hz=f, n_modes=n, band_index=something(i, 0), rule=:volume)
+end
+
+"""
+    acoustic_crossover_band(inp; bands, c_ω, n_min=10, rule=:volume) -> NamedTuple
+
+Low/high-frequency changeover band (Manual card 10 / phase 43a):
+
+* `rule=:volume` (**default**, card 10 option a): band containing f = 4.1 c₀/∛V
+* `rule=:ten_modes` (phase 38b named option): lowest band with ≥ `n_min` 3-D acoustic modes
+  (CR-3813 §3.3 noise-reduction wording; kept for NR cases that fixed it before 38a runs)
 """
 function acoustic_crossover_band(inp::PainInputs;
                                  bands::Union{Nothing,AbstractVector{<:Real}}=nothing,
-                                 c_ω::Real=C_OMEGA_THIRD_OCTAVE, n_min::Int=10)
+                                 c_ω::Real=C_OMEGA_THIRD_OCTAVE, n_min::Int=10,
+                                 rule::Symbol=:volume)
+    rule in (:volume, :ten_modes) ||
+        error("acoustic_crossover_band: rule must be :volume or :ten_modes (got $rule)")
+    if rule === :volume
+        return volume_crossover_band(inp; bands, c_ω)
+    end
     bs = bands === nothing ? resolve_bands(inp) : bands
     for (i, fc) in enumerate(bs)
         n = acoustic_modes_in_band(inp, fc; c_ω)
-        n ≥ n_min && return (; fc_Hz=float(fc), n_modes=n, band_index=i)
+        n ≥ n_min && return (; fc_Hz=float(fc), f_Hz=float(fc), n_modes=n, band_index=i, rule=:ten_modes)
     end
-    return (; fc_Hz=NaN, n_modes=0, band_index=0)
+    return (; fc_Hz=NaN, f_Hz=NaN, n_modes=0, band_index=0, rule=:ten_modes)
 end
 
 """Apply the optional NASA η_r' cap (E-18/E-21: 0.15); `nothing` = no cap."""
@@ -227,7 +268,8 @@ function noise_reduction_band(inp::PainInputs, fc::Real;
                               crossover_fc::Union{Nothing,Float64}=nothing,
                               hf_model::Symbol=:none)
     hf_model in (:none, :eq19) || error("hf_model must be :none or :eq19 (got $hf_model)")
-    xover = crossover_fc === nothing ? acoustic_crossover_band(inp; c_ω).fc_Hz : crossover_fc
+    # NR path keeps the §3.3 ten-mode rule (fixed for 38a E-21/E-22); tones use card-10 volume.
+    xover = crossover_fc === nothing ? acoustic_crossover_band(inp; c_ω, rule=:ten_modes).fc_Hz : crossover_fc
     above = isfinite(xover) && fc ≥ xover - 1e-9
     n_in_band = acoustic_modes_in_band(inp, fc; c_ω)
 
@@ -308,7 +350,7 @@ function noise_reduction_spectrum(inp::PainInputs;
                                   c_ω::Real=C_OMEGA_THIRD_OCTAVE,
                                   hf_model::Symbol=:none)
     bs = bands === nothing ? resolve_bands(inp) : float.(collect(bands))
-    xover = acoustic_crossover_band(inp; bands=bs, c_ω)
+    xover = acoustic_crossover_band(inp; bands=bs, c_ω, rule=:ten_modes)
     rows = [noise_reduction_band(inp, fc; η_r_cap, c_ω, crossover_fc=xover.fc_Hz, hf_model)
             for fc in bs]
     return (; bands=bs, rows, crossover=xover, η_r_cap, c_ω, hf_model)

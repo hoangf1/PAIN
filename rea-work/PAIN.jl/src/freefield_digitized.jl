@@ -93,7 +93,10 @@ function freefield_from_e11_csv(amp_csv::AbstractString,
                                 bpf_Hz::Float64=200.0,
                                 n_harmonics::Int=3,
                                 anopp_spl_csv::Union{Nothing,String}=nothing,
-                                broadband_clip_dB::Float64=10.0)
+                                broadband_clip_dB::Float64=10.0,
+                                grid_fill::Symbol=:gext,
+                                f1a_pattern_amps::Union{Nothing,Array{Float64,3}}=nothing,
+                                f1a_pattern_phases::Union{Nothing,Array{Float64,3}}=nothing)
     amp = _read_csv_numeric(amp_csv)
     ph = _read_csv_numeric(phase_csv)
     anopp = anopp_spl_csv === nothing ? nothing : _read_csv_numeric(anopp_spl_csv)
@@ -134,11 +137,45 @@ function freefield_from_e11_csv(amp_csv::AbstractString,
     end
     pts = grid_points(fuse, prop, spec)
     ωH = [2π * H * bpf_Hz for H in 1:nH]
-    amps, phases = extend_line_to_grid(line_amps, line_phases, pts; omega_H=ωH)
+    grid_fill in (:gext, :f1a_relative) ||
+        error("freefield_from_e11_csv: grid_fill must be :gext or :f1a_relative (got $grid_fill)")
+    if grid_fill === :gext
+        amps, phases = extend_line_to_grid(line_amps, line_phases, pts; omega_H=ωH)
+        fill_note = "grid extension GEXT V-ASSUMED"
+    else
+        # 43f: ℓ=1 keeps Table-8/e11 line; off-line = relative F1A pattern of the same propeller
+        # A(k,ℓ) = A(k,1) · A_F1A(k,ℓ)/A_F1A(k,1); φ(k,ℓ) = φ(k,1) + (φ_F1A(k,ℓ)−φ_F1A(k,1))
+        f1a_pattern_amps === nothing &&
+            error("grid_fill=:f1a_relative requires f1a_pattern_amps")
+        f1a_pattern_phases === nothing &&
+            error("grid_fill=:f1a_relative requires f1a_pattern_phases")
+        size(f1a_pattern_amps, 1) ≥ k_max || error("f1a_pattern_amps k dim too small")
+        size(f1a_pattern_amps, 3) ≥ nH || error("f1a_pattern_amps H dim too small")
+        amps = zeros(k_max, 10, nH)
+        phases = zeros(k_max, 10, nH)
+        for p in pts
+            for H in 1:nH
+                A1 = line_amps[p.k, H]
+                φ1 = line_phases[p.k, H]
+                if p.ell == 1
+                    amps[p.k, p.ell, H] = A1
+                    phases[p.k, p.ell, H] = φ1
+                else
+                    Af1 = f1a_pattern_amps[p.k, 1, H]
+                    Af = f1a_pattern_amps[p.k, p.ell, H]
+                    ratio = Af1 > 0 ? Af / Af1 : 0.0
+                    amps[p.k, p.ell, H] = A1 * ratio
+                    dφ = f1a_pattern_phases[p.k, p.ell, H] - f1a_pattern_phases[p.k, 1, H]
+                    phases[p.k, p.ell, H] = φ1 + dφ
+                end
+            end
+        end
+        fill_note = "grid fill F1A-relative (ℓ=1 = e11/Table-8 line; off-line = A_F1A/A_F1A(ℓ=1), Δφ_F1A)"
+    end
     # Card 36: CSV phases assume +1 (Fig. 3); −1 flips blade-passage phase sign.
     apply_rotation_direction_phases!(phases, prop.rotation_direction)
     notes = "SRC_TA: digitized Fig.E-11 measured SPL + ANOPP Table 8 phases; " *
-            "grid extension V-ASSUMED. Digitization file: $(basename(amp_csv))."
+            "$fill_note. Digitization file: $(basename(amp_csv))."
     if anopp !== nothing
         notes *= " Broadband floor clip vs ANOPP where measured−ANOPP > $(broadband_clip_dB) dB (n_clip=$n_clip; V-ASSUMED)."
     end

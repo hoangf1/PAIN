@@ -70,12 +70,16 @@ struct PainInputs
     L_c::Float64                # cavity length [m]; acoustic axial scale (card 9)
     d::Float64                  # structure start relative to cavity start [m] (card 9)
     # Manual card 10: high-frequency crossover band centre [Hz]; `nothing` = estimate
-    # (lowest 1/3-oct with ≥ 10 three-dimensional acoustic modes; phase 38b).
+    # (default: band containing f = 4.1 c₀/∛V, card 10 option a / phase 43a;
+    #  `:ten_modes` option = lowest 1/3-oct with ≥ 10 acoustic modes, phase 38b).
     crossover_band_Hz::Union{Nothing,Float64}
     # Manual cards 3–6 / 11–18 (38f-2); `nothing` = default list / compute loss factors
     bands::Union{Nothing,Vector{Float64}}
     η_r_band::Union{Nothing,Dict{Float64,Float64}}
     η_n_band::Union{Nothing,Dict{Float64,Float64}}
+    # When true, η_r_band overrides are final η_r′ (skip Eq. 82 trim); for measured
+    # decay inputs (phase 43b). Default false keeps Manual card 11–14 = pre-trim η_r.
+    η_r_band_is_prime::Bool
 end
 
 function PainInputs(fuse, prop, structural, acoustic, amplitudes, phases, pts, ΔA::Real;
@@ -89,7 +93,8 @@ function PainInputs(fuse, prop, structural, acoustic, amplitudes, phases, pts, �
                     ρ_int::Union{Nothing,Real}=nothing, c_int::Union{Nothing,Real}=nothing,
                     L_c::Union{Nothing,Real}=nothing, d::Real=0.0,
                     crossover_band_Hz::Union{Nothing,Real}=nothing,
-                    bands=nothing, η_r_band=nothing, η_n_band=nothing)
+                    bands=nothing, η_r_band=nothing, η_n_band=nothing,
+                    η_r_band_is_prime::Bool=false)
     (sidewall === nothing) == (endplates === nothing) ||
         error("PainInputs: give both `sidewall` and `endplates` trim stacks, or neither (bare cabin)")
     mech !== nothing && sidewall === nothing && error("PainInputs: `mech` needs a `sidewall` stack")
@@ -105,7 +110,8 @@ function PainInputs(fuse, prop, structural, acoustic, amplitudes, phases, pts, �
     return PainInputs(fuse, prop, structural, acoustic, amplitudes, phases, pts, float(ΔA),
                       sidewall, endplates, mech, m, float(η_n_bare), float(C_struc),
                       q_max === nothing ? nothing : Int(q_max), allow_extrapolation, ρ0f, c0f,
-                      ρe, ce, ρi, ci, Lc, float(d), xover, bands_n, ηr_n, ηn_n)
+                      ρe, ce, ρi, ci, Lc, float(d), xover, bands_n, ηr_n, ηn_n,
+                      η_r_band_is_prime)
 end
 
 """Trim stacks present (sidewall and end plates)?"""
@@ -769,6 +775,10 @@ function structural_η_r_prime(inp::PainInputs, st::StructuralMode, ωr::Real;
     a, L = fuse.a, fuse.L
     Ab = Abar === nothing ? cylinder_surface_area(a, L) : float(Abar)
     ov = loss_factor_override(inp, :η_r, st.f_Hz)
+    if ov !== nothing && inp.η_r_band_is_prime
+        # Measured / card total η_r′ (phase 43b): do not re-apply Eq. (82) trim.
+        return apply_η_r_cap(ov, η_r_cap)
+    end
     ηr = ov !== nothing ? ov :
          structural_loss_total(st, ωr; a, L, m=inp.m_wall, C=inp.C_struc,
                                ρ0=inp.ρ_ext, c0=inp.c_ext, Abar=Ab)

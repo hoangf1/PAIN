@@ -243,15 +243,17 @@ function tone_eq13_sample(inp::PainInputs, H::Int, ωH::Float64,
 end
 
 """
-    resolve_crossover_Hz(inp; bands, c_ω) -> Float64
+    resolve_crossover_Hz(inp; bands, c_ω, rule=:volume) -> Float64
 
-Manual card 10: use `inp.crossover_band_Hz` when set, else `acoustic_crossover_band`.
+Manual card 10: use `inp.crossover_band_Hz` when set, else `acoustic_crossover_band`
+with `rule` (default `:volume` = card 10 option a; `:ten_modes` = phase 38b option).
 """
 function resolve_crossover_Hz(inp::PainInputs;
                               bands::Union{Nothing,AbstractVector{<:Real}}=nothing,
-                              c_ω::Real=C_OMEGA_THIRD_OCTAVE)
+                              c_ω::Real=C_OMEGA_THIRD_OCTAVE,
+                              rule::Symbol=:volume)
     inp.crossover_band_Hz !== nothing && return float(inp.crossover_band_Hz)
-    return acoustic_crossover_band(inp; bands, c_ω).fc_Hz
+    return acoustic_crossover_band(inp; bands, c_ω, rule).fc_Hz
 end
 
 """

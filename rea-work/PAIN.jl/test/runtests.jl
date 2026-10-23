@@ -1406,8 +1406,8 @@ _run_if("High-frequency tones Eqs. (11)–(16) (38b)") do
         bare = PainInputs(r.inputs.fuse, r.inputs.prop, r.inputs.structural, r.inputs.acoustic,
                           r.inputs.amplitudes, r.inputs.phases, r.inputs.pts, r.inputs.ΔA;
                           η_n_bare=0.01)
-        xover = acoustic_crossover_band(bare)
-        # Prefer the crossover band (has ≥10 acoustic modes); if no structural modes
+        xover = acoustic_crossover_band(bare; rule=:ten_modes)
+        # Prefer the ten-mode crossover band (has ≥10 acoustic modes); if no structural modes
         # there, step up through 1/3-oct centres until both counts are positive.
         fc = xover.fc_Hz
         band = modes_in_tone_band(bare, 2π * fc)
@@ -1503,16 +1503,24 @@ _run_if("High-frequency tones Eqs. (11)–(16) (38b)") do
     end
     @testset "crossover band ≥10 rule (test article + synthetic)" begin
         inp = noise_reduction_test_article_inputs(; η_lining=0.5)
-        xover = acoustic_crossover_band(inp)
+        xover = acoustic_crossover_band(inp; rule=:ten_modes)
         println("38b crossover (test article): fc=$(round(xover.fc_Hz; digits=1)) Hz, n_modes=$(xover.n_modes)")
         @test xover.n_modes ≥ 10
         @test isfinite(xover.fc_Hz)
+        @test xover.rule === :ten_modes
         # every lower band has fewer than 10
         bands = third_octave_centers()
         for fc in bands
             fc ≥ xover.fc_Hz && break
             @test acoustic_modes_in_band(inp, fc) < 10
         end
+        # 43a: default rule is Manual card 10 volume formula
+        xvol = acoustic_crossover_band(inp)  # default :volume
+        @test xvol.rule === :volume
+        f_vol = volume_crossover_frequency_Hz(inp)
+        @test xvol.f_Hz ≈ f_vol
+        @test xvol.fc_Hz == containing_third_octave(f_vol, bands)
+        println("43a volume crossover: f=$(round(f_vol; digits=1)) Hz → band $(xvol.fc_Hz) Hz")
         # synthetic resonance list: 10 modes clustered at 500 Hz → first band with ≥10 is ~500 Hz
         synth_f = [500.0 * (1 + 0.01 * (k - 5.5) / 5) for k in 1:10]
         synth_count(fc) = begin
@@ -2921,6 +2929,39 @@ _run_if("Isolation of failing cases (phase 41)") do
         ("HF_MASSLAW", :met),
         ("BEMT_HAND", :met),
         ("F1A_INDEP", :met),
+    )
+    for (id, verd) in expected
+        @test haskey(VALIDATION_CASES, id)
+        r = run_validation_case(id)
+        @test r.verdict === verd
+        @test !isempty(r.table)
+        png = plot_case(r, VALIDATION_CASES[id].plot_spec;
+                        path=joinpath(TEST_OUT, "$(id).png"))
+        @test isfile(png) && filesize(png) > 0
+    end
+end
+
+_run_if("T1/T2 root causes (phase 43)") do
+    # Criteria fixed 2026-10-23 in IMPLEMENTATION_PLAN.md §8b Phase 43 (unchanged).
+    # 43a: volume crossover default; :auto H1–H3 = :eq8 (H2 no longer collapses).
+    rep = PAIN._iso43_changeover_report()
+    @test isfinite(rep.f_Hz) && rep.f_Hz > 1000 && rep.f_Hz < 2000
+    @test rep.band_Hz == containing_third_octave(rep.f_Hz, third_octave_centers())
+    @test rep.t1_auto_new ≈ rep.t1_eq8 rtol = 1e-10
+    @test rep.repro_auto_new[2] > 50  # volume rule: H2 stays on Eq. (8), not ~16 dB
+    @test "T1_MEAS_DAMPING" in only(b for b in VALIDATION_MAPS[1].blocks if b.id == "P_MEAS").cases
+    @test "NR_TP1964" in only(b for b in VALIDATION_MAPS[1].blocks if b.id == "P_MEAS").cases
+    # Analytic sub-checks for 43d (code-on-code)
+    @test abs(besselj_prime_zeros(0, 1)[1] - 3.83170597) < 1e-5
+    @test abs(besselj_prime_zeros(1, 1)[1] - 1.84118378) < 1e-5
+    @test circular_acoustic_eps(0, 0.0, 1) ≈ 2.0 atol = 1e-12
+    expected = (
+        ("T1_MEAS_DAMPING", :not_met),   # first run 2026-10-23: 2/3 (H3)
+        ("H3_ATTRIB", :no_verdict),
+        ("NR_TP1964", :not_met),
+        ("NR_TP1964_REF2", :not_met),
+        ("T1_F1A_FILL", :not_met),       # first run 2026-10-23: 2/3
+        ("T1_F1A_MEAS_DAMP", :no_verdict),
     )
     for (id, verd) in expected
         @test haskey(VALIDATION_CASES, id)

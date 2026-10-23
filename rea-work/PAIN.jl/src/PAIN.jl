@@ -33,6 +33,7 @@ include("aircraft_provenance.jl")
 include("uncertainty.jl")
 include("mode_animation.jl")
 include("noise_reduction.jl")
+include("circular_cavity.jl")        # phase 43d: exact circular cavity + Donnell NR
 include("high_freq_tones.jl")
 include("hf_broadband.jl")
 include("metrics.jl")
@@ -41,6 +42,7 @@ include("validation_report.jl")
 include("validation_cases.jl")
 include("validation_case_iso40.jl")   # before extras: registry finish calls _iso40_validation_cases
 include("validation_case_iso41.jl")   # phase 41 isolation of failing cases
+include("validation_case_iso43.jl")   # phase 43 T1/T2 root causes + TP-1964
 include("validation_case_extras.jl")
 include("validation_map.jl")
 include("validation_plots.jl")
@@ -87,8 +89,13 @@ export
     nr_band_integral_closed, nr_band_integral_quad,
     cylinder_surface_area, coupling_area, mass_law_factor,
     acoustic_modes_in_band, acoustic_crossover_band, apply_η_r_cap,
+    volume_crossover_frequency_Hz, volume_crossover_band,
     w_in_reverberant, noise_reduction_band, noise_reduction_spectrum,
     noise_reduction_test_article_inputs,
+    CircularAcousticMode, circular_cavity_modes, besselj_prime_zeros,
+    donnell_shell_modes, circular_coupling_factor, circular_acoustic_eps,
+    loglog_interp_eta, eta_from_reverberation_csv,
+    noise_reduction_band_circular, noise_reduction_spectrum_circular,
     hf_absorbing_areas, hf_trim_areas, hf_structural_band, hf_band_loss_factors,
     hf_transmission_coeffs, hf_pressure_ratio, hf_broadband_band_p2, hf_broadband_spectrum,
     g_resonance, expected_g_closed, expected_g_pi, expected_g_quad,
@@ -204,7 +211,12 @@ function run_pain_pipeline(;
         broadband_model::Symbol=:surrogate,
         spbl_anchor_H::Int=3,
         cabin_blocks::Symbol=:auto,
-        appd_overrides::Dict{Symbol,Float64}=Dict{Symbol,Float64}())
+        appd_overrides::Dict{Symbol,Float64}=Dict{Symbol,Float64}(),
+        grid_fill::Symbol=:gext,
+        f1a_pattern_amps::Union{Nothing,Array{Float64,3}}=nothing,
+        f1a_pattern_phases::Union{Nothing,Array{Float64,3}}=nothing,
+        tone_model::Symbol=:eq8,
+        η_r_band_is_prime::Bool=false)
     trim in (:auto, :bare, :phase3, :custom) ||
         error("trim must be :auto, :bare, :phase3 or :custom")
 
@@ -277,7 +289,10 @@ function run_pain_pipeline(;
         ff = freefield_from_e11_csv(amp, ph, fuse, prop, spec;
                                     bpf_Hz=bpf_Hz, n_harmonics=nH,
                                     anopp_spl_csv=paths.anopp_spl,
-                                    broadband_clip_dB=10.0)
+                                    broadband_clip_dB=10.0,
+                                    grid_fill=grid_fill,
+                                    f1a_pattern_amps=f1a_pattern_amps,
+                                    f1a_pattern_phases=f1a_pattern_phases)
     elseif src === :aircraft
         aircraft_json === nothing && error("source=:aircraft requires aircraft_json")
         ff = propeller_freefield_grid(aircraft_json, fuse, prop, spec; n_harmonics=n_harmonics)
@@ -323,13 +338,14 @@ function run_pain_pipeline(;
                      η_n_bare=η_n_bare, C_struc=C_struc, q_max=q_max,
                      allow_extrapolation=allow_extrapolation,
                      ρ0=ρ0, c0=c0, ρ_ext=ρ_ext, c_ext=c_ext, ρ_int=ρ_int, c_int=c_int,
-                     L_c=L_c, d=d, bands=bands, η_r_band=η_r_band, η_n_band=η_n_band)
+                     L_c=L_c, d=d, bands=bands, η_r_band=η_r_band, η_n_band=η_n_band,
+                     η_r_band_is_prime=η_r_band_is_prime)
     # Parametric HF path: Eqs. 19–23 (I-21 open readings → X-EXTRAP); η_r_cap=nothing
     spec_out = interior_spl(inp; bpf_Hz=bl.bpf_Hz,
                             n_harmonics=min(n_harmonics, size(bl.amplitudes, 3)),
                             bb_j2_scale=bb_j2_scale, bb_α=bb_α,
                             spbl_anchor_H=spbl_anchor_H, broadband_model=broadband_model,
-                            η_r_cap=nothing)
+                            η_r_cap=nothing, tone_model=tone_model)
 
     provenance = empty_provenance()
     if src === :aircraft

@@ -220,6 +220,12 @@ User-supplied for any aircraft run (working example diameter 2.64 m is not a fix
 | `absorption_coefficient` (40l) | fitted surrogate for `:surrogate` only; no isolated analytic case | docstring + map note |
 | Phase 41 isolation: `TRIM_CLOSED`, `NR_BAND_HAND`, `HF_MASSLAW`, `BEMT_HAND`, `F1A_INDEP` | V-UNIT / V-CODE | first run 2026-10-23, all met; experimental misses with these isolations → model fidelity |
 | `T1_FROM_E12` (41a): cabin tones from measured E-12 blocked pressures | V-UNIT (T1 gate) | first run 2026-10-23, **not_met** 2/3 (H3); cabin chain implicated |
+| Phase 43a: Manual card 10 volume crossover default (f = 4.1 c₀/∛V); ten-mode option kept | input correction | post-hoc `:auto` re-runs 2026-10-23 (old ten-mode values kept); production `:eq8` unchanged |
+| `T1_MEAS_DAMPING` (43b): T1 with measured η_n (E-13) and η_r′ (E-15) | V-EXP (T1 gate) | first run 2026-10-23, **not_met** 2/3 (93.78, 80.06, 79.41) |
+| `H3_ATTRIB` (43c): NASA-value swaps on REPRO_18b | diagnostic | first run 2026-10-23; `h3_attribution.md` |
+| `NR_TP1964` / `NR_TP1964_REF2` (43d): bare cylinder Eqs. (17)–(18) | V-EXP / V-CODE | **not_met** 6/18 and 6/18 (2026-10-23, after removing a 4× band mode window that gave NR = +Inf at 100–160 Hz; first run 5/18 and 4/18) |
+| T2 exterior broadband (43e) | V-ASSUMED | none found in CR-3813 / CR-172428 / TP-1964 / TP-2444 / CR-172384; HF path → NR_TP1964 |
+| `T1_F1A_FILL` (43f): T1 with F1A-relative off-line fill | V-EXP (T1 gate) | first run 2026-10-23, **not_met** 2/3 (79.61, 71.19, 71.30) |
 | Table D-1 (32 modes) hybrid production path | transcription / `no_verdict` (was circular "met"); Fig. D-2 mode-1 shape: shell met, floor not met (19g) | `mrp_table_d1.md`, `fig_d2_check.md` |
 | Raw Ritz coverage of D-1 | V-CODE (partial), calibrated; live 26/32 within 5 % (2026-10-21); report records 30/32 (stale); always `no_verdict` | `mrp_ritz_vs_d1.md` |
 | Fig. E-11 dual digitization δ_dig ≤ 1.0 dB | V-EXP input (repeatability only) | `e11_delta_dig.md` |

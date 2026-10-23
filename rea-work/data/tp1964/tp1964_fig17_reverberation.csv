@@ -1,0 +1,12 @@
+# NASA TP-1964 Fig. 17, PDF p. 31: measured decay (reverberation) times. Digitized 2026-10-23 by eye on a 200 dpi render (axis 89.6 px/s; marker centres +-3 px, about +-0.04 s and +-1.5 % in f).
+# kind = structural (accelerometers on the untreated cylinder) or acoustic (interior, cylinder exterior covered with lead vinyl). Loss factor eta = 2.2 / (f * T60).
+kind,f_Hz,T60_s,eta
+structural,121,10.41,0.00174
+structural,154,6.00,0.00238
+structural,393,4.13,0.00136
+structural,5070,0.26,0.00167
+acoustic,496,1.40,0.00317
+acoustic,998,0.90,0.00245
+acoustic,2000,0.59,0.00186
+acoustic,3970,0.41,0.00135
+acoustic,8000,0.28,0.00098

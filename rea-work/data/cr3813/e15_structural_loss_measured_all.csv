@@ -1,0 +1,11 @@
+# CR-3813 Fig. E-15 (PDF page 141): MEASURED total structural loss factors of the Phase III test cylinder (triangles; vibration decay, sinusoidal excitation, p. E-21/E-24).
+# All eight points, re-digitized 2026-10-23 on a 200 dpi render (log-log grid, 400 px per decade; marker centres +-5 px, about +-3 % in f and eta). Supersedes the 4-point mid-envelope targets for use as an input (phase 43b); e15_structural_loss_targets.csv is unchanged.
+f_Hz,eta_meas
+127,0.058
+498,0.108
+895,0.058
+1342,0.0535
+1468,0.037
+2343,0.0202
+2702,0.0315
+4217,0.0311

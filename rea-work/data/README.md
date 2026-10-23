@@ -2,7 +2,8 @@
 
 | Folder | Holds | Source document |
 |---|---|---|
-| `cr3813/` | Digitized NASA CR-3813 (Pain Methodology) curves and tables: Table D-1, Figs. A-2, D-2, E-9 to E-22, ANOPP Table 8, T1/T2 targets; `e12/` blocking curves; `raw_exports/` author WebPlotDigitizer files; `pages/` and `qa/` page renders and overlay images. **Table D-1 title prints 1.803 m (71 in.) — caption typo (I-22, 2026-10-22); hardware length is 1.83 m (72 in.). Frequencies/shapes unchanged.** | NASA CR-3813 |
+| `cr3813/` | Digitized NASA CR-3813 (Pain Methodology) curves and tables: Table D-1, Figs. A-2, D-2, E-9 to E-22, ANOPP Table 8, T1/T2 targets; `e12/` blocking curves; `raw_exports/` author WebPlotDigitizer files; `pages/` and `qa/` page renders and overlay images. **Table D-1 title prints 1.803 m (71 in.) — caption typo (I-22, 2026-10-22); hardware length is 1.83 m (72 in.). Frequencies/shapes unchanged.** Phase 43: `e15_structural_loss_measured_all.csv`, `e15_structural_loss_calculated.csv`. | NASA CR-3813 |
+| `tp1964/` | NASA TP-1964 bare-cylinder Fig. 8 NR (measured + NASA pred.) and Fig. 17 reverberation → η (phase 43d); see `tp1964/README.md` | NASA TP-1964 |
 | `NASA_CR-158919/`, `NASA_CR-159124/` | BBN propeller-noise report data (phase, kinematics) | NASA CR-158919, CR-159124 |
 | `report996/` | NASA TR-996 propeller configurations, loads and acoustics inputs, helper tools | NASA TR-996 |
 | `pereira/` | Pereira APC 9x6 forward-flight digitized figures, XFOIL polars, `qa/` overlays | Pereira |
