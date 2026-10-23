@@ -270,15 +270,23 @@ function coupling_floor_integral(ac::AcousticMode, st::StructuralMode, a::Real, 
 end
 
 """
-Coupling factor f̄'(n,r), CR-3813 Eq. (52) with Eqs. (46)–(49), (53)–(57):
+Coupling factor f̄'(n,r), CR-3813 Eq. (52) with Eqs. (46)–(49), (53)–(57), as NASA's corrected
+program computes it (CR-172428 App. A item 2):
 
-    f̄' = f_qM / (Lp + 2a(π−θ0)) · [ √τ_t ∫ a ψ_s φ dθ − ∫ ψ_p φ dx ]
+    f̄' = f_qM / (Lp + 2a(π−θ0)) · [ √τ_t ∫ a ψ_s φ dθ + ∫ ψ_p φ dx ]
+
+with ψ_p built from the Table D-1 / MRP plate coefficients as printed. CR-3813 prints a minus
+with "ψ_p positive upward"; CR-172428 App. A records that the original program misread MRP's
+sign convention for exactly this term, and the η_r″ values NASA's corrected program printed
+(App. B p. 207, "ETA R#") are reproduced by the bare f′ only with the plus sign on the raw
+coefficients (8 of 9 printed pairs within 2.5 %; the minus is 15–80 % off). Code-on-code fix of
+2026-10-23 (Phase 44f); results computed after it are labelled post-hoc where they were seen before.
 
 `τ_t` is the sidewall trim transmission coefficient at the harmonic (τ_t = 1 bare,
 which gives f' of Eq. 45). Cabin modes are the q = 0 modes of CYL2D. The bound
-|f'| ≤ 1 (CR-3813 §3.1) follows from the max-normalized modes; no clamp is applied
-and a violation raises an error, because it means a mode normalization or mode-shape
-defect that must be fixed, not hidden.
+|f'| ≤ 1 (CR-3813 §3.1) follows from the max-normalized modes and is checked on the bare f′
+(f̄′ may exceed 1 where √τ_t > 1); no clamp is applied and a violation raises an error,
+because it means a mode normalization or mode-shape defect that must be fixed, not hidden.
 """
 function coupling_factor(ac::AcousticMode, st::StructuralMode,
                          fuse::FuselageGeometry; τ_t::Float64=1.0, q::Int=0,
@@ -288,11 +296,14 @@ function coupling_factor(ac::AcousticMode, st::StructuralMode,
     Lp = 2a * sin(θ0)
     Is = coupling_shell_integral(ac, st, a)
     Ip = coupling_floor_integral(ac, st, a, Lp)
-    f = axial_coupling(q, st.M_axial; L=fuse.L, L_c, d) *
-        (sqrt(τ_t) * Is - Ip) / (Lp + 2a * (π - θ0))
-    abs(f) <= 1 + 1e-6 ||
-        error("f'(n,r) = $f exceeds 1 for acoustic mode $(ac.index), structural mode $(st.index): mode normalization or shape defect")
-    return f
+    ax = axial_coupling(q, st.M_axial; L=fuse.L, L_c, d)
+    den = Lp + 2a * (π - θ0)
+    # The bound |f′| ≤ 1 holds for the bare f′ of max-normalized modes; the trim weight √τ_t of f̄′
+    # exceeds 1 at a trim resonance (TL < 0), so the check is on the bare factor.
+    f_bare = ax * (Is + Ip) / den
+    abs(f_bare) <= 1 + 1e-6 ||
+        error("f'(n,r) = $f_bare exceeds 1 for acoustic mode $(ac.index), structural mode $(st.index): mode normalization or shape defect")
+    return τ_t == 1 ? f_bare : ax * (sqrt(τ_t) * Is + Ip) / den
 end
 
 coupling_factor(ac::AcousticMode, st::StructuralMode, inp::PainInputs; τ_t::Float64=1.0, q::Int=0) =
@@ -805,7 +816,7 @@ end
 CR-172428 App. A, as programmed (p. 178, subroutine ETASTR lines 47/50: M_s^X = GMASS(IR,2)):
 the shell bending generalized mass m ∫ ψ_r² dA over the whole shell circumference and length
 (App. B prints it as "GENERALIZED MASS, SHELL W"; this integral reproduces those values within
-0.7 % for the Table D-1 modes). Shell shape of Eqs. (46)–(49): Σ C_n (−1)^n cos nθ (symmetric)
+4 % for the Table D-1 modes, median 0.19 %). Shell shape of Eqs. (46)–(49): Σ C_n (−1)^n cos nθ (symmetric)
 or −Σ C_n (−1)^n sin nθ (antisymmetric), times sin(Mπx/L), so ∫ sin² dx = L/2. Midpoint rule
 in θ (2000 points; the integrand is a trigonometric polynomial).
 """

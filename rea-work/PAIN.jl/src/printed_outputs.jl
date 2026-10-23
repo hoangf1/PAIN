@@ -122,7 +122,7 @@ function printed_outputs(inp::PainInputs;
             Ip = coupling_floor_integral(ac, st, a, Lp)
             ax = axial_coupling(q, st.M_axial; L=fuse.L, L_c=inp.L_c, d=inp.d)
             f_shell = ax * sqrt(τ_t_bpf) * Is / denom_area
-            f_floor = ax * (-Ip) / denom_area
+            f_floor = ax * Ip / denom_area          # floor term sign as in coupling_factor (44f)
             f = coupling_factor(ac, st, inp; τ_t=τ_t_bpf, q)
             (f == 0 && f_shell == 0 && f_floor == 0) && continue
             push!(coupling, (; q, i=ac.index, r=st.index, M=st.M_axial,
