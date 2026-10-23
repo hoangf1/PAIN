@@ -12,7 +12,7 @@ Colour key in diagrams: green = check exists and passes as stated; orange = plan
 
 ## Status
 
-- **2026-10-23:** Phase 40 isolated analytic chips (`ISO_*`) on the blocks they test; all met except 40f (Ritz stiffener I not removable via options). `ISO_BB_BAND` (40i) uses the closed-form band integral; `blocked_broadband_band_p2` matches it (code-on-code fix from the Spbl(fc)·0.232·2π·fc rectangle). See `VALIDATION_GUIDELINE.md` §2.13.
+- **2026-10-23:** Phase 41 isolation chips (`T1_FROM_E12`, `TRIM_CLOSED`, `NR_BAND_HAND`, `HF_MASSLAW`, `BEMT_HAND`, `F1A_INDEP`); five met, `T1_FROM_E12` not met (cabin chain). Phase 40 `ISO_*` all met except 40f. See `VALIDATION_GUIDELINE.md` §2.13.
 - **2026-10-22:** GUI Validation map is one horizontal `total` flowchart (aircraft + e11 + cabin + checks); titles only on blocks; stage frames pairwise disjoint (aircraft checks above/below pipeline). See §5 and `VALIDATION_GUIDELINE.md` §2.13.
 - **Phases 38d–38e / 38c / 38h / 38g / 36:** E18_TONES, E15_STRUCT_LOSS, HF broadband, printed outputs, MRP_APPD, cabin mode animation — see `IMPLEMENTATION_PLAN.md`.
 - **L = 1.83 m (I-22, post-hoc):** `test_article_length()` default; re-records in `length_rerecord_before_after.md`; no verdict flips.

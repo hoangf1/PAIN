@@ -218,6 +218,8 @@ User-supplied for any aircraft run (working example diameter 2.64 m is not a fix
 | Raw Ritz vs closed-form Donnell with stiffeners/floor removed (40f) | not registered — `structural_modes` always smears `MRP_I_STRINGER`/`MRP_I_FRAME` into Ds; no option zeros them | plan §8b note |
 | `structural_joint_acceptance` vs quadrature (40g); modal density / band JA (40h); broadband band integral (40i); SIL (40k) | V-UNIT | 2026-10-23: all met; 40i reference = closed-form ∫ over exact 1/3-oct edges (α = 2, 1.5); code fixed to that integral (was band-centre rectangle) |
 | `absorption_coefficient` (40l) | fitted surrogate for `:surrogate` only; no isolated analytic case | docstring + map note |
+| Phase 41 isolation: `TRIM_CLOSED`, `NR_BAND_HAND`, `HF_MASSLAW`, `BEMT_HAND`, `F1A_INDEP` | V-UNIT / V-CODE | first run 2026-10-23, all met; experimental misses with these isolations → model fidelity |
+| `T1_FROM_E12` (41a): cabin tones from measured E-12 blocked pressures | V-UNIT (T1 gate) | first run 2026-10-23, **not_met** 2/3 (H3); cabin chain implicated |
 | Table D-1 (32 modes) hybrid production path | transcription / `no_verdict` (was circular "met"); Fig. D-2 mode-1 shape: shell met, floor not met (19g) | `mrp_table_d1.md`, `fig_d2_check.md` |
 | Raw Ritz coverage of D-1 | V-CODE (partial), calibrated; live 26/32 within 5 % (2026-10-21); report records 30/32 (stale); always `no_verdict` | `mrp_ritz_vs_d1.md` |
 | Fig. E-11 dual digitization δ_dig ≤ 1.0 dB | V-EXP input (repeatability only) | `e11_delta_dig.md` |

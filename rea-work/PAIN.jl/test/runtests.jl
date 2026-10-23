@@ -3,6 +3,10 @@ using PAIN
 using JSON3
 using Statistics
 
+# §2.13 lives in a .md outside the package compile graph; refresh CASE_INFO / maps
+# so guideline edits are visible without relying on a stale precompile snapshot.
+reload_validation_docs!()
+
 # Top-level testset filter (task P1). Empty ARGS → run everything.
 # Pkg.test("PAIN"; test_args=["CYL2D"]) puts substrings in ARGS (case-insensitive match on title).
 # Helpers are defined once so DaemonMode can re-include this file with shared=true.
@@ -2627,7 +2631,13 @@ _run_if("Validation case registry (34d)") do
     @test blk_p68.cases == ["BLK_P68", "E12_BLOCK", "ISO_BLOCKING"]
     amp = only(b for b in total.blocks if b.id == "A_AMP")
     @test amp.cases ==
-          ["F1A_GUTIN", "R996_FIG14", "R996_FIG12", "R996_FIG13A", "R996_FIG6", "R996_FIG7"]
+          ["F1A_GUTIN", "R996_FIG14", "R996_FIG12", "R996_FIG13A", "R996_FIG6", "R996_FIG7", "F1A_INDEP"]
+    loads = only(b for b in total.blocks if b.id == "A_LOADS")
+    @test "BEMT_HAND" in loads.cases
+    @test "TRIM_CLOSED" in only(b for b in total.blocks if b.id == "P_TRIM").cases
+    @test "T1_FROM_E12" in only(b for b in total.blocks if b.id == "P_MEAS").cases
+    @test "NR_BAND_HAND" in only(b for b in total.blocks if b.id == "P_EQ8").cases
+    @test "HF_MASSLAW" in only(b for b in total.blocks if b.id == "P_EQ8").cases
     air = only(b for b in total.blocks if b.id == "A_GEO")
     @test air.group_title == "Aircraft BEMT+F1A"
     @test air.role == "input"
@@ -2724,7 +2734,8 @@ _run_if("Validation case registry (34d)") do
     allowed_live_no_csv = ("F1A_GUTIN", "BBN_KIN", "UT_GRID",
         "ISO_BLOCKING", "ISO_FF_CONV", "ISO_GEXT_LINE", "ISO_TABLE8",
         "ISO_CYL2D_EXACT", "ISO_CYL2D_BOUNDARY", "ISO_JOINT_ACC",
-        "ISO_MODAL_DENSITY", "ISO_BB_BAND", "ISO_SIL")
+        "ISO_MODAL_DENSITY", "ISO_BB_BAND", "ISO_SIL",
+        "TRIM_CLOSED", "NR_BAND_HAND", "HF_MASSLAW", "BEMT_HAND", "F1A_INDEP")
     converted = ("PER_LOADS", "PER_FIG6", "PER_FIG7", "PER_FIG8", "PER_FIG9",
                  "R996_FIG6", "R996_FIG7", "BBN_CIRC", "BBN_LONG", "BBN_LEVELS")
     results_by_id = Dict{String,Any}()
@@ -2898,6 +2909,28 @@ _run_if("Isolated block checks (phase 40, V-UNIT)") do
         @test isfile(png) && filesize(png) > 0
     end
     @test !haskey(VALIDATION_CASES, "ISO_RITZ_DONNELL")
+end
+
+_run_if("Isolation of failing cases (phase 41)") do
+    # Criteria fixed 2026-10-23 in IMPLEMENTATION_PLAN.md §8b. Assert recorded verdicts.
+    # T1_FROM_E12 first run: 2/3 (H3 fails) → cabin chain implicated, not source/blocking alone.
+    expected = (
+        ("T1_FROM_E12", :not_met),
+        ("TRIM_CLOSED", :met),
+        ("NR_BAND_HAND", :met),
+        ("HF_MASSLAW", :met),
+        ("BEMT_HAND", :met),
+        ("F1A_INDEP", :met),
+    )
+    for (id, verd) in expected
+        @test haskey(VALIDATION_CASES, id)
+        r = run_validation_case(id)
+        @test r.verdict === verd
+        @test !isempty(r.table)
+        png = plot_case(r, VALIDATION_CASES[id].plot_spec;
+                        path=joinpath(TEST_OUT, "$(id).png"))
+        @test isfile(png) && filesize(png) > 0
+    end
 end
 
 _run_if("Suite leaves tree clean") do

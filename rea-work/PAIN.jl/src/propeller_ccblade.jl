@@ -253,7 +253,8 @@ Phase is referenced to absolute observer time (I-02). `force_short_source` is te
 function evaluate_propeller_source(cfg, observers::Vector{Observer};
                                    n_harmonics::Int=10, num_src_times::Int=64,
                                    loads=:ccblade, af=nothing, allow_static::Bool=false,
-                                   n_rev_src::Int=2, force_short_source::Bool=false)
+                                   n_rev_src::Int=2, force_short_source::Bool=false,
+                                   use_tip_correction::Bool=true)
     loads === :ccblade || loads isa ScaledLoads ||
         error("loads=$loads not supported; use :ccblade or ScaledLoads(T,Q)")
     n_rev_src >= 1 || error("n_rev_src must be ≥ 1")
@@ -292,7 +293,9 @@ function evaluate_propeller_source(cfg, observers::Vector{Observer};
     af_fn = af === nothing ? _default_af : af
     polar_tag = af === nothing ? :clamped_linear : :user
 
-    rotor = CCBlade.Rotor(Rhub, Rtip, B)
+    # Default Rotor uses PrandtlTipHub(); use_tip_correction=false → tip=nothing (F=1).
+    rotor = use_tip_correction ? CCBlade.Rotor(Rhub, Rtip, B) :
+            CCBlade.Rotor(Rhub, Rtip, B; tip=nothing)
     sections = [CCBlade.Section(r[i], chord[i], theta[i], af_fn) for i in 1:nsec]
     ops = [CCBlade.OperatingPoint(Vinf, Ω * r[i], ρ; asound=c0) for i in 1:nsec]
     outs = CCBlade.solve.(Ref(rotor), sections, ops)
@@ -365,6 +368,7 @@ function evaluate_propeller_source(cfg, observers::Vector{Observer};
         B=B, Rhub=Rhub, Rtip=Rtip, rpm=rpm, allow_static=allow_static,
         period_src=period_src, n_src=n_src, n_rev_src=n_rev_src,
         force_short_source=force_short_source,
+        use_tip_correction=use_tip_correction,
     )
     return SourceResult(amplitude, phase, collect(1:n_harmonics), bpf, T, Q, CT, CQ, CP, echo)
 end
@@ -381,7 +385,8 @@ Same CCBlade BEMT setup as `evaluate_propeller_source` (rotor, sections, ops, so
 without F1A. Returns per-section `r_m`, `r_over_R`, `alpha_deg`, `Mach`, `Re`
 (Re = ρ W₀ c / μ_air with μ_air = 1.78e-5 for display; Mach = W₀/c₀ as in CCBlade).
 """
-function ccblade_section_operating_points(cfg; af=nothing, allow_static::Bool=false)
+function ccblade_section_operating_points(cfg; af=nothing, allow_static::Bool=false,
+                                          use_tip_correction::Bool=true)
     p = cfg.propeller
     op = cfg.operating_point
     B = Int(p.num_blades)
@@ -410,7 +415,8 @@ function ccblade_section_operating_points(cfg; af=nothing, allow_static::Bool=fa
     end
 
     af_fn = af === nothing ? _default_af : af
-    rotor = CCBlade.Rotor(Rhub, Rtip, B)
+    rotor = use_tip_correction ? CCBlade.Rotor(Rhub, Rtip, B) :
+            CCBlade.Rotor(Rhub, Rtip, B; tip=nothing)
     sections = [CCBlade.Section(r[i], chord[i], theta[i], af_fn) for i in 1:nsec]
     ops = [CCBlade.OperatingPoint(Vinf, Ω * r[i], ρ; asound=c0) for i in 1:nsec]
     outs = CCBlade.solve.(Ref(rotor), sections, ops)

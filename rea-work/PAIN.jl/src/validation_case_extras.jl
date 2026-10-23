@@ -2420,6 +2420,7 @@ function _finish_validation_registry!()
     ]
     append!(cases, extras)
     append!(cases, _iso40_validation_cases())  # phase 40 isolated analytic checks
+    append!(cases, _iso41_validation_cases())  # phase 41 isolation of failing cases
 
     # E21_E22_NR (38a), T2_EQ19 (38c), E18_TONES (38d), E15_STRUCT_LOSS (38e); no greyed placeholders.
     push!(cases, ValidationCase(
@@ -2506,12 +2507,13 @@ function _finish_validation_registry!()
         "BLK_P68", "E12_BLOCK", "ISO_BLOCKING",
         "MRP_D1", "MRP_RITZ", "MRP_APPD",
         "CYL2D_C1", "ISO_CYL2D_EXACT", "ISO_CYL2D_BOUNDARY",
-        "E14_LOSS", "E15_STRUCT_LOSS", "ISO_JOINT_ACC",
-        "ISO_MODAL_DENSITY", "ISO_BB_BAND", "ISO_SIL",
+        "E14_LOSS", "E15_STRUCT_LOSS", "TRIM_CLOSED", "ISO_JOINT_ACC",
+        "ISO_MODAL_DENSITY", "ISO_BB_BAND", "ISO_SIL", "NR_BAND_HAND", "HF_MASSLAW",
         "REPRO_18b", "E18_TONES",
-        "T1", "T2", "T2_EQ19", "E21_E22_NR", "UNC_COVER",
+        "T1", "T1_FROM_E12", "T2", "T2_EQ19", "E21_E22_NR", "UNC_COVER",
         "POLAR_R996", "POLAR_PER",
-        "R996_LOADS", "PER_LOADS", "F1A_GUTIN", "R996_FIG14", "R996_FIG12", "R996_FIG13A",
+        "R996_LOADS", "BEMT_HAND", "PER_LOADS", "F1A_GUTIN", "F1A_INDEP",
+        "R996_FIG14", "R996_FIG12", "R996_FIG13A",
         "R996_FIG6", "R996_FIG7", "BBN_KIN", "BBN_CIRC", "BBN_LONG", "R996_PHASE",
         "PER_FIG6", "PER_FIG7", "PER_FIG8", "PER_FIG9", "BBN_LEVELS",
     ]

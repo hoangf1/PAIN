@@ -40,6 +40,7 @@ include("printed_outputs.jl")
 include("validation_report.jl")
 include("validation_cases.jl")
 include("validation_case_iso40.jl")   # before extras: registry finish calls _iso40_validation_cases
+include("validation_case_iso41.jl")   # phase 41 isolation of failing cases
 include("validation_case_extras.jl")
 include("validation_map.jl")
 include("validation_plots.jl")
