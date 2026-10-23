@@ -45,6 +45,7 @@ include("validation_case_iso40.jl")   # before extras: registry finish calls _is
 include("validation_case_iso41.jl")   # phase 41 isolation of failing cases
 include("validation_case_iso43.jl")   # phase 43 T1/T2 root causes + TP-1964
 include("validation_case_iso44.jl")   # phase 44 CR-172428 reproduction (App. A / App. B)
+include("validation_case_iso45.jl")   # phase 45 T2 HF path on TP-1964
 include("validation_case_extras.jl")
 include("validation_map.jl")
 include("validation_plots.jl")
@@ -92,7 +93,7 @@ export
     cylinder_surface_area, coupling_area, mass_law_factor,
     acoustic_modes_in_band, acoustic_crossover_band, apply_η_r_cap,
     volume_crossover_frequency_Hz, volume_crossover_band,
-    cabin_interior_points, cabin_quadrature_points, point_tone_p2, point_volume_average, loudest_point,
+    tp1964_hf_inputs, cabin_interior_points, cabin_quadrature_points, point_tone_p2, point_volume_average, loudest_point,
     trimmed_modal_mass, app_a_modal_mass_per_area, r172428_appb_field, r172428_inputs,
     write_h3_attribution_report,
     w_in_reverberant, noise_reduction_band, noise_reduction_spectrum,

@@ -843,7 +843,8 @@ _run_if("Eq. (8) tone pressure: scaling laws and independent re-implementation (
                 φx(x) = (u = x / a; j = findlast(≤(u), ac.x_lo_unit); j === nothing ? ac.phi_floor[1] : ac.phi_floor[min(j, end)])
                 psix(x) = sum(C * (st.symmetric ? cos(n * π * x / Lp) : sin(n * π * x / Lp)) for (C, n) in zip(st.C_floor, st.n_floor))
                 flr = ac.symmetric == st.symmetric ? sum(psix(x) * φx(x) for x in xs) * hx : 0.0
-                f = PAIN.axial_coupling(q, st.M_axial) * (shell - flr) / (Lp + 2a * (π - θ0))
+                # floor term with a plus on the raw MRP plate coefficients (NASA's corrected program, 44f 2026-10-23)
+                f = PAIN.axial_coupling(q, st.M_axial) * (shell + flr) / (Lp + 2a * (π - θ0))
                 ωr = 2π * st.f_Hz
                 ηr = structural_loss_total(st, ωr; a, L, m=inp.m_wall, C=inp.C_struc, ρ0, c0)
                 ηrpp = ρ0 * c0^2 * A^2 * εn * f^2 / (st.M_r * V) * (ηn * ωn^2) / ((ωn^2 - ωr^2)^2 + (ηn * ωn^2)^2)
@@ -2974,6 +2975,19 @@ _run_if("T1/T2 root causes (phase 43)") do
         @test !isempty(r.table)
         png = plot_case(r, VALIDATION_CASES[id].plot_spec;
                         path=joinpath(TEST_OUT, "$(id).png"))
+        @test isfile(png) && filesize(png) > 0
+    end
+end
+
+_run_if("T2 HF path on TP-1964 (phase 45)") do
+    # Criteria pre-registered 2026-10-23 (plan §8c); recorded not met 9/18 and 8/18.
+    for (id, n_ok) in (("NR_TP1964_XOVER", 9), ("NR_TP1964_XOVER_REF2", 8))
+        r = run_validation_case(id)
+        @test r.verdict === :not_met
+        @test r.inputs_echo.n_ok == n_ok
+        @test r.inputs_echo.changeover_band_Hz == 2500.0            # band containing f = 4.1 c₀/∛V
+        @test count(t -> occursin("Eq. 19", t.quantity), r.table) == 4
+        png = plot_case(r, VALIDATION_CASES[id].plot_spec; path=joinpath(TEST_OUT, "$(id).png"))
         @test isfile(png) && filesize(png) > 0
     end
 end

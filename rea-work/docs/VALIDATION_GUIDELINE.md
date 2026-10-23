@@ -1864,6 +1864,38 @@ Inputs: E-13 / E-15 measured; F1A pattern; T1 geometry.
 Equations: Eq. (8); measured η; F1A-relative fill.
 Outputs: H1–H3 [dB]; verdict `:no_verdict`.
 
+### Case: NR_TP1964_XOVER
+**Title:** TP-1964 bare-cylinder NR with PAIN's changeover to Eqs. (19)–(23) (45a)
+**Map / block:** total / P_MEAS
+**Category:** experiment
+**Kind:** runnable
+**Source:** NASA TP-1964 Fig. 8 (measured NR) and Fig. 17 (reverberation → η); criterion pre-registered 2026-10-23 before any run (plan §8c, commit 9ffb107)
+**What it tests:** The high-frequency cabin path used by T2, Eqs. (19)–(23), on an independent experiment. Eq. (18) is used below the card-10 changeover band (f = 4.1 c₀/∛V = 2269 Hz, in the 2500 Hz band) and Eqs. (19)–(23) at and above it; same inputs as NR_TP1964.
+**Why it is here:** T2 cannot be checked end to end (no measured exterior broadband of the test article, 43e); this tests its cabin transmission block.
+**A pass means:** Within ±5 dB of the measured NR in ≥ 75 % of the 1/3-octave bands 100–5000 Hz.
+**Not covered:** Floored or trimmed cabins at high frequency; the exterior broadband input of T2.
+**Recorded outcome:** **not_met**, 9/18 within ±5 dB. The four Eq. (19) bands (2.5–5 kHz) are all within ±2.5 dB (4.1, 3.6, 8.0, 12.8 dB against 6.0, 4.5, 6.9, 10.3 measured); the misses are Eq. (18) bands (1–2 kHz NR negative, 100–315 Hz). The first run of the same day (8/18) left the 2500 Hz band on Eq. (18) because of a band-centre matching error (2520 vs 2500 Hz); it was fixed per the written rule, with the criterion unchanged.
+**Explanation:** `tp1964_hf_inputs` builds the bare cylinder as a PAIN cabin (θ₀ = 0, no trim, Donnell modes, measured η); `hf_pressure_ratio` gives Eq. (23).
+Inputs: TP-1964 Figs. 8 and 17; geometry as NR_TP1964.
+Equations: Eq. (18) below, Eqs. (19)–(23) at/above the changeover.
+Outputs: NR per band [dB].
+
+### Case: NR_TP1964_XOVER_REF2
+**Title:** TP-1964 NR with changeover vs NASA ref. 2 (45b)
+**Map / block:** total / P_REPRO
+**Category:** verification
+**Kind:** runnable
+**Source:** NASA TP-1964 Fig. 8 predicted curve (ref. 2); criterion pre-registered 2026-10-23 (plan §8c)
+**What it tests:** As NR_TP1964_XOVER, against NASA's predicted curve.
+**Why it is here:** It is a code comparison for the same path.
+**A pass means:** Within ±3 dB in ≥ 75 % of the bands 100–5000 Hz.
+**Not covered:** As NR_TP1964_XOVER.
+**Recorded outcome:** **not_met**, 8/18 (first run 7/18 with the band-matching error); the Eq. (19) bands 3/4 within ±3 dB.
+**Explanation:** Shared with NR_TP1964_XOVER.
+Inputs: as NR_TP1964_XOVER.
+Equations: as NR_TP1964_XOVER.
+Outputs: NR per band [dB].
+
 ### Case: LOUDEST_PT
 **Title:** Interior level at the loudest point (42)
 **Map / block:** total / X_OUT

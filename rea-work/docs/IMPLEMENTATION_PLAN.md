@@ -357,7 +357,7 @@ Not blockers (recorded so nobody stops on them): BBN tip geometry beyond 40 in. 
 | Q19b | **R1 directory reorganization** (spec `docs/specs/R1_directory_reorg.md`): CR-3813 data → `data/cr3813/`, scripts → `scripts/{run,checks,digitize,setup,smoke}`, READMEs, every path reference updated | moves + path edits | P1 (done, `ef184d8`) | **Done 2026-10-22** (record in §11); reviewer runs full `Pkg.test()` |
 | Q20 | Phase 38 — CR-3813 / User Manual completeness (§8; audit `validation_reports/cr3813_completeness_audit.md`; 38a spec `docs/specs/38a_noise_reduction.md`, equation page images `docs/specs/cr3813_pages/`) | `src/` + cases (author: "the whole PAIN program is supposed to function just like it does in the PAIN Methodology") | Q19 (37b first: amplitude convention) | 38a done (`:not_met`); 38b done (I-18 rule not met); 38c done (T2 not met); 38d done (`:not_met`); 38e done (no verdict); 38f-1, 38f-2, 38h done; 38g done (`:met`, 27/32) in order; 38f–38h planned with the author before starting |
 | Q21 | **Phases 39–44 — block validation program** (§8b, at the bottom; audit `validation_reports/block_validation_audit.md`) | `src/` + tests + cases + GUI map | Q20 | **done 2026-10-23** (39–44); results in §8b |
-| Q23 | **Phase 45 — T2's high-frequency path on the TP-1964 bare cylinder** (pre-registered 2026-10-23 before any run; §8c) | `hf_broadband.jl` via `PainInputs`, new case | Q21 | planned |
+| Q23 | **Phase 45 — T2's high-frequency path on the TP-1964 bare cylinder** (pre-registered 2026-10-23 before any run; §8c) | `hf_broadband.jl` via `PainInputs`, new case | Q21 | **done 2026-10-23**: not met 9/18; Eq. (19) bands 4/4 within ±2.5 dB |
 | Q22 | **(0,1) × mode 8 at H1 against CR-172428 App. B** (after 44f: the only pair far from NASA's list; it dominates our 4000 rpm H1 at 5.6 Pa² against NASA's total of 0.59 Pa²). The floor-term sign is resolved (44f, done 2026-10-23); this pair still needs a documentary explanation | `pain_core.jl` coupling, Ψ_G of antisymmetric modes | Q21 | open |
 
 If a queue item is blocked on data, skip to the next unblocked item and say which data item blocks it.
@@ -427,7 +427,7 @@ Moved to §11. Summary: base H1–H3 = 82.73, 75.73, 77.05 dB (= 18b-r); H3 top 
 
 ## 8b. Block validation program: phases 39–44 *(done 2026-10-23 except open item 44f in §3; moved to the bottom of this file on 2026-10-23; section number kept)*
 
-## 8c. Phase 45 — T2's high-frequency path on an independent experiment *(pre-registered 2026-10-23, before any run of it)*
+## 8c. Phase 45 — T2's high-frequency path on an independent experiment *(done 2026-10-23; pre-registered 2026-10-23, before any run of it)*
 
 T2 (CR-3813 Fig. E-9, 1.25–2 kHz) cannot be validated end to end: no measured exterior broadband spectrum of the test article exists (43e), so its input is V-ASSUMED. The cabin part of T2 is the high-frequency transmission of Eqs. (19)–(23), which 43d did not test: it applied the modal Eq. (18) up to 5 kHz.
 
@@ -437,6 +437,8 @@ T2 (CR-3813 Fig. E-9, 1.25–2 kHz) cannot be validated end to end: no measured 
 | 45b | The same against NASA's predicted curve on the figure (ref. 2) | V-CODE: within ±3 dB in ≥ 75 % of those bands |
 
 No parameter is chosen from Fig. 8: all inputs are the 43d inputs, and the changeover follows the card-10 rule of 43a.
+
+**Result (2026-10-23; criteria unchanged).** 45a `NR_TP1964_XOVER` **not met**, 9/18 within ±5 dB; 45b **not met**, 8/18. The four bands on Eqs. (19)–(23) (2.5–5 kHz) agree with the measurement within ±2.5 dB. The misses are all modal Eq. (18) bands: negative NR at 1–2 kHz and 100–315 Hz. The first run the same day (8/18 and 7/18) put the 2500 Hz band on Eq. (18) because the code compared exact against nominal band centres (2520 vs 2500 Hz); that was fixed to the written rule, the band containing f. **Reading for T2:** the high-frequency transmission block T2 uses (Eqs. 19–23) is supported by an independent experiment above the changeover. T2's input, the exterior broadband spectrum, remains unmeasured (V-ASSUMED), so T2 itself cannot be validated.
 
 ## 9. Reference appendices
 
