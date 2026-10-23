@@ -1864,6 +1864,22 @@ Inputs: E-13 / E-15 measured; F1A pattern; T1 geometry.
 Equations: Eq. (8); measured η; F1A-relative fill.
 Outputs: H1–H3 [dB]; verdict `:no_verdict`.
 
+### Case: LOUDEST_PT
+**Title:** Interior level at the loudest point (42)
+**Map / block:** total / X_OUT
+**Category:** verification
+**Kind:** runnable
+**Source:** CR-3813 Eq. (8) and App. C (Eqs. C.9–C.11); criteria fixed 2026-10-23 (plan Phase 42)
+**What it tests:** The point form of Eq. (8). Acoustic modes add coherently at each interior point for every structural mode, and structural modes add in mean square. The checks: the volume average of the point values against the space average; the loudest point at or above the average; a single acoustic mode reproducing φ².
+**Why it is here:** PAIN reports a space average; the loudest point is what a passenger hears at the worst seat. It is a derived output with no experimental criterion (the E-16 means are space averages).
+**A pass means:** (a) the interior-node average is within 1 % of Eq. (8) for H1–H3; (b) loudest-point dB(A) ≥ space-average dB(A); (c) one mode alone gives ⟨p²⟩ ∝ φ_i² (spread ≤ 1e-9).
+**Not covered:** Measured point levels; broadband at points (taken as diffuse, space-average level everywhere); tones above the changeover under `:auto` (taken as diffuse). The loudest-point position depends on the sign convention of antisymmetric modes (open item 44f).
+**Recorded outcome:** **not_met** (first run 2026-10-23): (a) not met: 0.938 / 0.877 / 0.834. The point set excludes wall and floor nodes, where rigid-wall modes have antinodes; the ε_n normalization is exact over all nodes (ε·Φ_G/A = 1.000). (b) met: +4.6 dB. (c) met: 7e-16. Supplementary, labelled post-hoc: all nodes with the Eq. (C.10) weights give 1.027 / 1.004 / 0.986, the residual being the discrete orthogonality of the CYL2D eigenvectors. Test article: space average 79.1 dB(A), loudest point 83.7 dB(A) at X = −0.39 m, Y = −0.20 m, z = 0.92 m. Aircraft example (`aircraft_scale_hartzell.json`, X-EXTRAP): 93.8 dB(A) average, 98.4 dB(A) at the loudest point (z = 0, the forward end).
+**Explanation:** `cabin_interior_points`, `point_tone_p2`, `loudest_point` in `loudest_point.jl`; `cabin_quadrature_points` for the supplementary check.
+Inputs: T1 test-article inputs; aircraft example.
+Equations: Eq. (8) at points; φ_n = cos(qπz/L_c) φ_i(node) (Eq. C.9).
+Outputs: point tone levels, loudest-point and space-average dB(A), position.
+
 ### Case: R172428_CODE
 **Title:** CR-172428 reproduction: NASA's inputs vs NASA's printed predictions (44d)
 **Map / block:** total / P_REPRO

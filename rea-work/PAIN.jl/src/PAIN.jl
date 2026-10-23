@@ -37,6 +37,7 @@ include("circular_cavity.jl")        # phase 43d: exact circular cavity + Donnel
 include("high_freq_tones.jl")
 include("hf_broadband.jl")
 include("metrics.jl")
+include("loudest_point.jl")          # phase 42 interior level at the loudest point
 include("printed_outputs.jl")
 include("validation_report.jl")
 include("validation_cases.jl")
@@ -91,6 +92,7 @@ export
     cylinder_surface_area, coupling_area, mass_law_factor,
     acoustic_modes_in_band, acoustic_crossover_band, apply_η_r_cap,
     volume_crossover_frequency_Hz, volume_crossover_band,
+    cabin_interior_points, cabin_quadrature_points, point_tone_p2, point_volume_average, loudest_point,
     trimmed_modal_mass, app_a_modal_mass_per_area, r172428_appb_field, r172428_inputs,
     write_h3_attribution_report,
     w_in_reverberant, noise_reduction_band, noise_reduction_spectrum,

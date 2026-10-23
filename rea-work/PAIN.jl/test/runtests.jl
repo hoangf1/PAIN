@@ -2517,8 +2517,9 @@ _run_if("Validation map errors (V-UNIT)") do
     s_unc = case_error_summary(unc, VALIDATION_CASES["UNC_COVER"].plot_spec)
     @test unc.verdict === :not_met
     @test VALIDATION_CASES["UNC_COVER"].plot_spec.error_mode === :none
-    @test s_unc.text == "1/3 within criterion"
-    @test s_unc.n_within == 1
+    # 0/3 since 2026-10-23 (Phase 44 Eq. (83) bare-f′ fix: H1 margin −0.86 dB, was +1.05; recorded in §2.13)
+    @test s_unc.text == "0/3 within criterion"
+    @test s_unc.n_within == 0
     @test s_unc.n_rows == 3
     @test s_unc.unit == ""
     @test isnan(s_unc.max_abs) && isnan(s_unc.median_abs)
@@ -2973,6 +2974,18 @@ _run_if("T1/T2 root causes (phase 43)") do
                         path=joinpath(TEST_OUT, "$(id).png"))
         @test isfile(png) && filesize(png) > 0
     end
+end
+
+_run_if("Loudest point (phase 42)") do
+    # Criteria fixed 2026-10-23 (plan Phase 42); (a) recorded not met (interior point set), (b), (c) met.
+    r = run_validation_case("LOUDEST_PT")
+    @test r.verdict === :not_met
+    @test r.table[4].within_tolerance                       # (b) loudest ≥ average
+    @test r.table[5].within_tolerance                       # (c) single-mode φ² shape
+    @test all(abs.(r.inputs_echo.all_node_ratio_posthoc .- 1) .< 0.05)
+    @test r.inputs_echo.dBA_max > r.inputs_echo.dBA_avg
+    png = plot_case(r, VALIDATION_CASES["LOUDEST_PT"].plot_spec; path=joinpath(TEST_OUT, "LOUDEST_PT.png"))
+    @test isfile(png) && filesize(png) > 0
 end
 
 _run_if("CR-172428 reproduction (phase 44)") do

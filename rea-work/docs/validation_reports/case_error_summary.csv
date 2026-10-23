@@ -22,6 +22,7 @@ ISO_JOINT_ACC,2026-10-23,2026-10-23,met,6,6,0.0027,0.0023,"%","6/6 in tol · max
 ISO_MODAL_DENSITY,2026-10-23,2026-10-23,met,12,12,2.2e-14,0.0,"%","12/12 in tol · max |err| 2.2e-14 % · med 0.0 %"
 ISO_BB_BAND,2026-10-23,2026-10-23,met,8,8,0.0,0.0,"%","8/8 in tol · max |err| 0.0 % · med 0.0 %"
 ISO_SIL,2026-10-23,2026-10-23,met,2,2,0.0,0.0,"dB","2/2 in tol · max |err| 0.0 dB · med 0.0 dB"
+LOUDEST_PT,2026-10-23,2026-10-23,not_met,2,5,,,"","2/5 within criterion"
 NR_BAND_HAND,2026-10-23,2026-10-23,met,2,2,0.0,0.0,"dB","2/2 in tol · max |err| 0.0 dB · med 0.0 dB"
 HF_MASSLAW,2026-10-23,2026-10-23,met,4,4,250.0,0.0,"%","4/4 in tol · max |err| 250.0 % · med 0.0 %"
 REPRO_18b,2026-10-23,2026-10-23,not_met,1,3,12.0,6.9,"dB","1/3 in tol · max |err| 12.0 dB · med 6.9 dB"

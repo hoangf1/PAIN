@@ -2423,6 +2423,7 @@ function _finish_validation_registry!()
     append!(cases, _iso41_validation_cases())  # phase 41 isolation of failing cases
     append!(cases, _iso43_validation_cases())  # phase 43 T1/T2 root causes + TP-1964
     append!(cases, _iso44_validation_cases())  # phase 44 CR-172428 reproduction
+    append!(cases, _iso42_validation_cases())  # phase 42 loudest point
 
     # E21_E22_NR (38a), T2_EQ19 (38c), E18_TONES (38d), E15_STRUCT_LOSS (38e); no greyed placeholders.
     push!(cases, ValidationCase(
@@ -2510,7 +2511,7 @@ function _finish_validation_registry!()
         "MRP_D1", "MRP_RITZ", "MRP_APPD",
         "CYL2D_C1", "ISO_CYL2D_EXACT", "ISO_CYL2D_BOUNDARY",
         "E14_LOSS", "E15_STRUCT_LOSS", "TRIM_CLOSED", "ISO_JOINT_ACC",
-        "ISO_MODAL_DENSITY", "ISO_BB_BAND", "ISO_SIL", "NR_BAND_HAND", "HF_MASSLAW",
+        "ISO_MODAL_DENSITY", "ISO_BB_BAND", "ISO_SIL", "LOUDEST_PT", "NR_BAND_HAND", "HF_MASSLAW",
         "REPRO_18b", "E18_TONES",
         "T1", "T1_FROM_E12", "T2", "T2_EQ19", "E21_E22_NR", "UNC_COVER",
         "T1_MEAS_DAMPING", "H3_ATTRIB", "NR_TP1964", "NR_TP1964_REF2",
