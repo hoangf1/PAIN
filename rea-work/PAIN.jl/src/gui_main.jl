@@ -65,7 +65,7 @@ function select_validation_case_from_qml(id::AbstractString)
     obs["val_selected"][] = sid
     obs["val_runnable"][] = validation_case_runnable(sid)
     obs["val_criterion"][] = _criterion_for(sid)
-    obs["val_info_json"][] = case_info_json(sid)
+    obs["val_info_json"][] = case_info_json(sid; session_errors=_GUI_LAST_ERRORS)
     src = validation_source_figure_path(sid)
     obs["val_source_path"][] = isfile(src) ? src : ""
     png = validation_figure_path(sid)
@@ -88,7 +88,7 @@ function select_map_case_from_qml(id::AbstractString)
     isempty(sid) && return nothing
     obs["map_selected"][] = sid
     obs["map_selected_block"][] = ""
-    obs["map_detail_json"][] = case_info_json(sid)
+    obs["map_detail_json"][] = case_info_json(sid; session_errors=_GUI_LAST_ERRORS)
     if haskey(VALIDATION_CASES, sid)
         select_validation_case_from_qml(sid)
     end

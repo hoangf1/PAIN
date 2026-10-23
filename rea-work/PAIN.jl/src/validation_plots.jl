@@ -88,6 +88,240 @@ function _row_error(row::ValidationTableRow, mode::Symbol)
     end
 end
 
+"""Format |err| for chip / summary text (2 significant figures)."""
+_fmt_err_sig(x::Real) = string(round(Float64(x); sigdigits=2))
+
+"""Text inside the last `(...)` of a label, or `nothing` if absent/empty."""
+function _unit_in_parens(label::AbstractString)
+    isempty(label) && return nothing
+    last = nothing
+    for m in eachmatch(r"\(([^()]*)\)", String(label))
+        last = m
+    end
+    last === nothing && return nothing
+    u = strip(last.captures[1])
+    return isempty(u) ? nothing : u
+end
+
+"""Unit for `:absolute` error chips: last `(...)` of `error_ylabel`, else of `ylabel`, else `abs`."""
+function _absolute_error_unit(spec::PlotSpec)
+    u = _unit_in_parens(spec.error_ylabel)
+    u !== nothing && return u
+    u = _unit_in_parens(spec.ylabel)
+    u !== nothing && return u
+    return "abs"
+end
+
+"""Short chip label from a full error summary (fits ~130 px with a date line below)."""
+function _error_chip_text(; text::AbstractString, n_within::Int, n_rows::Int,
+                          max_abs::Float64, unit::AbstractString)
+    t = String(text)
+    (t == "no criterion" || occursin("within criterion", t)) && return t
+    if startswith(t, "no verdict")
+        isfinite(max_abs) || return "no verdict"
+        u = isempty(unit) ? "" : " $(unit)"
+        return "no verdict · $(_fmt_err_sig(max_abs))$(u) max"
+    end
+    isfinite(max_abs) || return "$(n_within)/$(n_rows)"
+    u = isempty(unit) ? "" : " $(unit)"
+    return "$(n_within)/$(n_rows) · $(_fmt_err_sig(max_abs))$(u) max"
+end
+
+"""
+    case_error_summary(result, spec) -> NamedTuple
+
+Display-only error roll-up for the Validation map. Uses `_row_error` / `_error_ylabel`
+exactly as the error panel; does not change criteria or verdicts.
+`n_within` / `n_rows` count every table row; max/median use finite `_row_error` only.
+"""
+function case_error_summary(result::ValidationCaseResult, spec::PlotSpec)
+    # :none with a met/not_met verdict and a non-empty table → coverage-style count only.
+    if spec.error_mode === :none
+        if !isempty(result.table) && (result.verdict === :met || result.verdict === :not_met)
+            n_within = count(r -> r.within_tolerance, result.table)
+            n_rows = length(result.table)
+            text = "$(n_within)/$(n_rows) within criterion"
+            chip_text = text
+            return (; n_within, n_rows, max_abs=NaN, median_abs=NaN, unit="", text, chip_text)
+        end
+        return (; n_within=0, n_rows=0, max_abs=NaN, median_abs=NaN, unit="",
+                text="no criterion", chip_text="no criterion")
+    end
+
+    n_within = count(r -> r.within_tolerance, result.table)
+    n_rows = length(result.table)
+    errs = Float64[]
+    for row in result.table
+        e = _row_error(row, spec.error_mode)
+        isfinite(e) && push!(errs, e)
+    end
+    unit = if spec.error_mode === :relative_pct
+        "%"
+    elseif spec.error_mode === :db_ratio
+        "dB"
+    elseif spec.error_mode === :absolute
+        _absolute_error_unit(spec)
+    else
+        ""
+    end
+    max_abs = isempty(errs) ? NaN : maximum(abs, errs)
+    med_abs = isempty(errs) ? NaN : Statistics.median(abs.(errs))
+    text = if isempty(result.table)
+        "no criterion"
+    elseif result.verdict === :no_verdict
+        "no verdict · max |err| $(_fmt_err_sig(max_abs)) $(unit) · med $(_fmt_err_sig(med_abs)) $(unit)"
+    else
+        "$(n_within)/$(n_rows) in tol · max |err| $(_fmt_err_sig(max_abs)) $(unit) · med $(_fmt_err_sig(med_abs)) $(unit)"
+    end
+    chip_text = _error_chip_text(; text, n_within, n_rows, max_abs, unit)
+    return (; n_within, n_rows, max_abs, median_abs=med_abs, unit, text, chip_text)
+end
+
+"""Default path for the case-error snapshot CSV (not written by run / Pkg.test)."""
+case_error_summary_path() =
+    joinpath(@__DIR__, "..", "..", "docs", "validation_reports", "case_error_summary.csv")
+
+"""Cache: (abspath, mtime, dict). Re-read only when the file mtime changes."""
+const _RECORDED_ERRORS_CACHE =
+    Ref{Union{Nothing,Tuple{String,Float64,Dict{String,NamedTuple}}}}(nothing)
+
+"""
+    write_case_error_summary(path; run_date) -> String
+
+Run every registered case and write the display-only error snapshot CSV.
+Comment line records generation date and script. Does not change criteria.
+`run_date` is the snapshot date; `source_date` is each result's own `date` field.
+"""
+function write_case_error_summary(path::AbstractString=case_error_summary_path();
+                                  run_date::AbstractString=string(Dates.today()))
+    mkpath(dirname(path))
+    open(path, "w") do io
+        println(io, "# generated ", run_date, " by scripts/run/write_case_error_summary.jl")
+        println(io, "id,run_date,source_date,verdict,n_within,n_rows,max_abs,median_abs,unit,text")
+        for id in VALIDATION_CASE_ORDER
+            case = VALIDATION_CASES[id]
+            result = run_validation_case(id)
+            s = case_error_summary(result, case.plot_spec)
+            max_s = isfinite(s.max_abs) ? _fmt_err_sig(s.max_abs) : ""
+            med_s = isfinite(s.median_abs) ? _fmt_err_sig(s.median_abs) : ""
+            text_q = "\"" * replace(s.text, "\"" => "\"\"") * "\""
+            unit_q = "\"" * replace(s.unit, "\"" => "\"\"") * "\""
+            println(io, id, ",", run_date, ",", result.date, ",", String(result.verdict), ",",
+                    s.n_within, ",", s.n_rows, ",", max_s, ",", med_s, ",",
+                    unit_q, ",", text_q)
+        end
+    end
+    # Invalidate cache so the next load sees the new file.
+    _RECORDED_ERRORS_CACHE[] = nothing
+    return String(path)
+end
+
+"""Parse one snapshot data row; throws on malformed fields."""
+function _parse_recorded_error_row(fields::Vector{String}, col::Dict{String,Int})
+    id = String(fields[col["id"]])
+    isempty(id) && error("empty id")
+    max_s = strip(fields[col["max_abs"]])
+    med_s = strip(fields[col["median_abs"]])
+    max_abs = isempty(max_s) ? NaN : parse(Float64, max_s)
+    median_abs = isempty(med_s) ? NaN : parse(Float64, med_s)
+    n_within = parse(Int, fields[col["n_within"]])
+    n_rows = parse(Int, fields[col["n_rows"]])
+    unit = String(fields[col["unit"]])
+    text = String(fields[col["text"]])
+    run_date = String(fields[col["run_date"]])
+    # Old CSVs omit source_date → fall back to run_date (snapshot date).
+    source_date = haskey(col, "source_date") ? String(fields[col["source_date"]]) : run_date
+    chip_text = _error_chip_text(; text, n_within, n_rows, max_abs, unit)
+    return id, (;
+        run_date=run_date,
+        source_date=source_date,
+        verdict=String(fields[col["verdict"]]),
+        n_within=n_within,
+        n_rows=n_rows,
+        max_abs=max_abs,
+        median_abs=median_abs,
+        unit=unit,
+        text=text,
+        chip_text=chip_text,
+    )
+end
+
+"""Load snapshot CSV from disk (no cache). Missing / bad header → empty Dict."""
+function _load_recorded_case_errors(path::AbstractString)
+    out = Dict{String,NamedTuple}()
+    isfile(path) || return out
+    lines = readlines(path)
+    header_i = findfirst(l -> !startswith(strip(l), "#") && !isempty(strip(l)), lines)
+    header_i === nothing && return out
+    headers = _csv_split_row(strip(lines[header_i]))
+    col = Dict(String(h) => i for (i, h) in enumerate(headers))
+    required = ("id", "run_date", "verdict", "n_within", "n_rows", "max_abs", "median_abs", "unit", "text")
+    all(h -> haskey(col, h), required) || return out
+    skipped = 0
+    for line in lines[(header_i + 1):end]
+        strip(line) == "" && continue
+        startswith(strip(line), "#") && continue
+        try
+            fields = _csv_split_row(line)
+            length(fields) < length(headers) && error("too few fields")
+            id, row = _parse_recorded_error_row(fields, col)
+            out[id] = row
+        catch
+            skipped += 1
+        end
+    end
+    if skipped > 0
+        @warn "recorded_case_errors: skipped malformed rows" path=String(path) skipped
+    end
+    return out
+end
+
+"""
+    recorded_case_errors(path=case_error_summary_path()) -> Dict{String,NamedTuple}
+
+Load the snapshot CSV (cached by path + mtime). Missing or bad header → empty Dict.
+Malformed data rows are skipped (warned); other rows still load.
+"""
+function recorded_case_errors(path::AbstractString=case_error_summary_path())
+    ap = abspath(path)
+    mt = isfile(ap) ? mtime(ap) : 0.0
+    c = _RECORDED_ERRORS_CACHE[]
+    if c !== nothing && c[1] == ap && c[2] == mt
+        return c[3]
+    end
+    out = try
+        _load_recorded_case_errors(ap)
+    catch
+        Dict{String,NamedTuple}()
+    end
+    _RECORDED_ERRORS_CACHE[] = (ap, mt, out)
+    return out
+end
+
+"""Resolve display error text + source for map / case JSON (session first, then snapshot)."""
+function _case_error_json_fields(id::AbstractString;
+                                 session::AbstractDict=Dict{String,NamedTuple}(),
+                                 recorded::AbstractDict=Dict{String,NamedTuple}())
+    sid = String(id)
+    if haskey(session, sid)
+        s = session[sid]
+        chip = hasproperty(s, :chip_text) ? String(s.chip_text) : String(s.text)
+        return (error=String(s.text), error_chip=chip, error_source="run", error_snapshot="")
+    elseif haskey(recorded, sid)
+        r = recorded[sid]
+        src_date = hasproperty(r, :source_date) ? String(r.source_date) : String(r.run_date)
+        chip = hasproperty(r, :chip_text) ? String(r.chip_text) :
+               _error_chip_text(; text=String(r.text), n_within=Int(r.n_within),
+                                n_rows=Int(r.n_rows), max_abs=Float64(r.max_abs),
+                                unit=String(r.unit))
+        return (error=String(r.text), error_chip=chip,
+                error_source="recorded $(src_date)",
+                error_snapshot="snapshot $(r.run_date)")
+    else
+        return (error="", error_chip="", error_source="", error_snapshot="")
+    end
+end
+
 """Round log10 tick candidates (R996 Fig. 14 and similar pressure axes)."""
 const _LOG_ROUND_TICKS = Float64[
     1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000,

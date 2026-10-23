@@ -552,11 +552,39 @@ function _run_f1a_gutin()
     )
 end
 
+"""Split one CSV row respecting double-quoted fields (shared with snapshot loader)."""
+function _csv_split_row(line::AbstractString)
+    fields = String[]
+    buf = IOBuffer()
+    in_q = false
+    i = firstindex(line)
+    while i <= lastindex(line)
+        c = line[i]
+        if c == '"'
+            if in_q && i < lastindex(line) && line[nextind(line, i)] == '"'
+                write(buf, '"')
+                i = nextind(line, i)
+            else
+                in_q = !in_q
+            end
+        elseif c == ',' && !in_q
+            push!(fields, String(take!(buf)))
+        else
+            write(buf, c)
+        end
+        i = nextind(line, i)
+    end
+    push!(fields, String(take!(buf)))
+    return fields
+end
+
 function _read_csv_rows(path::AbstractString)
     lines = [strip(l) for l in eachline(path) if !isempty(strip(l)) && !startswith(strip(l), '#')]
     isempty(lines) && return String[], Vector{String}[]
-    hdr = split(lines[1], ',')
-    rows = [split(l, ',') for l in lines[2:end]]
+    # Same quoted-field splitter as the error snapshot; all current `_read_csv_rows`
+    # inputs have no quoted data fields, so parsed values are unchanged.
+    hdr = _csv_split_row(lines[1])
+    rows = [_csv_split_row(l) for l in lines[2:end]]
     return hdr, rows
 end
 

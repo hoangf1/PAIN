@@ -109,14 +109,42 @@ ApplicationWindow {
         return Qt.point(root.mapPad + col * root.mapCellW, root.mapPad + row * root.mapCellH)
     }
 
-    // Chip stack height under a title box (Flow ~2 chips wide, ~30 px/row). Must match
-    // validation_map_group_rects in validation_map.jl for the smoke disjoint check.
+    // Chip stack height under a title box (Flow ~2 chips wide). Row height comes from
+    // map JSON `chip_row_h` (Julia VALIDATION_MAP_CHIP_ROW_H) so smoke disjoint matches.
+    function chipRowH() {
+        var h = root.mapData && root.mapData.chip_row_h
+        var n = Number(h)
+        return (isFinite(n) && n > 0) ? n : 52
+    }
     function blockChipExtra(block) {
         var n = (block && block.cases) ? block.cases.length : 0
         if (n <= 0)
             return 0
         var rows = Math.ceil(n / 2)
-        return 4 + rows * 30
+        return 4 + rows * root.chipRowH()
+    }
+
+    function chipErrorText(chip) {
+        var chipShort = String((chip && chip.error_chip) || "")
+        if (chipShort.length > 0)
+            return chipShort
+        return String((chip && chip.error) || "")
+    }
+
+    function chipSourceText(chip) {
+        return String((chip && chip.error_source) || "")
+    }
+
+    function detailErrorText(detail) {
+        return String((detail && detail.error) || "")
+    }
+
+    function detailSourceText(detail) {
+        return String((detail && detail.error_source) || "")
+    }
+
+    function detailSnapshotText(detail) {
+        return String((detail && detail.error_snapshot) || "")
     }
 
     // Axis-aligned group rectangle from that group's own blocks only (incl. check chips).
@@ -1220,6 +1248,22 @@ ApplicationWindow {
                                                                     width: Math.min(130, implicitWidth)
                                                                     elide: Text.ElideRight
                                                                 }
+                                                                Text {
+                                                                    visible: root.chipErrorText(chip).length > 0
+                                                                    text: root.chipErrorText(chip)
+                                                                    font.pixelSize: 9
+                                                                    color: root.muted
+                                                                    width: Math.min(130, implicitWidth)
+                                                                    elide: Text.ElideRight
+                                                                }
+                                                                Text {
+                                                                    visible: root.chipSourceText(chip).length > 0
+                                                                    text: root.chipSourceText(chip)
+                                                                    font.pixelSize: 7
+                                                                    color: root.muted
+                                                                    width: Math.min(130, implicitWidth)
+                                                                    elide: Text.ElideRight
+                                                                }
                                                             }
                                                             MouseArea {
                                                                 anchors.fill: parent
@@ -1430,6 +1474,33 @@ ApplicationWindow {
                                 Layout.fillWidth: true
                                 color: root.muted
                                 font.pixelSize: 11
+                            }
+                            Text {
+                                visible: !!(root.mapDetail && root.mapDetail.detail_kind !== "block"
+                                            && root.detailErrorText(root.mapDetail).length > 0)
+                                text: "Error: " + root.detailErrorText(root.mapDetail)
+                                wrapMode: Text.WordWrap
+                                Layout.fillWidth: true
+                                color: root.muted
+                                font.pixelSize: 11
+                            }
+                            Text {
+                                visible: !!(root.mapDetail && root.mapDetail.detail_kind !== "block"
+                                            && root.detailSourceText(root.mapDetail).length > 0)
+                                text: root.detailSourceText(root.mapDetail)
+                                wrapMode: Text.WordWrap
+                                Layout.fillWidth: true
+                                color: root.muted
+                                font.pixelSize: 10
+                            }
+                            Text {
+                                visible: !!(root.mapDetail && root.mapDetail.detail_kind !== "block"
+                                            && root.detailSnapshotText(root.mapDetail).length > 0)
+                                text: root.detailSnapshotText(root.mapDetail)
+                                wrapMode: Text.WordWrap
+                                Layout.fillWidth: true
+                                color: root.muted
+                                font.pixelSize: 10
                             }
 
                             RowLayout {

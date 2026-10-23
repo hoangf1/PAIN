@@ -120,6 +120,7 @@ export
     VALIDATION_CASES, VALIDATION_CASE_ORDER, list_validation_cases,
     validation_case_runnable, run_validation_case, format_validation_result,
     plot_case, validation_figure_path, validation_source_figure_path,
+    case_error_summary, case_error_summary_path, write_case_error_summary, recorded_case_errors,
     VALIDATION_SOURCE_FIGURE_FALLBACKS,
     CaseInfo, MapBlock, ValidationMap, CASE_INFO, VALIDATION_MAPS,
     validation_guideline_path, parse_validation_guideline_section,

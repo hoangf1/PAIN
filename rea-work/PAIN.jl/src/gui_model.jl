@@ -5,11 +5,15 @@ GUI model: Observables for QML binding. Physics stays in `run_pain_pipeline`.
 """Last validation verdicts by case id (feeds map chip dots after a Run)."""
 const _GUI_LAST_VERDICTS = Dict{String,Symbol}()
 
+"""Last case_error_summary by case id (session only; never written by Run / Pkg.test)."""
+const _GUI_LAST_ERRORS = Dict{String,NamedTuple}()
+
 validity_for_source(source::Symbol) =
     source === :e11 ? "V-EXP" : "X-EXTRAP"
 
 function _refresh_map_json!(obs::AbstractDict)
-    obs["map_total_json"][] = validation_map_json("total"; last=_GUI_LAST_VERDICTS)
+    obs["map_total_json"][] = validation_map_json("total";
+        last=_GUI_LAST_VERDICTS, session_errors=_GUI_LAST_ERRORS)
     return nothing
 end
 
@@ -19,11 +23,11 @@ function reload_validation_docs_gui!(obs::AbstractDict)
     _refresh_map_json!(obs)
     sid = String(obs["map_selected"][])
     if !isempty(sid)
-        obs["map_detail_json"][] = case_info_json(sid)
+        obs["map_detail_json"][] = case_info_json(sid; session_errors=_GUI_LAST_ERRORS)
     end
     vsid = String(obs["val_selected"][])
     if !isempty(vsid)
-        obs["val_info_json"][] = case_info_json(vsid)
+        obs["val_info_json"][] = case_info_json(vsid; session_errors=_GUI_LAST_ERRORS)
         obs["val_criterion"][] = _criterion_for(vsid)
     end
     obs["val_cases"][] = _format_val_case_list()
@@ -115,10 +119,11 @@ function make_gui_observables(;
         "val_result_text" => Observable("Select a case and press Run."),
         "val_status" => Observable("Ready."),
         "val_criterion" => Observable(_criterion_for("CYL2D_C1")),
-        "val_info_json" => Observable(case_info_json("CYL2D_C1")),
+        "val_info_json" => Observable(case_info_json("CYL2D_C1"; session_errors=_GUI_LAST_ERRORS)),
         "val_report_path" => Observable(""),
         # Task C — Validation map tab (single total flowchart)
-        "map_total_json" => Observable(validation_map_json("total"; last=_GUI_LAST_VERDICTS)),
+        "map_total_json" => Observable(validation_map_json("total";
+            last=_GUI_LAST_VERDICTS, session_errors=_GUI_LAST_ERRORS)),
         "map_selected" => Observable(""),
         "map_selected_block" => Observable(""),
         "map_detail_json" => Observable("{}"),
@@ -193,7 +198,7 @@ function run_validation_gui!(obs::AbstractDict, id::AbstractString)
         case = VALIDATION_CASES[id]
         obs["val_selected"][] = String(id)
         obs["val_criterion"][] = _criterion_for(id)
-        obs["val_info_json"][] = case_info_json(id)
+        obs["val_info_json"][] = case_info_json(id; session_errors=_GUI_LAST_ERRORS)
         result = run_validation_case(id)
         png = plot_case(result, case.plot_spec)
         src = validation_source_figure_path(id)
@@ -205,6 +210,11 @@ function run_validation_gui!(obs::AbstractDict, id::AbstractString)
         obs["val_report_path"][] = result.report_path
         obs["val_status"][] = "Done $id: $(result.verdict) — $(result.reason)"
         _GUI_LAST_VERDICTS[String(id)] = result.verdict
+        _GUI_LAST_ERRORS[String(id)] = case_error_summary(result, case.plot_spec)
+        obs["val_info_json"][] = case_info_json(id; session_errors=_GUI_LAST_ERRORS)
+        if String(obs["map_selected"][]) == String(id)
+            obs["map_detail_json"][] = case_info_json(id; session_errors=_GUI_LAST_ERRORS)
+        end
         _refresh_map_json!(obs)
         return result
     catch e

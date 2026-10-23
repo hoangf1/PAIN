@@ -287,8 +287,12 @@ function _case_info_or_missing(id::AbstractString)
     )
 end
 
-"""JSON for one flowchart: map + per-case chip fields (id, title, category, kind, recorded, last, runnable)."""
-function validation_map_json(map_id::AbstractString; last::Dict{String,Symbol}=Dict{String,Symbol}())
+"""JSON for one flowchart: map + per-case chip fields (id, title, category, kind, recorded, last, runnable, error, error_chip, error_source)."""
+function validation_map_json(map_id::AbstractString;
+                             last::Dict{String,Symbol}=Dict{String,Symbol}(),
+                             session_errors::Dict{String,NamedTuple}=Dict{String,NamedTuple}(),
+                             recorded_errors::Union{Nothing,Dict{String,NamedTuple}}=nothing)
+    recorded = recorded_errors === nothing ? recorded_case_errors() : recorded_errors
     m = _map_by_id(map_id)
     blocks = []
     for b in m.blocks
@@ -303,6 +307,7 @@ function validation_map_json(map_id::AbstractString; last::Dict{String,Symbol}=D
             else
                 false
             end
+            err = _case_error_json_fields(id; session=session_errors, recorded=recorded)
             push!(cases, Dict(
                 "id" => id,
                 "title" => info.title,
@@ -311,6 +316,9 @@ function validation_map_json(map_id::AbstractString; last::Dict{String,Symbol}=D
                 "recorded" => info.recorded,
                 "last" => String(last_sym),
                 "runnable" => runnable,
+                "error" => err.error,
+                "error_chip" => err.error_chip,
+                "error_source" => err.error_source,
             ))
         end
         push!(blocks, Dict(
@@ -349,12 +357,17 @@ function validation_map_json(map_id::AbstractString; last::Dict{String,Symbol}=D
         "how_to_read" => m.how_to_read,
         "blocks" => blocks,
         "groups" => group_list,
+        "chip_row_h" => VALIDATION_MAP_CHIP_ROW_H,
     ))
 end
 
-"""JSON of CaseInfo + criterion (if registered) + source image path when present."""
-function case_info_json(id::AbstractString)
+"""JSON of CaseInfo + criterion (if registered) + source image path + error summary when present."""
+function case_info_json(id::AbstractString;
+                        session_errors::Dict{String,NamedTuple}=Dict{String,NamedTuple}(),
+                        recorded_errors::Union{Nothing,Dict{String,NamedTuple}}=nothing)
     info = _case_info_or_missing(id)
+    recorded = recorded_errors === nothing ? recorded_case_errors() : recorded_errors
+    err = _case_error_json_fields(id; session=session_errors, recorded=recorded)
     d = Dict{String,Any}(
         "id" => info.id,
         "title" => info.title,
@@ -372,6 +385,10 @@ function case_info_json(id::AbstractString)
         "source_image" => "",
         "in_registry" => haskey(VALIDATION_CASES, id),
         "detail_kind" => "case",
+        "error" => err.error,
+        "error_chip" => err.error_chip,
+        "error_source" => err.error_source,
+        "error_snapshot" => err.error_snapshot,
     )
     if haskey(VALIDATION_CASES, id)
         c = VALIDATION_CASES[id]
@@ -446,12 +463,14 @@ const _MAP_BLOCK_H = 44
 const _MAP_GRP_PAD_X = 10
 const _MAP_GRP_PAD_TOP = 22
 const _MAP_GRP_PAD_BOT = 10
+"""Per chip-row height (px) with short error + source lines; passed to QML as `chip_row_h`."""
+const VALIDATION_MAP_CHIP_ROW_H = 52
 
-"""Chip stack height under a title box (Flow ≈2 chips/row, 30 px/row) — same as QML `blockChipExtra`."""
+"""Chip stack height under a title box (Flow ≈2 chips/row) — same as QML `blockChipExtra`."""
 function _map_block_chip_extra(n_cases::Integer)
     n_cases <= 0 && return 0
     rows = cld(n_cases, 2)
-    return 4 + rows * 30
+    return 4 + rows * VALIDATION_MAP_CHIP_ROW_H
 end
 
 """

@@ -303,7 +303,7 @@ flowchart LR
 
 ## 5. Validation maps
 
-GUI tab **Validation map** shows one map `total` (`src/validation_map.jl`), laid out from §2.13 `Position` / `Feeds` / `Group` / `Role`. Stage frames bound each group's own blocks only (positions chosen so frames are pairwise disjoint; aircraft checks above/below the pipeline). Titles only on boxes; case chips keep verdict dots. Horizontal + vertical scroll; zoom / fit.
+GUI tab **Validation map** shows one map `total` (`src/validation_map.jl`), laid out from §2.13 `Position` / `Feeds` / `Group` / `Role`. Stage frames bound each group's own blocks only (positions chosen so frames are pairwise disjoint; aircraft checks above/below the pipeline). Titles only on boxes; case chips keep verdict dots and a short display-only error line plus source date (`case_error_summary`: `k/n · X U max` / `no verdict · X U max`; paren units; `:none` coverage text when met/not_met). Horizontal + vertical scroll; zoom / fit.
 
 ```mermaid
 flowchart LR

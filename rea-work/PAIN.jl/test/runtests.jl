@@ -2238,6 +2238,249 @@ _run_if("Uncertainty budget (phase 31, V-UNIT)") do
     @test VALIDATION_CASES["UNC_COVER"].criterion_date == "2026-10-22"
 end
 
+_run_if("Validation map errors (V-UNIT)") do
+    # Synthetic table covering each error_mode (display only; no criterion change).
+    rows_abs = [
+        ValidationTableRow("a", 1.0, 10.0, 12.0, 2.0, true),
+        ValidationTableRow("b", 2.0, 10.0, 15.0, 5.0, false),
+        ValidationTableRow("c", 3.0, 10.0, 11.0, 1.0, true),
+    ]
+    r_abs = ValidationCaseResult("SYN_ABS", "2026-10-22", (;), rows_abs, PlotSeries[],
+                                 :met, "ok", "", "")
+    s_abs = case_error_summary(r_abs, PlotSpec(; error_mode=:absolute, error_tol=3.0,
+                                               error_ylabel="error (dB)"))
+    @test s_abs.n_rows == 3
+    @test s_abs.n_within == 2
+    @test s_abs.max_abs ≈ 5.0
+    @test s_abs.median_abs ≈ 2.0
+    @test s_abs.unit == "dB"
+    @test occursin("2/3 in tol", s_abs.text)
+    @test occursin("max |err| 5", s_abs.text)
+    @test occursin("med 2", s_abs.text)
+    @test occursin("dB", s_abs.text)
+    @test s_abs.chip_text == "2/3 · 5.0 dB max"
+
+    s_abs_unit = case_error_summary(r_abs, PlotSpec(; error_mode=:absolute, error_tol=3.0))
+    @test s_abs_unit.unit == "abs"
+    # T1-style: unit from last (...) of ylabel when error_ylabel has none / is empty.
+    s_t1_unit = case_error_summary(r_abs, PlotSpec(; error_mode=:absolute, error_tol=3.0,
+                                                   ylabel="SPL (dB)"))
+    @test s_t1_unit.unit == "dB"
+    @test !occursin("SPL", s_t1_unit.unit)
+    # Whole error_ylabel without (...): do not paste; fall back to ylabel (...).
+    s_whole = case_error_summary(r_abs, PlotSpec(; error_mode=:absolute, error_tol=3.0,
+                                                 error_ylabel="computed − Manual Fig. 3",
+                                                 ylabel="azimuth α (deg)"))
+    @test s_whole.unit == "deg"
+    @test s_whole.unit != "computed − Manual Fig. 3"
+
+    # NaN reference still counts in n_rows; max/median use finite _row_error only.
+    rows_nan = [
+        ValidationTableRow("a", 1.0, 10.0, 12.0, 2.0, true),
+        ValidationTableRow("b", 2.0, NaN, 15.0, NaN, false),
+    ]
+    r_nan = ValidationCaseResult("SYN_NAN", "2026-10-22", (;), rows_nan, PlotSeries[],
+                                 :met, "ok", "", "")
+    s_nan = case_error_summary(r_nan, PlotSpec(; error_mode=:absolute, error_tol=3.0,
+                                               error_ylabel="error (dB)"))
+    @test s_nan.n_rows == 2
+    @test s_nan.n_within == 1
+    @test s_nan.max_abs ≈ 2.0
+    @test s_nan.median_abs ≈ 2.0
+
+    rows_rel = [
+        ValidationTableRow("a", 1.0, 100.0, 110.0, 10.0, true),   # +10%
+        ValidationTableRow("b", 2.0, 100.0, 80.0, -20.0, false),  # -20%
+    ]
+    r_rel = ValidationCaseResult("SYN_REL", "2026-10-22", (;), rows_rel, PlotSeries[],
+                                 :not_met, "x", "", "")
+    s_rel = case_error_summary(r_rel, PlotSpec(; error_mode=:relative_pct, error_tol=15.0))
+    @test s_rel.n_rows == 2
+    @test s_rel.n_within == 1
+    @test s_rel.max_abs ≈ 20.0
+    @test s_rel.median_abs ≈ 15.0
+    @test s_rel.unit == "%"
+    @test occursin("%", s_rel.text)
+
+    rows_db = [
+        ValidationTableRow("a", 1.0, 1.0, 10.0, NaN, false),  # 20 dB
+        ValidationTableRow("b", 2.0, 1.0, 2.0, NaN, true),   # ~6.02 dB
+    ]
+    r_db = ValidationCaseResult("SYN_DB", "2026-10-22", (;), rows_db, PlotSeries[],
+                                :not_met, "x", "", "")
+    s_db = case_error_summary(r_db, PlotSpec(; error_mode=:db_ratio, error_tol=2.0))
+    @test s_db.n_rows == 2
+    @test s_db.unit == "dB"
+    @test s_db.max_abs ≈ 20.0
+    @test isapprox(s_db.median_abs, (20.0 + 20 * log10(2.0)) / 2; rtol=1e-9)
+
+    # :none + :no_verdict → no criterion (even with a non-empty table).
+    s_none = case_error_summary(r_abs, PlotSpec(; error_mode=:none))
+    # r_abs verdict is :met → coverage-style text, not "no criterion".
+    @test s_none.text == "2/3 within criterion"
+    @test s_none.n_within == 2
+    @test s_none.n_rows == 3
+    @test s_none.unit == ""
+    @test isnan(s_none.max_abs) && isnan(s_none.median_abs)
+
+    rows_cover = [
+        ValidationTableRow("H1", 1.0, 10.0, 10.0, 0.0, true),
+        ValidationTableRow("H2", 2.0, 10.0, 10.0, 0.0, false),
+        ValidationTableRow("H3", 3.0, 10.0, 10.0, 0.0, false),
+    ]
+    r_none_nm = ValidationCaseResult("SYN_NONE_NM", "2026-10-22", (;), rows_cover, PlotSeries[],
+                                     :not_met, "1 of 3 inside band", "", "")
+    s_none_nm = case_error_summary(r_none_nm, PlotSpec(; error_mode=:none))
+    @test s_none_nm.text == "1/3 within criterion"
+    @test s_none_nm.n_within == 1
+    @test s_none_nm.n_rows == 3
+    @test s_none_nm.unit == ""
+    @test isnan(s_none_nm.max_abs) && isnan(s_none_nm.median_abs)
+
+    r_none_nv = ValidationCaseResult("SYN_NONE_NV", "2026-10-22", (;), rows_cover, PlotSeries[],
+                                     :no_verdict, "informational", "", "")
+    @test case_error_summary(r_none_nv, PlotSpec(; error_mode=:none)).text == "no criterion"
+
+    r_empty = ValidationCaseResult("SYN_EMPTY", "2026-10-22", (;), ValidationTableRow[],
+                                   PlotSeries[], :met, "x", "", "")
+    @test case_error_summary(r_empty, PlotSpec(; error_mode=:absolute, error_tol=1.0)).text == "no criterion"
+    @test case_error_summary(r_empty, PlotSpec(; error_mode=:none)).text == "no criterion"
+    # :no_verdict + empty table → no criterion (any error_mode).
+    r_nv_empty = ValidationCaseResult("SYN_NV_EMPTY", "2026-10-22", (;), ValidationTableRow[],
+                                      PlotSeries[], :no_verdict, "x", "", "")
+    @test case_error_summary(r_nv_empty, PlotSpec(; error_mode=:absolute, error_tol=1.0)).text == "no criterion"
+
+    # :no_verdict + table + non-:none → no verdict · max/med (no k/n in tol).
+    r_nv = ValidationCaseResult("SYN_NV", "2026-10-22", (;), rows_abs, PlotSeries[],
+                                :no_verdict, "informational", "", "")
+    s_nv = case_error_summary(r_nv, PlotSpec(; error_mode=:absolute, error_ylabel="Hz"))
+    @test startswith(s_nv.text, "no verdict")
+    @test occursin("max |err|", s_nv.text)
+    @test occursin("med", s_nv.text)
+    @test !occursin("in tol", s_nv.text)
+    @test s_nv.n_within == 2
+    @test s_nv.n_rows == 3
+    @test occursin("no verdict", s_nv.chip_text)
+    @test !occursin("in tol", s_nv.chip_text)
+
+    # Snapshot writer/loader round-trip (temp dir); corrupt header → empty; one bad row keeps good.
+    mktempdir() do tmp
+        path = joinpath(tmp, "case_error_summary.csv")
+        write_case_error_summary(path; run_date="2026-10-22")
+        rec = recorded_case_errors(path)
+        @test haskey(rec, "R996_FIG14")
+        @test rec["R996_FIG14"].n_within == 20
+        @test rec["R996_FIG14"].n_rows == 24
+        @test !isempty(rec["R996_FIG14"].text)
+        @test hasproperty(rec["R996_FIG14"], :source_date)
+        @test rec["R996_FIG14"].run_date == "2026-10-22"
+        bad = joinpath(tmp, "bad.csv")
+        write(bad, "not,a,valid\n{{{")
+        @test isempty(recorded_case_errors(bad))
+        @test isempty(recorded_case_errors(joinpath(tmp, "missing.csv")))
+        # One malformed data row among good rows → good rows still load.
+        mixed = joinpath(tmp, "mixed.csv")
+        open(mixed, "w") do io
+            println(io, "id,run_date,source_date,verdict,n_within,n_rows,max_abs,median_abs,unit,text")
+            println(io, "GOOD_A,2026-10-22,2026-10-21,met,1,1,0.5,0.5,\"dB\",\"1/1 in tol · max |err| 0.5 dB · med 0.5 dB\"")
+            println(io, "BAD,,,not_a_number,,,,,\"\",\"\"")
+            println(io, "GOOD_B,2026-10-22,2026-10-21,not_met,0,2,3.0,1.5,\"dB\",\"0/2 in tol · max |err| 3.0 dB · med 1.5 dB\"")
+        end
+        mixed_rec = recorded_case_errors(mixed)
+        @test haskey(mixed_rec, "GOOD_A")
+        @test haskey(mixed_rec, "GOOD_B")
+        @test !haskey(mixed_rec, "BAD")
+        @test mixed_rec["GOOD_A"].source_date == "2026-10-21"
+        # Old column set (no source_date) still loads; source_date falls back to run_date.
+        old = joinpath(tmp, "old.csv")
+        open(old, "w") do io
+            println(io, "id,run_date,verdict,n_within,n_rows,max_abs,median_abs,unit,text")
+            println(io, "OLD1,2026-10-20,met,2,2,1.0,1.0,\"dB\",\"2/2 in tol · max |err| 1.0 dB · med 1.0 dB\"")
+        end
+        old_rec = recorded_case_errors(old)
+        @test haskey(old_rec, "OLD1")
+        @test old_rec["OLD1"].source_date == "2026-10-20"
+        @test old_rec["OLD1"].run_date == "2026-10-20"
+    end
+
+    # Running a case must not write the snapshot (or any tracked report file).
+    rep_dir = abspath(joinpath(@__DIR__, "..", "..", "docs", "validation_reports"))
+    function _report_mtimes(dir)
+        d = Dict{String,Float64}()
+        for (root, _, files) in walkdir(dir)
+            for f in files
+                p = joinpath(root, f)
+                d[p] = mtime(p)
+            end
+        end
+        return d
+    end
+    before = _report_mtimes(rep_dir)
+    run_validation_case("CYL2D_C1")
+    after = _report_mtimes(rep_dir)
+    @test before == after
+
+    # Map / case JSON carry error fields + chip_row_h
+    parsed = JSON3.read(validation_map_json("total"; recorded_errors=Dict{String,NamedTuple}()))
+    @test haskey(parsed, :chip_row_h)
+    @test Int(parsed.chip_row_h) == PAIN.VALIDATION_MAP_CHIP_ROW_H
+    chip = nothing
+    for b in parsed.blocks
+        for c in b.cases
+            if String(c.id) == "R996_FIG14"
+                chip = c
+            end
+            @test haskey(c, :error)
+            @test haskey(c, :error_chip)
+            @test haskey(c, :error_source)
+        end
+    end
+    @test chip !== nothing
+
+    fig14 = run_validation_case("R996_FIG14")
+    s14 = case_error_summary(fig14, VALIDATION_CASES["R996_FIG14"].plot_spec)
+    @test s14.n_within == 20
+    @test s14.n_rows == 24
+    @test count(r -> r.within_tolerance, fig14.table) == 20
+    @test length(fig14.table) == 24
+
+    unc = run_validation_case("UNC_COVER")
+    s_unc = case_error_summary(unc, VALIDATION_CASES["UNC_COVER"].plot_spec)
+    @test unc.verdict === :not_met
+    @test VALIDATION_CASES["UNC_COVER"].plot_spec.error_mode === :none
+    @test s_unc.text == "1/3 within criterion"
+    @test s_unc.n_within == 1
+    @test s_unc.n_rows == 3
+    @test s_unc.unit == ""
+    @test isnan(s_unc.max_abs) && isnan(s_unc.median_abs)
+
+    # Live no_verdict cases: no k/n in tol in the display text.
+    for id in ("GEXT_BOUND", "MRP_RITZ", "E15_STRUCT_LOSS", "BBN_LEVELS")
+        r = run_validation_case(id)
+        @test r.verdict === :no_verdict
+        s = case_error_summary(r, VALIDATION_CASES[id].plot_spec)
+        @test !isempty(r.table)
+        @test startswith(s.text, "no verdict")
+        @test !occursin("in tol", s.text)
+    end
+
+    sess = Dict{String,NamedTuple}("R996_FIG14" => s14)
+    map_sess = JSON3.read(validation_map_json("total"; session_errors=sess,
+                                              recorded_errors=Dict{String,NamedTuple}()))
+    chip2 = nothing
+    for b in map_sess.blocks, c in b.cases
+        String(c.id) == "R996_FIG14" && (chip2 = c)
+    end
+    @test String(chip2.error) == s14.text
+    @test String(chip2.error_chip) == s14.chip_text
+    @test String(chip2.error_source) == "run"
+    info = JSON3.read(case_info_json("R996_FIG14"; session_errors=sess,
+                                      recorded_errors=Dict{String,NamedTuple}()))
+    @test String(info.error) == s14.text
+    @test String(info.error_source) == "run"
+    @test String(info.error_snapshot) == ""
+end
+
 _run_if("Validation case registry (34d)") do
     @test Set(keys(VALIDATION_CASES)) == Set(VALIDATION_CASE_ORDER)
     for id in VALIDATION_CASE_ORDER
