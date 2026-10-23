@@ -68,4 +68,4 @@ The table above is the audit record of 2026-10-23. This section records what eac
 | BEMT, F1A | BEMT_HAND, F1A_INDEP (41) | met |
 | Output level | LOUDEST_PT (42) | loudest-point dB(A) reported; the pre-registered 1 % average check is not met with interior nodes only (wall antinodes left out) |
 
-**Remaining gaps:** the exterior broadband input of T2 (not measured anywhere, 43e) and the (0,1) × mode 8 coupling difference (Q22). Every other block has an isolated check.
+**Remaining gaps (corrected 2026-10-23):** five functions on the T1/T2 paths have no isolated check (`broadband_cabin_p2`, `tone_expected_value`, `hf_structural_band`, `hf_band_loss_factors`, `coupling_loss_factor_21`; plan Phase 46); the q = 0 coupling difference against NASA (Q22). T2's exterior input was thought unmeasured (43e), but NASA TP-2444 Fig. 17 is a measured exterior and interior spectrum of this article at 4000 rpm (to 1.5 kHz); plan Phases 47–48.
