@@ -83,7 +83,7 @@ end
 Structural modes resonant in the 1/3-octave about `fc`, plus band averages for
 Eqs. (19)–(20) (readings §1–§2).
 """
-function hf_structural_band(inp::PainInputs, fc::Real; c_ω::Real=C_OMEGA_THIRD_OCTAVE)
+function hf_structural_band(inp::PainInputs, fc::Real; c_ω::Real=C_OMEGA_THIRD_OCTAVE, sparse_guard::Bool=false)
     ω = 2π * fc
     Δω = c_ω * ω
     lo = ω * (1 - c_ω / 2)
@@ -103,6 +103,14 @@ function hf_structural_band(inp::PainInputs, fc::Real; c_ω::Real=C_OMEGA_THIRD_
         elseif ωr < lo
             sum_j2sq_below += j2^2
         end
+    end
+    # Phase 53b guard (off by default): a sparse band whose resonant modes radiate less, on average, than
+    # the whole mode set (⟨j²⟩_band below the all-mode mean) takes the asymptotic branch, as a band with
+    # no resonant mode does. Without it, two poorly radiating modes give NR ≈ 100 dB (E-21 inputs, 400 Hz).
+    if sparse_guard && !isempty(j2s) && !isempty(inp.structural.modes)
+        j2_all = sum(st -> structural_joint_acceptance(st, ω; a, L, c0=c_ext), inp.structural.modes) /
+                 length(inp.structural.modes)
+        sum(j2s) / length(j2s) < j2_all && (empty!(j2s); empty!(in_band))
     end
     if !isempty(j2s)
         n_r = length(j2s) / Δω
@@ -175,8 +183,9 @@ end
 """
 function hf_transmission_coeffs(inp::PainInputs, fc::Real;
                                 c_ω::Real=C_OMEGA_THIRD_OCTAVE,
-                                η_r_cap::Union{Nothing,Float64}=nothing)
-    band = hf_structural_band(inp, fc; c_ω)
+                                η_r_cap::Union{Nothing,Float64}=nothing,
+                                sparse_guard::Bool=false)
+    band = hf_structural_band(inp, fc; c_ω, sparse_guard)
     losses = hf_band_loss_factors(inp, fc, band; η_r_cap)
     ρ_ext, c_ext = inp.ρ_ext, inp.c_ext
     ρ_int, c_int = inp.ρ_int, inp.c_int
@@ -203,8 +212,9 @@ with τ = τ_f + τ_R. NR_dB = 10 log10(ratio).
 """
 function hf_pressure_ratio(inp::PainInputs, fc::Real;
                            c_ω::Real=C_OMEGA_THIRD_OCTAVE,
-                           η_r_cap::Union{Nothing,Float64}=nothing)
-    tc = hf_transmission_coeffs(inp, fc; c_ω, η_r_cap)
+                           η_r_cap::Union{Nothing,Float64}=nothing,
+                           sparse_guard::Bool=false)
+    tc = hf_transmission_coeffs(inp, fc; c_ω, η_r_cap, sparse_guard)
     areas_t = hf_trim_areas(inp)
     A_t, A′ = areas_t.A_t, areas_t.A′
     S = tc.losses.areas.S

@@ -3096,6 +3096,90 @@ _run_if("Isolated checks for T1/T2 functions (phase 46)") do
     @test w1.W_in ≈ sum(c -> c.term, w1.contributions) rtol = 1e-10
 end
 
+_run_if("Propeller-field NR and open items (phases 50, 53, 56, 57)") do
+    # Criteria fixed 2026-10-23 (plan §8e Phase 50, §8f Phases 53, 56, 57) before these checks were run.
+    # 50b recorded result (first valid run 2026-10-23): not met 2/7
+    r = run_validation_case("NR_PROP_TP2444_PF")
+    @test r.verdict === :not_met && r.inputs_echo.n_ok == 2
+    @test all(abs.(r.inputs_echo.NR_model[1:5] .- r.inputs_echo.NR_meas[1:5]) .< 7.0)   # 315–800 Hz within 7 dB
+    png = plot_case(r, VALIDATION_CASES["NR_PROP_TP2444_PF"].plot_spec; path=joinpath(TEST_OUT, "NR_PROP_TP2444_PF.png"))
+    @test isfile(png) && filesize(png) > 0
+    # the propeller-field band NR reduces to the tone path at one frequency: n_freq = 1 at fc = H·BPF
+    inp = PAIN.r172428_inputs(4000)
+    one = PAIN.propeller_field_band_nr(inp, 400.0; n_freq=1)
+    @test one.fs[1] ≈ 400.0 rtol = 1e-12
+    @test one.p2 ≈ PAIN.tone_mean_square_pressure(inp, 2, 2π * 400.0) rtol = 1e-12
+    @test one.p2_ref ≈ inp.amplitudes[8, 10, 2]^2 / 2 rtol = 1e-12
+
+    # 53b guard (off by default): the E-21 inputs at 400 Hz; off = production value, on = asymptotic branch
+    inp_nr = PAIN.noise_reduction_test_article_inputs(; η_lining=1.0)
+    off = PAIN.hf_pressure_ratio(inp_nr, 1000 * 2^(-4 / 3); η_r_cap=0.15)
+    on = PAIN.hf_pressure_ratio(inp_nr, 1000 * 2^(-4 / 3); η_r_cap=0.15, sparse_guard=true)
+    @test !off.band.asymptotic && on.band.asymptotic
+    @test on.NR_dB < off.NR_dB
+    @test PAIN.hf_pressure_ratio(inp_nr, 1000.0; η_r_cap=0.15, sparse_guard=true).NR_dB ≈
+          PAIN.hf_pressure_ratio(inp_nr, 1000.0; η_r_cap=0.15).NR_dB rtol = 1e-12   # a well-populated band is unchanged
+
+    # 56a: the new switches leave the default solver unchanged; MRP_RITZ keeps its recorded 26/32
+    L, a = PAIN.test_article_length(), 0.508
+    fuse = PAIN.FuselageGeometry(L, a, 56.6)
+    d = PAIN.structural_modes(fuse)
+    e = PAIN.structural_modes(fuse; include_floor=true, include_stiffeners=true)
+    @test [m.f_Hz for m in d.modes] == [m.f_Hz for m in e.modes]
+    # 56b (40f): bare shell from the Ritz solver against closed-form Donnell–Mushtari (recorded not met)
+    bare = PAIN.structural_modes(PAIN.FuselageGeometry(L, a, 0.0); include_floor=false, include_stiffeners=false, hybrid=false,
+                                 include_antisym=false, n_keep=60)
+    dm(st) = PAIN.donnell_mushtari_frequency_Hz(st.M_axial, st.n_shell[1], L, a, PAIN.MRP_T_SKIN, PAIN.MRP_E_2024,
+                                                PAIN.MRP_NU_2024, PAIN.MRP_RHO_2024)
+    errs = sort([(dm(st), st.f_Hz / dm(st) - 1) for st in bare.modes]; by=first)[1:10]
+    @test all(abs(x[2]) > 0.01 for x in errs)                  # none of the first 10 within 1 %
+    @test all(isempty(st.C_floor) for st in bare.modes)
+
+    # 57 functions the suite never executed (off the T1/T2 paths), each against a hand value
+    # parse_aircraft_trim_json: a two-element sidewall and a mechanical path from JSON-like input
+    obj = Dict("sidewall" => Dict("elements" => [Dict("type" => "insulation", "thickness_m" => 0.05),
+                                                Dict("type" => "limp_mass", "m_kg_m2" => 1.5, "eta" => 0.2)]),
+               "mechanical" => Dict("N_points" => 9, "n_lines" => 2))
+    t = PAIN.parse_aircraft_trim_json(obj; cabin_a=0.8, cabin_L=4.0, cabin_theta0_deg=50.0)
+    ref = PAIN.TrimStack(PAIN.TrimElement[PAIN.InsulationLayer(0.05, PAIN.pf105_table()), PAIN.LimpMass(1.5, 0.2)])
+    @test PAIN.trim_tau_insulation(t.sidewall, 2π * 1000) ≈ PAIN.trim_tau_insulation(ref, 2π * 1000) rtol = 1e-12
+    @test t.mech.N_points == 9 && t.mech.line_length ≈ 8.0
+    @test t.mech.A_t ≈ 2 * 0.8 * (π - deg2rad(50.0)) * 4.0 rtol = 1e-12
+    @test length(t.ends.elements) == 1 && t.ends.elements[1].thickness == 0.013
+    # _rand_triangular: sample mean (lo + hi + mode)/3, all samples inside [lo, hi]
+    rng = PAIN.Random.MersenneTwister(7)
+    xs = [PAIN._rand_triangular(rng, 1.0, 4.0, 1.5) for _ in 1:200_000]
+    @test abs(sum(xs) / length(xs) - (1.0 + 4.0 + 1.5) / 3) < 0.01
+    @test all(1.0 .≤ xs .≤ 4.0)
+    # fit_mrp_to_table_d1: on a one-point grid it returns that point and its own match count
+    best = PAIN.fit_mrp_to_table_d1(; scales=0.6:0.1:0.6, edges=2.2:0.1:2.2, floor_scales=2.4:0.1:2.4)
+    @test best.k_scale == 0.6 && best.edge_factor == 2.2 && best.floor_scale == 2.4
+    m = PAIN.structural_modes(PAIN.FuselageGeometry(L, a, 56.6); k_scale=0.6, edge_factor=2.2, floor_scale=2.4,
+                              n_keep=48, hybrid=false)
+    @test best.npass == PAIN.match_ritz_to_table_d1(m; tol_frac=0.05)[1]
+    # appd_constraint_residuals: an App. D eigenvector satisfies the floor–shell junction constraints (D.4)
+    g = PAIN.appd_test_article_geometry()
+    b = PAIN._appd_basis(1, true)
+    K, Mm, _, _ = PAIN._appd_assemble_KM(b, g)
+    C = PAIN._appd_constraint_matrix(b, g)
+    Kr, Mr, E = PAIN._appd_reduce(K, Mm, C)
+    F = PAIN.eigen(PAIN.Symmetric(Kr), PAIN.Symmetric(Mr))
+    q = E * F.vectors[:, 1]
+    @test maximum(abs, PAIN.appd_constraint_residuals(q, b, g)) ≤ 1e-8 * maximum(abs, q)
+    @test maximum(abs, PAIN.appd_constraint_residuals(ones(length(q)), b, g)) > 1e-6    # an arbitrary vector does not
+    # scale_acoustic_freq: f_unit/a equals the q = 0 cabin frequency from the mode eigenvalue (c0 = 340)
+    cy = PAIN.cyl2d_modes(56.6; n_modes=6, NY=10)
+    for mo in cy.modes[2:6]
+        @test PAIN.scale_acoustic_freq(mo.f_Hz_unit, 0.508) ≈ PAIN.cabin_frequency_3d(mo, 0.508, 1.83, 0; c0=340.0) rtol = 1e-9
+    end
+    # hf_broadband_spectrum: its 1.25 kHz band is the Eq. (19)–(23) value of the blocked broadband level
+    rp = run_pain_pipeline(; source=:e11, n_harmonics=5, bpf_Hz=200.0, blocking=R2)
+    sp = PAIN.hf_broadband_spectrum(rp.inputs; bpf_Hz=200.0, n_harmonics=5)
+    bnd = PAIN.nearest_third_octave(1250.0, PAIN.resolve_bands(rp.inputs))
+    p2bl = PAIN.blocked_broadband_band_p2(rp.inputs, bnd, 200.0)
+    @test sp.third_octave_SPL_dB[bnd] ≈ 10log10(PAIN.hf_broadband_band_p2(rp.inputs, bnd, p2bl) / 4e-10 + 1e-30) atol = 1e-9
+end
+
 _run_if("Exterior broadband from RP-1218 (phase 48)") do
     # Criteria fixed 2026-10-23 (plan §8d Phase 48); 48b–48d decisions fixed before any comparison.
     r = run_validation_case("BPM_RP1218")

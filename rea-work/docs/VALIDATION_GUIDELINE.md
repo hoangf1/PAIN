@@ -1153,7 +1153,7 @@ Outputs: SPL_H1..H3 [dB]; verdict on gates A/B (still labeled not claimable).
 **What it tests:** Broadband 1/3-octave interior SPL (surrogate path) vs Fig. E-9 at 1.25–2 kHz.
 **Why it is here:** Tonal model puts no energy above 1 kHz; this covers three high bands (surrogate).
 **A pass means:** In-sample: |got − measured mean| ≤ tol_dB from CSV; bb_j2_scale = 0.5 was fitted earlier (stale).
-**Not covered:** Only 1.25–2 kHz; nothing above; amplitude convention fixed 2026-10-21, post-hoc. Exterior broadband not measured for this article; the input is assumed (V-ASSUMED); the high-frequency transmission path is validated by NR_TP1964 (phase 43e, 2026-10-23).
+**Not covered:** Only 1.25–2 kHz; nothing above; amplitude convention fixed 2026-10-21, post-hoc. The exterior broadband input is modelled (V-ASSUMED). Phase 47 (2026-10-23) found a measured exterior for this article: the modelled one is 17 dB above it, and with the measured exterior this path gives 38.6 dB (Eqs. 19–23: 21.6 dB) against 51.0 dB at 1250 Hz. The surrogate's closeness to E-9 therefore rests on compensating errors. Phase 55 decision (2026-10-23): it stays the production default, labelled calibrated, because neither cabin path is validated above 1 kHz and switching would change the frozen baselines.
 **Recorded outcome:** 55.92, 53.56, 51.59 dB at L = 1.83 m (I-22 re-record 2026-10-22, post-hoc; earlier 1.803 m: 55.97, 53.63, 51.67); t2_third_octave.md. Isolation case HF_MASSLAW (41d); isolation passes: remaining miss attributed to model fidelity (method), not code.
 **Explanation:** Experiment comparison (calibrated): surrogate broadband path vs Fig. E-9 means at 1.25, 1.6, 2 kHz. bb_j2_scale = 0.5 fitted earlier → post-hoc. Printed Eqs. (19)–(23) are case T2_EQ19.
 Inputs: `run_pain_pipeline(; source=:e11, n_harmonics=5, bpf_Hz=200, blocking=R2)`; `t2_third_octave_targets.csv`; bb_j2_scale = 0.5; L = 1.83 m.
@@ -1997,6 +1997,22 @@ Outputs: 1/3-octave SPL [dB].
 Inputs: The 48b exterior; T2 inputs.
 Equations: Eqs. (19)–(23).
 Outputs: interior SPL [dB].
+
+### Case: NR_PROP_TP2444_PF
+**Title:** TP-2444 NR with propeller-field coupling (Eq. 8 band average) (50b)
+**Map / block:** total / P_MEAS
+**Category:** experiment
+**Kind:** runnable
+**Source:** TP-2444 Fig. 17 (Phase 47 digitizing), CR-172428 App. B field; criterion and decisions fixed 2026-10-23
+**What it tests:** NR of the test article under propeller excitation with the coupling computed from the propeller's own blocked field (Eq. 8, as the tone path), instead of the diffuse coupling of Eq. (18).
+**Why it is here:** 47c found Eq. (18) 18–26 dB low below 1 kHz under propeller excitation.
+**A pass means:** Within ±5 dB in ≥ 75 % of the broadband bands 315–1250 Hz (as 47c).
+**Not covered:** The broadband field shape is taken from the nearest printed harmonic (V-ASSUMED); bands above 811 Hz have no resonant structural mode in the 32-mode set.
+**Recorded outcome:** **not_met**, 2/7 (2026-10-23). 315–800 Hz: 42.0, 37.7, 29.6, 36.8, 37.2 dB against 36.0, 31.8, 33.0, 30.0, 32.3 measured; 1000/1260 Hz: 63.6, 83.1 dB.
+**Explanation:** Experiment comparison. `propeller_field_band_nr` with `r172428_inputs(4000)`.
+Inputs: TP-2444 Fig. 17 pass A; App. B field.
+Equations: Eq. (8), band average.
+Outputs: NR per band [dB].
 
 ### Case: LOUDEST_PT
 **Title:** Interior level at the loudest point (42)

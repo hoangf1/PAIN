@@ -29,6 +29,31 @@ def qa(A, B, key, bpf, nh):
                               top_A_dB=round(at[fp], 1), top_B_dB=round(bt.get(fp, float("nan")), 1)))
     return dict(all=st(lo), broadband=st(lo & ~tone), peaks=peaks)
 
+def qa_csv(A_csv, B_csv, bpf, nh, union=True):
+    """Phase 58a (post-hoc restatement, 2026-10-23): the broadband-point statistics from the committed CSVs,
+    leaving out ±10 Hz around H*BPF and, with `union`, also around the observed tone peak (as 47b)."""
+    def load(p, col):
+        out = {}
+        for line in open(p):
+            if line.startswith('#') or line.startswith('f_Hz'): continue
+            v = [float(x) for x in line.split(',')]
+            out.setdefault(int(np.floor(v[0])), []).append(v[col])
+        return {f: float(np.mean(x)) for f, x in out.items()}
+    a, b = load(A_csv, 1), load(B_csv, 1)
+    at = load(A_csv, 2)
+    peaks = []
+    for h in range(1, nh + 1):
+        w = [f for f in at if abs(f - h * bpf) <= 0.15 * bpf]
+        if w: peaks.append(max(w, key=lambda f: at[f]))
+    common = sorted(set(a) & set(b))
+    fr = np.array(common, float); d = np.abs(np.array([a[f] - b[f] for f in common]))
+    tone = np.zeros(len(fr), bool)
+    for t in [h * bpf for h in range(1, nh + 1)] + (peaks if union else []):
+        tone |= np.abs(fr - t) <= 10
+    m = (fr >= 20) & ~tone
+    return dict(n=int(m.sum()), median=round(float(np.median(d[m])), 3), p95=round(float(np.percentile(d[m], 95)), 3))
+
+
 if __name__ == "__main__":
     import sys
     print(json.dumps(qa(sys.argv[1], sys.argv[2], sys.argv[3], float(sys.argv[4]), int(sys.argv[5])), indent=1))

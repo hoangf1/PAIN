@@ -68,6 +68,14 @@ The table above is the audit record of 2026-10-23. This section records what eac
 | BEMT, F1A | BEMT_HAND, F1A_INDEP (41) | met |
 | Output level | LOUDEST_PT (42) | loudest-point dB(A) reported; the pre-registered 1 % average check is not met with interior nodes only (wall antinodes left out) |
 
+**Phases 48–58 (2026-10-23):**
+- **Exterior.** The exterior self-noise model (BPM) is verified against NASA's printed outputs.
+- **Noise reduction.** The propeller-field coupling explains most of the 47c low-frequency gap.
+- **High frequency.** PAIN's trim model is documented by NASA as valid to about 1 kHz. No in-theory input correction closes T2's gap, and no verifiable bridge model was available.
+- **T1.** T1's H3 excess comes from the e11 off-line field.
+- **Code fixes.** One reading defect was fixed: the Eq. (20) τ_f sum.
+- **Tests.** The never-executed functions now have tests.
+
 **Phase 47 (2026-10-23):** T2's cabin path was run with a measured exterior: TP-2444 Fig. 17, this article at 4000 rpm.
 - `T2_MEAS_EXT` and `NR_PROP_TP2444` are both not met.
 - The measured exterior, interior and E-9 agree with each other.

@@ -378,7 +378,9 @@ function _run_t2()
         (; source=:e11, bpf_Hz=200.0, bands="1.25–2 kHz (targets CSV)", bb_j2_scale=0.5,
          csv=targets),
         table, series, all_ok ? :met : :not_met,
-        "$n_ok/$(length(fcs)) PASS; T2 carries stale bb_j2_scale (no claim) (amplitude convention fixed 2026-10-21, post-hoc)",
+        "$n_ok/$(length(fcs)) PASS; T2 carries stale bb_j2_scale (no claim) (amplitude convention fixed 2026-10-21, post-hoc). " *
+        "Phase 47/55 (2026-10-23): fed the measured TP-2444 exterior, this surrogate cabin path gives 38.6 dB at 1250 Hz " *
+        "and the printed Eqs. (19)–(23) 21.6 dB, against E-9's 51.0; the modelled exterior is 17 dB above the measured one",
         "calibrated (in-sample; amplitude convention fixed 2026-10-21, post-hoc)",
         joinpath(_VAL_REPORT_DIR, "phase20_baseline.md"),
     )

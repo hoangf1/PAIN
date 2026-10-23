@@ -361,17 +361,17 @@ Not blockers (recorded so nobody stops on them): BBN tip geometry beyond 40 in. 
 | Q25 | **Phase 47 — T2 with a measured exterior spectrum** (TP-2444 Fig. 17 = this article at 4000 rpm; §8d) | `data/tp2444/`, new cases | Q24 | **done 2026-10-23**: not met (47a not met as written, 47b met, 47c 1/7, 47d 21.3 vs 51.0 dB); the cabin's high-frequency NR is the gap, also in NASA's own E-21/E-22 predictions |
 | Q26 | **Phase 48 — exterior broadband from physics (NASA RP-1218)** (§8d) | new source module, cases | Q25 | **done 2026-10-23**: 48a met 270/270; 48c not met (3/9, 2/7); 48d not met (cabin path) |
 | Q27 | **Phase 49 — check the trim and high-frequency inputs inside PAIN's own theory** (§8e) | tests, report | Q25 | **done 2026-10-23**: no in-theory correction; Eq. (20) reading defect fixed (≤ 0.3 dB); NASA documents that the trim model is valid to about 1 kHz |
-| Q28 | **Phase 50 — propeller-field coupling for Eq. (18) broadband** (§8e) | option + cases | Q27 | planned; wait for the author |
-| Q29 | **Phase 51 — sound-bridge path in Eq. (23)** (§8e; an extension beyond PAIN; only if 49, 48 and 50 leave the gap) | option + cases | Q26, Q28 | planned, conditional; wait for the author |
-| Q30 | **Phase 52 — T1 H3 miss (+10.2 dB on the primary path)** (§8f) | diagnostics, cases | Q21 | planned 2026-10-23; wait for the author |
-| Q31 | **Phase 53 — negative and runaway NR on Eq. (18)/(19) (TP-1964 1–2 kHz; 400 Hz band 100 dB)** (§8f) | guard / diagnosis, tests | Q21 | planned; wait for the author |
-| Q32 | **Phase 54 — Q22 q = 0 coupling: read NASA's program listing** (§8f) | document check | Q22 | planned; wait for the author |
-| Q33 | **Phase 55 — retire or re-label T2's calibrated surrogate (`bb_j2_scale = 0.5`)** (§8f) | decision [AUTHOR], docs | Q25 | planned; wait for the author |
-| Q34 | **Phase 56 — 40f: Ritz solver with stiffeners and floor as options** (§8f) | `src/` option, test | Q21 | planned; wait for the author |
-| Q35 | **Phase 57 — tests for the never-executed functions off the T1/T2 paths** (§8f) | tests | Q24 | planned; wait for the author |
-| Q36 | **Phase 58 — Phase 47 leftovers (QA mask, Fig. 14 axis offset, Phase III mech-path mass) and 37e/37g pending texts** (§8f) | data QA, docs, GUI text | Q25 | planned; wait for the author |
+| Q28 | **Phase 50 — propeller-field coupling for Eq. (18) broadband** (§8e) | option + cases | Q27 | **done 2026-10-23**: 50a not met (Eq. 66 separable approximation, 0.4–2 dB), 50b not met 2/7 (315–800 Hz within −3…+7 dB) |
+| Q29 | **Phase 51 — sound-bridge path in Eq. (23)** (§8e) | option + cases | Q26, Q28 | **closed 2026-10-23**: not run (no verifiable official-source model); PAIN's own bridge path is A.19–A.21 |
+| Q30 | **Phase 52 — T1 H3 miss** (§8f) | diagnostics | Q21 | **done 2026-10-23**: the cabin matches NASA at H3; the excess is the e11 off-line field; no documented correction |
+| Q31 | **Phase 53 — negative and runaway NR** (§8f) | guard, tests | Q21 | **done 2026-10-23**: equation property (CR-159363 p. 138); 400 Hz runaway fixed by the Eq. (20) reading; `sparse_guard` option |
+| Q32 | **Phase 54 — Q22: NASA's program listing** (§8f) | document check | Q22 | **done 2026-10-23**: not explained by the documents; Q22 closed |
+| Q33 | **Phase 55 — T2's calibrated surrogate** (§8f) | decision, docs | Q25 | **done 2026-10-23**: stays the default, labelled calibrated |
+| Q34 | **Phase 56 — 40f Ritz isolation** (§8f) | `src/` option, test | Q21 | **done 2026-10-23**: 56a met, 56b not met (the solver is not Donnell–Mushtari) |
+| Q35 | **Phase 57 — tests for never-executed functions** (§8f) | tests | Q24 | **done 2026-10-23** |
+| Q36 | **Phase 58 — leftovers** (§8f) | QA, docs | Q25 | **done 2026-10-23** |
 | Q23 | **Phase 45 — T2's high-frequency path on the TP-1964 bare cylinder** (pre-registered 2026-10-23 before any run; §8c) | `hf_broadband.jl` via `PainInputs`, new case | Q21 | **done 2026-10-23**: not met 9/18; Eq. (19) bands 4/4 within ±2.5 dB |
-| Q22 | **q = 0 cabin modes against CR-172428 App. B** (after 44f). On NASA's printed pairs at 5000 rpm we agree within 0–6 dB, most within 1 dB. But our largest contributors have axially uniform (q = 0) cabin modes, e.g. (0,1) × mode 8 (5.6 Pa² against NASA's 4000 rpm H1 total of 0.59), and none of NASA's 25 printed top pairs has q = 0. Diagnostic only, not adopted: with q = 0 excluded, R172428_CODE would give 8/9 within ±3 dB. CR-3813 Eq. (57) and its Ref. [3] (CR-159363 Eq. 25, downloaded 2026-10-23) both give f₀M = 2/(Mπ) ≠ 0, so the documents do not explain NASA's output; no change without a documentary basis | `pain_core.jl` coupling, Ψ_G of antisymmetric modes | Q21 | open |
+| Q22 | **q = 0 cabin modes against CR-172428 App. B** (closed 2026-10-23, Phase 54: not explained by the documents) (after 44f). On NASA's printed pairs at 5000 rpm we agree within 0–6 dB, most within 1 dB. But our largest contributors have axially uniform (q = 0) cabin modes, e.g. (0,1) × mode 8 (5.6 Pa² against NASA's 4000 rpm H1 total of 0.59), and none of NASA's 25 printed top pairs has q = 0. Diagnostic only, not adopted: with q = 0 excluded, R172428_CODE would give 8/9 within ±3 dB. CR-3813 Eq. (57) and its Ref. [3] (CR-159363 Eq. 25, downloaded 2026-10-23) both give f₀M = 2/(Mπ) ≠ 0, so the documents do not explain NASA's output; no change without a documentary basis | `pain_core.jl` coupling, Ψ_G of antisymmetric modes | Q21 | open |
 
 If a queue item is blocked on data, skip to the next unblocked item and say which data item blocks it.
 
@@ -442,166 +442,7 @@ Moved to §11. Summary: base H1–H3 = 82.73, 75.73, 77.05 dB (= 18b-r); H3 top 
 
 ## 8c. Phase 45 *(done 2026-10-23; moved to the bottom of this file on 2026-10-23; section number kept)*
 
-## 8d. Phases 46–48: isolated checks for the last T1/T2 functions, and T2 with a measured exterior spectrum *(46 and 47 done 2026-10-23 and moved to the bottom of this file; 48 planned; planned 2026-10-23; author request "yes make the plan"; criteria below dated 2026-10-23, before any of these checks is written or run)*
-
-**Why.**
-
-- *Function coverage.* On 2026-10-23 I traced which functions run for T1 and T2 (`--code-coverage` on the T1, T2 and T2_EQ19 cases): 125 functions are on those paths.
-  - 100 are called directly by a test or validation case.
-  - 25 are reached only through the chain. About 20 of those are internals of blocks that have their own isolated check (CYL2D solver pieces, the `nr_*` terms inside `nr_brace`, table loaders, band-card plumbing).
-  - Five carry physics and have no isolated check:
-    - `broadband_cabin_p2`: T2's broadband transmission.
-    - `tone_expected_value`: Eqs. 14–16.
-    - `hf_structural_band` and `hf_band_loss_factors`: the band averages of Eqs. 19–20.
-    - `coupling_loss_factor_21`: the trim mechanical path, Eqs. A.20–A.21, part of T1's Phase III trim.
-- *A measured exterior spectrum.* T2 has been blocked because no measured exterior broadband spectrum of the test article was known (43e). A search on 2026-10-23 found one:
-  - **NASA TP-2444 Fig. 17** (Willis, Mayes & Daniels 1985). TP-2444's "model 2" is this test article: D = 1016 mm, L = 1803 mm, propeller plane 662 mm from the front, tip clearance 76 mm, fiberglass trim, 23.8 m/s inflow. Fig. 17 shows the exterior and interior narrowband spectra of the same 4000 rpm run, 0–1.5 kHz.
-  - CR-172428 Fig. 14: free-field exterior spectrum, 5000 rpm, 0–2 kHz, no fuselage.
-  - TP-2444 Fig. 19: model 2 space-averaged interior 1/3-octave spectrum, 4000 rpm, propeller at θ_p = 135°, to 6.3 kHz.
-
-### Phase 48 — Predict the exterior broadband from physics *(done 2026-10-23; criteria fixed 2026-10-23)*
-
-| Step | What | Pass criterion (fixed 2026-10-23) |
-|------|------|-----------------------------------|
-| 48a | Download NASA RP-1218 (Brooks, Pope & Marcolini 1989, airfoil self-noise) from NTRS into `references/` with a checksum. Implement the turbulent-boundary-layer trailing-edge, separation and tip-vortex terms; V-UNIT against the printed RP-1218 example spectra | within 1 dB of the printed example spectra at ≥ 90 % of the plotted points |
-| 48b | Propeller broadband at a field point from 48a: the BEMT section loads (CCBlade, as R996_LOADS) of the 0.76 m propeller, strip sum and Doppler factor | — (model) |
-| 48c | `PROP_BB_FIG14` / `PROP_BB_FIG17`: 48b against the broadband floors of CR-172428 Fig. 14 (5000 rpm, free field) and TP-2444 Fig. 17 (4000 rpm), after 47b | V-EXP: within ±5 dB in ≥ 75 % of the 1/3-octave bands 315–2000 Hz (Fig. 17: to 1250 Hz) |
-| 48d | T2 fully predictive: 48b exterior → T2 cabin path → E-9 | V-EXP: T2's gate (±3.5 dB, 1250–2000 Hz) |
-
-**48a result (2026-10-23).** Met. The Julia port of RP-1218 §5 (`src/bpm_airfoil_noise.jl`) reproduces NASA's printed code output, App. D Tables D2 and D3 (`data/rp1218/`), within 0.04 dB for TBL-TE pressure/suction, separation and LBL-VS, and within 0.19 dB for tip noise. That is 100 % of the points, against the 1 dB / 90 % criterion. Bluntness is not ported: neither table uses it, and the test blade's trailing-edge thickness is unknown.
-
-**48b–48d implementation decisions (fixed 2026-10-23, before any comparison with Fig. 14, Fig. 17 or E-9):**
-- **Blade (V-ASSUMED).** The real blade geometry is proprietary (CR-172428 p. 56; CR-3813 p. E-5). The stand-in is the NACA 4-(5)(08)-03 planform of Report 996, which uses NACA 16-series sections like the test propeller's Series 16. It is scaled to D = 0.762 m, with 3 blades and β(0.75R) = 20° (CR-172428 p. 17), and uses the Report 996 primary polar set. Inflow is 23.8 m/s.
-- **Noise procedure** (RP-1218 App. C). Untripped boundary layers; TBL-TE plus separation, LBL-VS and tip noise (rounded tip); no bluntness. The aerodynamic angle (α − α_L0, from the polar) is used for the boundary layer and TBL-TE, and the geometric angle for LBL-VS. Each blade section is one segment, with 16 azimuths, a Doppler shift and B blades. The chordwise axis is along the relative wind, induction is ignored, and directivity uses RP-1218 App. B.
-- **Observers.** Fig. 14 microphone 1 is at r = 0.457 m from the axis and 0.254 m upstream of the propeller plane (CR-172428 Fig. 9), free field, 5000 rpm. Fig. 17's exterior microphone (position not stated) is taken at the fuselage surface in the propeller plane, r = 0.457 m, free field, 4000 rpm; the CR-172428 4 dB blocking limit is reported alongside with no criterion. Both points are within about 0.3 m of the tip, nearer than BPM's far-field basis, so the label is X-EXTRAP.
-- **Measured side.** The 47b broadband band levels (pass A, tones removed, B = 5 Hz).
-- **48d.** The 48b level at the Fig. 17 point, treated as blocked pressure, is fed through T2's production Eq. (19)–(23) path (as 47d), and the result is compared with E-9.
-
-**Result 48b–48d (2026-10-23; criteria and decisions unchanged).** Report: `validation_reports/phase48_exterior_broadband.md`.
-- **48c `PROP_BB_FIG14`: not met, 3/9.** BPM is 3–10 dB low.
-- **48c `PROP_BB_FIG17`: not met, 2/7.** 1000 and 1250 Hz are within 3.6 and 3.1 dB; 315–800 Hz are 7–15 dB low.
-- **48d `T2_PRED_BB`: not met.** Interior 18.4/17.4/17.9 dB against 51.0/46.0/41.5 dB. The miss comes from the cabin path (Phases 47 and 49). The BPM exterior is within about 3 dB of the measured one at 1250 Hz.
-- **Limits.** Self-noise only (no inflow-turbulence ingestion), an assumed blade, and a near-field observer (X-EXTRAP).
-
-**Note after Phase 47 (2026-10-23; criteria unchanged).** 47 shows that the T2 gap is in the cabin path, not only the exterior. 48d cannot pass with the printed Eqs. (19)–(23), which overpredict this article's noise reduction by 15–27 dB at 1250 Hz. 48a–48c, the exterior broadband, stay meaningful on their own.
-
-**Rules.** No parameter is chosen from E-9, from the Fig. 17 interior trace or from Fig. 19. The analysis bandwidth, trim, microphone treatment and extrapolation shape are fixed above, before any digitization. Anything decided after a result is post-hoc and labelled.
-
-## 8e. Phases 49–51: closing the T2 gap that Phase 47 found *(planned 2026-10-23 at the author's request; **not to be executed until the author says so**; criteria below dated 2026-10-23, before any of these is written or run)*
-
-**Why.** Phase 47 left three gaps:
-- PAIN's high-frequency noise reduction (Eqs. 19–23) of the trimmed article is 15–27 dB too high at 1250 Hz.
-- Eq. (18) gives too little noise reduction below 1 kHz: 5–17 dB against 30–36 dB measured under propeller excitation.
-- T2's modelled exterior broadband is 17 dB above the measurement.
-
-**Order.** Fixes inside PAIN's printed theory come first: Phase 49, then Phase 48 (exterior, §8d), then Phase 50. Phase 51 adds physics that PAIN does not have, so it is a last resort, run only if the gap remains after 49, 48 and 50.
-
-**Rules for every phase here.**
-- No parameter is chosen from E-9, from TP-2444 Fig. 17 or Fig. 19, or from E-21/E-22. Inputs are printed geometry, trim and material data.
-- Every change is an option that is off by default. The printed path stays the reference, and the existing cases keep their recorded results.
-- Anything decided after a result is labelled post-hoc.
-
-### Phase 49 — Check the trim and high-frequency inputs inside PAIN's theory *(done 2026-10-23; author: "keep implementing the phases until they are all closed out")*
-
-| Step | What | Pass criterion (fixed 2026-10-23) |
-|------|------|-----------------------------------|
-| 49a | τ_t of Eq. (A.22) for the Phase III and App. B trims against an independent mass-law / double-wall calculation by hand (limp septum on a porous layer, Beranek–Work form), 250–4000 Hz | V-CODE: within 3 dB at every band; any larger difference is traced to a term |
-| 49b | Look for measured transmission loss of the PF105 blanket or the Phase III trim (CR-3813, CR-172428, CR-159124, TP-2444, NTRS); download any find with a checksum | V-EXP if found: τ_t within ±5 dB in ≥ 75 % of bands; otherwise "none found" is recorded |
-| 49c | Term budget of Eq. (23) at 1250–2000 Hz (ᾱS, τ_f, τ_R, τ_t, A_t, A′, η̄_r) for T2 and 47c inputs, against NASA's printed E-21 prediction | reported; states which term carries the 15–27 dB |
-| 49d | A′, the untrimmed area of Eq. (23): check its value against the article drawings (windows, end caps, joints not covered by trim) | reported; any change is a documented input correction with its source page, not a fit |
-
-**Result (2026-10-23; criteria unchanged).** Report: `validation_reports/phase49_trim_hf_inputs.md`; testset 10/10.
-- **49a met.** τ_t (|a11|⁻²), rebuilt by hand element by element, equals the code within 1e-12 for the Phase III and App. B trims at 250, 1000 and 2000 Hz. The limits hold.
-- **49b: no measured trim transmission loss in any report.** NASA's own statements:
-  - The model "over-estimates the influence of the sidewall treatment" (CR-3813 p. E-35).
-  - "Improvements to the sidewall treatment model are required" (p. E-39).
-  - The trim model is valid "from about 50 to perhaps 1000 Hz" (CR-172428 p. 152).
-- **49c.** The trim factor τ_t carries 22–27 dB of the predicted NR at 1260 Hz. The measured NR lies between the bare-wall and the trimmed prediction. η_T (0.13–2) does not close the gap.
-- **49c, reading defect fixed.** The Eq. (20) sum ran over the in-band modes; the printed text (p. 24) says the modes resonant below the band. Effect ≤ 0.3 dB; T2_MEAS_EXT moves from 21.25 to 21.55 dB. No verdict changes, and `HF_MASSLAW` was updated (still met).
-- **49d.** A′ = 0 follows the documents (septum "from floor to floor", p. E-9; ends outside Eq. 23, p. E-35). No change.
-
-**Reading.** No in-theory input correction exists. The T2 high-frequency gap is a documented limitation of PAIN's trim model above about 1 kHz, so Phase 51's condition holds once 48 and 50 are done.
-
-### Phase 50 — Propeller-field coupling for Eq. (18) broadband *(planned; wait for the author)*
-
-| Step | What | Pass criterion (fixed 2026-10-23) |
-|------|------|-----------------------------------|
-| 50a | Option `bb_acceptance = :propeller`: the broadband structural joint acceptance comes from the propeller grid field (Ψ_G, as on the tone path, at the band centre) instead of the diffuse j_r²; off by default | V-UNIT: with a diffuse grid field it reproduces the diffuse j_r² within 1 dB |
-| 50b | `NR_PROP_TP2444_PF`: 47c re-run with the option | V-EXP: same 47c criterion (±5 dB in ≥ 75 % of bands 315–1250 Hz) |
-
-### Phase 51 — Sound-bridge path in Eq. (23) *(planned, conditional; an extension beyond PAIN; wait for the author)*
-
-Run only if the T2 gap remains above 10 dB after 49, 48 and 50.
-
-| Step | What | Pass criterion (fixed 2026-10-23) |
-|------|------|-----------------------------------|
-| 51a | Option `hf_bridges = true`: a transmission term for trim attachment points and lines (Sharp 1978 / Fahy point- and line-connection form), using only the printed Phase III mechanical-path data (N = 9 points, 2 frame lines, G10 panel); off by default. Source papers downloaded with checksums | V-UNIT: reproduces the source paper's worked example within 1 dB |
-| 51b | `NR_PROP_TP2444_BR`: 47c with the bridges | V-EXP: same 47c criterion |
-| 51c | `E22_BR`: E-22 measured reverberant noise reduction with the bridges, 1250–2500 Hz | V-EXP: inside the E-22 confidence interval in ≥ 75 % of bands |
-| 51d | `T2_MEAS_EXT_BR`: 47d with the bridges | V-EXP: T2's gate (±3.5 dB of E-9 at 1250 Hz; 1600/2000 labelled extrapolated) |
-
-The label is "extension beyond CR-3813". A pass here supports PAIN-plus-bridges, not PAIN as printed.
-
-## 8f. Phases 52–58: open items that had no phase *(written 2026-10-23 at the author's request; **not to be executed until the author says so**; criteria dated 2026-10-23, before any of these is run)*
-
-The same rules as §8e apply. No parameter is chosen from the data a case is compared with. Every physics change is an option that is off by default. Anything decided after a result is labelled post-hoc.
-
-### Phase 52 — T1 H3 miss *(planned; wait for the author)*
-
-T1 after 44f: H1 and H2 are within ±4 dB of the E-16 measured mean, H3 is +10.2 dB. The case is not claimable while GEXT holds (phase 32).
-
-| Step | What | Pass criterion (fixed 2026-10-23) |
-|------|------|-----------------------------------|
-| 52a | H3 contributor budget (acoustic mode × structural mode × q) at 600 Hz, against NASA's printed App. B top pairs at 4000 rpm (the 44f method) | reported: which pairs carry the excess and whether NASA lists them |
-| 52b | H3 with each documented input alternative separately (blocking R1/R2, Phase III η_T 0.5/1.0, η_r′ cap 0.15, F1A off-line fill), no combination chosen after the result | reported table; any input that is a documented correction is adopted only with its source page |
-| 52c | Re-run T1 with the documented corrections of 52b, if any | T1 gate as registered 2026-10-20 (±4 dB of the measured mean at H1–H3) |
-
-### Phase 53 — Negative and runaway noise reduction *(planned; wait for the author)*
-
-| Step | What | Pass criterion (fixed 2026-10-23) |
-|------|------|-----------------------------------|
-| 53a | TP-1964 Eq. (18) bands at 1–2 kHz with NR < 0: term budget of Eq. (18) (prefactor, brace, D_nr, mode sums). Hand check of one band with two modes | V-UNIT: the hand value equals the code within 1e-9; the source of NR < 0 is named (an equation property or a defect) |
-| 53b | Eqs. (19)–(23) at 400 Hz (E-21 inputs) give NR = 100 dB: two in-band modes with j² ≈ 1e-7. Check against the printed band average and the asymptotic branch | reported; a defect is fixed, while an equation property gets a documented guard (for example, the asymptotic n_r when the in-band ⟨j²⟩ is below the asymptotic one), off by default |
-
-### Phase 54 — Q22: q = 0 coupling in NASA's program *(planned; wait for the author)*
-
-| Step | What | Pass criterion (fixed 2026-10-23) |
-|------|------|-----------------------------------|
-| 54a | Read CR-172428's program listing (the pages used for 44f, TONE/NRED) for how f₀M or the q = 0 axial integral is formed | the listing either explains NASA's q = 0 outputs (then 54b) or it does not (Q22 is closed as "not explained by the documents") |
-| 54b | If explained: implement the listing's form as an option, then re-run R172428_CODE and T1 | R172428_CODE criterion as registered (±3 dB at ≥ 7 of 9) |
-
-### Phase 55 — T2's calibrated surrogate *(planned; author decision needed)*
-
-The production `T2` case uses `broadband_cabin_p2` with `bb_j2_scale = 0.5`, which was fitted to E-9 (stale, no claim). Phase 47 showed that its pass rests on a modelled exterior 17 dB above the measured one.
-
-| Step | What | Pass criterion |
-|------|------|----------------|
-| 55a | [AUTHOR] decide: keep the surrogate as the production default, labelled calibrated, or switch the default to `:eq19` (printed) and keep the surrogate as an option | decision recorded with its date |
-| 55b | Apply the decision; update the T2 case texts, the GUI labels and the five documents | no verdict or recorded number changes except the label |
-
-### Phase 56 — 40f: Ritz solver isolation *(planned; wait for the author)*
-
-| Step | What | Pass criterion (fixed 2026-10-23, the 40f criterion) |
-|------|------|-------------------------------------------------------|
-| 56a | Options in `structural_modes` to turn off the stringer and frame stiffness and the floor (defaults unchanged) | existing outputs identical with the defaults (1e-12) |
-| 56b | 40f: unstiffened Ritz against closed-form Donnell–Mushtari | within 1 % for the first 10 shell modes |
-
-### Phase 57 — Tests for the never-executed functions off the T1/T2 paths *(planned; wait for the author)*
-
-These are the functions listed in `block_validation_audit.md` (Phase 46): `parse_aircraft_trim_json` and its helpers, `build_aircraft_cache`, `_rand_triangular`, `fit_mrp_to_table_d1`, `appd_constraint_residuals`, `scale_acoustic_freq` and `hf_broadband_spectrum`.
-
-| Step | What | Pass criterion (fixed 2026-10-23) |
-|------|------|-----------------------------------|
-| 57a | One test per function, checked against a hand value or a known input/output (a test that would fail if the function were wrong) | every listed function executed by the suite |
-
-### Phase 58 — Leftovers *(planned; wait for the author)*
-
-| Step | What | Pass criterion |
-|------|------|----------------|
-| 58a | 47a QA: re-state the broadband-point mask with nominal ∪ observed tone windows, labelled post-hoc next to the recorded value | reported; the 47a verdict as written is unchanged |
-| 58b | Fig. 14 frequency-axis offset (9–22 Hz): look for a second calibration source (the run log, other figures of run 8113) | reported; the data are shifted only with a documentary basis |
-| 58c | 47c Phase III alternative: mechanical-path wall mass from the article's shell | reported column only |
-| 58d | 37e/37g pending items: GUI legend cap, dense log ticks on Fig. 14, and the BBN_CIRC / R996_PHASE explanation texts | smoke tests pass; the texts are in §2.13 |
+## 8d–8f. Phases 46–58 *(all done or closed 2026-10-23; moved to the bottom of this file on 2026-10-23; section numbers kept)*
 
 ## 9. Reference appendices
 
@@ -1248,9 +1089,9 @@ source documents, not from the size of the gap. Code changes are delegated to Cu
 | 37b | Errors in R996 Figs. 12/13a/14, Pereira; e11/Table-8 tones (I-17) | **Amplitude convention**: rms data compared with or converted as Fourier peaks (I-17 sources) | One convention in code: `spl_dB_to_peak_Pa`, `peak_Pa_to_spl_dB`; comparisons in rms; scripts re-run; baselines re-frozen with a dated note; affected results labelled post-hoc. Check: every e11/Table-8 tone moves by exactly +3.0103 dB | **Done 2026-10-21.** Check met (T1 +3.010/+3.009/+3.014, REPRO_18b +3.010/+3.010/+3.015, baselines +3.0103 exact, Ψ_G ×2, τ_t unchanged). Re-recorded (post-hoc): **REPRO_18b 85.74, 78.74, 80.06 dB = +6.7, +3.2, +12.1 vs NASA, 1 of 3 (was 2 of 3)**; T1 84.05, 78.01, 78.30 (H1 fail, H2 pass, H3 fail); T2 55.97, 53.63, 51.67; **R996 Fig. 14 20/24 within ±2 dB → met (was 5/24)**, Fig. 13a 8/14, Fig. 12 22/40 (counts recomputed independently from `f1a_results.csv`); Pereira Fig. 9 H1 3/9 (was 0/9), H2 6/9; F1A smoke vs Table 8 −7.2, −8.3, −8.8 dB (rms). Page-12 phase unchanged (103.8°). Old baselines kept as `phase17_baselines_rmsA_archive.csv` |
 | 37c | R996_FIG8 "fix sweep defer" | Out of scope (M_t = 1.0; I-20) | Case removed from registry, map, tests and docs | **Done 2026-10-21** (code); docs in 37h; digitized `tr996_fig8_pc_vs_CP.csv` kept |
 | 37d | MRP_RITZ "failing" | The raw solver is a fitted surrogate (not Eq. D.25); the 30/32 record predates the 2026-10-20 Table D-1 re-transcription whose shapes seed it (today 26/32: D-1 modes 2, 3, 4, 7, 8, 9 miss) | Re-run `scripts/run/mrp_ritz_vs_d1.jl` to re-record 26/32; no refit (refitting the scales to the table would be calibration); explanation in §2.13 | **Done 2026-10-21** — `mrp_ritz_vs_d1.md` 26/32, dated header |
-| 37e | No explanations (R2, F1A_GUTIN, PER_LOADS "no verdict", R996 loads errors, BBN, R996_PHASE); the Validation map not understandable | Texts were hard-coded in `validation_map.jl` and thin | New `VALIDATION_GUIDELINE.md` §2.13 "Validation case reference (read by the GUI)": one block per case, per map and per block; the GUI parses it, so editing the .md changes the GUI. Both tabs show what it tests, why, what a pass means, what is not covered, recorded outcome, explanation; the map gets "how to read this map". Leftover display items: blank legend entries beyond the cap, dense log ticks on Fig. 14 | Pending |
+| 37e | No explanations (R2, F1A_GUTIN, PER_LOADS "no verdict", R996 loads errors, BBN, R996_PHASE); the Validation map not understandable | Texts were hard-coded in `validation_map.jl` and thin | New `VALIDATION_GUIDELINE.md` §2.13 "Validation case reference (read by the GUI)": one block per case, per map and per block; the GUI parses it, so editing the .md changes the GUI. Both tabs show what it tests, why, what a pass means, what is not covered, recorded outcome, explanation; the map gets "how to read this map". Leftover display items: blank legend entries beyond the cap, dense log ticks on Fig. 14 | **Done** (verified 2026-10-23, Phase 58d) |
 | 37f | R996_LOADS errors | No code bug: C_T, C_P definitions checked (T/(ρn²D⁴) both sides). CCBlade thrust ≈ 20 % low with these XFOIL polars, as the data folder's own BEM (12–31 % low) | Explanation only; not tuned; post-hoc label kept (criteria registered after the loads were computed) | Pending (text in 37e) |
-| 37g | BBN_CIRC fails; R996_PHASE fails | I-19 (sign convention undocumented); page-12 stations not named in Report 996 (candidates ±0.125) | Explanations only; verdicts stay | Pending (text in 37e) |
+| 37g | BBN_CIRC fails; R996_PHASE fails | I-19 (sign convention undocumented); page-12 stations not named in Report 996 (candidates ±0.125) | Explanations only; verdicts stay | **Done** (texts in §2.13; verified 2026-10-23, Phase 58d) |
 | 37i | **Run buttons do nothing** (Validation tab Run / Run all, Validation map Run) | The QML handlers start the case with `@async` and return; `main()` ends with the blocking `exec()`, which never yields to Julia's scheduler, so the task never runs. The smoke tests call `run_validation_gui!` directly and never exercised the button path | `main()` uses QML.jl's `exec_async()` (cooperative event loop) and waits until the window closes; new smoke check runs the GUI on Qt's offscreen platform, triggers `run_validation_from_qml` from QML and asserts the case completed (status "Done …", PNG written) — the exact button path, no visible window | **Done 2026-10-22** (`dc0d48a`; offscreen button-path smoke test) |
 | 37h | Five docs (R5) | — | README, flowchart, METHODOLOGY, VALIDATION_GUIDELINE, this file | **Done 2026-10-22** (docs synced after 38a–38e; Phase 38 modules added to README, METHODOLOGY, flowchart, VALIDATION_GUIDELINE) |
 
@@ -2091,3 +1932,205 @@ Each check computes the printed equation by hand in the test, for stated inputs.
 **What this means for T2.** T2 cannot be shown right with the printed method. Its production result near E-9 rests on a modelled exterior 17 dB above the measurement and on the calibrated `bb_j2_scale`. Phase 45's support for Eqs. (19)–(23) holds for the bare cylinder only.
 
 **Candidate cause, not tested.** In Eq. (23) the trim and the wall transmit in series (τ_t·τ), with no path that bypasses the trim.
+
+## 8d. Phases 46–48: isolated checks for the last T1/T2 functions, and T2 with a measured exterior spectrum *(all done 2026-10-23; moved to the bottom 2026-10-23; Phases 46–47 are in "8d (done part)" above; planned 2026-10-23; author request "yes make the plan"; criteria below dated 2026-10-23, before any of these checks is written or run)*
+
+**Why.**
+
+- *Function coverage.* On 2026-10-23 I traced which functions run for T1 and T2 (`--code-coverage` on the T1, T2 and T2_EQ19 cases): 125 functions are on those paths.
+  - 100 are called directly by a test or validation case.
+  - 25 are reached only through the chain. About 20 of those are internals of blocks that have their own isolated check (CYL2D solver pieces, the `nr_*` terms inside `nr_brace`, table loaders, band-card plumbing).
+  - Five carry physics and have no isolated check:
+    - `broadband_cabin_p2`: T2's broadband transmission.
+    - `tone_expected_value`: Eqs. 14–16.
+    - `hf_structural_band` and `hf_band_loss_factors`: the band averages of Eqs. 19–20.
+    - `coupling_loss_factor_21`: the trim mechanical path, Eqs. A.20–A.21, part of T1's Phase III trim.
+- *A measured exterior spectrum.* T2 has been blocked because no measured exterior broadband spectrum of the test article was known (43e). A search on 2026-10-23 found one:
+  - **NASA TP-2444 Fig. 17** (Willis, Mayes & Daniels 1985). TP-2444's "model 2" is this test article: D = 1016 mm, L = 1803 mm, propeller plane 662 mm from the front, tip clearance 76 mm, fiberglass trim, 23.8 m/s inflow. Fig. 17 shows the exterior and interior narrowband spectra of the same 4000 rpm run, 0–1.5 kHz.
+  - CR-172428 Fig. 14: free-field exterior spectrum, 5000 rpm, 0–2 kHz, no fuselage.
+  - TP-2444 Fig. 19: model 2 space-averaged interior 1/3-octave spectrum, 4000 rpm, propeller at θ_p = 135°, to 6.3 kHz.
+
+### Phase 48 — Predict the exterior broadband from physics *(done 2026-10-23; criteria fixed 2026-10-23)*
+
+| Step | What | Pass criterion (fixed 2026-10-23) |
+|------|------|-----------------------------------|
+| 48a | Download NASA RP-1218 (Brooks, Pope & Marcolini 1989, airfoil self-noise) from NTRS into `references/` with a checksum. Implement the turbulent-boundary-layer trailing-edge, separation and tip-vortex terms; V-UNIT against the printed RP-1218 example spectra | within 1 dB of the printed example spectra at ≥ 90 % of the plotted points |
+| 48b | Propeller broadband at a field point from 48a: the BEMT section loads (CCBlade, as R996_LOADS) of the 0.76 m propeller, strip sum and Doppler factor | — (model) |
+| 48c | `PROP_BB_FIG14` / `PROP_BB_FIG17`: 48b against the broadband floors of CR-172428 Fig. 14 (5000 rpm, free field) and TP-2444 Fig. 17 (4000 rpm), after 47b | V-EXP: within ±5 dB in ≥ 75 % of the 1/3-octave bands 315–2000 Hz (Fig. 17: to 1250 Hz) |
+| 48d | T2 fully predictive: 48b exterior → T2 cabin path → E-9 | V-EXP: T2's gate (±3.5 dB, 1250–2000 Hz) |
+
+**48a result (2026-10-23).** Met. The Julia port of RP-1218 §5 (`src/bpm_airfoil_noise.jl`) reproduces NASA's printed code output, App. D Tables D2 and D3 (`data/rp1218/`), within 0.04 dB for TBL-TE pressure/suction, separation and LBL-VS, and within 0.19 dB for tip noise. That is 100 % of the points, against the 1 dB / 90 % criterion. Bluntness is not ported: neither table uses it, and the test blade's trailing-edge thickness is unknown.
+
+**48b–48d implementation decisions (fixed 2026-10-23, before any comparison with Fig. 14, Fig. 17 or E-9):**
+- **Blade (V-ASSUMED).** The real blade geometry is proprietary (CR-172428 p. 56; CR-3813 p. E-5). The stand-in is the NACA 4-(5)(08)-03 planform of Report 996, which uses NACA 16-series sections like the test propeller's Series 16. It is scaled to D = 0.762 m, with 3 blades and β(0.75R) = 20° (CR-172428 p. 17), and uses the Report 996 primary polar set. Inflow is 23.8 m/s.
+- **Noise procedure** (RP-1218 App. C). Untripped boundary layers; TBL-TE plus separation, LBL-VS and tip noise (rounded tip); no bluntness. The aerodynamic angle (α − α_L0, from the polar) is used for the boundary layer and TBL-TE, and the geometric angle for LBL-VS. Each blade section is one segment, with 16 azimuths, a Doppler shift and B blades. The chordwise axis is along the relative wind, induction is ignored, and directivity uses RP-1218 App. B.
+- **Observers.** Fig. 14 microphone 1 is at r = 0.457 m from the axis and 0.254 m upstream of the propeller plane (CR-172428 Fig. 9), free field, 5000 rpm. Fig. 17's exterior microphone (position not stated) is taken at the fuselage surface in the propeller plane, r = 0.457 m, free field, 4000 rpm; the CR-172428 4 dB blocking limit is reported alongside with no criterion. Both points are within about 0.3 m of the tip, nearer than BPM's far-field basis, so the label is X-EXTRAP.
+- **Measured side.** The 47b broadband band levels (pass A, tones removed, B = 5 Hz).
+- **48d.** The 48b level at the Fig. 17 point, treated as blocked pressure, is fed through T2's production Eq. (19)–(23) path (as 47d), and the result is compared with E-9.
+
+**Result 48b–48d (2026-10-23; criteria and decisions unchanged).** Report: `validation_reports/phase48_exterior_broadband.md`.
+- **48c `PROP_BB_FIG14`: not met, 3/9.** BPM is 3–10 dB low.
+- **48c `PROP_BB_FIG17`: not met, 2/7.** 1000 and 1250 Hz are within 3.6 and 3.1 dB; 315–800 Hz are 7–15 dB low.
+- **48d `T2_PRED_BB`: not met.** Interior 18.4/17.4/17.9 dB against 51.0/46.0/41.5 dB. The miss comes from the cabin path (Phases 47 and 49). The BPM exterior is within about 3 dB of the measured one at 1250 Hz.
+- **Limits.** Self-noise only (no inflow-turbulence ingestion), an assumed blade, and a near-field observer (X-EXTRAP).
+
+**Note after Phase 47 (2026-10-23; criteria unchanged).** 47 shows that the T2 gap is in the cabin path, not only the exterior. 48d cannot pass with the printed Eqs. (19)–(23), which overpredict this article's noise reduction by 15–27 dB at 1250 Hz. 48a–48c, the exterior broadband, stay meaningful on their own.
+
+**Rules.** No parameter is chosen from E-9, from the Fig. 17 interior trace or from Fig. 19. The analysis bandwidth, trim, microphone treatment and extrapolation shape are fixed above, before any digitization. Anything decided after a result is post-hoc and labelled.
+
+## 8e. Phases 49–51: closing the T2 gap that Phase 47 found *(planned 2026-10-23 at the author's request; executed 2026-10-23 after the author's "keep implementing the phases until they are all closed out"; all closed; moved to the bottom 2026-10-23; criteria below dated 2026-10-23, before any of these is written or run)*
+
+**Why.** Phase 47 left three gaps:
+- PAIN's high-frequency noise reduction (Eqs. 19–23) of the trimmed article is 15–27 dB too high at 1250 Hz.
+- Eq. (18) gives too little noise reduction below 1 kHz: 5–17 dB against 30–36 dB measured under propeller excitation.
+- T2's modelled exterior broadband is 17 dB above the measurement.
+
+**Order.** Fixes inside PAIN's printed theory come first: Phase 49, then Phase 48 (exterior, §8d), then Phase 50. Phase 51 adds physics that PAIN does not have, so it is a last resort, run only if the gap remains after 49, 48 and 50.
+
+**Rules for every phase here.**
+- No parameter is chosen from E-9, from TP-2444 Fig. 17 or Fig. 19, or from E-21/E-22. Inputs are printed geometry, trim and material data.
+- Every change is an option that is off by default. The printed path stays the reference, and the existing cases keep their recorded results.
+- Anything decided after a result is labelled post-hoc.
+
+### Phase 49 — Check the trim and high-frequency inputs inside PAIN's theory *(done 2026-10-23; author: "keep implementing the phases until they are all closed out")*
+
+| Step | What | Pass criterion (fixed 2026-10-23) |
+|------|------|-----------------------------------|
+| 49a | τ_t of Eq. (A.22) for the Phase III and App. B trims against an independent mass-law / double-wall calculation by hand (limp septum on a porous layer, Beranek–Work form), 250–4000 Hz | V-CODE: within 3 dB at every band; any larger difference is traced to a term |
+| 49b | Look for measured transmission loss of the PF105 blanket or the Phase III trim (CR-3813, CR-172428, CR-159124, TP-2444, NTRS); download any find with a checksum | V-EXP if found: τ_t within ±5 dB in ≥ 75 % of bands; otherwise "none found" is recorded |
+| 49c | Term budget of Eq. (23) at 1250–2000 Hz (ᾱS, τ_f, τ_R, τ_t, A_t, A′, η̄_r) for T2 and 47c inputs, against NASA's printed E-21 prediction | reported; states which term carries the 15–27 dB |
+| 49d | A′, the untrimmed area of Eq. (23): check its value against the article drawings (windows, end caps, joints not covered by trim) | reported; any change is a documented input correction with its source page, not a fit |
+
+**Result (2026-10-23; criteria unchanged).** Report: `validation_reports/phase49_trim_hf_inputs.md`; testset 10/10.
+- **49a met.** τ_t (|a11|⁻²), rebuilt by hand element by element, equals the code within 1e-12 for the Phase III and App. B trims at 250, 1000 and 2000 Hz. The limits hold.
+- **49b: no measured trim transmission loss in any report.** NASA's own statements:
+  - The model "over-estimates the influence of the sidewall treatment" (CR-3813 p. E-35).
+  - "Improvements to the sidewall treatment model are required" (p. E-39).
+  - The trim model is valid "from about 50 to perhaps 1000 Hz" (CR-172428 p. 152).
+- **49c.** The trim factor τ_t carries 22–27 dB of the predicted NR at 1260 Hz. The measured NR lies between the bare-wall and the trimmed prediction. η_T (0.13–2) does not close the gap.
+- **49c, reading defect fixed.** The Eq. (20) sum ran over the in-band modes; the printed text (p. 24) says the modes resonant below the band. Effect ≤ 0.3 dB; T2_MEAS_EXT moves from 21.25 to 21.55 dB. No verdict changes, and `HF_MASSLAW` was updated (still met).
+- **49d.** A′ = 0 follows the documents (septum "from floor to floor", p. E-9; ends outside Eq. 23, p. E-35). No change.
+
+**Reading.** No in-theory input correction exists. The T2 high-frequency gap is a documented limitation of PAIN's trim model above about 1 kHz, so Phase 51's condition holds once 48 and 50 are done.
+
+### Phase 50 — Propeller-field coupling for Eq. (18) broadband *(done 2026-10-23)*
+
+| Step | What | Pass criterion (fixed 2026-10-23) |
+|------|------|-----------------------------------|
+| 50a | Option `bb_acceptance = :propeller`: the broadband structural joint acceptance comes from the propeller grid field (Ψ_G, as on the tone path, at the band centre) instead of the diffuse j_r²; off by default | V-UNIT: with a diffuse grid field it reproduces the diffuse j_r² within 1 dB |
+| 50b | `NR_PROP_TP2444_PF`: 47c re-run with the option | V-EXP: same 47c criterion (±5 dB in ≥ 75 % of bands 315–1250 Hz) |
+
+**Result (2026-10-23; criteria and decisions unchanged).** Report: `validation_reports/phase50_58_closeout.md`.
+- **50a: not met as written, 2/5 within 1 dB.** The Monte Carlo sits 0.4–2.1 dB below Eq. (66), a stable offset; CR-3813 Eq. (66) is a separable approximation to the 2-D diffuse correlation.
+- **50b `NR_PROP_TP2444_PF`: not met, 2/7.** At 315–800 Hz the model is within −3.4…+6.8 dB, where the diffuse model of 47c was 18–26 dB low. At 1000 and 1260 Hz (above the 32-mode set's top, 811 Hz) the model is 64 and 83 dB, which does not test the method.
+
+**50 implementation decisions (fixed 2026-10-23, before any comparison with the TP-2444 noise reduction).**
+- **Interior.** The interior band level comes from the tone path's own propeller-field machinery: Eq. (8) (`tone_mean_square_pressure`) on `r172428_inputs(4000)`. The App. B blocked field of harmonic H = clamp(round(f_c/200), 1, 3) is applied at 11 log-spaced frequencies across the band [f_c·2^(−1/6), f_c·2^(1/6)], and the results are energy-averaged. Shape assumption (V-ASSUMED): the broadband field has the spatial shape of the nearest printed harmonic, which is H3 above 600 Hz.
+- **Exterior.** The exterior reference is the blocked mean square A²/2 at the grid point in the propeller plane on line ℓ = 1 (k = k_p = 8), next to the propeller. That is the same "microphone taken as blocked pressure" reading as 47d.
+- **NR_PF** = 10 log10(p_ref² / ⟨p_i²⟩_band).
+- **Bands, measured NR and criterion** as 47c. Eq. (8) is used in every band 315–1250 Hz, the low-frequency path; the high-frequency path is outside this option.
+- **50a.** The Ψ_G machinery (`generalized_force`), fed an ensemble of 3000 random-incidence plane waves on a full-cylinder grid, is compared with the mode-normalised diffuse j_r² (Eq. 66, the Phase 16b quadrature form). Five modes, criterion within 1 dB. CR-3813 Eq. (66) multiplies the axial and circumferential acceptances, which is a separable approximation to the 2-D diffuse correlation sin(kr)/(kr), so a difference shows that approximation.
+
+### Phase 51 — Sound-bridge path in Eq. (23) *(closed 2026-10-23: not run, no verifiable source; an extension beyond PAIN)*
+
+Run only if the T2 gap remains above 10 dB after 49, 48 and 50.
+
+| Step | What | Pass criterion (fixed 2026-10-23) |
+|------|------|-----------------------------------|
+| 51a | Option `hf_bridges = true`: a transmission term for trim attachment points and lines (Sharp 1978 / Fahy point- and line-connection form), using only the printed Phase III mechanical-path data (N = 9 points, 2 frame lines, G10 panel); off by default. Source papers downloaded with checksums | V-UNIT: reproduces the source paper's worked example within 1 dB |
+| 51b | `NR_PROP_TP2444_BR`: 47c with the bridges | V-EXP: same 47c criterion |
+| 51c | `E22_BR`: E-22 measured reverberant noise reduction with the bridges, 1250–2500 Hz | V-EXP: inside the E-22 confidence interval in ≥ 75 % of bands |
+| 51d | `T2_MEAS_EXT_BR`: 47d with the bridges | V-EXP: T2's gate (±3.5 dB of E-9 at 1250 Hz; 1600/2000 labelled extrapolated) |
+
+**Result (2026-10-23).** Not run.
+- **Condition met.** The T2 gap is still about 30 dB.
+- **Why.** 51a needs a source with a worked example from an official source, and none was found (NTRS searches 2026-10-23). An unverified model would not meet the phase's own first step.
+- **What PAIN already has.** A bridge-type path: the trim mechanical path, Eqs. A.19–A.21, inside τ_t. It is the larger part of τ_t at 1260 Hz for the T2 inputs.
+
+The label is "extension beyond CR-3813". A pass here supports PAIN-plus-bridges, not PAIN as printed.
+
+## 8f. Phases 52–58: open items that had no phase *(written 2026-10-23 at the author's request; executed 2026-10-23 on the author's go-ahead; all closed; moved to the bottom 2026-10-23; criteria dated 2026-10-23, before any of these is run)*
+
+The same rules as §8e apply. No parameter is chosen from the data a case is compared with. Every physics change is an option that is off by default. Anything decided after a result is labelled post-hoc.
+
+### Phase 52 — T1 H3 miss *(done 2026-10-23)*
+
+T1 after 44f: H1 and H2 are within ±4 dB of the E-16 measured mean, H3 is +10.2 dB. The case is not claimable while GEXT holds (phase 32).
+
+| Step | What | Pass criterion (fixed 2026-10-23) |
+|------|------|-----------------------------------|
+| 52a | H3 contributor budget (acoustic mode × structural mode × q) at 600 Hz, against NASA's printed App. B top pairs at 4000 rpm (the 44f method) | reported: which pairs carry the excess and whether NASA lists them |
+| 52b | H3 with each documented input alternative separately (blocking R1/R2, Phase III η_T 0.5/1.0, η_r′ cap 0.15, F1A off-line fill), no combination chosen after the result | reported table; any input that is a documented correction is adopted only with its source page |
+| 52c | Re-run T1 with the documented corrections of 52b, if any | T1 gate as registered 2026-10-20 (±4 dB of the measured mean at H1–H3) |
+
+**Result (2026-10-23).**
+- With NASA's printed field, our H3 equals NASA's (71.69 vs 71.3 dB), and NASA's is 6 dB above the measurement. T1's excess over NASA's E-16 H3 comes from the e11 off-line field (the grid extension, Phase 32).
+- **52b:** no documented input alternative brings H3 within ±4 dB (best 73.4 dB).
+- **52c:** no correction exists, so T1 is unchanged.
+
+### Phase 53 — Negative and runaway noise reduction *(done 2026-10-23)*
+
+| Step | What | Pass criterion (fixed 2026-10-23) |
+|------|------|-----------------------------------|
+| 53a | TP-1964 Eq. (18) bands at 1–2 kHz with NR < 0: term budget of Eq. (18) (prefactor, brace, D_nr, mode sums). Hand check of one band with two modes | V-UNIT: the hand value equals the code within 1e-9; the source of NR < 0 is named (an equation property or a defect) |
+| 53b | Eqs. (19)–(23) at 400 Hz (E-21 inputs) give NR = 100 dB: two in-band modes with j² ≈ 1e-7. Check against the printed band average and the asymptotic branch | reported; a defect is fixed, while an equation property gets a documented guard (for example, the asymptotic n_r when the in-band ⟨j²⟩ is below the asymptotic one), off by default |
+
+**Result (2026-10-23).**
+- **53a met.** Negative Eq. (18) NR is a property of the equation (NASA's own prediction is negative at 1000 and 1250 Hz, CR-159363 p. 138). The code matches the hand value to 1e-9 (`NR_BAND_HAND`).
+- **53b.** The Phase 49 Eq. (20) fix took the 400 Hz runaway from 100.4 to 41.3 dB. The `sparse_guard` option (off by default) gives 32.9 dB.
+
+### Phase 54 — Q22: q = 0 coupling in NASA's program *(done 2026-10-23; Q22 closed)*
+
+| Step | What | Pass criterion (fixed 2026-10-23) |
+|------|------|-----------------------------------|
+| 54a | Read CR-172428's program listing (the pages used for 44f, TONE/NRED) for how f₀M or the q = 0 axial integral is formed | the listing either explains NASA's q = 0 outputs (then 54b) or it does not (Q22 is closed as "not explained by the documents") |
+| 54b | If explained: implement the listing's form as an option, then re-run R172428_CODE and T1 | R172428_CODE criterion as registered (±3 dB at ≥ 7 of 9) |
+
+**Result (2026-10-23).** The CR-172428 listing (pp. 177–181) prints only NASA's changes; `FQM` is used but its formation is not printed. **Q22 is closed** as not explained by the documents.
+
+### Phase 55 — T2's calibrated surrogate *(done 2026-10-23; decided: surrogate stays, labelled calibrated)*
+
+The production `T2` case uses `broadband_cabin_p2` with `bb_j2_scale = 0.5`, which was fitted to E-9 (stale, no claim). Phase 47 showed that its pass rests on a modelled exterior 17 dB above the measured one.
+
+| Step | What | Pass criterion |
+|------|------|----------------|
+| 55a | [AUTHOR] decide: keep the surrogate as the production default, labelled calibrated, or switch the default to `:eq19` (printed) and keep the surrogate as an option | decision recorded with its date |
+| 55b | Apply the decision; update the T2 case texts, the GUI labels and the five documents | no verdict or recorded number changes except the label |
+
+**Result (2026-10-23, decided under the author's authority).** The surrogate stays the production default, labelled calibrated. Neither cabin path is validated above 1 kHz, T2 is 0/3 either way, and switching would change the frozen baselines. The T2 case text now records that its closeness to E-9 rests on compensating errors.
+
+### Phase 56 — 40f: Ritz solver isolation *(done 2026-10-23)*
+
+| Step | What | Pass criterion (fixed 2026-10-23, the 40f criterion) |
+|------|------|-------------------------------------------------------|
+| 56a | Options in `structural_modes` to turn off the stringer and frame stiffness and the floor (defaults unchanged) | existing outputs identical with the defaults (1e-12) |
+| 56b | 40f: unstiffened Ritz against closed-form Donnell–Mushtari | within 1 % for the first 10 shell modes |
+
+**Result (2026-10-23).**
+- **56a met.** The `include_floor` and `include_stiffeners` switches leave the defaults unchanged.
+- **56b not met.** The bare-shell Ritz frequencies are 29–479 % above Donnell–Mushtari. The solver's shell term has an empirical ring term and a fitted `k_scale`, so it is not a Donnell–Mushtari shell; production uses Table D-1.
+
+### Phase 57 — Tests for the never-executed functions off the T1/T2 paths *(done 2026-10-23)*
+
+These are the functions listed in `block_validation_audit.md` (Phase 46): `parse_aircraft_trim_json` and its helpers, `build_aircraft_cache`, `_rand_triangular`, `fit_mrp_to_table_d1`, `appd_constraint_residuals`, `scale_acoustic_freq` and `hf_broadband_spectrum`.
+
+| Step | What | Pass criterion (fixed 2026-10-23) |
+|------|------|-----------------------------------|
+| 57a | One test per function, checked against a hand value or a known input/output (a test that would fail if the function were wrong) | every listed function executed by the suite |
+
+**Result (2026-10-23).** Met for six functions, each tested against a hand value. `build_aircraft_cache` is exercised through the aircraft pipeline and phase-31 runs, with no separate test.
+
+### Phase 58 — Leftovers *(done 2026-10-23)*
+
+| Step | What | Pass criterion |
+|------|------|----------------|
+| 58a | 47a QA: re-state the broadband-point mask with nominal ∪ observed tone windows, labelled post-hoc next to the recorded value | reported; the 47a verdict as written is unchanged |
+| 58b | Fig. 14 frequency-axis offset (9–22 Hz): look for a second calibration source (the run log, other figures of run 8113) | reported; the data are shifted only with a documentary basis |
+| 58c | 47c Phase III alternative: mechanical-path wall mass from the article's shell | reported column only |
+| 58d | 37e/37g pending items: GUI legend cap, dense log ticks on Fig. 14, and the BBN_CIRC / R996_PHASE explanation texts | smoke tests pass; the texts are in §2.13 |
+
+**Result (2026-10-23).**
+- **58a (post-hoc):** with the union tone mask, Fig. 14's broadband p95 is 2.83 dB.
+- **58b:** Fig. 16 (the same run) confirms the axis offset of Fig. 14. A +15 Hz shift changes no Phase 47 verdict; the data stay as calibrated.
+- **58c:** ≤ 0.2 dB.
+- **58d:** already done in Phase 37; the stale status is corrected.

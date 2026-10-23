@@ -303,16 +303,21 @@ function structural_modes(fuse::FuselageGeometry;
                           edge_factor::Float64=2.2,
                           floor_scale::Float64=2.4,
                           include_antisym::Bool=true,
-                          hybrid::Bool=true)
+                          hybrid::Bool=true,
+                          include_floor::Bool=true,
+                          include_stiffeners::Bool=true)
+    # Phase 56 (40f isolation): `include_floor = false` drops the floor plate and the junction springs;
+    # `include_stiffeners = false` drops the stringer and frame area and bending stiffness. With both off,
+    # θ₀ = 0 and `hybrid = false` the solver is a bare simply supported cylinder.
     L = fuse.L
     a = fuse.a
     θ0 = deg2rad(fuse.theta0_deg)
     Lp = 2a * sin(θ0)
 
-    t_eq = t_shell + A_stringer / max(d_stringer, 1e-9) + A_frame / max(ell_frame, 1e-9)
+    t_eq = include_stiffeners ? t_shell + A_stringer / max(d_stringer, 1e-9) + A_frame / max(ell_frame, 1e-9) : t_shell
     D_skin = E * t_shell^3 / (12 * (1 - ν^2))
-    Ds = D_skin + E * MRP_I_STRINGER / max(d_stringer, 1e-9) +
-         E * MRP_I_FRAME / max(ell_frame, 1e-9)
+    Ds = include_stiffeners ? D_skin + E * MRP_I_STRINGER / max(d_stringer, 1e-9) + E * MRP_I_FRAME / max(ell_frame, 1e-9) :
+         D_skin
     ms = ρ * t_eq
 
     # Floor: skin + transverse supports @ 0.2 m + 2 longitudinal beams
@@ -334,7 +339,7 @@ function structural_modes(fuse::FuselageGeometry;
             sym || include_antisym || continue
             ns = collect(1:n_circ_shell)
             # floor basis per Eqs. (48)/(49): cos(pπx/Lp), p ≥ 0 (symmetric); sin(pπx/Lp), p ≥ 1 (antisymmetric)
-            ps = collect((sym ? 0 : 1):n_floor_max)
+            ps = include_floor ? collect((sym ? 0 : 1):n_floor_max) : Int[]
             ns_dof = length(ns)
             np_dof = length(ps)
             N = ns_dof + np_dof
@@ -364,7 +369,7 @@ function structural_modes(fuse::FuselageGeometry;
             α = Float64[sym ? cos(n * θ0) : sin(n * θ0) for n in ns]
             β = Float64[sym ? cos(p * π / 2.0) : sin(p * π / 2.0) for p in ps]  # edge at x=Lp/2 from centerline
             # Two junctions share the same relative DOF pattern for symmetric placement
-            kj_eff = 2 * k_j * (L / 2)   # both lines, axial ∫ sin² = L/2
+            kj_eff = include_floor ? 2 * k_j * (L / 2) : 0.0   # both lines, axial ∫ sin² = L/2
             for i in 1:ns_dof, ii in 1:ns_dof
                 K[i, ii] += kj_eff * α[i] * α[ii]
             end

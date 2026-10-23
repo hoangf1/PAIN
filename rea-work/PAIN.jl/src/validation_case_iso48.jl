@@ -25,7 +25,8 @@ function _run_bpm_rp1218()
             r = t[col][i]
             ok = abs(ours[i] - r) ≤ 1.0
             n += 1; n_ok += ok
-            push!(table, ValidationTableRow("$name $(col) f=$(round(Int, t[:f_Hz][i]))", t[:f_Hz][i], r, ours[i], ours[i] - r, ok))
+            push!(table, ValidationTableRow("$name $(col) f=$(round(Int, t[:f_Hz][i]))", t[:f_Hz][i], r, ours[i], ours[i] - r, ok,
+                                            "$name $(replace(String(col), "_dB" => ""))"))
             if col === :total_dB
                 push!(xs, t[:f_Hz][i]); push!(ref, r); push!(got, ours[i])
             end
