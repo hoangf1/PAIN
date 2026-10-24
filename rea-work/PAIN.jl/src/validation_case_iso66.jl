@@ -72,7 +72,7 @@ function _run_bemt_momentum()
             push!(eT, abs(bT / mT - 1)); push!(eQ, abs(bQ / mQ - 1)); push!(rk, r / su.Rtip)
             ok = e ≤ 1e-8; n_bad += !ok; worst = max(worst, e)
             push!(table, ValidationTableRow("$(name): r/R=$(round(r / su.Rtip; digits=3)) max rel. diff", Float64(ci) + r / su.Rtip,
-                                            0.0, e, e, ok))
+                                            0.0, e, e, ok, name))   # one error-legend group per operating point
         end
         push!(series, PlotSeries("thrust: $name", :computed, rk, log10.(max.(eT, 1e-17)); panel=1))
         push!(series, PlotSeries("torque: $name", :computed, rk, log10.(max.(eQ, 1e-17)); panel=1))

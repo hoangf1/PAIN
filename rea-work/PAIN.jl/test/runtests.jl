@@ -2648,7 +2648,8 @@ _run_if("Validation case registry (34d)") do
     @test blk_p68.cases == ["BLK_P68", "E12_BLOCK", "ISO_BLOCKING"]
     amp = only(b for b in total.blocks if b.id == "A_AMP")
     @test amp.cases ==
-          ["F1A_GUTIN", "R996_FIG14", "R996_FIG12", "R996_FIG13A", "R996_FIG6", "R996_FIG7", "F1A_INDEP"]
+          ["F1A_GUTIN", "R996_FIG14", "R996_FIG12", "R996_FIG13A", "R996_FIG6", "R996_FIG7", "F1A_INDEP",
+           "F1A_GUTIN_ANGLES", "F1A_GW_FLIGHT", "F1A_THICKNESS", "F1A_PROPERTIES"]   # Phase 66 added the last four
     loads = only(b for b in total.blocks if b.id == "A_LOADS")
     @test "BEMT_HAND" in loads.cases
     @test "TRIM_CLOSED" in only(b for b in total.blocks if b.id == "P_TRIM").cases
