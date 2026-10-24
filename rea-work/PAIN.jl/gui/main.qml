@@ -1847,14 +1847,14 @@ ApplicationWindow {
                                 }
                             }
                             Text {
-                                text: "Structural ψ (36d)"
+                                text: "Structural mode ψ, animated with the frames above (36d / 63)"
                                 font.bold: true
                                 color: root.ink
                                 font.pixelSize: 12
                             }
                             Image {
                                 Layout.fillWidth: true
-                                Layout.preferredHeight: 160
+                                Layout.preferredHeight: 240
                                 fillMode: Image.PreserveAspectFit
                                 asynchronous: true
                                 cache: false

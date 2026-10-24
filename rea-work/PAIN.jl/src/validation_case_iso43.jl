@@ -63,7 +63,7 @@ function _iso43_f1a_grid(; n_harmonics::Int=3)
     json = normpath(joinpath(@__DIR__, "..", "examples", "aircraft_scale_hartzell.json"))
     isfile(json) || error("F1A fill: missing aircraft JSON at $json")
     fuse = FuselageGeometry(test_article_length(), 0.508, 56.6)
-    prop = PropellerPlacement(0.965, 90.0, 0.90)
+    prop = PropellerPlacement(0.965, 90.0, 0.662)
     return propeller_freefield_grid(json, fuse, prop, GridSpec(); n_harmonics=n_harmonics, num_src_times=32)
 end
 
@@ -210,7 +210,7 @@ end
 function _iso43_repro_from_e12()
     L = test_article_length()
     fuse = FuselageGeometry(L, 0.508, 56.6)
-    prop = PropellerPlacement(0.965, 90.0, 0.90)
+    prop = PropellerPlacement(0.965, 90.0, 0.662)
     spec = GridSpec()
     paths = default_e11_paths()
     bpf, nH, D = 200.0, 3, 0.762

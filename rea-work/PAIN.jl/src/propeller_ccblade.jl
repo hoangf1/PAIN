@@ -383,7 +383,8 @@ const _DISPLAY_MU_AIR = 1.78e-5
 
 Same CCBlade BEMT setup as `evaluate_propeller_source` (rotor, sections, ops, solve)
 without F1A. Returns per-section `r_m`, `r_over_R`, `alpha_deg`, `Mach`, `Re`
-(Re = ρ W₀ c / μ_air with μ_air = 1.78e-5 for display; Mach = W₀/c₀ as in CCBlade).
+(Re = ρ W₀ c / μ_air with μ_air = 1.78e-5 for display; Mach = W₀/c₀ as in CCBlade) and the
+section loads `Np`, `Tp` [N/m].
 """
 function ccblade_section_operating_points(cfg; af=nothing, allow_static::Bool=false,
                                           use_tip_correction::Bool=true)
@@ -431,7 +432,8 @@ function ccblade_section_operating_points(cfg; af=nothing, allow_static::Bool=fa
     end
     return (
         r_m=r, r_over_R=r ./ Rtip, chord_m=chord, alpha_deg=alpha_deg, Mach=Mach, Re=Re,
-        Rtip=Rtip, Vinf=Vinf, rho=ρ, c0=c0, B=B, rpm=rpm,
+        Rtip=Rtip, Rhub=Rhub, Vinf=Vinf, rho=ρ, c0=c0, B=B, rpm=rpm,
+        Np=Float64[outs[i].Np for i in 1:nsec], Tp=Float64[outs[i].Tp for i in 1:nsec],
     )
 end
 
@@ -511,8 +513,18 @@ end
 """
     f1a_gutin_h1_comparison(; aircraft_json, r_over_Rtip=100) -> NamedTuple
 
-I-01 (c) / F1A_GUTIN: static, thickness-off F1A H1 SPL vs Gutin/Hubbard closed form
-on the same T, Q at an in-plane observer `r_over_Rtip * Rtip` from the hub.
+I-01 (c) / F1A_GUTIN: static, thickness-off F1A H1 SPL vs Gutin's closed form on the same BEMT
+loads at an in-plane observer `r_over_Rtip * Rtip` from the hub.
+
+Gutin (Goldstein, *Aeroacoustics*; Hubbard, NASA RP-1258 vol. 1 ch. 1), harmonic m, far field:
+p_rms = (mBΩ/(2√2 π c₀ r)) |−T cos θ + Q c₀/(Ω R²)| J_mB(mBΩR sin θ/c₀) for loads at radius R.
+In the rotor plane (θ = π/2) only the torque radiates. The blade is summed annulus by annulus
+(each at its own radius; the sections of an unswept blade radiate in phase), with the trapezoid
+weights and hub/tip zero padding that `CCBlade.thrusttorque` uses, so Σ dQ = Q.
+Code-on-code fix 2026-10-24: the earlier form (mBΩ/(2π c₀ r))(Q/R_tip) J_mB(mB M_tip) was low by
+√2·M (a single-radius source shows it: the independent F1A of case F1A_INDEP equals the form above
+within 0.03 %, test/unit/test_case_helpers_iso.jl); its near-agreement with F1A came from
+evaluating J_mB at the tip.
 """
 function f1a_gutin_h1_comparison(;
         aircraft_json::AbstractString=joinpath(@__DIR__, "..", "examples", "aircraft_scale_hartzell.json"),
@@ -530,22 +542,31 @@ function f1a_gutin_h1_comparison(;
         obs = [Observer([0.0, r_ff, 0.0], zeros(3), "ff_plane")]
         src = evaluate_propeller_source(cfg, obs; n_harmonics=1, num_src_times=num_src_times,
                                         allow_static=true)
+        sec = ccblade_section_operating_points(cfg; allow_static=true)
         Ω = Float64(cfg.propeller.rpm) * 2π / 60
         B = Int(cfg.propeller.num_blades)
         c0 = src.echo.c0
         m = 1
         Mt = Ω * Rtip / c0
-        J = _besselj_int(m * B, m * B * Mt)
-        # Rotor-plane (θ=π/2) Gutin/Hubbard: p_rms = (m B Ω /(2π c0 r)) (Q/R) |J_{mB}(m B M_t)|
-        # F1A stores cosine peak A = √2 p_rms. Compare peak with peak (both "SPL of the peak").
-        p_rms = (m * B * Ω / (2π * c0 * r_ff)) * (src.Q / Rtip) * abs(J)
-        p_peak = sqrt(2) * p_rms
+        # trapezoid over [Rhub, r..., Rtip] with zero load at both ends (as CCBlade.thrusttorque)
+        rr = vcat(sec.Rhub, sec.r_m, Rtip)
+        Tp = vcat(0.0, sec.Tp, 0.0)
+        w = zeros(length(rr))
+        for k in 1:length(rr)-1
+            h = rr[k+1] - rr[k]
+            w[k] += h / 2; w[k+1] += h / 2
+        end
+        Q_sum = B * sum(w .* Tp .* rr)
+        # in-plane: Σ (mBΩ/(2√2π c₀ r)) · dQ c₀/(Ω R²) · J_mB(mBΩR/c₀), dQ = B Tp R dR
+        p_rms = sum(w[k] * (m * B / (2 * sqrt(2) * π * r_ff)) * B * Tp[k] / rr[k] *
+                    _besselj_int(m * B, m * B * Ω * rr[k] / c0) for k in eachindex(rr))
+        p_peak = sqrt(2) * abs(p_rms)
         spl_f1a = 20 * log10(max(src.amplitude[1, 1], 1e-30) / 2e-5)   # SPL of the peak
         spl_gutin = 20 * log10(max(p_peak, 1e-30) / 2e-5)              # SPL of the peak
         Δ = spl_f1a - spl_gutin
         return (;
             spl_f1a, spl_gutin, delta_dB=Δ, ok=abs(Δ) ≤ 1.0,
-            T=src.T, Q=src.Q, Mt, B, Rtip, r_ff, c0, Ω,
+            T=src.T, Q=src.Q, Q_sum, Mt, B, Rtip, r_ff, c0, Ω,
             aircraft_json=abspath(aircraft_json),
         )
     finally

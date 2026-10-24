@@ -345,6 +345,68 @@ function coupling_display(ac::AcousticMode, st::StructuralMode, fuse::FuselageGe
             acoustic_f_Hz=ac.f_Hz_unit, structural_f_Hz=st.f_Hz)
 end
 
+"""
+    structural_mode_frames(st, fuse; nframes=24, z_frac=0.5, nθ=181, nx=41, amp=0.12) -> NamedTuple
+
+Animation of a structural mode (Phase 63, display only): the cross-section at z = z_frac·L
+deformed by ψ cos(2πk/n) for k = 0…n−1 (shell radially, floor vertically; peak displacement `amp`·a),
+plus the shell ψ field scaled by the same cos. The period returns to frame 1.
+"""
+function structural_mode_frames(st::StructuralMode, fuse::FuselageGeometry; nframes::Int=24, z_frac::Real=0.5,
+                                nθ::Int=181, nx::Int=41, amp::Real=0.12)
+    nframes ≥ 2 || error("nframes must be ≥ 2")
+    disp = structural_mode_display(st, fuse)
+    L, a = fuse.L, fuse.a
+    θ0 = deg2rad(fuse.theta0_deg)
+    Lp = 2a * sin(θ0)
+    z = z_frac * L
+    θs = collect(range(θ0, 2π - θ0; length=nθ))
+    xs = collect(range(-Lp / 2, Lp / 2; length=nx))
+    ψs = [structural_shell_psi(st, z, rad2deg(θ), L) for θ in θs]
+    ψf = [structural_floor_psi(st, z, x, L, Lp) for x in xs]
+    peak = max(maximum(abs, ψs; init=0.0), maximum(abs, ψf; init=0.0), maximum(abs, disp.shell_ψ; init=0.0), 1e-12)
+    s = amp * a / peak
+    floor_y = -a * cos(θ0)
+    ring = Vector{NTuple{4,Vector{Float64}}}(undef, nframes)
+    fields = Vector{Matrix{Float64}}(undef, nframes)
+    for k in 0:(nframes - 1)
+        c = cos(2π * k / nframes)
+        r = a .+ s .* c .* ψs
+        # θ from the bottom centreline: (x, y) = (r sin θ, −r cos θ) as `_cabin_outline`
+        ring[k + 1] = (r .* sin.(θs), -r .* cos.(θs), xs, floor_y .+ s .* c .* ψf)
+        fields[k + 1] = disp.shell_ψ .* c
+    end
+    return (; ring, fields, z=disp.z, theta_deg=disp.theta_deg, clim=peak, nframes, z_cut=z, a,
+            θ0, index=st.index, f_Hz=st.f_Hz, symmetric=st.symmetric)
+end
+
+"""Write each structural animation frame as a PNG (cross-section ring + shell ψ field); returns the paths."""
+function render_structural_frame_pngs(dir::AbstractString, fr; prefix::AbstractString="s")
+    isdir(dir) || mkpath(dir)
+    paths = String[]
+    a, θ0 = fr.a, fr.θ0
+    θr = range(θ0, 2π - θ0; length=181)
+    for i in 1:fr.nframes
+        p = joinpath(dir, "$(prefix)_$(lpad(i, 3, '0')).png")
+        fig = Figure(size=(720, 380); fontsize=11)
+        ax1 = Axis(fig[1, 1]; aspect=DataAspect(), title="mode $(fr.index): cross-section at z = $(round(fr.z_cut; digits=2)) m")
+        lines!(ax1, a .* sin.(θr), -a .* cos.(θr); color=(:gray, 0.6), linestyle=:dash)
+        lines!(ax1, [-a * sin(θ0), a * sin(θ0)], fill(-a * cos(θ0), 2); color=(:gray, 0.6), linestyle=:dash)
+        xr, yr, xf, yf = fr.ring[i]
+        lines!(ax1, xr, yr; color=:steelblue, linewidth=2.5)
+        lines!(ax1, xf, yf; color=:firebrick, linewidth=2.5)
+        lim = 1.25a
+        limits!(ax1, -lim, lim, -lim, lim)
+        ax2 = Axis(fig[1, 2]; xlabel="z (m)", ylabel="θ (deg)", title="shell ψ  frame $i/$(fr.nframes)")
+        heatmap!(ax2, fr.z, fr.theta_deg, fr.fields[i]'; colormap=:balance, colorrange=(-fr.clim, fr.clim))
+        Label(fig[2, :], "display only — Table D-1 shape, f = $(round(fr.f_Hz; digits=2)) Hz; deformation exaggerated";
+              tellwidth=false, fontsize=10)
+        save(p, fig)
+        push!(paths, abspath(p))
+    end
+    return paths
+end
+
 """Render structural shell/floor ψ to a PNG (display only)."""
 function render_structural_mode_png(path::AbstractString, disp)
     fig = Figure(size=(720, 420); fontsize=12)

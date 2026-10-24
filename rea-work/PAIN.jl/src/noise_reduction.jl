@@ -371,13 +371,13 @@ function noise_reduction_test_article_inputs(; η_lining::Real=1.0,
                                              NY::Int=10, n_modes::Int=20)
     L = test_article_length()
     fuse = FuselageGeometry(L, 0.508, 56.6)
-    prop = PropellerPlacement(0.965, 90.0, 0.90)
+    prop = PropellerPlacement(0.965, 90.0, 0.662)
     acoustic = cyl2d_modes(56.6; n_modes, NY)
     structural = structural_modes_from_table_d1(; n_keep=32)
     pts = grid_points(fuse, prop, GridSpec())
-    # Dummy blocked field (unused by Eq. 18; required by PainInputs)
-    amps = ones(Float64, 10, 16, 1)
-    phases = zeros(Float64, 10, 16, 1)
+    # Dummy blocked field (unused by Eq. 18; required by PainInputs), indexed [k, ℓ, H] like the grid
+    amps = ones(Float64, 16, 10, 1)
+    phases = zeros(Float64, 16, 10, 1)
     ΔA = (π * 0.508 / 18)^2
     p3 = phase3_trim(; a=0.508, L=L, theta0_deg=56.6, η_lining)
     # allow_extrapolation: E-21 bands include 63 Hz (below Fig. A-2's 100 Hz); NASA's PAIN

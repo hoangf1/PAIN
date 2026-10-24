@@ -55,16 +55,16 @@ struct PropellerPlacement
     # −1 = CW in +z. Flips azimuth sense of the skin grid (θ_ℓ = φ_p ± α) and
     # the blade-passage phase sign; does **not** mirror onto the lower quarter.
     rotation_direction::Int
+    # inner constructor: the ±1 check also applies when every argument already has the field type
+    # (found by the Phase 64 unit tests; the default constructor used to bypass it)
+    function PropellerPlacement(r_p::Real, phi_p_deg::Real, z_p::Real, rotation_direction::Integer)
+        rd = Int(rotation_direction)
+        abs(rd) == 1 || error("PropellerPlacement: rotation_direction must be ±1 (Manual card 36), got $rd")
+        return new(float(r_p), float(phi_p_deg), float(z_p), rd)
+    end
 end
 
-PropellerPlacement(r_p::Real, phi_p_deg::Real, z_p::Real) =
-    PropellerPlacement(float(r_p), float(phi_p_deg), float(z_p), 1)
-
-function PropellerPlacement(r_p::Real, phi_p_deg::Real, z_p::Real, rotation_direction::Integer)
-    rd = Int(rotation_direction)
-    abs(rd) == 1 || error("PropellerPlacement: rotation_direction must be ±1 (Manual card 36), got $rd")
-    return PropellerPlacement(float(r_p), float(phi_p_deg), float(z_p), rd)
-end
+PropellerPlacement(r_p::Real, phi_p_deg::Real, z_p::Real) = PropellerPlacement(r_p, phi_p_deg, z_p, 1)
 
 """
 PAIN/ANOPP fuselage-skin grid (User Manual Fig. 3).
@@ -84,12 +84,13 @@ GridSpec() = GridSpec(16, 10, 8)
     grid_points(fuse, prop, spec) -> Vector of NamedTuples
 
 Return fuselage-skin grid points in a right-handed frame with cylinder
-axis along z, θ = 0 at bottom centerline (CR-3813).
+axis along z, θ = 0 at bottom centerline (CR-3813). z is the axial station from the forward end of the
+cabin cylinder — the fuselage x (station) axis in aircraft body coordinates; z_p is the propeller-plane station.
 
 ANOPP-style coordinates from User Manual §3:
   x₁ = (r_p − a) + a (1 − cos[(ℓ−1)π/18])
   x₂ = −a sin[(ℓ−1)π/18]
-  x₃ = (π a / 18) (k_p − k)
+  x₃ = (π a / 18) (k_p − k),  z = z_p − x₃ (axial distance from the forward end; k < k_p forward of the propeller)
 
 Line ℓ = 1 lies at the propeller azimuth. With `rotation_direction = +1` (Manual card 36,
 Fig. 3): θ_ℓ = φ_p + (ℓ−1)π/18, ℓ increasing toward the top of the upper quarter.
@@ -114,11 +115,18 @@ function grid_points(fuse::FuselageGeometry, prop::PropellerPlacement, spec::Gri
             x3 = (π * a / 18) * (spec.k_p - k)
             # θ from bottom centerline; ℓ = 1 at φ_p; sense flips azimuth of ℓ > 1
             theta = phi_p + sense * alpha
-            z = zp + x3
+            z = zp - x3          # User Manual pp. 8–9 / CR-3813 p. E-8: z_k = z_p − x₃ (z from the forward end; Phase 65)
             push!(pts, (; k, ell, x1, x2, x3, theta_deg=rad2deg(theta),
                         alpha_deg=rad2deg(alpha), z))
         end
     end
+    # User Manual p. 9: "(πa/18)·[k_p − 1] cannot exceed z_p" — every grid station should lie on the cylinder.
+    # A warning, not an error, because the aircraft working example (a = 1.32 m, assumed L = 1.83 m) does not
+    # fit (open item, plan Q45); the stations off the cylinder are counted so the run says so.
+    n_off = count(p -> p.z < -1e-9 || p.z > fuse.L + 1e-9, pts)
+    n_off > 0 && @warn "grid_points: $n_off of $(length(pts)) grid points lie off the cylinder 0 ≤ z ≤ L = $(fuse.L) m " *
+        "(z from $(round(minimum(p.z for p in pts); digits=3)) to $(round(maximum(p.z for p in pts); digits=3)) m); " *
+        "the User Manual (p. 9) needs (πa/18)(k_p − 1) ≤ z_p and the aft stations within L"
     return pts
 end
 

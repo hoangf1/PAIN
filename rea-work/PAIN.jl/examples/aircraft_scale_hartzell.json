@@ -31,7 +31,7 @@
   "propeller_placement": {
     "r_p_m": 0.965,
     "phi_p_deg": 90.0,
-    "z_p_m": 0.90,
+    "z_p_m": 0.662,
     "note": "r_p = a + 0.457 from User Manual / methodology x1 grid (tip clearance ~0.076 m for 0.381 m Rtip)"
   },
   "grid": {

@@ -249,7 +249,7 @@ end
 function _run_t1_from_e12()
     L = test_article_length()
     fuse = FuselageGeometry(L, 0.508, 56.6)
-    prop = PropellerPlacement(0.965, 90.0, 0.90)
+    prop = PropellerPlacement(0.965, 90.0, 0.662)
     spec = GridSpec()
     paths = default_e11_paths()
     bpf = 200.0
@@ -417,7 +417,7 @@ function _run_nr_band_hand()
     L = test_article_length()
     a = 0.508
     fuse = FuselageGeometry(L, a, 56.6)
-    prop = PropellerPlacement(0.965, 90.0, 0.90)
+    prop = PropellerPlacement(0.965, 90.0, 0.662)
     fc = 400.0
     c_ω = C_OMEGA_THIRD_OCTAVE
     ρ_ext = ρ_int = 1.225
@@ -497,7 +497,7 @@ function _run_hf_masslaw()
     L = test_article_length()
     a = 0.508
     fuse = FuselageGeometry(L, a, 56.6)
-    prop = PropellerPlacement(0.965, 90.0, 0.90)
+    prop = PropellerPlacement(0.965, 90.0, 0.662)
     m = 8.0   # limp wall surface mass [kg/m²]
     fc = 1000.0
     c_ω = C_OMEGA_THIRD_OCTAVE

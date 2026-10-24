@@ -1,0 +1,29 @@
+# NASA CR-3813 (Pain Methodology.pdf) App. E test-article and trim values as printed (Phase 62 input QA; transcribed 2026-10-23).
+# Pages: E-1 (PDF p. 117) structure; E-3 Fig. E-2 (p. 119) diameter; E-5 (p. 121) floor width, angle, end caps; E-8 (p. 124) r_p, z_p;
+# E-9 (p. 125) trim. printed_digits = significant digits as printed (used for the comparison).
+quantity,printed_value,unit,page,printed_digits
+cylinder_length,1.83,m,E-1,3
+diameter,1.016,m,E-3 Fig. E-2,4
+skin_thickness,0.00081,m,E-1,2
+n_stringers,18,-,E-1,2
+stringer_spacing_deg,20,deg,E-1,2
+stringer_leg1,0.00953,m,E-1,3
+stringer_leg2,0.0112,m,E-1,3
+stringer_thickness,0.00051,m,E-1,2
+frame_spacing,0.2,m,E-1,1
+frame_flange,0.017,m,E-1,2
+frame_web,0.038,m,E-1,2
+frame_thickness,0.00081,m,E-1,2
+floor_thickness,0.00081,m,E-1,2
+floor_width,0.85,m,E-5,2
+floor_angle_deg,56.6,deg,E-5,3
+prop_r_p,0.965,m,E-8,3
+prop_z_p,0.662,m,E-8,3
+blanket_density,9.61,kg/m3,E-9,3
+blanket_layer_thickness,0.013,m,E-9,2
+n_layers_curved,4,-,E-9,1
+n_layers_end,1,-,E-9,1
+layer_plus_facing_surface_density,0.22,kg/m2,E-9,2
+septum_thickness,0.00079,m,E-9,2
+septum_total_mass,6.58,kg,E-9,3
+n_trim_screws,9,-,E-9,1

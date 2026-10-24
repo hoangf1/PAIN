@@ -8,6 +8,9 @@ const _GUI_LAST_VERDICTS = Dict{String,Symbol}()
 """Last case_error_summary by case id (session only; never written by Run / Pkg.test)."""
 const _GUI_LAST_ERRORS = Dict{String,NamedTuple}()
 
+"""The Run tab runs the aircraft pipeline only (phase 33g): E-11 and synthetic sources verify PAIN (Validation tab)."""
+const _GUI_SOURCE_MSG = "the Run tab runs the aircraft pipeline only; e11 / synthetic are PAIN verification inputs (Validation tab cases)"
+
 validity_for_source(source::Symbol) =
     source === :e11 ? "V-EXP" : "X-EXTRAP"
 
@@ -32,11 +35,6 @@ function reload_validation_docs_gui!(obs::AbstractDict)
     end
     obs["val_cases"][] = _format_val_case_list()
     return nothing
-end
-
-function _format_records(records::Vector{ValidationRecord})
-    isempty(records) && return "(none)"
-    join(["$(r.result)  $(r.metric)  --  $(r.notes)" for r in records], "\n")
 end
 
 function _format_tonal(spectrum::InteriorSpectrum)
@@ -77,7 +75,7 @@ function make_gui_observables(;
         "theta0_deg" => Observable(56.6),
         "r_p" => Observable(0.965),
         "phi_p_deg" => Observable(90.0),
-        "z_p" => Observable(0.90),
+        "z_p" => Observable(0.662),
         "n_harmonics" => Observable(5.0),
         "bpf_Hz" => Observable(150.0),
         "aircraft_json" => Observable(abspath(default_aircraft_json)),
@@ -157,6 +155,7 @@ function make_gui_observables(;
         "cm_axial_note" => Observable(""),
         "cm_struct_mode" => Observable(1.0),
         "cm_struct_path" => Observable(""),
+        "cm_struct_frame_paths_json" => Observable("[]"),
         "cm_f_prime" => Observable(""),
         "cm_note" => Observable("display only — interpolated for drawing; no criterion"),
     )
@@ -188,9 +187,10 @@ end
     run_validation_gui!(obs, id)
 
 Run one registered case, write its PNG, and push results into Validation-tab Observables.
-Long cases may be called from a `@async` wrapper by the QML side.
+Long cases may be called from a `@async` wrapper by the QML side. `figure_dir` (tests) writes the
+PNG there instead of `docs/validation_reports/figures`.
 """
-function run_validation_gui!(obs::AbstractDict, id::AbstractString)
+function run_validation_gui!(obs::AbstractDict, id::AbstractString; figure_dir::Union{Nothing,AbstractString}=nothing)
     obs["val_status"][] = "Running $id…"
     obs["busy"][] = true
     try
@@ -200,7 +200,8 @@ function run_validation_gui!(obs::AbstractDict, id::AbstractString)
         obs["val_criterion"][] = _criterion_for(id)
         obs["val_info_json"][] = case_info_json(id; session_errors=_GUI_LAST_ERRORS)
         result = run_validation_case(id)
-        png = plot_case(result, case.plot_spec)
+        png = plot_case(result, case.plot_spec;
+                        path=figure_dir === nothing ? nothing : joinpath(figure_dir, "$(id).png"))
         src = validation_source_figure_path(id)
         # Clear then set so QML Image reloads even when the path string is unchanged.
         obs["val_plot_path"][] = ""
@@ -227,11 +228,11 @@ function run_validation_gui!(obs::AbstractDict, id::AbstractString)
 end
 
 """Run every runnable registered case sequentially (skips greyed)."""
-function run_all_validation_gui!(obs::AbstractDict)
+function run_all_validation_gui!(obs::AbstractDict; figure_dir::Union{Nothing,AbstractString}=nothing)
     n = 0
     for c in list_validation_cases()
         isempty(c.unavailable_reason) || continue
-        run_validation_gui!(obs, c.id)
+        run_validation_gui!(obs, c.id; figure_dir)
         n += 1
     end
     obs["val_status"][] = "Run all finished ($n runnable cases)."
@@ -249,6 +250,7 @@ function run_printed_outputs_gui!(obs::AbstractDict)
     obs["po_status"][] = "Running printed outputs…"
     try
         src = Symbol(String(obs["source"][]))
+        src === :aircraft || error(_GUI_SOURCE_MSG)
         blk = uppercase(String(obs["blocking"][])) == "R1" ? R1 : R2
         L = Float64(obs["L"][])
         a = Float64(obs["a"][])
@@ -280,19 +282,12 @@ function run_printed_outputs_gui!(obs::AbstractDict)
             source=src, blocking=blk,
             n_harmonics=nH, bpf_Hz=bpf,
             C_struc=Cs, η_n_bare=ηn, trim=trim,
-            use_synthetic=(src === :synthetic),
             ρ0=ρ0, c0=c0, ρ_ext=ρ_ext, ρ_int=ρ_int, c_ext=c_ext, c_int=c_int,
             L_c=L_c, d=d_cav,
             bands=bands_kw, η_r_band=ηr_kw, η_n_band=ηn_kw,
         )
-        result = if src === :aircraft
-            isfile(json_path) || error("aircraft JSON not found: $json_path")
-            run_pain_pipeline(; common..., aircraft_json=json_path)
-        elseif src === :e11
-            run_pain_pipeline(; common...)
-        else
-            run_pain_pipeline(; common...)
-        end
+        isfile(json_path) || error("aircraft JSON not found: $json_path")
+        result = run_pain_pipeline(; common..., aircraft_json=json_path)
         out = printed_outputs(result.inputs; bpf_Hz=bpf, n_harmonics=nH)
         obs["po_text"][] = format_printed_outputs_text(out)
         obs["po_json"][] = printed_outputs_gui_json(out)
@@ -372,10 +367,11 @@ function fill_cabin_modes_gui!(obs::AbstractDict)
         fuse = FuselageGeometry(test_article_length(), 0.508, inp.theta0_deg)
         st = structural_modes_from_table_d1(; L=fuse.L, a=fuse.a,
                                             theta0_deg=fuse.theta0_deg).modes[st_idx]
-        sdisp = structural_mode_display(st, fuse)
-        spath = joinpath(cache, "struct_$(lpad(st_idx, 2, '0')).png")
-        render_structural_mode_png(spath, sdisp)
-        obs["cm_struct_path"][] = spath
+        # Phase 63: the structural mode animates with the acoustic frames (same frame count and timer)
+        sfr = structural_mode_frames(st, fuse; nframes=nframes)
+        spaths = render_structural_frame_pngs(joinpath(cache, "frames_s$(st_idx)"), sfr; prefix="s")
+        obs["cm_struct_frame_paths_json"][] = JSON3.write(spaths)
+        obs["cm_struct_path"][] = spaths[1]
         cd = coupling_display(cy.modes[mode + 1], st, fuse; q=q)
         obs["cm_f_prime"][] = "f′(n=$(cd.acoustic_index), r=$(cd.structural_index), q=$q) = " *
             string(round(cd.f_prime; digits=6))
@@ -402,6 +398,7 @@ function run_pain_gui!(obs::AbstractDict)
     obs["status"][] = "Running…"
     try
         src = Symbol(String(obs["source"][]))
+        src === :aircraft || error(_GUI_SOURCE_MSG)
         blk = uppercase(String(obs["blocking"][])) == "R1" ? R1 : R2
         L = Float64(obs["L"][])
         a = Float64(obs["a"][])
@@ -433,17 +430,12 @@ function run_pain_gui!(obs::AbstractDict)
             source=src, blocking=blk,
             n_harmonics=nH, bpf_Hz=bpf,
             C_struc=Cs, η_n_bare=ηn, trim=trim,
-            use_synthetic=(src === :synthetic),
             ρ0=ρ0, c0=c0, ρ_ext=ρ_ext, ρ_int=ρ_int, c_ext=c_ext, c_int=c_int,
             L_c=L_c, d=d_cav,
             bands=bands_kw, η_r_band=ηr_kw, η_n_band=ηn_kw,
         )
-        result = if src === :aircraft
-            isfile(json_path) || error("aircraft JSON not found: $json_path")
-            run_pain_pipeline(; common..., aircraft_json=json_path)
-        else
-            run_pain_pipeline(; common...)
-        end
+        isfile(json_path) || error("aircraft JSON not found: $json_path")
+        result = run_pain_pipeline(; common..., aircraft_json=json_path)
 
         tag = validity_for_source(result.source)
         spec = result.spectrum
@@ -459,25 +451,16 @@ function run_pain_gui!(obs::AbstractDict)
         sil = sil_from_third_octave(spec.third_octave_SPL_dB)
         obs["sil_text"][] = "SIL=$(round(sil; digits=1)) dB"
 
-        if result.source === :e11
-            t1 = evaluate_T1(spec)
-            t2 = evaluate_T2(spec)
-            obs["t1_text"][] = _format_records(t1)
-            obs["t2_text"][] = _format_records(t2)
-            n1 = count(r -> r.result == "PASS", t1)
-            n2 = count(r -> r.result == "PASS", t2)
-            obs["status"][] = "Done ($tag). T1 $n1/$(length(t1)) PASS · T2 $n2/$(length(t2)) PASS"
-        else
-            obs["t1_text"][] = "(T1/T2 gates apply to source=e11 only)"
-            obs["t2_text"][] = "(T1/T2 gates apply to source=e11 only)"
-            st = "Done ($tag). source=$(result.source)"
-            if hasproperty(result, :provenance)
-                labels = provenance_header_labels(result.provenance)
-                !isempty(labels.uses_defaults) && (st *= " — " * labels.uses_defaults)
-                !isempty(labels.nasa_article) && (st *= " — " * labels.nasa_article)
-            end
-            obs["status"][] = st
+        # T1/T2 compare the NASA test article with E-16 / E-9: Validation-tab cases, not this run
+        obs["t1_text"][] = "(T1/T2 are Validation-tab cases on the NASA test article)"
+        obs["t2_text"][] = "(T1/T2 are Validation-tab cases on the NASA test article)"
+        st = "Done ($tag). source=$(result.source)"
+        if hasproperty(result, :provenance)
+            labels = provenance_header_labels(result.provenance)
+            !isempty(labels.uses_defaults) && (st *= " — " * labels.uses_defaults)
+            !isempty(labels.nasa_article) && (st *= " — " * labels.nasa_article)
         end
+        obs["status"][] = st
         return true
     catch e
         obs["status"][] = "Error: $(sprint(showerror, e))"

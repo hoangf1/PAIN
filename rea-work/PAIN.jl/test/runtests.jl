@@ -15,6 +15,7 @@ if !isdefined(@__MODULE__, :_run_if)
     const _TEST_FILTER = String[]
     const _TESTSETS_RAN = String[]
     const _TESTSETS_SKIPPED = String[]
+    const _TESTSETS_FAILED = String[]   # a failing testset no longer stops the suite (2026-10-23); listed and re-thrown at the end
     const TEST_OUT = mktempdir()
     # Pre-existing dirty tracked docs/data paths (repo-relative → content hash) at suite start.
     const _DOCS_DATA_BASELINE = Dict{String,String}()
@@ -32,8 +33,13 @@ if !isdefined(@__MODULE__, :_run_if)
         if _want_testset(title)
             push!(_TESTSETS_RAN, title)
             t0 = time()
-            @testset "$title" begin
-                f()
+            try
+                @testset "$title" begin
+                    f()
+                end
+            catch e
+                e isa Test.TestSetException || rethrow()
+                push!(_TESTSETS_FAILED, title)
             end
             dt = time() - t0
             println("RAN: ", title, " (", round(dt; digits=2), " s)")
@@ -2718,10 +2724,12 @@ _run_if("Validation case registry (34d)") do
     # regression at L = 1.83 m (I-22, 2026-10-22, post-hoc; earlier 1.803 m: see length_sensitivity.md)
     # Expected from length_sensitivity @ 1.83: 85.90, 78.35, 79.82; re-recorded 2026-10-23 after the
     # Phase 44 code-on-code fix of Eq. (83) (η_r'' with the bare f'): 85.93, 78.32, 79.57; and after the
-    # Phase 44f floor-term sign (2026-10-23, post-hoc): 89.03, 81.24, 77.06
-    @test rr.table[1].computed ≈ 89.03 atol=0.01
-    @test rr.table[2].computed ≈ 81.24 atol=0.01
-    @test rr.table[3].computed ≈ 77.06 atol=0.01
+    # Phase 44f floor-term sign (2026-10-23, post-hoc): 89.03, 81.24, 77.06; and after the Phase 65
+    # grid axial correction 2026-10-23 (code vs User Manual p. 9 / App. E p. E-8: z_k = z_p − x₃,
+    # z_p = 0.662 m; not a fit): 88.20, 80.43, 78.21
+    @test rr.table[1].computed ≈ 88.20 atol=0.01
+    @test rr.table[2].computed ≈ 80.43 atol=0.01
+    @test rr.table[3].computed ≈ 78.21 atol=0.01
     png = plot_case(r1, VALIDATION_CASES["CYL2D_C1"].plot_spec;
                     path=joinpath(TEST_OUT, "CYL2D_C1.png"))
     @test isfile(png)
@@ -3522,6 +3530,9 @@ if isempty(_TEST_FILTER)
 else
     println("Filter: ", join(ARGS, ", "))
 end
+# Phase 64: one unit-test file per source module (test/unit), each its own top-level testset
+include(joinpath(@__DIR__, "unit", "runtests_unit.jl"))
+
 println("Ran (", length(_TESTSETS_RAN), "):")
 for t in _TESTSETS_RAN
     println("  + ", t)
@@ -3529,4 +3540,11 @@ end
 println("Skipped (", length(_TESTSETS_SKIPPED), "):")
 for t in _TESTSETS_SKIPPED
     println("  - ", t)
+end
+if !isempty(_TESTSETS_FAILED)
+    println("FAILED (", length(_TESTSETS_FAILED), "):")
+    for t in _TESTSETS_FAILED
+        println("  ! ", t)
+    end
+    error("$(length(_TESTSETS_FAILED)) testset(s) failed: " * join(_TESTSETS_FAILED, "; "))
 end

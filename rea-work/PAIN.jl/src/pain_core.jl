@@ -741,7 +741,7 @@ function normalize_band_card_inputs(bands, η_r_band, η_n_band)
     return bands_n, ηr, ηn
 end
 
-_η_key_hz(k) = k isa Real ? float(k) : float(String(k))
+_η_key_hz(k) = k isa Real ? float(k) : parse(Float64, String(k))   # JSON card keys arrive as strings
 
 function _normalize_η_dict(η, bands_n; label::AbstractString)
     η === nothing && return nothing

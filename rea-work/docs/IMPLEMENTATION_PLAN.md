@@ -373,6 +373,12 @@ Not blockers (recorded so nobody stops on them): BBN tip geometry beyond 40 in. 
 | Q37 | **Phase 59 — Phase 51 run: Sharp sound bridges from NASA CR-172490** (§8g) | option + cases | Q29 | **done 2026-10-23**: 59a not met (3/13), 59b met, 59c–e not met; the bridges close about 7 dB of about 30 |
 | Q38 | **Phase 60 — structural modes above Table D-1 from the App. D solver** (§8g) | input extension + re-runs | Q34 | **closed 2026-10-23**: 60a not met (mode count inconsistent), not adopted |
 | Q39 | **Phase 61 — reproduce NASA's CR-3813 printed outputs with NASA's pre-correction program form** (§8h) | option + cases | Q37 | **closed 2026-10-23**: the floor sign does not reproduce CR-3813's runs (1/3, 1/4, 1/4); the differences are not explained by the documents |
+| Q40 | **Phase 62 — a proving case with its own figure for every validation-map block** (§8i) | cases + §2.13 | Q39 | **done 2026-10-23/24**: 12 cases, 9 met; `BLK_GAIN_MAP`, `MRP_SHAPE_NORM`, `CYL2D_WEYL` not met (reasons recorded); every block has a case with a figure (unit test) |
+| Q41 | **Phase 63 — the structural-modes animation in the GUI works** (§8i) | GUI check | Q40 | **done 2026-10-24**: structural frames step with the acoustic frames; offscreen smokes pass |
+| Q42 | **Phase 64 — a unit test for every function, in `test/unit/`** (§8i) | tests | Q41 | **done 2026-10-24**: `test/unit/` 25 files, completeness test passes; 8 code defects found and fixed (incl. the F1A_GUTIN reference) |
+| Q43 | **Phase 65 — grid axial direction and z_p against the User Manual and App. E** (§8i; found by Phase 62 input QA) | `src/` fix + re-records | Q40 | **done 2026-10-23/24**: z_k = z_p − x₃, z_p = 0.662 m; 12 cases' numbers re-recorded, no verdict changed |
+| Q44 | **Phase 66 — further code checks of BEMT and F1A** (§8j) | cases + tests | Q42 | **proposed 2026-10-24, not started** (author to approve); criteria dated 2026-10-24 |
+| Q45 | **Aircraft working example cabin length** (`aircraft_scale_hartzell_cabin_full.json`: a = 1.32 m, assumed L = 1.83 m, z_p = 0.90 m) | input [AUTHOR] | Q43 | **open 2026-10-24**: the Manual grid spans 3.45 m for a = 1.32 m, so 80 of 160 points lie off the assumed cabin; `grid_points` warns. Needs the aircraft's cabin length and propeller station; affects AC_CABIN_DEMO, the Phase 31 band, LOUDEST_PT aircraft |
 | Q23 | **Phase 45 — T2's high-frequency path on the TP-1964 bare cylinder** (pre-registered 2026-10-23 before any run; §8c) | `hf_broadband.jl` via `PainInputs`, new case | Q21 | **done 2026-10-23**: not met 9/18; Eq. (19) bands 4/4 within ±2.5 dB |
 | Q22 | **q = 0 cabin modes against CR-172428 App. B** (closed 2026-10-23, Phase 54: not explained by the documents) (after 44f). On NASA's printed pairs at 5000 rpm we agree within 0–6 dB, most within 1 dB. But our largest contributors have axially uniform (q = 0) cabin modes, e.g. (0,1) × mode 8 (5.6 Pa² against NASA's 4000 rpm H1 total of 0.59), and none of NASA's 25 printed top pairs has q = 0. Diagnostic only, not adopted: with q = 0 excluded, R172428_CODE would give 8/9 within ±3 dB. CR-3813 Eq. (57) and its Ref. [3] (CR-159363 Eq. 25, downloaded 2026-10-23) both give f₀M = 2/(Mπ) ≠ 0, so the documents do not explain NASA's output; no change without a documentary basis | `pain_core.jl` coupling, Ψ_G of antisymmetric modes | Q21 | open |
 
@@ -446,6 +452,25 @@ Moved to §11. Summary: base H1–H3 = 82.73, 75.73, 77.05 dB (= 18b-r); H3 top 
 ## 8c. Phase 45 *(done 2026-10-23; moved to the bottom of this file on 2026-10-23; section number kept)*
 
 ## 8d–8h. Phases 46–61 *(all done or closed 2026-10-23; moved to the bottom of this file on 2026-10-23; section numbers kept)*
+
+## 8i. Phases 62–65 *(done 2026-10-23/24; moved to the bottom of this file on 2026-10-24; section number kept)*
+
+## 8j. Phase 66: further code checks of BEMT and F1A *(proposed 2026-10-24, not started; author: "can you figure out other ways to verify bemt and f1a"; criteria dated 2026-10-24, before any of these checks is written or run; none uses measured data)*
+
+Existing checks: `BEMT_HAND` (linear lift, c_d = 0, tip loss off), `F1A_GUTIN` (rotor-plane H1), `F1A_INDEP` (own F1A vs AcousticAnalogies on the same loads). Done in Phase 64 as unit tests (not repeated here): steady loading gives no harmonic on the rotor axis (≤ 1e-3 of the in-plane level); in the rotor plane only the torque radiates (½ torque → ½ amplitude, 2× thrust → no change, within 2 %); the independent F1A of a single-radius source equals Gutin's closed form within 0.03 % — this found that the old F1A_GUTIN reference was low by √2·M (fixed 2026-10-24, F1A_GUTIN re-run Δ = 0.03 dB).
+
+| Step | What | Pass criterion (fixed 2026-10-24) |
+|------|------|-----------------------------------|
+| 66a | BEMT section residual: at every station, momentum thrust/torque 4πrρV²(1+a)aF dr and 4πr³ρVΩ(1+a)a′F dr against the blade-element values from the converged φ | relative difference ≤ 1e-8 at every station, three operating points |
+| 66b | Hand BEM with tip loss on, c_d ≠ 0 and a nonlinear c_l(α) (bisection on φ, no CCBlade code) | T and Q within 1 % of the wrapper |
+| 66c | Integrals and bounds: B∫N′dr = T, P = ΩQ; efficiency below the Froude ideal η_i(C_T); halving the station spacing changes T by < 0.5 % | all three hold on the Hartzell and Report 996 blades |
+| 66d | Similarity: with a Re- and M-independent polar, C_T and C_P at fixed J unchanged when rpm and V scale together | within 1e-6 relative |
+| 66e | Lowson rotating point force: one compact rotating dipole against the analytic near- and far-field harmonic at five observer angles | within 0.5 dB and 5° |
+| 66f | Garrick–Watkins forward-flight tone (Gutin extended to flight Mach M_x) against F1A at M_x = 0.1, 0.2 and three angles | within 1 dB |
+| 66g | Hanson frequency-domain far field (loading and thickness) on the same blade | within 1 dB for H1–H3 in the far field; thickness term separately |
+| 66h | Exact properties: only multiples of BΩ present; amplitude ∝ B for identical blades (fixed T per blade); 1/r far field; convergence in source time step and blade sections | each within 1 % (convergence: < 0.1 dB between successive halvings) |
+
+Each step becomes a V-UNIT case on the `A_LOADS` / `A_AMP` blocks with its own figure, or a unit test where no figure helps.
 
 ## 9. Reference appendices
 
@@ -2205,3 +2230,59 @@ The label is "extension beyond CR-3813 (Sharp, CR-172490)". A pass supports PAIN
 - **61c `E21_PRE`: not met, 1/4.**
 - **61d `E22_HF_CODE`: not met, 1/4.** Code − NASA is +7.7/+2.1/−6.5/−5.6 dB; NASA − measured is +32.5…+43.5 dB.
 - **Closed** as differences not explained by the documents. The T2 limitation statement is reworded to "within the stated code-to-NASA difference".
+
+## 8i. Phases 62–65: map coverage, the mode animation, unit tests for every function, grid axial direction *(done 2026-10-23/24; moved to the bottom 2026-10-24; planned 2026-10-23; author: "go back to validation map and ensure each block shows a test with its own figure or display showing what its proving and then for the structural modes tab the animation is working do a full review and create unit tests for each function in a new directory"; criteria dated 2026-10-23, before any run)*
+
+### Phase 65 — Grid axial direction and z_p (found 2026-10-23 by the Phase 62 input QA; executed first)
+
+The code builds the grid with z_k = z_p + (πa/18)(k_p − k) and uses z_p = 0.90 m for the CR-3813 article. The documents say otherwise:
+- **User Manual pp. 8–9:** x₃ = (πa/18)(k_p − k), and "(πa/18)·[k_p − 1] cannot exceed z_p". So z₁ = z_p − x₃ ≥ 0 and z_k = z_p − x₃.
+- **CR-3813 App. E p. E-8:** z_k = z_p − x₃ᵏ and z_p = 0.662 m.
+- **CR-172428 Table 6:** z_p = 0.662 m for the same article.
+
+The code's grid is therefore mirrored about the propeller plane. Its z_p has no recorded source; it dates from the initial commit. With z = z_p + x₃ and 0.662 m the grid would leave the cylinder, which may be why 0.90 m was used.
+
+| Step | What | Pass criterion (fixed 2026-10-23) |
+|------|------|-----------------------------------|
+| 65a | `grid_points`: z = z_p − x₃. Test-article z_p = 0.662 m in `run_pain_pipeline`, the GUI default, the aircraft NASA-default table and the E-11 / E-12 / NR / F1A test-article cases | V-UNIT: grid z by hand from the Manual relation within 1e-12; every grid point inside 0 ≤ z ≤ L for the test article |
+| 65b | Re-run the full suite. Every recorded value that changes is re-recorded with the label "grid axial correction 2026-10-23 (code vs User Manual p. 9 / App. E p. E-8; not a fit)", and its old and new values are listed in the report | each changed verdict and number listed; no criterion changes |
+
+### Phase 62 — A proving case for each map block that has none
+
+On 2026-10-23, 12 of the 30 blocks of the `total` map had no case. Each gets one, with its own figure and a criterion fixed now:
+
+| Block | Case | What it proves (figure) | Pass criterion (fixed 2026-10-23) |
+|-------|------|--------------------------|-----------------------------------|
+| X_F1A (F1A source) | `F1A_PLANE_PEAK` | Aircraft example (`examples/aircraft_scale_hartzell.json`), F1A free field on the 16×10 grid; H1 amplitude map over (k, ℓ) | the H1 maximum lies on ℓ = 1 within ±1 station of the propeller plane k_p |
+| X_FF (free-field p) | `FF_E11_MAP` | The e11 free-field grid, H1–H3 maps | every off-line amplitude ≤ the ℓ = 1 amplitude at the same k (the field decays away from the propeller line) |
+| X_SRC (source select) | `SRC_PASSTHROUGH` | For `:e11` and `:synthetic`, the selected source's blocked grid against the `PainInputs` the cabin receives; ℓ = 1 profiles | identical (difference 0) for every point and harmonic |
+| X_BLK_OUT (blocked pressures) | `BLK_GAIN_MAP` | Blocked/free gain ΔL over the grid against the incidence angle γ, for R1 and R2 | 0 ≤ ΔL ≤ 20 log₁₀ 2 (pressure doubling) everywhere for both variants |
+| X_MRP_IN (structure inputs) | `MRP_INPUT_QA` | Code constants of the test article against CR-3813 App. E printed values (new transcription with page numbers) | every value equal to the printed value (to its printed digits) |
+| X_MRP_OUT (modes f_r, ψ_r) | `MRP_SHAPE_NORM` | The 32 Table D-1 shapes on a 2° × 40-station grid; first six circumferential shapes | max \|ψ\| ≤ 1 + 1e-6 for every mode (max-normalized, the basis of \|f′\| ≤ 1) |
+| X_CYL_IN (cabin geometry) | `CABIN_GEOM_HAND` | Cross-section outline; V, S, coupling area and floor width by hand | each within 1e-12 relative of the code |
+| X_CYL_OUT (modes Φ_G) | `CYL2D_WEYL` | Cumulative 3-D cabin mode count N(f) against Weyl's law N ≈ 4πVf³/(3c³) | within 25 % for 500–1500 Hz |
+| X_TRIM_IN (trim stack) | `TRIM_INPUT_QA` | The Phase III stack against CR-3813 p. E-8 (layers, thicknesses, facing and septum masses) | every value equal to the printed value |
+| X_TRIM_OUT (τ, η) | `TRIM_PASSIVITY` | τ_t, ξ and η_n of the Phase III trim, 100–6300 Hz | passive: ξ ≥ 0 and η_n ≥ 0 at every band, 0 < τ_t |
+| X_PAIN_IN (cabin inputs) | `PAIN_INPUT_ECHO` | The resolved T1 inputs against their documented formulas (ΔA = (πa/18)², m_wall = ρ t_eq, L_c, c₀) | each within 1e-12 relative |
+| A_CABIN (aircraft cabin) | `AC_CABIN_DEMO` | Aircraft cabin example (`examples/aircraft_scale_hartzell_cabin_full.json`); interior spectrum | the overall dB(A) equals the energy sum of the A-weighted bands within 1e-9 dB |
+
+### Phase 63 — The structural-modes animation works
+
+| Step | What | Pass criterion (fixed 2026-10-23) |
+|------|------|-----------------------------------|
+| 63a | The GUI's cabin/structural mode animation: frames from `mode_animation_frames` and the structural display for every mode the tab offers | every frame finite; consecutive frames differ (the animation moves); the period returns to the first frame |
+| 63b | Offscreen GUI run (QT_QPA_PLATFORM=offscreen): open the tab and step the animation | no QML error; at least two distinct frame images captured |
+
+### Phase 64 — A unit test for every function
+
+| Step | What | Pass criterion (fixed 2026-10-23) |
+|------|------|-----------------------------------|
+| 64a | New directory `test/unit/`, one file per source module, included by `runtests.jl`. Each function gets a test against a hand value, a limit or an independent route (CLAUDE.md check 6: no test of a function against itself) | all pass |
+| 64b | A completeness test: every `function` / one-line method defined in the physics, numerics and GUI-model modules is named in `test/unit/`. Validation-case runners (`_run_*`, `_iso*_validation_cases`) are covered through `run_validation_case` and listed as such | the test fails if any function is neither tested nor listed |
+
+**Results (2026-10-23/24; report `docs/validation_reports/phase62_65_map_blocks_grid.md`).**
+- **65 done.** Grid z_k = z_p − x₃, z_p = 0.662 m. Full case snapshot regenerated and diffed: 12 cases changed numbers, no verdict changed (T1 86.59, 80.02, 76.39 dB; REPRO_18b 88.20, 80.43, 78.21 dB). Open item Q45 (aircraft example cabin length).
+- **62 done.** 12 cases; 9 met. Not met: `BLK_GAIN_MAP` (R1 negative at γ > 90°; R2 default within the bound), `MRP_SHAPE_NORM` 19/32 (truncated Table D-1 shapes peak up to 1.245), `CYL2D_WEYL` 0/5 (post-hoc diagnosis: App. C grid dispersion at NY = 10). Code review 2026-10-24: two rows that passed by construction replaced (floor width; m_wall), AC_CABIN_DEMO info rows removed from the count, residual units fixed.
+- **63 done.** Structural frames animate with the acoustic frames; unit tests and both offscreen smokes pass.
+- **64 done.** `test/unit/` (25 files), every `src/` function named; 8 code defects found and fixed: F1A_GUTIN reference (low by √2·M; re-run Δ = 0.03 dB), `PropellerPlacement` ±1, string η card keys, Dict cabins dropping symbol/bool fields, `tone_expected_value` empty-band fields, NR dummy grid axes, `_iso_simpson` Float32 literal, Phase 62 failing-case reasons. GUI Run tab now aircraft only (author: E-11 is for PAIN verification).
+

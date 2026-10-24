@@ -54,6 +54,7 @@ include("validation_case_iso48.jl")   # phase 48 exterior broadband from RP-1218
 include("validation_case_iso50.jl")   # phase 50 propeller-field coupling for NR
 include("validation_case_iso59.jl")   # phase 59 Sharp sound bridges
 include("validation_case_iso61.jl")   # phase 61 CR-3813 reproduction with the pre-correction form
+include("validation_case_iso62.jl")   # phase 62 a proving case for every map block
 include("validation_case_extras.jl")
 include("validation_map.jl")
 include("validation_plots.jl")
@@ -74,6 +75,7 @@ export
     mode_animation_frames, render_mode_animation, render_mode_frame_pngs, axial_factor,
     FIG_C3_PRINTED_ROWS, CYL2D_C1_DISPLAY_INPUTS, cyl2d_c1_for_display, mode_animation_cache_dir,
     structural_mode_display, coupling_display, render_structural_mode_png,
+    structural_mode_frames, render_structural_frame_pngs,
     fill_cabin_modes_gui!,
     scale_acoustic_freq, acoustic_boundary_value,
     structural_modes, structural_modes_from_table_d1, fit_mrp_to_table_d1, match_ritz_to_table_d1,
@@ -187,7 +189,7 @@ function run_pain_pipeline(;
         theta0_deg::Float64=56.6,
         r_p::Float64=0.965,  # a+0.457 User Manual grid; tip clearance ≈0.076 m @ Rtip=0.381
         phi_p_deg::Float64=90.0,
-        z_p::Float64=0.90,
+        z_p::Float64=0.662,  # CR-3813 App. E p. E-8 / CR-172428 Table 6 (Phase 65; was 0.90 m)
         rotation_direction::Int=1,
         aircraft_json::Union{Nothing,String}=nothing,
         source::Symbol=:aircraft,

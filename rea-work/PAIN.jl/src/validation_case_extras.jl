@@ -36,7 +36,7 @@ function _run_e12_block()
     predA = _e12_readcurve(joinpath(data, "e12_predicted_A.csv"))
     predB = _e12_readcurve(joinpath(data, "e12_predicted_B.csv"))
     fuse = FuselageGeometry(test_article_length(), 0.508, 56.6)
-    prop = PropellerPlacement(0.965, 90.0, 0.90)
+    prop = PropellerPlacement(0.965, 90.0, 0.662)
     pts = [p for p in grid_points(fuse, prop, GridSpec()) if p.ell == 1]
     D = 0.762
     X3D = Float64[p.x3 / D for p in pts]
@@ -101,7 +101,7 @@ function _run_e11_freefield()
     k = Float64.(A[:k])
     # X3/D from grid k index on ℓ=1 (same geometry as e11 path)
     fuse = FuselageGeometry(test_article_length(), 0.508, 56.6)
-    prop = PropellerPlacement(0.965, 90.0, 0.90)
+    prop = PropellerPlacement(0.965, 90.0, 0.662)
     line = [p for p in grid_points(fuse, prop, GridSpec()) if p.ell == 1]
     D = 0.762
     x3d = Dict(Int(round(p.k)) => p.x3 / D for p in line)
@@ -189,7 +189,7 @@ function _run_gext_bound()
     function e11_pipe(; falloff_exponent=1.0, delay_scale=1.0)
         L = test_article_length()
         fuse = FuselageGeometry(L, 0.508, 56.6)
-        prop = PropellerPlacement(0.965, 90.0, 0.90)
+        prop = PropellerPlacement(0.965, 90.0, 0.662)
         spec = GridSpec()
         amp = _read_csv_numeric(paths.A)
         ph = _read_csv_numeric(paths.phases)
@@ -1618,7 +1618,7 @@ function _run_ut_grid()
     L = test_article_length()
     a = 0.508
     fuse = FuselageGeometry(L, a, 56.6)
-    prop = PropellerPlacement(0.965, 90.0, 0.90)  # r_p [m], φ_p [deg], z_p [m]
+    prop = PropellerPlacement(0.965, 90.0, 0.662)  # r_p [m], φ_p [deg], z_p [m]
     spec = GridSpec()
     pts = grid_points(fuse, prop, spec)
     rp, zp, phi_p = prop.r_p, prop.z_p, deg2rad(prop.phi_p_deg)
@@ -1635,8 +1635,10 @@ function _run_ut_grid()
         x1_ref = (rp - a) + a * (1 - cos(alpha))
         x2_ref = -a * sin(alpha)   # rotation_direction = +1 (Manual Fig. 3)
         x3_ref = (π * a / 18) * (kp - k)
+        z_ref = zp - x3_ref                 # User Manual pp. 8–9: z_k = z_p − x₃ (Phase 65)
         theta_ref = rad2deg(phi_p + alpha)
         for (qty, ref, got, xplot) in (
+            ("z k=$k ℓ=$ell", z_ref, p.z, Float64(k)),
             ("x1 k=$k ℓ=$ell", x1_ref, p.x1, Float64(k)),
             ("x2 k=$k ℓ=$ell", x2_ref, p.x2, Float64(k)),
             ("x3 k=$k ℓ=$ell", x3_ref, p.x3, Float64(k)),
@@ -2430,6 +2432,7 @@ function _finish_validation_registry!()
     append!(cases, _iso50_validation_cases())  # phase 50 propeller-field coupling for NR
     append!(cases, _iso59_validation_cases())  # phase 59 Sharp sound bridges
     append!(cases, _iso61_validation_cases())  # phase 61 CR-3813 reproduction
+    append!(cases, _iso62_validation_cases())  # phase 62 map-block cases
 
     # E21_E22_NR (38a), T2_EQ19 (38c), E18_TONES (38d), E15_STRUCT_LOSS (38e); no greyed placeholders.
     push!(cases, ValidationCase(
@@ -2524,6 +2527,8 @@ function _finish_validation_registry!()
         "NR_PROP_TP2444", "T2_MEAS_EXT", "BPM_RP1218", "PROP_BB_FIG14", "PROP_BB_FIG17", "T2_PRED_BB", "NR_PROP_TP2444_PF",
         "SHARP_PANEL_D", "NR_PROP_TP2444_BR", "E22_BR", "T2_MEAS_EXT_BR",
         "REPRO_18b_PRE", "E21_PRE", "E22_HF_CODE",
+        "F1A_PLANE_PEAK", "FF_E11_MAP", "SRC_PASSTHROUGH", "BLK_GAIN_MAP", "MRP_INPUT_QA", "MRP_SHAPE_NORM",
+        "CABIN_GEOM_HAND", "CYL2D_WEYL", "TRIM_INPUT_QA", "TRIM_PASSIVITY", "PAIN_INPUT_ECHO", "AC_CABIN_DEMO",
         "T1_F1A_FILL", "T1_F1A_MEAS_DAMP",
         "R172428_CODE", "R172428_EXP", "R172428_ETA", "R172428_TRIM", "R172428_PAIRS",
         "POLAR_R996", "POLAR_PER",

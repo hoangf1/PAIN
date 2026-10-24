@@ -105,8 +105,8 @@ function _iso_simpson(f, a::Float64, b::Float64; tol::Float64=1e-10, max_depth::
         m = 0.5 * (a + b)
         f1 = f(0.5 * (a + m))
         f2 = f(0.5 * (m + b))
-        i1 = (h / 6) * (fa + 4fm + fb)
-        i2 = (h / 12) * (fa + 4f1 + 2fm + 4f2 + fb)
+        i1 = (h / 6) * (fa + 4 * fm + fb)
+        i2 = (h / 12) * (fa + 4 * f1 + 2 * fm + 4 * f2 + fb)   # not `4f1`: that is the Float32 literal 40
         if depth <= 0 || abs(i2 - i1) < 15 * tol
             return i2 + (i2 - i1) / 15
         end
@@ -168,7 +168,7 @@ end
 
 function _run_iso_blocking()
     fuse = FuselageGeometry(test_article_length(), 0.508, 56.6)
-    prop = PropellerPlacement(0.965, 90.0, 0.90)
+    prop = PropellerPlacement(0.965, 90.0, 0.662)
     pts = grid_points(fuse, prop, GridSpec())
     nH = 3
     amps0 = Array{Float64}(undef, 16, 10, nH)
@@ -260,7 +260,7 @@ function _run_iso_ff_conv()
     # ℓ = 1 line of freefield_from_e11_csv vs hand conversion of the CSV (no GEXT off-line)
     paths = default_e11_paths()
     fuse = FuselageGeometry(test_article_length(), 0.508, 56.6)
-    prop = PropellerPlacement(0.965, 90.0, 0.90)
+    prop = PropellerPlacement(0.965, 90.0, 0.662)
     # Load without ANOPP clip so the CSV hand conversion matches the loader's ℓ=1 values
     # Use mean of A (same file the loader reads). Match freefield_from_e11_csv with anopp for H≥3.
     grid = freefield_from_e11_csv(paths.A, paths.phases, fuse, prop, GridSpec();
@@ -321,7 +321,7 @@ end
 
 function _run_iso_gext_line()
     fuse = FuselageGeometry(test_article_length(), 0.508, 56.6)
-    prop = PropellerPlacement(0.965, 90.0, 0.90)
+    prop = PropellerPlacement(0.965, 90.0, 0.662)
     pts = grid_points(fuse, prop, GridSpec())
     nH = 3
     line_amps = [0.5 + 0.03 * k + 0.1 * H for k in 1:16, H in 1:nH]
@@ -385,7 +385,7 @@ end
 
 function _run_iso_table8()
     fuse = FuselageGeometry(test_article_length(), 0.508, 56.6)
-    prop = PropellerPlacement(0.965, 90.0, 0.90)
+    prop = PropellerPlacement(0.965, 90.0, 0.662)
     pts = grid_points(fuse, prop, GridSpec())
     t8path = _data_path("cr3813", "anopp_table8_spl_dB.csv")
     anopp = _read_csv_numeric(t8path)
@@ -556,7 +556,7 @@ end
 function _run_iso_modal_density()
     sm = structural_modes_from_table_d1(; n_keep=32)
     fuse = FuselageGeometry(test_article_length(), 0.508, 56.6)
-    prop = PropellerPlacement(0.965, 90.0, 0.90)
+    prop = PropellerPlacement(0.965, 90.0, 0.662)
     cy = cyl2d_modes(56.6; n_modes=5, NY=10, c0=340.0)
     pts = grid_points(fuse, prop, GridSpec())
     # Pressure shaped like the first structural mode so ⟨j²⟩ sits above the 1e-6 clamp floor
@@ -664,7 +664,7 @@ end
 
 function _run_iso_bb_band()
     fuse = FuselageGeometry(test_article_length(), 0.508, 56.6)
-    prop = PropellerPlacement(0.965, 90.0, 0.90)
+    prop = PropellerPlacement(0.965, 90.0, 0.662)
     sm = structural_modes_from_table_d1(; n_keep=8)
     cy = cyl2d_modes(56.6; n_modes=3, NY=10, c0=340.0)
     pts = grid_points(fuse, prop, GridSpec())

@@ -12,7 +12,7 @@ const NASA_DEFAULTS = (
     theta0_deg = 56.6,
     r_p_m = 0.965,           # a + 0.457 User Manual grid
     phi_p_deg = 90.0,
-    z_p_m = 0.90,
+    z_p_m = 0.662,
     η_n_bare = 0.05,         # aircraft register default (register g)
     C_struc = 3.0,
     NY = 10,
@@ -152,20 +152,18 @@ end
 function _get_tagged_symbol(obj, keys::Tuple; name::AbstractString="", allowed=())
     obj === nothing && return nothing
     for k in keys
-        raw = _get(obj, k, nothing)
+        raw = _dict_get(obj, k, nothing)
         raw === nothing && continue
         tag = "assumed"
         val = raw
         if !(raw isa AbstractString || raw isa Symbol || raw isa Bool)
-            try
-                val = getproperty(raw, :value)
-                tag = lowercase(String(getproperty(raw, :tag)))
-                tag in PROVENANCE_TAGS ||
-                    error("aircraft JSON: unknown provenance tag \"$tag\" for $name")
-            catch e
-                e isa ErrorException && rethrow()
+            val = _dict_get(raw, :value, nothing)
+            t = _dict_get(raw, :tag, nothing)
+            (val === nothing || t === nothing) &&
                 error("aircraft JSON: $name must be a string or {\"value\":…, \"tag\":…}")
-            end
+            tag = lowercase(String(t))
+            tag in PROVENANCE_TAGS ||
+                error("aircraft JSON: unknown provenance tag \"$tag\" for $name")
         end
         if val isa Bool
             return (; value=val, tag)
@@ -239,10 +237,10 @@ function apply_aircraft_cabin_json(cfg, kw)
         return nothing
     end
 
-    cabin = _get(cfg, :cabin, nothing)
-    fuse_j = _get(cfg, :fuselage, nothing)
-    air_j = _get(cfg, :air, nothing)
-    pp_j = _get(cfg, :propeller_placement, nothing)
+    cabin = _dict_get(cfg, :cabin, nothing)
+    fuse_j = _dict_get(cfg, :fuselage, nothing)
+    air_j = _dict_get(cfg, :air, nothing)
+    pp_j = _dict_get(cfg, :propeller_placement, nothing)
 
     # Geometry — only `cabin.*` (avoids re-binding documentary fuselage.L_m in older JSONs)
     take!("L_m", _get_tagged(cabin, (:L_m, :L); name="L_m"), v -> (L = v))
@@ -328,7 +326,7 @@ function apply_aircraft_cabin_json(cfg, kw)
         push!(supplied, "structural_solver")
         push!(inputs, _input_row("structural_solver", String(structural_solver), sol.tag))
     else
-        ut = cabin === nothing ? nothing : _get(cabin, :use_table_d1, nothing)
+        ut = cabin === nothing ? nothing : _dict_get(cabin, :use_table_d1, nothing)
         if ut !== nothing
             use_table_d1 = ut isa Bool ? ut : Bool(ut)
             structural_solver = use_table_d1 ? :table_d1 : :ritz
@@ -345,7 +343,7 @@ function apply_aircraft_cabin_json(cfg, kw)
         push!(inputs, _input_row("broadband_model", String(broadband_model), bb.tag))
     end
 
-    ae = cabin === nothing ? nothing : _get(cabin, :allow_extrapolation, nothing)
+    ae = cabin === nothing ? nothing : _dict_get(cabin, :allow_extrapolation, nothing)
     if ae !== nothing
         allow_extrapolation = ae isa Bool ? ae : Bool(ae)
         push!(supplied, "allow_extrapolation")
@@ -361,8 +359,8 @@ function apply_aircraft_cabin_json(cfg, kw)
     end
 
     # trim: :auto|:bare|:phase3, or a stack object (30a) under cabin.trim / cabin.trim_stack
-    trim_raw = cabin === nothing ? nothing : _get(cabin, :trim, nothing)
-    trim_stack_raw = cabin === nothing ? nothing : _get(cabin, :trim_stack, nothing)
+    trim_raw = cabin === nothing ? nothing : _dict_get(cabin, :trim, nothing)
+    trim_stack_raw = cabin === nothing ? nothing : _dict_get(cabin, :trim_stack, nothing)
     if _looks_like_trim_stack(trim_raw)
         parsed_trim = parse_aircraft_trim_json(trim_raw; cabin_a=a, cabin_L=L,
                                                cabin_theta0_deg=theta0_deg)
@@ -399,7 +397,7 @@ function apply_aircraft_cabin_json(cfg, kw)
     end
 
     # App. D skin / stringer / frame / floor (30c) — cabin.* or cabin.structure.*
-    struct_j = cabin === nothing ? nothing : _get(cabin, :structure, nothing)
+    struct_j = cabin === nothing ? nothing : _dict_get(cabin, :structure, nothing)
     for spec in APPD_INPUT_SPECS
         parsed = _first(_get_tagged(cabin, spec.keys; name=spec.name),
                         _get_tagged(struct_j, spec.keys; name=spec.name))
@@ -413,9 +411,9 @@ function apply_aircraft_cabin_json(cfg, kw)
     end
 
     if bands === nothing
-        bj = _get(cfg, :bands_Hz, nothing)
-        bj === nothing && (bj = _get(cfg, :bands, nothing))
-        bj === nothing && cabin !== nothing && (bj = _get(cabin, :bands_Hz, nothing))
+        bj = _dict_get(cfg, :bands_Hz, nothing)
+        bj === nothing && (bj = _dict_get(cfg, :bands, nothing))
+        bj === nothing && cabin !== nothing && (bj = _dict_get(cabin, :bands_Hz, nothing))
         bands = bj
         if bands !== nothing
             push!(supplied, "bands_Hz")
@@ -423,18 +421,18 @@ function apply_aircraft_cabin_json(cfg, kw)
         end
     end
     if η_r_band === nothing
-        η_r_band = _get(cfg, :eta_r_band, nothing)
-        η_r_band === nothing && (η_r_band = _get(cfg, :η_r_band, nothing))
-        η_r_band === nothing && cabin !== nothing && (η_r_band = _get(cabin, :eta_r_band, nothing))
+        η_r_band = _dict_get(cfg, :eta_r_band, nothing)
+        η_r_band === nothing && (η_r_band = _dict_get(cfg, :η_r_band, nothing))
+        η_r_band === nothing && cabin !== nothing && (η_r_band = _dict_get(cabin, :eta_r_band, nothing))
         if η_r_band !== nothing
             push!(supplied, "eta_r_band")
             push!(inputs, _input_row("eta_r_band", "user", "assumed"))
         end
     end
     if η_n_band === nothing
-        η_n_band = _get(cfg, :eta_n_band, nothing)
-        η_n_band === nothing && (η_n_band = _get(cfg, :η_n_band, nothing))
-        η_n_band === nothing && cabin !== nothing && (η_n_band = _get(cabin, :eta_n_band, nothing))
+        η_n_band = _dict_get(cfg, :eta_n_band, nothing)
+        η_n_band === nothing && (η_n_band = _dict_get(cfg, :η_n_band, nothing))
+        η_n_band === nothing && cabin !== nothing && (η_n_band = _dict_get(cabin, :eta_n_band, nothing))
         if η_n_band !== nothing
             push!(supplied, "eta_n_band")
             push!(inputs, _input_row("eta_n_band", "user", "assumed"))
@@ -692,6 +690,9 @@ function build_appd_geometry(fuse::FuselageGeometry,
     )
 end
 
+# Reads `key` from a JSON3 object, NamedTuple or Dict (Symbol or String keys). Every cabin/config read
+# goes through it so a Dict-shaped config is applied in full (unit test 2026-10-24: `_get` alone dropped
+# Symbol/Bool fields of a Dict cabin while numeric fields were read).
 function _dict_get(obj, key::Symbol, default=nothing)
     v = _get(obj, key, nothing)
     v !== nothing && return v

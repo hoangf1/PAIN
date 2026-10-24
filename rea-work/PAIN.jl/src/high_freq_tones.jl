@@ -150,8 +150,9 @@ function tone_expected_value(inp::PainInputs, H::Int, ωH::Float64;
 
     # Empty band → no high-frequency contribution
     if N_n == 0 || N_r == 0 || !(isfinite(η̄_n) && isfinite(η̄_r) && η̄_n > 0 && η̄_r > 0)
-        return (; p2=0.0, p2_eq15=0.0, N_n, N_r, η̄_n, η̄_r,
-                E_g_n=NaN, E_g_r=NaN, n_n=0.0, n_r=0.0, Δω, τ_t, c_ω, use_pi_limit)
+        return (; p2=0.0, p2_eq15=0.0, p2_eq16=0.0, N_n, N_r, η̄_n, η̄_r,
+                E_g_n=NaN, E_g_r=NaN, n_n=0.0, n_r=0.0, Δω, τ_t, c_ω, use_pi_limit,
+                sum_r_15=0.0, sum_r_16=0.0)   # same fields as the non-empty return
     end
 
     E_g_n = use_pi_limit ? expected_g_pi(ωH, η̄_n, Δω) : expected_g_closed(ωH, η̄_n, Δω)

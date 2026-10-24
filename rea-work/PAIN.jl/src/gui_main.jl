@@ -206,6 +206,10 @@ function cabin_modes_step_frame_from_qml(delta)
         if 1 ≤ idx + 1 ≤ length(paths)
             obs["cm_frame_path"][] = paths[idx + 1]
         end
+        spaths = JSON3.read(String(obs["cm_struct_frame_paths_json"][]), Vector{String})
+        if 1 ≤ idx + 1 ≤ length(spaths)
+            obs["cm_struct_path"][] = spaths[idx + 1]    # Phase 63: structural animation in step
+        end
     catch
     end
     return nothing

@@ -215,7 +215,7 @@ end
 function build_testarticle_cache(; n_harmonics::Int=3, bpf_Hz::Float64=200.0,
                                   node_tols=(0.32, 0.40, 0.47))
     fuse = FuselageGeometry(test_article_length(), 0.508, 56.6)
-    prop = PropellerPlacement(0.965, 90.0, 0.90)
+    prop = PropellerPlacement(0.965, 90.0, 0.662)
     paths = default_e11_paths()
     nH = min(n_harmonics, 3)
     ff = freefield_from_e11_csv(paths.A, paths.phases, fuse, prop, GridSpec();
