@@ -1,0 +1,19 @@
+# NASA CR-172490 (May, Plotkin, Selden, Sharp 1985) Fig. 15, PDF p. 45 (printed 38): predicted transmission loss of Panel D,
+# curve "0 Pa" (no cavity depressurization, solid) and the mass-law line (dashed). Panel D (Fig. A-7): two 1.6 mm aluminium
+# skins, 82.6 mm apart, point spacers on support blocks; text p. 39: f0 = 142 Hz (normal incidence), dTL_M "on the order of 12 dB".
+# Digitized 2026-10-23 (Phase 59a): native page image, axes from the tick marks (x residual 5.7 px, y residual 0.09 dB);
+# ink runs in the band-centre column, read by eye (the solid curve, and the dashed mass law where it is separate).
+f_Hz,TL_0Pa_dB,mass_law_dB
+63,13.62,13.62
+80,15.64,15.64
+100,17.63,17.63
+125,19.42,19.42
+160,24.03,
+200,29.87,
+250,35.54,25.35
+315,37.47,27.25
+400,39.53,
+500,41.42,31.18
+630,43.39,33.13
+800,45.32,35.12
+1000,47.19,36.96

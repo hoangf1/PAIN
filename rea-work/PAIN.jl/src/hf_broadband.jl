@@ -213,7 +213,8 @@ with τ = τ_f + τ_R. NR_dB = 10 log10(ratio).
 function hf_pressure_ratio(inp::PainInputs, fc::Real;
                            c_ω::Real=C_OMEGA_THIRD_OCTAVE,
                            η_r_cap::Union{Nothing,Float64}=nothing,
-                           sparse_guard::Bool=false)
+                           sparse_guard::Bool=false,
+                           bridges::Bool=false)
     tc = hf_transmission_coeffs(inp, fc; c_ω, η_r_cap, sparse_guard)
     areas_t = hf_trim_areas(inp)
     A_t, A′ = areas_t.A_t, areas_t.A′
@@ -223,10 +224,13 @@ function hf_pressure_ratio(inp::PainInputs, fc::Real;
     τ_f, τ_R, τ = tc.τ_f, tc.τ_R, tc.τ
     η_rad = max(tc.losses.η_rad_ext, floatmin(Float64))
     num = ᾱ * S + (τ_f + τ_R * (tc.losses.η̄_r / η_rad)) * A′
-    den = τ_t * τ * A_t + τ * A′
+    # Phase 59 option (extension beyond CR-3813): Sharp sound-bridge path through the trimmed area,
+    # in parallel with the trim–wall series path τ_t τ (CR-172490 §2.3; `bridge_tau`)
+    τ_B = bridges && has_trim(inp) ? bridge_tau(inp, fc).τ_B : 0.0
+    den = (τ_t * τ + τ_B) * A_t + τ * A′
     ratio = den > 0 ? num / den : Inf
     NR = ratio > 0 && isfinite(ratio) ? 10 * log10(ratio) : Inf
-    return (; ratio, NR_dB=NR, τ_t, τ_f, τ_R, τ, A_t, A′, S, ᾱ, num, den, tc...)
+    return (; ratio, NR_dB=NR, τ_t, τ_f, τ_R, τ, τ_B, A_t, A′, S, ᾱ, num, den, tc...)
 end
 
 """
@@ -237,9 +241,10 @@ Interior band ⟨p_i²⟩ from blocked ⟨p_bl²⟩ via Eqs. (19)–(23):
 """
 function hf_broadband_band_p2(inp::PainInputs, fc::Real, p2_bl::Real;
                               c_ω::Real=C_OMEGA_THIRD_OCTAVE,
-                              η_r_cap::Union{Nothing,Float64}=nothing)
+                              η_r_cap::Union{Nothing,Float64}=nothing,
+                              bridges::Bool=false)
     p2_bl ≤ 0 && return 0.0
-    pr = hf_pressure_ratio(inp, fc; c_ω, η_r_cap)
+    pr = hf_pressure_ratio(inp, fc; c_ω, η_r_cap, bridges)
     p_e2 = p2_bl / 2
     pr.ratio > 0 && isfinite(pr.ratio) || return 0.0
     return p_e2 / pr.ratio

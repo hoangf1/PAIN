@@ -32,3 +32,10 @@ Downloaded 2026-10-22 from the NASA Technical Reports Server (public use permitt
 |------|--------|------|
 | `NASA_RP_1218.pdf` | Brooks, Pope, Marcolini: *Airfoil self-noise and prediction*, NASA RP-1218, 1989 (BPM model; App. D code listing and Tables D2/D3) | https://ntrs.nasa.gov/citations/19890016302 |
 - `NASA_RP_1218.pdf`: SHA-256 `0c22690c6216c4355c0da7e09ce0d1a1dd96a2b88d3d8abda30e293b3db76006`
+
+## Added 2026-10-23 (Phase 59)
+
+| File | Report | NTRS |
+|------|--------|------|
+| `NASA_CR_172490.pdf` | May, Plotkin, Selden, Sharp: *Lightweight sidewalls for aircraft interior noise control*, NASA CR-172490, 1985 (Sharp double-panel model with sound bridges, §2.3; Panel D prediction Fig. 15) | https://ntrs.nasa.gov/citations/19870002890 |
+- `NASA_CR_172490.pdf`: SHA-256 `1c1ea678a0cbd959d4b3864e5f357db53a59653f845e49ce3add5d48d0749d22`

@@ -226,6 +226,8 @@ User-supplied for any aircraft run (working example diameter 2.64 m is not a fix
 | `NR_TP1964` / `NR_TP1964_REF2` (43d): bare cylinder Eqs. (17)–(18) | V-EXP / V-CODE | **not_met** 6/18 and 6/18 (2026-10-23, after removing a 4× band mode window that gave NR = +Inf at 100–160 Hz; first run 5/18 and 4/18) |
 | T2 exterior broadband (43e) | V-ASSUMED | none found in CR-3813 / CR-172428 / TP-1964 / CR-172384; HF path → NR_TP1964. **Found 2026-10-23: TP-2444 Fig. 17** (this article's exterior and interior narrowband spectra, 4000 rpm) → Phase 47 |
 | `T1_F1A_FILL` (43f): T1 with F1A-relative off-line fill | V-EXP (T1 gate) | first run 2026-10-23, **not_met** 2/3 (79.61, 71.19, 71.30); after the Eq. (83) fix 79.65, 71.17, 71.06 |
+| Sharp sound bridges (59, option `bridges`, off by default; extension beyond CR-3813, NASA CR-172490 §2.3): τ_B = τ_ML(m_s + m_t)·10^(−ΔTL_M/10) in parallel with τ_t·τ in Eq. (23) | V-UNIT (59a not met 3/13; 59b met) / V-EXP | `NR_PROP_TP2444_BR` 1/7, `E22_BR` 0/4, `T2_MEAS_EXT_BR` 28.4 vs 51.0 dB (2026-10-23) |
+| App. D modes above Table D-1 (60a) | consistency | not met (App. D/asymptotic 2.32 at 1 kHz, 0.19 at 2 kHz); not adopted |
 | `NR_PROP_TP2444_PF` (50b): NR under propeller excitation from Eq. (8) with the App. B field shape, band average, referred to the blocked level next to the propeller | V-EXP | not_met 2/7 (2026-10-23); 315–800 Hz within −3…+7 dB; 1000–1260 Hz above the 32-mode set |
 | Eq. (66) diffuse acceptance vs exact 2-D diffuse field (50a) | V-UNIT | not met as written (0.4–2 dB high: separable approximation) |
 | `sparse_guard` (53b, option, off by default): sparse HF bands with low in-band ⟨j²⟩ take the asymptotic branch | option | 400 Hz E-21 inputs 41.3 → 32.9 dB |

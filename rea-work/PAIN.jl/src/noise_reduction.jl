@@ -269,7 +269,8 @@ function noise_reduction_band(inp::PainInputs, fc::Real;
                               c_ω::Real=C_OMEGA_THIRD_OCTAVE,
                               q_max::Union{Nothing,Int}=nothing,
                               crossover_fc::Union{Nothing,Float64}=nothing,
-                              hf_model::Symbol=:none)
+                              hf_model::Symbol=:none,
+                              bridges::Bool=false)
     hf_model in (:none, :eq19) || error("hf_model must be :none or :eq19 (got $hf_model)")
     # NR path keeps the §3.3 ten-mode rule (fixed for 38a E-21/E-22); tones use card-10 volume.
     xover = crossover_fc === nothing ? acoustic_crossover_band(inp; c_ω, rule=:ten_modes).fc_Hz : crossover_fc
@@ -277,7 +278,7 @@ function noise_reduction_band(inp::PainInputs, fc::Real;
     n_in_band = acoustic_modes_in_band(inp, fc; c_ω)
 
     if hf_model === :eq19 && above
-        pr = hf_pressure_ratio(inp, fc; c_ω, η_r_cap)
+        pr = hf_pressure_ratio(inp, fc; c_ω, η_r_cap, bridges)
         # Eq. 23 gives ⟨p_e²⟩/⟨p_i²⟩; Eq. 18 stores ⟨p_i²⟩/⟨p_e²⟩ as `ratio`
         ratio_i_over_e = pr.ratio > 0 && isfinite(pr.ratio) ? 1 / pr.ratio : Inf
         return (; ratio=ratio_i_over_e, NR_dB=pr.NR_dB, n_modes_in_band=n_in_band,

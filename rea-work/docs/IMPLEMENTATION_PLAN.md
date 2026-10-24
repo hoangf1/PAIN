@@ -370,6 +370,8 @@ Not blockers (recorded so nobody stops on them): BBN tip geometry beyond 40 in. 
 | Q34 | **Phase 56 — 40f Ritz isolation** (§8f) | `src/` option, test | Q21 | **done 2026-10-23**: 56a met, 56b not met (the solver is not Donnell–Mushtari) |
 | Q35 | **Phase 57 — tests for never-executed functions** (§8f) | tests | Q24 | **done 2026-10-23** |
 | Q36 | **Phase 58 — leftovers** (§8f) | QA, docs | Q25 | **done 2026-10-23** |
+| Q37 | **Phase 59 — Phase 51 run: Sharp sound bridges from NASA CR-172490** (§8g) | option + cases | Q29 | **done 2026-10-23**: 59a not met (3/13), 59b met, 59c–e not met; the bridges close about 7 dB of about 30 |
+| Q38 | **Phase 60 — structural modes above Table D-1 from the App. D solver** (§8g) | input extension + re-runs | Q34 | **closed 2026-10-23**: 60a not met (mode count inconsistent), not adopted |
 | Q23 | **Phase 45 — T2's high-frequency path on the TP-1964 bare cylinder** (pre-registered 2026-10-23 before any run; §8c) | `hf_broadband.jl` via `PainInputs`, new case | Q21 | **done 2026-10-23**: not met 9/18; Eq. (19) bands 4/4 within ±2.5 dB |
 | Q22 | **q = 0 cabin modes against CR-172428 App. B** (closed 2026-10-23, Phase 54: not explained by the documents) (after 44f). On NASA's printed pairs at 5000 rpm we agree within 0–6 dB, most within 1 dB. But our largest contributors have axially uniform (q = 0) cabin modes, e.g. (0,1) × mode 8 (5.6 Pa² against NASA's 4000 rpm H1 total of 0.59), and none of NASA's 25 printed top pairs has q = 0. Diagnostic only, not adopted: with q = 0 excluded, R172428_CODE would give 8/9 within ±3 dB. CR-3813 Eq. (57) and its Ref. [3] (CR-159363 Eq. 25, downloaded 2026-10-23) both give f₀M = 2/(Mπ) ≠ 0, so the documents do not explain NASA's output; no change without a documentary basis | `pain_core.jl` coupling, Ψ_G of antisymmetric modes | Q21 | open |
 
@@ -442,7 +444,7 @@ Moved to §11. Summary: base H1–H3 = 82.73, 75.73, 77.05 dB (= 18b-r); H3 top 
 
 ## 8c. Phase 45 *(done 2026-10-23; moved to the bottom of this file on 2026-10-23; section number kept)*
 
-## 8d–8f. Phases 46–58 *(all done or closed 2026-10-23; moved to the bottom of this file on 2026-10-23; section numbers kept)*
+## 8d–8g. Phases 46–60 *(all done or closed 2026-10-23; moved to the bottom of this file on 2026-10-23; section numbers kept)*
 
 ## 9. Reference appendices
 
@@ -2134,3 +2136,46 @@ These are the functions listed in `block_validation_audit.md` (Phase 46): `parse
 - **58b:** Fig. 16 (the same run) confirms the axis offset of Fig. 14. A +15 Hz shift changes no Phase 47 verdict; the data stay as calibrated.
 - **58c:** ≤ 0.2 dB.
 - **58d:** already done in Phase 37; the stale status is corrected.
+
+## 8g. Phases 59–60: the two fixes the documents still support *(done/closed 2026-10-23; moved to the bottom 2026-10-23; planned 2026-10-23; author: "so implement fixes in phases until everything closes any questions"; criteria and decisions dated 2026-10-23, before any run)*
+
+**Why.**
+- *Phase 51 was closed* because no official source with a verifiable sound-bridge model had been found. A wider NTRS search on 2026-10-23 found one: **NASA CR-172490** (May, Plotkin, Selden & B. H. Sharp, *Lightweight sidewalls for aircraft interior noise control*, 1985, `references/NASA_CR_172490.pdf`). It gives Sharp's double-panel model with sound bridges:
+  - TL above the bridging frequency = the combined-mass mass law + ΔTL_M;
+  - ΔTL_M = 10 log(b f_c) − 25 dB for line connections at spacing b (Eq. 23);
+  - ΔTL_M = 20 log(e f_c) − 51 dB for point connections on a square lattice e (Eq. 25);
+  - the mass law is Eq. (5).
+
+  It also prints a worked prediction: Fig. 15, Panel D (two 1.6 mm aluminium skins on point spacers; f₀ = 142 Hz at normal incidence; ΔTL_M "on the order of 12 dB").
+- *The mode set stops at 811 Hz* (32 Table D-1 modes), while NASA used 300 modes from the App. D method. The App. D solver reproduces Table D-1 (`MRP_APPD` met, 27/32 within 5 %). Above 811 Hz the τ_f sum and the propeller-field NR of Phase 50 have no modes.
+
+### Phase 59 — Sharp sound bridges in Eq. (23) (Phase 51 run with a verifiable source) *(done 2026-10-23)*
+
+| Step | What | Pass criterion (fixed 2026-10-23) |
+|------|------|-----------------------------------|
+| 59a | `sharp_double_panel_TL` (CR-172490 §2.3): below f₀ (Eq. 22), the mass law of the combined mass (Eq. 5); from f₀ to f_b, the double-wall rise; above f_b, the combined-mass mass law + ΔTL_M. Reproduce Fig. 15's predicted curve for Panel D at the outside-pressure condition (no cavity depressurization), using the panel data printed in the report (two 1.6 mm aluminium skins, f₀ = 142 Hz, ΔTL_M = 12 dB as stated). Mass-law convention (normal or field incidence, Eq. 5 angle term) taken from what reproduces the report's own curve: a code check against the source, made before any comparison with measurement | V-UNIT: within 1 dB of the digitized Fig. 15 curve at ≥ 90 % of the 1/3-octave points 50–2000 Hz |
+| 59b | Option `hf_bridges` in Eq. (23), off by default: a parallel bridge path τ_B = τ_ML(m_s + m_t)·10^(−ΔTL_M/10) over the trimmed area, added to τ_t·τ. Mapping, fixed now: m_s = shell mass; m_t = the summed limp masses of the sidewall stack; f_c from Eq. (4) for the skin (aluminium, MRP_T_SKIN) and the trim panel (G-10: h = 0.79 mm, c = 3200 m/s, as phase3_trim; the App. B panel of 1.456 kg/m² is G-10 at 1843 kg/m³), using the higher of the two in the identical-panel forms; connections from the Phase III mechanical path (9 points on the curved area A → lattice e = √(A/9); 2 lines → spacing b = (curved arc)/2); point and line paths added. The same connections are used for the 47c article (not documented; V-ASSUMED) | V-UNIT: off reproduces every recorded value; on, τ_B by hand within 1e-12 |
+| 59c | `NR_PROP_TP2444_BR`: 47c with the bridges | V-EXP: the 47c criterion (±5 dB in ≥ 75 % of bands 315–1250 Hz) |
+| 59d | `E22_BR`: the E-22 measured reverberant NR (CR-3813 article, E-21 inputs), 1250–2500 Hz, with the bridges | V-EXP: inside the E-22 95 % interval in ≥ 75 % of those bands (as 51c) |
+| 59e | `T2_MEAS_EXT_BR`: 47d with the bridges | V-EXP: T2's gate (±3.5 dB of E-9 at 1250 Hz; 1600 and 2000 Hz labelled extrapolated) |
+
+**Result (2026-10-23; criteria and mapping unchanged).** Report: `validation_reports/phase59_60_bridges_modes.md`.
+- **59a `SHARP_PANEL_D`: not met, 3/13.** The mass law is about 1 dB under the figure, and with ΔTL_M = 12 dB as stated the bridged line is about 1.3 dB over it (the figure implies 10.2 dB). The construction's shape reproduces the source.
+- **59b met.** The option is off by default and the hand checks match to 1e-12.
+- **59c, 59d, 59e: not met.**
+  - TP-2444 NR at 1260 Hz: 49.0 → 42.8 dB, against 33.9 dB measured.
+  - E-22 NR: about 61 → 53 dB, against 19.5–32 dB measured.
+  - T2 interior at 1250 Hz: 21.6 → 28.4 dB, against 51.0 dB.
+- **Reading.** The documented connections close about 7 dB of the roughly 30 dB gap.
+
+The label is "extension beyond CR-3813 (Sharp, CR-172490)". A pass supports PAIN plus bridges, not PAIN as printed.
+
+### Phase 60 — Structural modes above Table D-1 from the App. D solver *(closed 2026-10-23 at 60a)*
+
+| Step | What | Pass criterion (fixed 2026-10-23) |
+|------|------|-----------------------------------|
+| 60a | Extended set = Table D-1 (32 modes, to 811 Hz) + `appd_modes` (n_axial = 7, n_circ = 8, n_floor_max = 5, as `MRP_APPD`) above 811 Hz to 3 kHz. Check the App. D mode count per 1/3-octave band 1000–2000 Hz against the asymptotic structural modal density used in production (`structural_modal_density`) | consistency: count within a factor of 2 of the asymptotic value in every band 1000–2000 Hz; if not, Phase 60 stops here |
+| 60b | `NR_PROP_TP2444_PF_X`: 50b with the extended set | V-EXP: the 47c criterion |
+| 60c | `T2_MEAS_EXT_X`: 47d with the extended set (no bridges) | V-EXP: T2's gate |
+
+**Result (2026-10-23).** **60a: not met.** App. D/asymptotic mode count is 2.32 at 1000 Hz and 0.19 at 2000 Hz, so the extension is not adopted and 60b/60c were not run (as pre-registered).

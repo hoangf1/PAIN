@@ -68,6 +68,11 @@ The table above is the audit record of 2026-10-23. This section records what eac
 | BEMT, F1A | BEMT_HAND, F1A_INDEP (41) | met |
 | Output level | LOUDEST_PT (42) | loudest-point dB(A) reported; the pre-registered 1 % average check is not met with interior nodes only (wall antinodes left out) |
 
+**Phases 59–60 (2026-10-23):** Sharp's sound-bridge model (NASA CR-172490) was added as an option.
+- With the documented connections it closes about 7 dB of T2's roughly 30 dB high-frequency gap.
+- The App. D mode extension fails its consistency check.
+- No further documented fix exists.
+
 **Phases 48–58 (2026-10-23):**
 - **Exterior.** The exterior self-noise model (BPM) is verified against NASA's printed outputs.
 - **Noise reduction.** The propeller-field coupling explains most of the 47c low-frequency gap.

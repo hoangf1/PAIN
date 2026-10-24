@@ -3096,6 +3096,51 @@ _run_if("Isolated checks for T1/T2 functions (phase 46)") do
     @test w1.W_in ≈ sum(c -> c.term, w1.contributions) rtol = 1e-10
 end
 
+_run_if("Sharp sound bridges and the App. D mode extension (phases 59, 60)") do
+    # Criteria and mapping fixed 2026-10-23 (plan §8g) before any run. Recorded first-run results.
+    # 59a pieces by hand: Eq. (5) at normal incidence, Eq. (22), Eqs. (23) and (25), and the Fig. 5 construction
+    @test PAIN.sharp_mass_law_TL(10.0, 1000.0; ρc1=415.0, ρc2=415.0) ≈ 20log10(1e4) - 10log10(415.0^2) + 10 atol = 1e-12
+    @test PAIN.sharp_f0(4.448, 4.448, 0.0826) ≈ sqrt(1.21 * 343.0^2 * 8.896 / (4.448^2 * 0.0826)) / 2π rtol = 1e-12
+    @test PAIN.sharp_dTL_line(0.5, 10000.0) ≈ 10log10(5000.0) - 25 atol = 1e-12
+    @test PAIN.sharp_dTL_point(0.2, 10000.0) ≈ 20log10(2000.0) - 51 atol = 1e-12
+    f0 = PAIN.sharp_f0(4.448, 4.448, 0.0826); fb = f0 * 2.0^(12 / (18 - 20log10(2)))
+    @test PAIN.sharp_double_panel_TL(4.448, 4.448, 0.0826, 2fb; ΔTL_M=12.0) ≈
+          PAIN.sharp_mass_law_TL(8.896, 2fb; ρc1=1.21 * 343, ρc2=1.21 * 343) + 12 atol = 1e-9
+    @test PAIN.sharp_double_panel_TL(4.448, 4.448, 0.0826, fb * (1 - 1e-9); ΔTL_M=12.0) ≈
+          PAIN.sharp_double_panel_TL(4.448, 4.448, 0.0826, fb * (1 + 1e-9); ΔTL_M=12.0) atol = 1e-6   # continuous at f_b
+    r = run_validation_case("SHARP_PANEL_D")
+    @test r.verdict === :not_met && r.inputs_echo.n_ok == 3
+    # 59b: off leaves Eq. (23) unchanged; on adds τ_B by hand to the trimmed term
+    inp = PAIN.r172428_inputs(4000)
+    fc = 1000 * 2^(1 / 3)
+    off = PAIN.hf_pressure_ratio(inp, fc); on = PAIN.hf_pressure_ratio(inp, fc; bridges=true)
+    @test off.τ_B == 0.0
+    @test off.den ≈ off.τ_t * off.τ * off.A_t + off.τ * off.A′ rtol = 1e-12
+    b = PAIN.bridge_tau(inp, fc)
+    arc = 2 * 0.508 * (π - deg2rad(56.6))
+    @test b.e ≈ sqrt(arc * inp.fuse.L / 9) rtol = 1e-12
+    @test b.b ≈ arc / 2 rtol = 1e-12
+    ml = PAIN.sharp_mass_law_TL(inp.m_wall + 1.456, fc; ρc1=inp.ρ_ext * inp.c_ext, ρc2=inp.ρ_int * inp.c_int)
+    @test b.τ_B ≈ 10^(-ml / 10) * (10^(-b.ΔTL_pt / 10) + 10^(-b.ΔTL_ln / 10)) rtol = 1e-12
+    @test on.den ≈ off.den + b.τ_B * off.A_t rtol = 1e-12
+    # 59c–59e recorded (not met)
+    for (id, check) in (("NR_PROP_TP2444_BR", rr -> rr.inputs_echo.n_ok == 1),
+                        ("E22_BR", rr -> rr.inputs_echo.n_ok == 0),
+                        ("T2_MEAS_EXT_BR", rr -> abs(rr.inputs_echo.interior_dB[1] - 28.36) < 0.01))
+        rr = run_validation_case(id)
+        @test rr.verdict === :not_met && check(rr)
+        png = plot_case(rr, VALIDATION_CASES[id].plot_spec; path=joinpath(TEST_OUT, "$(id).png"))
+        @test isfile(png) && filesize(png) > 0
+    end
+    # 60a recorded (not met: App. D count 2.3× the asymptotic density at 1000 Hz, 0.19× at 2000 Hz)
+    ap = PAIN.appd_modes(PAIN.appd_test_article_geometry(); n_modes=5000, n_axial=7, n_circ=8, n_floor_max=5, f_max_Hz=3000.0)
+    cω = PAIN.C_OMEGA_THIRD_OCTAVE
+    nband(f) = count(m -> f * (1 - cω / 2) ≤ m.f_Hz ≤ f * (1 + cω / 2), ap.modes)
+    d1 = PAIN.structural_modes_from_table_d1()
+    ratio(f) = nband(f) / (PAIN.structural_modal_density(d1, f) * cω * 2π * f)
+    @test ratio(1000.0) > 2 && ratio(2000.0) < 0.5
+end
+
 _run_if("Propeller-field NR and open items (phases 50, 53, 56, 57)") do
     # Criteria fixed 2026-10-23 (plan §8e Phase 50, §8f Phases 53, 56, 57) before these checks were run.
     # 50b recorded result (first valid run 2026-10-23): not met 2/7

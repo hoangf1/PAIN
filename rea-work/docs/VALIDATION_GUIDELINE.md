@@ -2014,6 +2014,70 @@ Inputs: TP-2444 Fig. 17 pass A; App. B field.
 Equations: Eq. (8), band average.
 Outputs: NR per band [dB].
 
+### Case: SHARP_PANEL_D
+**Title:** Sharp double-panel construction vs CR-172490 Fig. 15, Panel D (59a)
+**Map / block:** total / P_EQ8
+**Category:** verification
+**Kind:** runnable
+**Source:** NASA CR-172490 Fig. 15 and Fig. A-7; criterion fixed 2026-10-23
+**What it tests:** The Sharp double-panel construction (Eqs. 5, 22, 23, 25; Fig. 5) against the source's own predicted curve for its Panel D.
+**Why it is here:** It checks the bridge model's implementation before the model is used in Eq. (23).
+**A pass means:** Within 1 dB at ≥ 90 % of the points 50–2000 Hz with ΔTL_M = 12 dB as stated.
+**Not covered:** The source states ΔTL_M only approximately ("on the order of 12 dB"); the figure implies 10.2 dB.
+**Recorded outcome:** **not_met**, 3/13 (2026-10-23); the mass law is about 1 dB under the figure and the bridged line about 1.3 dB over it.
+**Explanation:** Code-on-source. `sharp_double_panel_TL`.
+Inputs: `data/cr172490/cr172490_fig15_panelD.csv`.
+Equations: CR-172490 Eqs. (5), (22), (23), (25).
+Outputs: TL [dB].
+
+### Case: NR_PROP_TP2444_BR
+**Title:** TP-2444 NR with Sharp sound bridges in Eq. (23) (59c)
+**Map / block:** total / P_MEAS
+**Category:** experiment
+**Kind:** runnable
+**Source:** TP-2444 Fig. 17; NASA CR-172490; criterion fixed 2026-10-23
+**What it tests:** 47c with the bridge option in the Eq. (23) bands.
+**Why it is here:** It is the extension's test on this article.
+**A pass means:** Within ±5 dB in ≥ 75 % of the bands 315–1250 Hz.
+**Not covered:** Connections not documented for this article (V-ASSUMED); bridges act only at and above the changeover.
+**Recorded outcome:** **not_met**, 1/7 (2026-10-23); 1260 Hz 42.8 dB against 33.9 dB measured (49.0 without bridges).
+**Explanation:** Experiment comparison. `noise_reduction_band(...; bridges=true)`.
+Inputs: As 47c.
+Equations: Eqs. (18), (19)–(23) + τ_B.
+Outputs: NR [dB].
+
+### Case: E22_BR
+**Title:** E-22 reverberant NR with Sharp sound bridges, 1250–2500 Hz (59d)
+**Map / block:** total / P_MEAS
+**Category:** experiment
+**Kind:** runnable
+**Source:** CR-3813 Fig. E-22; NASA CR-172490; criterion fixed 2026-10-23
+**What it tests:** Eqs. (19)–(23) with bridges against the measured reverberant NR of the CR-3813 article.
+**Why it is here:** This is NASA's own high-frequency NR test, which PAIN as printed misses by about 30–40 dB.
+**A pass means:** Inside the E-22 95 % interval in ≥ 75 % of the bands 1250–2500 Hz.
+**Not covered:** End-plate transmission (CR-3813 p. E-35) is outside the sidewall model.
+**Recorded outcome:** **not_met**, 0/4 (2026-10-23); about 53 dB against 19.5–32 dB (about 61 dB without bridges).
+**Explanation:** Experiment comparison. `hf_pressure_ratio(...; bridges=true)`, E-21 inputs.
+Inputs: E-22 data; E-21 inputs.
+Equations: Eqs. (19)–(23) + τ_B.
+Outputs: NR [dB].
+
+### Case: T2_MEAS_EXT_BR
+**Title:** T2 with the measured exterior and Sharp sound bridges (59e)
+**Map / block:** total / P_MEAS
+**Category:** experiment
+**Kind:** runnable
+**Source:** CR-3813 Fig. E-9; TP-2444 Fig. 17; NASA CR-172490; criterion fixed 2026-10-23
+**What it tests:** 47d with the bridge option.
+**Why it is here:** It is T2 with the one documented extension that adds a path around the trim.
+**A pass means:** 1250 Hz interior within ±3.5 dB of E-9 (51.0 dB).
+**Not covered:** As T2_MEAS_EXT; the connections are V-ASSUMED.
+**Recorded outcome:** **not_met** (2026-10-23): 28.4, 27.6 and 28.4 dB against 51.0, 46.0 and 41.5 dB (21.6 dB without bridges).
+**Explanation:** Experiment comparison. `hf_broadband_band_p2(...; bridges=true)`.
+Inputs: As T2_MEAS_EXT.
+Equations: Eqs. (19)–(23) + τ_B.
+Outputs: interior SPL [dB].
+
 ### Case: LOUDEST_PT
 **Title:** Interior level at the loudest point (42)
 **Map / block:** total / X_OUT
