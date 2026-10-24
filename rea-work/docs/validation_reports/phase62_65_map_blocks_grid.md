@@ -37,10 +37,10 @@ test-article case. z is the cabin axis, the fuselage station (aircraft body x) f
 
 Label on each re-record: "grid axial correction 2026-10-23 (code vs User Manual p. 9 / App. E p. E-8; not a fit)".
 
-**Open (Q45).** The aircraft working example `aircraft_scale_hartzell_cabin_full.json` (a = 1.32 m, assumed L = 1.83 m,
+**Q45 (closed 2026-10-24, not needed).** The aircraft working example `aircraft_scale_hartzell_cabin_full.json` (a = 1.32 m, assumed L = 1.83 m,
 z_p = 0.90 m) cannot hold the Manual grid: 16 stations at πa/18 = 0.23 m span 3.45 m, so 80 of 160 points lie off the
-cylinder (they did before the sign fix as well). `grid_points` now warns with the count. The cabin length and propeller
-station are the aircraft's own inputs; they are not chosen here.
+cylinder (they did before the sign fix as well). `grid_points` now warns with the count. No validation case uses this example, so the
+author closed the item; the warning flags any such input in a user run.
 
 ## Phase 62 — a proving case with its own figure on every map block
 

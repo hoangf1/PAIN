@@ -2409,7 +2409,7 @@ Outputs: code / documented per quantity.
 **Why it is here:** Gives the aircraft cabin hand-off block a case with its own figure. The number is X-EXTRAP: there is no aircraft interior measurement.
 **A pass means:** Overall dB(A) equals the energy sum of the A-weighted bands within 1e-9 dB (arithmetic only).
 **Not covered:** Any claim about the aircraft level (no measurement; the uncertainty band of phase 31 is not a validation).
-**Recorded outcome:** **met**, 1/1 (2026-10-24; `phase62_65_map_blocks_grid.md`): 91.6 dB(A) (X-EXTRAP, not validated). The first run listed eight IEC A-weight rows as passing table rows (9/9); they carry no criterion and moved to the inputs echo on 2026-10-24 (code review). The example's grid has 80 of 160 points off its assumed 1.83 m cabin (a = 1.32 m): open item Q45
+**Recorded outcome:** **met**, 1/1 (2026-10-24; `phase62_65_map_blocks_grid.md`): 91.6 dB(A) (X-EXTRAP, not validated). The first run listed eight IEC A-weight rows as passing table rows (9/9); they carry no criterion and moved to the inputs echo on 2026-10-24 (code review). The example's grid has 80 of 160 points off its assumed 1.83 m cabin (a = 1.32 m): Q45, closed (demonstration only)
 **Explanation:** Display of the aircraft result with an arithmetic check of the overall level; the A-weights are printed against the IEC table as information.
 Inputs: aircraft_scale_hartzell_cabin_full.json (cabin and trim from the JSON), H = 1–3.
 Equations: overall_dBA, a_weight_dB
