@@ -50,3 +50,21 @@ The pre-correction sign moves H1 and H2 about 3 dB toward NASA and H3 2.5 dB awa
 - **Against NASA's corrected program (CR-172428)** the code reproduces PAIN closely: H3 within 0.4 dB, pairs within 1.1 %.
 - **Against CR-3813's printed runs** differences remain: 3–11 dB on the tones, 2–8 dB on the high-frequency NR, up to 18 dB at 1000 Hz in Eq. (18). The documents do not explain them.
 - **The T2 high-frequency gap** is still attributed to the method, not the code. NASA's own printed high-frequency NR misses the measurement by 32–44 dB, which is 4–20 times the code-to-NASA difference. The attribution is to the method within the stated code-to-NASA difference, not to an exact reproduction.
+
+## Code review of the 2026-10-23 changes (9d8129b..f5f6cdf)
+
+Fixed:
+- The printed-outputs coupling table now applies `floor_sign` to its floor column, so the shell and floor parts add up to f.
+- `coupling_factor` rejects a `floor_sign` other than ±1. `_with_fields` bypasses the constructor check, so the check sits where the value is used.
+- `propeller_field_band_nr` refuses a field that is not the 16 × 19 App. B layout, because its reference index assumes that layout.
+- `structural_modes(include_floor = false)` uses the whole circle for the shell modal mass.
+- The Phase 48 polar set is loaded once.
+- `qa_two_pass.qa_csv` closes its files.
+
+Kept, as documented decisions or small effects:
+- BPM ignores the induced velocity (48b decision).
+- E22_BR uses nominal band centres (< 1 % in band edge).
+- The O(N·bins) scan in `narrowband_third_octave`.
+- Hard-coded numbers in the T2 reason text.
+
+No recorded value changed.

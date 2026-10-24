@@ -119,7 +119,7 @@ function printed_outputs(inp::PainInputs;
     for q in 0:qtop_coup, ac in inp.acoustic.modes
         for st in inp.structural.modes
             Is = coupling_shell_integral(ac, st, a)
-            Ip = coupling_floor_integral(ac, st, a, Lp)
+            Ip = inp.floor_sign * coupling_floor_integral(ac, st, a, Lp)   # Eq. (52) floor sign as the inputs (phase 61)
             ax = axial_coupling(q, st.M_axial; L=fuse.L, L_c=inp.L_c, d=inp.d)
             f_shell = ax * sqrt(τ_t_bpf) * Is / denom_area
             f_floor = ax * Ip / denom_area          # floor term sign as in coupling_factor (44f)

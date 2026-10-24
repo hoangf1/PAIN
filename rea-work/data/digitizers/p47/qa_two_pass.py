@@ -34,7 +34,9 @@ def qa_csv(A_csv, B_csv, bpf, nh, union=True):
     leaving out ±10 Hz around H*BPF and, with `union`, also around the observed tone peak (as 47b)."""
     def load(p, col):
         out = {}
-        for line in open(p):
+        with open(p) as fh:
+            lines = fh.readlines()
+        for line in lines:
             if line.startswith('#') or line.startswith('f_Hz'): continue
             v = [float(x) for x in line.split(',')]
             out.setdefault(int(np.floor(v[0])), []).append(v[col])

@@ -13,6 +13,8 @@ point (k_ref, L_ref): k_p = 8 is the propeller plane, and L = 10 is grid line �
 """
 function propeller_field_band_nr(inp::PainInputs, fc::Real; bpf_Hz::Real=200.0, n_freq::Int=11,
                                  k_ref::Int=8, L_ref::Int=10)
+    size(inp.amplitudes, 2) == 19 ||
+        error("propeller_field_band_nr: needs the 16 × 19 App. B field layout (L = ℓ + 9); got $(size(inp.amplitudes))")
     H = clamp(round(Int, fc / bpf_Hz), 1, size(inp.amplitudes, 3))
     lo, hi = fc * 2.0^(-1 / 6), fc * 2.0^(1 / 6)
     fs = [lo * (hi / lo)^((j - 0.5) / n_freq) for j in 1:n_freq]

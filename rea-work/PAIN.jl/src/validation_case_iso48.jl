@@ -2,7 +2,11 @@
 # Criteria fixed 2026-10-23 (IMPLEMENTATION_PLAN.md §8d Phase 48) before any run; 48b–48d implementation
 # decisions fixed the same day before any comparison with Fig. 14, Fig. 17 or E-9.
 
-_p48_af() = load_polar_set(_data_path(splitpath(_R996_POLAR_PATH)...); set=:primary)[1]
+const _P48_AF = Ref{Any}(nothing)
+function _p48_af()
+    _P48_AF[] === nothing && (_P48_AF[] = load_polar_set(_data_path(splitpath(_R996_POLAR_PATH)...); set=:primary)[1])
+    return _P48_AF[]
+end
 const _P48_OBS_FIG14 = (0.457, 0.0, -0.254)   # CR-172428 Fig. 9, microphone 1 (5000 rpm)
 const _P48_OBS_FIG17 = (0.457, 0.0, 0.0)      # TP-2444 Fig. 17 exterior: fuselage surface, propeller plane (V-ASSUMED)
 

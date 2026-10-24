@@ -327,8 +327,8 @@ function structural_modes(fuse::FuselageGeometry;
          2 * E * MRP_I_FLOOR_BEAM / max(Lp, 1e-9)   # long. beams smeared across width
     mf = ρ * t_eq_f
 
-    # Shell arc participating (above floor): θ ∈ [θ0, 2π-θ0]
-    Θ_arc = 2π - 2θ0
+    # Shell arc participating (above floor): θ ∈ [θ0, 2π-θ0]; the whole circle without a floor
+    Θ_arc = include_floor ? 2π - 2θ0 : 2π
     # Modal mass norms for sin(mπz/L)*cos(nθ) over shell arc (approx full-period / 2)
     Ms_n(n) = ms * a * (L / 2) * (n == 0 ? Θ_arc : Θ_arc / 2)
     Mf_p(p) = mf * (L / 2) * (p == 0 ? Lp : Lp / 2)

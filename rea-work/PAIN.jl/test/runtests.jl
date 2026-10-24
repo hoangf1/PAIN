@@ -3112,6 +3112,10 @@ _run_if("CR-3813 reproduction with NASA's pre-correction form (phase 61)") do
         n_checked += 1
     end
     @test n_checked == 80
+    # code-review fixes (2026-10-23): floor_sign checked where it is used; the propeller-field NR needs the App. B layout
+    @test_throws ErrorException PAIN.coupling_factor(inp.acoustic.modes[2], inp.structural.modes[1], PAIN._with_fields(inp; floor_sign=0.5))
+    @test_throws ErrorException PAIN.propeller_field_band_nr(PAIN._with_fields(inp; amplitudes=zeros(16, 10, 3)), 500.0)
+    @test PAIN._p48_af() === PAIN._p48_af()
     @test_throws ErrorException PAIN.PainInputs(inp.fuse, inp.prop, inp.structural, inp.acoustic, inp.amplitudes, inp.phases,
                                                 inp.pts, inp.ΔA; floor_sign=0.5)
     r = run_validation_case("REPRO_18b_PRE")

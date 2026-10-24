@@ -301,6 +301,7 @@ function coupling_factor(ac::AcousticMode, st::StructuralMode,
     θ0 = deg2rad(fuse.theta0_deg)
     Lp = 2a * sin(θ0)
     Is = coupling_shell_integral(ac, st, a)
+    abs(floor_sign) == 1 || error("coupling_factor: floor_sign must be +1 or −1 (got $floor_sign)")
     Ip = floor_sign * coupling_floor_integral(ac, st, a, Lp)
     ax = axial_coupling(q, st.M_axial; L=fuse.L, L_c, d)
     den = Lp + 2a * (π - θ0)
