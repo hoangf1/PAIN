@@ -2756,7 +2756,10 @@ _run_if("Validation case registry (34d)") do
         "ISO_BLOCKING", "ISO_FF_CONV", "ISO_GEXT_LINE", "ISO_TABLE8",
         "ISO_CYL2D_EXACT", "ISO_CYL2D_BOUNDARY", "ISO_JOINT_ACC",
         "ISO_MODAL_DENSITY", "ISO_BB_BAND", "ISO_SIL",
-        "TRIM_CLOSED", "NR_BAND_HAND", "HF_MASSLAW", "BEMT_HAND", "F1A_INDEP")
+        "TRIM_CLOSED", "NR_BAND_HAND", "HF_MASSLAW", "BEMT_HAND", "F1A_INDEP",
+        # Phase 62 live checks (hand formulas, bounds, pipeline echo; MRP/TRIM_INPUT_QA read appE_article_inputs.csv)
+        "F1A_PLANE_PEAK", "FF_E11_MAP", "SRC_PASSTHROUGH", "BLK_GAIN_MAP", "MRP_SHAPE_NORM",
+        "CABIN_GEOM_HAND", "CYL2D_WEYL", "TRIM_PASSIVITY", "PAIN_INPUT_ECHO", "AC_CABIN_DEMO")
     converted = ("PER_LOADS", "PER_FIG6", "PER_FIG7", "PER_FIG8", "PER_FIG9",
                  "R996_FIG6", "R996_FIG7", "BBN_CIRC", "BBN_LONG", "BBN_LEVELS")
     results_by_id = Dict{String,Any}()
