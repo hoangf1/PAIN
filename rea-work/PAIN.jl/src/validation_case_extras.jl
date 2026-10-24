@@ -2434,6 +2434,7 @@ function _finish_validation_registry!()
     append!(cases, _iso61_validation_cases())  # phase 61 CR-3813 reproduction
     append!(cases, _iso62_validation_cases())  # phase 62 map-block cases
     append!(cases, _iso66_validation_cases())  # phase 66 BEMT / F1A code checks
+    append!(cases, _iso67_validation_cases())  # phase 67 polars / compact chord
 
     # E21_E22_NR (38a), T2_EQ19 (38c), E18_TONES (38d), E15_STRUCT_LOSS (38e); no greyed placeholders.
     push!(cases, ValidationCase(
@@ -2532,6 +2533,7 @@ function _finish_validation_registry!()
         "CABIN_GEOM_HAND", "CYL2D_WEYL", "TRIM_INPUT_QA", "TRIM_PASSIVITY", "PAIN_INPUT_ECHO", "AC_CABIN_DEMO",
         "BEMT_MOMENTUM", "BEMT_HAND_TIP", "BEMT_INTEGRALS", "BEMT_SIMILARITY",
         "F1A_GUTIN_ANGLES", "F1A_GW_FLIGHT", "F1A_THICKNESS", "F1A_PROPERTIES",
+        "POLAR_FIDELITY", "F1A_CHORDWISE",
         "T1_F1A_FILL", "T1_F1A_MEAS_DAMP",
         "R172428_CODE", "R172428_EXP", "R172428_ETA", "R172428_TRIM", "R172428_PAIRS",
         "POLAR_R996", "POLAR_PER",

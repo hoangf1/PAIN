@@ -2649,7 +2649,8 @@ _run_if("Validation case registry (34d)") do
     amp = only(b for b in total.blocks if b.id == "A_AMP")
     @test amp.cases ==
           ["F1A_GUTIN", "R996_FIG14", "R996_FIG12", "R996_FIG13A", "R996_FIG6", "R996_FIG7", "F1A_INDEP",
-           "F1A_GUTIN_ANGLES", "F1A_GW_FLIGHT", "F1A_THICKNESS", "F1A_PROPERTIES"]   # Phase 66 added the last four
+           "F1A_GUTIN_ANGLES", "F1A_GW_FLIGHT", "F1A_THICKNESS", "F1A_PROPERTIES",   # Phase 66
+           "F1A_CHORDWISE"]                                                          # Phase 67
     loads = only(b for b in total.blocks if b.id == "A_LOADS")
     @test "BEMT_HAND" in loads.cases
     @test "TRIM_CLOSED" in only(b for b in total.blocks if b.id == "P_TRIM").cases
@@ -2763,7 +2764,8 @@ _run_if("Validation case registry (34d)") do
         "CABIN_GEOM_HAND", "CYL2D_WEYL", "TRIM_PASSIVITY", "PAIN_INPUT_ECHO", "AC_CABIN_DEMO",
         # Phase 66 closed-form BEMT / F1A checks
         "BEMT_MOMENTUM", "BEMT_HAND_TIP", "BEMT_INTEGRALS", "BEMT_SIMILARITY",
-        "F1A_GUTIN_ANGLES", "F1A_GW_FLIGHT", "F1A_THICKNESS", "F1A_PROPERTIES")
+        "F1A_GUTIN_ANGLES", "F1A_GW_FLIGHT", "F1A_THICKNESS", "F1A_PROPERTIES",
+        "F1A_CHORDWISE")   # Phase 67 diagnostic (POLAR_FIDELITY reads its CSV/JSON references)
     converted = ("PER_LOADS", "PER_FIG6", "PER_FIG7", "PER_FIG8", "PER_FIG9",
                  "R996_FIG6", "R996_FIG7", "BBN_CIRC", "BBN_LONG", "BBN_LEVELS")
     results_by_id = Dict{String,Any}()

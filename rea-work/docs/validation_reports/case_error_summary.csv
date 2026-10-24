@@ -73,6 +73,8 @@ F1A_GUTIN_ANGLES,2026-10-24,2026-10-24,not_met,9,10,15.0,0.14,"dB | deg","9/10 i
 F1A_GW_FLIGHT,2026-10-24,2026-10-24,met,6,6,0.071,0.0014,"dB","6/6 in tol · max |err| 0.071 dB · med 0.0014 dB"
 F1A_THICKNESS,2026-10-24,2026-10-24,met,9,9,0.0014,0.0012,"dB","9/9 in tol · max |err| 0.0014 dB · med 0.0012 dB"
 F1A_PROPERTIES,2026-10-24,2026-10-24,met,5,5,0.025,2.6e-5,"ratio | dB","5/5 in tol · max |err| 0.025 ratio | dB · med 2.6e-5 ratio | dB"
+POLAR_FIDELITY,2026-10-24,2026-10-24,not_met,9,60,0.35,0.16,"dimensionless","9/60 in tol · max |err| 0.35 dimensionless · med 0.16 dimensionless"
+F1A_CHORDWISE,2026-10-24,2026-10-24,no_verdict,60,60,0.27,0.083,"dB","no verdict · max |err| 0.27 dB · med 0.083 dB"
 T1_F1A_FILL,2026-10-24,2026-10-24,met,4,6,8.9,2.2,"dB","4/6 in tol · max |err| 8.9 dB · med 2.2 dB"
 T1_F1A_MEAS_DAMP,2026-10-24,2026-10-24,no_verdict,0,0,,,"","no criterion"
 R172428_CODE,2026-10-24,2026-10-24,not_met,4,9,11.0,3.2,"dB","4/9 in tol · max |err| 11.0 dB · med 3.2 dB"

@@ -2543,6 +2543,75 @@ Inputs: Hartzell example, static.
 Equations: coherent sum of identical blades; spherical spreading
 Outputs: ratios, dB changes
 
+### Case: POLAR_FIDELITY
+**Title:** Section polars: XFOIL vs NACA TN 1546 measured c_l (67a)
+**Map / block:** total / A_GEO
+**Category:** experiment
+**Kind:** runnable
+**Source:** NACA TN 1546 Fig. 3(j), 3(n), 3(o) (digitized 2026-10-22); `polars_forced_merged.json`; criterion 2026-10-24, before the comparison
+**What it tests:** The XFOIL section polars the Report 996 cases use, against the measured c_l of the three exactly matching sections (16-312, 16-506, 16-509) at the TN 1546 angles and the XFOIL Mach grid (0.4–0.72), XFOIL at the TN 1546 Reynolds number.
+**Why it is here:** The code checks of BEMT and F1A pass, yet the Report 996 loads and acoustics miss; this tests whether the section polars are the cause.
+**A pass means:** |Δc_l| ≤ 0.05 at ≥ 75 % of the matched points.
+**Not covered:** The other blade sections (no measured data); c_d (shown, no criterion); wall-interference corrections (TN 1546 is uncorrected).
+**Recorded outcome:** **not met**, 9/60 (15 %) (first run 2026-10-24; `phase67_source_attribution.md`). XFOIL is 0.15–0.35 below the measured c_l at low α on all three sections and at every Mach number; the gap closes toward the high-α end. Post-hoc consistency (2026-10-24): the BEMT thrust of the Report 996 cases is 25–32 % below the measured thrust (scale factors s_T = 1.25–1.32, 7 of 10 primary cases), the direction and size a low c_l gives.
+**Explanation:** Input fidelity, not code: the polars are XFOIL with forced transition. The Report 996 source misses are therefore a documented limitation of the section-data approximation (XFOIL), not of the BEMT or F1A implementation, which pass their closed-form checks (Phases 41, 64, 66). No polar or load was changed.
+Inputs: TN 1546 Re(M) = 0.85·10⁶ + 1.15·10⁶ (M − 0.3)/0.5 (TN 1546 p. 5 range; reading fixed before the comparison); XFOIL tables at 1·10⁶ and 2·10⁶, linear in log Re; no extrapolation in α.
+Equations: —
+Outputs: Δc_l per (section, M, α).
+
+### Case: F1A_CHORDWISE
+**Title:** F1A near field: compact vs chordwise loading at Report 996 geometry (67b)
+**Map / block:** total / A_AMP
+**Category:** verification
+**Kind:** runnable
+**Source:** independent F1A (F1A_INDEP kinematics) with chordwise load points; rule 2026-10-24, before the run
+**What it tests:** At the Report 996 Fig. 14 microphone geometry (d/D = 0.083, x/D = −0.125 … 0.5, B = 2, β₇₅ = 10°, M_t 0.45–0.90, static), the tone with each section's load spread over the chord (thin-airfoil loading, 8 points along the chord line at the section pitch) against the same load at the quarter chord.
+**Why it is here:** The microphones are under two chords from the tip; the compact-chord F1A is verified only in the far field, so this tests whether compactness explains the near-field misses.
+**A pass means:** Diagnostic: a point where |chordwise − compact| > 2 dB would be outside the compact-chord claim.
+**Not covered:** Chordwise thickness distribution; unsteady loading; the loads themselves (POLAR_FIDELITY).
+**Recorded outcome:** no verdict (diagnostic): 0/60 points beyond 2 dB, largest 0.27 dB (first run 2026-10-24; `phase67_source_attribution.md`). The compact-chord approximation does not explain the Report 996 near-field misses.
+**Explanation:** With one chord point the routine reproduces the F1A_INDEP implementation (7.5e-5); spreading the load over the chord changes H1–H3 by 0.02–0.27 dB at this geometry.
+Inputs: Report 996 blade, BEMT loads (clamped-linear polar; the loads are the same for both arrangements), AcousticAnalogies spans.
+Equations: F1A loading term at each chord point.
+Outputs: chordwise − compact [dB] per harmonic and x/D.
+
+## 2.14 Closure register: every case that is not met, and why (2026-10-24)
+
+Written after Phases 62–67. Every registered case that is **not met** is listed with the class of its cause and the
+evidence. Classes: **M** limitation of PAIN's method as printed (CR-3813 / User Manual); **A** limitation of a
+low-fidelity approximation this recreation uses; **I** input or data limitation (digitization, truncated printed tables,
+assumed geometry, no measurement); **N** NASA's printed output differs in a way the documents do not explain; **D** the
+pre-registered test design. **No case is open as a code defect**: every block passes its isolated code checks (Phases 40,
+41, 46, 62, 64, 66) and every code defect found was fixed. "Probable" marks a cause that the documents do not allow testing.
+
+| Case | Class | Cause and evidence |
+|------|-------|--------------------|
+| E12_BLOCK (29/31) | I | the two H3 aft points fail inside the E-12 digitization spread (δ_dig = 2.91 dB) |
+| E14_LOSS (7/18) | I (probable) | TRIM_CLOSED and TRIM_PASSIVITY pass; Fig. A-2 is digitized at six frequencies only |
+| LOUDEST_PT (a) | D | the pre-registered interior point set omits the wall nodes; with all nodes the ratio is 0.99–1.01 (post-hoc) |
+| REPRO_18b, E18_TONES, E21_E22_NR, REPRO_18b_PRE, E21_PRE, E22_HF_CODE | N | CR-3813's printed runs predate NASA's corrections; neither sign of the floor term reproduces them (Phase 61); the corrected program (CR-172428) is reproduced within 0.4 dB at H3 |
+| R172428_CODE, R172428_EXP | N | largest contributor (0,1) × mode 8 at H1; q = 0 modes absent from NASA's printed pairs, not explained by the documents (Q22, Phase 54) |
+| R172428_ETA (17/32) | I (probable) | modes 1–12 within 13 %; modes 13–32 use Table D-1 shapes truncated to five shell terms (see MRP_SHAPE_NORM) |
+| T1, T1_FROM_E12, T1_MEAS_DAMPING, UNC_COVER | I | the H3 excess is the e11 off-line (GEXT) field, an assumed extension (Phase 52, GEXT_BOUND); the cabin matches NASA at H3 |
+| T2 | A | the default broadband path is a calibrated surrogate (`bb_j2_scale`), labelled as such (Phase 55) |
+| T2_EQ19, T2_MEAS_EXT, T2_PRED_BB, NR_PROP_TP2444, NR_PROP_TP2444_BR, E22_BR, T2_MEAS_EXT_BR | M | PAIN's high-frequency trim noise reduction exceeds the measurement; NASA's own E-22 prediction is 32–44 dB above measured and the code is within 2–8 dB of NASA (Phases 47, 49, 59, 61); NASA states the trim model holds to about 1 kHz |
+| NR_PROP_TP2444_PF | A | the separable form of Eq. (66) used for the propeller field (Phase 50a, 0.4–2 dB) |
+| NR_TP1964, NR_TP1964_REF2, NR_TP1964_XOVER, NR_TP1964_XOVER_REF2 | M | the misses are Eq. (18) bands, where negative NR is a property of the equation (CR-159363 p. 138, Phase 53); the Eq. (19) bands agree within ±2.5 dB |
+| PROP_BB_FIG14, PROP_BB_FIG17 | A, I | BPM self-noise only (no inflow turbulence), assumed blade geometry; the BPM port itself reproduces NASA's printed output 270/270 (Phase 48) |
+| SHARP_PANEL_D | I | the source's ΔTL_M is ambiguous (Phase 59) |
+| BLK_GAIN_MAP | M | R1 is CR-172428 Eq. (43) as printed, negative behind the cylinder; the default R2 stays within 0–6.02 dB |
+| MRP_SHAPE_NORM | I | Table D-1 prints only the largest Fourier coefficients of each mode |
+| CYL2D_WEYL | M | the App. C 5-point grid at NY = 10 (as printed) computes high modes too low (near-circle check, post-hoc diagnosis) |
+| F1A_GUTIN_ANGLES (4/5) | A | far-field Gutin reference at a near-null (θ = 60°: terms cancel to 5.7 %); at 400 R_tip the phase is within 3.7° (post-hoc) |
+| POLAR_FIDELITY, R996_LOADS, R996_FIG12, R996_FIG13A, R996_PHASE | A | XFOIL (forced transition) c_l 0.15–0.35 below NACA TN 1546 measured; BEMT thrust 25–32 % below Report 996 measured; the compact-chord F1A is not the cause (≤ 0.27 dB) (Phase 67) |
+| BBN_CIRC | I | assumed blade geometry for the Aero Commander (X-EXTRAP); low coherence pairs |
+| PER_FIG7, PER_FIG8, PER_FIG9 | I (probable) | XFOIL NACA 4412 polars at Pereira's Reynolds number, where no measured section data exist in the documents (TR 824 is 3–9·10⁶); motor noise above H2 |
+
+**Statement.** As code, the recreation implements CR-3813 / the User Manual and drives CCBlade.jl and AcousticAnalogies.jl
+correctly in every block (isolated checks met; open code defects: none). Every remaining experimental or code-on-NASA miss is
+classed above as a limitation of the method as printed, of a low-fidelity approximation, of the inputs, or of NASA's printed
+output; none is claimed as a pass.
+
 ## 3. What “valid recreation” means for this project
 
 A recreation is **pipeline-valid** only if:

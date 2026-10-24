@@ -334,7 +334,7 @@ Not blockers (recorded so nobody stops on them): BBN tip geometry beyond 40 in. 
 
 | Q | Item | Kind | Prerequisite | Output |
 |---|------|------|--------------|--------|
-| Q0 | **Review issues I-01 to I-16 (§3.0)**, in the order given there | mixed: data quarantine, `src/` fix [CONFIRM], redo digitizations, criteria [AUTHOR], re-runs | none | §3.0 items closed and dated |
+| Q0 | **Review issues I-01 to I-16 (§3.0)**, in the order given there | mixed: data quarantine, `src/` fix [CONFIRM], redo digitizations, criteria [AUTHOR], re-runs | none | **done 2026-10-21/22** (§3.0a: all blockers closed; I-17–I-20 decided) |
 | Q1 | Run step 19i (§5) | script run, no `src/` change | none | **Done 2026-10-21** `h3_followup.md`; 19i in §11 |
 | Q2 | **Docs sync for the η_T = 0.5 decision** (left over from phase 20): `METHODOLOGY.md` §6 T1/T2 numbers and the 18b text → 18a-r / 18b-r of `phase20_baseline.md`; claim register; `VALIDATION_GUIDELINE.md` §2.7/§2.8/register f; `README.md`; `flowchart.md` | docs only | Q1 | **Done 2026-10-21** (same pass as 19i) |
 | Q3 | Phase 21 | `src/` change [CONFIRM] waived by author “keep going”; **done 2026-10-21** | Q2 | shared function, tests, `gext_vs_f1a_grid.md` |
@@ -342,8 +342,8 @@ Not blockers (recorded so nobody stops on them): BBN tip geometry beyond 40 in. 
 | Q5 | Phase 23 | pre-registration [AUTHOR] | Q4 (draft may precede) | **§2.12 frozen 2026-10-21** (I-06) |
 | Q6 | Phase 24 | scripts + tests | Q5, D-21 (C-06 **done**), phase 21 | `bbn_phase.md` |
 | Q7 | Phase 25 | setup, 25h/25i [CONFIRM] | Q5, D-07 | **Done 2026-10-22** (25g recorded); `report996_setup.md` (25k) |
-| Q8 | Phase 26 | script | Q7 | **Numbers done**; `report996_loads.md` (no 23c verdict) |
-| Q9 | Phase 27 | script | Q8 | **Expanded matrix done**; verdict waits 23c |
+| Q8 | Phase 26 | script | Q7 | **done**; `report996_loads.md`; verdict R996_LOADS 6/32 not met (post-hoc label) |
+| Q9 | Phase 27 | script | Q8 | **done**; 23c verdicts recorded (R996_FIG14 5/24, FIG12 21/40, FIG13A 8/14, not met) |
 | Q10 | Phase 28 | script | Q5, Q7 (polar loader), D-11–D-13 (C-01–C-04 **done**) | **Expanded**; ScaledLoads path; 23d verdict |
 | Q11 | Phase 29 (29a any time; 29b, 29c [CONFIRM]) | docs + `src/` | Q3 | **Done 2026-10-22**: register rows, guard, tags |
 | Q12 | Phase 30 | `src/` [CONFIRM] | Q11, D-20 | **Done 2026-10-22**: parametric blocks, 30d shift |
@@ -378,6 +378,8 @@ Not blockers (recorded so nobody stops on them): BBN tip geometry beyond 40 in. 
 | Q42 | **Phase 64 — a unit test for every function, in `test/unit/`** (§8i) | tests | Q41 | **done 2026-10-24**: `test/unit/` 25 files, completeness test passes; 8 code defects found and fixed (incl. the F1A_GUTIN reference) |
 | Q43 | **Phase 65 — grid axial direction and z_p against the User Manual and App. E** (§8i; found by Phase 62 input QA) | `src/` fix + re-records | Q40 | **done 2026-10-23/24**: z_k = z_p − x₃, z_p = 0.662 m; 12 cases' numbers re-recorded, no verdict changed |
 | Q44 | **Phase 66 — further code checks of BEMT and F1A** (§8j) | cases + tests | Q42 | **done 2026-10-24** (author: "Yes, run Phase 66"): 7/8 met; `F1A_GUTIN_ANGLES` not met (near-null phase at θ = 60°) |
+| Q46 | **Phase 67 — test the attribution of the source-block experimental misses** (§8k) | cases | Q44 | **done 2026-10-24**: polars are the cause (POLAR_FIDELITY not met 9/60; thrust 25–32 % low, consistent); compact chord ruled out (≤ 0.27 dB). Limitation of the section-data approximation |
+| Q47 | **Closure register** (`VALIDATION_GUIDELINE.md` §2.14) | docs | Q46 | **done 2026-10-24**: every not-met case classed (M/A/I/N/D); no open code defect |
 | Q45 | **Aircraft working example cabin length** (`aircraft_scale_hartzell_cabin_full.json`: a = 1.32 m, assumed L = 1.83 m, z_p = 0.90 m) | note | Q43 | **closed 2026-10-24, not needed** (author: validation uses the experimental articles, not user input). The demonstration example's assumed 1.83 m cabin is shorter than the Manual grid for a = 1.32 m (80 of 160 points off the cabin); `grid_points` warns on any such input. No validation or experimental case uses this example |
 | Q23 | **Phase 45 — T2's high-frequency path on the TP-1964 bare cylinder** (pre-registered 2026-10-23 before any run; §8c) | `hf_broadband.jl` via `PainInputs`, new case | Q21 | **done 2026-10-23**: not met 9/18; Eq. (19) bands 4/4 within ±2.5 dB |
 | Q22 | **q = 0 cabin modes against CR-172428 App. B** (closed 2026-10-23, Phase 54: not explained by the documents) (after 44f). On NASA's printed pairs at 5000 rpm we agree within 0–6 dB, most within 1 dB. But our largest contributors have axially uniform (q = 0) cabin modes, e.g. (0,1) × mode 8 (5.6 Pa² against NASA's 4000 rpm H1 total of 0.59), and none of NASA's 25 printed top pairs has q = 0. Diagnostic only, not adopted: with q = 0 excluded, R172428_CODE would give 8/9 within ±3 dB. CR-3813 Eq. (57) and its Ref. [3] (CR-159363 Eq. 25, downloaded 2026-10-23) both give f₀M = 2/(Mπ) ≠ 0, so the documents do not explain NASA's output; no change without a documentary basis | `pain_core.jl` coupling, Ψ_G of antisymmetric modes | Q21 | open |
@@ -456,6 +458,8 @@ Moved to §11. Summary: base H1–H3 = 82.73, 75.73, 77.05 dB (= 18b-r); H3 top 
 ## 8i. Phases 62–65 *(done 2026-10-23/24; moved to the bottom of this file on 2026-10-24; section number kept)*
 
 ## 8j. Phase 66 *(done 2026-10-24; moved to the bottom of this file on 2026-10-24; section number kept)*
+
+## 8k. Phase 67 *(done 2026-10-24; moved to the bottom of this file on 2026-10-24; section number kept)*
 
 ## 9. Reference appendices
 
@@ -2297,4 +2301,17 @@ Each step becomes a V-UNIT case on the `A_LOADS` / `A_AMP` blocks with its own f
 - **Span weights (all F1A references):** AcousticAnalogies gives each section the midpoint span (`get_dradii`: interfaces halfway between sections, ends at R_hub and R_tip), while `CCBlade.thrusttorque` integrates by the trapezoid rule with zero loads at R_hub and R_tip. The 66e–66g references use the AcousticAnalogies spans, so each compares the same discrete source; 66c reports the difference between the two thrust integrals as information (found in the code before any run, 2026-10-24).
 
 **Results (2026-10-24; report `docs/validation_reports/phase66_bemt_f1a.md`).** 66a met 72/72 (1.1e-11); 66b met 4/4 after a fix of the hand reference (first run 0/4: it bisected across the k = 1 pole near the tip); 66c met 7/7 (η ≤ η_i; ΔT −0.07 %; F1A/BEMT span-weight ratio 0.997 and 1.0004 as information); 66d met 6/6; 66e **not met** 4/5 (levels within 0.26 dB; θ = 60° phase 14.6° off at a near-null, 3.7° at 400 R_tip post-hoc); 66f met 6/6 (0.07 dB); 66g met 9/9 (0.002 dB); 66h met 5/5. CCBlade and AcousticAnalogies unchanged (author 2026-10-24: they are correct; checks are on our use of them). Shared set-up `_ccblade_setup` and F1A step `_f1a_harmonics` factored out, behaviour unchanged.
+
+## 8k. Phase 67: are the source-block experimental misses the polars and the compact-chord approximation? *(done 2026-10-24; moved to the bottom 2026-10-24; planned 2026-10-24; criteria dated 2026-10-24, before any of these numbers was computed)*
+
+The code checks of BEMT and F1A pass (Phases 41, 64, 66), yet R996_LOADS (6/32), R996_FIG12/13A/14 and PER_FIG9 miss the measurements. The record attributes this to model fidelity. Phase 67 tests the two candidate causes directly, without changing any input of those cases.
+
+| Step | What | Pass criterion / rule (fixed 2026-10-24) |
+|------|------|-------------------------------------------|
+| 67a `POLAR_FIDELITY` | The XFOIL polars the Report 996 cases use (`polars_forced_merged.json`) against NACA TN 1546 measured c_l for the three exactly matching sections (16-312, 16-506, 16-509), at TN 1546's α curves and the XFOIL Mach grid points it covers (0.4, 0.55, 0.65, 0.72), XFOIL at the Reynolds number nearest TN 1546's (about 1–2·10⁶, table 1·10⁶ and 2·10⁶ interpolated in log Re); no extrapolation | V-EXP of the input: \|Δc_l\| ≤ 0.05 at ≥ 75 % of the matched points. Not met ⇒ the section polars are a documented error source of the Report 996 cases |
+| 67b `F1A_CHORDWISE` | At the Report 996 Fig. 14 microphone geometry (d/D = 0.083, x/D = −0.125 … 0.5, B = 2, β₇₅ = 10°, M_t 0.45–0.90, static), the independent F1A of F1A_INDEP with each section's load spread over the chord (thin-airfoil loading ∝ √((1−ξ)/ξ), 8 chordwise points along the chord line at the section pitch) against the same total load at the quarter chord (compact) | Diagnostic, rule fixed now: a harmonic where \|compact − chordwise\| > 2 dB (the Report 996 tolerance) is outside what the compact-chord F1A can claim; the Report 996 near-field misses at those points are then a limitation of the compact approximation, not a code defect |
+
+No result of 67a or 67b changes a polar, a load or a criterion of any existing case.
+
+**Results (2026-10-24; report `docs/validation_reports/phase67_source_attribution.md`).** 67a `POLAR_FIDELITY` **not met** 9/60: XFOIL c_l is 0.15–0.35 below TN 1546 at low α on all three sections and Mach numbers. Post-hoc consistency: Report 996 BEMT thrust 25–32 % below measured (s_T 1.25–1.32). 67b `F1A_CHORDWISE`: ≤ 0.27 dB, 0/60 beyond 2 dB. The source-block experimental misses are a limitation of the section polars (XFOIL with forced transition), not of the BEMT/F1A code or the compact chord. Pereira has no measured section data at its Reynolds number (TR 824 is 3–9·10⁶), so its attribution cannot be tested from the documents.
 
