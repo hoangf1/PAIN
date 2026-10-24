@@ -83,6 +83,9 @@ struct PainInputs
     # CR-172428 App. A (phase 44c): Eq. (82) with m̄_r = m M_r / M_r^X (trimmed-area modal
     # mass); false = CR-3813 printed Eq. (82) (trim taken to cover the whole surface).
     η_r_trimmed_area::Bool
+    # Eq. (52) floor-term sign (phase 61): +1 = NASA's corrected program (CR-172428 p. 178, 44f);
+    # −1 = the pre-correction program that produced CR-3813's printed outputs
+    floor_sign::Float64
 end
 
 function PainInputs(fuse, prop, structural, acoustic, amplitudes, phases, pts, ΔA::Real;
@@ -98,7 +101,9 @@ function PainInputs(fuse, prop, structural, acoustic, amplitudes, phases, pts, �
                     crossover_band_Hz::Union{Nothing,Real}=nothing,
                     bands=nothing, η_r_band=nothing, η_n_band=nothing,
                     η_r_band_is_prime::Bool=false,
-                    η_r_trimmed_area::Bool=false)
+                    η_r_trimmed_area::Bool=false,
+                    floor_sign::Real=1.0)
+    abs(floor_sign) == 1 || error("PainInputs: floor_sign must be +1 or −1 (got $floor_sign)")
     (sidewall === nothing) == (endplates === nothing) ||
         error("PainInputs: give both `sidewall` and `endplates` trim stacks, or neither (bare cabin)")
     mech !== nothing && sidewall === nothing && error("PainInputs: `mech` needs a `sidewall` stack")
@@ -115,7 +120,7 @@ function PainInputs(fuse, prop, structural, acoustic, amplitudes, phases, pts, �
                       sidewall, endplates, mech, m, float(η_n_bare), float(C_struc),
                       q_max === nothing ? nothing : Int(q_max), allow_extrapolation, ρ0f, c0f,
                       ρe, ce, ρi, ci, Lc, float(d), xover, bands_n, ηr_n, ηn_n,
-                      η_r_band_is_prime, η_r_trimmed_area)
+                      η_r_band_is_prime, η_r_trimmed_area, float(floor_sign))
 end
 
 """Trim stacks present (sidewall and end plates)?"""
@@ -291,12 +296,12 @@ because it means a mode normalization or mode-shape defect that must be fixed, n
 """
 function coupling_factor(ac::AcousticMode, st::StructuralMode,
                          fuse::FuselageGeometry; τ_t::Float64=1.0, q::Int=0,
-                         L_c::Real=fuse.L, d::Real=0.0)
+                         L_c::Real=fuse.L, d::Real=0.0, floor_sign::Real=1.0)
     a = fuse.a
     θ0 = deg2rad(fuse.theta0_deg)
     Lp = 2a * sin(θ0)
     Is = coupling_shell_integral(ac, st, a)
-    Ip = coupling_floor_integral(ac, st, a, Lp)
+    Ip = floor_sign * coupling_floor_integral(ac, st, a, Lp)
     ax = axial_coupling(q, st.M_axial; L=fuse.L, L_c, d)
     den = Lp + 2a * (π - θ0)
     # The bound |f′| ≤ 1 holds for the bare f′ of max-normalized modes; the trim weight √τ_t of f̄′
@@ -308,7 +313,7 @@ function coupling_factor(ac::AcousticMode, st::StructuralMode,
 end
 
 coupling_factor(ac::AcousticMode, st::StructuralMode, inp::PainInputs; τ_t::Float64=1.0, q::Int=0) =
-    coupling_factor(ac, st, inp.fuse; τ_t, q, L_c=inp.L_c, d=inp.d)
+    coupling_factor(ac, st, inp.fuse; τ_t, q, L_c=inp.L_c, d=inp.d, floor_sign=inp.floor_sign)
 
 """Sums S_c = Σ A cos φ ψ^r(x_m), S_s = Σ A sin φ ψ^r(x_m) of Eq. (42), over the whole grid.
 

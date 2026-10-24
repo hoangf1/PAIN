@@ -91,7 +91,9 @@ CR-3813 article, E-22 settings (trim loss factor 1.0, η_r′ ≤ 0.15). This co
 
 **Conclusion.** The 30–40 dB high-frequency excess is therefore a **limitation of the PAIN methodology** as NASA ran it: the trim model is valid to about 1 kHz (CR-172428 p. 152) and over-estimates the sidewall treatment (CR-3813 p. E-35). It is not an artefact of this implementation.
 
-At low frequency the code reproduces NASA within 0.4 dB (H3, App. B field) and pair by pair within 1.1 % (44f).
+At low frequency the code reproduces NASA's corrected program within 0.4 dB (H3, App. B field) and pair by pair within 1.1 % (44f).
+
+**Phase 61 (same day).** NASA's pre-correction floor sign does not reproduce CR-3813's printed runs, and the 2–8 dB here is not explained by the documents. The statement therefore reads: a limitation of the method, within the stated code-to-NASA difference (`phase61_cr3813_reproduction.md`).
 
 ## Status after Phases 59–60
 

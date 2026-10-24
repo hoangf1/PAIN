@@ -2078,6 +2078,54 @@ Inputs: As T2_MEAS_EXT.
 Equations: Eqs. (19)–(23) + τ_B.
 Outputs: interior SPL [dB].
 
+### Case: REPRO_18b_PRE
+**Title:** REPRO_18b with NASA's pre-correction Eq. (52) floor sign (61b)
+**Map / block:** total / P_REPRO
+**Category:** verification
+**Kind:** runnable
+**Source:** CR-3813 Fig. E-16 NASA prediction; CR-172428 p. 178; criterion fixed 2026-10-23
+**What it tests:** The tone chain with the floor-term sign of NASA's program before its CR-172428 correction, against CR-3813's printed prediction.
+**Why it is here:** CR-3813's runs predate the correction; this tests whether that explains REPRO_18b's 6–10 dB.
+**A pass means:** |Δ| ≤ 4 dB at H1–H3.
+**Not covered:** Other undocumented differences in NASA's 1983 runs.
+**Recorded outcome:** **not_met**, 1/3 (2026-10-23): 85.93, 78.32, 79.57 dB against 79.0, 75.5, 68.0 dB (corrected form 89.03, 81.24, 77.06).
+**Explanation:** Code-on-code. `floor_sign = −1`.
+Inputs: As REPRO_18b.
+Equations: Eq. (8), Eq. (52).
+Outputs: SPL H1–H3 [dB].
+
+### Case: E21_PRE
+**Title:** E-21 NASA NR with NASA's pre-correction Eq. (52) floor sign (61c)
+**Map / block:** total / P_REPRO
+**Category:** verification
+**Kind:** runnable
+**Source:** CR-3813 Fig. E-21 NASA prediction; criterion fixed 2026-10-23
+**What it tests:** Eq. (18) with the pre-correction floor sign against NASA's printed NR prediction.
+**Why it is here:** It is the same question for the noise-reduction path.
+**A pass means:** |Δ| ≤ 3 dB in ≥ 75 % of the counted bands (38a).
+**Not covered:** As REPRO_18b_PRE.
+**Recorded outcome:** **not_met**, 1/4 (2026-10-23); 400–630 Hz within 0.6–1.9 dB (not counted); 800–1000 Hz 6–18 dB above NASA.
+**Explanation:** Code-on-code. `floor_sign = −1`, E-21 inputs.
+Inputs: E-21 inputs.
+Equations: Eq. (18), Eq. (52).
+Outputs: NR [dB].
+
+### Case: E22_HF_CODE
+**Title:** High-frequency NR, this code vs NASA's E-22 prediction (61d)
+**Map / block:** total / P_REPRO
+**Category:** verification
+**Kind:** runnable
+**Source:** CR-3813 Fig. E-22 NASA prediction and measured mean; criterion fixed 2026-10-23
+**What it tests:** Eqs. (19)–(23) against NASA's printed high-frequency NR, next to the measurement.
+**Why it is here:** It is the evidence behind attributing T2's high-frequency gap to the method.
+**A pass means:** |Δ| ≤ 3 dB of NASA in ≥ 75 % of the bands 1250–2500 Hz.
+**Not covered:** NASA's 1983 high-frequency routine is not printed.
+**Recorded outcome:** **not_met**, 1/4 (2026-10-23): code − NASA +7.7, +2.1, −6.5, −5.6 dB; NASA − measured +32.5, +33.5, +43.5, +37.0 dB.
+**Explanation:** Code-on-code. `hf_pressure_ratio`, E-21 inputs.
+Inputs: E-22 data; E-21 inputs.
+Equations: Eqs. (19)–(23).
+Outputs: NR [dB].
+
 ### Case: LOUDEST_PT
 **Title:** Interior level at the loudest point (42)
 **Map / block:** total / X_OUT

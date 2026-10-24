@@ -2429,6 +2429,7 @@ function _finish_validation_registry!()
     append!(cases, _iso48_validation_cases())  # phase 48 exterior broadband from RP-1218
     append!(cases, _iso50_validation_cases())  # phase 50 propeller-field coupling for NR
     append!(cases, _iso59_validation_cases())  # phase 59 Sharp sound bridges
+    append!(cases, _iso61_validation_cases())  # phase 61 CR-3813 reproduction
 
     # E21_E22_NR (38a), T2_EQ19 (38c), E18_TONES (38d), E15_STRUCT_LOSS (38e); no greyed placeholders.
     push!(cases, ValidationCase(
@@ -2522,6 +2523,7 @@ function _finish_validation_registry!()
         "T1_MEAS_DAMPING", "H3_ATTRIB", "NR_TP1964", "NR_TP1964_REF2", "NR_TP1964_XOVER", "NR_TP1964_XOVER_REF2",
         "NR_PROP_TP2444", "T2_MEAS_EXT", "BPM_RP1218", "PROP_BB_FIG14", "PROP_BB_FIG17", "T2_PRED_BB", "NR_PROP_TP2444_PF",
         "SHARP_PANEL_D", "NR_PROP_TP2444_BR", "E22_BR", "T2_MEAS_EXT_BR",
+        "REPRO_18b_PRE", "E21_PRE", "E22_HF_CODE",
         "T1_F1A_FILL", "T1_F1A_MEAS_DAMP",
         "R172428_CODE", "R172428_EXP", "R172428_ETA", "R172428_TRIM", "R172428_PAIRS",
         "POLAR_R996", "POLAR_PER",

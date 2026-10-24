@@ -3096,6 +3096,39 @@ _run_if("Isolated checks for T1/T2 functions (phase 46)") do
     @test w1.W_in ≈ sum(c -> c.term, w1.contributions) rtol = 1e-10
 end
 
+_run_if("CR-3813 reproduction with NASA's pre-correction form (phase 61)") do
+    # Criteria fixed 2026-10-23 (plan §8h) before any run. Recorded first-run results (all not met).
+    # 61a: floor_sign = +1 is the default and leaves f′ unchanged; −1 flips only the floor integral of Eq. (52)
+    inp = PAIN.noise_reduction_test_article_inputs(; η_lining=1.0)
+    @test inp.floor_sign == 1.0
+    pre = PAIN._with_fields(inp; floor_sign=-1.0)
+    fuse = inp.fuse; a = fuse.a; θ0 = deg2rad(fuse.theta0_deg); Lp = 2a * sin(θ0); den = Lp + 2a * (π - θ0)
+    n_checked = 0
+    for ac in inp.acoustic.modes[2:6], st in inp.structural.modes[1:8], q in (0, 1)
+        Is = PAIN.coupling_shell_integral(ac, st, a); Ip = PAIN.coupling_floor_integral(ac, st, a, Lp)
+        ax = PAIN.axial_coupling(q, st.M_axial; L=fuse.L, L_c=inp.L_c, d=inp.d)
+        @test PAIN.coupling_factor(ac, st, inp; q) ≈ ax * (Is + Ip) / den atol = 1e-12
+        @test PAIN.coupling_factor(ac, st, pre; q) ≈ ax * (Is - Ip) / den atol = 1e-12
+        n_checked += 1
+    end
+    @test n_checked == 80
+    @test_throws ErrorException PAIN.PainInputs(inp.fuse, inp.prop, inp.structural, inp.acoustic, inp.amplitudes, inp.phases,
+                                                inp.pts, inp.ΔA; floor_sign=0.5)
+    r = run_validation_case("REPRO_18b_PRE")
+    @test r.verdict === :not_met && r.inputs_echo.n_ok == 1
+    @test r.inputs_echo.corrected ≈ round.(run_validation_case("REPRO_18b").table[i].computed for i in 1:3; digits=2) atol = 0.01
+    r2 = run_validation_case("E21_PRE")
+    @test r2.verdict === :not_met && r2.inputs_echo.n_ok == 1 && r2.inputs_echo.n == 4
+    r3 = run_validation_case("E22_HF_CODE")
+    @test r3.verdict === :not_met && r3.inputs_echo.n_ok == 1
+    @test all(r3.inputs_echo.nasa_minus_measured .> 30)              # NASA's own HF prediction misses by > 30 dB
+    @test all(abs.(r3.inputs_echo.code .- r3.inputs_echo.nasa) .< 8)  # the code is within 8 dB of NASA
+    for id in ("REPRO_18b_PRE", "E21_PRE", "E22_HF_CODE")
+        png = plot_case(run_validation_case(id), VALIDATION_CASES[id].plot_spec; path=joinpath(TEST_OUT, "$(id).png"))
+        @test isfile(png) && filesize(png) > 0
+    end
+end
+
 _run_if("Sharp sound bridges and the App. D mode extension (phases 59, 60)") do
     # Criteria and mapping fixed 2026-10-23 (plan §8g) before any run. Recorded first-run results.
     # 59a pieces by hand: Eq. (5) at normal incidence, Eq. (22), Eqs. (23) and (25), and the Fig. 5 construction

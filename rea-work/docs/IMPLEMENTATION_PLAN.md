@@ -372,6 +372,7 @@ Not blockers (recorded so nobody stops on them): BBN tip geometry beyond 40 in. 
 | Q36 | **Phase 58 — leftovers** (§8f) | QA, docs | Q25 | **done 2026-10-23** |
 | Q37 | **Phase 59 — Phase 51 run: Sharp sound bridges from NASA CR-172490** (§8g) | option + cases | Q29 | **done 2026-10-23**: 59a not met (3/13), 59b met, 59c–e not met; the bridges close about 7 dB of about 30 |
 | Q38 | **Phase 60 — structural modes above Table D-1 from the App. D solver** (§8g) | input extension + re-runs | Q34 | **closed 2026-10-23**: 60a not met (mode count inconsistent), not adopted |
+| Q39 | **Phase 61 — reproduce NASA's CR-3813 printed outputs with NASA's pre-correction program form** (§8h) | option + cases | Q37 | **closed 2026-10-23**: the floor sign does not reproduce CR-3813's runs (1/3, 1/4, 1/4); the differences are not explained by the documents |
 | Q23 | **Phase 45 — T2's high-frequency path on the TP-1964 bare cylinder** (pre-registered 2026-10-23 before any run; §8c) | `hf_broadband.jl` via `PainInputs`, new case | Q21 | **done 2026-10-23**: not met 9/18; Eq. (19) bands 4/4 within ±2.5 dB |
 | Q22 | **q = 0 cabin modes against CR-172428 App. B** (closed 2026-10-23, Phase 54: not explained by the documents) (after 44f). On NASA's printed pairs at 5000 rpm we agree within 0–6 dB, most within 1 dB. But our largest contributors have axially uniform (q = 0) cabin modes, e.g. (0,1) × mode 8 (5.6 Pa² against NASA's 4000 rpm H1 total of 0.59), and none of NASA's 25 printed top pairs has q = 0. Diagnostic only, not adopted: with q = 0 excluded, R172428_CODE would give 8/9 within ±3 dB. CR-3813 Eq. (57) and its Ref. [3] (CR-159363 Eq. 25, downloaded 2026-10-23) both give f₀M = 2/(Mπ) ≠ 0, so the documents do not explain NASA's output; no change without a documentary basis | `pain_core.jl` coupling, Ψ_G of antisymmetric modes | Q21 | open |
 
@@ -444,7 +445,7 @@ Moved to §11. Summary: base H1–H3 = 82.73, 75.73, 77.05 dB (= 18b-r); H3 top 
 
 ## 8c. Phase 45 *(done 2026-10-23; moved to the bottom of this file on 2026-10-23; section number kept)*
 
-## 8d–8g. Phases 46–60 *(all done or closed 2026-10-23; moved to the bottom of this file on 2026-10-23; section numbers kept)*
+## 8d–8h. Phases 46–61 *(all done or closed 2026-10-23; moved to the bottom of this file on 2026-10-23; section numbers kept)*
 
 ## 9. Reference appendices
 
@@ -2178,6 +2179,29 @@ The label is "extension beyond CR-3813 (Sharp, CR-172490)". A pass supports PAIN
 | 60b | `NR_PROP_TP2444_PF_X`: 50b with the extended set | V-EXP: the 47c criterion |
 | 60c | `T2_MEAS_EXT_X`: 47d with the extended set (no bridges) | V-EXP: T2's gate |
 
-**T2 attribution (2026-10-23, author: state it as a limitation of the method once the outputs are shown to match PAIN).** The code is within 2–8 dB of NASA's printed E-22 prediction at 1250–2500 Hz, and NASA's prediction is 32–44 dB above the measurement. T2's high-frequency gap is recorded as a limitation of the PAIN methodology, not a code defect. Table: `validation_reports/phase59_60_bridges_modes.md`.
+**T2 attribution (2026-10-23, author: state it as a limitation of the method once the outputs are shown to match PAIN; reworded after Phase 61).** The code reproduces NASA's corrected program (CR-172428: H3 within 0.4 dB, pairs within 1.1 %). Against CR-3813's printed runs, 2–8 dB remain at high frequency (Phase 61, not explained by the documents), while NASA's own prediction is 32–44 dB above the measurement. T2's high-frequency gap is recorded as a limitation of the PAIN methodology within that stated code-to-NASA difference, not a code defect. Table: `validation_reports/phase59_60_bridges_modes.md`.
 
 **Result (2026-10-23).** **60a: not met.** App. D/asymptotic mode count is 2.32 at 1000 Hz and 0.19 at 2000 Hz, so the extension is not adopted and 60b/60c were not run (as pre-registered).
+
+## 8h. Phase 61: is the code the same as PAIN as NASA ran it for CR-3813? *(closed 2026-10-23; moved to the bottom 2026-10-23; planned 2026-10-23; author: "if something isnt closed out add to implementations and close it out"; criteria dated 2026-10-23, before any run)*
+
+**Why.** The T2 high-frequency gap is recorded as a limitation of the method on the grounds that the code reproduces PAIN. That holds against CR-172428, which ran NASA's corrected program (H3 within 0.4 dB; 9/10 pairs within 1.1 %). It does not yet hold against CR-3813's own printed outputs:
+- `REPRO_18b` 0/3, about 10 dB above E-16's NASA prediction;
+- `E21_E22_NR` V-CODE 0/4;
+- the high-frequency NR 2–8 dB from E-22's NASA prediction.
+
+44f recorded that CR-3813's runs predate NASA's correction of the Eq. (52) floor-term sign (CR-172428 p. 178: "misinterpretation of sign convention"), but never ran the pre-correction form to see whether it reproduces them.
+
+| Step | What | Pass criterion (fixed 2026-10-23) |
+|------|------|-----------------------------------|
+| 61a | Input `floor_sign` in `PainInputs` (default +1, the corrected form; −1 = the pre-correction program, which flips the floor integral in Eq. 52 for f′ and f̄′). The default leaves every recorded value unchanged | V-UNIT: default identical; with −1, f′ by hand within 1e-12 |
+| 61b | `REPRO_18b_PRE`: the REPRO_18b inputs (ANOPP Table 8, R1, Phase III η_T = 0.5) with `floor_sign = −1` against E-16's NASA prediction | V-CODE: \|Δ\| ≤ 4 dB at H1–H3 (the REPRO_18b criterion) |
+| 61c | `E21_PRE`: the E21_E22_NR V-CODE count (bands below the changeover; 80–160 Hz excluded, as 38a) with `floor_sign = −1` | V-CODE: \|Δ\| ≤ 3 dB of NASA's prediction in ≥ 75 % of the bands (the 38a criterion) |
+| 61d | `E22_HF_CODE`: Eqs. (19)–(23) (no floor term, so 61a does not change them) against E-22's NASA prediction at 1250–2500 Hz | V-CODE: \|Δ\| ≤ 3 dB in ≥ 75 % of the bands; the result fixes how the limitation statement is worded (reproduced, or reproduced to within the stated difference) |
+
+**Result (2026-10-23; criteria unchanged).** Report: `validation_reports/phase61_cr3813_reproduction.md`.
+- **61a met.** `floor_sign` defaults to +1 and leaves outputs unchanged; −1 checked by hand on 80 pairs.
+- **61b `REPRO_18b_PRE`: not met, 1/3.** 85.9/78.3/79.6 dB against NASA's 79.0/75.5/68.0 dB.
+- **61c `E21_PRE`: not met, 1/4.**
+- **61d `E22_HF_CODE`: not met, 1/4.** Code − NASA is +7.7/+2.1/−6.5/−5.6 dB; NASA − measured is +32.5…+43.5 dB.
+- **Closed** as differences not explained by the documents. The T2 limitation statement is reworded to "within the stated code-to-NASA difference".
