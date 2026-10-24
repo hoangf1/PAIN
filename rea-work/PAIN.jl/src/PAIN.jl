@@ -55,6 +55,7 @@ include("validation_case_iso50.jl")   # phase 50 propeller-field coupling for NR
 include("validation_case_iso59.jl")   # phase 59 Sharp sound bridges
 include("validation_case_iso61.jl")   # phase 61 CR-3813 reproduction with the pre-correction form
 include("validation_case_iso62.jl")   # phase 62 a proving case for every map block
+include("validation_case_iso66.jl")   # phase 66 further BEMT / F1A code checks
 include("validation_case_extras.jl")
 include("validation_map.jl")
 include("validation_plots.jl")

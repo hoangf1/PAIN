@@ -240,11 +240,59 @@ function _assert_reception_inside_elements(apth, t_common, observer_label::Abstr
 end
 
 """
+    _ccblade_setup(cfg; af=nothing, allow_static=false, use_tip_correction=true, warn_static=false) -> NamedTuple
+
+The CCBlade rotor, sections, operating points and solved section loads for a propeller config (shared by
+`evaluate_propeller_source`, `ccblade_section_operating_points` and the Phase 66 checks; factored out 2026-10-24,
+behaviour unchanged). Vinf < 1 m/s is replaced by 20 m/s unless `allow_static` (plan 25a).
+"""
+function _ccblade_setup(cfg; af=nothing, allow_static::Bool=false, use_tip_correction::Bool=true,
+                        warn_static::Bool=false)
+    p = cfg.propeller
+    op = cfg.operating_point
+    B = Int(p.num_blades)
+    Rtip = Float64(p.tip_radius_m)
+    Rhub = Float64(p.hub_radius_m)
+    rpm = Float64(p.rpm)
+    Ω = rpm * 2π / 60
+    Vinf = Float64(_get(op, :forward_speed_mps, 20.0))
+    vinf_substituted = false
+    if Vinf < 1.0 && !allow_static
+        warn_static && @warn "Vinf < 1 m/s replaced by 20 m/s (static guard; plan 25a)" maxlog=1
+        Vinf = 20.0
+        vinf_substituted = true
+    end
+    ρ = Float64(_get(op, :rho_kg_m3, 1.225))
+    c0 = Float64(_get(op, :c0_mps, 340.0))
+    t_over_c = Float64(_get(p, :thickness_over_chord, 0.0))
+    pitch_off = Float64(_get(p, :pitch_offset_deg, 0.0))
+    if _get(p, :radii_m, nothing) !== nothing
+        r = Float64.(collect(p.radii_m))
+        chord = Float64.(collect(p.chord_m))
+        theta = Float64.(collect(p.twist_deg)) .* (π / 180) .+ deg2rad(pitch_off)
+    else
+        nsec = 12
+        r = collect(range(Rhub + 1e-3, Rtip - 1e-3; length=nsec))
+        chord = fill(0.08 * Rtip, nsec)
+        theta = collect(range(40.0, 10.0; length=nsec)) .* (π / 180) .+ deg2rad(pitch_off)
+    end
+    af_fn = af === nothing ? _default_af : af
+    # Default Rotor uses PrandtlTipHub(); use_tip_correction=false → tip=nothing (F=1).
+    rotor = use_tip_correction ? CCBlade.Rotor(Rhub, Rtip, B) :
+            CCBlade.Rotor(Rhub, Rtip, B; tip=nothing)
+    sections = [CCBlade.Section(r[i], chord[i], theta[i], af_fn) for i in eachindex(r)]
+    ops = [CCBlade.OperatingPoint(Vinf, Ω * r[i], ρ; asound=c0) for i in eachindex(r)]
+    outs = CCBlade.solve.(Ref(rotor), sections, ops)
+    return (; rotor, sections, ops, outs, r, chord, theta, B, Rtip, Rhub, rpm, Ω, Vinf, vinf_substituted,
+            ρ, c0, t_over_c, pitch_off)
+end
+
+"""
     evaluate_propeller_source(cfg, observers; n_harmonics, num_src_times, loads, af, allow_static,
                               n_rev_src, force_short_source)
 
-**The only place** that builds the CCBlade rotor, solves sections, builds F1A
-source elements, and takes the FFT per observer. No calibration, no GEXT, no grid knowledge.
+**The only source path**: CCBlade rotor and section solve (`_ccblade_setup`), F1A source elements and the FFT per
+observer (`_f1a_harmonics`). No calibration, no GEXT, no grid knowledge.
 `loads` is `:ccblade` or `ScaledLoads(T_target, Q_target)` (phase 25h).
 `allow_static=true` keeps Vinf as given when Vinf < 1 (phase 25a probe); default still substitutes 20 m/s with a warning.
 Source span is `n_rev_src` revolutions (default 2, plan I-01); reception window is one bpp.
@@ -258,47 +306,11 @@ function evaluate_propeller_source(cfg, observers::Vector{Observer};
     loads === :ccblade || loads isa ScaledLoads ||
         error("loads=$loads not supported; use :ccblade or ScaledLoads(T,Q)")
     n_rev_src >= 1 || error("n_rev_src must be ≥ 1")
-    p = cfg.propeller
-    op = cfg.operating_point
-    B = Int(p.num_blades)
-    Rtip = Float64(p.tip_radius_m)
-    Rhub = Float64(p.hub_radius_m)
-    rpm = Float64(p.rpm)
-    Ω = rpm * 2π / 60
+    su = _ccblade_setup(cfg; af, allow_static, use_tip_correction, warn_static=true)
+    (; rotor, sections, ops, outs, B, Rtip, Rhub, rpm, Ω, Vinf, vinf_substituted, ρ, c0, t_over_c, pitch_off) = su
+    nsec = length(sections)
     bpf = B * rpm / 60
-    Vinf = Float64(_get(op, :forward_speed_mps, 20.0))
-    vinf_substituted = false
-    if Vinf < 1.0 && !allow_static
-        @warn "Vinf < 1 m/s replaced by 20 m/s (static guard; plan 25a)" maxlog=1
-        Vinf = 20.0
-        vinf_substituted = true
-    end
-    ρ = Float64(_get(op, :rho_kg_m3, 1.225))
-    c0 = Float64(_get(op, :c0_mps, 340.0))
-    t_over_c = Float64(_get(p, :thickness_over_chord, 0.0))
-    pitch_off = Float64(_get(p, :pitch_offset_deg, 0.0))
-
-    if _get(p, :radii_m, nothing) !== nothing
-        r = Float64.(collect(p.radii_m))
-        chord = Float64.(collect(p.chord_m))
-        theta = Float64.(collect(p.twist_deg)) .* (π / 180) .+ deg2rad(pitch_off)
-        nsec = length(r)
-    else
-        nsec = 12
-        r = collect(range(Rhub + 1e-3, Rtip - 1e-3; length=nsec))
-        chord = fill(0.08 * Rtip, nsec)
-        theta = collect(range(40.0, 10.0; length=nsec)) .* (π / 180) .+ deg2rad(pitch_off)
-    end
-
-    af_fn = af === nothing ? _default_af : af
     polar_tag = af === nothing ? :clamped_linear : :user
-
-    # Default Rotor uses PrandtlTipHub(); use_tip_correction=false → tip=nothing (F=1).
-    rotor = use_tip_correction ? CCBlade.Rotor(Rhub, Rtip, B) :
-            CCBlade.Rotor(Rhub, Rtip, B; tip=nothing)
-    sections = [CCBlade.Section(r[i], chord[i], theta[i], af_fn) for i in 1:nsec]
-    ops = [CCBlade.OperatingPoint(Vinf, Ω * r[i], ρ; asound=c0) for i in 1:nsec]
-    outs = CCBlade.solve.(Ref(rotor), sections, ops)
 
     T, Q = CCBlade.thrusttorque(rotor, sections, outs)
     s_T = 1.0
@@ -330,9 +342,33 @@ function evaluate_propeller_source(cfg, observers::Vector{Observer};
         period_src = n_rev_src * (2π / Ω)
         n_src = n_rev_src * B * num_src_times
     end
+    amplitude, phase = _f1a_harmonics(rotor, sections, ops, outs, area_over_chord2, observers;
+                                      period_src, n_src, num_src_times, n_harmonics, bpf)
+
+    echo = (
+        Vinf=Vinf, vinf_substituted=vinf_substituted, c0=c0, rho=ρ,
+        polar=polar_tag, t_over_c=t_over_c, pitch_offset_deg=pitch_off,
+        loads=loads, s_T=s_T, s_Q=s_Q, num_src_times=num_src_times,
+        B=B, Rhub=Rhub, Rtip=Rtip, rpm=rpm, allow_static=allow_static,
+        period_src=period_src, n_src=n_src, n_rev_src=n_rev_src,
+        force_short_source=force_short_source,
+        use_tip_correction=use_tip_correction,
+    )
+    return SourceResult(amplitude, phase, collect(1:n_harmonics), bpf, T, Q, CT, CQ, CP, echo)
+end
+
+"""
+    _f1a_harmonics(rotor, sections, ops, outs, area_over_chord2, observers; period_src, n_src,
+                   num_src_times, n_harmonics, bpf) -> (amplitude, phase)
+
+The F1A → one-blade-pass reception → DC-removed FFT step of `evaluate_propeller_source`, on given
+CCBlade loads `outs` (factored out 2026-10-24 so Phase 66h can feed prescribed loads; behaviour unchanged).
+"""
+function _f1a_harmonics(rotor, sections, ops, outs, area_over_chord2, observers::Vector{Observer};
+                        period_src::Real, n_src::Int, num_src_times::Int, n_harmonics::Int, bpf::Real)
+    bpp = 1 / bpf
     ses = AcousticAnalogies.f1a_source_elements_ccblade(
         rotor, sections, ops, outs, area_over_chord2, period_src, n_src, true)
-
     n_obs = length(observers)
     amplitude = zeros(n_obs, n_harmonics)
     phase = zeros(n_obs, n_harmonics)
@@ -356,21 +392,10 @@ function evaluate_propeller_source(cfg, observers::Vector{Observer};
             bin = clamp(round(Int, fH / df) + 1, 1, length(P))
             c = P[bin]
             amplitude[i, H] = 2 * abs(c) / n
-            ω_H = 2π * fH
-            phase[i, H] = _wrap_phase(angle(c) - ω_H * t0)
+            phase[i, H] = _wrap_phase(angle(c) - 2π * fH * t0)
         end
     end
-
-    echo = (
-        Vinf=Vinf, vinf_substituted=vinf_substituted, c0=c0, rho=ρ,
-        polar=polar_tag, t_over_c=t_over_c, pitch_offset_deg=pitch_off,
-        loads=loads, s_T=s_T, s_Q=s_Q, num_src_times=num_src_times,
-        B=B, Rhub=Rhub, Rtip=Rtip, rpm=rpm, allow_static=allow_static,
-        period_src=period_src, n_src=n_src, n_rev_src=n_rev_src,
-        force_short_source=force_short_source,
-        use_tip_correction=use_tip_correction,
-    )
-    return SourceResult(amplitude, phase, collect(1:n_harmonics), bpf, T, Q, CT, CQ, CP, echo)
+    return amplitude, phase
 end
 
 """Air viscosity used only for display Re of section operating points (Pa·s).
@@ -388,39 +413,10 @@ section loads `Np`, `Tp` [N/m].
 """
 function ccblade_section_operating_points(cfg; af=nothing, allow_static::Bool=false,
                                           use_tip_correction::Bool=true)
-    p = cfg.propeller
-    op = cfg.operating_point
-    B = Int(p.num_blades)
-    Rtip = Float64(p.tip_radius_m)
-    Rhub = Float64(p.hub_radius_m)
-    rpm = Float64(p.rpm)
-    Ω = rpm * 2π / 60
-    Vinf = Float64(_get(op, :forward_speed_mps, 20.0))
-    if Vinf < 1.0 && !allow_static
-        Vinf = 20.0
-    end
-    ρ = Float64(_get(op, :rho_kg_m3, 1.225))
-    c0 = Float64(_get(op, :c0_mps, 340.0))
-    pitch_off = Float64(_get(p, :pitch_offset_deg, 0.0))
-
-    if _get(p, :radii_m, nothing) !== nothing
-        r = Float64.(collect(p.radii_m))
-        chord = Float64.(collect(p.chord_m))
-        theta = Float64.(collect(p.twist_deg)) .* (π / 180) .+ deg2rad(pitch_off)
-        nsec = length(r)
-    else
-        nsec = 12
-        r = collect(range(Rhub + 1e-3, Rtip - 1e-3; length=nsec))
-        chord = fill(0.08 * Rtip, nsec)
-        theta = collect(range(40.0, 10.0; length=nsec)) .* (π / 180) .+ deg2rad(pitch_off)
-    end
-
-    af_fn = af === nothing ? _default_af : af
-    rotor = use_tip_correction ? CCBlade.Rotor(Rhub, Rtip, B) :
-            CCBlade.Rotor(Rhub, Rtip, B; tip=nothing)
-    sections = [CCBlade.Section(r[i], chord[i], theta[i], af_fn) for i in 1:nsec]
-    ops = [CCBlade.OperatingPoint(Vinf, Ω * r[i], ρ; asound=c0) for i in 1:nsec]
-    outs = CCBlade.solve.(Ref(rotor), sections, ops)
+    su = _ccblade_setup(cfg; af, allow_static, use_tip_correction)
+    (; rotor, sections, ops, outs, B, Rtip, Rhub, rpm, Vinf, ρ, c0) = su
+    r, chord = su.r, su.chord
+    nsec = length(sections)
 
     alpha_deg = Float64[rad2deg(outs[i].alpha) for i in 1:nsec]
     Mach = Float64[]

@@ -377,7 +377,7 @@ Not blockers (recorded so nobody stops on them): BBN tip geometry beyond 40 in. 
 | Q41 | **Phase 63 — the structural-modes animation in the GUI works** (§8i) | GUI check | Q40 | **done 2026-10-24**: structural frames step with the acoustic frames; offscreen smokes pass |
 | Q42 | **Phase 64 — a unit test for every function, in `test/unit/`** (§8i) | tests | Q41 | **done 2026-10-24**: `test/unit/` 25 files, completeness test passes; 8 code defects found and fixed (incl. the F1A_GUTIN reference) |
 | Q43 | **Phase 65 — grid axial direction and z_p against the User Manual and App. E** (§8i; found by Phase 62 input QA) | `src/` fix + re-records | Q40 | **done 2026-10-23/24**: z_k = z_p − x₃, z_p = 0.662 m; 12 cases' numbers re-recorded, no verdict changed |
-| Q44 | **Phase 66 — further code checks of BEMT and F1A** (§8j) | cases + tests | Q42 | **proposed 2026-10-24, not started** (author to approve); criteria dated 2026-10-24 |
+| Q44 | **Phase 66 — further code checks of BEMT and F1A** (§8j) | cases + tests | Q42 | **done 2026-10-24** (author: "Yes, run Phase 66"): 7/8 met; `F1A_GUTIN_ANGLES` not met (near-null phase at θ = 60°) |
 | Q45 | **Aircraft working example cabin length** (`aircraft_scale_hartzell_cabin_full.json`: a = 1.32 m, assumed L = 1.83 m, z_p = 0.90 m) | input [AUTHOR] | Q43 | **open 2026-10-24**: the Manual grid spans 3.45 m for a = 1.32 m, so 80 of 160 points lie off the assumed cabin; `grid_points` warns. Needs the aircraft's cabin length and propeller station; affects AC_CABIN_DEMO, the Phase 31 band, LOUDEST_PT aircraft |
 | Q23 | **Phase 45 — T2's high-frequency path on the TP-1964 bare cylinder** (pre-registered 2026-10-23 before any run; §8c) | `hf_broadband.jl` via `PainInputs`, new case | Q21 | **done 2026-10-23**: not met 9/18; Eq. (19) bands 4/4 within ±2.5 dB |
 | Q22 | **q = 0 cabin modes against CR-172428 App. B** (closed 2026-10-23, Phase 54: not explained by the documents) (after 44f). On NASA's printed pairs at 5000 rpm we agree within 0–6 dB, most within 1 dB. But our largest contributors have axially uniform (q = 0) cabin modes, e.g. (0,1) × mode 8 (5.6 Pa² against NASA's 4000 rpm H1 total of 0.59), and none of NASA's 25 printed top pairs has q = 0. Diagnostic only, not adopted: with q = 0 excluded, R172428_CODE would give 8/9 within ±3 dB. CR-3813 Eq. (57) and its Ref. [3] (CR-159363 Eq. 25, downloaded 2026-10-23) both give f₀M = 2/(Mπ) ≠ 0, so the documents do not explain NASA's output; no change without a documentary basis | `pain_core.jl` coupling, Ψ_G of antisymmetric modes | Q21 | open |
@@ -455,22 +455,7 @@ Moved to §11. Summary: base H1–H3 = 82.73, 75.73, 77.05 dB (= 18b-r); H3 top 
 
 ## 8i. Phases 62–65 *(done 2026-10-23/24; moved to the bottom of this file on 2026-10-24; section number kept)*
 
-## 8j. Phase 66: further code checks of BEMT and F1A *(proposed 2026-10-24, not started; author: "can you figure out other ways to verify bemt and f1a"; criteria dated 2026-10-24, before any of these checks is written or run; none uses measured data)*
-
-Existing checks: `BEMT_HAND` (linear lift, c_d = 0, tip loss off), `F1A_GUTIN` (rotor-plane H1), `F1A_INDEP` (own F1A vs AcousticAnalogies on the same loads). Done in Phase 64 as unit tests (not repeated here): steady loading gives no harmonic on the rotor axis (≤ 1e-3 of the in-plane level); in the rotor plane only the torque radiates (½ torque → ½ amplitude, 2× thrust → no change, within 2 %); the independent F1A of a single-radius source equals Gutin's closed form within 0.03 % — this found that the old F1A_GUTIN reference was low by √2·M (fixed 2026-10-24, F1A_GUTIN re-run Δ = 0.03 dB).
-
-| Step | What | Pass criterion (fixed 2026-10-24) |
-|------|------|-----------------------------------|
-| 66a | BEMT section residual: at every station, momentum thrust/torque 4πrρV²(1+a)aF dr and 4πr³ρVΩ(1+a)a′F dr against the blade-element values from the converged φ | relative difference ≤ 1e-8 at every station, three operating points |
-| 66b | Hand BEM with tip loss on, c_d ≠ 0 and a nonlinear c_l(α) (bisection on φ, no CCBlade code) | T and Q within 1 % of the wrapper |
-| 66c | Integrals and bounds: B∫N′dr = T, P = ΩQ; efficiency below the Froude ideal η_i(C_T); halving the station spacing changes T by < 0.5 % | all three hold on the Hartzell and Report 996 blades |
-| 66d | Similarity: with a Re- and M-independent polar, C_T and C_P at fixed J unchanged when rpm and V scale together | within 1e-6 relative |
-| 66e | Lowson rotating point force: one compact rotating dipole against the analytic near- and far-field harmonic at five observer angles | within 0.5 dB and 5° |
-| 66f | Garrick–Watkins forward-flight tone (Gutin extended to flight Mach M_x) against F1A at M_x = 0.1, 0.2 and three angles | within 1 dB |
-| 66g | Hanson frequency-domain far field (loading and thickness) on the same blade | within 1 dB for H1–H3 in the far field; thickness term separately |
-| 66h | Exact properties: only multiples of BΩ present; amplitude ∝ B for identical blades (fixed T per blade); 1/r far field; convergence in source time step and blade sections | each within 1 % (convergence: < 0.1 dB between successive halvings) |
-
-Each step becomes a V-UNIT case on the `A_LOADS` / `A_AMP` blocks with its own figure, or a unit test where no figure helps.
+## 8j. Phase 66 *(done 2026-10-24; moved to the bottom of this file on 2026-10-24; section number kept)*
 
 ## 9. Reference appendices
 
@@ -2285,4 +2270,31 @@ On 2026-10-23, 12 of the 30 blocks of the `total` map had no case. Each gets one
 - **62 done.** 12 cases; 9 met. Not met: `BLK_GAIN_MAP` (R1 negative at γ > 90°; R2 default within the bound), `MRP_SHAPE_NORM` 19/32 (truncated Table D-1 shapes peak up to 1.245), `CYL2D_WEYL` 0/5 (post-hoc diagnosis: App. C grid dispersion at NY = 10). Code review 2026-10-24: two rows that passed by construction replaced (floor width; m_wall), AC_CABIN_DEMO info rows removed from the count, residual units fixed.
 - **63 done.** Structural frames animate with the acoustic frames; unit tests and both offscreen smokes pass.
 - **64 done.** `test/unit/` (25 files), every `src/` function named; 8 code defects found and fixed: F1A_GUTIN reference (low by √2·M; re-run Δ = 0.03 dB), `PropellerPlacement` ±1, string η card keys, Dict cabins dropping symbol/bool fields, `tone_expected_value` empty-band fields, NR dummy grid axes, `_iso_simpson` Float32 literal, Phase 62 failing-case reasons. GUI Run tab now aircraft only (author: E-11 is for PAIN verification).
+
+## 8j. Phase 66: further code checks of BEMT and F1A *(done 2026-10-24; moved to the bottom 2026-10-24; proposed 2026-10-24; author: "can you figure out other ways to verify bemt and f1a"; criteria dated 2026-10-24, before any of these checks is written or run; none uses measured data)*
+
+Existing checks: `BEMT_HAND` (linear lift, c_d = 0, tip loss off), `F1A_GUTIN` (rotor-plane H1), `F1A_INDEP` (own F1A vs AcousticAnalogies on the same loads). Done in Phase 64 as unit tests (not repeated here): steady loading gives no harmonic on the rotor axis (≤ 1e-3 of the in-plane level); in the rotor plane only the torque radiates (½ torque → ½ amplitude, 2× thrust → no change, within 2 %); the independent F1A of a single-radius source equals Gutin's closed form within 0.03 % — this found that the old F1A_GUTIN reference was low by √2·M (fixed 2026-10-24, F1A_GUTIN re-run Δ = 0.03 dB).
+
+| Step | What | Pass criterion (fixed 2026-10-24) |
+|------|------|-----------------------------------|
+| 66a | BEMT section residual: at every station, momentum thrust/torque 4πrρV²(1+a)aF dr and 4πr³ρVΩ(1+a)a′F dr against the blade-element values from the converged φ | relative difference ≤ 1e-8 at every station, three operating points |
+| 66b | Hand BEM with tip loss on, c_d ≠ 0 and a nonlinear c_l(α) (bisection on φ, no CCBlade code) | T and Q within 1 % of the wrapper |
+| 66c | Integrals and bounds: B∫N′dr = T, P = ΩQ; efficiency below the Froude ideal η_i(C_T); halving the station spacing changes T by < 0.5 % | all three hold on the Hartzell and Report 996 blades |
+| 66d | Similarity: with a Re- and M-independent polar, C_T and C_P at fixed J unchanged when rpm and V scale together | within 1e-6 relative |
+| 66e | Lowson rotating point force: one compact rotating dipole against the analytic near- and far-field harmonic at five observer angles | within 0.5 dB and 5° |
+| 66f | Garrick–Watkins forward-flight tone (Gutin extended to flight Mach M_x) against F1A at M_x = 0.1, 0.2 and three angles | within 1 dB |
+| 66g | Hanson frequency-domain far field (loading and thickness) on the same blade | within 1 dB for H1–H3 in the far field; thickness term separately |
+| 66h | Exact properties: only multiples of BΩ present; amplitude ∝ B for identical blades (fixed T per blade); 1/r far field; convergence in source time step and blade sections | each within 1 % (convergence: < 0.1 dB between successive halvings) |
+
+Each step becomes a V-UNIT case on the `A_LOADS` / `A_AMP` blocks with its own figure, or a unit test where no figure helps.
+
+**Readings fixed 2026-10-24, after the author's go-ahead and before any of these checks ran** (from the CCBlade and AcousticAnalogies sources, not from results):
+- **66a:** CCBlade applies the tip/hub loss F to the loads; its reported u, v are rescaled by an effective G (CT = 4a(1+a)F = 4aG(1+aG)). The momentum balance is therefore checked with the raw induction a = k/(1 − k), a′ = k′/(1 + k′), k = c_nσ/(4F sin²φ), k′ = c_tσ/(4F sinφ cosφ) recomputed from the section outputs, and separately in CCBlade's own G form B N′ = 4πrρ(V + u)u, B T′ = 4πrρ(V + u)v. Momentum region only (k ≥ −2/3).
+- **66e:** a compact rotating point force in the far field is Gutin's form, so 66e is F1A (production path) against Gutin summed annulus by annulus, thrust and torque, at θ = 30°, 60°, 90°, 120°, 150° from the flight direction, 100 R_tip, static. Frame (AcousticAnalogies `ccblade_helpers.jl`): the rotor translates along +X, so +X is the flight direction and the force on the fluid is −T x̂; Gutin's p_rms = (mBΩ/(2√2πc₀r))|−dT cosθ + dQ c₀/(ΩR²)|J_mB(mBΩR sinθ/c₀). Phase: relative to θ = 90°, 0° or 180° by the sign of the bracket (equal distance, so equal retarded time). The near field is covered by the exact static and moving-dipole unit tests of the independent F1A.
+- **66f:** Garrick–Watkins with the observer moving with the propeller at M_x (x positive forward): p_rms = (mBΩ/(2√2πc₀S₀))|−dT (M_x + x/S₀)/β² + dQ c₀/(ΩR²)|J_mB(mBΩR y/(c₀S₀)), S₀ = √(x² + β²y²), β² = 1 − M_x²; it reduces to the 66e form at M_x = 0. Observers at 100 R_tip, θ = 60°, 90°, 120°; loads from the same BEMT at the flight speed.
+- **66g:** Hanson's far field in the compact-chord limit; the thickness term alone (loads scaled to zero, A = (t/c)·c² as AcousticAnalogies' `area_over_chord2`): peak amplitude ρ₀(mBΩ)²B ΣA_i dr_i J_mB(mBΩr_i sinθ/c₀)/(2πr), from the far-field monopole ρ₀/(4πr) ∂²/∂t²[V/(1−M_r)]. The loading term is 66e/66f. t/c = 0.12, static, θ = 60°, 90°, 120°.
+- **66h:** the blade-count property uses F1A on prescribed (identical) section loads through `_f1a_harmonics` (the production F1A step), not BEMT loads, which change with B.
+- **Span weights (all F1A references):** AcousticAnalogies gives each section the midpoint span (`get_dradii`: interfaces halfway between sections, ends at R_hub and R_tip), while `CCBlade.thrusttorque` integrates by the trapezoid rule with zero loads at R_hub and R_tip. The 66e–66g references use the AcousticAnalogies spans, so each compares the same discrete source; 66c reports the difference between the two thrust integrals as information (found in the code before any run, 2026-10-24).
+
+**Results (2026-10-24; report `docs/validation_reports/phase66_bemt_f1a.md`).** 66a met 72/72 (1.1e-11); 66b met 4/4 after a fix of the hand reference (first run 0/4: it bisected across the k = 1 pole near the tip); 66c met 7/7 (η ≤ η_i; ΔT −0.07 %; F1A/BEMT span-weight ratio 0.997 and 1.0004 as information); 66d met 6/6; 66e **not met** 4/5 (levels within 0.26 dB; θ = 60° phase 14.6° off at a near-null, 3.7° at 400 R_tip post-hoc); 66f met 6/6 (0.07 dB); 66g met 9/9 (0.002 dB); 66h met 5/5. CCBlade and AcousticAnalogies unchanged (author 2026-10-24: they are correct; checks are on our use of them). Shared set-up `_ccblade_setup` and F1A step `_f1a_harmonics` factored out, behaviour unchanged.
 

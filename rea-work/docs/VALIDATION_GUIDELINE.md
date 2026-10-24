@@ -2415,6 +2415,134 @@ Inputs: aircraft_scale_hartzell_cabin_full.json (cabin and trim from the JSON), 
 Equations: overall_dBA, a_weight_dB
 Outputs: band SPL, A-weighted SPL, overall dB(A).
 
+### Case: BEMT_MOMENTUM
+**Title:** BEMT: momentum = blade element at every station (66a)
+**Map / block:** total / A_LOADS
+**Category:** verification
+**Kind:** runnable
+**Source:** closed form / identity (plan §8j Phase 66; criterion and readings 2026-10-24, before any run)
+**What it tests:** Our CCBlade wrapper's converged sections: blade-element thrust and torque per unit span against the momentum values, at every station of three operating points.
+**Why it is here:** Shows the wrapper's sections are converged solutions of the BEM equations as we set them up (stations, inflow, rpm), not only that integrated loads look plausible.
+**A pass means:** Relative difference ≤ 1e-8 at every station.
+**Not covered:** Polar accuracy; the empirical (k < −2/3) region; experiment.
+**Recorded outcome:** **met**, 72/72 stations, worst 1.1e-11 (first run 2026-10-24; `phase66_bemt_f1a.md`)
+**Explanation:** CCBlade applies the tip/hub loss to the loads and reports u, v rescaled by an effective G; the identity is checked with the raw induction a = k/(1−k), a′ = k′/(1+k′) from the section outputs, B N′ = 4πrρV²F a(1+a), B T′ = 4πrρV(1+a)Ωr F a′, and in CCBlade's G form B N′ = 4πrρ(V+u)u, B T′ = 4πrρ(V+u)v (reading fixed before the run).
+Inputs: Hartzell example at 20 m/s / 4000 rpm and 40 m/s / 3000 rpm; Report 996 blade β₇₅ = 15°, M_t = 0.6, 20 m/s.
+Equations: BEM momentum balance
+Outputs: per-station relative difference
+
+### Case: BEMT_HAND_TIP
+**Title:** BEMT: hand BEM with tip loss, drag, nonlinear polar (66b)
+**Map / block:** total / A_LOADS
+**Category:** verification
+**Kind:** runnable
+**Source:** closed form / identity (plan §8j Phase 66; criterion and readings 2026-10-24, before any run)
+**What it tests:** Our wrapper's T and Q against a hand BEM written in the case (Prandtl tip and hub loss in the textbook form, c_d ≠ 0, c_l = 2πα − 4α³), solved by bisection on φ without CCBlade code.
+**Why it is here:** Extends BEMT_HAND (linear lift, no drag, no tip loss) to the features the production path uses.
+**A pass means:** T and Q within 1 %.
+**Not covered:** Experimental loads; Mach/Reynolds effects in the polar.
+**Recorded outcome:** **met**, 4/4 (re-run 2026-10-24 after a fix of the hand reference; the first run, 0/4, bisected across the k = 1 pole near the tip — a sign change of the residual that is not a root; `phase66_bemt_f1a.md`)
+**Explanation:** With the pole excluded the hand solution equals the wrapper to five digits at both speeds, and CCBlade's φ zeroes the hand residual at every station (|R| ≤ 6e-13). The wrapper and CCBlade were not changed.
+Inputs: Hartzell blade (10 stations) at 20 and 40 m/s, 4000 rpm.
+Equations: BEM residual sin φ/(1+a) − V/(Ωr)·cos φ/(1−a′) = 0
+Outputs: T [N], Q [N m]
+
+### Case: BEMT_INTEGRALS
+**Title:** BEMT: integrals, Froude bound, station spacing (66c)
+**Map / block:** total / A_LOADS
+**Category:** verification
+**Kind:** runnable
+**Source:** closed form / identity (plan §8j Phase 66; criterion and readings 2026-10-24, before any run)
+**What it tests:** B∫N′dr = T and P = ΩQ from our own trapezoid; propulsive efficiency against the Froude ideal η_i; T when the station spacing is halved.
+**Why it is here:** Checks how we integrate and report the loads, and that the station count we use is converged.
+**A pass means:** Integrals within 1e-10; η ≤ η_i; ΔT < 0.5 % on halving the spacing.
+**Not covered:** Absolute accuracy of the loads.
+**Recorded outcome:** **met**, 7/7 (first run 2026-10-24; `phase66_bemt_f1a.md`; information rows kept out of the count): η = 0.593 ≤ 0.919 (Hartzell), 0.626 ≤ 0.774 (Report 996); ΔT = −0.07 % (20 → 39 stations). Information: the thrust F1A radiates with AcousticAnalogies' midpoint spans is 0.997 (Hartzell) and 1.0004 (Report 996) of CCBlade's trapezoid T
+**Explanation:** η = TV/(ΩQ); η_i = 2/(1 + √(1 + T/(½ρV²A))) (actuator disk). The span-weight difference is a property of the two packages' quadratures as we combine them, 0.3 % here.
+Inputs: Hartzell and Report 996 blades at 20 m/s.
+Equations: trapezoid with zero hub/tip loads; Froude
+Outputs: T, P, η, ΔT
+
+### Case: BEMT_SIMILARITY
+**Title:** BEMT: C_T, C_P unchanged at fixed J (66d)
+**Map / block:** total / A_LOADS
+**Category:** verification
+**Kind:** runnable
+**Source:** closed form / identity (plan §8j Phase 66; criterion and readings 2026-10-24, before any run)
+**What it tests:** C_T and C_P of our wrapper when rpm and V scale together (×0.5, ×2, ×3) with a Re- and M-independent polar.
+**Why it is here:** Non-dimensional consistency of the wrapper's coefficients (n, D definitions, unit handling).
+**A pass means:** Within 1e-6 relative.
+**Not covered:** Reynolds and Mach effects (real polars break similarity).
+**Recorded outcome:** **met**, 6/6 (first run 2026-10-24; `phase66_bemt_f1a.md`)
+**Explanation:** With c_l, c_d independent of Re and M the BEM equations depend on J = V/(nD) only.
+Inputs: Hartzell blade, J = 20/(66.7 × 0.762).
+Equations: C_T = T/(ρn²D⁴), C_P = 2πQ/(ρn²D⁵)
+Outputs: C_T, C_P
+
+### Case: F1A_GUTIN_ANGLES
+**Title:** F1A vs Gutin off the rotor plane, thrust and torque (66e)
+**Map / block:** total / A_AMP
+**Category:** verification
+**Kind:** runnable
+**Source:** closed form / identity (plan §8j Phase 66; criterion and readings 2026-10-24, before any run)
+**What it tests:** Our F1A path (BEMT loads → AcousticAnalogies → FFT) against Gutin summed annulus by annulus with thrust and torque, at θ = 30°–150° from the flight direction, static, 100 R_tip: H1 level and phase relative to θ = 90°.
+**Why it is here:** F1A_GUTIN checks the rotor plane only, where thrust does not radiate; off the plane the thrust term and its sign enter.
+**A pass means:** Within 0.5 dB and 5° at each of five angles.
+**Not covered:** Near field; flight (66f); thickness (66g).
+**Recorded outcome:** **not met**, 4/5 (first run 2026-10-24; `phase66_bemt_f1a.md`): levels within 0.26 dB at all five angles; phase at θ = 60° 165.4° against 180° (14.6° off), others within 3.5°. Post-hoc: at 60° the thrust and torque terms cancel to 0.057 of their sum (a near-null), and at 400 R_tip the 60° phase is 176.3° (3.7° off)
+**Explanation:** Frame from the AcousticAnalogies source (rotor translates along +X): θ from +X, Gutin bracket −dT cos θ + dQ c₀/(ΩR²), sections weighted by AcousticAnalogies' spans (readings fixed before the run). The 60° miss is a near-null where the residual phase is set by the O(1/r²) near-field remainder at 100 R; it moves toward 180° with distance. Criterion unchanged.
+Inputs: Hartzell example, static, thickness off.
+Equations: Gutin per annulus
+Outputs: H1 SPL [dB], phase [deg]
+
+### Case: F1A_GW_FLIGHT
+**Title:** F1A vs Garrick–Watkins in flight (66f)
+**Map / block:** total / A_AMP
+**Category:** verification
+**Kind:** runnable
+**Source:** closed form / identity (plan §8j Phase 66; criterion and readings 2026-10-24, before any run)
+**What it tests:** Our F1A path in forward flight (observers moving with the propeller) against the Garrick–Watkins tone on the same BEMT loads, M_x = 0.1 and 0.2, θ = 60°, 90°, 120°, 100 R_tip.
+**Why it is here:** Report 996 and Pereira are flight cases; Gutin covers only static rotors.
+**A pass means:** Within 1 dB at every point.
+**Not covered:** Non-uniform inflow; installation effects.
+**Recorded outcome:** **met**, 6/6, worst 0.07 dB (first run 2026-10-24; `phase66_bemt_f1a.md`)
+**Explanation:** Garrick–Watkins (x positive forward): p_rms = (mBΩ/(2√2πc₀S₀))|−dT(M_x + x/S₀)/β² + dQ c₀/(ΩR²)| J_mB(mBΩRy/(c₀S₀)), S₀ = √(x² + β²y²); reduces to Gutin at M_x = 0 (reading fixed before the run).
+Inputs: Hartzell example at 34 and 68 m/s, 4000 rpm.
+Equations: Garrick–Watkins per annulus
+Outputs: H1 SPL [dB]
+
+### Case: F1A_THICKNESS
+**Title:** F1A thickness noise vs the compact far field (66g)
+**Map / block:** total / A_AMP
+**Category:** verification
+**Kind:** runnable
+**Source:** closed form / identity (plan §8j Phase 66; criterion and readings 2026-10-24, before any run)
+**What it tests:** Our F1A thickness noise alone (loads scaled to zero, t/c = 0.12) against the compact far-field monopole form, H1–H3, θ = 60°, 90°, 120°, static.
+**Why it is here:** No other case checks the thickness term (the production default is loading only).
+**A pass means:** Within 1 dB at every point.
+**Not covered:** Non-compact chord effects at high harmonics (Hanson's chordwise factors → 1 in the compact limit).
+**Recorded outcome:** **met**, 9/9, worst 0.002 dB (first run 2026-10-24; `phase66_bemt_f1a.md`)
+**Explanation:** Peak amplitude ρ₀(mBΩ)²B ΣA_i Δr_i J_mB(mBΩr_i sin θ/c₀)/(2πr), A = (t/c)c² (AcousticAnalogies' area_over_chord2), from ρ₀/(4πr) ∂²/∂t²[V/(1−M_r)]; Hanson's far field in the compact-chord limit.
+Inputs: Hartzell blade, static.
+Equations: compact monopole far field
+Outputs: SPL [dB] per harmonic
+
+### Case: F1A_PROPERTIES
+**Title:** F1A exact properties and convergence (66h)
+**Map / block:** total / A_AMP
+**Category:** verification
+**Kind:** runnable
+**Source:** closed form / identity (plan §8j Phase 66; criterion and readings 2026-10-24, before any run)
+**What it tests:** Blade-count scaling on identical prescribed loads (B = 4 H1 = 2 × B = 2 H2 at 4Ω), 1/r in the far field, and convergence in source time step and blade stations.
+**Why it is here:** Shows our F1A set-up (blade replication, reception window, sampling, station count) is consistent and converged.
+**A pass means:** B scaling and 1/r within 1 %; < 0.1 dB between successive halvings.
+**Not covered:** Absolute level (66e–66g, F1A_GUTIN).
+**Recorded outcome:** **met**, 5/5 (first run 2026-10-24; `phase66_bemt_f1a.md`): ratios 2.000, 2.000, 2.0002; 64 → 128 source times −4e-6 dB; 20 → 39 stations 0.025 dB
+**Explanation:** The blade-count check feeds the same CCBlade section loads to a 2- and a 4-blade rotor through `_f1a_harmonics` (the production F1A step), because BEMT loads change with B (reading fixed before the run).
+Inputs: Hartzell example, static.
+Equations: coherent sum of identical blades; spherical spreading
+Outputs: ratios, dB changes
+
 ## 3. What “valid recreation” means for this project
 
 A recreation is **pipeline-valid** only if:
