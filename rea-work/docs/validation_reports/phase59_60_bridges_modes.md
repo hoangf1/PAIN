@@ -74,6 +74,25 @@ The pre-registered factor-of-2 consistency fails at 1000 and 2000 Hz. Below 820 
 
 Neither set gives a trustworthy mode count above 811 Hz. The extension was not adopted, and 60b and 60c were not run.
 
+## Code against NASA's printed PAIN output at high frequency (2026-10-23, author: "if it proves that the outputs are the same as pain in that aspect then its fine stating" it is a limitation of the method)
+
+CR-3813 article, E-22 settings (trim loss factor 1.0, η_r′ ≤ 0.15). This code uses Eqs. (19)–(23) as printed, without bridges.
+
+| Band (Hz) | This code | NASA's printed PAIN (E-22) | Code − NASA | Measured (E-22 mean) | NASA − measured |
+|-----------|-----------|----------------------------|-------------|----------------------|-----------------|
+| 1250 | 59.7 | 52.0 | +7.7 | 19.5 | +32.5 |
+| 1600 | 61.6 | 59.5 | +2.1 | 26.0 | +33.5 |
+| 2000 | 62.5 | 69.0 | −6.5 | 25.5 | +43.5 |
+| 2500 | 63.4 | 69.0 | −5.6 | 32.0 | +37.0 |
+
+**Reading.**
+- **Code against NASA.** The code is within 2–8 dB of NASA's own output. That is not a band-by-band reproduction: NASA's curve rises more steeply with frequency, and the exact high-frequency path of the 1983 program is not printed.
+- **NASA against the measurement.** NASA's output itself exceeds the measured noise reduction by 32–44 dB, four to twenty times the code-to-NASA difference.
+
+**Conclusion.** The 30–40 dB high-frequency excess is therefore a **limitation of the PAIN methodology** as NASA ran it: the trim model is valid to about 1 kHz (CR-172428 p. 152) and over-estimates the sidewall treatment (CR-3813 p. E-35). It is not an artefact of this implementation.
+
+At low frequency the code reproduces NASA within 0.4 dB (H3, App. B field) and pair by pair within 1.1 % (44f).
+
 ## Status after Phases 59–60
 
 The documents support no further fix for T2's high-frequency gap:

@@ -2178,4 +2178,6 @@ The label is "extension beyond CR-3813 (Sharp, CR-172490)". A pass supports PAIN
 | 60b | `NR_PROP_TP2444_PF_X`: 50b with the extended set | V-EXP: the 47c criterion |
 | 60c | `T2_MEAS_EXT_X`: 47d with the extended set (no bridges) | V-EXP: T2's gate |
 
+**T2 attribution (2026-10-23, author: state it as a limitation of the method once the outputs are shown to match PAIN).** The code is within 2–8 dB of NASA's printed E-22 prediction at 1250–2500 Hz, and NASA's prediction is 32–44 dB above the measurement. T2's high-frequency gap is recorded as a limitation of the PAIN methodology, not a code defect. Table: `validation_reports/phase59_60_bridges_modes.md`.
+
 **Result (2026-10-23).** **60a: not met.** App. D/asymptotic mode count is 2.32 at 1000 Hz and 0.19 at 2000 Hz, so the extension is not adopted and 60b/60c were not run (as pre-registered).
