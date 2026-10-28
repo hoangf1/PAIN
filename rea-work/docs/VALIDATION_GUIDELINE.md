@@ -1731,7 +1731,7 @@ Outputs: f [Hz] vs Table D-1; fraction within 5 %; verdict always `:no_verdict`.
 **Why it is here:** Any geometry other than the test article needs Eqs. (D.17)–(D.26), not the Table D-1 seed.
 **A pass means:** ≥ 75 % of the 32 Table D-1 modes within 5 % (count rule fixed 2026-10-22 before any run); no calibration input.
 **Not covered:** Fig. D-2 shapes reported without a pass mark; production default remains Table D-1 / fitted surrogate.
-**Recorded outcome:** **met**, 27/32 within 5 % (84.4 %); Fig. D-2 max \|Δw\| = 1.4534 (info, no pass mark). First run 2026-10-22 (`mrp_appd_vs_d1.md`)
+**Recorded outcome:** **met**, 27/32 within 5 % (84.4 %); Fig. D-2 max \|Δw\| = 1.4534 (info, no pass mark). First run 2026-10-22 (`mrp_appd_vs_d1.md`). **Audit 2026-10-28 (Phase 78):** this pass is an artifact of frequency-only matching (the solver has 61 modes below 820 Hz against Table D-1's 32); matched by mode identity the solver gives 2/32 within 5 %, 20–70 % low. The criterion moves to identity matching in Phase 78a.
 **Explanation:** Code-on-code (against printed values / NASA solver outputs): implements App. D constraints D.17–D.21, constitutive D.23–D.24, operator D.25, eigenproblem D.22, shapes D.26–D.29 with physical geometry from App. E / Manual §5.2. No parameter fitted to Table D-1. Label V-CODE; first run 2026-10-22.
 Inputs: `appd_test_article_geometry()`; n_modes=48, n_axial=7, n_circ=8, n_floor_max=5; tol_frac=0.05; count rule ≥75 % of 32.
 Equations: App. D (D.17)–(D.26); code `appd_modes` in `mrp_appd.jl`.
