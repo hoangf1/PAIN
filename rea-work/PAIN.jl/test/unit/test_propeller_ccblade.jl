@@ -116,3 +116,17 @@ end
     o = PAIN._scale_outputs(o0, 2.0, 3.0)
     @test o.Np == [2.0, 4.0] && o.Tp == [9.0, 12.0] && o0.Np == [1.0, 2.0]          # copy, not in place
 end
+@testset "observer fore/aft convention (Phase 72)" begin
+    # AA +X is ahead (the rotor travels along +X): Report 996 x/D positive ahead → +X; Pereira φ positive downstream → −X
+    o = hub_observers(0.2, 0.4; x_over_D=[-0.125, 0.125], d_over_D=0.083, x_sign=R996_X_SIGN)
+    @test o[1].x[1] < 0 < o[2].x[1]
+    po = pereira_observers([-20.0, 0.0, 40.0]; r=1.0, V=16.0)
+    @test po[1].x[1] > 0 && po[3].x[1] < 0 && po[2].x[1] == 0
+    @test all(p -> hypot(p.x...) ≈ 1.0 && p.v == [16.0, 0.0, 0.0], po)
+    # physics (Gutin): a static propeller is louder behind the plane than ahead of it; with x_sign = −1 this fails
+    cfg = PAIN._r996_cfg(; beta75=10.0, Mt=0.6, B=2)
+    su = PAIN._ccblade_setup(cfg; allow_static=true)
+    ob = hub_observers(su.Rtip, 2su.Rtip; x_over_D=[-0.5, 0.5], d_over_D=0.5, x_sign=R996_X_SIGN)
+    s = evaluate_propeller_source(cfg, ob; n_harmonics=1, num_src_times=32, allow_static=true)
+    @test s.amplitude[1, 1] > 1.2 * s.amplitude[2, 1]          # ≈ 1.5 with the right sign, ≈ 0.66 with the old one
+end

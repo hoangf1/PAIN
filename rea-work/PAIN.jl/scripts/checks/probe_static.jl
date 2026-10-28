@@ -8,8 +8,8 @@ raw = JSON3.read(read(json_path, String))
 Rtip = Float64(raw.propeller.tip_radius_m)
 D = 2Rtip
 R = Rtip
-# Printed x/D = −0.125 is behind the plane; AA ahead ≈ −X → x_sign=-1 with positive |x/D|
-obs = hub_observers(R, D; x_over_D=[0.125], d_over_D=0.083, x_sign=-1.0, azimuth_deg=0.0)
+# Printed x/D = −0.125 is behind the plane; AA +X is ahead, so R996_X_SIGN = +1 (Phase 72)
+obs = hub_observers(R, D; x_over_D=[-0.125], d_over_D=0.083, x_sign=R996_X_SIGN, azimuth_deg=0.0)
 
 io = IOBuffer()
 println(io, "# Report 996 setup — static probe (phase 25a)\n")

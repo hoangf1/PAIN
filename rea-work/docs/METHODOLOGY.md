@@ -155,7 +155,7 @@ one piece and the cases are grouped by the map check block they belong to.
 
 **Implementation notes.** The default is loading-only (`thickness_over_chord = 0`). `thickness_over_chord` enters F1A as the cross-section area / chord² (AcousticAnalogies' `area_per_chord2`), not as t/c; a NACA 16 section has A ≈ 0.72–0.78·t·c (measured on the Report 996 sections, 2026-10-28). A per-station `area_over_chord2` vector overrides it. CCBlade receives the air viscosity μ = 1.78·10⁻⁵ Pa·s (from 2026-10-28; before that CCBlade's default μ = 1 was used, see §2.4). `asound` must be passed as the sound speed
 (CCBlade's default of 1.0 m/s breaks F1A). Observers use AcousticAnalogies' (x3, x1, x2) ordering with the User Manual
-r_p = a + 0.457. The aircraft path runs F1A at all 160 grid points through one shared source function
+r_p = a + 0.457. In AcousticAnalogies the rotor travels along +X, so +X is ahead of the propeller (upstream) and the thrust points along +X; the aircraft grid maps x₃ (forward positive) to +X. The validation sources follow their own documents: Report 996 x/D is positive ahead (p. 6), so `R996_X_SIGN = +1`; Pereira's φ is positive downstream (Fig. 2b), so `pereira_observers` puts x = −r sin φ; Pereira's Fig. 7 phase fit is p = A cos(kBθ − ψ), so Δψ = −Δφ of our FFT phase (Phase 72, 2026-10-28; until then both validation scripts had the microphones on the wrong side of the plane). The aircraft path runs F1A at all 160 grid points through one shared source function
 (`evaluate_propeller_source`), used by the production grid and by every validation case; GEXT stays on the e11 path only.
 Source time span is two revolutions (`n_rev_src = 2`) with a reception-inside-elements guard (I-01); harmonic phase is
 `angle(c) − ω_H·t₀` (I-02, fixed 2026-10-21). Optional Table-8 peak calibration is a post-step and is never compared with Table 8
@@ -328,6 +328,7 @@ equation's bounds; the measured circles are shown without a pass mark.
 |--------|---------------|------------------|
 | CR-172428 p. 68 (printed F(γ) values and narrative) | F(γ) and ΔL at the checkpoints | Code against the written equation (V-UNIT) |
 | CR-3813 Fig. E-12 (NASA predicted curve, measured circles) | Eq. (43) on ANOPP Table 8 against NASA's predicted blocked line on ℓ = 1; measured circles shown | Tests Eq. (43) with R1/R2 only, not GEXT; δ_dig = 2.91 dB for E-12 |
+| CR-3813 Figs. E-11 and E-12 predicted lines, both read from pixels (diagnostic A3b, 2026-10-28; `e12_a3b_linefit.md`) | NASA's own step E-12 − E-11 against Eq. (43)'s ΔL at the same stations | No verdict. E-11 predicted = Table 8 within 1.2 dB; the step is 4.5–7.5 dB at H1/H2 (Eq. 43: 5.7–6.0) with no fore/aft trend; H3 k10 implies 2.3 dB, unexplained |
 
 **Validation cases.**
 

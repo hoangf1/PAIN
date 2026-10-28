@@ -168,7 +168,7 @@ function main()
     println("wrote ", OUT_JSON)
 
     phis = collect(-20.0:10.0:40.0)
-    obs = [Observer([sind(φ), cosd(φ), 0.0], [16.0, 0.0, 0.0], "φ=$φ") for φ in phis]
+    obs = pereira_observers(phis; r=1.0, V=16.0)   # φ positive downstream = AA −X (Phase 72)
     fig9 = load_fig9_exp()
     fig8 = load_fig8_exp()
     fig6 = load_fig6_exp()
@@ -227,8 +227,9 @@ function main()
                     end
                 end
                 if tname == "toff"
+                    # Fig. 7 fit: p = A cos(kBθ − ψ); our FFT phase: p = A cos(ωt + φ), so Δψ = −Δφ (Phase 72)
                     ψ = rad2deg(src_s.phase[i, 1])
-                    dψ = wrap180(ψ - ψ0)
+                    dψ = wrap180(-(ψ - ψ0))
                     ref_dψ = get(fig7_dψ, φ, NaN)
                     push!(csv_rows, (quantity="dpsi1_fig7", polar_set=String(tag), loads="scaled",
                                      phi_deg=string(φ), harmonic="1",
@@ -244,7 +245,7 @@ function main()
         println(io, "Re-recorded 2026-10-21 after the amplitude-convention fix (I-17; sources cited); result known in advance in direction, therefore post-hoc.")
         println(io, "Generated $(Dates.today()) by `scripts/run/run_pereira.jl`.")
         println(io, "**Re-run after plan I-01/I-02 ($(Dates.today())).** Criterion: VALIDATION_GUIDELINE §2.12 / 23d frozen 2026-10-21.")
-        println(io, "D=0.30 m, B=2, 8000 rpm, V=16 m/s (J=0.4), observers on 1 m arc, `v_obs=[16,0,0]`.")
+        println(io, "D=0.30 m, B=2, 8000 rpm, V=16 m/s (J=0.4), observers on 1 m arc (`pereira_observers`: φ positive downstream = AA −X), `v_obs=[16,0,0]`.")
         println(io, "Geometry: `pereira_fig1b_chord_twist.csv` downsampled to $(length(rR)) stations; area-mean chord $(round(mean_c*1e3; digits=2)) mm. **I-10:** paper's 22.85 mm is the 0.75R chord (digitized c/R≈0.152 → 22.9 mm), not an area mean; geometry not rescaled.")
         println(io)
         # 23d verdict on ScaledLoads / thickness-off / best polar by H1 mean |Δ|

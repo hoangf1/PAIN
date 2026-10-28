@@ -682,7 +682,7 @@ function _run_f1a_indep()
     af = (α, Re, M) -> (2π * clamp(α, -0.35, 0.35), 0.0)
     R = g.R
     xDs = [-0.125, 0.125]
-    obs = hub_observers(R, D; x_over_D=xDs, d_over_D=0.083, x_sign=-1.0)
+    obs = hub_observers(R, D; x_over_D=xDs, d_over_D=0.083, x_sign=R996_X_SIGN)
     nH = 2
     nsrc = 64
     src = evaluate_propeller_source(cfg, obs; n_harmonics=nH, num_src_times=nsrc,
@@ -746,7 +746,7 @@ function _run_f1a_indep()
         "F1A_INDEP", _today_iso(),
         (; criterion="amplitude within 0.5 dB, phase within 2°", date="2026-10-23",
          config="R996 Fig.12-like β=10° Mt=0.75 B=2; linear cl=2πα cd=0; thickness off",
-         observers="x/D=±0.125, d/D=0.083, x_sign=-1",
+         observers="x/D=±0.125, d/D=0.083, x_sign=R996_X_SIGN (+1, Phase 72)",
          note="independent retarded-time Farassat 1A loading; same CCBlade Np,Tp"),
         table, series, n_ok == 3 ? :met : :not_met,
         "$n_ok/3 (max |ΔdB|=$(round(max_dB; digits=3)), |Δφ err|=$(round(max_dφ; digits=2))°)",

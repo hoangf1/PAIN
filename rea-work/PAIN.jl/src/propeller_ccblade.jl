@@ -8,8 +8,9 @@ Shared evaluation: `evaluate_propeller_source` is the only place that runs
 CCBlade → F1A → FFT. `propeller_freefield_grid` evaluates all 160 grid observers
 (no GEXT). GEXT remains on the e11 validation path only (`freefield_digitized.jl`).
 
-Coordinate note: CCBlade/AcousticAnalogies use rotor axis = +X with freestream
-along +X. Fuselage PAIN frame uses cylinder axis = +Z. Observers are mapped
+Coordinate note: CCBlade/AcousticAnalogies use rotor axis = +X, and the rotor travels
+along +X (AcousticAnalogies `_standard_ccblade_transform`), so +X is ahead of the propeller
+(upstream) and the thrust points along +X. Fuselage PAIN frame uses cylinder axis = +Z. Observers are mapped
 hub-relative as (X,Y,Z)_AA = (z − z_p, x − x_h, y − y_h).
 """
 
@@ -178,7 +179,8 @@ end
     hub_observers(R, D; x_over_D, d_over_D, x_sign, azimuth_deg=0.0, v=zeros(3))
 
 Hub-centred observers for Report 996 / Pereira. `x_sign` has **no default**
-(ahead/behind convention stated by every caller; Report 996: positive x/D ahead).
+(ahead/behind convention stated by every caller). AA +X is ahead of the propeller, so a positive
+`x_sign` puts positive `x_over_D` ahead; Report 996 uses `R996_X_SIGN` (positive x/D ahead).
 """
 function hub_observers(R::Float64, D::Float64;
                        x_over_D::AbstractVector{<:Real},
@@ -197,6 +199,20 @@ function hub_observers(R::Float64, D::Float64;
     end
     return observers
 end
+
+"""Report 996 x/D (positive ahead of the propeller plane) to AA X: +1, since AA +X is ahead (Phase 72,
+2026-10-28; until then the scripts used −1, which put the behind microphones ahead)."""
+const R996_X_SIGN = 1.0
+
+"""
+    pereira_observers(φs_deg; r=1.0, V=16.0) -> Vector{Observer}
+
+Pereira et al. microphone arc: radius `r` [m] about the centre of rotation, angle φ from the rotation
+plane, **positive downstream** (Pereira Fig. 2b). Downstream is AA −X, so x = −r sin φ (Phase 72;
+until 2026-10-28 the script used +r sin φ). The observers move with the rotor at `V` (wind-tunnel frame).
+"""
+pereira_observers(φs; r::Real=1.0, V::Real=16.0) =
+    [Observer([-r * sind(φ), r * cosd(φ), 0.0], [Float64(V), 0.0, 0.0], "φ=$φ") for φ in φs]
 
 """
 Default clamped linear polar (CCBlade interface: α in radians).

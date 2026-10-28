@@ -57,7 +57,7 @@ function run_one(af, polar_set, beta75, Mt, B)
     # Dummy observer (loads only)
     R = cfg.propeller.tip_radius_m
     D = 2R
-    obs = hub_observers(R, D; x_over_D=[0.0], d_over_D=0.083, x_sign=-1.0)
+    obs = hub_observers(R, D; x_over_D=[0.0], d_over_D=0.083, x_sign=R996_X_SIGN)
     src = evaluate_propeller_source(cfg, obs; n_harmonics=1, num_src_times=16,
                                     af=af, allow_static=true)
     return src

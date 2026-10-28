@@ -37,7 +37,7 @@ function main()
     R = cfg.propeller.tip_radius_m
     D = 2R
     # Fig. 13(a) asymmetry: behind vs ahead at |x/D|=0.125
-    obs = hub_observers(R, D; x_over_D=[-0.125, 0.125], d_over_D=0.083, x_sign=-1.0)
+    obs = hub_observers(R, D; x_over_D=[-0.125, 0.125], d_over_D=0.083, x_sign=R996_X_SIGN)
     src = evaluate_propeller_source(cfg, obs; n_harmonics=12, num_src_times=64,
                                     af=af, allow_static=true)
     A_behind = src.amplitude[1, 1]
@@ -72,7 +72,7 @@ function main()
         println(io)
         println(io, "## x-sign / Fig. 13(a) asymmetry")
         println(io)
-        println(io, "Convention: `x_sign=-1` so report “behind” (negative x/D) maps to AA +X.")
+        println(io, "Convention: `x_sign=R996_X_SIGN` (+1): report x/D positive ahead, AA +X ahead (the rotor travels along +X); Phase 72.")
         println(io, "Case: β₇₅=15°, M_t=0.75, d/D=0.083, H1, CCBlade loads (unscaled).")
         println(io)
         println(io, "| side | x/D | A_H1 Pa | A_H1 dyne/cm² |")

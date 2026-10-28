@@ -2455,7 +2455,7 @@ _run_if("Validation map errors (V-UNIT)") do
         write_case_error_summary(path; run_date="2026-10-22")
         rec = recorded_case_errors(path)
         @test haskey(rec, "R996_FIG14")
-        @test rec["R996_FIG14"].n_within == 20
+        @test rec["R996_FIG14"].n_within == 14      # Phase 72 (2026-10-28): observers behind the plane, was 20
         @test rec["R996_FIG14"].n_rows == 24
         @test !isempty(rec["R996_FIG14"].text)
         @test hasproperty(rec["R996_FIG14"], :source_date)
@@ -2525,9 +2525,9 @@ _run_if("Validation map errors (V-UNIT)") do
 
     fig14 = run_validation_case("R996_FIG14")
     s14 = case_error_summary(fig14, VALIDATION_CASES["R996_FIG14"].plot_spec)
-    @test s14.n_within == 20
+    @test s14.n_within == 14                     # Phase 72 (2026-10-28) recorded rerun, was 20
     @test s14.n_rows == 24
-    @test count(r -> r.within_tolerance, fig14.table) == 20
+    @test count(r -> r.within_tolerance, fig14.table) == 14
     @test length(fig14.table) == 24
 
     unc = run_validation_case("UNC_COVER")
@@ -2753,11 +2753,12 @@ _run_if("Validation case registry (34d)") do
     @test filesize(png) > 0
     # R996_FIG8 removed 2026-10-21 (I-20: M_t=1.0 out of scope)
     @test !haskey(VALIDATION_CASES, "R996_FIG8")
-    # Task C new cases — Fig.14 counts after A_rms = A/√2 (I-17 / F4 2026-10-21, post-hoc)
+    # Task C new cases — Fig.14 counts after A_rms = A/√2 (I-17 / F4 2026-10-21, post-hoc);
+    # Phase 72 (2026-10-28): Fig. 14 microphone placed behind the plane as Report 996 defines it (was 20/24, met)
     fig14 = run_validation_case("R996_FIG14")
-    @test count(r -> r.within_tolerance, fig14.table) == 20
+    @test count(r -> r.within_tolerance, fig14.table) == 14
     @test length(fig14.table) == 24
-    @test fig14.verdict === :met
+    @test fig14.verdict === :not_met
     @test run_validation_case("MRP_RITZ").verdict === :no_verdict
     @test run_validation_case("BLK_P68").verdict === :met
     @test run_validation_case("F1A_GUTIN").verdict === :met
@@ -2805,7 +2806,7 @@ _run_if("Validation case registry (34d)") do
     @test m1.y != m2.y || m1.x != m2.x
     # Pereira H1/H2 counts after peak_Pa_to_spl_dB (I-17 / F4 2026-10-21, post-hoc)
     per9 = results_by_id["PER_FIG9"]
-    @test per9.inputs_echo.n1ok == 3 && per9.inputs_echo.n1 == 9
+    @test per9.inputs_echo.n1ok == 0 && per9.inputs_echo.n1 == 9   # Phase 72 (2026-10-28): φ positive downstream, was 3
     @test per9.inputs_echo.n2ok == 6 && per9.inputs_echo.n2 == 9
     @test results_by_id["R996_FIG6"].verdict === :no_verdict
     @test results_by_id["GEXT_BOUND"].verdict === :no_verdict

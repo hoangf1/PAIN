@@ -91,7 +91,7 @@ export
     coupling_factor, axial_coupling,
     FreeFieldHarmonicGrid, Observer, SourceResult,
     propeller_freefield_grid, synthetic_freefield_grid,
-    evaluate_propeller_source, grid_observers, hub_observers, apply_table8_calibration,
+    evaluate_propeller_source, grid_observers, hub_observers, R996_X_SIGN, pereira_observers, apply_table8_calibration,
     ScaledLoads, load_polar_set, PolarStats, PolarSet, section_polar, station_polars, AIR_MU_PA_S,
     measured_polar_series, interp_no_extrap,
     ccblade_section_operating_points, polar_coverage_recount,

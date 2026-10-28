@@ -127,7 +127,7 @@ function main()
         for (pset, af) in ((:primary, af_p), (:bracket, af_b))
             cfg = make_cfg(; beta75=10.0, Mt=Mt, B=2)
             R = cfg.propeller.tip_radius_m; D = 2R
-            obs = hub_observers(R, D; x_over_D=[-0.125], d_over_D=0.083, x_sign=-1.0)
+            obs = hub_observers(R, D; x_over_D=[-0.125], d_over_D=0.083, x_sign=R996_X_SIGN)
             src0 = evaluate_propeller_source(cfg, obs; n_harmonics=8, num_src_times=64,
                                              af=af, allow_static=true)
             sT, sQ = load_scale(pset, 10.0, Mt, 2, "Fig14_table")
@@ -167,7 +167,7 @@ function main()
     for (pset, af) in ((:primary, af_p), (:bracket, af_b))
         cfg = make_cfg(; beta75=beta75_13, Mt=Mt13, B=2)
         R = cfg.propeller.tip_radius_m; D = 2R
-        obs = hub_observers(R, D; x_over_D=xDs, d_over_D=0.083, x_sign=-1.0)
+        obs = hub_observers(R, D; x_over_D=xDs, d_over_D=0.083, x_sign=R996_X_SIGN)
         src0 = evaluate_propeller_source(cfg, obs; n_harmonics=4, num_src_times=64,
                                          af=af, allow_static=true)
         src = src0; loads_tag = "ccblade"
@@ -200,7 +200,7 @@ function main()
         for (pset, af) in ((:primary, af_p),)
             cfg = make_cfg(; beta75=10.0, Mt=Mt, B=2)
             R = cfg.propeller.tip_radius_m; D = 2R
-            obs = hub_observers(R, D; x_over_D=xDs12, d_over_D=0.083, x_sign=-1.0)
+            obs = hub_observers(R, D; x_over_D=xDs12, d_over_D=0.083, x_sign=R996_X_SIGN)
             src0 = evaluate_propeller_source(cfg, obs; n_harmonics=8, num_src_times=64,
                                              af=af, allow_static=true)
             sT, sQ = load_scale(pset, 10.0, Mt, 2, "Fig14_table")
@@ -239,7 +239,7 @@ function main()
     for (pset, af) in ((:primary, af_p), (:bracket, af_b))
         cfg = make_cfg(; beta75, Mt, B=2)
         R = cfg.propeller.tip_radius_m; D = 2R
-        obs = hub_observers(R, D; x_over_D=xDs7, d_over_D=0.083, x_sign=-1.0)
+        obs = hub_observers(R, D; x_over_D=xDs7, d_over_D=0.083, x_sign=R996_X_SIGN)
         src0 = evaluate_propeller_source(cfg, obs; n_harmonics=10, num_src_times=64,
                                          af=af, allow_static=true)
         sT, sQ = load_scale(pset, 10.0, Mt, 2, "RM_L8H25a")
@@ -268,7 +268,7 @@ function main()
     R = cfg.propeller.tip_radius_m; D = 2R
     fig6_prms = Float64[]
     for dD in dDs
-        obs = hub_observers(R, D; x_over_D=xDs6, d_over_D=dD, x_sign=-1.0)
+        obs = hub_observers(R, D; x_over_D=xDs6, d_over_D=dD, x_sign=R996_X_SIGN)
         src = evaluate_propeller_source(cfg, obs; n_harmonics=8, num_src_times=64,
                                         af=af_p, allow_static=true)
         push!(fig6_prms, maximum(total_rms(src.amplitude[i, :]) for i in eachindex(xDs6)))
@@ -313,7 +313,7 @@ function main()
         println(io, "Re-recorded 2026-10-21 after the amplitude-convention fix (I-17; sources cited); result known in advance in direction, therefore post-hoc.")
         println(io, "Generated $(Dates.today()) by `scripts/run/run_report996_acoustics.jl`.")
         println(io, "**Re-run after plan I-01/I-02/I-08 ($(Dates.today())).** Criterion: VALIDATION_GUIDELINE §2.12 / 23c frozen 2026-10-21.")
-        println(io, "x_sign=−1 (report behind → AA +X). Thickness off. Harmonic A vs measured: A_rms = A_Pa/√2 (Report 996 p.10 rms).")
+        println(io, "x_sign=R996_X_SIGN = +1 (report x/D positive ahead → AA +X, the direction the rotor travels; Phase 72, was −1). Thickness off. Harmonic A vs measured: A_rms = A_Pa/√2 (Report 996 p.10 rms).")
         println(io)
         if l51 !== nothing
             println(io, "## I-08 Fig. 13(a) load scale")
