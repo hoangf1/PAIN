@@ -59,6 +59,8 @@ function make_cfg(; beta75, Mt, B)
             chord_m = collect(g.chord_m),
             twist_deg = collect(g.twist_deg),
             station_t_over_c = collect(g.t_over_c),
+            # Phase 76: thickness term on (the measurement contains it); A/c² from the section contours
+            area_over_chord2 = report996_area_over_chord2(collect(g.t_over_c)),
         ),
         operating_point = (forward_speed_mps = 0.0, rho_kg_m3 = 1.225, c0_mps = 340.3),
         anopp_table8_calibrate = false,
@@ -313,7 +315,7 @@ function main()
         println(io, "Re-recorded 2026-10-21 after the amplitude-convention fix (I-17; sources cited); result known in advance in direction, therefore post-hoc.")
         println(io, "Generated $(Dates.today()) by `scripts/run/run_report996_acoustics.jl`.")
         println(io, "**Re-run after plan I-01/I-02/I-08 ($(Dates.today())).** Criterion: VALIDATION_GUIDELINE §2.12 / 23c frozen 2026-10-21.")
-        println(io, "x_sign=R996_X_SIGN = +1 (report x/D positive ahead → AA +X, the direction the rotor travels; Phase 72, was −1). Thickness off. Harmonic A vs measured: A_rms = A_Pa/√2 (Report 996 p.10 rms).")
+        println(io, "x_sign=R996_X_SIGN = +1 (report x/D positive ahead → AA +X, the direction the rotor travels; Phase 72, was −1). Thickness on (Phase 76; A/c² per station from the NACA 16 section contours). Harmonic A vs measured: A_rms = A_Pa/√2 (Report 996 p.10 rms).")
         println(io)
         if l51 !== nothing
             println(io, "## I-08 Fig. 13(a) load scale")

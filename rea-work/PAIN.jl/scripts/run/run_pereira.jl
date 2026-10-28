@@ -181,14 +181,16 @@ function main()
     for (tag, path) in POLAR_SETS
         isfile(path) || continue
         af, st = load_polar_set(path; set=:primary, cr75=0.1558)
-        for (tname, toc) in (("toff", 0.0), ("ton", 0.12))
+        # Phase 76: thickness on is the recorded comparison (tag "scaled"); loading-only kept as "scaled_toff".
+        # A/c² of the NACA 4412 (t = 0.12) from the 4-digit thickness distribution (was t/c = 0.12 passed as A/c²).
+        for (tname, toc) in (("ton", naca4_area_over_chord2(0.12)), ("toff", 0.0))
             cfg = make_cfg(rR, cR, tw; t_over_c=toc)
             println("polar=$tag thick=$tname …")
             src = evaluate_propeller_source(cfg, obs; n_harmonics=6, num_src_times=64, af=af)
             src_s = evaluate_propeller_source(cfg, obs; n_harmonics=6, num_src_times=64, af=af, loads=sl)
             push!(load_rows, (polar=String(tag), thick=tname, T=src.T, Q=src.Q, CT=src.CT, CP=src.CP,
                               Ts=src_s.T, Qs=src_s.Q, st=st))
-            loads_tag = tname == "toff" ? "ccblade" : "ccblade_ton"
+            loads_tag = tname == "ton" ? "ccblade" : "ccblade_toff"
             push!(csv_rows, (quantity="T", polar_set=String(tag), loads=loads_tag, phi_deg="",
                              harmonic="", computed=src.T, reference=14.55, units="N"))
             push!(csv_rows, (quantity="Q", polar_set=String(tag), loads=loads_tag, phi_deg="",
@@ -209,24 +211,24 @@ function main()
                         push!(spl_rows, (polar=String(tag), thick=tname, φ=φ, H=H,
                                          SPL_u=Su, SPL_s=Ss, fig9=ref9))
                         push!(csv_rows, (quantity="SPL_fig9", polar_set=String(tag),
-                                         loads=tname == "toff" ? "scaled" : "scaled_ton",
+                                         loads=tname == "ton" ? "scaled" : "scaled_toff",
                                          phi_deg=string(φ), harmonic=string(H),
                                          computed=Ss, reference=ref9, units="dB"))
                     end
                     ref8 = get(fig8, (φ, H), NaN)
                     push!(csv_rows, (quantity="SPL_fig8", polar_set=String(tag),
-                                     loads=tname == "toff" ? "scaled" : "scaled_ton",
+                                     loads=tname == "ton" ? "scaled" : "scaled_toff",
                                      phi_deg=string(φ), harmonic=string(H),
                                      computed=Ss, reference=ref8, units="dB"))
                     ref6 = get(fig6, (φ, H), NaN)
                     if isfinite(ref6)
                         push!(csv_rows, (quantity="tone_fig6", polar_set=String(tag),
-                                         loads=tname == "toff" ? "scaled" : "scaled_ton",
+                                         loads=tname == "ton" ? "scaled" : "scaled_toff",
                                          phi_deg=string(φ), harmonic=string(H),
                                          computed=Ss, reference=ref6, units="dB"))
                     end
                 end
-                if tname == "toff"
+                if tname == "ton"
                     # Fig. 7 fit: p = A cos(kBθ − ψ); our FFT phase: p = A cos(ωt + φ), so Δψ = −Δφ (Phase 72)
                     ψ = rad2deg(src_s.phase[i, 1])
                     dψ = wrap180(-(ψ - ψ0))
@@ -249,11 +251,11 @@ function main()
         println(io, "Geometry: `pereira_fig1b_chord_twist.csv` downsampled to $(length(rR)) stations; area-mean chord $(round(mean_c*1e3; digits=2)) mm. **I-10:** paper's 22.85 mm is the 0.75R chord (digitized c/R≈0.152 → 22.9 mm), not an area mean; geometry not rescaled.")
         println(io)
         # 23d verdict on ScaledLoads / thickness-off / best polar by H1 mean |Δ|
-        println(io, "## 23d verdict (ScaledLoads, thickness off)")
+        println(io, "## 23d verdict (ScaledLoads, thickness on, Phase 76)")
         println(io)
         n1 = 0; n1ok = 0; n2 = 0; n2ok = 0
         for r in spl_rows
-            r.thick == "toff" || continue
+            r.thick == "ton" || continue
             isnan(r.fig9) && continue
             Δ = r.SPL_s - r.fig9
             if r.H == 1
@@ -280,12 +282,12 @@ function main()
         println(io)
         println(io, "ScaledLoads(14.55, 0.4133) reproduces targets (checked in each run).")
         println(io)
-        println(io, "## H1–H2 SPL at φ (ScaledLoads, thickness off), vs Fig. 9 Exp")
+        println(io, "## H1–H2 SPL at φ (ScaledLoads, thickness on, Phase 76), vs Fig. 9 Exp")
         println(io)
         println(io, "| polar | φ | H | SPL F1A | Fig.9 Exp | Δ dB |")
         println(io, "|---|---:|--:|---:|---:|---:|")
         for r in spl_rows
-            r.thick == "toff" || continue
+            r.thick == "ton" || continue
             d = isnan(r.fig9) ? "" : string(round(r.SPL_s - r.fig9; digits=2))
             f9 = isnan(r.fig9) ? "—" : string(round(r.fig9; digits=2))
             println(io, "| $(r.polar) | $(r.φ) | $(r.H) | $(round(r.SPL_s; digits=2)) | $f9 | $d |")

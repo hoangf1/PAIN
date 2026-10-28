@@ -130,3 +130,20 @@ end
     s = evaluate_propeller_source(cfg, ob; n_harmonics=1, num_src_times=32, allow_static=true)
     @test s.amplitude[1, 1] > 1.2 * s.amplitude[2, 1]          # ≈ 1.5 with the right sign, ≈ 0.66 with the old one
 end
+@testset "section area / chord² for the thickness term (Phase 76)" begin
+    mktempdir() do d
+        f = joinpath(d, "rect.dat")                          # 2 × 0.1 rectangle: A/c² = 0.2 / 4 = 0.05
+        write(f, "rect\n2.0 0.05\n0.0 0.05\n0.0 -0.05\n2.0 -0.05\n")
+        @test airfoil_area_over_chord2(f) ≈ 0.05
+    end
+    # NACA 4-digit closed form against a numeric integral of the thickness distribution (x = u² removes the √x)
+    yt(x, t) = 5t * (0.2969sqrt(x) - 0.1260x - 0.3516x^2 + 0.2843x^3 - 0.1015x^4)
+    u = range(0, 1; length=20001); g = [2yt(v^2, 0.12) * 2v for v in u]
+    @test naca4_area_over_chord2(0.12) ≈ (sum(g) - (g[1] + g[end]) / 2) * step(u) rtol = 1e-6
+    # blending: linear in t/c between bracketing sections, clamped outside
+    @test station_area_over_chord2([0.1, 0.05], [0.07, 0.04], [0.02, 0.05, 0.075, 0.1, 0.2]) ≈ [0.04, 0.04, 0.055, 0.07, 0.07]
+    @test station_area_over_chord2([0.12], [0.08], [0.05, 0.2]) == [0.08, 0.08]       # one section: used everywhere
+    d = PAIN._data_path("report996", "xfoil_sections")
+    @test report996_area_over_chord2([0.12])[1] ≈ airfoil_area_over_chord2(joinpath(d, "n16_312.dat"))
+    @test all(a -> 0.72 < a < 0.84, report996_area_over_chord2([0.05, 0.09, 0.12]) ./ [0.05, 0.09, 0.12])
+end

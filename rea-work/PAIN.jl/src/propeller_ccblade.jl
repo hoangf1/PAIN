@@ -305,6 +305,75 @@ function _ccblade_setup(cfg; af=nothing, allow_static::Bool=false, use_tip_corre
             ρ, c0, t_over_c, pitch_off, afs, μ)
 end
 
+"""
+    airfoil_area_over_chord2(path) -> Float64
+
+Cross-section area / chord² of a closed airfoil contour in XFOIL `.dat` form (one name line, then x y pairs
+around the section): shoelace area divided by (max x − min x)². This is AcousticAnalogies' `area_per_chord2`
+(Phase 76).
+"""
+function airfoil_area_over_chord2(path::AbstractString)
+    xy = Tuple{Float64,Float64}[]
+    for ln in eachline(path)
+        p = split(strip(ln))
+        length(p) == 2 || continue
+        x, y = tryparse(Float64, p[1]), tryparse(Float64, p[2])
+        (x === nothing || y === nothing) && continue
+        push!(xy, (x, y))
+    end
+    length(xy) >= 3 || error("$path: fewer than 3 coordinate pairs")
+    a = 0.0
+    for i in eachindex(xy)
+        (x1, y1), (x2, y2) = xy[i], xy[mod1(i + 1, length(xy))]
+        a += x1 * y2 - x2 * y1
+    end
+    c = maximum(first, xy) - minimum(first, xy)
+    return abs(a) / 2 / c^2
+end
+
+"""
+    naca4_area_over_chord2(t) -> Float64
+
+Area / chord² of a NACA 4-digit section of thickness ratio `t`: twice the integral of the 4-digit thickness
+distribution 5t(0.2969√x − 0.1260x − 0.3516x² + 0.2843x³ − 0.1015x⁴) over 0..1, i.e. 0.68505·t. Camber
+changes the area only at second order (Phase 76, Pereira NACA 4412).
+"""
+naca4_area_over_chord2(t::Real) = 10 * t * (0.2969 * 2 / 3 - 0.1260 / 2 - 0.3516 / 3 + 0.2843 / 4 - 0.1015 / 5)
+
+"""
+    station_area_over_chord2(section_tc, section_a, station_tc) -> Vector{Float64}
+
+Per-station A/c², linear in t/c between the two sections that bracket each station and clamped at the
+thinnest and thickest section, the same blending as the station polars (Phase 76).
+"""
+function station_area_over_chord2(section_tc::AbstractVector{<:Real}, section_a::AbstractVector{<:Real},
+                                  station_tc::AbstractVector{<:Real})
+    length(section_tc) == length(section_a) || error("section t/c and area lengths differ")
+    isempty(section_tc) && error("no sections")
+    o = sortperm(section_tc); tc = Float64.(section_tc[o]); a = Float64.(section_a[o])
+    length(tc) == 1 && return fill(a[1], length(station_tc))
+    return [begin
+                t = clamp(Float64(ts), tc[1], tc[end])
+                j = clamp(searchsortedlast(tc, t), 1, length(tc) - 1)
+                w = tc[j+1] == tc[j] ? 0.0 : (t - tc[j]) / (tc[j+1] - tc[j])
+                (1 - w) * a[j] + w * a[j+1]
+            end for ts in station_tc]
+end
+
+"""
+    report996_area_over_chord2(station_tc; dir) -> Vector{Float64}
+
+Station A/c² for the Report 996 blade from the ten NACA 16 section contours in `dir`
+(`data/report996/xfoil_sections`), t/c from the section names (Phase 76).
+"""
+function report996_area_over_chord2(station_tc::AbstractVector{<:Real};
+                                    dir::AbstractString=_data_path("report996", "xfoil_sections"))
+    files = sort(filter(f -> endswith(f, ".dat"), readdir(dir)))
+    tcs = [_section_t_over_c(splitext(f)[1]) for f in files]
+    as = [airfoil_area_over_chord2(joinpath(dir, f)) for f in files]
+    return station_area_over_chord2(tcs, as, station_tc)
+end
+
 """Per-station A/c² for the F1A thickness term: `propeller.area_over_chord2` if given, else `thickness_over_chord` at every station."""
 function _station_area_over_chord2(p, t_over_c::Real, n::Int)
     v = _get(p, :area_over_chord2, nothing)

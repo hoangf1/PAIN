@@ -2455,7 +2455,7 @@ _run_if("Validation map errors (V-UNIT)") do
         write_case_error_summary(path; run_date="2026-10-22")
         rec = recorded_case_errors(path)
         @test haskey(rec, "R996_FIG14")
-        @test rec["R996_FIG14"].n_within == 14      # Phase 72 (2026-10-28): observers behind the plane, was 20
+        @test rec["R996_FIG14"].n_within == 24      # Phase 76 (2026-10-28): thickness on (Phase 72: 14, before: 20)
         @test rec["R996_FIG14"].n_rows == 24
         @test !isempty(rec["R996_FIG14"].text)
         @test hasproperty(rec["R996_FIG14"], :source_date)
@@ -2525,9 +2525,9 @@ _run_if("Validation map errors (V-UNIT)") do
 
     fig14 = run_validation_case("R996_FIG14")
     s14 = case_error_summary(fig14, VALIDATION_CASES["R996_FIG14"].plot_spec)
-    @test s14.n_within == 14                     # Phase 72 (2026-10-28) recorded rerun, was 20
+    @test s14.n_within == 24                     # Phase 76 (2026-10-28) recorded rerun (Phase 72: 14, before: 20)
     @test s14.n_rows == 24
-    @test count(r -> r.within_tolerance, fig14.table) == 14
+    @test count(r -> r.within_tolerance, fig14.table) == 24
     @test length(fig14.table) == 24
 
     unc = run_validation_case("UNC_COVER")
@@ -2756,9 +2756,9 @@ _run_if("Validation case registry (34d)") do
     # Task C new cases — Fig.14 counts after A_rms = A/√2 (I-17 / F4 2026-10-21, post-hoc);
     # Phase 72 (2026-10-28): Fig. 14 microphone placed behind the plane as Report 996 defines it (was 20/24, met)
     fig14 = run_validation_case("R996_FIG14")
-    @test count(r -> r.within_tolerance, fig14.table) == 14
+    @test count(r -> r.within_tolerance, fig14.table) == 24
     @test length(fig14.table) == 24
-    @test fig14.verdict === :not_met
+    @test fig14.verdict === :met            # Phase 76 (2026-10-28): thickness on
     @test run_validation_case("MRP_RITZ").verdict === :no_verdict
     @test run_validation_case("BLK_P68").verdict === :met
     @test run_validation_case("F1A_GUTIN").verdict === :met
