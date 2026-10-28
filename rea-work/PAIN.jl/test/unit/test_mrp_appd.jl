@@ -88,3 +88,19 @@ end
     fp = PAIN._appd_floor_props(g)
     @test PAIN.appd_generalized_mass_from_shape(fl, g) ≈ fp.mf * fp.Lp * g.L / 2 rtol = 1e-9
 end
+@testset "identity matching of modes to Table D-1 (Phase 78a)" begin
+    d1 = structural_modes_from_table_d1()
+    n, pairs = match_modes_by_identity(d1)
+    @test n == 32 && all(p -> p.found && p.err < 1e-12, pairs)          # positive control: Table D-1 against itself
+    # right frequencies, wrong identities (symmetry flipped): must fail, unlike frequency-only matching
+    flip = StructuralModes([StructuralMode(x.index, x.f_Hz, !x.symmetric, x.M_r, x.M_axial, x.C_shell, x.n_shell,
+                                           x.C_floor, x.n_floor) for x in d1.modes], d1.L, d1.a, d1.theta0_deg, "flipped")
+    @test match_modes_by_identity(flip)[1] == 0
+    @test match_ritz_to_table_d1(flip; tol_frac=0.05)[1] == 32           # the old matcher passes it: the defect
+    # a frequency 10 % off with the right identity is found but not within 5 %
+    off = StructuralModes([StructuralMode(x.index, 1.1x.f_Hz, x.symmetric, x.M_r, x.M_axial, x.C_shell, x.n_shell,
+                                          x.C_floor, x.n_floor) for x in d1.modes], d1.L, d1.a, d1.theta0_deg, "off")
+    n2, p2 = match_modes_by_identity(off)
+    @test n2 == 0 && all(p -> p.found && p.err ≈ 0.1, p2)
+    @test PAIN._dominant_order([0.1, -0.5, 0.2], [1, 3, 2]) == 3 && PAIN._dominant_order(Float64[], Int[]) == -1
+end

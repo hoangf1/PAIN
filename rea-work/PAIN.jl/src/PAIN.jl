@@ -80,7 +80,7 @@ export
     structural_mode_frames, render_structural_frame_pngs,
     fill_cabin_modes_gui!,
     scale_acoustic_freq, acoustic_boundary_value,
-    structural_modes, structural_modes_from_table_d1, fit_mrp_to_table_d1, match_ritz_to_table_d1,
+    structural_modes, structural_modes_from_table_d1, fit_mrp_to_table_d1, match_ritz_to_table_d1, match_modes_by_identity,
     StructuralModes, StructuralMode, structural_shell_psi, structural_floor_psi, TABLE_D1_CORE, TABLE_D1_FULL,
     AppDGeometry, appd_test_article_geometry, appd_modes, build_structural_modes,
     APPD_READINGS, donnell_mushtari_frequency_Hz, appd_shell_harmonic_frequency_Hz,

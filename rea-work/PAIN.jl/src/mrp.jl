@@ -543,6 +543,38 @@ function match_ritz_to_table_d1(ritz::StructuralModes; tol_frac::Float64=0.05)
     return npass, pairs
 end
 
+"""Dominant order of a shape: the `n` with the largest |C|; −1 when there are no coefficients (Phase 78a)."""
+_dominant_order(C::AbstractVector, n::AbstractVector) = isempty(C) ? -1 : n[argmax(abs.(C))]
+
+"""
+    match_modes_by_identity(sm::StructuralModes; tol_frac=0.05) -> (npass, pairs)
+
+Phase 78a (criterion 2026-10-28): each Table D-1 mode is paired with a mode of `sm` of the same identity, i.e.
+symmetry, axial index m, dominant shell order and dominant floor order (largest |C|, the Table D-1 columns), the
+nearest in frequency among those, each mode used once. A mode with no same-identity partner counts as a miss
+(`found = false`, `got = NaN`). Unlike `match_ritz_to_table_d1`, a dense spectrum cannot pass by frequency alone.
+"""
+function match_modes_by_identity(sm::StructuralModes; tol_frac::Float64=0.05)
+    used = falses(length(sm.modes))
+    pairs = NamedTuple[]
+    npass = 0
+    for (i, f, s, _, m, ns, nf) in TABLE_D1_FULL
+        cand = [j for (j, x) in enumerate(sm.modes) if !used[j] && x.symmetric == s && x.M_axial == m &&
+                _dominant_order(x.C_shell, x.n_shell) == ns && _dominant_order(x.C_floor, x.n_floor) == nf]
+        if isempty(cand)
+            push!(pairs, (; d1=i, ref=f, ritz=0, got=NaN, err=NaN, ok=false, found=false))
+            continue
+        end
+        j = cand[argmin([abs(sm.modes[k].f_Hz - f) for k in cand])]
+        used[j] = true
+        err = abs(sm.modes[j].f_Hz - f) / f
+        ok = err ≤ tol_frac
+        npass += ok
+        push!(pairs, (; d1=i, ref=f, ritz=j, got=sm.modes[j].f_Hz, err, ok, found=true))
+    end
+    return npass, pairs
+end
+
 """
 Fit scales maximizing spectral coverage of Table D-1 (greedy match ≤5%).
 """
