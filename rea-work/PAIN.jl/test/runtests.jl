@@ -2806,7 +2806,7 @@ _run_if("Validation case registry (34d)") do
     @test m1.y != m2.y || m1.x != m2.x
     # Pereira H1/H2 counts after peak_Pa_to_spl_dB (I-17 / F4 2026-10-21, post-hoc)
     per9 = results_by_id["PER_FIG9"]
-    @test per9.inputs_echo.n1ok == 0 && per9.inputs_echo.n1 == 9   # Phase 72 (2026-10-28): φ positive downstream, was 3
+    @test per9.inputs_echo.n1ok == 9 && per9.inputs_echo.n1 == 9   # Phase 74a (2026-10-28): Fig. 9 re-read from the PDF vectors (Phase 72: 0, before: 3)
     @test per9.inputs_echo.n2ok == 6 && per9.inputs_echo.n2 == 9
     @test results_by_id["R996_FIG6"].verdict === :no_verdict
     @test results_by_id["GEXT_BOUND"].verdict === :no_verdict

@@ -101,5 +101,5 @@ R996_PHASE,2026-10-28,2026-10-28,not_met,0,1,42.0,42.0,"deg","0/1 in tol · max 
 PER_FIG6,2026-10-28,2026-10-28,no_verdict,0,0,,,"","no criterion"
 PER_FIG7,2026-10-28,2026-10-28,met,3,3,3.4,1.3,"deg","3/3 in tol · max |err| 3.4 deg · med 1.3 deg"
 PER_FIG8,2026-10-28,2026-10-28,not_met,10,37,40.0,3.7,"dB","10/37 in tol · max |err| 40.0 dB · med 3.7 dB"
-PER_FIG9,2026-10-28,2026-10-28,not_met,6,18,5.4,3.2,"dB","6/18 in tol · max |err| 5.4 dB · med 3.2 dB"
+PER_FIG9,2026-10-28,2026-10-28,not_met,15,18,3.7,0.35,"dB","15/18 in tol · max |err| 3.7 dB · med 0.35 dB"
 BBN_LEVELS,2026-10-28,2026-10-28,no_verdict,20,32,5.5,1.7,"dB","no verdict · max |err| 5.5 dB · med 1.7 dB"
