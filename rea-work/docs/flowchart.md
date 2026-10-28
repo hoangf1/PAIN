@@ -352,5 +352,5 @@ flowchart LR
 |-------|-------------------|-------|
 | All P_* / A_* cases | Unchanged ids, verdicts, criteria | `VALIDATION_GUIDELINE.md` §2.13 |
 | New X_* connectors | Layout only; no cases | Map `total` |
-| UT_GRID figure | Sample-index error panel | `docs/validation_reports/figures/UT_GRID.png` |
+| UT_GRID figure | Sample-index error panel | `docs/validation_reports/figures/Grid_160_point/UT_GRID.png` |
 | Screenshot | Offscreen smoke, zoom 1, left + right | `VALIDATION_MAP_TOTAL.png`, `VALIDATION_MAP_TOTAL_right.png` |

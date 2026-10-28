@@ -384,13 +384,12 @@ end
 """
     plot_case(result, spec; path=nothing) -> String
 
-Render `result.series` to PNG (and PDF) under `docs/validation_reports/figures/<id>.png`
-unless `path` is given. Returns the PNG path. Empty series writes a placeholder image.
+Render `result.series` to PNG (and PDF) at `validation_figure_path(id)`
+(`docs/validation_reports/figures/<block folder>/<id>.png`) unless `path` is given. Returns the PNG path. Empty series writes a placeholder image.
 """
 function plot_case(result::ValidationCaseResult, spec::PlotSpec; path::Union{Nothing,AbstractString}=nothing)
-    out_dir = joinpath(@__DIR__, "..", "..", "docs", "validation_reports", "figures")
-    mkpath(out_dir)
-    png = path === nothing ? joinpath(out_dir, "$(result.id).png") : String(path)
+    png = path === nothing ? validation_figure_path(result.id) : String(path)
+    mkpath(dirname(png))
     pdf = replace(png, r"\.png$"i => ".pdf")
 
     n_panels = max(1, maximum(s.panel for s in result.series; init=1))
@@ -659,13 +658,36 @@ const VALIDATION_SOURCE_FIGURE_FALLBACKS = Dict{String,String}(
     "PER_FIG9" => "data/pereira/qa/pereira_fig9_overlay.png",
 )
 
-"""Default figure path for a case id."""
-validation_figure_path(id::AbstractString) =
-    abspath(joinpath(@__DIR__, "..", "..", "docs", "validation_reports", "figures", "$(id).png"))
+"""Figure folder of each validation-map block (one folder per block, as on the map)."""
+const VALIDATION_FIGURE_DIRS = Dict{String,String}(
+    "A_GEO" => "Aircraft_inputs", "A_LOADS" => "CCBlade_BEMT", "X_F1A" => "F1A_source",
+    "X_FF" => "Free_field_p", "A_AMP" => "F1A_amplitude", "A_PHASE" => "F1A_phase",
+    "A_FWD" => "Forward_flight", "A_SURF" => "Surface_levels", "A_CABIN" => "Aircraft_cabin",
+    "P_FF" => "e11_free_field", "X_SRC" => "Source_select", "P_GRID" => "Grid_160_point",
+    "P_BLK" => "Blocking_Eq43", "X_BLK_OUT" => "Blocked_pressures",
+    "X_MRP_IN" => "Structure_inputs", "P_MRP" => "Structural_modes", "X_MRP_OUT" => "Modes_fr_psir",
+    "X_CYL_IN" => "Cabin_geometry", "P_CYL" => "CYL2D", "X_CYL_OUT" => "Modes_PhiG",
+    "X_TRIM_IN" => "Trim_stack", "P_TRIM" => "Trim_and_loss", "X_TRIM_OUT" => "Trim_tau_eta",
+    "X_PAIN_IN" => "Cabin_inputs", "P_EQ8" => "Coupling_Eq8", "X_OUT" => "Interior_SPL",
+    "P_REPRO" => "vs_NASA_PAIN", "P_MEAS" => "vs_measurement",
+)
+
+_validation_figures_root() = abspath(joinpath(@__DIR__, "..", "..", "docs", "validation_reports", "figures"))
+
+"""Folder of a case's figures: the folder of its map block; the figures root for an unregistered id."""
+function validation_figure_dir(id::AbstractString)
+    root = _validation_figures_root()
+    info = get(CASE_INFO, String(id), nothing)
+    info === nothing && return root
+    sub = get(VALIDATION_FIGURE_DIRS, info.block_id, nothing)
+    return sub === nothing ? root : joinpath(root, sub)
+end
+
+"""Default figure path for a case id: `figures/<block folder>/<id>.png`."""
+validation_figure_path(id::AbstractString) = joinpath(validation_figure_dir(id), "$(id).png")
 
 function validation_source_figure_path(id::AbstractString)
-    preferred = abspath(joinpath(@__DIR__, "..", "..", "docs", "validation_reports",
-                                 "figures", "source", "$(id).png"))
+    preferred = joinpath(validation_figure_dir(id), "source", "$(id).png")
     isfile(preferred) && return preferred
     rel = get(VALIDATION_SOURCE_FIGURE_FALLBACKS, String(id), nothing)
     if rel !== nothing

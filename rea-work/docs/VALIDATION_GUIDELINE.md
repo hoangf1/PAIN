@@ -316,7 +316,7 @@ A-weighting, band sum → dB(A), SIL. Class: **X-EXTRAP** when driven by CCBlade
 Per-case GUI text (titles, explanations, map/block copy) lives in **§2.13** — single source of truth; both the Validation and Validation map tabs parse it (`valInfo` / `mapDetail` / block `what_it_does` / map `what_is`).
 
 **GUI registry (phases 34–35).** Each row below that has a registry ID can be run from the GUI **Validation** tab (and from
-`run_validation_case(id)` / scripts). Plots go to `docs/validation_reports/figures/<id>.png` (with error panel since 2026-10-21).
+`run_validation_case(id)` / scripts). Plots go to `docs/validation_reports/figures/<block folder>/<id>.png`, one folder per validation-map block (`F1A_amplitude/`, `CCBlade_BEMT/`, `Forward_flight/`, …; table `VALIDATION_FIGURE_DIRS` in `validation_plots.jl`; moved 2026-10-27, files only, no result changed), with error panel since 2026-10-21.
 Cases are read-only. Third tab **"Validation map"** (`src/validation_map.jl`): single horizontal map `total` (aircraft + e11 + cabin + checks);
 stage frames from each group's own blocks only (disjoint layout in §2.13); clickable case chips; Validation-tab list ordered by map and block. **Greyed (Run disabled):** none (`R996_FIG8` removed
 I-20; `E21_E22_NR` runnable since 38a). **In-process runnable:** `CYL2D_C1`, `MRP_D1`, `MRP_RITZ`, `MRP_APPD`, `BLK_P68`,

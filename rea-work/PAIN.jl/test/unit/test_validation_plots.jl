@@ -58,7 +58,13 @@ end
     @test g.error_source == "recorded 2026-10-23" && g.error_snapshot == "snapshot 2026-10-24"
     @test PAIN._case_error_json_fields("Z").error == ""
     @test endswith(replace(PAIN.case_error_summary_path(), '\\' => '/'), "docs/validation_reports/case_error_summary.csv")
-    @test endswith(replace(PAIN.validation_figure_path("T1"), '\\' => '/'), "figures/T1.png")
+    @test endswith(replace(PAIN.validation_figure_path("T1"), '\\' => '/'), "figures/vs_measurement/T1.png")
+    @test endswith(replace(PAIN.validation_figure_path("R996_FIG14"), '\\' => '/'), "figures/F1A_amplitude/R996_FIG14.png")
+    @test endswith(replace(PAIN.validation_figure_path("NO_SUCH_CASE"), '\\' => '/'), "figures/NO_SUCH_CASE.png")
+    # every map block has a figure folder, and no two blocks share one
+    block_ids = [b.id for m in PAIN.VALIDATION_MAPS for b in m.blocks]
+    @test all(b -> haskey(PAIN.VALIDATION_FIGURE_DIRS, b), block_ids)
+    @test length(unique(values(PAIN.VALIDATION_FIGURE_DIRS))) == length(PAIN.VALIDATION_FIGURE_DIRS)
     @test isfile(PAIN.validation_source_figure_path("R996_FIG14"))                  # QA overlay fallback
     # writer on a one-case registry order (the real order is restored afterwards)
     saved = copy(PAIN.VALIDATION_CASE_ORDER)

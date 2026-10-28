@@ -668,7 +668,8 @@ docs/validation_reports/eps_n_quadrature.md                  (19c, done; scripts
 docs/validation_reports/grid_mirroring.md                    (19d, done; scripts/checks/check_grid_mirroring.jl)
 docs/validation_reports/{tau_t_variants,bisect_18b,fig_d2_check,eta_r_normalization}.md  (19e–19h, done)
 docs/validation_reports/figures/                             (phase 34–35 CairoMakie plots)
-docs/validation_reports/figures/source/<case>.png            (phase 35: cropped source pages, display-only)
+docs/validation_reports/figures/<block folder>/<case>.png     (one folder per map block, e.g. F1A_amplitude/; moved 2026-10-27)
+docs/validation_reports/figures/<block folder>/source/<case>.png  (phase 35: cropped source pages, display-only)
 data/cr3813/e11_freefield_measured_{A,B}.csv
 data/cr3813/e12/e12_blocked_{measured,predicted}_{A,B}.csv              (planned, 14a)
 data/cr3813/fig_a2_pf105.csv                                        (16a, done)
@@ -2315,3 +2316,8 @@ No result of 67a or 67b changes a polar, a load or a criterion of any existing c
 
 **Results (2026-10-24; report `docs/validation_reports/phase67_source_attribution.md`).** 67a `POLAR_FIDELITY` **not met** 9/60: XFOIL c_l is 0.15–0.35 below TN 1546 at low α on all three sections and Mach numbers. Post-hoc consistency: Report 996 BEMT thrust 25–32 % below measured (s_T 1.25–1.32). 67b `F1A_CHORDWISE`: ≤ 0.27 dB, 0/60 beyond 2 dB. The source-block experimental misses are a limitation of the section polars (XFOIL with forced transition), not of the BEMT/F1A code or the compact chord. Pereira has no measured section data at its Reynolds number (TR 824 is 3–9·10⁶), so its attribution cannot be tested from the documents.
 
+
+## 8l. Phase 68: figure folders by map block and chunk-structured methodology *(done 2026-10-27; author: "separate them by functions like how its separated in the validation map" and "done for stage 1 thru stage 6")*
+
+- [x] **68a** Validation figures moved from one flat `docs/validation_reports/figures/` into one folder per validation-map block (`F1A_amplitude/`, `CCBlade_BEMT/`, `Forward_flight/`, `vs_measurement/`, …; source pages in `<folder>/source/`). `VALIDATION_FIGURE_DIRS` (block id → folder) and `validation_figure_dir` in `validation_plots.jl`; `validation_figure_path` / `validation_source_figure_path` / `plot_case` use them. `VALIDATION_MAP_TOTAL*.png` stay at the root. Files moved only; no case, criterion, verdict or number changed. Unit test: every map block has a folder, folders are distinct.
+- [x] **68b** `METHODOLOGY.md` stages 1–6 rewritten to the layout of `METHODOLOGY_STRUCTURE.md` (chunk name, function, chain, inputs/outputs per block, sources, cases with criteria, claim). Wording only; every grade, criterion and recorded result is carried over from the existing text and the case records.
