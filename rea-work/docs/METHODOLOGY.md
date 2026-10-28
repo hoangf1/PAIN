@@ -153,7 +153,7 @@ one piece and the cases are grouped by the map check block they belong to.
 | AcousticAnalogies F1A (`X_F1A`) | Section loads and blade geometry, Ω, B, flight velocity, observer positions, sound speed, `thickness_over_chord` | Pressure time history p(t) at each observer; harmonic amplitude 2\|X\|/n and phase per harmonic |
 | Free field p (`X_FF`) | F1A amplitude and phase at the 160 points | Handed to Source select (blocking and the cabin chain) and to the checks below |
 
-**Implementation notes.** The default is loading-only (`thickness_over_chord = 0`). `asound` must be passed as the sound speed
+**Implementation notes.** The default is loading-only (`thickness_over_chord = 0`). `thickness_over_chord` enters F1A as the cross-section area / chord² (AcousticAnalogies' `area_per_chord2`), not as t/c; a NACA 16 section has A ≈ 0.72–0.78·t·c (measured on the Report 996 sections, 2026-10-28). A per-station `area_over_chord2` vector overrides it. CCBlade receives the air viscosity μ = 1.78·10⁻⁵ Pa·s (from 2026-10-28; before that CCBlade's default μ = 1 was used, see §2.4). `asound` must be passed as the sound speed
 (CCBlade's default of 1.0 m/s breaks F1A). Observers use AcousticAnalogies' (x3, x1, x2) ordering with the User Manual
 r_p = a + 0.457. The aircraft path runs F1A at all 160 grid points through one shared source function
 (`evaluate_propeller_source`), used by the production grid and by every validation case; GEXT stays on the e11 path only.
@@ -248,6 +248,60 @@ Thickness noise (no source isolates it, so one thickness-on case per figure is r
 is better than other methods in general or for the aircraft application ("better" needs the same cases run through an alternative
 method, `VALIDATION_GUIDELINE.md` §2.3.3); and fuselage scattering and reflection, which stay V-ASSUMED. The aircraft path stays
 X-EXTRAP until a check supports more.
+
+### 2.4 XFOIL section polars: what was run, with which inputs, and what came out
+
+**Tool.** Stock Windows XFOIL 6.99 (`xfoil.exe`, single precision). It is driven by `data/polars/xfoil_polars.py` (Python, standard library): the script writes an XFOIL command list to standard input, reads the printed output, and keeps an angle only if the last viscous iteration before it reached rms ≤ 1·10⁻⁴. A run that hangs is stopped after 60 s and the points printed before the hang are kept. Each (section, Re, M) polar is two sweeps, one from α = 0 upward and one from α = 0 downward, each in its own XFOIL session.
+
+**Commands sent to XFOIL for one sweep** (values in angle brackets come from the table below):
+
+```
+PLOP, G, (blank)              graphics off
+LOAD <section>.dat            or NACA 4412 (built-in generator) for Pereira
+PANE, PPAR, N <panels>        repanel
+OPER, VPAR
+N <N_crit>                    free transition (Pereira ncrit9 / ncrit5)
+  or XTR <x_up> <x_low>       forced transition (Report 996; Pereira xtr005)
+VISC <Re>, MACH <M>, ITER 200
+ALFA <α1>, ALFA <α2>, ...     one sweep, in order away from 0
+QUIT
+```
+
+**Inputs per set.**
+
+| Set (file) | Geometry | Panels | Transition | Re grid | M grid | α requested |
+|---|---|---|---|---|---|---|
+| Report 996 (`data/report996/polars_forced_merged.json`) | 10 NACA 16-series sections (`data/report996/xfoil_sections/*.dat`, 160 points each, generated with the sibling repository's NACA 16 code, not from Report 996 coordinates) | 240 (new entries); not recorded for the 200 inherited sibling entries (Linux double-precision build) | forced, x_tr = 0.02 upper and lower | 3·10⁵, 5·10⁵, 1·10⁶, 2·10⁶, 4·10⁶ | 0.1, 0.2, 0.4, 0.55, 0.65, 0.72 | −6° to 14°, 0.5° steps |
+| Pereira N_crit 9, primary (`data/pereira/naca4412_xfoil_ncrit9.json`) | XFOIL built-in NACA 4412 | 180 | free, N_crit 9 | 2·10⁴, 3·10⁴, 5·10⁴, 7.5·10⁴, 1·10⁵, 1.5·10⁵, 2·10⁵, 3·10⁵ | 0, 0.1, 0.2, 0.3, 0.4 | −10° to 10° in 0.5°, 10° to 20° in 0.25° |
+| Pereira N_crit 5, bracket (`..._ncrit5.json`) | same | 180 | free, N_crit 5 | same | same | same |
+| Pereira x_tr 0.05, bracket (`..._xtr005.json`) | same | 180 | forced, x_tr = 0.05 | same | same | same |
+
+**Outputs.** Each file holds one table of (α, c_l, c_d) rows per (section, Re, M) key plus a `header` that records the settings and every missing angle. Generator logs: `data/polars/run_*.log`.
+
+| Set | Polars | Converged points | Typical α reach | Gaps |
+|---|---|---|---|---|
+| Report 996 | 300 (10 sections × 5 Re × 6 M) | 9,998 | median top angle 14°; 94 of 300 polars stop below 10° | 102 polars still miss 1,669 angles after the 2026-10-22 regeneration (`xfoil_regen_2026_10_22.py`). The thinnest section, 16-101, has the most gaps |
+| Pereira N_crit 9 | 40 (5 M × 8 Re) | 3,093 | 16.75°–20° | 35 polars miss at least one angle |
+| Pereira N_crit 5 | 40 | 3,208 | 19.5°–20° | 22 polars miss at least one angle |
+| Pereira x_tr 0.05 | 40 | 3,188 | 17.75°–20° | 15 polars miss at least one angle |
+
+**Phase 69 runs (2026-10-28, free transition).** Driver `data/polars/xfoil_phase69.py`, same session, acceptance rule and 240 panels as above.
+
+| Run | Inputs | Outputs |
+|---|---|---|
+| N_crit fit (69b): `tn1546` | Sections 16-312, 16-506, 16-509; every TN 1546 matched point (`data/polars/phase69_tn1546_points.csv`, 68 points at M 0.4, 0.55, 0.65, 0.72); Re = TN 1546 Re(M) = 0.85·10⁶ + 1.15·10⁶ (M − 0.3)/0.5; `N <N_crit>` for N_crit = 1…12; α = the TN 1546 angles | `data/polars/phase69_tn1546_ncrit.json` (c_l, c_d per point and N_crit); fit table `data/polars/phase69_ncrit_fit.md`: N_crit 8 chosen (RMS Δc_l 0.039 on 16-506/16-509, mean −0.021); held-out 16-312 13/26 within 0.05 (not met) |
+| Report 996 grid (69c): `grid 8` | 10 sections; Re 1.5, 2, 3, 5, 7, 10, 15, 20 ·10⁵; M 0.1–0.9 in 0.1 steps; α −6° to 20° in 0.5° steps; `N 8` | `data/report996/polars_phase69_ncrit8.json` (720 polars; missing angles in its header); log `data/polars/run_phase69_grid.log` |
+| Grid fill (69c): `fill 8` | Every grid polar whose up or down sweep hung (443 of 720); same settings; the 2026-10-22 restart rule (after a 60 s hang the sweep restarts at the next angle) | Same file, rewritten in place: 1,977 points added, existing points kept; 24,706 of 38,160 grid points converged (65 %; by Mach 52 % at 0.1, 70 % at 0.5, 85 % at 0.7, 47 % at 0.9); 23 tables still have fewer than 3 points (16 on 16-101, 11 at M 0.9) and fall back to the nearest usable table. `header.fill_pass` records the pass; log `data/polars/run_phase69_fill.log` |
+| N_crit fit repeat (69b): `tn1546` | As the first fit, on an idle machine (registered before the repeat, because XFOIL's 60 s limit is wall-clock) | Identical fit table at every N_crit: N_crit 8 is final |
+
+**How the code reads them** (`load_polar_set`, `src/polars.jl`). *Until 2026-10-28:* one function c_l, c_d (α, Re, M) for every blade station, taken from the single nearest stored (Re, M) table with no interpolation; Re and M outside the grid clamped to the edge; linear in α inside a table and the end value held outside it. *From 2026-10-28 (Phase 69a):* tables keep their section and each blade station gets its own polar, linear in t/c between the two sections that bracket it (`section_polar`, `station_polars`; a multi-section set without station thicknesses is an error). Lookup is bilinear in (log Re, M), with Re and M clamped to the grid range and the clamps counted. With `cr75` each table is extended past its converged angles by the registered Viterna rule, and an unusable table is replaced by the nearest usable one of the same section. CCBlade now gets the air viscosity μ = 1.78·10⁻⁵ Pa·s. The `:bracket` set multiplies c_l by 0.92264 and c_d by 1.81815.
+
+**Defects found in the 2026-10-28 audit** (fixed in Phase 69a; results re-recorded 2026-10-28, post-hoc: R996_LOADS 24/32 within ±15 %, was 6/32; R996_FIG12 28/40, was 21/40; Pereira thrust +0.7 % of measured, was −61 %; no case verdict changed, see `VALIDATION_GUIDELINE.md` §2.14).
+1. The section name is dropped when the file is read, so every blade station uses the last section read, NACA 16-101 (1.3 % thick, design c_l 0.1). The Report 996 blade runs from about 13 % thick at the hub to about 5 % near the tip, with design c_l up to 0.5. Every Report 996 load and near-field result so far used this one section, so the Phase 67 attribution ("XFOIL input fidelity, not code") does not hold. Pereira has one section and is not affected.
+2. There is no interpolation in Re or M (nearest table only). The tip stations at tip Mach 0.75 and 0.9 are read from M = 0.72.
+3. Angles past the end of a table are held at the end value: no stall, and the Viterna extension in §2.10 of `VALIDATION_GUIDELINE.md` is not applied by this loader. The static Report 996 runs reach α = 20°–30°.
+5. CCBlade is given no air viscosity (its default is μ = 1), so the Re sent to the polars is about 10⁵ too low (Report 996: 5–14; Pereira: 2–3). Every BEMT lookup so far used the lowest Re table: 3·10⁵ for Report 996 and 2·10⁴ for Pereira.
+4. Report 996 and TN 1546 do not state that the blades or models were tripped, so the forced x_tr = 0.02 setting has no documentary basis. Pereira states natural transition (no tripping) and tunnel turbulence below 0.1 %, which N_crit 9 matches.
 
 ## 3. Stage 2: blocking (Eq. 43)
 
@@ -674,7 +728,7 @@ User-supplied for any aircraft run (working example diameter 2.64 m is not a fix
 | `structural_joint_acceptance` vs quadrature (40g); modal density / band JA (40h); broadband band integral (40i); SIL (40k) | V-UNIT | 2026-10-23: all met; 40i reference = closed-form ∫ over exact 1/3-oct edges (α = 2, 1.5); code fixed to that integral (was band-centre rectangle) |
 | Map-block cases of Phase 62 (12, one per block that had none; criteria 2026-10-23) | V-UNIT / input QA | first run 2026-10-23: 9 met; `BLK_GAIN_MAP` (R1 below 0 dB at γ > 90°), `MRP_SHAPE_NORM` (Table D-1 shapes peak up to 1.245), `CYL2D_WEYL` (App. C grid at NY = 10 over-counts modes above kh ≈ 1; post-hoc diagnosis) not met |
 | Closure: every not-met case has a cause class (VALIDATION_GUIDELINE §2.14) | register | 2026-10-24: no open code defect; remaining misses are method-as-printed, low-fidelity approximation, input/data, or NASA output not explained by the documents |
-| Cause of the source-block experimental misses (Phase 67; criteria 2026-10-24) | V-EXP (input) / diagnostic | 2026-10-24: XFOIL section c_l 0.15–0.35 below NACA TN 1546 measured (9/60 within 0.05, not met); BEMT thrust 25–32 % below Report 996 measured, consistent; compact-chord F1A changes near-field tones ≤ 0.27 dB. Limitation of the section-polar approximation, not of the code. Pereira: no measured section data at its Reynolds number, not testable |
+| Cause of the source-block experimental misses (Phase 67; criteria 2026-10-24) | V-EXP (input) / diagnostic | 2026-10-24: XFOIL section c_l 0.15–0.35 below NACA TN 1546 measured (9/60 within 0.05, not met); BEMT thrust 25–32 % below Report 996 measured, consistent; compact-chord F1A changes near-field tones ≤ 0.27 dB. Limitation of the section-polar approximation, not of the code. Pereira: no measured section data at its Reynolds number, not testable. **Withdrawn 2026-10-28:** the Report 996 runs used one section (16-101) at every station, a code defect (§2.4); the attribution is open until the rerun |
 | BEMT and F1A as used here against closed forms and identities (Phase 66; criteria 2026-10-24) | V-UNIT | 2026-10-24: 7/8 met; `F1A_GUTIN_ANGLES` not met at one near-null phase (θ = 60°, 100 R_tip). Code verification only; experiment unchanged (X-EXTRAP) |
 | Every function in `src/` has a unit test (`test/unit/`, Phase 64; hand values, limits, independent routes) | V-UNIT | 2026-10-24: all pass; completeness test lists none missing; eight code defects found and fixed (report `phase62_65_map_blocks_grid.md`) |
 | `absorption_coefficient` (40l) | fitted surrogate for `:surrogate` only; no isolated analytic case | docstring + map note |

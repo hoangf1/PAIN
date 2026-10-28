@@ -1,0 +1,721 @@
+n16_213|150000|0.60: 53 pts, 0 missing
+n16_213|150000|0.90: 51 pts, 2 missing
+n16_213|150000|0.70: 51 pts, 2 missing
+n16_213|200000|0.40: 52 pts, 1 missing
+n16_213|150000|0.40: 39 pts, 14 missing TIMEOUT up
+n16_213|150000|0.30: 38 pts, 15 missing TIMEOUT up
+n16_213|150000|0.80: 19 pts, 34 missing TIMEOUT up
+n16_213|150000|0.20: 39 pts, 14 missing TIMEOUT up
+n16_213|150000|0.50: 38 pts, 15 missing TIMEOUT up
+n16_213|200000|0.10: 41 pts, 12 missing TIMEOUT up
+n16_213|150000|0.10: 39 pts, 14 missing TIMEOUT up
+n16_213|200000|0.50: 50 pts, 3 missing
+n16_213|200000|0.20: 36 pts, 17 missing TIMEOUT up
+n16_213|200000|0.70: 51 pts, 2 missing
+n16_213|200000|0.60: 51 pts, 2 missing
+n16_213|200000|0.30: 39 pts, 14 missing TIMEOUT up
+n16_213|200000|0.80: 50 pts, 3 missing
+n16_213|200000|0.90: 49 pts, 4 missing
+n16_213|300000|0.40: 52 pts, 1 missing
+n16_213|300000|0.50: 52 pts, 1 missing
+n16_213|300000|0.70: 53 pts, 0 missing
+n16_213|300000|0.80: 50 pts, 3 missing
+n16_213|300000|0.60: 47 pts, 6 missing
+n16_213|500000|0.30: 49 pts, 4 missing
+n16_213|300000|0.20: 40 pts, 13 missing TIMEOUT up
+n16_213|300000|0.30: 39 pts, 14 missing TIMEOUT up
+n16_213|300000|0.10: 39 pts, 14 missing
+n16_213|500000|0.50: 48 pts, 5 missing
+n16_213|500000|0.60: 49 pts, 4 missing
+n16_213|500000|0.10: 42 pts, 11 missing
+n16_213|500000|0.80: 51 pts, 2 missing
+n16_213|500000|0.40: 41 pts, 12 missing
+n16_213|500000|0.70: 50 pts, 3 missing
+n16_213|500000|0.20: 36 pts, 17 missing TIMEOUT up
+n16_213|700000|0.40: 51 pts, 2 missing
+n16_213|700000|0.10: 45 pts, 8 missing
+n16_213|1000000|0.10: 52 pts, 1 missing
+n16_213|300000|0.90: 0 pts, 53 missing TIMEOUT up
+n16_213|700000|0.30: 45 pts, 8 missing
+n16_213|700000|0.50: 47 pts, 6 missing
+n16_213|700000|0.60: 48 pts, 5 missing
+n16_213|700000|0.70: 50 pts, 3 missing
+n16_213|700000|0.20: 41 pts, 12 missing
+n16_213|1000000|0.60: 52 pts, 1 missing
+n16_213|1000000|0.50: 52 pts, 1 missing
+n16_213|500000|0.90: 18 pts, 35 missing TIMEOUT up
+n16_213|700000|0.80: 48 pts, 5 missing
+n16_213|1000000|0.40: 50 pts, 3 missing
+n16_213|1000000|0.20: 49 pts, 4 missing
+n16_213|1000000|0.70: 49 pts, 4 missing
+n16_213|1500000|0.10: 52 pts, 1 missing
+n16_213|1500000|0.40: 52 pts, 1 missing
+n16_213|1500000|0.20: 51 pts, 2 missing
+n16_213|1000000|0.30: 47 pts, 6 missing
+n16_213|1500000|0.50: 51 pts, 2 missing
+n16_213|1500000|0.60: 52 pts, 1 missing
+n16_213|1500000|0.80: 53 pts, 0 missing
+n16_213|1500000|0.30: 49 pts, 4 missing
+n16_213|1000000|0.80: 49 pts, 4 missing
+n16_213|2000000|0.10: 52 pts, 1 missing
+n16_213|1500000|0.70: 50 pts, 3 missing
+n16_213|2000000|0.20: 52 pts, 1 missing
+n16_213|2000000|0.40: 52 pts, 1 missing
+n16_213|2000000|0.30: 52 pts, 1 missing
+n16_213|2000000|0.50: 52 pts, 1 missing
+n16_213|2000000|0.60: 51 pts, 2 missing
+n16_213|2000000|0.70: 51 pts, 2 missing
+n16_213|2000000|0.80: 48 pts, 5 missing
+n16_312|150000|0.50: 52 pts, 1 missing
+n16_312|150000|0.70: 52 pts, 1 missing
+n16_312|150000|0.60: 52 pts, 1 missing
+n16_213|700000|0.90: 1 pts, 52 missing TIMEOUT up+down
+n16_312|150000|0.80: 52 pts, 1 missing
+n16_312|150000|0.90: 50 pts, 3 missing
+n16_312|150000|0.10: 38 pts, 15 missing TIMEOUT up
+n16_312|150000|0.20: 38 pts, 15 missing TIMEOUT up
+n16_213|1000000|0.90: 14 pts, 39 missing TIMEOUT up
+n16_312|150000|0.30: 38 pts, 15 missing TIMEOUT up
+n16_312|150000|0.40: 38 pts, 15 missing TIMEOUT up
+n16_312|200000|0.50: 53 pts, 0 missing
+n16_312|200000|0.60: 51 pts, 2 missing
+n16_312|200000|0.70: 51 pts, 2 missing
+n16_312|200000|0.80: 49 pts, 4 missing
+n16_213|1500000|0.90: 12 pts, 41 missing TIMEOUT up
+n16_312|200000|0.90: 50 pts, 3 missing
+n16_312|200000|0.10: 39 pts, 14 missing TIMEOUT up
+n16_213|2000000|0.90: 11 pts, 42 missing TIMEOUT up
+n16_312|200000|0.20: 35 pts, 18 missing TIMEOUT up
+n16_312|200000|0.30: 39 pts, 14 missing TIMEOUT up
+n16_312|300000|0.60: 50 pts, 3 missing
+n16_312|300000|0.50: 51 pts, 2 missing
+n16_312|200000|0.40: 40 pts, 13 missing TIMEOUT up
+n16_312|300000|0.70: 49 pts, 4 missing
+n16_312|300000|0.80: 50 pts, 3 missing
+n16_312|300000|0.10: 39 pts, 14 missing
+n16_312|300000|0.20: 40 pts, 13 missing
+n16_312|300000|0.30: 41 pts, 12 missing
+n16_312|300000|0.40: 38 pts, 15 missing TIMEOUT up
+n16_312|500000|0.40: 47 pts, 6 missing
+n16_312|500000|0.70: 51 pts, 2 missing
+n16_312|500000|0.60: 48 pts, 5 missing
+n16_312|500000|0.50: 45 pts, 8 missing
+n16_312|500000|0.80: 50 pts, 3 missing
+n16_312|500000|0.30: 36 pts, 17 missing TIMEOUT up
+n16_312|500000|0.20: 39 pts, 14 missing TIMEOUT up
+n16_312|500000|0.10: 35 pts, 18 missing TIMEOUT up
+n16_312|700000|0.70: 51 pts, 2 missing
+n16_312|300000|0.90: 36 pts, 17 missing TIMEOUT down
+n16_312|700000|0.40: 51 pts, 2 missing
+n16_312|700000|0.50: 48 pts, 5 missing
+n16_312|700000|0.30: 45 pts, 8 missing
+n16_312|700000|0.60: 46 pts, 7 missing
+n16_312|700000|0.20: 42 pts, 11 missing
+n16_312|1000000|0.60: 53 pts, 0 missing
+n16_312|700000|0.10: 44 pts, 9 missing TIMEOUT up
+n16_312|1000000|0.50: 52 pts, 1 missing
+n16_312|1000000|0.10: 46 pts, 7 missing
+n16_312|1000000|0.20: 45 pts, 8 missing
+n16_312|1500000|0.10: 53 pts, 0 missing
+n16_312|1000000|0.30: 45 pts, 8 missing
+n16_312|1000000|0.70: 51 pts, 2 missing
+n16_312|1000000|0.40: 45 pts, 8 missing
+n16_312|1500000|0.40: 53 pts, 0 missing
+n16_312|1500000|0.60: 53 pts, 0 missing
+n16_312|1500000|0.20: 50 pts, 3 missing
+n16_312|500000|0.90: 0 pts, 53 missing TIMEOUT up+down
+n16_312|2000000|0.10: 53 pts, 0 missing
+n16_312|1500000|0.70: 52 pts, 1 missing
+n16_312|1500000|0.50: 49 pts, 4 missing
+n16_312|2000000|0.30: 52 pts, 1 missing
+n16_312|2000000|0.40: 52 pts, 1 missing
+n16_312|2000000|0.20: 50 pts, 3 missing
+n16_312|700000|0.80: 14 pts, 39 missing TIMEOUT up
+n16_312|1500000|0.30: 43 pts, 10 missing
+n16_312|2000000|0.50: 52 pts, 1 missing
+n16_312|1000000|0.80: 42 pts, 11 missing
+n16_312|2000000|0.60: 52 pts, 1 missing
+n16_312|700000|0.90: 0 pts, 53 missing TIMEOUT up+down
+n16_312|1500000|0.80: 20 pts, 33 missing TIMEOUT up
+n16_312|1000000|0.90: 13 pts, 40 missing TIMEOUT up
+n16_312|1500000|0.90: 19 pts, 34 missing TIMEOUT up
+n16_312|2000000|0.70: 24 pts, 29 missing TIMEOUT up
+n16_411|150000|0.60: 52 pts, 1 missing
+n16_312|2000000|0.80: 23 pts, 30 missing TIMEOUT up
+n16_411|150000|0.70: 52 pts, 1 missing
+n16_411|150000|0.10: 33 pts, 20 missing TIMEOUT up
+n16_411|150000|0.80: 51 pts, 2 missing
+n16_411|150000|0.30: 31 pts, 22 missing TIMEOUT up
+n16_411|150000|0.20: 30 pts, 23 missing TIMEOUT up
+n16_411|150000|0.90: 49 pts, 4 missing
+n16_411|150000|0.40: 34 pts, 19 missing TIMEOUT up
+n16_411|200000|0.50: 52 pts, 1 missing
+n16_411|200000|0.70: 52 pts, 1 missing
+n16_411|200000|0.60: 52 pts, 1 missing
+n16_411|150000|0.50: 35 pts, 18 missing TIMEOUT up
+n16_312|2000000|0.90: 0 pts, 53 missing TIMEOUT up+down
+n16_411|200000|0.80: 48 pts, 5 missing
+n16_411|200000|0.90: 49 pts, 4 missing
+n16_411|200000|0.10: 31 pts, 22 missing TIMEOUT up
+n16_411|200000|0.20: 31 pts, 22 missing TIMEOUT up
+n16_411|200000|0.30: 34 pts, 19 missing TIMEOUT up
+n16_411|300000|0.60: 51 pts, 2 missing
+n16_411|200000|0.40: 35 pts, 18 missing TIMEOUT up
+n16_411|300000|0.70: 51 pts, 2 missing
+n16_411|300000|0.50: 49 pts, 4 missing
+n16_411|300000|0.40: 45 pts, 8 missing
+n16_411|300000|0.80: 49 pts, 4 missing
+n16_411|300000|0.10: 34 pts, 19 missing TIMEOUT up
+n16_411|300000|0.90: 50 pts, 3 missing
+n16_411|300000|0.30: 36 pts, 17 missing TIMEOUT up
+n16_411|500000|0.40: 49 pts, 4 missing
+n16_411|500000|0.50: 50 pts, 3 missing
+n16_411|500000|0.80: 51 pts, 2 missing
+n16_411|500000|0.60: 49 pts, 4 missing
+n16_411|500000|0.70: 50 pts, 3 missing
+n16_411|500000|0.10: 40 pts, 13 missing
+n16_411|500000|0.30: 40 pts, 13 missing
+n16_411|300000|0.20: 35 pts, 18 missing TIMEOUT up+down
+n16_411|500000|0.20: 37 pts, 16 missing TIMEOUT up
+n16_411|700000|0.60: 52 pts, 1 missing
+n16_411|700000|0.80: 52 pts, 1 missing
+n16_411|700000|0.70: 49 pts, 4 missing
+n16_411|1000000|0.20: 53 pts, 0 missing
+n16_411|700000|0.30: 41 pts, 12 missing TIMEOUT up
+n16_411|700000|0.10: 40 pts, 13 missing TIMEOUT up
+n16_411|700000|0.20: 37 pts, 16 missing
+n16_411|700000|0.50: 38 pts, 15 missing
+n16_411|1000000|0.50: 53 pts, 0 missing
+n16_411|700000|0.40: 39 pts, 14 missing TIMEOUT up
+n16_411|1000000|0.60: 52 pts, 1 missing
+n16_411|1000000|0.70: 51 pts, 2 missing
+n16_411|1500000|0.10: 52 pts, 1 missing
+n16_411|500000|0.90: 0 pts, 53 missing TIMEOUT up+down
+n16_411|1500000|0.40: 52 pts, 1 missing
+n16_411|1000000|0.10: 45 pts, 8 missing TIMEOUT up
+n16_411|1000000|0.30: 36 pts, 17 missing TIMEOUT up
+n16_411|1500000|0.50: 52 pts, 1 missing
+n16_411|1000000|0.40: 43 pts, 10 missing TIMEOUT up
+n16_411|1500000|0.20: 40 pts, 13 missing
+n16_411|2000000|0.10: 48 pts, 5 missing
+n16_411|700000|0.90: 0 pts, 53 missing TIMEOUT up+down
+n16_411|1500000|0.30: 36 pts, 17 missing TIMEOUT up
+n16_411|1000000|0.80: 20 pts, 33 missing TIMEOUT up
+n16_411|1500000|0.70: 45 pts, 8 missing
+n16_411|2000000|0.20: 47 pts, 6 missing
+n16_411|1500000|0.60: 24 pts, 29 missing TIMEOUT up
+n16_411|2000000|0.60: 50 pts, 3 missing
+n16_411|1500000|0.80: 21 pts, 32 missing TIMEOUT up
+n16_411|2000000|0.40: 47 pts, 6 missing
+n16_411|2000000|0.30: 43 pts, 10 missing
+n16_411|1000000|0.90: 0 pts, 53 missing TIMEOUT up+down
+n16_411|2000000|0.50: 45 pts, 8 missing TIMEOUT up
+n16_411|2000000|0.70: 23 pts, 30 missing TIMEOUT up
+n16_411|2000000|0.80: 21 pts, 32 missing TIMEOUT up
+n16_410|150000|0.60: 51 pts, 2 missing
+n16_410|150000|0.70: 52 pts, 1 missing
+n16_411|1500000|0.90: 0 pts, 53 missing TIMEOUT up+down
+n16_410|150000|0.90: 50 pts, 3 missing
+n16_410|150000|0.80: 47 pts, 6 missing
+n16_410|150000|0.30: 29 pts, 24 missing TIMEOUT up
+n16_410|150000|0.50: 46 pts, 7 missing TIMEOUT down
+n16_410|150000|0.40: 28 pts, 25 missing TIMEOUT up
+n16_411|2000000|0.90: 0 pts, 53 missing TIMEOUT up+down
+n16_410|150000|0.10: 26 pts, 27 missing TIMEOUT up+down
+n16_410|200000|0.70: 50 pts, 3 missing
+n16_410|200000|0.60: 49 pts, 4 missing
+n16_410|200000|0.80: 52 pts, 1 missing
+n16_410|150000|0.20: 30 pts, 23 missing TIMEOUT up+down
+n16_410|200000|0.30: 36 pts, 17 missing TIMEOUT up
+n16_410|200000|0.20: 23 pts, 30 missing TIMEOUT up
+n16_410|300000|0.60: 52 pts, 1 missing
+n16_410|200000|0.40: 32 pts, 21 missing TIMEOUT up
+n16_410|300000|0.50: 51 pts, 2 missing
+n16_410|200000|0.50: 32 pts, 21 missing TIMEOUT up
+n16_410|200000|0.10: 26 pts, 27 missing TIMEOUT up+down
+n16_410|300000|0.70: 51 pts, 2 missing
+n16_410|300000|0.30: 32 pts, 21 missing TIMEOUT up
+n16_410|300000|0.10: 32 pts, 21 missing TIMEOUT up
+n16_410|300000|0.80: 49 pts, 4 missing
+n16_410|300000|0.20: 34 pts, 19 missing TIMEOUT up
+n16_410|300000|0.40: 31 pts, 22 missing TIMEOUT up
+n16_410|500000|0.70: 52 pts, 1 missing
+n16_410|500000|0.60: 52 pts, 1 missing
+n16_410|500000|0.50: 50 pts, 3 missing
+n16_410|500000|0.80: 50 pts, 3 missing
+n16_410|200000|0.90: 0 pts, 53 missing TIMEOUT up+down
+n16_410|500000|0.10: 36 pts, 17 missing TIMEOUT up
+n16_410|500000|0.20: 35 pts, 18 missing TIMEOUT up
+n16_410|500000|0.30: 33 pts, 20 missing TIMEOUT up
+n16_410|700000|0.40: 51 pts, 2 missing
+n16_410|500000|0.40: 38 pts, 15 missing
+n16_410|700000|0.30: 49 pts, 4 missing
+n16_410|700000|0.50: 50 pts, 3 missing
+n16_410|700000|0.70: 50 pts, 3 missing
+n16_410|700000|0.60: 49 pts, 4 missing
+n16_410|300000|0.90: 0 pts, 53 missing TIMEOUT up+down
+n16_410|700000|0.10: 36 pts, 17 missing TIMEOUT up
+n16_410|700000|0.20: 36 pts, 17 missing TIMEOUT up
+n16_410|700000|0.80: 49 pts, 4 missing
+n16_410|1000000|0.60: 52 pts, 1 missing
+n16_410|1000000|0.50: 51 pts, 2 missing
+n16_410|1000000|0.80: 49 pts, 4 missing
+n16_410|1000000|0.70: 48 pts, 5 missing
+n16_410|1000000|0.10: 38 pts, 15 missing TIMEOUT up
+n16_410|1000000|0.20: 40 pts, 13 missing
+n16_410|500000|0.90: 0 pts, 53 missing TIMEOUT up+down
+n16_410|1000000|0.30: 41 pts, 12 missing
+n16_410|1000000|0.40: 41 pts, 12 missing
+n16_410|700000|0.90: 9 pts, 44 missing TIMEOUT up
+n16_410|1500000|0.50: 51 pts, 2 missing
+n16_410|1500000|0.60: 52 pts, 1 missing
+n16_410|1500000|0.10: 44 pts, 9 missing
+n16_410|1500000|0.70: 53 pts, 0 missing
+n16_410|1500000|0.30: 35 pts, 18 missing TIMEOUT up
+n16_410|1500000|0.20: 37 pts, 16 missing TIMEOUT up
+n16_410|2000000|0.10: 46 pts, 7 missing
+n16_410|1500000|0.40: 43 pts, 10 missing TIMEOUT up
+n16_410|2000000|0.50: 53 pts, 0 missing
+n16_410|2000000|0.20: 43 pts, 10 missing
+n16_410|2000000|0.60: 52 pts, 1 missing
+n16_410|1500000|0.80: 21 pts, 32 missing TIMEOUT up
+n16_410|2000000|0.70: 49 pts, 4 missing
+n16_410|2000000|0.30: 34 pts, 19 missing TIMEOUT up
+n16_410|2000000|0.40: 40 pts, 13 missing TIMEOUT up
+n16_410|1000000|0.90: 0 pts, 53 missing TIMEOUT up+down
+n16_509|150000|0.60: 51 pts, 2 missing
+n16_509|150000|0.70: 53 pts, 0 missing
+n16_509|150000|0.50: 47 pts, 6 missing
+n16_410|2000000|0.80: 21 pts, 32 missing TIMEOUT up
+n16_509|150000|0.80: 50 pts, 3 missing
+n16_509|150000|0.90: 51 pts, 2 missing
+n16_410|1500000|0.90: 0 pts, 53 missing TIMEOUT up+down
+n16_509|150000|0.10: 29 pts, 24 missing TIMEOUT up
+n16_509|200000|0.60: 52 pts, 1 missing
+n16_509|150000|0.40: 29 pts, 24 missing TIMEOUT up
+n16_509|150000|0.30: 27 pts, 26 missing TIMEOUT up
+n16_509|200000|0.50: 46 pts, 7 missing
+n16_509|200000|0.70: 51 pts, 2 missing
+n16_410|2000000|0.90: 0 pts, 53 missing TIMEOUT up+down
+n16_509|200000|0.80: 51 pts, 2 missing
+n16_509|150000|0.20: 25 pts, 28 missing TIMEOUT up+down
+n16_509|200000|0.40: 33 pts, 20 missing TIMEOUT up
+n16_509|300000|0.50: 53 pts, 0 missing
+n16_509|200000|0.20: 27 pts, 26 missing TIMEOUT up
+n16_509|200000|0.30: 27 pts, 26 missing TIMEOUT up
+n16_509|300000|0.60: 53 pts, 0 missing
+n16_509|300000|0.70: 48 pts, 5 missing
+n16_509|300000|0.80: 49 pts, 4 missing
+n16_509|200000|0.10: 25 pts, 28 missing TIMEOUT up+down
+n16_509|300000|0.10: 24 pts, 29 missing TIMEOUT up
+n16_509|300000|0.20: 27 pts, 26 missing TIMEOUT up
+n16_509|300000|0.30: 24 pts, 29 missing TIMEOUT up
+n16_509|300000|0.40: 30 pts, 23 missing TIMEOUT up
+n16_509|300000|0.90: 19 pts, 34 missing TIMEOUT up
+n16_509|500000|0.70: 52 pts, 1 missing
+n16_509|200000|0.90: 0 pts, 53 missing TIMEOUT up+down
+n16_509|500000|0.80: 47 pts, 6 missing
+n16_509|500000|0.20: 32 pts, 21 missing TIMEOUT up
+n16_509|500000|0.10: 24 pts, 29 missing TIMEOUT up
+n16_509|500000|0.40: 35 pts, 18 missing TIMEOUT up
+n16_509|500000|0.30: 31 pts, 22 missing TIMEOUT up
+n16_509|500000|0.60: 35 pts, 18 missing TIMEOUT up
+n16_509|700000|0.70: 53 pts, 0 missing
+n16_509|500000|0.50: 35 pts, 18 missing TIMEOUT up
+n16_509|700000|0.10: 34 pts, 19 missing TIMEOUT up
+n16_509|500000|0.90: 20 pts, 33 missing TIMEOUT up
+n16_509|700000|0.60: 48 pts, 5 missing
+n16_509|700000|0.80: 50 pts, 3 missing
+n16_509|700000|0.20: 36 pts, 17 missing TIMEOUT up
+n16_509|1000000|0.50: 53 pts, 0 missing
+n16_509|700000|0.30: 33 pts, 20 missing TIMEOUT up
+n16_509|700000|0.50: 38 pts, 15 missing TIMEOUT up
+n16_509|1000000|0.70: 52 pts, 1 missing
+n16_509|700000|0.40: 34 pts, 19 missing TIMEOUT up
+n16_509|1000000|0.10: 37 pts, 16 missing TIMEOUT up
+n16_509|700000|0.90: 19 pts, 34 missing TIMEOUT up
+n16_509|1000000|0.20: 34 pts, 19 missing TIMEOUT up
+n16_509|1000000|0.30: 39 pts, 14 missing TIMEOUT up
+n16_509|1000000|0.40: 36 pts, 17 missing TIMEOUT up
+n16_509|1000000|0.80: 48 pts, 5 missing
+n16_509|1000000|0.60: 41 pts, 12 missing
+n16_509|1500000|0.60: 53 pts, 0 missing
+n16_509|1500000|0.70: 53 pts, 0 missing
+n16_509|1500000|0.10: 42 pts, 11 missing
+n16_509|1500000|0.30: 40 pts, 13 missing TIMEOUT up
+n16_509|1500000|0.20: 34 pts, 19 missing TIMEOUT up
+n16_509|1500000|0.40: 42 pts, 11 missing TIMEOUT up
+n16_509|2000000|0.40: 52 pts, 1 missing
+n16_509|2000000|0.50: 51 pts, 2 missing
+n16_509|1500000|0.50: 40 pts, 13 missing
+n16_509|2000000|0.70: 53 pts, 0 missing
+n16_509|1500000|0.90: 21 pts, 32 missing TIMEOUT up
+n16_509|2000000|0.10: 32 pts, 21 missing TIMEOUT up
+n16_509|1000000|0.90: 9 pts, 44 missing TIMEOUT up
+n16_509|2000000|0.20: 34 pts, 19 missing TIMEOUT up
+n16_509|2000000|0.30: 41 pts, 12 missing
+n16_508|150000|0.60: 53 pts, 0 missing
+n16_508|150000|0.70: 52 pts, 1 missing
+n16_509|1500000|0.80: 12 pts, 41 missing TIMEOUT up
+n16_509|2000000|0.60: 23 pts, 30 missing TIMEOUT up
+n16_509|2000000|0.80: 22 pts, 31 missing TIMEOUT up
+n16_508|150000|0.80: 49 pts, 4 missing
+n16_508|150000|0.40: 30 pts, 23 missing TIMEOUT up
+n16_508|150000|0.20: 21 pts, 32 missing TIMEOUT up
+n16_508|150000|0.30: 20 pts, 33 missing TIMEOUT up
+n16_508|150000|0.50: 27 pts, 26 missing TIMEOUT up
+n16_508|150000|0.10: 17 pts, 36 missing TIMEOUT up
+n16_509|2000000|0.90: 0 pts, 53 missing TIMEOUT up+down
+n16_508|200000|0.70: 51 pts, 2 missing
+n16_508|200000|0.60: 52 pts, 1 missing
+n16_508|150000|0.90: 17 pts, 36 missing TIMEOUT up
+n16_508|200000|0.80: 49 pts, 4 missing
+n16_508|200000|0.10: 18 pts, 35 missing TIMEOUT up
+n16_508|200000|0.30: 22 pts, 31 missing TIMEOUT up
+n16_508|200000|0.20: 19 pts, 34 missing TIMEOUT up+down
+n16_508|200000|0.50: 28 pts, 25 missing TIMEOUT up
+n16_508|300000|0.70: 52 pts, 1 missing
+n16_508|200000|0.40: 24 pts, 29 missing TIMEOUT up+down
+n16_508|300000|0.30: 26 pts, 27 missing TIMEOUT up
+n16_508|300000|0.60: 45 pts, 8 missing
+n16_508|300000|0.80: 50 pts, 3 missing
+n16_508|300000|0.20: 22 pts, 31 missing TIMEOUT up
+n16_508|300000|0.40: 22 pts, 31 missing TIMEOUT up
+n16_508|300000|0.50: 29 pts, 24 missing TIMEOUT up
+n16_508|200000|0.90: 0 pts, 53 missing TIMEOUT up+down
+n16_508|300000|0.10: 20 pts, 33 missing TIMEOUT up+down
+n16_508|500000|0.60: 50 pts, 3 missing
+n16_508|500000|0.80: 50 pts, 3 missing
+n16_508|500000|0.70: 49 pts, 4 missing
+n16_508|500000|0.20: 23 pts, 30 missing TIMEOUT up
+n16_508|500000|0.10: 20 pts, 33 missing TIMEOUT up
+n16_508|500000|0.30: 21 pts, 32 missing TIMEOUT up
+n16_508|500000|0.40: 22 pts, 31 missing TIMEOUT up
+n16_508|300000|0.90: 0 pts, 53 missing TIMEOUT up+down
+n16_508|500000|0.50: 30 pts, 23 missing TIMEOUT up+down
+n16_508|700000|0.70: 51 pts, 2 missing
+n16_508|700000|0.40: 30 pts, 23 missing TIMEOUT up
+n16_508|700000|0.10: 22 pts, 31 missing TIMEOUT up
+n16_508|700000|0.30: 22 pts, 31 missing TIMEOUT up
+n16_508|700000|0.80: 48 pts, 5 missing
+n16_508|700000|0.20: 21 pts, 32 missing TIMEOUT up
+n16_508|500000|0.90: 3 pts, 50 missing TIMEOUT up
+n16_508|700000|0.90: 51 pts, 2 missing
+n16_508|700000|0.60: 45 pts, 8 missing TIMEOUT down
+n16_508|700000|0.50: 30 pts, 23 missing TIMEOUT up
+n16_508|1000000|0.80: 50 pts, 3 missing
+n16_508|1000000|0.70: 48 pts, 5 missing
+n16_508|1000000|0.10: 28 pts, 25 missing TIMEOUT up
+n16_508|1000000|0.20: 25 pts, 28 missing TIMEOUT up
+n16_508|1000000|0.40: 27 pts, 26 missing TIMEOUT up
+n16_508|1000000|0.30: 27 pts, 26 missing TIMEOUT up
+n16_508|1000000|0.60: 34 pts, 19 missing TIMEOUT up
+n16_508|1500000|0.10: 31 pts, 22 missing TIMEOUT up
+n16_508|1500000|0.20: 26 pts, 27 missing TIMEOUT up
+n16_508|1500000|0.30: 34 pts, 19 missing TIMEOUT up
+n16_508|1000000|0.50: 33 pts, 20 missing TIMEOUT up+down
+n16_508|1500000|0.40: 30 pts, 23 missing TIMEOUT up
+n16_508|1000000|0.90: 0 pts, 53 missing TIMEOUT up+down
+n16_508|1500000|0.60: 37 pts, 16 missing
+n16_508|1500000|0.50: 27 pts, 26 missing TIMEOUT up
+n16_508|1500000|0.80: 49 pts, 4 missing TIMEOUT down
+n16_508|1500000|0.70: 35 pts, 18 missing TIMEOUT up
+n16_508|2000000|0.50: 53 pts, 0 missing
+n16_508|2000000|0.60: 52 pts, 1 missing
+n16_508|2000000|0.10: 32 pts, 21 missing TIMEOUT up
+n16_508|2000000|0.70: 50 pts, 3 missing
+n16_508|2000000|0.20: 33 pts, 20 missing TIMEOUT up
+n16_508|1500000|0.90: 9 pts, 44 missing TIMEOUT up
+n16_507|150000|0.60: 53 pts, 0 missing
+n16_508|2000000|0.30: 32 pts, 21 missing TIMEOUT up
+n16_507|150000|0.70: 53 pts, 0 missing
+n16_508|2000000|0.40: 36 pts, 17 missing TIMEOUT up
+n16_507|150000|0.80: 48 pts, 5 missing
+n16_508|2000000|0.90: 19 pts, 34 missing TIMEOUT up
+n16_508|2000000|0.80: 17 pts, 36 missing TIMEOUT up
+n16_507|150000|0.30: 26 pts, 27 missing TIMEOUT up
+n16_507|150000|0.90: 47 pts, 6 missing
+n16_507|150000|0.50: 32 pts, 21 missing TIMEOUT up
+n16_507|150000|0.10: 18 pts, 35 missing TIMEOUT up
+n16_507|150000|0.20: 15 pts, 38 missing TIMEOUT up
+n16_507|200000|0.60: 51 pts, 2 missing
+n16_507|200000|0.70: 49 pts, 4 missing
+n16_507|200000|0.80: 49 pts, 4 missing
+n16_507|200000|0.20: 26 pts, 27 missing TIMEOUT up
+n16_507|150000|0.40: 20 pts, 33 missing TIMEOUT up+down
+n16_507|200000|0.10: 19 pts, 34 missing TIMEOUT up
+n16_507|200000|0.50: 29 pts, 24 missing TIMEOUT up
+n16_507|300000|0.60: 52 pts, 1 missing
+n16_507|200000|0.40: 20 pts, 33 missing TIMEOUT up
+n16_507|200000|0.30: 18 pts, 35 missing TIMEOUT up
+n16_507|300000|0.70: 51 pts, 2 missing
+n16_507|200000|0.90: 19 pts, 34 missing TIMEOUT up
+n16_507|300000|0.80: 52 pts, 1 missing
+n16_507|300000|0.10: 19 pts, 34 missing TIMEOUT up
+n16_507|300000|0.40: 29 pts, 24 missing TIMEOUT up
+n16_507|300000|0.20: 18 pts, 35 missing TIMEOUT up
+n16_507|300000|0.30: 17 pts, 36 missing TIMEOUT up
+n16_507|500000|0.70: 53 pts, 0 missing
+n16_507|300000|0.50: 21 pts, 32 missing TIMEOUT up
+n16_507|300000|0.90: 16 pts, 37 missing TIMEOUT up
+n16_507|500000|0.80: 50 pts, 3 missing
+n16_507|500000|0.30: 23 pts, 30 missing TIMEOUT up
+n16_507|500000|0.10: 18 pts, 35 missing TIMEOUT up
+n16_507|500000|0.20: 18 pts, 35 missing TIMEOUT up
+n16_507|500000|0.50: 27 pts, 26 missing TIMEOUT up
+n16_507|500000|0.60: 39 pts, 14 missing TIMEOUT up
+n16_507|500000|0.40: 23 pts, 30 missing TIMEOUT up+down
+n16_507|500000|0.90: 18 pts, 35 missing TIMEOUT up
+n16_507|700000|0.80: 53 pts, 0 missing
+n16_507|700000|0.20: 21 pts, 32 missing TIMEOUT up
+n16_507|700000|0.10: 21 pts, 32 missing TIMEOUT up
+n16_507|700000|0.30: 21 pts, 32 missing TIMEOUT up
+n16_507|700000|0.60: 35 pts, 18 missing TIMEOUT up
+n16_507|700000|0.40: 22 pts, 31 missing TIMEOUT up
+n16_507|700000|0.70: 42 pts, 11 missing TIMEOUT up
+n16_507|1000000|0.70: 50 pts, 3 missing
+n16_507|700000|0.50: 19 pts, 34 missing TIMEOUT up+down
+n16_507|1000000|0.10: 23 pts, 30 missing TIMEOUT up
+n16_507|1000000|0.20: 21 pts, 32 missing TIMEOUT up
+n16_507|1000000|0.40: 28 pts, 25 missing TIMEOUT up
+n16_507|1000000|0.30: 24 pts, 29 missing TIMEOUT up
+n16_507|1000000|0.60: 34 pts, 19 missing TIMEOUT up
+n16_507|700000|0.90: 0 pts, 53 missing TIMEOUT up+down
+n16_507|1000000|0.80: 46 pts, 7 missing TIMEOUT down
+n16_507|1500000|0.10: 23 pts, 30 missing TIMEOUT up
+n16_507|1000000|0.50: 29 pts, 24 missing TIMEOUT up+down
+n16_507|1500000|0.20: 25 pts, 28 missing TIMEOUT up
+n16_507|1500000|0.30: 28 pts, 25 missing TIMEOUT up
+n16_507|1500000|0.40: 33 pts, 20 missing TIMEOUT up
+n16_507|1500000|0.60: 35 pts, 18 missing TIMEOUT up
+n16_507|1500000|0.70: 38 pts, 15 missing TIMEOUT up
+n16_507|1500000|0.50: 28 pts, 25 missing TIMEOUT up
+n16_507|1000000|0.90: 0 pts, 53 missing TIMEOUT up+down
+n16_507|2000000|0.70: 51 pts, 2 missing
+n16_507|1500000|0.80: 17 pts, 36 missing TIMEOUT up
+n16_507|2000000|0.10: 30 pts, 23 missing TIMEOUT up
+n16_507|2000000|0.20: 32 pts, 21 missing TIMEOUT up
+n16_507|2000000|0.30: 29 pts, 24 missing TIMEOUT up
+n16_507|2000000|0.40: 24 pts, 29 missing TIMEOUT up
+n16_507|2000000|0.50: 34 pts, 19 missing TIMEOUT up
+n16_507|2000000|0.60: 34 pts, 19 missing TIMEOUT up
+n16_507|2000000|0.80: 17 pts, 36 missing TIMEOUT up
+n16_506|150000|0.70: 51 pts, 2 missing
+n16_506|150000|0.60: 50 pts, 3 missing
+n16_507|2000000|0.90: 20 pts, 33 missing TIMEOUT up
+n16_506|150000|0.80: 50 pts, 3 missing
+n16_507|1500000|0.90: 0 pts, 53 missing TIMEOUT up+down
+n16_506|150000|0.30: 23 pts, 30 missing TIMEOUT up
+n16_506|150000|0.10: 15 pts, 38 missing TIMEOUT up
+n16_506|150000|0.50: 26 pts, 27 missing TIMEOUT up
+n16_506|200000|0.60: 53 pts, 0 missing
+n16_506|150000|0.20: 16 pts, 37 missing TIMEOUT up
+n16_506|200000|0.70: 53 pts, 0 missing
+n16_506|150000|0.40: 17 pts, 36 missing TIMEOUT up
+n16_506|150000|0.90: 16 pts, 37 missing TIMEOUT up
+n16_506|200000|0.80: 48 pts, 5 missing
+n16_506|200000|0.20: 16 pts, 37 missing TIMEOUT up
+n16_506|200000|0.50: 24 pts, 29 missing TIMEOUT up
+n16_506|200000|0.10: 13 pts, 40 missing TIMEOUT up
+n16_506|300000|0.50: 53 pts, 0 missing
+n16_506|300000|0.70: 51 pts, 2 missing
+n16_506|200000|0.90: 18 pts, 35 missing TIMEOUT up
+n16_506|200000|0.30: 16 pts, 37 missing TIMEOUT up+down
+n16_506|200000|0.40: 17 pts, 36 missing TIMEOUT up+down
+n16_506|300000|0.80: 51 pts, 2 missing
+n16_506|300000|0.20: 22 pts, 31 missing TIMEOUT up
+n16_506|300000|0.10: 16 pts, 37 missing TIMEOUT up
+n16_506|300000|0.60: 25 pts, 28 missing TIMEOUT up
+n16_506|300000|0.30: 16 pts, 37 missing TIMEOUT up
+n16_506|500000|0.80: 52 pts, 1 missing
+n16_506|500000|0.70: 51 pts, 2 missing
+n16_506|300000|0.90: 16 pts, 37 missing TIMEOUT up
+n16_506|500000|0.20: 20 pts, 33 missing TIMEOUT up
+n16_506|300000|0.40: 18 pts, 35 missing TIMEOUT up+down
+n16_506|500000|0.60: 25 pts, 28 missing TIMEOUT up
+n16_506|500000|0.30: 22 pts, 31 missing TIMEOUT up
+n16_506|500000|0.10: 14 pts, 39 missing TIMEOUT up+down
+n16_506|500000|0.90: 19 pts, 34 missing TIMEOUT up
+n16_506|500000|0.40: 12 pts, 41 missing TIMEOUT up+down
+n16_506|500000|0.50: 19 pts, 34 missing TIMEOUT up+down
+n16_506|700000|0.80: 50 pts, 3 missing
+n16_506|700000|0.70: 48 pts, 5 missing
+n16_506|700000|0.20: 14 pts, 39 missing TIMEOUT up
+n16_506|700000|0.40: 16 pts, 37 missing TIMEOUT up
+n16_506|700000|0.30: 16 pts, 37 missing TIMEOUT up
+n16_506|700000|0.10: 14 pts, 39 missing TIMEOUT up+down
+n16_506|700000|0.50: 17 pts, 36 missing TIMEOUT up
+n16_506|700000|0.60: 26 pts, 27 missing TIMEOUT up
+n16_506|700000|0.90: 19 pts, 34 missing TIMEOUT up
+n16_506|1000000|0.10: 16 pts, 37 missing TIMEOUT up
+n16_506|1000000|0.20: 18 pts, 35 missing TIMEOUT up
+n16_506|1000000|0.30: 17 pts, 36 missing TIMEOUT up
+n16_506|1000000|0.60: 34 pts, 19 missing
+n16_506|1000000|0.90: 18 pts, 35 missing TIMEOUT up
+n16_506|1000000|0.40: 16 pts, 37 missing TIMEOUT up
+n16_506|1000000|0.50: 18 pts, 35 missing TIMEOUT up
+n16_506|1500000|0.10: 19 pts, 34 missing TIMEOUT up
+n16_506|1000000|0.70: 27 pts, 26 missing TIMEOUT up
+n16_506|1000000|0.80: 14 pts, 39 missing TIMEOUT up
+n16_506|1500000|0.60: 48 pts, 5 missing
+n16_506|1500000|0.30: 19 pts, 34 missing TIMEOUT up
+n16_506|1500000|0.70: 33 pts, 20 missing TIMEOUT up
+n16_506|1500000|0.50: 21 pts, 32 missing TIMEOUT up
+n16_506|1500000|0.40: 16 pts, 37 missing TIMEOUT up
+n16_506|1500000|0.90: 19 pts, 34 missing TIMEOUT up
+n16_506|1500000|0.80: 16 pts, 37 missing TIMEOUT up
+n16_506|2000000|0.20: 21 pts, 32 missing TIMEOUT up
+n16_506|2000000|0.10: 18 pts, 35 missing TIMEOUT up
+n16_506|1500000|0.20: 19 pts, 34 missing TIMEOUT up+down
+n16_506|2000000|0.40: 19 pts, 34 missing TIMEOUT up
+n16_506|2000000|0.70: 18 pts, 35 missing TIMEOUT up
+n16_506|2000000|0.30: 21 pts, 32 missing TIMEOUT up+down
+n16_506|2000000|0.60: 29 pts, 24 missing TIMEOUT up
+n16_506|2000000|0.80: 18 pts, 35 missing TIMEOUT up
+n16_506|2000000|0.90: 18 pts, 35 missing TIMEOUT up
+n16_405|150000|0.20: 21 pts, 32 missing TIMEOUT up
+n16_405|150000|0.30: 21 pts, 32 missing TIMEOUT up
+n16_405|150000|0.60: 51 pts, 2 missing
+n16_405|150000|0.80: 49 pts, 4 missing
+n16_405|150000|0.70: 46 pts, 7 missing
+n16_405|150000|0.10: 13 pts, 40 missing TIMEOUT up
+n16_506|2000000|0.50: 19 pts, 34 missing TIMEOUT up+down
+n16_405|200000|0.70: 51 pts, 2 missing
+n16_405|200000|0.60: 49 pts, 4 missing
+n16_405|150000|0.90: 17 pts, 36 missing TIMEOUT up
+n16_405|150000|0.50: 16 pts, 37 missing TIMEOUT up
+n16_405|200000|0.50: 21 pts, 32 missing TIMEOUT up
+n16_405|200000|0.10: 14 pts, 39 missing TIMEOUT up
+n16_405|150000|0.40: 15 pts, 38 missing TIMEOUT up+down
+n16_405|200000|0.30: 13 pts, 40 missing TIMEOUT up
+n16_405|200000|0.40: 13 pts, 40 missing TIMEOUT up
+n16_405|200000|0.80: 16 pts, 37 missing TIMEOUT up
+n16_405|200000|0.90: 16 pts, 37 missing TIMEOUT up
+n16_405|300000|0.70: 51 pts, 2 missing
+n16_405|300000|0.80: 52 pts, 1 missing
+n16_405|200000|0.20: 13 pts, 40 missing TIMEOUT up+down
+n16_405|300000|0.60: 41 pts, 12 missing
+n16_405|300000|0.40: 20 pts, 33 missing TIMEOUT up
+n16_405|300000|0.10: 12 pts, 41 missing TIMEOUT up+down
+n16_405|300000|0.30: 13 pts, 40 missing TIMEOUT up
+n16_405|500000|0.70: 53 pts, 0 missing
+n16_405|300000|0.90: 17 pts, 36 missing TIMEOUT up
+n16_405|300000|0.20: 11 pts, 42 missing TIMEOUT up+down
+n16_405|500000|0.50: 39 pts, 14 missing
+n16_405|500000|0.30: 14 pts, 39 missing TIMEOUT up
+n16_405|300000|0.50: 19 pts, 34 missing TIMEOUT up+down
+n16_405|500000|0.40: 13 pts, 40 missing TIMEOUT up
+n16_405|500000|0.60: 37 pts, 16 missing TIMEOUT up
+n16_405|500000|0.10: 14 pts, 39 missing TIMEOUT up+down
+n16_405|500000|0.20: 12 pts, 41 missing TIMEOUT up+down
+n16_405|500000|0.80: 17 pts, 36 missing TIMEOUT up
+n16_405|500000|0.90: 20 pts, 33 missing TIMEOUT up
+n16_405|700000|0.70: 50 pts, 3 missing
+n16_405|700000|0.10: 12 pts, 41 missing TIMEOUT up
+n16_405|700000|0.40: 20 pts, 33 missing TIMEOUT up
+n16_405|700000|0.20: 9 pts, 44 missing TIMEOUT up
+n16_405|700000|0.60: 26 pts, 27 missing TIMEOUT up
+n16_405|700000|0.30: 11 pts, 42 missing TIMEOUT up
+n16_405|700000|0.90: 18 pts, 35 missing TIMEOUT up
+n16_405|700000|0.50: 16 pts, 37 missing TIMEOUT up
+n16_405|1000000|0.70: 50 pts, 3 missing
+n16_405|700000|0.80: 11 pts, 42 missing TIMEOUT up
+n16_405|1000000|0.10: 13 pts, 40 missing TIMEOUT up
+n16_405|1000000|0.30: 46 pts, 7 missing TIMEOUT down
+n16_405|1000000|0.40: 11 pts, 42 missing TIMEOUT up
+n16_405|1000000|0.50: 16 pts, 37 missing TIMEOUT up
+n16_405|1000000|0.60: 46 pts, 7 missing TIMEOUT down
+n16_405|1000000|0.20: 9 pts, 44 missing TIMEOUT up+down
+n16_405|1000000|0.80: 15 pts, 38 missing TIMEOUT up
+n16_405|1000000|0.90: 17 pts, 36 missing TIMEOUT up
+n16_405|1500000|0.60: 43 pts, 10 missing
+n16_405|1500000|0.40: 11 pts, 42 missing TIMEOUT up
+n16_405|1500000|0.30: 10 pts, 43 missing TIMEOUT up
+n16_405|1500000|0.10: 11 pts, 42 missing TIMEOUT up+down
+n16_405|1500000|0.20: 10 pts, 43 missing TIMEOUT up+down
+n16_405|1500000|0.90: 14 pts, 39 missing TIMEOUT up
+n16_405|1500000|0.50: 37 pts, 16 missing TIMEOUT up
+n16_405|1500000|0.70: 19 pts, 34 missing TIMEOUT up
+n16_405|1500000|0.80: 13 pts, 40 missing TIMEOUT up+down
+n16_405|2000000|0.20: 13 pts, 40 missing TIMEOUT up
+n16_405|2000000|0.10: 11 pts, 42 missing TIMEOUT up+down
+n16_405|2000000|0.90: 16 pts, 37 missing TIMEOUT up
+n16_405|2000000|0.40: 13 pts, 40 missing TIMEOUT up
+n16_405|2000000|0.50: 14 pts, 39 missing TIMEOUT up
+n16_405|2000000|0.70: 24 pts, 29 missing TIMEOUT up
+n16_405|2000000|0.60: 18 pts, 35 missing TIMEOUT up
+n16_405|2000000|0.30: 13 pts, 40 missing TIMEOUT up+down
+n16_405|2000000|0.80: 27 pts, 26 missing TIMEOUT up+down
+n16_101|150000|0.10: 10 pts, 43 missing TIMEOUT up
+n16_101|150000|0.30: 9 pts, 44 missing TIMEOUT up
+n16_101|150000|0.50: 7 pts, 46 missing TIMEOUT up
+n16_101|150000|0.40: 6 pts, 47 missing TIMEOUT up
+n16_101|150000|0.20: 9 pts, 44 missing TIMEOUT up+down
+n16_101|150000|0.60: 7 pts, 46 missing TIMEOUT up
+n16_101|150000|0.70: 7 pts, 46 missing TIMEOUT up
+n16_101|200000|0.70: 50 pts, 3 missing
+n16_101|150000|0.80: 0 pts, 53 missing TIMEOUT up+down
+n16_101|200000|0.10: 7 pts, 46 missing TIMEOUT up
+n16_101|150000|0.90: 0 pts, 53 missing TIMEOUT up+down
+n16_101|200000|0.20: 7 pts, 46 missing TIMEOUT up
+n16_101|200000|0.30: 6 pts, 47 missing TIMEOUT up+down
+n16_101|200000|0.40: 3 pts, 50 missing TIMEOUT up
+n16_101|200000|0.50: 9 pts, 44 missing TIMEOUT up+down
+n16_101|200000|0.60: 5 pts, 48 missing TIMEOUT up+down
+n16_101|300000|0.40: 14 pts, 39 missing TIMEOUT up
+n16_101|200000|0.80: 1 pts, 52 missing TIMEOUT up+down
+n16_101|300000|0.20: 6 pts, 47 missing TIMEOUT up
+n16_101|300000|0.10: 7 pts, 46 missing TIMEOUT up
+n16_101|200000|0.90: 0 pts, 53 missing TIMEOUT up+down
+n16_101|300000|0.30: 8 pts, 45 missing TIMEOUT up+down
+n16_101|300000|0.60: 10 pts, 43 missing TIMEOUT up
+n16_101|300000|0.50: 8 pts, 45 missing TIMEOUT up+down
+n16_101|500000|0.10: 4 pts, 49 missing TIMEOUT up
+n16_101|300000|0.70: 11 pts, 42 missing TIMEOUT up+down
+n16_101|300000|0.80: 0 pts, 53 missing TIMEOUT up+down
+n16_101|500000|0.20: 3 pts, 50 missing TIMEOUT up
+n16_101|300000|0.90: 0 pts, 53 missing TIMEOUT up+down
+n16_101|500000|0.30: 4 pts, 49 missing TIMEOUT up+down
+n16_101|500000|0.40: 4 pts, 49 missing TIMEOUT up+down
+n16_101|500000|0.50: 6 pts, 47 missing TIMEOUT up+down
+n16_101|500000|0.60: 6 pts, 47 missing TIMEOUT up
+n16_101|500000|0.70: 6 pts, 47 missing TIMEOUT up+down
+n16_101|700000|0.10: 4 pts, 49 missing TIMEOUT up
+n16_101|700000|0.20: 4 pts, 49 missing TIMEOUT up
+n16_101|700000|0.30: 4 pts, 49 missing TIMEOUT up
+n16_101|500000|0.80: 0 pts, 53 missing TIMEOUT up
+n16_101|700000|0.70: 12 pts, 41 missing TIMEOUT up
+n16_101|500000|0.90: 0 pts, 53 missing TIMEOUT up+down
+n16_101|700000|0.40: 3 pts, 50 missing TIMEOUT up+down
+n16_101|700000|0.60: 4 pts, 49 missing TIMEOUT up
+n16_101|700000|0.50: 4 pts, 49 missing TIMEOUT up+down
+n16_101|1000000|0.10: 1 pts, 52 missing TIMEOUT up
+n16_101|700000|0.80: 18 pts, 35 missing TIMEOUT up+down
+n16_101|1000000|0.30: 2 pts, 51 missing TIMEOUT up
+n16_101|1000000|0.80: 17 pts, 36 missing TIMEOUT up
+n16_101|700000|0.90: 0 pts, 53 missing TIMEOUT up+down
+n16_101|1000000|0.50: 1 pts, 52 missing TIMEOUT up
+n16_101|1000000|0.70: 12 pts, 41 missing TIMEOUT up
+n16_101|1000000|0.20: 1 pts, 52 missing TIMEOUT up+down
+n16_101|1000000|0.40: 1 pts, 52 missing TIMEOUT up+down
+n16_101|1000000|0.60: 19 pts, 34 missing TIMEOUT up
+n16_101|1500000|0.80: 22 pts, 31 missing TIMEOUT up
+n16_101|1500000|0.10: 3 pts, 50 missing TIMEOUT up
+n16_101|1500000|0.20: 1 pts, 52 missing TIMEOUT up
+n16_101|1000000|0.90: 0 pts, 53 missing TIMEOUT up+down
+n16_101|1500000|0.30: 1 pts, 52 missing TIMEOUT up+down
+n16_101|1500000|0.40: 4 pts, 49 missing TIMEOUT up+down
+n16_101|1500000|0.50: 1 pts, 52 missing TIMEOUT up+down
+n16_101|1500000|0.60: 2 pts, 51 missing TIMEOUT up+down
+n16_101|1500000|0.70: 4 pts, 49 missing TIMEOUT up+down
+n16_101|1500000|0.90: 0 pts, 53 missing TIMEOUT up+down
+n16_101|2000000|0.10: 2 pts, 51 missing TIMEOUT up
+n16_101|2000000|0.40: 4 pts, 49 missing TIMEOUT up
+n16_101|2000000|0.20: 2 pts, 51 missing TIMEOUT up+down
+n16_101|2000000|0.60: 2 pts, 51 missing TIMEOUT up
+n16_101|2000000|0.70: 6 pts, 47 missing TIMEOUT up
+n16_101|2000000|0.30: 3 pts, 50 missing TIMEOUT up+down
+n16_101|2000000|0.50: 4 pts, 49 missing TIMEOUT up+down
+n16_101|2000000|0.80: 0 pts, 53 missing TIMEOUT up+down
+n16_101|2000000|0.90: 0 pts, 53 missing TIMEOUT up+down
+wrote data/report996/polars_phase69_ncrit8.json entries with missing points: 689

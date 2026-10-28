@@ -83,7 +83,21 @@ end
     @test PAIN.JSON3.read(PAIN.map_block_info_json("total", "NO_BLOCK")).title == PAIN._MISSING_DOC
     order = PAIN.validation_map_case_order()
     @test all(haskey(PAIN.VALIDATION_CASES, id) for id in order)
-    @test PAIN._map_block_chip_extra(0) == 0 && PAIN._map_block_chip_extra(3) == 4 + 2 * PAIN.VALIDATION_MAP_CHIP_ROW_H
+    @test PAIN._map_block_chip_extra(0) == 0 && PAIN._map_block_chip_extra(3) == 4 + 3 * PAIN.VALIDATION_MAP_CHIP_ROW_H
+    # Row tops: a row holding a block with many chips pushes the next row below that block's chips.
+    MB(id, row, n) = (; id, col=0, row, cases=["C$k" for k in 1:n])
+    ry = PAIN.validation_map_row_y((; blocks=[MB("a", 0, 5), MB("b", 1, 0)]))
+    @test ry[2] >= ry[1] + PAIN._MAP_BLOCK_H + PAIN._map_block_chip_extra(5)
+    @test ry == PAIN.validation_map_row_y((; blocks=[MB("a", 0, 0), MB("b", 1, 0)])) .+ [0, PAIN._MAP_BLOCK_H + PAIN._map_block_chip_extra(5) + PAIN._MAP_ROW_GAP - PAIN._MAP_CELL_H]
+    @test j.row_y == PAIN.validation_map_row_y(m)
+    br = PAIN._map_block_rect(MB("a", 0, 5), ry)
+    @test br.y == ry[1] && br.h == PAIN._MAP_BLOCK_H + PAIN._map_block_chip_extra(5) && br.w == PAIN._MAP_BLOCK_W
+    @test PAIN._map_block_rect((; col=2, row=1, cases=String[]), ry).x == PAIN._MAP_PAD + 2 * PAIN._MAP_CELL_W
+    # The old fixed 118 px grid let tall blocks reach the next row in the same column; the row_y layout must not.
+    @test any(!PAIN._map_rects_disjoint(
+                  (; x=a.col, y=PAIN._MAP_PAD + a.row * PAIN._MAP_CELL_H, w=1, h=PAIN._MAP_BLOCK_H + PAIN._map_block_chip_extra(length(a.cases))),
+                  (; x=b.col, y=PAIN._MAP_PAD + b.row * PAIN._MAP_CELL_H, w=1, h=PAIN._MAP_BLOCK_H + PAIN._map_block_chip_extra(length(b.cases))))
+              for a in m.blocks for b in m.blocks if a !== b && a.col == b.col)
     @test PAIN._map_rects_disjoint((; x=0, y=0, w=1, h=1), (; x=1, y=0, w=1, h=1))      # touching edges
     @test !PAIN._map_rects_disjoint((; x=0, y=0, w=2, h=2), (; x=1, y=1, w=1, h=1))
     @test !isempty(PAIN.validation_map_group_rects("total"))

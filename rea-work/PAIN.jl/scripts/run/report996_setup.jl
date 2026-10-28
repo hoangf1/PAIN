@@ -6,7 +6,7 @@ using Dates
 const ROOT = joinpath(@__DIR__, "..", "..", "..")
 const DATA = joinpath(ROOT, "data", "report996")
 const BF = joinpath(DATA, "naca_4-5-08-03", "blade_form.csv")
-const POLAR = joinpath(DATA, "polars_forced_merged.json")
+const POLAR = joinpath(DATA, "polars_phase69_ncrit8.json")  # Phase 69: free transition, N_crit 8
 const OUT = joinpath(ROOT, "docs", "validation_reports", "report996_setup.md")
 const PROBE = joinpath(ROOT, "docs", "validation_reports", "report996_setup_probe.md")
 
@@ -15,7 +15,7 @@ function rpm_from_Mt(Mt; D=1.2192, a=340.3)
 end
 
 function main()
-    af, st = load_polar_set(POLAR; set=:primary)
+    af, st = load_polar_set(POLAR; set=:primary, cr75=0.1251)
     g = blade_form_geometry(BF; D=1.2192, beta75_target_deg=15.0)
     Mt = 0.75
     cfg = (
@@ -29,6 +29,7 @@ function main()
             radii_m = collect(g.radii_m),
             chord_m = collect(g.chord_m),
             twist_deg = collect(g.twist_deg),
+            station_t_over_c = collect(g.t_over_c),
         ),
         operating_point = (forward_speed_mps = 0.0, rho_kg_m3 = 1.225, c0_mps = 340.3),
         anopp_table8_calibrate = false,
@@ -88,7 +89,7 @@ function main()
         println(io)
         println(io, "## Polar coverage (25c)")
         println(io)
-        println(io, "Forced-transition merged polar (`polars_forced_merged.json`): clamped_Re=$(st.clamped_Re), clamped_M=$(st.clamped_M), viterna_evals=$(st.viterna_evals), nearest_polar=$(st.nearest_polar).")
+        println(io, "Phase 69 polar (`polars_phase69_ncrit8.json`, free transition, N_crit 8): clamped_Re=$(st.clamped_Re), clamped_M=$(st.clamped_M), viterna_evals=$(st.viterna_evals), nearest_polar=$(st.nearest_polar).")
         println(io)
         println(io, "## Harmonic count for total-rms convergence (25k)")
         println(io)

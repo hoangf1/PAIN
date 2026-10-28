@@ -5,7 +5,7 @@ using PAIN, Printf, Dates, Statistics
 
 json = joinpath(@__DIR__, "..", "..", "examples", "aircraft_scale_hartzell.json")
 fuse = FuselageGeometry(test_article_length(), 0.508, 56.6)
-prop = PropellerPlacement(0.965, 90.0, 0.90)
+prop = PropellerPlacement(0.965, 90.0, 0.662)  # z_p from App. E p. E-8 (Phase 65)
 spec = GridSpec()
 t0 = time()
 ff = propeller_freefield_grid(json, fuse, prop, spec; n_harmonics=3, num_src_times=32)

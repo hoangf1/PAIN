@@ -180,7 +180,7 @@ function main()
     csv_rows = []  # long-format rows for pereira_results.csv (report tables + Fig.6–8)
     for (tag, path) in POLAR_SETS
         isfile(path) || continue
-        af, st = load_polar_set(path; set=:primary)
+        af, st = load_polar_set(path; set=:primary, cr75=0.1558)
         for (tname, toc) in (("toff", 0.0), ("ton", 0.12))
             cfg = make_cfg(rR, cR, tw; t_over_c=toc)
             println("polar=$tag thick=$tname …")

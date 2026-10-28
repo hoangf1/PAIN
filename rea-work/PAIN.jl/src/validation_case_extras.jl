@@ -1717,7 +1717,8 @@ end
 
 # --- Polar display cases (display only; no criterion) ---------------------------------
 
-const _R996_POLAR_PATH = joinpath("report996", "polars_forced_merged.json")
+# Phase 69 (2026-10-28): free transition, N_crit 8 fitted to TN 1546; the forced-transition set stays in polars_forced_merged.json.
+const _R996_POLAR_PATH = joinpath("report996", "polars_phase69_ncrit8.json")
 const _R996_BLADE_FORM = joinpath("report996", "naca_4-5-08-03", "blade_form.csv")
 # Representative section for polar display: exact TN 1546 match nearest 0.75 R.
 # n16_507 is at r/R = 0.75 but has no TN 1546 digitization; among TN matches,
@@ -1725,8 +1726,9 @@ const _R996_BLADE_FORM = joinpath("report996", "naca_4-5-08-03", "blade_form.csv
 const _R996_SECTION_REP = "n16_506"
 const _R996_SECTION_R_OVER_R = 0.87
 const _R996_CR75 = 0.1251  # c/R at 0.75 R (Viterna rotor argument)
-const _R996_M_LO, _R996_M_HI = 0.1, 0.72
-const _R996_A_LO, _R996_A_HI = -6.0, 14.0
+const _PER_CR75 = 0.1558   # Pereira c/R at 0.75 R (§2.10 Viterna register)
+const _R996_M_LO, _R996_M_HI = 0.1, 0.9    # Phase 69 grid (was 0.1–0.72)
+const _R996_A_LO, _R996_A_HI = -6.0, 20.0  # Phase 69 grid (was −6°–14°)
 const _R996_TIP_M_LO, _R996_TIP_M_HI = 0.72, 0.90
 """Last polar-display operating points (for recount tests; not a criterion)."""
 const _POLAR_DISPLAY_CACHE = Dict{String,NamedTuple}()
@@ -1755,6 +1757,7 @@ function _r996_cfg(; beta75, Mt, B, D=1.2192)
             radii_m = collect(g.radii_m),
             chord_m = collect(g.chord_m),
             twist_deg = collect(g.twist_deg),
+            station_t_over_c = collect(g.t_over_c),
         ),
         operating_point = (forward_speed_mps = 0.0, rho_kg_m3 = 1.225, c0_mps = 340.3),
         anopp_table8_calibrate = false,
@@ -1914,7 +1917,7 @@ function _run_polar_r996()
     outer_Re = Float64[]
 
     for run in runs
-        af, st = load_polar_set(polar_path; set=run.polar_set)
+        af, st = load_polar_set(polar_path; set=run.polar_set, cr75=_R996_CR75)
         cfg = _r996_cfg(; beta75=run.beta75, Mt=run.Mt, B=run.B)
         ops = ccblade_section_operating_points(cfg; af=af, allow_static=true)
         n_sec = length(ops.Mach)
@@ -1978,7 +1981,7 @@ function _run_polar_r996()
         push!(series, PlotSeries("TN 1546 α=$(m.alpha_deg)°", :reference_curve,
                                  m.mach, m.cl; panel=4))
     end
-    # Tip Mach band (tested tip Mach 0.72–0.90; XFOIL grid stops at 0.72).
+    # Tip Mach band (tested tip Mach 0.72–0.90; the Phase 69 grid reaches 0.9 but converges poorly there).
     tip_x = [_R996_TIP_M_LO, _R996_TIP_M_HI]
     tip_lo = [-2.0, -2.0]  # placeholder; band y range filled after we know cl span
     tip_hi = [2.0, 2.0]
@@ -1993,7 +1996,7 @@ function _run_polar_r996()
         tip_lo = [clo - pad, clo - pad]
         tip_hi = [chi + pad, chi + pad]
     end
-    push!(series, PlotSeries("tested tip Mach (no XFOIL)", :reference_band,
+    push!(series, PlotSeries("tested tip Mach (XFOIL at 0.8, 0.9 converges poorly)", :reference_band,
                              tip_x, tip_lo; ylow=tip_lo, yhigh=tip_hi, panel=4))
 
     xfoil_Ms = Float64[M for M in tab.Ms if M <= _R996_M_HI + 1e-12]
@@ -2015,17 +2018,16 @@ function _run_polar_r996()
     for (i, r) in enumerate(run_rows)
         push!(table, ValidationTableRow("n_out_M $(r.name)", Float64(i), NaN, Float64(r.n_out_M), NaN, false, "n_out_M"))
         push!(table, ValidationTableRow("n_out_α $(r.name)", Float64(i), NaN, Float64(r.n_out_α), NaN, false, "n_out_α"))
-        push!(table, ValidationTableRow("clamped_Re $(r.name)", Float64(i), NaN, Float64(r.clamped_Re), NaN, false, "PolarStats"))
-        push!(table, ValidationTableRow("clamped_M $(r.name)", Float64(i), NaN, Float64(r.clamped_M), NaN, false, "PolarStats"))
-        push!(table, ValidationTableRow("viterna_evals $(r.name)", Float64(i), NaN, Float64(r.viterna_evals), NaN, false, "PolarStats"))
-        push!(table, ValidationTableRow("nearest_polar $(r.name)", Float64(i), NaN, Float64(r.nearest_polar), NaN, false, "PolarStats"))
+        push!(table, ValidationTableRow("clamped_Re lookups $(r.name)", Float64(i), NaN, Float64(r.clamped_Re), NaN, false, "PolarStats"))
+        push!(table, ValidationTableRow("clamped_M lookups $(r.name)", Float64(i), NaN, Float64(r.clamped_M), NaN, false, "PolarStats"))
+        push!(table, ValidationTableRow("viterna_evals lookups $(r.name)", Float64(i), NaN, Float64(r.viterna_evals), NaN, false, "PolarStats"))
+        push!(table, ValidationTableRow("nearest_polar lookups $(r.name)", Float64(i), NaN, Float64(r.nearest_polar), NaN, false, "PolarStats"))
     end
     # Informational: c_l difference XFOIL − TN 1546 at each overlaid (α, M) point.
     for m in measured
         m.kind === :cl_cd_at_M || continue
-        pts = _polar_pts(tab.tables, section, Re_rep, m.Mach)
         for (α, cl_m) in zip(m.alpha_cl, m.cl)
-            cl_x = _xfoil_cl_at_alpha(pts, α)
+            cl_x = _p67_xfoil_cl(tab.tables, [Re_rep], section, α, m.Mach, Re_rep; Ms=tab.Ms)   # linear in M (Phase 69 grid)
             cl_x === nothing && continue
             dcl = cl_x - cl_m
             push!(table, ValidationTableRow(
@@ -2038,7 +2040,7 @@ function _run_polar_r996()
         "c_l vs α — $section @ Re=$(Re_rep) (r/R≈$(_R996_SECTION_R_OVER_R); median outer Re≈$(round(Re_med; sigdigits=3)))",
         "c_d vs α — $section @ Re=$(Re_rep); TN 1546 c_d rows with assignment=uncertain skipped",
         "Coverage: α vs local Mach (box Mach $(_R996_M_LO)–$(_R996_M_HI), α $(_R996_A_LO)°–$(_R996_A_HI)°)",
-        "c_l vs Mach — TN 1546 α curves + XFOIL markers (≤0.72); band $(_R996_TIP_M_LO)–$(_R996_TIP_M_HI) = tested tip Mach (no XFOIL)",
+        "c_l vs Mach — TN 1546 α curves + XFOIL markers (≤$(_R996_M_HI)); band $(_R996_TIP_M_LO)–$(_R996_TIP_M_HI) = tested tip Mach",
     ]
     _POLAR_DISPLAY_CACHE["POLAR_R996"] = (;
         points=all_pts, run_rows=run_rows, section=section, Re_rep=Re_rep,
@@ -2089,7 +2091,7 @@ function _run_polar_per()
 
     for rd in run_defs
         isfile(rd.path) || continue
-        af, st = load_polar_set(rd.path; set=:primary)
+        af, st = load_polar_set(rd.path; set=:primary, cr75=_PER_CR75)
         ops = ccblade_section_operating_points(cfg; af=af, allow_static=false)
         n_sec = length(ops.Mach)
         pts_run = NamedTuple[]
@@ -2163,10 +2165,10 @@ function _run_polar_per()
     for (i, r) in enumerate(run_rows)
         push!(table, ValidationTableRow("n_out_M $(r.name)", Float64(i), NaN, Float64(r.n_out_M), NaN, false, "n_out_M"))
         push!(table, ValidationTableRow("n_out_α $(r.name)", Float64(i), NaN, Float64(r.n_out_α), NaN, false, "n_out_α"))
-        push!(table, ValidationTableRow("clamped_Re $(r.name)", Float64(i), NaN, Float64(r.clamped_Re), NaN, false, "PolarStats"))
-        push!(table, ValidationTableRow("clamped_M $(r.name)", Float64(i), NaN, Float64(r.clamped_M), NaN, false, "PolarStats"))
-        push!(table, ValidationTableRow("viterna_evals $(r.name)", Float64(i), NaN, Float64(r.viterna_evals), NaN, false, "PolarStats"))
-        push!(table, ValidationTableRow("nearest_polar $(r.name)", Float64(i), NaN, Float64(r.nearest_polar), NaN, false, "PolarStats"))
+        push!(table, ValidationTableRow("clamped_Re lookups $(r.name)", Float64(i), NaN, Float64(r.clamped_Re), NaN, false, "PolarStats"))
+        push!(table, ValidationTableRow("clamped_M lookups $(r.name)", Float64(i), NaN, Float64(r.clamped_M), NaN, false, "PolarStats"))
+        push!(table, ValidationTableRow("viterna_evals lookups $(r.name)", Float64(i), NaN, Float64(r.viterna_evals), NaN, false, "PolarStats"))
+        push!(table, ValidationTableRow("nearest_polar lookups $(r.name)", Float64(i), NaN, Float64(r.nearest_polar), NaN, false, "PolarStats"))
     end
 
     re_note = "Report 824 Re 3–9×10⁶; Pereira operates near Re≈$(round(Re_med; sigdigits=2))"
@@ -2201,9 +2203,9 @@ function _finish_validation_registry!()
     # Runnable extras (not greyed)
     extras = [
         ValidationCase("POLAR_R996", "Report 996 XFOIL polars and section coverage (display)", "display",
-            [_data_path("report996", "polars_forced_merged.json"),
+            [_data_path(splitpath(_R996_POLAR_PATH)...),
              _data_path("airfoil_measured", "tn1546_fig3_cl_cd_vs_mach.csv")],
-            FigureRef("NACA Report 996 / XFOIL", "polars_forced_merged", nothing),
+            FigureRef("NACA Report 996 / XFOIL", "polars_phase69_ncrit8", nothing),
             "Display only — no pass criterion.",
             "2026-10-22", "display only", _run_polar_r996,
             PlotSpec(; xlabel="α (deg)", ylabel="c_l",

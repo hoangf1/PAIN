@@ -15,20 +15,27 @@ end
 (TN 1546 p. 5; 5-in chord). Reading fixed 2026-10-24 before the comparison."""
 _p67_tn1546_Re(M) = 0.85e6 + (2.0e6 - 0.85e6) * (M - 0.3) / 0.5
 
-"""XFOIL c_l of `section` at (α_deg, M) and Reynolds `Re`, linear in log Re between the bracketing tables; `nothing`
-when α is outside a table or a table is missing (no extrapolation)."""
-function _p67_xfoil_cl(tables, Res, section, α_deg, M, Re)
+"""XFOIL c_l of `section` at (α_deg, M) and Reynolds `Re`: bilinear in (log Re, M) between the bracketing grid
+tables (M interpolation added 2026-10-28, Phase 69: the Phase 69 grid is in 0.1 Mach steps); `nothing` when α is
+outside a table or a table is missing (no extrapolation)."""
+function _p67_xfoil_cl(tables, Res, section, α_deg, M, Re; Ms=sort!(unique(Float64[k[3] for k in keys(tables) if k[1] == section])))
     lo = maximum(filter(x -> x ≤ Re, Res); init=minimum(Res))
     hi = minimum(filter(x -> x ≥ Re, Res); init=maximum(Res))
-    cl_lo = _xfoil_cl_at_alpha(_polar_pts(tables, section, lo, M), α_deg)
-    cl_hi = _xfoil_cl_at_alpha(_polar_pts(tables, section, hi, M), α_deg)
-    (cl_lo === nothing || cl_hi === nothing) && return nothing
-    lo == hi && return cl_lo
-    t = (log(Re) - log(lo)) / (log(hi) - log(lo))
-    return (1 - t) * cl_lo + t * cl_hi
+    mlo = maximum(filter(x -> x ≤ M + 1e-9, Ms); init=minimum(Ms))
+    mhi = minimum(filter(x -> x ≥ M - 1e-9, Ms); init=maximum(Ms))
+    (mlo ≤ M + 1e-9 && mhi ≥ M - 1e-9) || return nothing
+    cl(R, m) = _xfoil_cl_at_alpha(_polar_pts(tables, section, R, m), α_deg)
+    v = [cl(R, m) for R in (lo, hi), m in (mlo, mhi)]
+    any(isnothing, v) && return nothing
+    t = lo == hi ? 0.0 : (log(Re) - log(lo)) / (log(hi) - log(lo))
+    u = mlo == mhi ? 0.0 : (M - mlo) / (mhi - mlo)
+    return (1 - t) * (1 - u) * v[1, 1] + t * (1 - u) * v[2, 1] + (1 - t) * u * v[1, 2] + t * u * v[2, 2]
 end
 
 # --- 67a POLAR_FIDELITY ----------------------------------------------------------------------
+"""Sections whose TN 1546 points chose N_crit (Phase 69b, 2026-10-28): shown, but calibrated, so they carry no verdict."""
+const _P69_NCRIT_FIT_SECTIONS = ("n16_506", "n16_509")
+
 function _run_polar_fidelity()
     tab = _polar_tables(_data_path(splitpath(_R996_POLAR_PATH)...))
     secs = ("n16_312", "n16_506", "n16_509")
@@ -40,11 +47,13 @@ function _run_polar_fidelity()
             Re = _p67_tn1546_Re(M)
             αs = Float64[]; dcl = Float64[]
             for (α, clm) in zip(x.alpha_cl, x.cl)
-                clx = _p67_xfoil_cl(tab.tables, tab.Res, sec, α, M, Re)
+                clx = _p67_xfoil_cl(tab.tables, tab.Res, sec, α, M, Re; Ms=tab.Ms)
                 clx === nothing && continue
                 d = clx - clm; ok = abs(d) ≤ 0.05
-                n += 1; n_ok += ok
-                push!(table, ValidationTableRow("$sec M=$M α=$(round(α; digits=2))° c_l XFOIL − TN 1546", 10si + M, clm, clx, d, ok, sec))
+                calibrated = sec in _P69_NCRIT_FIT_SECTIONS
+                calibrated || (n += 1; n_ok += ok)
+                push!(table, ValidationTableRow("$sec M=$M α=$(round(α; digits=2))° c_l XFOIL − TN 1546" *
+                                                (calibrated ? " (N_crit fit point, no verdict)" : ""), 10si + M, clm, clx, d, ok, sec))
                 push!(αs, α); push!(dcl, d)
             end
             isempty(αs) || push!(series, PlotSeries("$sec M=$M", :computed, αs, dcl; panel=si))
@@ -52,8 +61,10 @@ function _run_polar_fidelity()
     end
     frac = n == 0 ? 0.0 : n_ok / n
     return _p67_result("POLAR_FIDELITY", table, series, n > 0 && frac ≥ 0.75,
-        "$n_ok/$n matched points with |Δc_l| ≤ 0.05 ($(round(100frac; digits=1)) %; criterion ≥ 75 %); XFOIL at the TN 1546 Reynolds number",
-        (; criterion="|Δc_l| ≤ 0.05 at ≥ 75 % of matched points", n, n_ok))
+        "held-out 16-312: $n_ok/$n matched points with |Δc_l| ≤ 0.05 ($(round(100frac; digits=1)) %; criterion ≥ 75 %); " *
+        "16-506 and 16-509 chose N_crit (Phase 69b) and are shown without verdict; XFOIL at the TN 1546 Reynolds number",
+        (; criterion="|Δc_l| ≤ 0.05 at ≥ 75 % of matched points (held-out 16-312; Phase 69b 2026-10-28)", n, n_ok,
+         polar=basename(_R996_POLAR_PATH)))
 end
 
 # --- 67b F1A_CHORDWISE -----------------------------------------------------------------------

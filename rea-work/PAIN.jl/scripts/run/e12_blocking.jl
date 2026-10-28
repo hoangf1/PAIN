@@ -61,7 +61,7 @@ predM, measM = meancurve(predA, predB), meancurve(measA, measB)
 
 # Eq. (43) on the l = 1 line: F(γ) from the test-cylinder geometry of the e11 path (run_pain_pipeline defaults)
 fuse = FuselageGeometry(test_article_length(), 0.508, 56.6)
-prop = PropellerPlacement(0.965, 90.0, 0.90)
+prop = PropellerPlacement(0.965, 90.0, 0.662)  # z_p from App. E p. E-8 (Phase 65)
 pts = [p for p in grid_points(fuse, prop, GridSpec()) if p.ell == 1]
 D = 0.762
 X3D = [p.x3 / D for p in pts]
@@ -80,7 +80,7 @@ lines = String[]
 push!(lines, "# Fig. E-12 on-line blocking check (plan phase 14a)", "",
     "Class: **V-CODE** for Eq. (43) against NASA's predicted curve (same equation, same free-field input); **V-EXP** for the measured curve (recorded, no pass mark). Tests Eq. (43) and the incidence angle only, not GEXT.", "",
     "Criterion fixed 2026-10-20 (plan 14a, before comparison): Eq. (43) applied to the l = 1 free field reproduces the digitized predicted E-12 curve within δ_dig + 0.5 dB at every point.", "",
-    "Geometry: test cylinder a = 0.508 m, hub r_p = 0.965 m, z_p = 0.90 m, φ_p = 90°, D = 0.762 m, variant R1 (full Eq. 43, as in NASA's PAIN). Free-field input: ANOPP Table 8 (l = 1), the predicted free field NASA fed to Eq. (43). Digitized curves are the mean of two passes; pass A used pixel calibration, pass B a grid overlay, both by eye by the same reader.", "",
+    "Geometry: test cylinder a = 0.508 m, hub r_p = 0.965 m, z_p = 0.662 m, φ_p = 90°, D = 0.762 m, variant R1 (full Eq. 43, as in NASA's PAIN). Free-field input: ANOPP Table 8 (l = 1), the predicted free field NASA fed to Eq. (43). Digitized curves are the mean of two passes; pass A used pixel calibration, pass B a grid overlay, both by eye by the same reader.", "",
     "## δ_dig (max |A − B| on the E-12 curves)", "",
     "| Curve | H1 | H2 | H3 |", "|---|---|---|---|",
     @sprintf("| predicted | %.2f | %.2f | %.2f |", δpred[1], δpred[2], δpred[3]),

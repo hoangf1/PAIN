@@ -27,8 +27,9 @@ function propeller_broadband_spectrum(cfg, af, observer::NTuple{3,<:Real}; nψ::
     α_aero = similar(r)
     for i in eachindex(r)
         Re, M = ops.Re[i], ops.Mach[i]
-        cl0 = af(0.0, Re, M)[1]
-        cl1 = af(deg2rad(2.0), Re, M)[1]
+        afi = ops.afs[i]                           # the polar this station's BEMT used (Phase 70 F4)
+        cl0 = afi(0.0, Re, M)[1]
+        cl1 = afi(deg2rad(2.0), Re, M)[1]
         αL0 = -2.0 * cl0 / (cl1 - cl0)             # degrees
         α_aero[i] = ops.alpha_deg[i] - αL0
     end
@@ -79,7 +80,7 @@ function p48_propeller_cfg(rpm::Real)
     return (
         propeller=(num_blades=3, tip_radius_m=g.R, hub_radius_m=g.radii_m[1], rpm=Float64(rpm),
                    thickness_over_chord=0.0, pitch_offset_deg=0.0, radii_m=collect(g.radii_m),
-                   chord_m=collect(g.chord_m), twist_deg=collect(g.twist_deg)),
+                   chord_m=collect(g.chord_m), twist_deg=collect(g.twist_deg), station_t_over_c=collect(g.t_over_c)),
         operating_point=(forward_speed_mps=23.8, rho_kg_m3=1.225, c0_mps=340.3),
         anopp_table8_calibrate=false,
     )

@@ -28,6 +28,7 @@ function write_cfg(; beta75, Mt, B, name)
             "radii_m" => collect(g.radii_m),
             "chord_m" => collect(g.chord_m),
             "twist_deg" => collect(g.twist_deg),
+            "station_t_over_c" => collect(g.t_over_c),
         ),
         "operating_point" => Dict(
             "forward_speed_mps" => 0.0,

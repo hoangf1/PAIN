@@ -1157,15 +1157,24 @@ end
 _run_if("Polar loader (25i, V-CODE)") do
     path = joinpath(@__DIR__, "..", "..", "data", "report996", "polars_forced_merged.json")
     @test isfile(path)
-    af, st = load_polar_set(path; set=:primary)
+    ps, st = load_polar_set(path; set=:primary)
+    @test length(ps.sections) == 10 && issorted(ps.t_over_c)
+    @test_throws ErrorException ps(0.0, 5e5, 0.2)          # Report 996 has ten sections: a thickness is required
     # knot near α=0 at some Re,M — finite
-    cl, cd = af(0.0, 5e5, 0.2)
+    cl, cd = section_polar(ps, 0.07)(0.0, 5e5, 0.2)
     @test isfinite(cl) && isfinite(cd)
-    afb, stb = load_polar_set(path; set=:bracket)
-    clb, cdb = afb(0.0, 5e5, 0.2)
+    # thin and thick sections differ (the old loader gave every station 16-101)
+    @test section_polar(ps, 0.13)(deg2rad(2.0), 1e6, 0.4)[1] != section_polar(ps, 0.05)(deg2rad(2.0), 1e6, 0.4)[1]
+    psb, stb = load_polar_set(path; set=:bracket)
+    clb, cdb = section_polar(psb, 0.07)(0.0, 5e5, 0.2)
     # bracket multiplies primary cl by k_cl from tables.json (default 0.92264); same (α,Re,M) knot
     @test clb / cl ≈ 0.92264 rtol=1e-9
     @test stb.clamped_Re >= 0
+    # a Report 996 run without station thicknesses is refused
+    cfg = PAIN._r996_cfg(; beta75=15.0, Mt=0.6, B=2)
+    bare = (; cfg..., propeller=Base.structdiff(cfg.propeller, NamedTuple{(:station_t_over_c,)}))
+    @test_throws ErrorException ccblade_section_operating_points(bare; af=ps, allow_static=true)
+    @test length(ccblade_section_operating_points(cfg; af=ps, allow_static=true).afs) == length(cfg.propeller.radii_m)
 end
 
 _run_if("Polar display cases") do
@@ -2648,9 +2657,15 @@ _run_if("Validation case registry (34d)") do
     @test blk_p68.cases == ["BLK_P68", "E12_BLOCK", "ISO_BLOCKING"]
     amp = only(b for b in total.blocks if b.id == "A_AMP")
     @test amp.cases ==
-          ["F1A_GUTIN", "R996_FIG14", "R996_FIG12", "R996_FIG13A", "R996_FIG6", "R996_FIG7", "F1A_INDEP",
+          ["F1A_GUTIN", "R996_FIG14", "R996_FIG12", "R996_FIG13A", "R996_FIG6", "R996_FIG7",
            "F1A_GUTIN_ANGLES", "F1A_GW_FLIGHT", "F1A_THICKNESS", "F1A_PROPERTIES",   # Phase 66
            "F1A_CHORDWISE"]                                                          # Phase 67
+    # Phase 70 F2–F4 (2026-10-28): each case sits on the block it tests
+    blkcases(id) = only(b for b in total.blocks if b.id == id).cases
+    @test "F1A_INDEP" in blkcases("X_F1A") && "F1A_PLANE_PEAK" in blkcases("X_FF") && "ISO_TABLE8" in blkcases("X_FF")
+    @test "FF_E11_MAP" in blkcases("P_GRID")
+    @test issubset(["BPM_RP1218", "PROP_BB_FIG14", "PROP_BB_FIG17"], blkcases("A_SURF"))
+    @test !any(id -> id in blkcases("P_FF"), ["ISO_TABLE8", "BPM_RP1218", "PROP_BB_FIG14", "PROP_BB_FIG17"])
     loads = only(b for b in total.blocks if b.id == "A_LOADS")
     @test "BEMT_HAND" in loads.cases
     @test "TRIM_CLOSED" in only(b for b in total.blocks if b.id == "P_TRIM").cases

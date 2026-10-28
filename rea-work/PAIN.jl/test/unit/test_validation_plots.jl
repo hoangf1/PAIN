@@ -61,6 +61,11 @@ end
     @test endswith(replace(PAIN.validation_figure_path("T1"), '\\' => '/'), "figures/vs_measurement/T1.png")
     @test endswith(replace(PAIN.validation_figure_path("R996_FIG14"), '\\' => '/'), "figures/F1A_amplitude/R996_FIG14.png")
     @test endswith(replace(PAIN.validation_figure_path("NO_SUCH_CASE"), '\\' => '/'), "figures/NO_SUCH_CASE.png")
+    froot = PAIN._validation_figures_root()
+    @test isabspath(froot) && isdir(froot) && endswith(replace(froot, '\\' => '/'), "docs/validation_reports/figures")
+    @test PAIN.validation_figure_dir("NO_SUCH_CASE") == froot                     # unregistered id: the root
+    @test PAIN.validation_figure_dir("T1") == joinpath(froot, "vs_measurement")    # registered id: its block's folder
+    @test isdir(PAIN.validation_figure_dir("R996_FIG14"))
     # every map block has a figure folder, and no two blocks share one
     block_ids = [b.id for m in PAIN.VALIDATION_MAPS for b in m.blocks]
     @test all(b -> haskey(PAIN.VALIDATION_FIGURE_DIRS, b), block_ids)

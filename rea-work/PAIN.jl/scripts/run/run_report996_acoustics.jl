@@ -6,7 +6,7 @@ using Dates
 const ROOT = joinpath(@__DIR__, "..", "..", "..")
 const DATA = joinpath(ROOT, "data", "report996")
 const BF = joinpath(DATA, "naca_4-5-08-03", "blade_form.csv")
-const POLAR = joinpath(DATA, "polars_forced_merged.json")
+const POLAR = joinpath(DATA, "polars_phase69_ncrit8.json")  # Phase 69: free transition, N_crit 8
 const SCALES = joinpath(DATA, "scale_factors.csv")
 const DIG = joinpath(DATA, "tr996_fig12_13a_14_digitized.csv")
 const L51 = joinpath(DATA, "naca_4-5-08-03", "measured", "noise", "naca_rm_l51c27_table1_thrust_torque.csv")
@@ -58,6 +58,7 @@ function make_cfg(; beta75, Mt, B)
             radii_m = collect(g.radii_m),
             chord_m = collect(g.chord_m),
             twist_deg = collect(g.twist_deg),
+            station_t_over_c = collect(g.t_over_c),
         ),
         operating_point = (forward_speed_mps = 0.0, rho_kg_m3 = 1.225, c0_mps = 340.3),
         anopp_table8_calibrate = false,
@@ -114,8 +115,8 @@ function push_result!(results; figure, case, polar_set, loads, x_over_D, d_over_
 end
 
 function main()
-    af_p, _ = load_polar_set(POLAR; set=:primary)
-    af_b, _ = load_polar_set(POLAR; set=:bracket)
+    af_p, _ = load_polar_set(POLAR; set=:primary, cr75=0.1251)
+    af_b, _ = load_polar_set(POLAR; set=:bracket, cr75=0.1251)
     ρ, a_sound = 1.225, 340.3
     dig = load_digitized()
     results = []

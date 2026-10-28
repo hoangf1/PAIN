@@ -22,7 +22,7 @@ json = joinpath(tempdir(), "aircraft_scale_hartzell_untuned_i12.json")
 write(json, txt)
 
 fuse = FuselageGeometry(test_article_length(), 0.508, 56.6)
-prop = PropellerPlacement(0.965, 90.0, 0.90)
+prop = PropellerPlacement(0.965, 90.0, 0.662)  # z_p from App. E p. E-8 (Phase 65)
 spec = GridSpec()
 records = ValidationRecord[]
 

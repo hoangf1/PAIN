@@ -17,7 +17,7 @@ t2tg = PAIN._read_csv_numeric(joinpath(dirname(paths.A), "t2_third_octave_target
 function e11_with_gext(; falloff_exponent=1.0, falloff_floor=0.0, delay_scale=1.0,
                         n_harmonics=3, bpf_Hz=200.0)
     fuse = FuselageGeometry(test_article_length(), 0.508, 56.6)
-    prop = PropellerPlacement(0.965, 90.0, 0.90)
+    prop = PropellerPlacement(0.965, 90.0, 0.662)  # z_p from App. E p. E-8 (Phase 65)
     spec = GridSpec()
     amp = PAIN._read_csv_numeric(paths.A)
     ph = PAIN._read_csv_numeric(paths.phases)

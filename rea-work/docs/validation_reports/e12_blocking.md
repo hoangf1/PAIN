@@ -4,7 +4,7 @@ Class: **V-CODE** for Eq. (43) against NASA's predicted curve (same equation, sa
 
 Criterion fixed 2026-10-20 (plan 14a, before comparison): Eq. (43) applied to the l = 1 free field reproduces the digitized predicted E-12 curve within δ_dig + 0.5 dB at every point.
 
-Geometry: test cylinder a = 0.508 m, hub r_p = 0.965 m, z_p = 0.90 m, φ_p = 90°, D = 0.762 m, variant R1 (full Eq. 43, as in NASA's PAIN). Free-field input: ANOPP Table 8 (l = 1), the predicted free field NASA fed to Eq. (43). Digitized curves are the mean of two passes; pass A used pixel calibration, pass B a grid overlay, both by eye by the same reader.
+Geometry: test cylinder a = 0.508 m, hub r_p = 0.965 m, z_p = 0.662 m, φ_p = 90°, D = 0.762 m, variant R1 (full Eq. 43, as in NASA's PAIN). Free-field input: ANOPP Table 8 (l = 1), the predicted free field NASA fed to Eq. (43). Digitized curves are the mean of two passes; pass A used pixel calibration, pass B a grid overlay, both by eye by the same reader.
 
 ## δ_dig (max |A − B| on the E-12 curves)
 

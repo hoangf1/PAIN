@@ -4,7 +4,7 @@
 
 const _P48_AF = Ref{Any}(nothing)
 function _p48_af()
-    _P48_AF[] === nothing && (_P48_AF[] = load_polar_set(_data_path(splitpath(_R996_POLAR_PATH)...); set=:primary)[1])
+    _P48_AF[] === nothing && (_P48_AF[] = load_polar_set(_data_path(splitpath(_R996_POLAR_PATH)...); set=:primary, cr75=_R996_CR75)[1])
     return _P48_AF[]
 end
 const _P48_OBS_FIG14 = (0.457, 0.0, -0.254)   # CR-172428 Fig. 9, microphone 1 (5000 rpm)

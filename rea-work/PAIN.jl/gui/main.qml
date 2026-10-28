@@ -105,23 +105,30 @@ ApplicationWindow {
         return root.border
     }
 
+    // Row tops come from map JSON `row_y` (Julia validation_map_row_y): each row is as tall
+    // as its tallest block with chips, so no block overlaps the one below.
+    function rowY(row) {
+        var ys = root.mapData && root.mapData.row_y
+        if (ys && row < ys.length)
+            return Number(ys[row])
+        return root.mapPad + row * root.mapCellH
+    }
     function blockAt(col, row) {
-        return Qt.point(root.mapPad + col * root.mapCellW, root.mapPad + row * root.mapCellH)
+        return Qt.point(root.mapPad + col * root.mapCellW, root.rowY(row))
     }
 
-    // Chip stack height under a title box (Flow ~2 chips wide). Row height comes from
-    // map JSON `chip_row_h` (Julia VALIDATION_MAP_CHIP_ROW_H) so smoke disjoint matches.
+    // Chip stack height under a title box (one full-width chip per line). Chip height comes
+    // from map JSON `chip_row_h` (Julia VALIDATION_MAP_CHIP_ROW_H) so the smoke overlap check matches.
     function chipRowH() {
         var h = root.mapData && root.mapData.chip_row_h
         var n = Number(h)
-        return (isFinite(n) && n > 0) ? n : 52
+        return (isFinite(n) && n > 0) ? n : 56
     }
     function blockChipExtra(block) {
         var n = (block && block.cases) ? block.cases.length : 0
         if (n <= 0)
             return 0
-        var rows = Math.ceil(n / 2)
-        return 4 + rows * root.chipRowH()
+        return 4 + n * root.chipRowH()
     }
 
     function chipErrorText(chip) {
@@ -174,13 +181,14 @@ ApplicationWindow {
 
     function mapContentSize() {
         var blocks = (root.mapData && root.mapData.blocks) ? root.mapData.blocks : []
-        var maxC = 0, maxR = 0
+        var maxC = 0, maxBottom = 0
         for (var i = 0; i < blocks.length; i++) {
             if (blocks[i].col > maxC) maxC = blocks[i].col
-            if (blocks[i].row > maxR) maxR = blocks[i].row
+            var bottom = root.rowY(blocks[i].row) + 44 + root.blockChipExtra(blocks[i])
+            if (bottom > maxBottom) maxBottom = bottom
         }
         return Qt.size(root.mapPad * 2 + (maxC + 1) * root.mapCellW + 80,
-                       root.mapPad * 2 + (maxR + 1) * root.mapCellH + 100)
+                       maxBottom + root.mapPad + 100)
     }
 
     function resetMapFlowScroll() {
@@ -1212,8 +1220,10 @@ ApplicationWindow {
                                                             color: selected ? "#e8f4ef" : root.panel
                                                             border.color: catColor
                                                             border.width: selected ? 2 : 1
-                                                            implicitHeight: chipCol.implicitHeight + 6
-                                                            implicitWidth: Math.min(parent.width, chipCol.implicitWidth + 10)
+                                                            // Fixed size = layout height in Julia (validation_map_row_y).
+                                                            width: chipFlow.width
+                                                            height: root.chipRowH() - chipFlow.spacing
+                                                            clip: true
                                                             Column {
                                                                 id: chipCol
                                                                 anchors.centerIn: parent

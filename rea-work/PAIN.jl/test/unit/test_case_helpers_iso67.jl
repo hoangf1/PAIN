@@ -5,6 +5,10 @@
     @test PAIN._p67_xfoil_cl(tables, [1e6, 2e6], "s", 0.0, 0.4, 1e6) ≈ 0.0
     @test PAIN._p67_xfoil_cl(tables, [1e6, 2e6], "s", 0.0, 0.4, sqrt(2) * 1e6) ≈ 0.05      # halfway in log Re
     @test PAIN._p67_xfoil_cl(tables, [1e6, 2e6], "s", 5.0, 0.4, 1.5e6) === nothing           # α outside: no extrapolation
+    # Phase 69: linear in M between grid Mach numbers (the TN 1546 M = 0.55 lies between grid 0.5 and 0.6)
+    tm = Dict(("s", 1e6, 0.5) => [(-2.0, -0.2, 0.01), (2.0, 0.2, 0.01)], ("s", 1e6, 0.6) => [(-2.0, -0.4, 0.01), (2.0, 0.4, 0.01)])
+    @test PAIN._p67_xfoil_cl(tm, [1e6], "s", 1.0, 0.55, 1e6) ≈ 0.15
+    @test PAIN._p67_xfoil_cl(tm, [1e6], "s", 1.0, 0.7, 1e6) === nothing                      # M outside the grid: nothing
     r = PAIN._p67_result("U", PAIN.ValidationTableRow[], PAIN.PlotSeries[], true, "x", (;); verdict=:no_verdict)
     @test r.verdict == :no_verdict && r.label == "diagnostic"
 end

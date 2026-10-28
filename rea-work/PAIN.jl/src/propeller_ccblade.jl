@@ -276,15 +276,48 @@ function _ccblade_setup(cfg; af=nothing, allow_static::Bool=false, use_tip_corre
         chord = fill(0.08 * Rtip, nsec)
         theta = collect(range(40.0, 10.0; length=nsec)) .* (π / 180) .+ deg2rad(pitch_off)
     end
-    af_fn = af === nothing ? _default_af : af
+    afs = _station_afs(af, p, length(r))
     # Default Rotor uses PrandtlTipHub(); use_tip_correction=false → tip=nothing (F=1).
     rotor = use_tip_correction ? CCBlade.Rotor(Rhub, Rtip, B) :
             CCBlade.Rotor(Rhub, Rtip, B; tip=nothing)
-    sections = [CCBlade.Section(r[i], chord[i], theta[i], af_fn) for i in eachindex(r)]
-    ops = [CCBlade.OperatingPoint(Vinf, Ω * r[i], ρ; asound=c0) for i in eachindex(r)]
+    sections = [CCBlade.Section(r[i], chord[i], theta[i], afs[i]) for i in eachindex(r)]
+    # μ must be passed: CCBlade's default μ = 1 makes the Re given to the polars ~10⁵ too low (Phase 69 defect 5).
+    μ = Float64(_get(op, :mu_Pa_s, AIR_MU_PA_S))
+    ops = [CCBlade.OperatingPoint(Vinf, Ω * r[i], ρ; mu=μ, asound=c0) for i in eachindex(r)]
     outs = CCBlade.solve.(Ref(rotor), sections, ops)
     return (; rotor, sections, ops, outs, r, chord, theta, B, Rtip, Rhub, rpm, Ω, Vinf, vinf_substituted,
-            ρ, c0, t_over_c, pitch_off)
+            ρ, c0, t_over_c, pitch_off, afs, μ)
+end
+
+"""Per-station A/c² for the F1A thickness term: `propeller.area_over_chord2` if given, else `thickness_over_chord` at every station."""
+function _station_area_over_chord2(p, t_over_c::Real, n::Int)
+    v = _get(p, :area_over_chord2, nothing)
+    v === nothing && return fill(Float64(t_over_c), n)
+    length(v) == n || error("area_over_chord2 has $(length(v)) entries for $n blade stations")
+    return Float64.(collect(v))
+end
+
+"""
+One polar function per blade station. `af` may be `nothing` (the default clamped linear polar), one
+function used at every station, a vector with one function per station, or a `PolarSet`. A multi-section
+`PolarSet` needs `propeller.station_t_over_c` (one t/c per station) and gives each station its own
+section blend (Phase 69 defect 1); it is an error to omit it.
+"""
+function _station_afs(af, p, n::Int)
+    af === nothing && return fill(_default_af, n)
+    if af isa AbstractVector
+        length(af) == n || error("af vector has $(length(af)) entries for $n blade stations")
+        return collect(af)
+    end
+    if af isa PolarSet && length(af.sections) > 1
+        tc = _get(p, :station_t_over_c, nothing)
+        tc === nothing && error("multi-section polar set needs propeller.station_t_over_c (one t/c per blade station)")
+        length(tc) == n || error("station_t_over_c has $(length(tc)) entries for $n blade stations")
+        return station_polars(af, Float64.(collect(tc)))
+    end
+    # CCBlade evaluates a polar only through a `Function`, so a one-section PolarSet is wrapped.
+    af isa PolarSet && return fill(section_polar(af, 0.0), n)
+    return fill(af, n)
 end
 
 """
@@ -331,7 +364,10 @@ function evaluate_propeller_source(cfg, observers::Vector{Observer};
     CQ = Q / (ρ * n_rps^2 * D^5)
     CP = 2π * CQ
 
-    area_over_chord2 = fill(t_over_c, nsec)
+    # AcousticAnalogies needs cross-section area / chord² per element. `thickness_over_chord` is passed as that
+    # value (it is A/c², not t/c: a section of thickness t has A ≈ 0.69–0.78·t·c). A per-station
+    # `propeller.area_over_chord2` vector, when given, is used instead (Phase 69a3, 2026-10-28).
+    area_over_chord2 = _station_area_over_chord2(cfg.propeller, t_over_c, nsec)
     bpp = 2π / Ω / B
     # I-01: source span = n_rev_src revolutions at the same Δt as before; reception = one bpp.
     # force_short_source: test-only path that reproduces the old one-bpp source (guard must fire).
@@ -398,9 +434,9 @@ function _f1a_harmonics(rotor, sections, ops, outs, area_over_chord2, observers:
     return amplitude, phase
 end
 
-"""Air viscosity used only for display Re of section operating points (Pa·s).
-CCBlade `OperatingPoint` still defaults to μ=1 (unchanged production path)."""
-const _DISPLAY_MU_AIR = 1.78e-5
+"""Dynamic viscosity of air (Pa·s) passed to every CCBlade `OperatingPoint` (= ρν with ν = 1.4529e-5 m²/s,
+ρ = 1.225 kg/m³). Override per run with `operating_point.mu_Pa_s`."""
+const AIR_MU_PA_S = 1.78e-5
 
 """
     ccblade_section_operating_points(cfg; af=nothing, allow_static=false)
@@ -408,13 +444,13 @@ const _DISPLAY_MU_AIR = 1.78e-5
 
 Same CCBlade BEMT setup as `evaluate_propeller_source` (rotor, sections, ops, solve)
 without F1A. Returns per-section `r_m`, `r_over_R`, `alpha_deg`, `Mach`, `Re`
-(Re = ρ W₀ c / μ_air with μ_air = 1.78e-5 for display; Mach = W₀/c₀ as in CCBlade) and the
-section loads `Np`, `Tp` [N/m].
+(Re = ρ W₀ c / μ, the same μ CCBlade uses; Mach = W₀/c₀ as in CCBlade), the section loads `Np`, `Tp` [N/m]
+and the station polars `afs`.
 """
 function ccblade_section_operating_points(cfg; af=nothing, allow_static::Bool=false,
                                           use_tip_correction::Bool=true)
     su = _ccblade_setup(cfg; af, allow_static, use_tip_correction)
-    (; rotor, sections, ops, outs, B, Rtip, Rhub, rpm, Vinf, ρ, c0) = su
+    (; rotor, sections, ops, outs, B, Rtip, Rhub, rpm, Vinf, ρ, c0, μ) = su
     r, chord = su.r, su.chord
     nsec = length(sections)
 
@@ -424,12 +460,12 @@ function ccblade_section_operating_points(cfg; af=nothing, allow_static::Bool=fa
     for i in 1:nsec
         W0 = hypot(ops[i].Vx, ops[i].Vy)
         push!(Mach, W0 / c0)
-        push!(Re, ρ * W0 * chord[i] / _DISPLAY_MU_AIR)
+        push!(Re, ρ * W0 * chord[i] / μ)
     end
     return (
         r_m=r, r_over_R=r ./ Rtip, chord_m=chord, alpha_deg=alpha_deg, Mach=Mach, Re=Re,
         Rtip=Rtip, Rhub=Rhub, Vinf=Vinf, rho=ρ, c0=c0, B=B, rpm=rpm,
-        Np=Float64[outs[i].Np for i in 1:nsec], Tp=Float64[outs[i].Tp for i in 1:nsec],
+        Np=Float64[outs[i].Np for i in 1:nsec], Tp=Float64[outs[i].Tp for i in 1:nsec], afs=su.afs,
     )
 end
 

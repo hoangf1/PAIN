@@ -358,6 +358,7 @@ function validation_map_json(map_id::AbstractString;
         "blocks" => blocks,
         "groups" => group_list,
         "chip_row_h" => VALIDATION_MAP_CHIP_ROW_H,
+        "row_y" => validation_map_row_y(m),
     ))
 end
 
@@ -463,14 +464,41 @@ const _MAP_BLOCK_H = 44
 const _MAP_GRP_PAD_X = 10
 const _MAP_GRP_PAD_TOP = 22
 const _MAP_GRP_PAD_BOT = 10
-"""Per chip-row height (px) with short error + source lines; passed to QML as `chip_row_h`."""
-const VALIDATION_MAP_CHIP_ROW_H = 52
+"""Per chip height (px, chip box + 4 px spacing) with short error + source lines; passed to QML as `chip_row_h`."""
+const VALIDATION_MAP_CHIP_ROW_H = 56
+"""Vertical gap between the tallest block of a row and the next row (room for both group frame pads)."""
+const _MAP_ROW_GAP = _MAP_GRP_PAD_TOP + _MAP_GRP_PAD_BOT + 14
 
-"""Chip stack height under a title box (Flow ≈2 chips/row) — same as QML `blockChipExtra`."""
+"""Chip stack height under a title box (one full-width chip per line) — same as QML `blockChipExtra`."""
 function _map_block_chip_extra(n_cases::Integer)
     n_cases <= 0 && return 0
-    rows = cld(n_cases, 2)
-    return 4 + rows * VALIDATION_MAP_CHIP_ROW_H
+    return 4 + n_cases * VALIDATION_MAP_CHIP_ROW_H
+end
+
+"""
+Top y (px) of every map row, `row_y[r + 1]` for row `r`. Each row is as tall as its tallest block
+(title box + chips) plus `_MAP_ROW_GAP`, and at least `_MAP_CELL_H`, so no block's chips reach the
+next row. Passed to QML as `row_y`.
+"""
+function validation_map_row_y(m)
+    n_rows = isempty(m.blocks) ? 1 : maximum(b.row for b in m.blocks) + 1
+    tallest = zeros(Float64, n_rows)
+    for b in m.blocks
+        tallest[b.row + 1] = max(tallest[b.row + 1], _MAP_BLOCK_H + _map_block_chip_extra(length(b.cases)))
+    end
+    row_y = Vector{Float64}(undef, n_rows)
+    y = Float64(_MAP_PAD)
+    for r in 1:n_rows
+        row_y[r] = y
+        y += max(Float64(_MAP_CELL_H), tallest[r] + _MAP_ROW_GAP)
+    end
+    return row_y
+end
+
+"""Block rectangle `(x, y, w, h)` including its chip stack."""
+function _map_block_rect(b, row_y)
+    return (x = Float64(_MAP_PAD + b.col * _MAP_CELL_W), y = row_y[b.row + 1],
+            w = Float64(_MAP_BLOCK_W), h = Float64(_MAP_BLOCK_H + _map_block_chip_extra(length(b.cases))))
 end
 
 """
@@ -479,6 +507,7 @@ Matches QML `groupBounds`. Returns `Dict(group_id => (x, y, w, h))`.
 """
 function validation_map_group_rects(map_id::AbstractString="total")
     m = _map_by_id(map_id)
+    row_y = validation_map_row_y(m)
     rects = Dict{String,NamedTuple{(:x, :y, :w, :h),NTuple{4,Float64}}}()
     by_group = Dict{String,Vector{MapBlock}}()
     for b in m.blocks
@@ -491,13 +520,11 @@ function validation_map_group_rects(map_id::AbstractString="total")
         max_x = -Inf
         max_y = -Inf
         for b in blks
-            x = Float64(_MAP_PAD + b.col * _MAP_CELL_W)
-            y = Float64(_MAP_PAD + b.row * _MAP_CELL_H)
-            extra = Float64(_map_block_chip_extra(length(b.cases)))
-            min_x = min(min_x, x)
-            min_y = min(min_y, y)
-            max_x = max(max_x, x + _MAP_BLOCK_W)
-            max_y = max(max_y, y + _MAP_BLOCK_H + extra)
+            r = _map_block_rect(b, row_y)
+            min_x = min(min_x, r.x)
+            min_y = min(min_y, r.y)
+            max_x = max(max_x, r.x + r.w)
+            max_y = max(max_y, r.y + r.h)
         end
         rects[gid] = (
             x = min_x - _MAP_GRP_PAD_X,
@@ -526,18 +553,22 @@ function assert_validation_map_groups_disjoint(map_id::AbstractString="total")
                 "validation map group rectangles overlap: $(ids[i])=$a vs $(ids[j])=$b")
         end
     end
-    # No block of another group may lie inside a group's rectangle.
+    # No block of another group may overlap a group's rectangle.
     m = _map_by_id(map_id)
+    row_y = validation_map_row_y(m)
     for b in m.blocks
         isempty(b.group) && continue
-        bx = Float64(_MAP_PAD + b.col * _MAP_CELL_W)
-        by = Float64(_MAP_PAD + b.row * _MAP_CELL_H)
-        cx, cy = bx + _MAP_BLOCK_W / 2, by + _MAP_BLOCK_H / 2
+        br = _map_block_rect(b, row_y)
         for (gid, r) in rects
             gid == b.group && continue
-            inside = (r.x < cx < r.x + r.w) && (r.y < cy < r.y + r.h)
-            inside && error("block $(b.id) (group $(b.group)) lies inside group rectangle $gid=$r")
+            _map_rects_disjoint(br, r) || error("block $(b.id) (group $(b.group)) overlaps group rectangle $gid=$r")
         end
+    end
+    # No two blocks (title box + chips) may overlap, so every block and chip stays clickable.
+    for i in eachindex(m.blocks), j in (i + 1):length(m.blocks)
+        a, b = m.blocks[i], m.blocks[j]
+        _map_rects_disjoint(_map_block_rect(a, row_y), _map_block_rect(b, row_y)) ||
+            error("validation map blocks overlap: $(a.id) vs $(b.id)")
     end
     return rects
 end

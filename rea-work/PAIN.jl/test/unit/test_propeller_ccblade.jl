@@ -46,6 +46,10 @@ end
     s_expected = clamp(maximum(PAIN.spl_dB_to_peak_Pa.(an[:SPL_H1_dB])) / maximum(sy.amplitudes[:, 1, 1]), 0.1, 10)
     @test sc[1] ≈ s_expected && cal.amplitudes[:, :, 1] ≈ s_expected .* sy.amplitudes[:, :, 1]
     @test cal.phases == sy.phases
+    # ±20 dB clamp: a grid 10⁴ times louder than Table 8 would need s ≈ 10⁻⁴·s_expected; it is held at 0.1
+    loud = PAIN.FreeFieldHarmonicGrid(sy.pts, sy.harmonics, 1e4 .* sy.amplitudes, sy.phases, sy.source, sy.notes, sy.bpf_Hz)
+    cl, scl = PAIN.apply_table8_calibration(loud, csv)
+    @test scl[1] == 0.1 && cl.amplitudes[:, :, 1] ≈ 0.1 .* loud.amplitudes[:, :, 1]
 end
 @testset "evaluate_propeller_source: definitions and exact properties" begin
     cfg = PAIN._load_aircraft_json(_HARTZELL)
@@ -78,6 +82,21 @@ end
     @test op.r_over_R ≈ op.r_m ./ R && op.Vinf == 20.0
     W = hypot.(20.0, 4000 * 2π / 60 .* op.r_m)
     @test op.Mach ≈ W ./ 340 && op.Re ≈ 1.225 .* W .* op.chord_m ./ 1.78e-5
+    # Phase 69 defect 5: the Re CCBlade hands the polar is ρWc/μ with the air viscosity (it was ρWc/1)
+    seen = Float64[]
+    rec(α, Re, M) = (push!(seen, Re); PAIN._default_af(α, Re, M))
+    PAIN.ccblade_section_operating_points(cfg; af=rec)
+    @test minimum(seen) > 1e4 && minimum(seen) ≥ 0.5 * minimum(op.Re) && maximum(seen) ≤ 2 * maximum(op.Re)
+    # per-station polars: a vector is used station by station; a multi-section PolarSet needs station_t_over_c
+    n = length(op.r_m)
+    flat = [(α, Re, M) -> (k * α, 0.01) for k in range(5.0, 6.0; length=n)]
+    @test length(PAIN._station_afs(flat, cfg.propeller, n)) == n
+    @test_throws ErrorException PAIN._station_afs(flat[1:end-1], cfg.propeller, n)
+    @test PAIN._station_afs(nothing, cfg.propeller, 2) == [PAIN._default_af, PAIN._default_af]
+    # Phase 69a3: explicit per-station A/c² for the thickness term; otherwise thickness_over_chord everywhere
+    @test PAIN._station_area_over_chord2((; thickness_over_chord=0.1), 0.1, 3) == [0.1, 0.1, 0.1]
+    @test PAIN._station_area_over_chord2((; area_over_chord2=[0.07, 0.05]), 0.1, 2) == [0.07, 0.05]
+    @test_throws ErrorException PAIN._station_area_over_chord2((; area_over_chord2=[0.07]), 0.1, 2)
     # Gutin far-field rotor-plane tone on the same loads (F1A_GUTIN)
     g = PAIN.f1a_gutin_h1_comparison(; aircraft_json=_HARTZELL)
     @test g.ok && abs(g.delta_dB) ≤ 1.0

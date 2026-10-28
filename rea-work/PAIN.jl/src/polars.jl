@@ -1,7 +1,7 @@
 """
 Polar loader for Report 996 / Pereira (phase 25i).
 
-`load_polar_set(path; set=:primary|:bracket, viterna=nothing) -> (af, stats)`
+`load_polar_set(path; set=:primary|:bracket, cr75=nothing) -> (ps::PolarSet, stats)`; per-station polars via `section_polar` / `station_polars`.
 Reads `polars_forced_merged.json` (Report 996) or Pereira `naca4412_xfoil_*.json`.
 α in radians at the CCBlade interface.
 """
@@ -281,29 +281,180 @@ function _viterna_extension_curve(pts::Vector{NTuple{3,Float64}}, cr75::Float64)
     return (αe[keep], cle[keep], cde[keep])
 end
 
-"""
-    load_polar_set(path; set=:primary, viterna=nothing) -> (af, stats)
+"""NACA 16-series section key `n16_<c><tt>` → thickness ratio `tt/100`; `nothing` for any other key."""
+function _section_t_over_c(name::AbstractString)
+    m = match(r"^n16_(\d)(\d\d)$", name)
+    m === nothing && return nothing
+    return parse(Int, m.captures[2]) / 100
+end
 
-`af(α_rad, Re, M) -> (cl, cd)`. Linear in α inside the table; clamps Re/M to grid edges;
-optional Viterna record outside α range (`viterna` path or `nothing` → clamp α to table).
-`:primary` uses k_cl=k_cd=1 on merged forced polars; `:bracket` applies tables.json
-calibration factors when present in the same folder (else same as primary with a note).
+"""Index `i` and weight `w` so that `x ≈ (1 − w)·grid[i] + w·grid[i + 1]` on a sorted grid (`x` clamped to it)."""
+function _bracket(grid::AbstractVector{<:Real}, x::Real)
+    n = length(grid)
+    n == 1 && return (1, 0.0)
+    i = clamp(searchsortedlast(grid, x), 1, n - 1)
+    w = (x - grid[i]) / (grid[i + 1] - grid[i])
+    return (i, clamp(w, 0.0, 1.0))
+end
+
+"""One usable (section, Re, M) table: α (deg) ascending, c_l, c_d, and the converged XFOIL α span."""
+struct _PolarTable
+    α::Vector{Float64}
+    cl::Vector{Float64}
+    cd::Vector{Float64}
+    α_lo::Float64
+    α_hi::Float64
+end
+
 """
-function load_polar_set(path::AbstractString; set::Symbol=:primary, viterna=nothing)
+Polar set read from an XFOIL JSON file (`polars_forced_merged.json`, `naca4412_xfoil_*.json`).
+
+Call `ps(α_rad, Re, M) -> (cl, cd)` on a one-section set. A multi-section set needs a thickness:
+`section_polar(ps, t_over_c)` or `station_polars(ps, t_over_c_vector)`, so a blade station never
+silently takes another section's polar (Phase 69 defect 1).
+"""
+struct PolarSet
+    sections::Vector{String}           # sorted by thickness when multi-section
+    t_over_c::Vector{Float64}          # per section (NaN for a one-section set)
+    Res::Vector{Float64}
+    logRes::Vector{Float64}            # log.(Res), precomputed for the hot BEMT path
+    Ms::Vector{Float64}
+    tables::Dict{Tuple{String,Float64,Float64},_PolarTable}
+    nearest::Dict{Tuple{String,Float64,Float64},_PolarTable}   # cached replacements for missing tables
+    k_cl::Float64
+    k_cd::Float64
+    stats::PolarStats
+    path::String
+end
+
+function (ps::PolarSet)(α::Real, Re::Real, M::Real)
+    length(ps.sections) == 1 ||
+        error("polar set $(basename(ps.path)) has $(length(ps.sections)) sections: use section_polar(ps, t_over_c) or station_polars")
+    return _eval_section(ps, ps.sections[1], α, Re, M)
+end
+
+"""Table for (s, Re, M), or the nearest usable (log Re, M) table of the same section (§2.10 rule)."""
+function _table_or_nearest(ps::PolarSet, s::String, Re::Float64, M::Float64)
+    t = get(ps.tables, (s, Re, M), nothing)
+    t === nothing || return t
+    ps.stats.nearest_polar += 1
+    c = get(ps.nearest, (s, Re, M), nothing)
+    c === nothing || return c
+    best = nothing
+    best_d = Inf
+    for ((s_k, Re_k, M_k), tk) in ps.tables
+        s_k == s || continue
+        d = (log(Re_k) - log(Re))^2 + (M_k - M)^2
+        if d < best_d
+            best_d = d
+            best = tk
+        end
+    end
+    best === nothing && error("no usable polar for section $s in $(ps.path)")
+    ps.nearest[(s, Re, M)] = best
+    return best
+end
+
+function _eval_table(t::_PolarTable, α_deg::Float64, stats::PolarStats)
+    (α_deg < t.α_lo || α_deg > t.α_hi) && (stats.viterna_evals += 1)
+    a = clamp(α_deg, t.α[1], t.α[end])
+    i, w = _bracket(t.α, a)
+    j = min(i + 1, length(t.α))
+    return ((1 - w) * t.cl[i] + w * t.cl[j], (1 - w) * t.cd[i] + w * t.cd[j])
+end
+
+"""c_l, c_d of one section: bilinear in (log Re, M) between the grid tables (§2.10), Re and M clamped to the grid."""
+function _eval_section(ps::PolarSet, s::String, α::Real, Re::Real, M::Real)
+    st = ps.stats
+    Re_c = clamp(Float64(Re), first(ps.Res), last(ps.Res))
+    M_c = clamp(Float64(M), first(ps.Ms), last(ps.Ms))
+    Re_c != Re && (st.clamped_Re += 1)
+    M_c != M && (st.clamped_M += 1)
+    i, wr = _bracket(ps.logRes, log(Re_c))
+    j, wm = _bracket(ps.Ms, M_c)
+    α_deg = rad2deg(Float64(α))
+    cl = 0.0
+    cd = 0.0
+    for (di, fr) in ((0, 1 - wr), (1, wr)), (dj, fm) in ((0, 1 - wm), (1, wm))
+        f = fr * fm
+        f == 0 && continue
+        t = _table_or_nearest(ps, s, ps.Res[min(i + di, end)], ps.Ms[min(j + dj, end)])
+        c, d = _eval_table(t, α_deg, st)
+        cl += f * c
+        cd += f * d
+    end
+    return ps.k_cl * cl, ps.k_cd * cd
+end
+
+"""
+    section_polar(ps, t_over_c) -> af(α_rad, Re, M)
+
+Polar of a blade station of thickness ratio `t_over_c`: linear in t/c between the two sections of the
+set that bracket it (clamped to the thinnest and thickest section). A one-section set ignores `t_over_c`.
+"""
+function section_polar(ps::PolarSet, t_over_c::Real)
+    length(ps.sections) == 1 && return (α, Re, M) -> _eval_section(ps, ps.sections[1], α, Re, M)
+    i, w = _bracket(ps.t_over_c, clamp(Float64(t_over_c), first(ps.t_over_c), last(ps.t_over_c)))
+    sa, sb = ps.sections[i], ps.sections[i + 1]
+    return function (α, Re, M)
+        cla, cda = _eval_section(ps, sa, α, Re, M)
+        w == 0 && return (cla, cda)
+        clb, cdb = _eval_section(ps, sb, α, Re, M)
+        return ((1 - w) * cla + w * clb, (1 - w) * cda + w * cdb)
+    end
+end
+
+"""One polar per blade station (`section_polar` at each station thickness)."""
+station_polars(ps::PolarSet, t_over_c::AbstractVector{<:Real}) = [section_polar(ps, t) for t in t_over_c]
+
+"""
+    load_polar_set(path; set=:primary, cr75=nothing) -> (ps::PolarSet, stats)
+
+Reads every (section, Re, M) table of an XFOIL JSON file. Tables keep their section (Phase 69 defect 1);
+lookup is bilinear in (log Re, M) with Re and M clamped to the grid range, as registered in
+`VALIDATION_GUIDELINE.md` §2.10 (defect 2). With `cr75` (c/R at 0.75 R) every table is extended past
+its converged α span by the registered Viterna rule (`_viterna_extension_curve`, CCBlade `viterna`);
+tables with fewer than 3 points, or whose extension is not finite, are not used and the nearest usable
+(Re, M) table of the same section takes their place (defect 3). Without `cr75` the end value is held.
+`:primary` uses k_cl = k_cd = 1; `:bracket` applies the `tables.json` factors (default 0.92264, 1.81815).
+"""
+function load_polar_set(path::AbstractString; set::Symbol=:primary, cr75::Union{Nothing,Real}=nothing)
     raw = JSON3.read(read(path, String))
     stats = PolarStats()
-    Res = Float64.(collect(raw.Res))
-    Ms = Float64.(collect(raw.Ms))
-    # Flatten polars: key "section|Re|M" -> Vector of (α_deg, cl, cd)
-    tables = Dict{Tuple{Float64,Float64}, Vector{NTuple{3,Float64}}}()
+    Res = sort!(Float64.(collect(raw.Res)))
+    Ms = sort!(Float64.(collect(raw.Ms)))
+    tables = Dict{Tuple{String,Float64,Float64},_PolarTable}()
+    secs = Set{String}()
     for (k, v) in pairs(raw.polars)
         parts = split(String(k), '|')
         length(parts) >= 3 || continue
-        Re = parse(Float64, parts[2])
-        M = parse(Float64, parts[3])
-        pts = [(Float64(row[1]), Float64(row[2]), Float64(row[3])) for row in v]
-        sort!(pts; by=first)
-        tables[(Re, M)] = pts
+        s = String(parts[1])
+        push!(secs, s)
+        pts = sort!([(Float64(row[1]), Float64(row[2]), Float64(row[3])) for row in v]; by=first)
+        length(pts) >= 3 || continue
+        rows = pts
+        if cr75 !== nothing
+            αe, cle, cde = _viterna_extension_curve(pts, Float64(cr75))
+            isempty(αe) && continue
+            rows = sort!(vcat(pts, collect(zip(αe, cle, cde))); by=first)
+        end
+        tables[(s, parse(Float64, parts[2]), parse(Float64, parts[3]))] =
+            _PolarTable(first.(rows), [r[2] for r in rows], [r[3] for r in rows], pts[1][1], pts[end][1])
+    end
+    isempty(tables) && error("empty polar set: $path")
+    names = sort!(collect(secs))
+    if length(names) == 1
+        tcs = [NaN]
+    else
+        tcs = Float64[]
+        for s in names
+            t = _section_t_over_c(s)
+            t === nothing && error("multi-section polar set $path: cannot read the thickness of section $s")
+            push!(tcs, t)
+        end
+        p = sortperm(tcs)
+        names, tcs = names[p], tcs[p]
+        allunique(tcs) || error("multi-section polar set $path: two sections share a thickness")
     end
     k_cl = 1.0
     k_cd = 1.0
@@ -319,51 +470,6 @@ function load_polar_set(path::AbstractString; set::Symbol=:primary, viterna=noth
     elseif set !== :primary
         error("set must be :primary or :bracket")
     end
-
-    function nearest_table(Re, M)
-        Re_c = clamp(Re, minimum(Res), maximum(Res))
-        M_c = clamp(M, minimum(Ms), maximum(Ms))
-        Re_c != Re && (stats.clamped_Re += 1)
-        M_c != M && (stats.clamped_M += 1)
-        # nearest (Re,M) key present
-        best = nothing
-        best_d = Inf
-        for (Re_k, M_k) in keys(tables)
-            d = (log(Re_k) - log(Re_c))^2 + (M_k - M_c)^2
-            if d < best_d
-                best_d = d
-                best = (Re_k, M_k)
-            end
-        end
-        best === nothing && error("empty polar set")
-        best_d > 0 && (stats.nearest_polar += 1)
-        return tables[best]
-    end
-
-    function af(α::Real, Re::Real, M::Real)
-        pts = nearest_table(Float64(Re), Float64(M))
-        α_deg = rad2deg(Float64(α))
-        αs = first.(pts)
-        α_lo, α_hi = αs[1], αs[end]
-        if α_deg < α_lo || α_deg > α_hi
-            stats.viterna_evals += 1
-            # Without a Viterna record: clamp to edge (phase 25i full Viterna is optional path)
-            α_deg = clamp(α_deg, α_lo, α_hi)
-        end
-        # linear interpolate
-        if α_deg <= αs[1]
-            _, cl, cd = pts[1]
-        elseif α_deg >= αs[end]
-            _, cl, cd = pts[end]
-        else
-            i = searchsortedlast(αs, α_deg)
-            a0, cl0, cd0 = pts[i]
-            a1, cl1, cd1 = pts[i + 1]
-            t = (α_deg - a0) / (a1 - a0)
-            cl = cl0 + t * (cl1 - cl0)
-            cd = cd0 + t * (cd1 - cd0)
-        end
-        return k_cl * cl, k_cd * cd
-    end
-    return af, stats
+    return PolarSet(names, tcs, Res, log.(Res), Ms, tables, Dict{Tuple{String,Float64,Float64},_PolarTable}(),
+                    k_cl, k_cd, stats, String(path)), stats
 end

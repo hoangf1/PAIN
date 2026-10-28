@@ -48,14 +48,17 @@ end
 # X_SRC — source select: the selected source's blocked grid reaches PainInputs unchanged
 function _run_src_passthrough()
     table = ValidationTableRow[]; series = PlotSeries[]; n_bad = 0
-    for (j, src) in enumerate((:e11, :synthetic))
-        r = run_pain_pipeline(; source=src, use_synthetic=(src === :synthetic), n_harmonics=3, bpf_Hz=200.0, blocking=R2)
+    # :aircraft row added 2026-10-28 (Phase 70 F7, criterion unchanged: difference 0), before its first run.
+    for (j, src) in enumerate((:e11, :synthetic, :aircraft))
+        r = src === :aircraft ?
+            run_pain_pipeline(; aircraft_json=_p62_example("aircraft_scale_hartzell.json"), n_harmonics=2, blocking=R2) :
+            run_pain_pipeline(; source=src, use_synthetic=(src === :synthetic), n_harmonics=3, bpf_Hz=200.0, blocking=R2)
         d = maximum(abs, r.inputs.amplitudes .- r.ff.amplitudes) + maximum(abs, r.inputs.phases .- r.ff.phases)
         ok = d == 0.0; n_bad += !ok
         push!(table, ValidationTableRow("$src: max |PainInputs − blocked source|", Float64(j), 0.0, d, d, ok))
         push!(series, PlotSeries("$src H1 ℓ=1 (PainInputs)", :computed, collect(1.0:16), r.inputs.amplitudes[:, 1, 1]; panel=1))
     end
-    return _p62_result("SRC_PASSTHROUGH", table, series, n_bad == 0, "selected source reaches the cabin unchanged for :e11 and :synthetic",
+    return _p62_result("SRC_PASSTHROUGH", table, series, n_bad == 0, "selected source reaches the cabin unchanged for :e11, :synthetic and :aircraft (F1A)",
                        (; criterion="difference 0"))
 end
 
