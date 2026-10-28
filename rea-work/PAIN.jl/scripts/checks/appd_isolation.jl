@@ -42,12 +42,13 @@ function main()
     # 2. floor plate alone (simply supported on all edges, same Df and mf): closed form
     fp = PAIN._appd_floor_props(g)
     push!(L, "## 2. Floor plate alone vs the simply supported plate closed form (same Df, mf)", "",
-          "f = (π/2)·√(Df/mf)·((M/L)² + (p/Lp)²); the App. D floor block is the same Kirchhoff energy, so this checks its assembly.", "",
+          "Orthotropic: f = (1/2π)·√((Dx μ⁴ + 2H μ²k² + Dy k⁴)/mf), μ = Mπ/L, k = pπ/Lp (Phase 78d F2); the App. D floor block is the same Kirchhoff energy, so this checks its assembly.", "",
           "| M | p | App. D floor block [Hz] | closed form [Hz] |", "|---|---|---|---|")
     for (M, p) in ((1, 1), (1, 2), (2, 1), (1, 3))
         K, Ms = PAIN._appd_floor_harmonic_KM(M, p, g.L, fp, false)
         fa = sqrt(K[3, 3] / Ms[3, 3]) / (2π)
-        fc = (π / 2) * sqrt(fp.Df / fp.mf) * ((M / g.L)^2 + (p / fp.Lp)^2)
+        μ, k = M * π / g.L, p * π / fp.Lp
+        fc = sqrt((fp.Dx * μ^4 + 2 * fp.H * μ^2 * k^2 + fp.Dy * k^4) / fp.mf) / (2π)
         push!(L, @sprintf("| %d | %d | %.1f | %.1f |", M, p, fa, fc))
     end
     push!(L, "")
@@ -61,8 +62,8 @@ function main()
           @sprintf("| skin D [N·m] | %.3f | %.3f | E t³/12(1−ν²) |", PAIN._appd_kD(E, ν, t)[2], Dsk),
           @sprintf("| frame I [m⁴] | %.3e | %.3e | code: web only (0.038³·t/12); hand: channel with two 0.017 m flanges |", g.I_frame, Ich),
           @sprintf("| D_θR [N·m] | %.1f | %.1f | D_skin + E·I_frame/ℓ (hand with the channel I) |", PAIN._appd_shell_props(g).D_θR, Dsk + E * Ich / g.ell_frame),
-          @sprintf("| floor Df [N·m] | %.1f | x: %.1f, y: %.1f | code: one isotropic sum; hand: longitudinal beams stiffen x, the per-frame supports y |",
-                   fp.Df, Dsk + 2 * E * g.I_floor_beam / fp.Lp, Dsk + E * g.I_floor_beam / g.ell_frame), "")
+          @sprintf("| floor Dx, Dy [N·m] | %.1f, %.1f | %.1f, %.1f | longitudinal beams stiffen x, the per-frame supports y (orthotropic since Phase 78d F2) |",
+                   fp.Dx, fp.Dy, Dsk + 2 * E * g.I_floor_beam / fp.Lp, Dsk + E * g.I_floor_beam / g.ell_frame), "")
 
     # 4. mass budget
     ρ = g.ρ; a = g.a; θ0 = deg2rad(g.theta0_deg); Lp = fp.Lp

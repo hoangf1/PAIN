@@ -245,11 +245,35 @@ const MRP_A_STRINGER = (0.00953 + 0.0112) * 0.00051
 const MRP_D_STRINGER = 0.508 * (20 * π / 180)
 const MRP_A_FRAME = (2 * 0.017 + 0.038) * 0.00081
 const MRP_ELL_FRAME = 0.2
-# Floor beams / supports (App. E Fig. E-2)
-const MRP_A_FLOOR_BEAM = (0.017 + 0.038) * 0.00081
-const MRP_I_FLOOR_BEAM = (0.038^3) * 0.00081 / 12
-const MRP_I_STRINGER = (0.0112^3 * 0.00051) / 3
-const MRP_I_FRAME = (0.038^3 * 0.00081) / 12
+
+"""Centroidal moment of inertia [m⁴] of a thin-walled channel about the axis parallel to its flanges: web of depth
+`h` and two flanges of width `b`, wall `t`, flanges at ±h/2 (mid-line dimensions; Phase 78d F1)."""
+channel_centroidal_I(h, b, t) = t * h^3 / 12 + 2 * (b * t^3 / 12 + b * t * (h / 2)^2)
+
+"""Centroidal moment of inertia [m⁴] of a thin-walled angle about the axis parallel to its base leg: leg `h`
+normal to the base, base leg `b`, wall `t`, base leg at height 0 (mid-line dimensions; Phase 78d F1)."""
+function angle_centroidal_I(h, b, t)
+    A1, A2 = b * t, h * t                 # base leg at y = 0, normal leg centred at y = h/2
+    ȳ = A2 * (h / 2) / (A1 + A2)
+    return b * t^3 / 12 + A1 * ȳ^2 + t * h^3 / 12 + A2 * (h / 2 - ȳ)^2
+end
+
+# Stiffener sections, App. E p. E-1 / Fig. E-2: ring frames and the two floor beams are 0.017 × 0.038 m channels
+# (wall 0.00081 m; the floor beams are "channels of the same dimensions as the cylinder ring frames"); stringers are
+# 0.00953 × 0.0112 m angles (wall 0.00051 m), the 0.0112 m leg normal to the skin. Moments of inertia are the
+# sections' own centroidal values, as (D.24) needs with the eccentricity (asterisk) terms dropped. Until 2026-10-28
+# (Phase 78d F1) the frame and floor-beam I were the web alone (3.7× too small), the stringer I one leg about its base,
+# and the floor-beam area had one flange.
+const MRP_A_FLOOR_BEAM = MRP_A_FRAME
+const MRP_I_FRAME = channel_centroidal_I(0.038, 0.017, 0.00081)
+const MRP_I_FLOOR_BEAM = MRP_I_FRAME
+const MRP_I_STRINGER = angle_centroidal_I(0.0112, 0.00953, 0.00051)
+# The legacy Ritz surrogate (`structural_modes`, MRP_RITZ) has three scales fitted to Table D-1 with the pre-Phase-78
+# section values; its inputs stay at those values so the fitted surrogate is unchanged (it is calibrated and never a
+# pass). The App. D solver and the aircraft defaults use the corrected values above.
+const _RITZ_LEGACY_I_FRAME = 0.038^3 * 0.00081 / 12
+const _RITZ_LEGACY_I_STRINGER = 0.0112^3 * 0.00051 / 3
+const _RITZ_LEGACY_A_FLOOR_BEAM = (0.017 + 0.038) * 0.00081
 
 """Donnell ω² for smeared cylinder Fourier (m,n). Returns rad²/s²."""
 function _donnell_omega2(m::Int, n::Int, L, a, Ds, ms, E, t_eq)
@@ -316,15 +340,15 @@ function structural_modes(fuse::FuselageGeometry;
 
     t_eq = include_stiffeners ? t_shell + A_stringer / max(d_stringer, 1e-9) + A_frame / max(ell_frame, 1e-9) : t_shell
     D_skin = E * t_shell^3 / (12 * (1 - ν^2))
-    Ds = include_stiffeners ? D_skin + E * MRP_I_STRINGER / max(d_stringer, 1e-9) + E * MRP_I_FRAME / max(ell_frame, 1e-9) :
+    Ds = include_stiffeners ? D_skin + E * _RITZ_LEGACY_I_STRINGER / max(d_stringer, 1e-9) + E * _RITZ_LEGACY_I_FRAME / max(ell_frame, 1e-9) :
          D_skin
     ms = ρ * t_eq
 
     # Floor: skin + transverse supports @ 0.2 m + 2 longitudinal beams
-    t_eq_f = t_floor + MRP_A_FLOOR_BEAM / ell_frame
+    t_eq_f = t_floor + _RITZ_LEGACY_A_FLOOR_BEAM / ell_frame
     Df = E * t_floor^3 / (12 * (1 - ν^2)) +
-         E * MRP_I_FLOOR_BEAM / ell_frame +
-         2 * E * MRP_I_FLOOR_BEAM / max(Lp, 1e-9)   # long. beams smeared across width
+         E * _RITZ_LEGACY_I_FRAME / ell_frame +
+         2 * E * _RITZ_LEGACY_I_FRAME / max(Lp, 1e-9)   # long. beams smeared across width (legacy surrogate inputs)
     mf = ρ * t_eq_f
 
     # Shell arc participating (above floor): θ ∈ [θ0, 2π-θ0]; the whole circle without a floor

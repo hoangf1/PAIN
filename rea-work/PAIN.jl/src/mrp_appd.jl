@@ -137,13 +137,15 @@ function _appd_floor_props(g::AppDGeometry)
     Lp = 2 * g.a * sin(deg2rad(g.theta0_deg))
     t_eq_f = g.t_floor + g.A_floor_beam / max(g.ell_frame, 1e-12)
     k_f, D_f_skin = _appd_kD(g.E, g.ν, t_eq_f)
-    # Smeared transverse supports @ frame pitch + two longitudinal beams (App. E Fig. E-2)
-    Df = D_f_skin +
-         g.E * g.I_floor_beam / max(g.ell_frame, 1e-12) +
-         2 * g.E * g.I_floor_beam / max(Lp, 1e-12)
+    # Phase 78d F2 (reading fixed 2026-10-28 before the run): orthotropic floor. The two longitudinal floor beams
+    # stiffen bending along x, the floor supports at each frame (App. E Fig. E-3) along y; the coupling (twisting)
+    # term is the plate's own, H = D_plate. Until 2026-10-28 both were summed into one isotropic Df.
+    Dx = D_f_skin + 2 * g.E * g.I_floor_beam / max(Lp, 1e-12)
+    Dy = D_f_skin + g.E * g.I_floor_beam / max(g.ell_frame, 1e-12)
+    H = D_f_skin
     G = g.E / (2 * (1 + g.ν))
     mf = g.ρ * t_eq_f
-    return (; Lp, t_eq_f, k_f, Df, Gt=G * t_eq_f, Gt3=G * t_eq_f^3 / 12, mf, ν=g.ν)
+    return (; Lp, t_eq_f, k_f, Dx, Dy, H, Gt=G * t_eq_f, Gt3=G * t_eq_f^3 / 12, mf, ν=g.ν)
 end
 
 # ---------------------------------------------------------------------------
@@ -279,7 +281,6 @@ function _appd_floor_harmonic_KM(M::Int, p::Int, L, fp, sym::Bool)
     μ = M * π / L
     kx = fp.k_f
     Gt = fp.Gt
-    Df = fp.Df
     ν = fp.ν
     Ix = L / 2
     # ∫_{-Lp/2}^{Lp/2} cos²(pπy/Lp) dy = Lp/2 (p>0), Lp (p=0); same for sin (p≥1)
@@ -305,8 +306,8 @@ function _appd_floor_harmonic_KM(M::Int, p::Int, L, fp, sym::Bool)
     else
         K[2, 2] += Gt * μ^2 * S + 1e-18
     end
-    # Kirchhoff bending of w
-    K[3, 3] += Df * (μ^2 + ky^2)^2 * S
+    # Kirchhoff bending of w, orthotropic (Phase 78d F2): Dx μ⁴ + 2H μ² k_y² + Dy k_y⁴
+    K[3, 3] += (fp.Dx * μ^4 + 2 * fp.H * μ^2 * ky^2 + fp.Dy * ky^4) * S
 
     Mass = zeros(3, 3)
     Mass[1, 1] = fp.mf * S

@@ -19,54 +19,56 @@ Largest |ratio − 1|: 0.0000.
 
 ## 2. Floor plate alone vs the simply supported plate closed form (same Df, mf)
 
-f = (π/2)·√(Df/mf)·((M/L)² + (p/Lp)²); the App. D floor block is the same Kirchhoff energy, so this checks its assembly.
+Orthotropic: f = (1/2π)·√((Dx μ⁴ + 2H μ²k² + Dy k⁴)/mf), μ = Mπ/L, k = pπ/Lp (Phase 78d F2); the App. D floor block is the same Kirchhoff energy, so this checks its assembly.
 
 | M | p | App. D floor block [Hz] | closed form [Hz] |
 |---|---|---|---|
-| 1 | 1 | 70.0 | 70.0 |
-| 1 | 2 | 242.9 | 242.9 |
-| 2 | 1 | 107.1 | 107.1 |
-| 1 | 3 | 531.0 | 531.0 |
+| 1 | 1 | 89.2 | 89.2 |
+| 1 | 2 | 353.1 | 353.1 |
+| 2 | 1 | 102.6 | 102.6 |
+| 1 | 3 | 793.9 | 793.9 |
 
 ## 3. Smeared section properties (App. E dimensions; independent hand values)
 
 | quantity | code | hand | note |
 |---|---|---|---|
 | skin D [N·m] | 3.633 | 3.633 | E t³/12(1−ν²) |
-| frame I [m⁴] | 3.704e-09 | 1.365e-08 | code: web only (0.038³·t/12); hand: channel with two 0.017 m flanges |
-| D_θR [N·m] | 1357.4 | 4991.2 | D_skin + E·I_frame/ℓ (hand with the channel I) |
-| floor Df [N·m] | 1999.7 | x: 642.0, y: 1357.4 | code: one isotropic sum; hand: longitudinal beams stiffen x, the per-frame supports y |
+| frame I [m⁴] | 1.365e-08 | 1.365e-08 | code: web only (0.038³·t/12); hand: channel with two 0.017 m flanges |
+| D_θR [N·m] | 4991.7 | 4991.2 | D_skin + E·I_frame/ℓ (hand with the channel I) |
+| floor Dx, Dy [N·m] | 2361.4, 4997.2 | 2355.9, 4991.7 | longitudinal beams stiffen x, the per-frame supports y (orthotropic since Phase 78d F2) |
 
 ## 4. Mass budget (App. E geometry, kg)
 
-Skin 13.15, 18 stringers 0.97, 8 frames 4.14, floor plate 3.50, 2 floor beams 0.44: total 22.20. Model (smeared ms over the full circumference + mf over the floor): 23.31 (ratio 1.050). Per-frame floor supports and end caps not included in either.
+Skin 13.15, 18 stringers 0.97, 8 frames 4.14, floor plate 3.50, 2 floor beams 0.58: total 22.34. Model (smeared ms over the full circumference + mf over the floor): 23.61 (ratio 1.057). Per-frame floor supports and end caps not included in either.
 
 ## 5. Stiffened cylinder without floor vs the coupled model
 
 | (m, n) | closed stiffened cylinder [Hz] |
 |---|---|
-| (1, 2) | 231.0 |
-| (1, 3) | 159.8 |
-| (1, 4) | 208.3 |
-| (2, 4) | 316.3 |
-| (3, 4) | 506.7 |
+| (1, 2) | 242.3 |
+| (1, 3) | 237.6 |
+| (1, 4) | 382.3 |
+| (2, 4) | 449.8 |
+| (3, 4) | 599.5 |
 
-Coupled model: lowest mode 115.3 Hz; 61 modes below 820 Hz (Table D-1: 32 up to 811 Hz).
+Coupled model: lowest mode 170.8 Hz; 39 modes below 820 Hz (Table D-1: 32 up to 811 Hz).
 
 ## 6. Identity-matched modes: frequency and generalized mass against Table D-1
 
 | D-1 mode | f D-1 [Hz] | f solver [Hz] | M_r D-1 [kg] | M_r solver [kg] |
 |---|---|---|---|---|
-| 1 | 188.5 | 135.6 | 1.139 | 2.617 |
-| 6 | 301.9 | 237.1 | 3.356 | 1.858 |
-| 9 | 346.7 | 165.9 | 3.076 | 3.902 |
-| 11 | 441.8 | 292.4 | 1.033 | 64.055 |
-| 12 | 470.5 | 363.0 | 2.275 | 1.910 |
-| 13 | 502.2 | 480.1 | 6.314 | 8.561 |
-| 20 | 607.5 | 316.8 | 2.887 | 1.663 |
-| 21 | 626.0 | 652.2 | 1.953 | 0.989 |
-| 24 | 641.2 | 393.2 | 1.032 | 0.492 |
-| 25 | 648.7 | 341.2 | 3.122 | 5.157 |
-| 28 | 717.3 | 576.6 | 2.321 | 2.628 |
-| 29 | 738.4 | 225.2 | 3.632 | 3.539 |
-| 30 | 761.9 | 519.3 | 2.909 | 1.460 |
+| 2 | 208.2 | 194.9 | 1.126 | 58.317 |
+| 4 | 231.0 | 193.0 | 1.054 | 0.583 |
+| 6 | 301.9 | 253.1 | 3.356 | 3.526 |
+| 8 | 318.7 | 289.7 | 5.336 | 4.257 |
+| 9 | 346.7 | 247.0 | 3.076 | 3.952 |
+| 11 | 441.8 | 291.6 | 1.033 | 35.977 |
+| 12 | 470.5 | 408.0 | 2.275 | 1.885 |
+| 13 | 502.2 | 488.4 | 6.314 | 7.493 |
+| 16 | 558.4 | 555.8 | 1.657 | 2.913 |
+| 20 | 607.5 | 643.5 | 2.887 | 1.494 |
+| 21 | 626.0 | 738.6 | 1.953 | 2.471 |
+| 24 | 641.2 | 385.4 | 1.032 | 3.291 |
+| 25 | 648.7 | 460.7 | 3.122 | 2.737 |
+| 29 | 738.4 | 424.7 | 3.632 | 2.137 |
+| 32 | 811.0 | 480.9 | 2.106 | 3.859 |

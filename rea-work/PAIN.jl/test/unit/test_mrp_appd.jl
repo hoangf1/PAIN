@@ -38,7 +38,12 @@ end
     g = PAIN.appd_test_article_geometry()
     fp = PAIN._appd_floor_props(g)
     K, Mm = PAIN._appd_floor_harmonic_KM(2, 3, g.L, fp, true)
-    @test K[3, 3] / Mm[3, 3] ≈ fp.Df / fp.mf * ((2π / g.L)^2 + (3π / fp.Lp)^2)^2   # SS Kirchhoff plate
+    μ, ky = 2π / g.L, 3π / fp.Lp
+    # SS orthotropic Kirchhoff plate (Phase 78d F2): ω² = (Dx μ⁴ + 2H μ²k² + Dy k⁴)/m
+    @test K[3, 3] / Mm[3, 3] ≈ (fp.Dx * μ^4 + 2 * fp.H * μ^2 * ky^2 + fp.Dy * ky^4) / fp.mf
+    E, ν, t = g.E, g.ν, fp.t_eq_f; D = E * t^3 / (12 * (1 - ν^2))
+    @test fp.Dx ≈ D + 2E * g.I_floor_beam / fp.Lp && fp.Dy ≈ D + E * g.I_floor_beam / g.ell_frame && fp.H ≈ D
+    @test fp.Dy > fp.Dx                                                   # supports every 0.2 m vs two beams on 0.85 m
     @test_throws ErrorException PAIN._appd_floor_harmonic_KM(1, -1, g.L, fp, true)
     @test_throws ErrorException PAIN._appd_floor_harmonic_KM(1, 0, g.L, fp, false)
     b = PAIN._appd_basis(2, true; n_circ=4, n_floor_max=3)
@@ -103,4 +108,25 @@ end
     n2, p2 = match_modes_by_identity(off)
     @test n2 == 0 && all(p -> p.found && p.err ≈ 0.1, p2)
     @test PAIN._dominant_order([0.1, -0.5, 0.2], [1, 3, 2]) == 3 && PAIN._dominant_order(Float64[], Int[]) == -1
+end
+@testset "stiffener section inertias (Phase 78d F1)" begin
+    # independent check: I = ∫ (y − ȳ)² dA over thin strips of the mid-line section
+    function strips_I(rects)                        # rects: (x0, x1, y0, y1) filled rectangles
+        A = 0.0; Sy = 0.0; pts = Tuple{Float64,Float64}[]
+        for (x0, x1, y0, y1) in rects, y in range(y0, y1; length=2001)[1:end-1] .+ (y1 - y0) / 4000
+            dA = (x1 - x0) * (y1 - y0) / 2000; push!(pts, (y, dA)); A += dA; Sy += y * dA
+        end
+        ȳ = Sy / A
+        return sum(dA * (y - ȳ)^2 for (y, dA) in pts)
+    end
+    h, b, t = 0.038, 0.017, 0.00081
+    ch = [(0.0, t, -h / 2, h / 2), (0.0, b, h / 2 - t / 2, h / 2 + t / 2), (0.0, b, -h / 2 - t / 2, -h / 2 + t / 2)]
+    @test channel_centroidal_I(h, b, t) ≈ strips_I(ch) rtol = 1e-3
+    @test channel_centroidal_I(h, 0.0, t) ≈ t * h^3 / 12                      # no flanges: a plain web
+    ha, ba, ta = 0.0112, 0.00953, 0.00051
+    an = [(0.0, ta, 0.0, ha), (0.0, ba, -ta / 2, ta / 2)]
+    @test angle_centroidal_I(ha, ba, ta) ≈ strips_I(an) rtol = 2e-2
+    @test angle_centroidal_I(ha, 0.0, ta) ≈ ta * ha^3 / 12                     # no base leg: a plain leg
+    @test PAIN.MRP_I_FRAME ≈ channel_centroidal_I(0.038, 0.017, 0.00081) && PAIN.MRP_I_FLOOR_BEAM == PAIN.MRP_I_FRAME
+    @test PAIN.MRP_I_FRAME / (0.038^3 * 0.00081 / 12) > 3.5                   # the flanges were missing before Phase 78d
 end

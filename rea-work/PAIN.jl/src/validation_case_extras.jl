@@ -481,14 +481,12 @@ function _run_mrp_appd()
     # CSV columns: part,index,position,value (floor index i → x=i·Lp/20; shell row k → θ=5k°)
     d2_path = _data_path("cr3813", "fig_d2_mode1_digitized.csv")
     d2_notes = "Fig. D-2 not compared (digitized CSV missing)"
-    if isfile(d2_path) && !isempty(modes.modes)
-        m1 = modes.modes[1]
-        for p in pairs
-            if p.d1 == 1
-                m1 = modes.modes[p.ritz]
-                break
-            end
-        end
+    i1 = findfirst(p -> p.d1 == 1 && p.found, pairs)
+    if isfile(d2_path) && i1 === nothing
+        d2_notes = "Fig. D-2 not compared (Table D-1 mode 1 has no solver mode of the same identity)"
+    end
+    if isfile(d2_path) && i1 !== nothing
+        m1 = modes.modes[pairs[i1].ritz]
         Lp = 2 * g.a * sin(deg2rad(g.theta0_deg))
         hdr, rows = _read_csv_rows(d2_path)
         col = Dict(h => i for (i, h) in enumerate(hdr))

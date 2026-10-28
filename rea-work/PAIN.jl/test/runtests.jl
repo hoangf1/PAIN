@@ -2534,9 +2534,9 @@ _run_if("Validation map errors (V-UNIT)") do
     s_unc = case_error_summary(unc, VALIDATION_CASES["UNC_COVER"].plot_spec)
     @test unc.verdict === :not_met
     @test VALIDATION_CASES["UNC_COVER"].plot_spec.error_mode === :none
-    # 0/3 since 2026-10-23 (Phase 44 Eq. (83) bare-f′ fix: H1 margin −0.86 dB, was +1.05; recorded in §2.13)
-    @test s_unc.text == "0/3 within criterion"
-    @test s_unc.n_within == 0
+    # 1/3 since 2026-10-28 (Phase 78d F1/F2 App. D stiffener inputs: H1 margin +0.19 dB, was −0.81; H2 −2.09, H3 −18.47; post-hoc)
+    @test s_unc.text == "1/3 within criterion"
+    @test s_unc.n_within == 1
     @test s_unc.n_rows == 3
     @test s_unc.unit == ""
     @test isnan(s_unc.max_abs) && isnan(s_unc.median_abs)
