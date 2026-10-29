@@ -126,3 +126,29 @@ end
     @test PAIN._error_point_color(ok, true) == :green && PAIN._error_point_color(bad, true) == :red
     @test PAIN._error_point_color(inf, true) == :gray40 && PAIN._error_point_color(ok, false) == :gray40
 end
+
+@testset "validation scoreboard (top of VALIDATION_GUIDELINE.md)" begin
+    @test PAIN._scoreboard_block_status(["met", "met", ""]) === :met
+    @test PAIN._scoreboard_block_status(["met", "not_met"]) === :partial
+    @test PAIN._scoreboard_block_status(["not_met", "no_verdict"]) === :not_met
+    @test PAIN._scoreboard_block_status(["no_verdict", ""]) === :none
+    # a synthetic snapshot: every case of block P_MRP met except one, which must be listed as not met, bold, with its
+    # points and an escaped error text, and the block coloured amber
+    b = first(b for b in PAIN._map_by_id("total").blocks if b.id == "P_MRP")
+    row(v, k, n, t) = (; run_date="2000-01-01", source_date="2000-01-01", verdict=v, n_within=k, n_rows=n,
+                       max_abs=1.0, median_abs=1.0, unit="%", text=t, chip_text=t)
+    rec = Dict(id => row("met", 3, 3, "3/3") for id in b.cases)
+    bad = b.cases[end]; rec[bad] = row("not_met", 1, 4, "1/4 · max |err| 9 %")
+    md = PAIN.validation_scoreboard_markdown(; rec)
+    @test occursin("latest run 2000-01-01", md)
+    @test occursin("| `$bad` ", md) && occursin("**not met** | 1/4 | 1/4 · max \\|err\\| 9 % |", md)
+    @test occursin(r"class [A-Z_,]*\bP_MRP\b[A-Z_,]* partial", md)
+    @test occursin("Pkg.test only", md) || !any(i -> PAIN.CASE_INFO[i].kind === :pkgtest, keys(PAIN.CASE_INFO))
+    # writing replaces the marked section in place (idempotent) and keeps the rest of the file
+    p = joinpath(UNIT_OUT, "guideline_scoreboard.md")
+    write(p, "# Title\r\n\r\nbody\r\n")
+    PAIN.write_validation_scoreboard(p; rec); s1 = read(p, String)
+    PAIN.write_validation_scoreboard(p; rec); s2 = read(p, String)
+    @test s1 == s2 && startswith(s1, "# Title\r\n\r\n<!-- scoreboard:start") && endswith(s1, "---\r\n\r\nbody\r\n")
+    @test !occursin(r"[^\r]\n", s1)                                               # CRLF kept
+end

@@ -251,9 +251,12 @@ function build_aircraft_cache(aircraft_json::AbstractString;
                                        n_harmonics=n_harmonics)
     structural0 = r0.structural
     acoustic_by_tol = Dict{Float64,Cyl2DResult}()
+    # one grid for every node rule (the pipeline's: NY = 10, or the next solvable one, Q60), so the spread is the
+    # node rule's alone; a node rule that has no solution on that grid moves on to the next solvable grid
+    ny = r0.acoustic.NY
     for t in node_tols
-        acoustic_by_tol[Float64(t)] = cyl2d_modes(fuse.theta0_deg; n_modes=20, NY=10,
-                                                   c0=340.0, node_tol=Float64(t))
+        acoustic_by_tol[Float64(t)] = cyl2d_modes_solvable(fuse.theta0_deg; n_modes=20, NY=ny,
+                                                            c0=340.0, node_tol=Float64(t))
     end
     ΔA = (π * fuse.a / 18)^2
     return UncertaintyChainCache(fuse, prop, ff_free, ff_free.bpf_Hz, n_harmonics, structural0,

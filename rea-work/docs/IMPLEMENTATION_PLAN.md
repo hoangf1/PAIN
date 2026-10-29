@@ -387,7 +387,8 @@ Not blockers (recorded so nobody stops on them): BBN tip geometry beyond 40 in. 
 | Q49 | **Phase 70 — free-field block audit** (§8n; 2026-10-28) | case records, map placement, tests | Q48 for F4 | **done 2026-10-28**: FF_E11_MAP passes by construction and is on the wrong block; ISO_TABLE8 identity only; PROP_BB_* on the e11 block and hit by the Phase 69 polar defects; stale z_p fixed |
 | Q59 | **Phase 80 — MRP validation** (§8x; 2026-10-29) | `mrp_appd.jl`, `AppDDeck`, cases, guards | Q57 | **done 2026-10-29**: NASA's MRP input deck found in the User Manual (pp. 42–43); on it the App. D solver reproduces Table D-1 (MRP_APPD met 32/32, frequencies within 0.012 %); NASA's floor form (no floor cross terms) kept as PAIN's function, its near-rigid-shell limit not met (MRP_COUPLED_LIMITS 66/78, class M); MRP_TRUNC met; input warnings and PAIN card input for new fuselages |
 | Q61 | **Phase 81 — PAIN main block** (§8y; 2026-10-29) | case fixes, two new cases | Q59 | **done 2026-10-29** (ISO_MODAL_DENSITY 12/12 above the floor; SHARP_PANEL_D_SHAPE and LOUDEST_PT_GRID met; SHARP_PANEL_D class N; LOUDEST_PT (a) class D): ISO_MODAL_DENSITY passes 2 rows by construction; HF_MASSLAW info row counted in the chip; SHARP_PANEL_D source inconsistent with its own inputs; LOUDEST_PT test design; solutions 81a-81d |
-| Q60 | **CYL2D for other floor angles** (found by Phase 80f, 2026-10-29) | `cyl2d.jl`, production NY | Q59 | **open**: at NY = 10 the App. C grid gives complex eigenvalues for θ0 = 45.3° (the 2.64 m example × 0.8), so the parametric path stops for such a fuselage. Options to decide: a finer production NY when NY = 10 fails (79b makes NY 40–60 solvable), or report the failure as an input limit |
+| Q60 | **CYL2D for other floor angles** (found by Phase 80f, 2026-10-29) | `cyl2d.jl`, production NY | Q59 | **done 2026-10-29**: production uses the next solvable grid when NY = 10 has no App. C solution for the floor angle (`cyl2d_modes_solvable`, Q60, 2026-10-29): NY = 10 is unchanged for θ0 = 56.6°; for θ0 = 45.3° (the 2.64 m example × 0.8) NY 10 and 11 give complex eigenvalues among the 20 kept modes and NY = 12 is used, with a warning. Over θ0 = 30°–80° the first solvable grid from NY 10 is within 3.3–6.6 % of NY = 60 (θ0 = 56.6°, NY 10: 4.9 %), so the fallback grid has the same discretization error class as the paper's; information, no criterion (probe 2026-10-29). `run_pain_pipeline` and the uncertainty chain call it; Phase 80f's θ0 × 0.8 row now has numbers (`phase80_mrp_sensitivity.md`) |
+| Q62 | **Validation status at a glance** (author 2026-10-29: the map as a flowchart at the top of the validation document, and per block the cases with the points they pass, to see what to work on next) | `validation_plots.jl`, `VALIDATION_GUIDELINE.md` §0 | — | **done 2026-10-29**: `write_validation_scoreboard` writes §0 from §2.13 and `case_error_summary.csv` (Mermaid map coloured by verdicts, group totals, not-met cases with the fewest points first, one table per group); `write_case_error_summary.jl` regenerates it with the CSV. Display only |
 | Q58 | **Phase 79 — CYL2D** (§8w; 2026-10-28) | `case_error_summary`, `cyl2d.jl`, CYL2D_WEYL | Q57 | **done 2026-10-28**: information rows leave the pass count; refinement fixed (79b); CYL2D_GRID_CONV (NY 10 within 4.9 % of NY 60); Weyl + surface term 4/5; production NY = 10 kept (decided 2026-10-28) |
 | Q57 | **Phase 78 — structural modes** (§8v; 2026-10-28) | `mrp_appd.jl`, MRP_APPD criterion, map | Q53 | **done 2026-10-28**: App. D solver fixes J1–J6; MRP_APPD not met 2/32 (class I, floor stiffener model undocumented); MRP_D1/MRP_RITZ off the map |
 | Q56 | **Phase 77 — POLAR_FIDELITY as an equivalent angle** (§8u; 2026-10-28) | `src/validation_case_iso67.jl`, figure | Q52 | **done 2026-10-28**: Δα shown next to Δc_l, display only |
@@ -463,7 +464,7 @@ Moved to §11. Summary: base H1–H3 = 82.73, 75.73, 77.05 dB (= 18b-r); H3 top 
 
 ---
 
-## 8b. Block validation program: phases 39–44 *(done 2026-10-23 except open item 44f in §3; moved to the bottom of this file on 2026-10-23; section number kept)*
+## 8b. Block validation program: phases 39–44 *(done 2026-10-23; 44f done 2026-10-23; moved to the bottom of this file on 2026-10-23; section number kept)*
 
 ## 8c. Phase 45 *(done 2026-10-23; moved to the bottom of this file on 2026-10-23; section number kept)*
 
@@ -482,6 +483,30 @@ Moved to §11. Summary: base H1–H3 = 82.73, 75.73, 77.05 dB (= 18b-r); H3 top 
 ## 8x. Phase 80 *(done 2026-10-29; moved to the bottom of this file on 2026-10-29; section number kept)*
 
 ## 8y. Phase 81 *(done 2026-10-29; moved to the bottom of this file on 2026-10-29; section number kept)*
+
+## 8z. Phase 82 — Meaningfulness audit of the not-met cases *(planned 2026-10-29; author: "audit over the not met test cases ... to see if the case is meaningful"; rule and criteria below dated 2026-10-29, before any rerun)*
+
+**Rule (author 2026-10-29; also in `CLAUDE.md`).** A validation case is meaningful, and may carry a met / not-met verdict, only if it
+(E) compares with experimental data, or (P) checks that the code works exactly like PAIN: given PAIN's own inputs (from PAIN's
+sources: CR-3813, the User Manual, CR-172428 and the reports they cite for their data) or experimental inputs, it reproduces what
+PAIN printed. A check against anything else (an analytic limit, a law such as Weyl's, a different method or report, or a property
+of a printed table) is verification: it stays as an information case (no verdict) or a unit test, never a map verdict.
+
+**Audit (2026-10-29, the 43 not-met cases of the §0 snapshot).** E: compares with measurement. P: reproduces PAIN's printed output.
+X: neither (not meaningful under the rule).
+
+| Class | Cases |
+|---|---|
+| E (26) | E22_BR, R996_PHASE, T2, T2_EQ19, T2_MEAS_EXT, T2_MEAS_EXT_BR, T2_PRED_BB, UNC_COVER, E21_E22_NR, NR_PROP_TP2444, NR_PROP_TP2444_BR, NR_PROP_TP2444_PF, T1_MEAS_DAMPING, PROP_BB_FIG17, PROP_BB_FIG14, NR_TP1964, R172428_EXP, T1, T1_FROM_E12, NR_TP1964_XOVER, POLAR_FIDELITY, PER_FIG8, PER_FIG9, R996_LOADS, BBN_CIRC, E12_BLOCK |
+| P (10) | REPRO_18b, E21_PRE, E22_HF_CODE, E18_TONES, REPRO_18b_PRE, R172428_CODE, R172428_ETA, E14_LOSS (NASA's calculated Eq. (78) curve), NR_TP1964_REF2, NR_TP1964_XOVER_REF2 (NASA's prediction with the CR-159363 equations PAIN adopts) |
+| X (7) | LOUDEST_PT (point form vs Eq. (8): internal consistency), BLK_GAIN_MAP (a gain-range property), MRP_SHAPE_NORM (a property of NASA's printed table), CYL2D_WEYL (Weyl's law), MRP_COUPLED_LIMITS (analytic limits; it misses because PAIN's floor form is not the exact Ritz energy), F1A_GUTIN_ANGLES (Gutin's formula), SHARP_PANEL_D (CR-172490's design figure, not PAIN and not measured) |
+
+Every E and P case keeps its verdict and its §2.14 closure class; the one with an untested input fix is 82c.
+
+- [ ] 82a Rule into `CLAUDE.md`; this audit as `VALIDATION_GUIDELINE.md` §2.15; §2.14 rows point to it.
+- [ ] 82b The 7 X cases carry no verdict (information), with the dated label "not a validation case under the 2026-10-29 rule; result unchanged, not a pass". Tables, figures (redrawn without a criterion band) and records kept; `case_error_summary.csv` and §0 regenerated. No criterion changes, and no case becomes met.
+- [ ] 82c **NASA's full structural modes in the CR-172428 reproduction (P).** R172428_ETA's cause is classed I (probable): modes 13–32 use Table D-1 shapes, which NASA printed truncated to five shell terms; NASA's program used its full MRP modes. Since Phase 80 the App. D solver on NASA's MRP deck reproduces Table D-1 (32/32) with the full series, so it supplies the modes NASA used. New cases `R172428_ETA_DECK`, `R172428_CODE_DECK`, `R172428_EXP_DECK`: identical to R172428_ETA / _CODE / _EXP except the structural modes come from `appd_modes(appd_nasa_deck())` (NASA's deck, the deck's series, no other change). **Criteria (fixed 2026-10-29, before the run, copied unchanged):** ETA_DECK: η_r′ of each of the 32 modes within ±25 % of App. B p. 194, met if 32/32; CODE_DECK: ±3 dB of NASA's printed prediction at ≥ 7 of 9 points; EXP_DECK: ±4 dB of the measured space average at each of 9 points. The originals stay as recorded. Whatever the outcome, it is reported as is; no input is changed after the run.
+- [ ] 82d Five documents, §0, targeted tests, review, commit.
 
 ## 9. Reference appendices
 

@@ -36,7 +36,7 @@ Baseline: lowest structural mode 16.6 Hz; interior H1, H2, H3 = 81.38, 56.37, 30
 | `L_m` | ×1.2 | -1.94 | +13.33 | +1.88 | -1.66 | -1.81 |
 | `a_m` | ×0.8 | +53.19 | +32.56 | -2.42 | +2.33 | -12.31 |
 | `a_m` | ×1.2 | -28.70 | +19.56 | -4.15 | -6.23 | +5.32 |
-| `theta0_deg` | ×0.8 | failed: CYL2D: complex eigenvalues among the kept modes (max |Im|/|Re| = 0.0051943690956 | | | | |
+| `theta0_deg` | ×0.8 | +35.91 | +20.19 | +4.95 | -1.18 | +1.50 |
 | `theta0_deg` | ×1.2 | -17.72 | +11.05 | +0.57 | -0.15 | -0.96 |
 
 `L_m`, `a_m` and `theta0_deg` also move the acoustic modes, the grid and the propeller clearance, so their level changes are not structural alone.

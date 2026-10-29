@@ -73,7 +73,7 @@ export
     blocking_factor, blocked_amplitude, BlockingVariant, R1, R2,
     delta_L_blocking_dB, BLOCKING_P68_CHECKPOINTS,
     extend_line_to_grid,
-    cyl2d_modes, cyl2d_modes_search, Cyl2DResult, AcousticMode, TABLE_C1_FREQ_HZ, TABLE_C1_GENMASS, TABLE_C1_SYMMETRIC, TABLE_C1_C0,
+    cyl2d_modes, cyl2d_modes_search, cyl2d_modes_solvable, Cyl2DResult, AcousticMode, TABLE_C1_FREQ_HZ, TABLE_C1_GENMASS, TABLE_C1_SYMMETRIC, TABLE_C1_C0,
     cabin_frequency_3d, cabin_eps_3d, axial_truncation, cabin_modes_3d,
     mode_animation_frames, render_mode_animation, render_mode_frame_pngs, axial_factor,
     FIG_C3_PRINTED_ROWS, CYL2D_C1_DISPLAY_INPUTS, cyl2d_c1_for_display, mode_animation_cache_dir,
@@ -150,6 +150,7 @@ export
     validation_case_runnable, run_validation_case, format_validation_result,
     plot_case, validation_figure_path, validation_figure_stale, validation_figure_dir, VALIDATION_FIGURE_DIRS, validation_source_figure_path,
     case_error_summary, case_error_summary_path, write_case_error_summary, recorded_case_errors,
+    validation_scoreboard_markdown, write_validation_scoreboard,
     VALIDATION_SOURCE_FIGURE_FALLBACKS,
     CaseInfo, MapBlock, ValidationMap, CASE_INFO, VALIDATION_MAPS,
     validation_guideline_path, parse_validation_guideline_section,
@@ -322,8 +323,9 @@ function run_pain_pipeline(;
     end
     bl = apply_blocking(ff, fuse, prop; variant=blocking)
 
-    # CYL2D: aircraft/user c0 and θ0 (no hard-coded path constants beyond the NY default)
-    acoustic = cyl2d_modes(theta0_deg; n_modes=20, NY=NY, c0=c0)
+    # CYL2D: aircraft/user c0 and θ0 (no hard-coded path constants beyond the NY default); the next solvable grid
+    # when NY has no App. C solution for this floor angle (Q60)
+    acoustic = cyl2d_modes_solvable(theta0_deg; n_modes=20, NY=NY, c0=c0)
     # Default structural path unchanged for :surrogate: Table D-1 when use_table_d1.
     # :parametric / structural_solver=:appd → App. D with aircraft geometry (30c).
     solver = structural_solver

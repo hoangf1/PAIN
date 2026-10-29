@@ -40,6 +40,18 @@ end
     r1, ch, NY2 = PAIN.cyl2d_modes_search(56.6; n_modes=10, max_change=0.05)
     @test ch ≤ 0.05 && NY2 > r1.NY
     @test_throws ErrorException PAIN.cyl2d_modes_search(56.6; n_modes=10, max_change=1e-9)
+    # Q60: production grid for other floors. θ0 = 56.6° keeps NY = 10; θ0 = 45.3° has no App. C solution at NY 10
+    # or 11 with the 20 production modes (complex eigenvalues among them), so the next solvable grid (12) is used, with a warning; none in 10:11 is an error.
+    s56 = PAIN.cyl2d_modes_solvable(56.6; n_modes=20)
+    @test s56.NY == 10 && [m.f_Hz_unit for m in s56.modes] == [m.f_Hz_unit for m in PAIN.cyl2d_modes(56.6; n_modes=20).modes]
+    @test_throws ErrorException PAIN.cyl2d_modes(45.3; NY=10, n_modes=20)
+    @test_throws ErrorException PAIN.cyl2d_modes(45.3; NY=11, n_modes=20)
+    s45 = @test_logs (:warn, r"using NY = 12") PAIN.cyl2d_modes_solvable(45.3; n_modes=20)
+    @test s45.NY == 12 && [m.f_Hz_unit for m in s45.modes] == [m.f_Hz_unit for m in PAIN.cyl2d_modes(45.3; NY=12, n_modes=20).modes]
+    @test_throws ErrorException PAIN.cyl2d_modes_solvable(45.3; NY=10, NY_max=11, n_modes=20)
+    # the pipeline no longer stops for such a floor (it errored at NY = 10 before Q60)
+    rp = PAIN.run_pain_pipeline(; source=:synthetic, use_synthetic=true, n_harmonics=1, bpf_Hz=150.0, theta0_deg=45.3)
+    @test rp.acoustic.NY == 12 && all(isfinite, rp.spectrum.harmonic_SPL_dB)
     # _solve_parity: antisymmetric modes vanish on the centreline
     m_a = first(m for m in c.modes if !m.symmetric)
     @test all(v == 0 for ((mm, n), v) in m_a.phi_nodes if mm == 0)

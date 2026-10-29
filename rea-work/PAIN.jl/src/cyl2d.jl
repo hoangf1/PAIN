@@ -385,6 +385,26 @@ function cyl2d_modes_search(theta0_deg::Real; NY0::Int=10, NY_max::Int=40, max_c
     return r1, ch, NY2
 end
 
+"""
+    cyl2d_modes_solvable(theta0_deg; NY=10, NY_max=NY+10, kw...) -> Cyl2DResult
+
+Production grid for any floor angle (Q60, 2026-10-29): App. C on the requested `NY` (the paper's 10) when that grid
+is solvable, otherwise on the next larger NY that is (B_E non-singular, kept modes real), with a warning. The grid
+used is `result.NY`. For θ0 = 56.6° this is NY = 10 unchanged; NY = 10 has no solution at e.g. θ0 = 40° or 45.3°.
+"""
+function cyl2d_modes_solvable(theta0_deg::Real; NY::Int=10, NY_max::Int=NY + 10, kw...)
+    for ny in NY:NY_max
+        try
+            r = cyl2d_modes(theta0_deg; NY=ny, kw...)
+            ny == NY || @warn "CYL2D: NY = $NY has no App. C solution for θ0 = $(theta0_deg)°; using NY = $ny (next solvable grid)"
+            return r
+        catch e
+            e isa ErrorException && startswith(e.msg, "CYL2D") || rethrow()
+        end
+    end
+    error("CYL2D: no solvable App. C grid for θ0 = $(theta0_deg)° with NY in $NY:$NY_max")
+end
+
 scale_acoustic_freq(f_unit::Real, a::Real) = float(f_unit) / float(a)
 
 function acoustic_boundary_value(mode::AcousticMode, θ_deg::Real)
