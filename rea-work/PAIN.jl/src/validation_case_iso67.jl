@@ -36,6 +36,10 @@ end
 """Sections whose TN 1546 points chose N_crit (Phase 69b, 2026-10-28): shown, but calibrated, so they carry no verdict."""
 const _P69_NCRIT_FIT_SECTIONS = ("n16_506", "n16_509")
 
+"""Equivalent angle-of-attack error (deg) of a lift offset Δc_l at Mach M: Δc_l over the Prandtl–Glauert section
+lift slope 2π/√(1 − M²) per radian (Phase 77, display only; the slope is theory, not fitted to the data)."""
+_p67_equiv_dalpha_deg(Δcl, M) = rad2deg(Δcl * sqrt(1 - M^2) / 2π)
+
 function _run_polar_fidelity()
     tab = _polar_tables(_data_path(splitpath(_R996_POLAR_PATH)...))
     secs = ("n16_312", "n16_506", "n16_509")
@@ -56,7 +60,10 @@ function _run_polar_fidelity()
                                                 (calibrated ? " (N_crit fit point, no verdict)" : ""), 10si + M, clm, clx, d, ok, sec))
                 push!(αs, α); push!(dcl, d)
             end
-            isempty(αs) || push!(series, PlotSeries("$sec M=$M", :computed, αs, dcl; panel=si))
+            isempty(αs) && continue
+            push!(series, PlotSeries("$sec M=$M", :computed, αs, dcl; panel=si))
+            # Phase 77 (display only): the same offset as an equivalent angle of attack, panels 4–6
+            push!(series, PlotSeries("$sec M=$M", :computed, αs, _p67_equiv_dalpha_deg.(dcl, M); panel=3 + si))
         end
     end
     frac = n == 0 ? 0.0 : n_ok / n
@@ -64,6 +71,8 @@ function _run_polar_fidelity()
         "held-out 16-312: $n_ok/$n matched points with |Δc_l| ≤ 0.05 ($(round(100frac; digits=1)) %; criterion ≥ 75 %); " *
         "16-506 and 16-509 chose N_crit (Phase 69b) and are shown without verdict; XFOIL at the TN 1546 Reynolds number",
         (; criterion="|Δc_l| ≤ 0.05 at ≥ 75 % of matched points (held-out 16-312; Phase 69b 2026-10-28)", n, n_ok,
+         equivalent_angle="display only (Phase 77): Δα = Δc_l/(2π/√(1−M²)); the 0.05 criterion is 0.42° at M 0.4 and " *
+                          "0.32° at M 0.72; no percentage is shown because 13 of the matched c_l lie within ±0.2 of zero lift",
          polar=basename(_R996_POLAR_PATH)))
 end
 
@@ -164,8 +173,13 @@ function _iso67_validation_cases()
             FigureRef("NACA TN 1546", "Fig. 3(j), 3(n), 3(o)", 30),
             "|Δc_l| ≤ 0.05 at ≥ 75 % of the matched (section, M, α) points; XFOIL at the TN 1546 Reynolds number, no extrapolation.",
             "2026-10-24", "V-EXP (input)", _run_polar_fidelity,
-            PlotSpec(; xlabel="α (deg)", ylabel="Δc_l = XFOIL − TN 1546", panel_titles=["NACA 16-312", "NACA 16-506", "NACA 16-509"],
-                     error_mode=:absolute, error_tol=0.05, error_ylabel="Δc_l (dimensionless)"), ""),
+            PlotSpec(; xlabel="α (deg)", ylabel="Δc_l = XFOIL − TN 1546",
+                     panel_titles=["NACA 16-312", "NACA 16-506", "NACA 16-509", "NACA 16-312: equivalent Δα (display only)",
+                                   "NACA 16-506: equivalent Δα (display only)", "NACA 16-509: equivalent Δα (display only)"],
+                     panel_ylabels=["", "", "", "Δα = Δc_l / (2π/√(1−M²)) (deg)", "Δα = Δc_l / (2π/√(1−M²)) (deg)",
+                                    "Δα = Δc_l / (2π/√(1−M²)) (deg)"],
+                     error_mode=:absolute, error_tol=0.05, error_ylabel="Δc_l (dimensionless)",
+                     error_xlabel="10 × section + Mach (section 1: 16-312, 2: 16-506, 3: 16-509)"), ""),
         ValidationCase("F1A_CHORDWISE", "F1A near field: compact vs chordwise loading at Report 996 geometry (67b)", "67",
             String[], FigureRef("NACA Report 996", "Fig. 14 geometry", nothing),
             "Diagnostic: a harmonic where |compact − chordwise| > 2 dB is outside what the compact-chord F1A can claim.",

@@ -472,7 +472,7 @@ function _run_iso_cyl2d_exact()
         n_tot += 1
         n_ok += ok20
         push!(table, ValidationTableRow("f mode $(i-1) NY20", Float64(i - 1), fref, f20, f20 - fref, ok20))
-        push!(table, ValidationTableRow("f mode $(i-1) NY10 (info)", Float64(i - 1) + 0.5, fref, f10, f10 - fref, e10 ≤ tol))
+        push!(table, ValidationTableRow("f mode $(i-1) NY10 (info, production grid)", Float64(i - 1) + 0.5, fref, f10, f10 - fref, e10 ≤ tol))
         push!(xs, Float64(i - 1)); push!(yref, fref); push!(y20, f20); push!(y10, f10)
     end
     improve_ok = max_rel_20 < max_rel_10

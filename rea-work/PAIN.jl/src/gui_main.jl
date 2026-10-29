@@ -74,9 +74,10 @@ function select_validation_case_from_qml(id::AbstractString)
     if isfile(png)
         obs["val_plot_path"][] = png
     end
-    obs["val_status"][] = validation_case_runnable(sid) ?
-        "Selected $sid — press Run." :
-        "Selected $sid — unavailable (greyed)."
+    obs["val_status"][] = !validation_case_runnable(sid) ? "Selected $sid — unavailable (greyed)." :
+        validation_figure_stale(sid) ?
+        "Selected $sid — the saved figure is older than the recorded result ($(recorded_case_errors()[sid].run_date)); press Run to redraw it." :
+        "Selected $sid — press Run."
     return nothing
 end
 

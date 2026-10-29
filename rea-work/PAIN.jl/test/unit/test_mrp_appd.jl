@@ -45,15 +45,41 @@ end
     @test fp.Dx ≈ D + 2E * g.I_floor_beam / fp.Lp && fp.Dy ≈ D + E * g.I_floor_beam / g.ell_frame && fp.H ≈ D
     @test fp.Dy > fp.Dx                                                   # supports every 0.2 m vs two beams on 0.85 m
     @test_throws ErrorException PAIN._appd_floor_harmonic_KM(1, -1, g.L, fp, true)
-    @test_throws ErrorException PAIN._appd_floor_harmonic_KM(1, 0, g.L, fp, false)
+    @test_throws ErrorException PAIN._appd_floor_harmonic_KM(1, -1, g.L, fp, false)
     b = PAIN._appd_basis(2, true; n_circ=4, n_floor_max=3)
     @test b.p_floor == 0:3 && b.n_shell == 0:4 && b.ndof == 3 * 5 + 3 * 4
-    @test PAIN._appd_basis(2, false; n_floor_max=3).p_floor == 1:3
+    @test PAIN._appd_basis(2, false; n_floor_max=3).p_floor == 0:3                  # p = 0: uniform floor sway (78d-4 J5)
+    # J3/J5 null functions: symmetric v_0 (shell and floor), antisymmetric u_0 and w_0 (shell and floor)
+    @test size(PAIN._appd_null_rows(b)) == (2, b.ndof) && PAIN._appd_null_rows(b)[1, PAIN._shell_dof(b, 1, 2)] == 1
+    ba = PAIN._appd_basis(2, false; n_circ=4, n_floor_max=3)
+    Ra = PAIN._appd_null_rows(ba)
+    @test size(Ra, 1) == 4 && Ra[2, PAIN._shell_dof(ba, 1, 3)] == 1 && Ra[4, PAIN._floor_dof(ba, 1, 3)] == 1
     dofs = vcat([PAIN._shell_dof(b, i, c) for i in 1:b.ns for c in 1:3], [PAIN._floor_dof(b, j, c) for j in 1:b.np for c in 1:3])
     @test sort(dofs) == 1:b.ndof                                                    # one-to-one DOF map
     K, M, _, _ = PAIN._appd_assemble_KM(b, g)
     @test K ≈ K' && M ≈ M'
     @test K[PAIN._shell_dof(b, 1, 3), PAIN._shell_dof(b, 2, 3)] == 0                # harmonics uncoupled before (D.17)
+    # J2: the shell block is the whole circumference (closed cylinder, Fig. D-1), not the cabin arc
+    K3, M3 = PAIN._appd_shell_harmonic_KM(2, 2, g.L, PAIN._appd_shell_props(g); arc_frac=1.0)
+    @test K[PAIN._shell_dof(b, 3, 3), PAIN._shell_dof(b, 3, 3)] ≈ K3[3, 3] && M[PAIN._shell_dof(b, 3, 1), PAIN._shell_dof(b, 3, 1)] ≈ M3[1, 1]
+end
+@testset "floor membrane block against the integrated energy (Phase 78d-4 J6)" begin
+    g = PAIN.appd_test_article_geometry()
+    fp = PAIN._appd_floor_props(g)
+    ys = range(-fp.Lp / 2, fp.Lp / 2; length=4001); dy = step(ys)
+    trap(f) = dy * (sum(f) - (first(f) + last(f)) / 2)
+    for sym in (true, false), (M, p) in ((1, 1), (2, 3), (3, 2))
+        μ, k = M * π / g.L, p * π / fp.Lp
+        Ψu, dΨu = sym ? (cos.(k .* ys), -k .* sin.(k .* ys)) : (sin.(k .* ys), k .* cos.(k .* ys))
+        Ψv, dΨv = sym ? (sin.(k .* ys), k .* cos.(k .* ys)) : (-cos.(k .* ys), k .* sin.(k .* ys))   # antisymmetric v = −cos
+        a = (-μ .* Ψu, zero(ys)); bb = (zero(ys), dΨv); c = (dΨu, μ .* Ψv)       # ε_x, ε_y, γ per unit U and V
+        Kn = [g.L / 2 * trap(fp.k_f .* (a[i] .* a[j] .+ bb[i] .* bb[j] .+ fp.ν .* (a[i] .* bb[j] .+ a[j] .* bb[i])) .+
+                             fp.Gt .* c[i] .* c[j]) for i in 1:2, j in 1:2]
+        K, _ = PAIN._appd_floor_harmonic_KM(M, p, g.L, fp, sym)
+        @test K[1:2, 1:2] ≈ Kn rtol = 1e-6
+    end
+    b = PAIN._appd_basis(1, false; n_circ=4, n_floor_max=3)
+    @test PAIN._appd_constraint_matrix(b, g)[2, PAIN._floor_dof(b, 3, 2)] ≈ -1       # p = 2 edge v = −cos π = +1
 end
 @testset "constraints (D.4/D.17) and reduction" begin
     g = PAIN.appd_test_article_geometry()
@@ -75,11 +101,42 @@ end
     Cs, ns, Cf, nf, Mr2 = PAIN._appd_extract_shapes(2 .* q, b, g, 8.0)
     Cs1, _, _, _, Mr1 = PAIN._appd_extract_shapes(q, b, g, 2.0)
     @test Cs ≈ Cs1 && Mr2 ≈ Mr1
+    # J1: the returned shape (App. D convention, θ from the top, floor upward) reproduces the solver's own junction
+    # kinematics: shell outward w = v_p sin θ0 − w_p,up cos θ0 at the junction (θ0 from the bottom, y = +Lp/2)
+    for sym in (true, false)
+        b2 = PAIN._appd_basis(1, sym; n_circ=6, n_floor_max=4)
+        C2 = PAIN._appd_all_constraints(b2, g)
+        K2, M2, _, fp2 = PAIN._appd_assemble_KM(b2, g)
+        _, _, E2 = PAIN._appd_reduce(K2, M2, C2)
+        q2 = E2 * randn(MersenneTwister(11), size(E2, 2))
+        Cs2, ns2, Cf2, nf2, _ = PAIN._appd_extract_shapes(q2, b2, g, 1.0)
+        md = PAIN.StructuralMode(1, 100.0, sym, 1.0, 1, Cs2, ns2, Cf2, nf2)
+        raw = (sym ? 1 : -1) * (-1)^b2.n_shell[findfirst(==(ns2[1]), b2.n_shell)] * q2[PAIN._shell_dof(b2, findfirst(==(ns2[1]), b2.n_shell), 3)]
+        scale = raw / Cs2[1]
+        vp = sum(q2[PAIN._floor_dof(b2, j, 2)] * (sym ? sin(p * π / 2) : -cos(p * π / 2)) for (j, p) in enumerate(b2.p_floor)) / scale
+        wup = sum((sym ? cos(p * π / 2) : sin(p * π / 2)) * C for (C, p) in zip(Cf2, nf2); init=0.0)
+        @test PAIN.shell_circumferential(md, θ0) ≈ vp * sin(θ0) - wup * cos(θ0) atol = 1e-8
+    end
 end
 @testset "appd_modes / build_structural_modes / generalized mass" begin
     fuse = PAIN.FuselageGeometry(PAIN.test_article_length(), 0.508, 56.6)
     sm = PAIN.appd_modes(fuse; n_modes=12)
     @test length(sm.modes) == 12 && issorted([m.f_Hz for m in sm.modes]) && all(m.f_Hz ≤ 5000 for m in sm.modes)
+    # J3: no spurious mode with a zero shape; J4: no mode dropped by a frequency dedup (count against the families)
+    g0 = PAIN.appd_test_article_geometry()
+    sm2 = PAIN.appd_modes(g0; n_modes=1000, n_axial=3, f_max_Hz=900.0)
+    θa = range(deg2rad(g0.theta0_deg), 2π - deg2rad(g0.theta0_deg); length=181); Lp0 = 2g0.a * sind(g0.theta0_deg)
+    peak(m) = max(maximum(θ -> abs(PAIN.shell_circumferential(m, θ)), θa),
+                  maximum(y -> abs(sum((m.symmetric ? cos(n * π * y / Lp0) : sin(n * π * y / Lp0)) * C for (C, n) in zip(m.C_floor, m.n_floor); init=0.0)), range(-Lp0 / 2, Lp0 / 2; length=81)))
+    @test all(m -> peak(m) > 0.9, sm2.modes)                                       # unit-maximum shapes, none zero
+    nfam = 0
+    for Mx in 1:3, sym in (true, false)
+        bx = PAIN._appd_basis(Mx, sym)
+        Kx, Mmx, _, _ = PAIN._appd_assemble_KM(bx, g0)
+        Krx, Mrx, _ = PAIN._appd_reduce(Kx, Mmx, PAIN._appd_all_constraints(bx, g0))
+        nfam += count(w2 -> 1.0 ≤ w2 && sqrt(w2) / 2π ≤ 900.0, eigvals(Symmetric(Krx), Symmetric(Mrx)))
+    end
+    @test length(sm2.modes) == nfam
     @test PAIN.build_structural_modes(fuse; structural_solver=:appd, n_keep=12).modes[1].f_Hz == sm.modes[1].f_Hz
     @test PAIN.build_structural_modes(fuse).modes[1].f_Hz == 188.52
     @test length(PAIN.build_structural_modes(fuse; structural_solver=:ritz, n_keep=10).modes) == 10

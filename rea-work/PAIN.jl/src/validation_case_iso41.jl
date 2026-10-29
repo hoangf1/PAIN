@@ -332,7 +332,7 @@ function _run_t1_from_e12()
         unc = get(uncovered, H, Int[])
         push!(table, ValidationTableRow(
             "H$H E-12 coverage: k∈$(isempty(cov) ? "∅" : string(extrema(cov))) " *
-            "(uncovered k=$(isempty(unc) ? "∅" : join(sort(unique(unc)), ",")); T1-blocked kept)",
+            "(uncovered k=$(isempty(unc) ? "∅" : join(sort(unique(unc)), ",")); T1-blocked kept) (info)",
             Float64(H), NaN, NaN, NaN, true))
     end
     push!(series, PlotSeries("E-16 measured mean", :reference_points, xs, y_mean; panel=1))

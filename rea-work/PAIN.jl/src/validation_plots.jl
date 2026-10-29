@@ -127,19 +127,26 @@ function _error_chip_text(; text::AbstractString, n_within::Int, n_rows::Int,
     return "$(n_within)/$(n_rows) · $(_fmt_err_sig(max_abs))$(u) max"
 end
 
+"""Information row (no tolerance applies): its label or group carries "(info" (Phase 79a)."""
+_is_info_row(r::ValidationTableRow) = occursin("(info", r.quantity) || occursin("(info", r.group)
+
 """
     case_error_summary(result, spec) -> NamedTuple
 
 Display-only error roll-up for the Validation map. Uses `_row_error` / `_error_ylabel`
 exactly as the error panel; does not change criteria or verdicts.
-`n_within` / `n_rows` count every table row; max/median use finite `_row_error` only.
+`n_within` / `n_rows` count the criterion rows; max/median use their finite `_row_error` only. Information rows
+(label or group marked "(info", `_is_info_row`) stay in the table and figure but leave the roll-up (Phase 79a), so the
+chip agrees with the verdict; a table with only information rows is rolled up whole, as before.
 """
 function case_error_summary(result::ValidationCaseResult, spec::PlotSpec)
+    crit = filter(!_is_info_row, result.table)
+    rows = isempty(crit) ? result.table : crit
     # :none with a met/not_met verdict and a non-empty table → coverage-style count only.
     if spec.error_mode === :none
-        if !isempty(result.table) && (result.verdict === :met || result.verdict === :not_met)
-            n_within = count(r -> r.within_tolerance, result.table)
-            n_rows = length(result.table)
+        if !isempty(rows) && (result.verdict === :met || result.verdict === :not_met)
+            n_within = count(r -> r.within_tolerance, rows)
+            n_rows = length(rows)
             text = "$(n_within)/$(n_rows) within criterion"
             chip_text = text
             return (; n_within, n_rows, max_abs=NaN, median_abs=NaN, unit="", text, chip_text)
@@ -148,10 +155,10 @@ function case_error_summary(result::ValidationCaseResult, spec::PlotSpec)
                 text="no criterion", chip_text="no criterion")
     end
 
-    n_within = count(r -> r.within_tolerance, result.table)
-    n_rows = length(result.table)
+    n_within = count(r -> r.within_tolerance, rows)
+    n_rows = length(rows)
     errs = Float64[]
-    for row in result.table
+    for row in rows
         e = _row_error(row, spec.error_mode)
         isfinite(e) && push!(errs, e)
     end
@@ -685,6 +692,23 @@ end
 
 """Default figure path for a case id: `figures/<block folder>/<id>.png`."""
 validation_figure_path(id::AbstractString) = joinpath(validation_figure_dir(id), "$(id).png")
+
+"""
+    validation_figure_stale(id; png, recorded) -> Bool
+
+Phase 75b: true when the case's saved figure was written before the day its row in the error snapshot
+(`case_error_summary.csv`, `run_date`) was recorded, i.e. the map chip is newer than the picture the GUI shows on
+selection. Day resolution; false when either is missing.
+"""
+function validation_figure_stale(id::AbstractString; png::AbstractString=validation_figure_path(id),
+                                 recorded::AbstractDict=recorded_case_errors())
+    isfile(png) || return false
+    r = get(recorded, String(id), nothing)
+    r === nothing && return false
+    d = tryparse(Date, String(r.run_date))
+    d === nothing && return false
+    return Date(unix2datetime(mtime(png))) < d
+end
 
 function validation_source_figure_path(id::AbstractString)
     preferred = joinpath(validation_figure_dir(id), "source", "$(id).png")

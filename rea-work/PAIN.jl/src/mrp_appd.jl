@@ -284,13 +284,9 @@ function _appd_floor_harmonic_KM(M::Int, p::Int, L, fp, sym::Bool)
     ν = fp.ν
     Ix = L / 2
     # ∫_{-Lp/2}^{Lp/2} cos²(pπy/Lp) dy = Lp/2 (p>0), Lp (p=0); same for sin (p≥1)
-    if sym
-        p < 0 && error("symmetric floor p ≥ 0")
-        Iy = p == 0 ? Lp : Lp / 2
-    else
-        p < 1 && error("antisymmetric floor p ≥ 1")
-        Iy = Lp / 2
-    end
+    p < 0 && error("floor p ≥ 0")
+    # ∫cos² = Lp (p = 0), Lp/2 (p ≥ 1); antisymmetric p = 0 is the uniform sway v = −1 (u_0, w_0 null, J3/J5)
+    Iy = p == 0 ? Lp : Lp / 2
     ky = p * π / Lp   # wave number; p=0 → 0
 
     K = zeros(3, 3)
@@ -299,8 +295,10 @@ function _appd_floor_harmonic_KM(M::Int, p::Int, L, fp, sym::Bool)
     K[1, 1] += kx * μ^2 * S
     if ky > 0
         K[2, 2] += kx * ky^2 * S
-        K[1, 2] += -ν * kx * μ * ky * S
-        K[2, 1] += -ν * kx * μ * ky * S
+        # Phase 78d-4 J6: Poisson and shear coupling, K_uv = −(ν k + G t) μ k_y (the G t term was missing until
+        # 2026-10-28). Same for both parities with the antisymmetric v = −cos k_y y.
+        K[1, 2] += -(ν * kx + Gt) * μ * ky * S
+        K[2, 1] += -(ν * kx + Gt) * μ * ky * S
         K[1, 1] += Gt * ky^2 * S
         K[2, 2] += Gt * μ^2 * S
     else
@@ -334,7 +332,7 @@ end
 
 function _appd_basis(M::Int, sym::Bool; n_circ::Int=8, n_floor_max::Int=5)
     ns_list = collect(0:n_circ)
-    ps = collect(sym ? (0:n_floor_max) : (1:n_floor_max))
+    ps = collect(0:n_floor_max)          # antisymmetric p = 0: uniform floor sway (Phase 78d-4 J5)
     ns = length(ns_list)
     np = length(ps)
     return _AppDBasis(M, sym, ns_list, ps, ns, np, 3ns + 3np)
@@ -346,19 +344,14 @@ _floor_dof(b::_AppDBasis, i_p::Int, comp::Int) = 3 * b.ns + 3 * (i_p - 1) + comp
 function _appd_assemble_KM(b::_AppDBasis, g::AppDGeometry)
     sp = _appd_shell_props(g)
     fp = _appd_floor_props(g)
-    θ0 = deg2rad(g.theta0_deg)
-    Θ_arc = 2π - 2θ0
-    arc_frac = Θ_arc / (2π)
     N = b.ndof
     K = zeros(N, N)
     M = zeros(N, N)
-    # Shell harmonics on the open arc (scale full-circle energy by arc_frac).
-    # Distinct n are orthogonal on a full circle; on an arc they weakly couple
-    # through the truncated integral. Reading: keep diagonal (orthogonal) terms
-    # only — the leading Peterson diagonal — and enforce junction coupling via
-    # (D.17) constraints. Off-diagonal n↔n′ arc coupling omitted (stated below).
+    # Shell over its whole circumference (Phase 78d-4 J2): Fig. D-1 / p. D-1 is a closed cylinder with an interior
+    # partition and (D.14) integrates over the whole shell, so the harmonics are orthogonal (diagonal per n).
+    # Until 2026-10-28 the shell energy and mass were scaled by the cabin arc fraction (246.8°/360°).
     for (i, n) in enumerate(b.n_shell)
-        K3, M3 = _appd_shell_harmonic_KM(b.M, n, g.L, sp; arc_frac=arc_frac)
+        K3, M3 = _appd_shell_harmonic_KM(b.M, n, g.L, sp; arc_frac=1.0)
         for c1 in 1:3, c2 in 1:3
             K[_shell_dof(b, i, c1), _shell_dof(b, i, c2)] += K3[c1, c2]
             M[_shell_dof(b, i, c1), _shell_dof(b, i, c2)] += M3[c1, c2]
@@ -434,7 +427,7 @@ function _appd_constraint_matrix(b::_AppDBasis, g::AppDGeometry; rigid::Bool=tru
             yu = cos(p * π / 2)
         else
             yw = sin(p * π / 2)
-            yv = cos(p * π / 2)       # choose cos so edge is generally nonzero
+            yv = -cos(p * π / 2)      # v = −cos(pπy/Lp), as the shell's −cos nθ (Phase 78d-4 J6; was +cos)
             dwy = (p * π / Lp) * cos(p * π / 2)
             yu = sin(p * π / 2)
         end
@@ -447,6 +440,28 @@ function _appd_constraint_matrix(b::_AppDBasis, g::AppDGeometry; rigid::Bool=tru
     end
     return C
 end
+
+"""
+Rows fixing the identically-zero basis functions at n = 0 of the shell (D.3) and the floor (J3, J5): sin 0 = 0, so
+the symmetric v_0 and the antisymmetric u_0, w_0 carry stiffness and mass but no displacement and would give
+spurious modes.
+"""
+function _appd_null_rows(b::_AppDBasis)
+    comps = b.sym ? (2,) : (1, 3)
+    rows = Vector{Float64}[]
+    for (list, dof) in ((b.n_shell, _shell_dof), (b.p_floor, _floor_dof))
+        i0 = findfirst(==(0), list)
+        i0 === nothing && continue
+        for c in comps
+            r = zeros(b.ndof); r[dof(b, i0, c)] = 1.0; push!(rows, r)
+        end
+    end
+    return isempty(rows) ? zeros(0, b.ndof) : permutedims(reduce(hcat, rows))
+end
+
+"""(D.4) junction rows plus the n = 0 null-function rows: the constraint set the eigenproblem is reduced with."""
+_appd_all_constraints(b::_AppDBasis, g::AppDGeometry; rigid::Bool=true) =
+    vcat(_appd_constraint_matrix(b, g; rigid=rigid), _appd_null_rows(b))
 
 """Reduced eigenproblem via nullspace of C (≡ Eqs. D.18–D.21)."""
 function _appd_reduce(K, M, C; rtol=1e-10)
@@ -480,14 +495,17 @@ end
 # Shape extraction → StructuralMode fields (Eqs. D.26–D.29)
 # ---------------------------------------------------------------------------
 function _appd_extract_shapes(q::AbstractVector, b::_AppDBasis, g::AppDGeometry, Mr::Float64)
-    # Paper p. D-10 / (D.26)–(D.27): C_n are the same as the W_Mn of (D.7).
-    # Downstream `shell_circumferential` applies Σ C (−1)^n cos/sin as printed.
+    # Phase 78d-4 J1: the solver applies (D.4) at θ0 with the cos nθ / sin nθ basis, i.e. App. D's equations on the
+    # structure mirrored top to bottom; its amplitudes c_n are in θ from the bottom with the floor w positive
+    # downward. App. D (Fig. D-1, (D.3)) and Table D-1 measure θ from the top (`shell_circumferential` applies
+    # (−1)ⁿ cos nθ / −(−1)ⁿ sin nθ from the bottom) with the floor positive upward, so
+    # C_n = (−1)ⁿ c_n (symmetric), −(−1)ⁿ c_n (antisymmetric), C_p = −c_p. Until 2026-10-28 c_n was returned as is.
     C_shell = Float64[]
     n_shell = Int[]
     for (i, n) in enumerate(b.n_shell)
         W = q[_shell_dof(b, i, 3)]
         abs(W) < 1e-14 && continue
-        push!(C_shell, W)
+        push!(C_shell, (b.sym ? 1 : -1) * (-1)^n * W)
         push!(n_shell, n)
     end
     C_floor = Float64[]
@@ -495,8 +513,8 @@ function _appd_extract_shapes(q::AbstractVector, b::_AppDBasis, g::AppDGeometry,
     for (j, p) in enumerate(b.p_floor)
         W = q[_floor_dof(b, j, 3)]
         abs(W) < 1e-14 && continue
-        # (D.28)–(D.29): C_Mn are the floor W amplitudes (positive upward / inward).
-        push!(C_floor, W)
+        # (D.28)–(D.29): floor coefficients positive upward (inward); the solver's floor w is positive downward.
+        push!(C_floor, -W)
         push!(n_floor, p)
     end
     # Normalize max |normal displacement| = 1 (p. D-10)
@@ -561,7 +579,7 @@ function appd_modes(geometry::AppDGeometry;
             b = _appd_basis(M, sym; n_circ=n_circ, n_floor_max=n_floor_max)
             basis_by_key[(M, sym)] = b
             K, Mass, _, _ = _appd_assemble_KM(b, geometry)
-            C = _appd_constraint_matrix(b, geometry; rigid=rigid)
+            C = _appd_all_constraints(b, geometry; rigid=rigid)
             red = _appd_reduce(K, Mass, C)
             red === nothing && continue
             Kr, Mr, E = red
@@ -587,13 +605,9 @@ function appd_modes(geometry::AppDGeometry;
         end
     end
     sort!(cands; by=c -> c.f)
-    # Deduplicate near-coincident frequencies from overlapping bases
-    uniq = NamedTuple[]
-    for c in cands
-        if isempty(uniq) || abs(c.f - uniq[end].f) / max(c.f, 1.0) > 0.005
-            push!(uniq, c)
-        end
-    end
+    # No frequency dedup (Phase 78d-4 J4): the (M, parity) families are disjoint, so close frequencies are distinct
+    # modes (near-degenerate symmetric/antisymmetric pairs). Until 2026-10-28 a 0.5 % dedup dropped one of them.
+    uniq = cands
     nkeep = min(n_modes, length(uniq))
     modes = StructuralMode[]
     for (i, c) in enumerate(uniq[1:nkeep])
@@ -638,7 +652,8 @@ end
 # Helpers used by V-UNIT / MRP_APPD
 # ---------------------------------------------------------------------------
 
-"""Generalized mass ∫ ρ φ² dA from returned shape coefficients (shell arc + floor)."""
+"""Generalized mass ∫ ρ φ² dA of the normal displacement from returned shape coefficients, over the cabin shell arc
+and the floor (w only; the solver's `M_r` is qᵀMq over u, v, w of the whole circumference, (D.30), Phase 78d-4)."""
 function appd_generalized_mass_from_shape(mode::StructuralMode, g::AppDGeometry)
     sp = _appd_shell_props(g)
     fp = _appd_floor_props(g)
@@ -697,7 +712,7 @@ function appd_max_constraint_residual(g::AppDGeometry;
     for M in 1:n_axial, sym in (true, false)
         b = _appd_basis(M, sym; n_circ=n_circ, n_floor_max=n_floor_max)
         K, Mass, _, _ = _appd_assemble_KM(b, g)
-        C = _appd_constraint_matrix(b, g; rigid=rigid)
+        C = _appd_all_constraints(b, g; rigid=rigid)
         red = _appd_reduce(K, Mass, C)
         red === nothing && continue
         Kr, Mr, E = red
@@ -720,7 +735,7 @@ function appd_mode_orthogonality(g::AppDGeometry; M::Int=1, sym::Bool=true,
                                  rigid::Bool=true)
     b = _appd_basis(M, sym; n_circ=n_circ, n_floor_max=n_floor_max)
     K, Mass, _, _ = _appd_assemble_KM(b, g)
-    C = _appd_constraint_matrix(b, g; rigid=rigid)
+    C = _appd_all_constraints(b, g; rigid=rigid)
     Kr, Mr, E = _appd_reduce(K, Mass, C)
     F = eigen(Symmetric(Kr), Symmetric(Mr))
     qs = Vector{Float64}[]

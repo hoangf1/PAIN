@@ -1,5 +1,9 @@
 # Unit tests: Phase 67 helpers (src/validation_case_iso67.jl).
 @testset "TN 1546 Reynolds number and XFOIL lookup" begin
+    # Phase 77: equivalent Δα = Δc_l/(2π/√(1−M²)): one degree of thin-airfoil lift at M = 0 gives 1°; factor 0.8 at M 0.6
+    @test PAIN._p67_equiv_dalpha_deg(2π * deg2rad(1.0), 0.0) ≈ 1.0
+    @test PAIN._p67_equiv_dalpha_deg(2π * deg2rad(1.0), 0.6) ≈ 0.8
+    @test isapprox(PAIN._p67_equiv_dalpha_deg(0.05, 0.72), 0.3164; atol=1e-4) && PAIN._p67_equiv_dalpha_deg(-0.05, 0.4) < 0
     @test PAIN._p67_tn1546_Re(0.3) ≈ 0.85e6 && PAIN._p67_tn1546_Re(0.8) ≈ 2.0e6 && PAIN._p67_tn1546_Re(0.55) ≈ 1.425e6
     tables = Dict(("s", 1e6, 0.4) => [(-2.0, -0.2, 0.01), (2.0, 0.2, 0.01)], ("s", 2e6, 0.4) => [(-2.0, -0.1, 0.01), (2.0, 0.3, 0.01)])
     @test PAIN._p67_xfoil_cl(tables, [1e6, 2e6], "s", 0.0, 0.4, 1e6) ≈ 0.0

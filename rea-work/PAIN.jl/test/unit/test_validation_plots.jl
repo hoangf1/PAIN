@@ -38,6 +38,23 @@ end
     @test n.text == "1/2 within criterion" && isnan(n.max_abs)
     @test PAIN._error_chip_text(; text="no criterion", n_within=0, n_rows=0, max_abs=NaN, unit="") == "no criterion"
     @test PAIN._error_chip_text(; text="x", n_within=2, n_rows=3, max_abs=NaN, unit="") == "2/3"
+    @test PAIN._is_info_row(PAIN.ValidationTableRow("x (info)", 1, 1, 1, 0, true)) && !PAIN._is_info_row(rows[1])
+    # Phase 79a: a failing information row stays out of the count and the error statistics
+    info = vcat([PAIN.ValidationTableRow("a", 1, 100, 101, 1, true), PAIN.ValidationTableRow("c", 3, 100, 101, 1, true)],
+                [PAIN.ValidationTableRow("f mode 2 NY10 (info, production grid)", 2, 100, 150, 50, false)])
+    si = PAIN.case_error_summary(_res("X", info), PAIN.PlotSpec(; ylabel="f (Hz)"))
+    @test si.n_within == 2 && si.n_rows == 2 && si.max_abs == 1
+    @test PAIN.case_error_summary(_res("X", info), PAIN.PlotSpec(; error_mode=:none)).text == "2/2 within criterion"
+    grp = [PAIN.ValidationTableRow("η f=1", 1, 1, 2, 1, false, "V-EXP η (info)")]                  # info by group; only info rows
+    @test PAIN.case_error_summary(_res("X", grp; verdict=:no_verdict), PAIN.PlotSpec()).n_rows == 1
+end
+@testset "figure staleness flag (Phase 75b)" begin
+    png = joinpath(UNIT_OUT, "stale_probe.png"); write(png, "x")              # written today
+    rec(d) = Dict("X" => (; run_date=d))
+    @test PAIN.validation_figure_stale("X"; png, recorded=rec("2099-01-01"))       # result recorded after the figure
+    @test !PAIN.validation_figure_stale("X"; png, recorded=rec("2000-01-01"))      # figure newer than the result
+    @test !PAIN.validation_figure_stale("X"; png, recorded=Dict{String,NamedTuple}()) &&
+          !PAIN.validation_figure_stale("X"; png=joinpath(UNIT_OUT, "none.png"), recorded=rec("2099-01-01"))
 end
 @testset "snapshot CSV round trip and lookups" begin
     p = joinpath(UNIT_OUT, "unit_case_errors.csv")
