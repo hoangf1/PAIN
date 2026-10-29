@@ -341,6 +341,7 @@ end
     @test maximum(abs(a.f_Hz / b.f_Hz - 1) for (a, b) in zip(dk, d1)) < 2e-4            # Table D-1 within 0.02 %
     @test maximum(length(m.C_shell) for m in dk) > maximum(length(m.C_shell) for m in d1)  # full series, not the 5 printed
     @test_throws ErrorException PAIN.r172428_inputs(4000; structural=:ritz)
+    @test length(PAIN.r172428_inputs(4000; structural=:nasa300).structural.modes) == 300   # Phase 84b
 end
 
 @testset "NASA's 300-mode set on the MRP deck (Phase 83)" begin

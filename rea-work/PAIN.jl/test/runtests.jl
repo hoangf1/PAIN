@@ -3169,7 +3169,7 @@ _run_if("CR-3813 reproduction with NASA's pre-correction form (phase 61)") do
     end
 end
 
-_run_if("NASA's 300-mode set in the HF path and the reproduction (phase 83)") do
+_run_if("NASA's 300-mode set in the HF path and the reproductions (phases 83, 84)") do
     # Criteria fixed 2026-10-29 (plan §8aa) before any run. Recorded first-run results (all not met).
     r = run_validation_case("E22_HF_DECK")
     @test r.verdict === :not_met && r.inputs_echo.n_ok == 0 && r.inputs_echo.n == 4
@@ -3186,7 +3186,16 @@ _run_if("NASA's 300-mode set in the HF path and the reproduction (phase 83)") do
     # 83d: T2 compares a path fitted to E-9 with E-9, so it is information; its recorded outcome is kept
     t = run_validation_case("T2")
     @test t.verdict === :no_verdict && t.inputs_echo.original_verdict === :not_met
-    for id in ("E22_HF_DECK", "T2_EQ19_DECK", "REPRO_18b_DECK")
+    # Phase 84 (criteria fixed 2026-10-29, plan §8ab): CR-172428 and E-21 on the 300 modes, recorded first runs
+    rc, r0 = run_validation_case("R172428_CODE_DECK"), run_validation_case("R172428_CODE")
+    @test rc.verdict === :not_met && count(r -> r.within_tolerance, rc.table) == 4 && rc.inputs_echo.structural === :nasa300
+    @test maximum(abs.(rc.inputs_echo.ours .- r0.inputs_echo.ours)) < 2.5 && rc.inputs_echo.ours != r0.inputs_echo.ours
+    re = run_validation_case("R172428_EXP_DECK")
+    @test re.verdict === :not_met && count(r -> r.within_tolerance, re.table) == 3
+    e21 = run_validation_case("E21_PRE_DECK")
+    @test e21.verdict === :not_met && e21.inputs_echo.n_ok == 1 && e21.inputs_echo.n == 4
+    @test maximum(abs.(e21.inputs_echo.code .- e21.inputs_echo.table_d1)) > 20   # above the crossover the modes matter
+    for id in ("E22_HF_DECK", "T2_EQ19_DECK", "REPRO_18b_DECK", "E21_PRE_DECK", "R172428_CODE_DECK", "R172428_EXP_DECK")
         png = plot_case(run_validation_case(id), VALIDATION_CASES[id].plot_spec; path=joinpath(TEST_OUT, "$(id).png"))
         @test isfile(png) && filesize(png) > 0
     end

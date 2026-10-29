@@ -391,7 +391,7 @@ Not blockers (recorded so nobody stops on them): BBN tip geometry beyond 40 in. 
 | Q62 | **Validation status at a glance** (author 2026-10-29: the map as a flowchart at the top of the validation document, and per block the cases with the points they pass, to see what to work on next) | `validation_plots.jl`, `VALIDATION_GUIDELINE.md` §0 | — | **done 2026-10-29**: `write_validation_scoreboard` writes §0 from §2.13 and `case_error_summary.csv` (Mermaid map coloured by verdicts, group totals, not-met cases with the fewest points first, one table per group); `write_case_error_summary.jl` regenerates it with the CSV. Display only |
 | Q63 | **Phase 82 — meaningfulness audit of the not-met cases** (§8z; 2026-10-29) | `validation_cases.jl`, §2.15 | Q62 | **done 2026-10-29**: 26 E, 10 P kept; 7 X now information; R172428_ETA re-classed N (82c). **Open follow-up:** audit the met cases with the same rule (a met case that compares with neither measurement nor PAIN's printed output is not a validation pass) |
 | Q64 | **Phase 83 — the not-met cases with the fewest points: audit, solutions, runs** (§8aa; 2026-10-29) | `hf_broadband.jl`, `noise_reduction.jl`, `validation_case_iso83.jl` | Q63 | **done 2026-10-29**: the mode-set cause refuted (E22_HF_DECK 0/4, T2_EQ19_DECK 0/3, REPRO_18b_DECK 0/3); T2 information; UNC_COVER re-stated; criteria in §8aa dated before the runs. The met-case audit of Q63 is paused for this (author 2026-10-29: "i wanted the not met fewest criterions auditted and planned phases first"); its work in progress is kept outside the tree and resumes after Phase 83 |
-| Q65 | **Phase 84 — the next tier of not-met cases: audit, NASA's mode counts in the CR-172428 and E-21 runs** (§8ab; 2026-10-29) | `validation_case_iso83.jl` | Q64 | planned 2026-10-29 (author: "you have full control i step away"); criteria in §8ab dated before any run |
+| Q65 | **Phase 84 — the next tier of not-met cases: audit, NASA's mode counts in the CR-172428 and E-21 runs** (§8ab; 2026-10-29) | `validation_case_iso83.jl` | Q64 | **done 2026-10-29**: NASA's mode counts refuted for CR-172428 (4/9, 3/9) and E-21 (1/4); the rest of the tier has no untested documented cause; criteria in §8ab dated before the runs |
 | Q58 | **Phase 79 — CYL2D** (§8w; 2026-10-28) | `case_error_summary`, `cyl2d.jl`, CYL2D_WEYL | Q57 | **done 2026-10-28**: information rows leave the pass count; refinement fixed (79b); CYL2D_GRID_CONV (NY 10 within 4.9 % of NY 60); Weyl + surface term 4/5; production NY = 10 kept (decided 2026-10-28) |
 | Q57 | **Phase 78 — structural modes** (§8v; 2026-10-28) | `mrp_appd.jl`, MRP_APPD criterion, map | Q53 | **done 2026-10-28**: App. D solver fixes J1–J6; MRP_APPD not met 2/32 (class I, floor stiffener model undocumented); MRP_D1/MRP_RITZ off the map |
 | Q56 | **Phase 77 — POLAR_FIDELITY as an equivalent angle** (§8u; 2026-10-28) | `src/validation_case_iso67.jl`, figure | Q52 | **done 2026-10-28**: Δα shown next to Δc_l, display only |
@@ -491,33 +491,7 @@ Moved to §11. Summary: base H1–H3 = 82.73, 75.73, 77.05 dB (= 18b-r); H3 top 
 
 ## 8aa. Phase 83 *(done 2026-10-29; moved to the bottom of this file on 2026-10-29; section number kept)*
 
-## 8ab. Phase 84 — the next tier of not-met cases *(planned 2026-10-29; author: "you have full control i step away", after Phase 83; criteria below dated 2026-10-29, before any of these runs)*
-
-**Scope.** The not-met cases of `VALIDATION_GUIDELINE.md` §0 with at most a third of their points, after the 0-point cases of Phase
-83, audited for a cause the documents still allow testing.
-
-**84a Audit (2026-10-29, from the recorded runs and one input comparison; no new comparison with a reference).**
-
-| Case | Class | Untested cause the documents allow? | Item |
-|---|---|---|---|
-| R172428_CODE (P, 4/9), R172428_EXP (E, 3/9) | N | **Yes.** NASA's corrected-program runs used 300 structural and 400 acoustic modes (CR-172428 Table 6). Acoustic: our CYL2D list equals NASA's printed App. B list (first 48 modes, to 597 Hz) mode for mode, in order, within 0.5 % (checked 2026-10-29), so the acoustic modes are as NASA's. Structural: we run 32 (Table D-1 or the deck's first 32, Phase 82c); NASA ran 300 | 84b |
-| E21_PRE (P, 4/16), E21_E22_NR (E, 5/35) | N, M | **Yes.** E-21's Eq. (18) bands run to the crossover (1260 Hz band); Table D-1's modes stop at 811 Hz, so the 1000 Hz band and the joint acceptance above it have no resonant structural mode. Phase 83 tested the mode set only in Eqs. (19)–(23) | 84c |
-| E22_HF_CODE (P, 1/4), NR_PROP_TP2444, NR_PROP_TP2444_BR (E, 1/7) | M | No: the mode set was tested in Phase 83 (E22_HF_DECK) | — |
-| T1_MEAS_DAMPING (1/6), T1 (2/6), T1_FROM_E12 (1/3) | M (H3) | No: re-stated in Phase 83 (the code reproduces NASA's H3 without GEXT) | — |
-| NR_PROP_TP2444_PF (2/7) | A | No: the separable form of Eq. (66) is the stated approximation | — |
-| PROP_BB_FIG17 (2/7), PROP_BB_FIG14 (3/9) | A, I | No: BPM self-noise only; the BPM port reproduces RP-1218 270/270 | — |
-| E18_TONES (3/10), REPRO_18b_PRE (1/3) | N | No: all three App. A changes reverted (Phase 61); the mode set moves the tones < 0.2 dB (Phase 83) | — |
-| NR_TP1964, NR_TP1964_REF2 (6/18) | M | No: negative NR in Eq. (18) bands is a property of the equation (Phase 53) | — |
-
-| Item | What | Criterion (fixed 2026-10-29, before any run) |
-|---|---|---|
-| 84a | Audit above, written into `VALIDATION_GUIDELINE.md` §2.17 | — |
-| 84b | `R172428_CODE_DECK` and `R172428_EXP_DECK`: `r172428_inputs(rpm)` with the 300 deck modes (`nasa_deck_modes()`); everything else as R172428_CODE / R172428_EXP | as R172428_CODE (±3 dB of NASA's printed prediction at ≥ 7 of 9 points) and as R172428_EXP (±4 dB of the measured space average at each of the 9 points) |
-| 84c | `E21_PRE_DECK`: E21_PRE's inputs and options (pre-correction floor sign, Phase III η_T = 1.0, η_r′ ≤ 0.15) with the 300 deck modes | as E21_PRE: \|NR − NASA's E-21 prediction\| ≤ 3 dB in ≥ 75 % of the counted bands |
-| 84d | Five documents, §0, targeted tests, review, commit | — |
-
-**Outcomes fixed before the runs.** A met 84b or 84c makes the 300-mode set the input of that reproduction (the 32-mode runs kept
-as recorded). A miss refutes the mode set for that case; no other count is tried, and nothing is changed after seeing a result.
+## 8ab. Phase 84 *(done 2026-10-29; moved to the bottom of this file on 2026-10-29; section number kept)*
 
 ## 9. Reference appendices
 
@@ -2675,3 +2649,33 @@ high-frequency cases (the Table D-1 runs kept as recorded). If 83b is not met, t
 other mode count is tried. 83c and 83e are recorded whatever they give; no input is changed after seeing them.
 
 **Result (2026-10-29, first runs, criteria as fixed above).** 83b `E22_HF_DECK` **not met, 0/4**: NR 46.3, 45.8, 50.8, 50.5 dB against NASA's 52.0, 59.5, 69.0, 69.0 (Table D-1: 59.7, 61.6, 62.5, 63.4); 42, 68, 39, 40 modes resonant per band. The 32-mode cause is refuted; Table D-1 stays the input of the high-frequency cases and no other count was tried. 83c `T2_EQ19_DECK` **not met, 0/3**: 54.9, 54.2, 49.0 dB against E-9's 51.0, 46.0, 41.5 (Table D-1: 38.9, 35.9, 34.9). 83d: T2 is an information case. 83e `REPRO_18b_DECK` **not met, 0/3**: 88.15, 80.58, 78.33 dB (Table D-1: 88.20, 80.43, 78.21). New: `nasa_deck_modes`, `NASA_MRP_N_MODES`, `noise_reduction_test_article_inputs(; structural_set=:deck)`, `validation_case_iso83.jl`; report `validation_reports/phase83_deck_modes.md`; audit `VALIDATION_GUIDELINE.md` §2.16.
+
+## 8ab. Phase 84 — the next tier of not-met cases *(done 2026-10-29; moved to the bottom 2026-10-29; planned 2026-10-29; author: "you have full control i step away", after Phase 83; criteria below dated 2026-10-29, before any of these runs)*
+
+**Scope.** The not-met cases of `VALIDATION_GUIDELINE.md` §0 with at most a third of their points, after the 0-point cases of Phase
+83, audited for a cause the documents still allow testing.
+
+**84a Audit (2026-10-29, from the recorded runs and one input comparison; no new comparison with a reference).**
+
+| Case | Class | Untested cause the documents allow? | Item |
+|---|---|---|---|
+| R172428_CODE (P, 4/9), R172428_EXP (E, 3/9) | N | **Yes.** NASA's corrected-program runs used 300 structural and 400 acoustic modes (CR-172428 Table 6). Acoustic: our CYL2D list equals NASA's printed App. B list (first 48 modes, to 597 Hz) mode for mode, in order, within 0.5 % (checked 2026-10-29), so the acoustic modes are as NASA's. Structural: we run 32 (Table D-1 or the deck's first 32, Phase 82c); NASA ran 300 | 84b |
+| E21_PRE (P, 4/16), E21_E22_NR (E, 5/35) | N, M | **Yes.** E-21's Eq. (18) bands run to the crossover (1260 Hz band); Table D-1's modes stop at 811 Hz, so the 1000 Hz band and the joint acceptance above it have no resonant structural mode. Phase 83 tested the mode set only in Eqs. (19)–(23) | 84c |
+| E22_HF_CODE (P, 1/4), NR_PROP_TP2444, NR_PROP_TP2444_BR (E, 1/7) | M | No: the mode set was tested in Phase 83 (E22_HF_DECK) | — |
+| T1_MEAS_DAMPING (1/6), T1 (2/6), T1_FROM_E12 (1/3) | M (H3) | No: re-stated in Phase 83 (the code reproduces NASA's H3 without GEXT) | — |
+| NR_PROP_TP2444_PF (2/7) | A | No: the separable form of Eq. (66) is the stated approximation | — |
+| PROP_BB_FIG17 (2/7), PROP_BB_FIG14 (3/9) | A, I | No: BPM self-noise only; the BPM port reproduces RP-1218 270/270 | — |
+| E18_TONES (3/10), REPRO_18b_PRE (1/3) | N | No: all three App. A changes reverted (Phase 61); the mode set moves the tones < 0.2 dB (Phase 83) | — |
+| NR_TP1964, NR_TP1964_REF2 (6/18) | M | No: negative NR in Eq. (18) bands is a property of the equation (Phase 53) | — |
+
+| Item | What | Criterion (fixed 2026-10-29, before any run) |
+|---|---|---|
+| 84a | Audit above, written into `VALIDATION_GUIDELINE.md` §2.17 | — |
+| 84b | `R172428_CODE_DECK` and `R172428_EXP_DECK`: `r172428_inputs(rpm)` with the 300 deck modes (`nasa_deck_modes()`); everything else as R172428_CODE / R172428_EXP | as R172428_CODE (±3 dB of NASA's printed prediction at ≥ 7 of 9 points) and as R172428_EXP (±4 dB of the measured space average at each of the 9 points) |
+| 84c | `E21_PRE_DECK`: E21_PRE's inputs and options (pre-correction floor sign, Phase III η_T = 1.0, η_r′ ≤ 0.15) with the 300 deck modes | as E21_PRE: \|NR − NASA's E-21 prediction\| ≤ 3 dB in ≥ 75 % of the counted bands |
+| 84d | Five documents, §0, targeted tests, review, commit | — |
+
+**Outcomes fixed before the runs.** A met 84b or 84c makes the 300-mode set the input of that reproduction (the 32-mode runs kept
+as recorded). A miss refutes the mode set for that case; no other count is tried, and nothing is changed after seeing a result.
+
+**Result (2026-10-29, first runs, criteria as fixed above).** 84b `R172428_CODE_DECK` **not met, 4/9** and `R172428_EXP_DECK` **not met, 3/9**, the counts of the 32-mode runs; levels move ≤ 2.2 dB (largest: 5000 rpm H3, 78.4 → 80.6 dB). 84c `E21_PRE_DECK` **not met, 1/4**, as E21_PRE. Correction to the 84a row (2026-10-29, after the run): E21_PRE counts the bands below its ten-mode crossover (400 Hz), not up to 1260 Hz, so the counted bands already had every resonant mode; above the crossover the 300 modes lower NR by up to 27 dB (not counted). Both causes refuted; production keeps Table D-1. New: `r172428_inputs(rpm; structural=:nasa300)`, the three cases in `validation_case_iso83.jl`; the R172428 figures draw the measured points as diamonds; audit `VALIDATION_GUIDELINE.md` §2.17; report `validation_reports/phase83_deck_modes.md` (Phase 84 section).

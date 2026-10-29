@@ -101,6 +101,44 @@ function _run_repro_18b_deck()
         "V-CODE", joinpath(_VAL_REPORT_DIR, _P83_REPORT))
 end
 
+"""84c: E21_PRE on NASA's 300 modes against E-21's NASA prediction (criterion of E21_PRE)."""
+function _run_e21_pre_deck()
+    e21 = _read_csv_numeric_nan(_data_path("cr3813", "e21_noise_reduction_range.csv"))
+    bands = Float64.(e21[:band_Hz]); nasa = Float64.(e21[:nasa_pred_dB])
+    excluded = Set([80.0, 100.0, 125.0, 160.0])
+    pre(set) = noise_reduction_spectrum(_with_fields(noise_reduction_test_article_inputs(; η_lining=1.0, structural_set=set);
+                                                     floor_sign=-1.0); bands, η_r_cap=0.15)
+    deck = pre(:deck); d1 = pre(:table_d1)
+    table = ValidationTableRow[]; n_ok = 0; n = 0
+    xs = Float64[]; ref = Float64[]; got = Float64[]; old = Float64[]
+    for i in eachindex(bands)
+        fc = bands[i]
+        isfinite(nasa[i]) || continue
+        g = deck.rows[i].NR_dB
+        counted = !(fc in excluded) && !deck.rows[i].above_crossover
+        ok = abs(g - nasa[i]) ≤ 3.0
+        counted && (n += 1; n_ok += ok)
+        push!(xs, fc); push!(ref, nasa[i]); push!(got, g); push!(old, d1.rows[i].NR_dB)
+        push!(table, ValidationTableRow("NR fc=$(round(Int, fc))" * (counted ? "" : " (not counted)"), fc, nasa[i], g, g - nasa[i],
+                                        ok, counted ? "counted" : "not counted"))
+    end
+    series = [PlotSeries("NASA prediction (E-21)", :reference_points, xs, ref; panel=1),
+              PlotSeries("pre-correction form, NASA's 300 modes", :computed, xs, got; panel=1),
+              PlotSeries("pre-correction form, Table D-1 32 modes (E21_PRE)", :computed, xs, old; panel=1)]
+    r2 = x -> round.(x; digits=2)
+    return ValidationCaseResult("E21_PRE_DECK", _today_iso(),
+        (; criterion="|Δ| ≤ 3 dB of NASA's prediction in ≥ 75 % of counted bands (E21_PRE's)", date="2026-10-29",
+           n_modes=NASA_MRP_N_MODES, n_ok, n, crossover_Hz=deck.crossover.fc_Hz, code=r2(got), table_d1=r2(old)),
+        table, series, n > 0 && n_ok / n ≥ 0.75 - 1e-12 ? :met : :not_met,
+        "$n_ok/$n counted bands within ±3 dB of NASA with NASA's 300 modes and the pre-correction floor sign " *
+        "(crossover $(round(Int, deck.crossover.fc_Hz)) Hz)",
+        "V-CODE", joinpath(_VAL_REPORT_DIR, _P83_REPORT))
+end
+
+"""84b: CR-172428 reproduction on NASA's 300 modes (criteria of R172428_CODE / R172428_EXP)."""
+_run_r172428_code_deck() = _run_r172428_vs(:code; structural=:nasa300)
+_run_r172428_exp_deck() = _run_r172428_vs(:exp; structural=:nasa300)
+
 function _iso83_validation_cases()
     mk(id, title, files, fig, crit, run, ylab, tol, vc) = ValidationCase(id, title, "83", files, fig, crit, "2026-10-29", vc, run,
         PlotSpec(; xlabel="band (Hz)", ylabel=ylab, xscale=:log10, panel_titles=[id], error_mode=:absolute, error_tol=tol), "")
@@ -118,5 +156,17 @@ function _iso83_validation_cases()
            [_data_path("cr3813", "t1_interior_targets.csv"), _data_path("cr3813", "um_mrp_input_deck.csv")],
            FigureRef("CR-3813", "Fig. E-16 NASA PAIN pred", 142),
            "|Δ| ≤ 4 dB at H1–H3 against E-16's NASA prediction (REPRO_18b's).", _run_repro_18b_deck, "SPL (dB)", 4.0, "V-CODE"),
+        mk("E21_PRE_DECK", "E-21 NR, pre-correction form, on NASA's 300 modes vs NASA's E-21 prediction (84c)",
+           [_data_path("cr3813", "e21_noise_reduction_range.csv"), _data_path("cr3813", "um_mrp_input_deck.csv")],
+           FigureRef("CR-3813", "Fig. E-21", 149),
+           "|Δ| ≤ 3 dB of NASA's prediction in ≥ 75 % of the counted bands (E21_PRE's).", _run_e21_pre_deck, "NR (dB)", 3.0, "V-CODE"),
+        mk("R172428_CODE_DECK", "CR-172428 reproduction on NASA's 300 modes vs NASA's printed predictions (84b)",
+           [_r172428_csv("appB_predictions.csv"), _data_path("cr3813", "um_mrp_input_deck.csv")],
+           FigureRef("NASA CR-172428", "App. B pp. 196–212 / Table 10", 206),
+           "±3 dB of NASA's printed prediction at ≥ 7 of 9 points (R172428_CODE's).", _run_r172428_code_deck, "SPL (dB)", 3.0, "V-CODE"),
+        mk("R172428_EXP_DECK", "CR-172428 reproduction on NASA's 300 modes vs measured space averages (84b)",
+           [_r172428_csv("appB_predictions.csv"), _data_path("cr3813", "um_mrp_input_deck.csv")],
+           FigureRef("NASA CR-172428", "Table 5 / Table 10", 89),
+           "±4 dB of the measured space average at each of the 9 points (R172428_EXP's).", _run_r172428_exp_deck, "SPL (dB)", 4.0, "V-EXP"),
     ]
 end

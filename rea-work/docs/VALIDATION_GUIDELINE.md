@@ -2607,6 +2607,22 @@ Inputs: E-21 inputs.
 Equations: Eq. (18), Eq. (52).
 Outputs: NR [dB].
 
+### Case: E21_PRE_DECK
+**Title:** E-21 NR, pre-correction form, on NASA's 300 modes vs NASA's E-21 prediction (84c)
+**Map / block:** total / P_REPRO
+**Category:** verification
+**Kind:** runnable
+**Source:** CR-3813 Fig. E-21 NASA prediction; NASA's MRP deck; CR-172428 Table 6; criterion fixed 2026-10-29 before the run (plan §8ab)
+**What it tests:** E21_PRE (pre-correction floor sign, Phase III η_T = 1.0, η_r′ ≤ 0.15) with NASA's 300 structural modes in place of Table D-1's 32.
+**Why it is here:** Table D-1's modes stop at 811 Hz; the mode set was untested in the Eq. (18) path (Phase 84a).
+**A pass means:** |NR − NASA's E-21 prediction| ≤ 3 dB in ≥ 75 % of the counted bands (E21_PRE's criterion).
+**Not covered:** The end-plate allowance of ref. [7] (80–160 Hz, not counted).
+**Recorded outcome:** **not_met**, 1/4 counted bands (2026-10-29, first run), the same as E21_PRE. The counted bands are those below E21_PRE's ten-mode crossover (400 Hz), where Table D-1 already has every mode, so they move < 0.4 dB; the 84a audit row expected the Eq. (18) bands to reach 1260 Hz, which holds for the volume crossover, not E21_PRE's (corrected 2026-10-29 after the run). Above the crossover the 300 modes lower NR by up to 27 dB (not counted).
+**Explanation:** Code-on-code; `noise_reduction_spectrum` on `noise_reduction_test_article_inputs(; structural_set=:deck)` with `floor_sign = −1`.
+Inputs: as E21_PRE; `nasa_deck_modes()`.
+Equations: Eqs. (17)–(18) below the crossover, (19)–(23) above.
+Outputs: NR [dB] per band, with the Table D-1 run beside it.
+
 ### Case: E22_HF_CODE
 **Title:** High-frequency NR, this code vs NASA's E-22 prediction (61d)
 **Map / block:** total / P_REPRO
@@ -2670,6 +2686,22 @@ Outputs: SPL H1–H3 [dB], with the Table D-1 run beside it.
 Inputs: App. B blocked field; Table 6; App. B p. 197 trim.
 Equations: Eq. (8) on the 16 × 19 grid; App. A Eq. (82) with m̄_r; Eq. (83) with the bare f′.
 Outputs: 9 interior tone levels [dB] next to NASA's printed values; verdict vs ±3 dB at ≥ 7/9.
+
+### Case: R172428_CODE_DECK
+**Title:** CR-172428 reproduction on NASA's 300 modes vs NASA's printed predictions (84b)
+**Map / block:** total / P_REPRO
+**Category:** verification
+**Kind:** runnable
+**Source:** NASA CR-172428 App. B / Table 10 (NASA's predictions), Table 6 (300 structural modes); NASA's MRP deck; criterion fixed 2026-10-29 before the run (plan §8ab)
+**What it tests:** R172428_CODE with NASA's 300 structural modes (`nasa_deck_modes()`) in place of 32; everything else as R172428_CODE.
+**Why it is here:** NASA's corrected-program runs used 300 structural and 400 acoustic modes; our acoustic list equals NASA's printed one, so the structural count was the one mode input left (Phase 84a).
+**A pass means:** ±3 dB of NASA's printed prediction at ≥ 7 of 9 points (R172428_CODE's criterion).
+**Not covered:** NASA's modes above Table D-1 are not printed, so the deck solve stands in for them.
+**Recorded outcome:** **not_met**, 4/9 (2026-10-29, first run), the same count as R172428_CODE: 3000 rpm 70.84, 68.60, 61.66; 4000 rpm 102.41, 79.91, 71.94; 5000 rpm 90.15, 94.49, 80.58 dB (Table D-1: 71.07, 69.02, 62.66; 102.45, 80.05, 71.69; 90.35, 94.40, 78.40). The levels move ≤ 2.2 dB, so the mode count is not the cause.
+**Explanation:** Code-on-code; `r172428_inputs(rpm; structural=:nasa300)`, tones of Eq. (8).
+Inputs: as R172428_CODE; `nasa_deck_modes()`.
+Equations: full cabin chain, Eq. (8).
+Outputs: SPL H1–H3 at 3000/4000/5000 rpm [dB].
 
 ### Case: R172428_PAIRS
 **Title:** CR-172428 top modal contributions vs App. B (diagnostic)
@@ -3047,6 +3079,22 @@ Inputs: as R172428_CODE; measured Table 5 levels.
 Equations: as R172428_CODE.
 Outputs: 9 levels [dB] vs measured; verdict vs ±4 dB at each point.
 
+### Case: R172428_EXP_DECK
+**Title:** CR-172428 reproduction on NASA's 300 modes vs measured space averages (84b)
+**Map / block:** total / P_MEAS
+**Category:** experiment
+**Kind:** runnable
+**Source:** NASA CR-172428 Table 5 (measured space averages), Table 6 (300 structural modes); NASA's MRP deck; criterion fixed 2026-10-29 before the run (plan §8ab)
+**What it tests:** R172428_EXP with NASA's 300 structural modes in place of 32; everything else as R172428_EXP.
+**Why it is here:** As R172428_CODE_DECK, against the measurement.
+**A pass means:** ±4 dB of the measured space average at each of the 9 points (R172428_EXP's criterion).
+**Not covered:** As R172428_CODE_DECK.
+**Recorded outcome:** **not_met**, 3/9 (2026-10-29, first run), the same count as R172428_EXP: 3000 rpm 70.84, 68.60, 61.66; 4000 rpm 102.41, 79.91, 71.94; 5000 rpm 90.15, 94.49, 80.58 dB (Table D-1: 71.07, 69.02, 62.66; 102.45, 80.05, 71.69; 90.35, 94.40, 78.40).
+**Explanation:** Experiment comparison; `r172428_inputs(rpm; structural=:nasa300)`.
+Inputs: as R172428_EXP; `nasa_deck_modes()`.
+Equations: full cabin chain, Eq. (8).
+Outputs: SPL H1–H3 at 3000/4000/5000 rpm [dB].
+
 ### Case: AC_CABIN_DEMO
 **Title:** Aircraft cabin example: overall dB(A) (62)
 **Map / block:** total / A_CABIN
@@ -3079,7 +3127,7 @@ pre-registered test design. **Superseded 2026-10-28:** code defects were found i
 | E14_LOSS (7/18) | I (probable) | TRIM_CLOSED and TRIM_PASSIVITY pass; Fig. A-2 is digitized at six frequencies only |
 | LOUDEST_PT (a) | D; **information since Phase 82** (§2.15) | the pre-registered interior point set omits the wall nodes; with all nodes the ratio is 0.99–1.01 (post-hoc); on the converged grid NY = 40 the all-node average equals Eq. (8) within 0.07 % (LOUDEST_PT_GRID, met, 2026-10-29) |
 | REPRO_18b, E18_TONES, E21_E22_NR, REPRO_18b_PRE, E21_PRE, E22_HF_CODE | N | CR-3813's printed runs predate NASA's corrections; neither sign of the floor term reproduces them (Phase 61); the corrected program (CR-172428) is reproduced within 0.4 dB at H3. REPRO_18b_PRE reverts all three CR-172428 App. A changes, and NASA's 300-mode set moves the tones < 0.2 dB (REPRO_18b_DECK, Phase 83, 2026-10-29) |
-| R172428_CODE, R172428_EXP | N | largest contributor (0,1) × mode 8 at H1; q = 0 modes absent from NASA's printed pairs, not explained by the documents (Q22, Phase 54) |
+| R172428_CODE, R172428_EXP | N | largest contributor (0,1) × mode 8 at H1; q = 0 modes absent from NASA's printed pairs, not explained by the documents (Q22, Phase 54). **Phase 84b (2026-10-29):** not the mode counts: our acoustic list equals NASA's printed App. B list, and NASA's 300 structural modes give the same 4/9 and 3/9 (levels move ≤ 2.2 dB) |
 | R172428_ETA (17/32) | **N** (was I, probable; re-classed 2026-10-29, Phase 82c) | modes 1–12 within 13 %. Not the truncated shapes: with NASA's full MRP-deck modes (82c, pre-registered) the count is the same 17/32 and the levels of R172428_CODE/EXP move < 1 dB. Not the inputs of Eq. (82): the generalized masses (total and shell) match App. B within 1 %, the trim admittance App. B p. 197 within 2 % to 1 kHz, and the ETASTR changes (App. A p. 178) are what the code does. Not η_r″: adding Σ η_r″ (Eq. 83) overshoots modes 1–12 by up to 100×. NASA's printed loss factor of the trim-damped modes above 500 Hz is 1.3–2× this code's, mode by mode, which the documents do not explain |
 | T1, T1_FROM_E12, T1_MEAS_DAMPING, UNC_COVER | I; **H3 part re-stated M (Phase 83a, 2026-10-29)** | the H3 excess is the e11 off-line (GEXT) field, an assumed extension (Phase 52, GEXT_BOUND); the cabin matches NASA at H3. **Re-stated 2026-10-29 (Phase 83a):** with NASA's printed App. B field and no extension, R172428_EXP at 4000 rpm gives H3 71.7 dB, NASA's own prediction is 71.3 dB (CR-172428 Table 10) and the measurement 65.2 dB: the code reproduces NASA at H3 within 0.4 dB, and the excess over the measurement that remains without GEXT is PAIN's (M); GEXT accounts for the rest of T1's H3 excess |
 | T2 | A; **information since Phase 83d** (§2.16) | the default broadband path is a calibrated surrogate (`bb_j2_scale`, fitted to Fig. E-9), labelled as such (Phase 55); it is compared with the data it was fitted to, so it carries no verdict (2026-10-29) |
@@ -3134,6 +3182,24 @@ runs). Each untested cause was run once against the original case's criterion.
 **What this leaves.** For the 0-point cases no documented input or program form is left untested. The code reproduces NASA's
 corrected program where NASA printed it (CR-172428 at H3 within 0.4 dB). The remaining misses against measurement sit in
 PAIN's method (M) or in NASA's printed CR-3813 runs (N).
+
+## 2.17 The next tier of not-met cases (Phase 84, 2026-10-29)
+
+The not-met cases with at most a third of their points, after the 0-point cases of §2.16 (plan §8ab, criteria dated before the
+runs).
+
+| Case | Class | Cause tested in Phase 84 | Result |
+|---|---|---|---|
+| R172428_CODE (4/9), R172428_EXP (3/9) | N | NASA's mode counts (CR-172428 Table 6: 300 structural, 400 acoustic). The acoustic list already equals NASA's printed one (48 modes to 597 Hz, in order, within 0.5 %); the structural count was run with the 300 deck modes | **Refuted.** R172428_CODE_DECK 4/9, R172428_EXP_DECK 3/9, levels within 2.2 dB of the 32-mode runs |
+| E21_PRE (1/4 counted), E21_E22_NR | N, M | NASA's 300 structural modes in the Eq. (18) path | **Refuted.** E21_PRE_DECK 1/4; the counted bands lie below the 400 Hz crossover, where Table D-1 has every mode |
+| E22_HF_CODE, NR_PROP_TP2444, NR_PROP_TP2444_BR | M | none left (Phase 83) | unchanged |
+| T1, T1_FROM_E12, T1_MEAS_DAMPING | M (H3) | none left (Phase 83 re-statement) | unchanged |
+| NR_PROP_TP2444_PF, PROP_BB_FIG17, PROP_BB_FIG14 | A, I | none: stated approximations (Eq. (66) separable form; BPM self-noise only) | unchanged |
+| E18_TONES, REPRO_18b_PRE | N | none left (Phases 61, 83) | unchanged |
+| NR_TP1964, NR_TP1964_REF2 | M | none: negative NR is a property of Eq. (18) (Phase 53) | unchanged |
+
+**What this leaves.** In this tier, too, no documented input or program form is left untested; the misses are classed M, A, I or N
+as in §2.14.
 
 ## 3. What “valid recreation” means for this project
 

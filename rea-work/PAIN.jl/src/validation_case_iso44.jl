@@ -49,6 +49,7 @@ numbers and frequencies as App. B); acoustic modes: CYL2D, 20 two-dimensional mo
 `app_a=true` applies the App. A η_r′ correction (`η_r_trimmed_area`). `structural=:deck` (Phase 82c) takes the 32
 structural modes from the App. D solver on NASA's MRP deck (`appd_nasa_deck()`, full series) instead of Table D-1's
 printed (truncated) shapes; everything else is unchanged (82c: R172428_ETA stays 17/32, levels move < 1 dB).
+`structural=:nasa300` (Phase 84b) takes NASA's 300 modes from the same solve (`nasa_deck_modes()`; CR-172428 Table 6).
 """
 function r172428_inputs(rpm::Integer; app_a::Bool=true, structural::Symbol=:table_d1)
     fuse = FuselageGeometry(1.803, 0.508, 56.6)
@@ -61,8 +62,9 @@ function r172428_inputs(rpm::Integer; app_a::Bool=true, structural::Symbol=:tabl
                      "CR-172428 end cap")
     acoustic = cyl2d_modes(fuse.theta0_deg; n_modes=20, NY=10, c0=c0)
     structural_modes = structural === :deck ? appd_modes(appd_nasa_deck(); n_modes=32) :
+                       structural === :nasa300 ? nasa_deck_modes() :
                        structural === :table_d1 ? structural_modes_from_table_d1(; n_keep=32) :
-                       error("r172428_inputs: structural must be :table_d1 or :deck (got $structural)")
+                       error("r172428_inputs: structural must be :table_d1, :deck or :nasa300 (got $structural)")
     η_r_band = Dict(fc => 2 / fc for fc in third_octave_centers())
     return PainInputs(fuse, prop, structural_modes, acoustic, f.amps, f.phases, f.pts, (π * fuse.a / 18)^2;
                       sidewall=side, endplates=ends, mech=nothing, m_wall=3.113,
@@ -72,11 +74,11 @@ end
 """rpm values whose App. B field has been transcribed (files present)."""
 _r172428_rpms() = [rpm for rpm in (3000, 4000, 5000) if isfile(_r172428_csv("appB_$(rpm)rpm_H1.csv"))]
 
-function _r172428_levels()
+function _r172428_levels(; structural::Symbol=:table_d1)
     pred = _read_csv_numeric_nan(_r172428_csv("appB_predictions.csv"))
     out = NamedTuple[]
     for rpm in _r172428_rpms()
-        inp = r172428_inputs(rpm)
+        inp = r172428_inputs(rpm; structural)
         bpf = 3 * rpm / 60
         spl = interior_spl(inp; bpf_Hz=bpf, n_harmonics=3).harmonic_SPL_dB
         for H in 1:3
@@ -88,8 +90,9 @@ function _r172428_levels()
     return out
 end
 
-function _run_r172428_vs(which::Symbol)
-    lv = _r172428_levels()
+function _run_r172428_vs(which::Symbol; structural::Symbol=:table_d1)
+    lv = _r172428_levels(; structural)
+    deck = structural === :nasa300   # Phase 84b: NASA's 300 modes, criteria fixed 2026-10-29
     tol = which === :code ? 3.0 : 4.0
     table = ValidationTableRow[]
     n_ok = 0
@@ -107,17 +110,17 @@ function _run_r172428_vs(which::Symbol)
     xs = [r.f_Hz for r in lv]
     series = [
         PlotSeries("NASA PAIN (CR-172428 App. B / Table 10)", :reference_points, xs, [r.nasa for r in lv]; panel=1),
-        PlotSeries("measured (Table 5)", :reference_points, xs, [r.measured for r in lv]; panel=1),
-        PlotSeries("this code, NASA inputs", :computed, xs, [r.ours for r in lv]; panel=1),
+        PlotSeries("measured (Table 5)", :measured_points, xs, [r.measured for r in lv]; panel=1),
+        PlotSeries(deck ? "this code, NASA inputs, NASA's 300 modes" : "this code, NASA inputs", :computed_points, xs, [r.ours for r in lv]; panel=1),
     ]
     crit = which === :code ? "±3 dB of NASA's printed prediction at ≥ 7 of 9 points (3000/4000/5000 rpm, H1–H3)" :
                              "±4 dB of the measured space average at each of the 9 points"
     reason = "$n_ok/$n within ±$(tol) dB" * (complete ? "" : "; criterion needs 9 points, $n transcribed " *
              "(rpm $(join(_r172428_rpms(), ", ")))") *
              "; H1–H3 = " * join(["$(r.rpm):H$(r.H) $(round(r.ours; digits=2))" for r in lv], ", ")
-    id = which === :code ? "R172428_CODE" : "R172428_EXP"
+    id = (which === :code ? "R172428_CODE" : "R172428_EXP") * (deck ? "_DECK" : "")
     return ValidationCaseResult(id, _today_iso(),
-        (; criterion=crit, date="2026-10-23", rpms=_r172428_rpms(),
+        (; criterion=crit, date=deck ? "2026-10-29" : "2026-10-23", rpms=_r172428_rpms(), structural,
            ours=[r.ours for r in lv], nasa=[r.nasa for r in lv], measured=[r.measured for r in lv]),
         table, series, verdict, reason, which === :code ? "V-CODE" : "V-EXP", "")
 end

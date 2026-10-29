@@ -111,3 +111,6 @@ BBN_LEVELS,2026-10-29,2026-10-29,no_verdict,20,32,5.5,1.7,"dB","no verdict · ma
 E22_HF_DECK,2026-10-29,2026-10-29,not_met,0,4,19.0,16.0,"dB","0/4 in tol · max |err| 19.0 dB · med 16.0 dB"
 T2_EQ19_DECK,2026-10-29,2026-10-29,not_met,0,3,8.2,7.5,"dB","0/3 in tol · max |err| 8.2 dB · med 7.5 dB"
 REPRO_18b_DECK,2026-10-29,2026-10-29,not_met,0,3,10.0,9.1,"dB","0/3 in tol · max |err| 10.0 dB · med 9.1 dB"
+E21_PRE_DECK,2026-10-29,2026-10-29,not_met,5,16,42.0,6.9,"dB","5/16 in tol · max |err| 42.0 dB · med 6.9 dB"
+R172428_CODE_DECK,2026-10-29,2026-10-29,not_met,4,9,11.0,3.4,"dB","4/9 in tol · max |err| 11.0 dB · med 3.4 dB"
+R172428_EXP_DECK,2026-10-29,2026-10-29,not_met,3,9,12.0,6.7,"dB","3/9 in tol · max |err| 12.0 dB · med 6.7 dB"
