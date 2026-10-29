@@ -55,7 +55,7 @@ Settings registers (§2.10) and the closure register of not-met cases (§2.14) c
 | Check | Two independent digitizations → `δ_dig` amplitude difference |
 | Class | **V-EXP** input path (measured exterior), independent of ANOPP / CCBlade |
 | Status for recreation | Preferred closed-loop path for PAIN core validation |
-| **Open (I-17, theory audit 2026-10-21):** free-field amplitude convention | `spl_dB_to_Pa` converts SPL → Pa as an rms-equivalent amplitude and that value enters Eq. (42) as A. CR-3813 Eqs. (28)–(31) and User Manual card 38 treat A as the Fourier (cosine-peak) amplitude; CR-172428 p. 41 references SPL to ⟨p²⟩. Documentary reading: A = √2 p₀ 10^(SPL/20); the code omits √2 → e11 / Table-8 tones ~3.01 dB low (affects T1, T2 tonal part, REPRO_18b, E12 levels, GEXT_BOUND). F1A path already stores the peak. **Author decision pending** on documentary grounds only; any code change makes affected results post-hoc (plan I-17). |
+| **Closed (I-17, theory audit 2026-10-21; fixed in Phase 37b 2026-10-21, status corrected 2026-10-28):** free-field amplitude convention | `spl_dB_to_Pa` converts SPL → Pa as an rms-equivalent amplitude and that value enters Eq. (42) as A. CR-3813 Eqs. (28)–(31) and User Manual card 38 treat A as the Fourier (cosine-peak) amplitude; CR-172428 p. 41 references SPL to ⟨p²⟩. Documentary reading: A = √2 p₀ 10^(SPL/20); the code omits √2 → e11 / Table-8 tones ~3.01 dB low (affects T1, T2 tonal part, REPRO_18b, E12 levels, GEXT_BOUND). F1A path already stores the peak. **Done in Phase 37b:** `spl_dB_to_peak_Pa` feeds Eq. (42); every e11 / Table-8 tone moved by +3.0103 dB and the affected results were re-recorded post-hoc (plan 37b). |
 
 ### 2.2 Grid extension (assumed) — `GEXT`
 
@@ -332,7 +332,7 @@ A-weighting, band sum → dB(A), SIL. Class: **X-EXTRAP** when driven by CCBlade
 Per-case GUI text (titles, explanations, map/block copy) lives in **§2.13** — single source of truth; both the Validation and Validation map tabs parse it (`valInfo` / `mapDetail` / block `what_it_does` / map `what_is`).
 
 **GUI registry (phases 34–35).** Each row below that has a registry ID can be run from the GUI **Validation** tab (and from
-`run_validation_case(id)` / scripts). Plots go to `docs/validation_reports/figures/<block folder>/<id>.png`, one folder per validation-map block (`F1A_amplitude/`, `CCBlade_BEMT/`, `Forward_flight/`, …; table `VALIDATION_FIGURE_DIRS` in `validation_plots.jl`; moved 2026-10-27, files only, no result changed), with error panel since 2026-10-21.
+`run_validation_case(id)` / scripts). Plots go to `docs/validation_reports/figures/<block folder>/<id>.png`, one folder per validation-map block (`F1A_amplitude/`, `CCBlade_BEMT/`, `Forward_flight/`, …; table `VALIDATION_FIGURE_DIRS` in `validation_plots.jl`; moved 2026-10-27, files only, no result changed), with error panel since 2026-10-21. A no-verdict case (no criterion) draws grey error points under the title "error per point (no criterion)" with no tolerance band, in either panel (2026-10-28).
 Cases are read-only. Third tab **"Validation map"** (`src/validation_map.jl`): single horizontal map `total` (aircraft + e11 + cabin + checks);
 stage frames from each group's own blocks only (disjoint layout in §2.13); clickable case chips; Validation-tab list ordered by map and block. **Greyed (Run disabled):** none (`R996_FIG8` removed
 I-20; `E21_E22_NR` runnable since 38a). **In-process runnable:** `CYL2D_C1`, `MRP_D1`, `MRP_RITZ`, `MRP_APPD`, `BLK_P68`,
@@ -1846,7 +1846,7 @@ Outputs: N(f) for NY 10 and NY 40; both Weyl curves.
 **What it tests:** The per-mode error of the App. C NY = 10 grid on the real floored section (θ0 = 56.6°) against a converged NY = 60 grid, modes paired by parity and order; NY = 40 against NY = 60 shows that the reference has converged.
 **Why it is here:** CYL2D_C1 reproduces NASA's Table C-1 on NY = 10, but that says nothing about how far NY = 10 is from the continuous cabin; refined grids became solvable in Phase 79b.
 **A pass means:** No criterion (information, no verdict): the error is the discretization error of the paper's grid.
-**Not covered:** Mode shapes and generalized masses; whether production should move to a finer grid (author decision).
+**Not covered:** Mode shapes and generalized masses; whether production should move to a finer grid (decided 2026-10-28: production stays NY = 10, the grid App. C prints and NASA ran; this error is a stated limitation of the cabin modes).
 **Recorded outcome:** **no verdict** (first run 2026-10-28): 19 modes, NY = 10 at most 4.94 % from NY = 60; NY 40 against NY 60 at most 0.21 %.
 **Explanation:** Same `cyl2d_modes` on three grids (Phase 79b guard: only the kept modes must be real). Rows "NY40 vs NY60 (info)" stay out of the chip roll-up.
 Inputs: θ0 = 56.6°, NY = 10, 40, 60, n_modes = 20 per grid, c = 340 m/s, a = 1 m.

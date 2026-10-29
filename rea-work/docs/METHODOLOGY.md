@@ -117,9 +117,9 @@ published data; the grid and conversions are V-UNIT. The detailed notes follow.
 1. **Digitized Fig. E-11.** The measured free-field line (l = 1) for harmonics H = 1, 2, 3, digitized twice; the two readings
    agree within δ_dig ≤ 1.0 dB. **Claim: V-EXP input, for the repeatability of the reading only.** H = 3 and all phases come
    from ANOPP Table 8, not from Fig. E-11, and measured H1/H2 are clipped to ANOPP where they exceed it (`broadband_clip_dB` 10).
-   **Open (I-17, 2026-10-21):** `spl_dB_to_Pa` converts published dB to Pa as an rms-equivalent amplitude and feeds that into
+   **I-17 (closed 2026-10-21 by Phase 37b; status corrected 2026-10-28):** `spl_dB_to_Pa` converts published dB to Pa as an rms-equivalent amplitude and feeds that into
    Eq. (42) as A; documentary reading of CR-3813 / User Manual / CR-172428 is that A is the Fourier cosine-peak amplitude
-   (A = √2 p_rms). Omitting √2 leaves e11 / Table-8 tones ~3.01 dB low. Author decision pending; any fix is post-hoc.
+   (A = √2 p_rms). Omitting √2 left e11 / Table-8 tones ~3.01 dB low; fixed in Phase 37b (`spl_dB_to_peak_Pa` feeds Eq. (42)), every affected result re-recorded post-hoc.
 2. **Grid extension (GEXT).** The paper measured one line, so the other points are filled with a cosine falloff in peripheral
    angle and a geometric phase delay from the path-length difference. **Claim: V-ASSUMED, unfalsifiable by published data.**
    On l = 1 the angle is 0 and the path length equals the reference, so the falloff is constant at 1 and the delay is 0 on the
@@ -298,7 +298,7 @@ QUIT
 
 **Pereira Fig. 9 (Phase 74, 2026-10-28).** Fig. 9 is vector graphics in the PDF, so its bars are read exactly (`dig_pereira_fig9_vector.py`); the earlier hand reading put every H1 bar at 80 dB, about 4 dB low. Re-read, Fig. 9 equals Fig. 8 within 0.1 dB.
 
-**Drag against measured section data (Phase 73, 2026-10-28).** At the TN 1546 matched points (N_crit 8, TN 1546 Re(M)), XFOIL's c_d is about 25 % below the measured c_d (median ratio 0.75 over 55 points; 0.74–0.79 per section), while c_l is 0.026 low on average. In the Report 996 loads the c_l offset moves thrust by at most 7.9 %, while c_d × 1.33 moves torque by 7–12 points (`phase73_polar_sensitivity.md`). The polars are not changed (73e).
+**Drag against measured section data (Phase 73, 2026-10-28).** At the TN 1546 matched points (N_crit 8, TN 1546 Re(M)), XFOIL's c_d is about 25 % below the measured c_d (median ratio 0.75 over 55 points; 0.74–0.79 per section), while c_l is 0.026 low on average. In the Report 996 loads the c_l offset moves thrust by at most 7.9 %, while c_d × 1.33 moves torque by 7–12 points (`phase73_polar_sensitivity.md`). The polars are not changed: 73e decided 2026-10-28 not to adopt the TN 1546 c_d level, because the factor was chosen after its effect on the Report 996 torque was seen (it could only give a post-hoc result); the torque misses stay class A, section drag.
 
 **How the code reads them** (`load_polar_set`, `src/polars.jl`). *Until 2026-10-28:* one function c_l, c_d (α, Re, M) for every blade station, taken from the single nearest stored (Re, M) table with no interpolation; Re and M outside the grid clamped to the edge; linear in α inside a table and the end value held outside it. *From 2026-10-28 (Phase 69a):* tables keep their section and each blade station gets its own polar, linear in t/c between the two sections that bracket it (`section_polar`, `station_polars`; a multi-section set without station thicknesses is an error). Lookup is bilinear in (log Re, M), with Re and M clamped to the grid range and the clamps counted. With `cr75` each table is extended past its converged angles by the registered Viterna rule, and an unusable table is replaced by the nearest usable one of the same section. CCBlade now gets the air viscosity μ = 1.78·10⁻⁵ Pa·s. The `:bracket` set multiplies c_l by 0.92264 and c_d by 1.81815.
 
@@ -392,7 +392,7 @@ chunk is checked against those, against an independent exact solution (the circl
 | `ISO_CYL2D_EXACT` | The floorless circle (θ₀ = 0°) against f = c·j′/(2πa) from independent J′ zeros | `CYL2D_C1` only compares with tables of the same report | first 10 modes within 2 % at NY = 20; error at NY = 20 below NY = 10 | met: max error 0.966 % (NY 20), 6.676 % (NY 10) |
 | `CYL2D_C1` | App. C scheme: ratios f_i/f_1, Φ_G, symmetry, Fig. C-3 nodes | Cabin modes set resonances and coupling | ratios within 0.1 % (c0-free; re-stated post-hoc 2026-10-21) | met |
 | `CYL2D_WEYL` | Cumulative 3-D mode count (NY = 10) at 500–1500 Hz | A count far from Weyl means missing or spurious modes | within 25 % of Weyl with the rigid-wall surface term (2026-10-28, post-hoc; first run: leading term, 0/5) | **not met** 4/5 (N/W 0.99–1.51; converged NY = 40: 0.99–1.06) |
-| `CYL2D_GRID_CONV` | Production NY = 10 against a converged NY = 60 grid on the floored section | How far the paper's grid is from the continuous cabin | none (information) | no verdict: ≤ 4.9 % (19 modes); NY 40 vs 60 ≤ 0.21 % |
+| `CYL2D_GRID_CONV` | Production NY = 10 against a converged NY = 60 grid on the floored section | How far the paper's grid is from the continuous cabin | none (information) | no verdict: ≤ 4.9 % (19 modes); NY 40 vs 60 ≤ 0.21 %. Production stays NY = 10 (decided 2026-10-28: the paper's grid; the error is a stated limitation) |
 
 **Implementation notes and claims.**
 
@@ -786,7 +786,7 @@ User-supplied for any aircraft run (working example diameter 2.64 m is not a fix
 | PAIN reproduction against NASA's predictions, Fig. E-16 circles, ANOPP Table 8 input (18b / 18b-r) | Original 18b (η_T = 0.05): **not met** (+12.9, +4.5, +16.9 dB). **18b-r** (η_T = 0.5): 82.73, 75.73, 77.05 dB = +3.7, +0.2, +9.1; **not met, 2 of 3**. Registry `REPRO_18b` now runs 18b-r inputs (fixed 2026-10-21; was wrongly e11/R2). Label: **post-hoc (η_T = 0.5 input correction; result known from 19f)**; conditional on GEXT | `pain_reproduction_e16.md` |
 | App. A trim and §3.8 loss factors as written (16a–16b), in the pipeline since 17a | V-UNIT (limits, quadrature) and V-CODE against Fig. E-14 calculated: 7 of 18 bands within ±25 %, criterion not met, not tuned; V-EXP against E-13/E-14/E-15 measured recorded with no pass mark | `trim_loss_e13_e14_e15.md`, tests |
 | dB(A) ±3.5 dB band helper | reporting (V-UNIT arithmetic); **fixed 2026-10-21 (C5):** energy-sums A-weighted 1/3-octave bands (was tones-only; METHODOLOGY §7 now matches code) | `overall_dBA` |
-| Free-field amplitude convention (rms vs Fourier peak) | **Open (I-17, 2026-10-21):** documentary reading A = √2 p_rms; code omits √2 on e11/Table-8 path. Author decision pending | plan I-17; `VALIDATION_GUIDELINE.md` §2.1 |
+| Free-field amplitude convention (rms vs Fourier peak) | **Closed (I-17, Phase 37b, 2026-10-21):** A = √2 p_rms via `spl_dB_to_peak_Pa`; affected results re-recorded post-hoc | plan I-17; `VALIDATION_GUIDELINE.md` §2.1 |
 | BBN/Wilby circumferential phase | 24b PASS; 23a pre-registered FAIL 26/168 (reversed pair reading) on record; I-19 post-hoc φ_b−φ_a from CR-158919 §3.4/Table 8 → 134/168 still FAIL; CR-159124 convention unresolved (pair 8-9) | `bbn_phase.md` |
 | Report 996 loads / F1A (Figs. 14, 13a, 7) + 25k | I-07 re-run; I-08 L51C27 on Fig.13a; behind>ahead false after fix; 23c scaled ±2 dB FAIL (5/24); page-12 phase FAIL (103.8° vs 155°; 109.0° after the 2026-10-22 polar re-run, post-hoc) | `report996_loads.md`, `report996_acoustics.md`, `report996_setup.md` |
 | Pereira forward-flight (3 polars, ScaledLoads) | 23d **FAIL** on H1 (0/9 within ±1.7 dB vs Fig.9 Exp at 80 dB as read); H2 6/9 within ±3 dB; best unscaled `xtr005` s_T≈1.34 | `pereira_forward_flight.md` |
@@ -856,4 +856,4 @@ Preferred cabin path (calibrated): `data/cr3813/e11_freefield_measured_A.csv` (w
 | Scripts by purpose (R1) | `PAIN.jl/scripts/{run,checks,digitize,setup,smoke}/` (`scripts/README.md`) |
 | Case registry + runners | `PAIN.jl/src/validation_cases.jl`, `validation_case_extras.jl` |
 | Validation map (CASE_INFO, map `total`) + GUI map tab | `PAIN.jl/src/validation_map.jl` |
-| Case plots (error panel, source page) | `PAIN.jl/src/validation_plots.jl`; figures under `validation_reports/figures/<block folder>/` (one folder per validation-map block, e.g. `F1A_amplitude/R996_FIG14.png`); optional `PlotSpec.error_xlabel` when error-panel x ≠ main-panel x (`UT_GRID`) |
+| Case plots (error panel, source page) | `PAIN.jl/src/validation_plots.jl`; figures under `validation_reports/figures/<block folder>/` (one folder per validation-map block, e.g. `F1A_amplitude/R996_FIG14.png`); optional `PlotSpec.error_xlabel` when error-panel x ≠ main-panel x (`UT_GRID`); no-verdict cases: grey error points, no tolerance band (2026-10-28) |

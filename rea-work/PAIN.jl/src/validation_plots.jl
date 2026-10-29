@@ -388,6 +388,9 @@ function _error_ylims(errs::Vector{Float64}, tol::Union{Nothing,Float64})
     return (-half, half), clipped
 end
 
+# True when the case is judged against a criterion; a no-verdict figure draws no tolerance band or within/outside colours.
+_has_criterion(result) = result.verdict !== :no_verdict
+
 """
     plot_case(result, spec; path=nothing) -> String
 
@@ -415,6 +418,8 @@ function plot_case(result::ValidationCaseResult, spec::PlotSpec; path::Union{Not
     end
 
     show_error = spec.error_mode !== :none && !isempty(result.table)
+    # A no-verdict case has no criterion: draw no tolerance band (2026-10-28 label fix)
+    has_crit = _has_criterion(result)
     fig_h = 320 * n_panels + (show_error ? 240 : 0)
     if isempty(result.series) && !show_error
         fig_h = max(fig_h, 360)
@@ -475,7 +480,7 @@ function plot_case(result::ValidationCaseResult, spec::PlotSpec; path::Union{Not
                     scatter!(ax, s.x, s.y; marker=:circle, markersize=10,
                              color=:transparent, strokewidth=1.5, strokecolor=:black, lkw...)
                     labeled && (legend_n += 1)
-                    if !tol_drawn && spec.tolerance_band !== nothing && !isempty(s.y)
+                    if has_crit && !tol_drawn && spec.tolerance_band !== nothing && !isempty(s.y)
                         tol = spec.tolerance_band
                         tol_label = legend_n < _MAX_DATA_LEGEND ? "±tol (criterion)" : ""
                         band!(ax, s.x, s.y .- tol, s.y .+ tol;
@@ -573,7 +578,7 @@ function plot_case(result::ValidationCaseResult, spec::PlotSpec; path::Union{Not
         end
         ylim_e, clipped = _error_ylims(errs, spec.error_tol)
         # no criterion (no_verdict): grey points, no within/outside legend (2026-10-28 label fix)
-        crit_e = result.verdict !== :no_verdict
+        crit_e = has_crit
         title_e = crit_e ? "error per point (green = within criterion)" : "error per point (no criterion)"
         clipped && (title_e *= " — clipped")
         # When error_xlabel is set, error-panel x is not the main-panel coordinate:
@@ -598,7 +603,7 @@ function plot_case(result::ValidationCaseResult, spec::PlotSpec; path::Union{Not
         end
 
         hlines!(ax_e, [0.0]; color=:gray, linestyle=:dash, linewidth=1)
-        if spec.error_tol !== nothing && !isempty(err_xs)
+        if crit_e && spec.error_tol !== nothing && !isempty(err_xs)
             tol = spec.error_tol
             xlo, xhi = (err_same_x && spec.xlim !== nothing) ? spec.xlim : extrema(err_xs)
             band!(ax_e, [xlo, xhi], [-tol, -tol], [tol, tol]; color=(:steelblue, 0.12))

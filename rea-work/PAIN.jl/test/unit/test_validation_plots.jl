@@ -112,3 +112,9 @@ end
     e = PAIN.plot_case(_res("UNIT0", PAIN.ValidationTableRow[]), PAIN.PlotSpec(); path=joinpath(UNIT_OUT, "unit_empty.png"))
     @test filesize(e) > 0                                                           # placeholder image
 end
+
+@testset "no-verdict figures carry no criterion band" begin
+    @test PAIN._has_criterion(_res("X", PAIN.ValidationTableRow[]; verdict=:met))
+    @test PAIN._has_criterion(_res("X", PAIN.ValidationTableRow[]; verdict=:not_met))
+    @test !PAIN._has_criterion(_res("X", PAIN.ValidationTableRow[]; verdict=:no_verdict))
+end
