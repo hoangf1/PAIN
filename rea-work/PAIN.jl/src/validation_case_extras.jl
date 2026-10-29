@@ -458,8 +458,12 @@ App. D solver vs Table D-1 (38g). Criterion fixed 2026-10-22 before any run:
 ≥ 75 % of 32 modes within 5 %, no calibration input. Fig. D-2 reported without a pass mark.
 """
 function _run_mrp_appd()
-    g = appd_test_article_geometry()
-    modes = appd_modes(g; n_modes=80, n_axial=7, n_circ=8, n_floor_max=5)
+    # Phase 80 (2026-10-29, post-hoc: the earlier results were known; nothing chosen or fitted): the solver runs on
+    # NASA's own MRP input deck (User Manual pp. 42-43) with the deck's series limits (M 1-10, ns 0-12, np 0-5) and
+    # NASA's floor form (no cross terms between floor terms). Until 2026-10-29 it ran on inputs derived from the App. E
+    # stiffener sections (frame and floor-beam inertias about their centroids, L = 1.83 m), which differ from the deck.
+    g = appd_nasa_deck()
+    modes = appd_modes(g; n_modes=80, n_axial=g.n_axial, n_circ=g.n_circ, n_floor_max=g.n_floor_max)
     # Criterion 2026-10-28 (Phase 78d-3, author): pairing by shape, MAC ≥ 0.9 against the Table D-1 shape rebuilt from
     # its printed coefficients (same symmetry and axial index), then frequency within 5 %. It replaces the 78a
     # dominant-order identity (labels flip between near-equal coefficients) and the 2026-10-22 frequency-only count
@@ -518,21 +522,40 @@ function _run_mrp_appd()
         d2_notes = "Fig. D-2 mode-1: max |Δw| = $(round(peak_diff; digits=4)) over $n_pts digitized points (no pass mark)"
         push!(table, ValidationTableRow("Fig. D-2 max |Δw| (info)", 0.0, 0.0, peak_diff, peak_diff, true))
     end
+    # Generalized masses against Table D-1's TOTAL MASS (information, no criterion)
+    d1 = structural_modes_from_table_d1(; n_keep=n_ref)
+    mr_err = Float64[]
+    for p in pairs
+        p.found || continue
+        ref, got = d1.modes[p.d1].M_r, modes.modes[p.ritz].M_r
+        push!(mr_err, got / ref - 1)
+        push!(table, ValidationTableRow("M_r mode $(p.d1) (info)", p.d1 + 0.5, ref, got, got - ref, true, "M_r (info)"))
+    end
+    # The same solver on inputs derived from the App. E sections (information): what the 2026-10-28 record ran on
+    gd = appd_test_article_geometry()
+    n_derived, _ = match_modes_by_shape(appd_modes(gd; n_modes=80, n_axial=g.n_axial, n_circ=g.n_circ, n_floor_max=g.n_floor_max);
+                                        mac_min=0.9, tol_frac=0.05)
     series = [
         PlotSeries("Table D-1", :reference_points, idxs, ref_f; panel=1),
-        PlotSeries("App. D solver", :computed, idxs, got_f; panel=1),
+        PlotSeries("App. D solver, NASA's deck", :computed, idxs, got_f; panel=1),
     ]
     verdict = met ? :met : :not_met
+    mr_med = isempty(mr_err) ? NaN : sort(abs.(mr_err))[div(length(mr_err) + 1, 2)]
     reason = "$npass/$n_ref Table D-1 modes with a shape partner (MAC ≥ 0.9) within 5 % ($(round(100 * frac; digits=1)) %; " *
-             "$n_missing with no shape partner); criterion ≥ 75 % of 32, shape pairing fixed 2026-10-28 (post-hoc: floor-beam " *
-             "reading V1 chosen after the diagnostic). Information: dominant-order identity $n_ident/32, frequency-only $n_greedy/32. $d2_notes"
+             "$n_missing with no shape partner) on NASA's MRP deck (User Manual pp. 42-43; re-run 2026-10-29, post-hoc); " *
+             "criterion ≥ 75 % of 32, shape pairing fixed 2026-10-28. Information: max |Δf| " *
+             "$(round(100 * maximum((abs(p.err) for p in pairs if p.found); init=0.0); digits=3)) %, M_r median |Δ| " *
+             "$(round(100 * mr_med; digits=2)) %, identity $n_ident/32, frequency-only $n_greedy/32; derived App. E inputs " *
+             "$n_derived/32. $d2_notes"
     return ValidationCaseResult(
         "MRP_APPD", _today_iso(),
         (; n_modes=n_ref, npass, n_missing, n_identity_info=n_ident, n_greedy_info=n_greedy, tol_frac=0.05, mac_min=0.9,
          count_rule="≥75% of 32 within 5%, shape-paired (MAC ≥ 0.9)", count_rule_date="2026-10-22; shape pairing 2026-10-28",
          calibration=false,
-         L=g.L, readings=APPD_READINGS,
-         reference_tables=["TABLE_D1_FULL", "fig_d2_mode1_digitized.csv"]),
+         L=g.L, inputs="NASA MRP deck, User Manual pp. 42-43 (data/cr3813/um_mrp_input_deck.csv)",
+         series_limits=(M=g.n_axial, ns=g.n_circ, np=g.n_floor_max), floor_cross_terms=false,
+         n_derived_inputs_info=n_derived, readings=APPD_READINGS,
+         reference_tables=["TABLE_D1_FULL", "fig_d2_mode1_digitized.csv", "um_mrp_input_deck.csv"]),
         table, series, verdict, reason,
         "V-CODE (vs NASA's solver outputs), first run of the printed App. D formulation 2026-10-22",
         joinpath(_VAL_REPORT_DIR, "mrp_appd_vs_d1.md"),
@@ -2303,9 +2326,9 @@ function _finish_validation_registry!()
                      error_mode=:relative_pct, error_tol=5.0), ""),
         ValidationCase("MRP_APPD", "Printed App. D structural solver vs Table D-1", "38g", String[],
             FigureRef("CR-3813", "Table D-1 / Fig. D-2", 113),
-            "≥ 75 % of 32 modes within 5 % (count rule fixed 2026-10-22); no calibration; Fig. D-2 reported without pass mark.",
+            "≥ 75 % of 32 modes within 5 % (count rule fixed 2026-10-22; shape pairing MAC ≥ 0.9, 2026-10-28); no calibration; inputs: NASA's MRP deck (User Manual pp. 42-43, from 2026-10-29); Fig. D-2 and M_r reported without pass mark.",
             "2026-10-22",
-            "V-CODE (vs NASA's solver outputs), first run of the printed App. D formulation 2026-10-22",
+            "V-CODE (vs NASA's solver outputs on NASA's inputs)",
             _run_mrp_appd,
             PlotSpec(; xlabel="mode number", ylabel="frequency (Hz)", panel_titles=["App. D vs D-1"],
                      error_mode=:relative_pct, error_tol=5.0), ""),
@@ -2446,6 +2469,7 @@ function _finish_validation_registry!()
     append!(cases, _iso62_validation_cases())  # phase 62 map-block cases
     append!(cases, _iso66_validation_cases())  # phase 66 BEMT / F1A code checks
     append!(cases, _iso67_validation_cases())  # phase 67 polars / compact chord
+    append!(cases, _iso80_validation_cases())  # phase 80 App. D solver verification
 
     # E21_E22_NR (38a), T2_EQ19 (38c), E18_TONES (38d), E15_STRUCT_LOSS (38e); no greyed placeholders.
     push!(cases, ValidationCase(
@@ -2530,15 +2554,15 @@ function _finish_validation_registry!()
         "E11_FREEFIELD", "ISO_FF_CONV", "ISO_TABLE8",
         "UT_GRID", "GEXT_BOUND", "ISO_GEXT_LINE",
         "BLK_P68", "E12_BLOCK", "ISO_BLOCKING",
-        "MRP_D1", "MRP_RITZ", "MRP_APPD",
+        "MRP_D1", "MRP_RITZ", "MRP_APPD", "MRP_COUPLED_LIMITS", "MRP_TRUNC",
         "CYL2D_C1", "ISO_CYL2D_EXACT", "ISO_CYL2D_BOUNDARY",
         "E14_LOSS", "E15_STRUCT_LOSS", "TRIM_CLOSED", "ISO_JOINT_ACC",
-        "ISO_MODAL_DENSITY", "ISO_BB_BAND", "ISO_SIL", "LOUDEST_PT", "NR_BAND_HAND", "HF_MASSLAW",
+        "ISO_MODAL_DENSITY", "ISO_BB_BAND", "ISO_SIL", "LOUDEST_PT", "LOUDEST_PT_GRID", "NR_BAND_HAND", "HF_MASSLAW",
         "REPRO_18b", "E18_TONES",
         "T1", "T1_FROM_E12", "T2", "T2_EQ19", "E21_E22_NR", "UNC_COVER",
         "T1_MEAS_DAMPING", "H3_ATTRIB", "NR_TP1964", "NR_TP1964_REF2", "NR_TP1964_XOVER", "NR_TP1964_XOVER_REF2",
         "NR_PROP_TP2444", "T2_MEAS_EXT", "BPM_RP1218", "PROP_BB_FIG14", "PROP_BB_FIG17", "T2_PRED_BB", "NR_PROP_TP2444_PF",
-        "SHARP_PANEL_D", "NR_PROP_TP2444_BR", "E22_BR", "T2_MEAS_EXT_BR",
+        "SHARP_PANEL_D", "SHARP_PANEL_D_SHAPE", "NR_PROP_TP2444_BR", "E22_BR", "T2_MEAS_EXT_BR",
         "REPRO_18b_PRE", "E21_PRE", "E22_HF_CODE",
         "F1A_PLANE_PEAK", "FF_E11_MAP", "SRC_PASSTHROUGH", "BLK_GAIN_MAP", "MRP_INPUT_QA", "MRP_SHAPE_NORM",
         "CABIN_GEOM_HAND", "CYL2D_WEYL", "CYL2D_GRID_CONV", "TRIM_INPUT_QA", "TRIM_PASSIVITY", "PAIN_INPUT_ECHO", "AC_CABIN_DEMO",

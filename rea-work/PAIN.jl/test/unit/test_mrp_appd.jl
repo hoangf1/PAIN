@@ -125,13 +125,13 @@ end
     # J3: no spurious mode with a zero shape; J4: no mode dropped by a frequency dedup (count against the families)
     g0 = PAIN.appd_test_article_geometry()
     sm2 = PAIN.appd_modes(g0; n_modes=1000, n_axial=3, f_max_Hz=900.0)
-    θa = range(deg2rad(g0.theta0_deg), 2π - deg2rad(g0.theta0_deg); length=181); Lp0 = 2g0.a * sind(g0.theta0_deg)
+    θa = range(0.0, 2π; length=721); Lp0 = 2g0.a * sind(g0.theta0_deg)      # whole shell (Phase 80, p. D-10)
     peak(m) = max(maximum(θ -> abs(PAIN.shell_circumferential(m, θ)), θa),
                   maximum(y -> abs(sum((m.symmetric ? cos(n * π * y / Lp0) : sin(n * π * y / Lp0)) * C for (C, n) in zip(m.C_floor, m.n_floor); init=0.0)), range(-Lp0 / 2, Lp0 / 2; length=81)))
     @test all(m -> peak(m) > 0.9, sm2.modes)                                       # unit-maximum shapes, none zero
     nfam = 0
     for Mx in 1:3, sym in (true, false)
-        bx = PAIN._appd_basis(Mx, sym)
+        bx = PAIN._appd_basis(Mx, sym; n_circ=12)                                 # appd_modes default (NASA deck)
         Kx, Mmx, _, _ = PAIN._appd_assemble_KM(bx, g0)
         Krx, Mrx, _ = PAIN._appd_reduce(Kx, Mmx, PAIN._appd_all_constraints(bx, g0))
         nfam += count(w2 -> 1.0 ≤ w2 && sqrt(w2) / 2π ≤ 900.0, eigvals(Symmetric(Krx), Symmetric(Mrx)))
@@ -212,4 +212,124 @@ end
     @test modal_assurance([1.0, 2.0], [2.0, 4.0]) ≈ 1.0 && modal_assurance([1.0, 0.0], [0.0, 1.0]) == 0.0
     f = mode_shape_field(d1.modes[1], d1.a, d1.theta0_deg)
     @test length(f) == 181 + 61 && maximum(abs, f) > 0
+end
+@testset "NASA's MRP deck as input (Phase 80)" begin
+    d = appd_nasa_deck()
+    @test d.L == 1.8034 && d.a == 0.508 && d.theta0_deg == 56.6 && (d.n_axial, d.n_circ, d.n_floor_max) == (10, 12, 5)
+    @test d.t_shell == 0.001153058 && d.m_shell == 3.113933 && d.Dp_frames == 1.200725e4 && d.Dp_floor_supports == 5.4264354e3
+    sp = PAIN._appd_shell_props(d); fp = PAIN._appd_floor_props(d)
+    k, D = PAIN._appd_kD(d.E_shell, d.ν_shell, d.t_shell)
+    @test sp.ms == d.m_shell && sp.k_eq ≈ k && sp.D_xs ≈ D + 62.352938 && sp.D_θR ≈ D + 1.200725e4
+    _, Df = PAIN._appd_kD(d.E_floor, d.ν_floor, d.t_floor)
+    @test fp.mf == d.m_floor && fp.Dx ≈ Df + 8.6297699e3 && fp.Dy ≈ Df + 5.4264354e3 && fp.H ≈ Df
+    @test fp.Lp ≈ 2 * 0.508 * sind(56.6)
+    # an orthotropic card is refused rather than silently read as isotropic
+    bad = joinpath(mktempdir(), "deck.csv")
+    write(bad, replace(read(PAIN.normpath(joinpath(pkgdir(PAIN), "..", "data", "cr3813", "um_mrp_input_deck.csv")), String),
+                       "shell,Etheta,7.239495E10" => "shell,Etheta,7.0E10"))
+    @test_throws ErrorException appd_nasa_deck(bad)
+end
+@testset "floor block with cross terms (Phase 80a fix)" begin
+    xs, ws = PAIN._gauss_legendre(8, 0.0, 2.0)
+    @test sum(ws) ≈ 2
+    @test sum(ws .* xs .^ 9) ≈ 2^10 / 10 rtol = 1e-12                          # exact to degree 15
+    Lp = 0.8; h = 1e-6
+    for sym in (true, false), p in 0:3
+        f0 = PAIN._appd_floor_funcs(p, 0.1, Lp, sym); fp_ = PAIN._appd_floor_funcs(p, 0.1 + h, Lp, sym); fm = PAIN._appd_floor_funcs(p, 0.1 - h, Lp, sym)
+        @test isapprox(f0[2], (fp_[1] - fm[1]) / 2h; atol=1e-5) && isapprox(f0[4], (fp_[3] - fm[3]) / 2h; atol=1e-5)
+        @test isapprox(f0[6], (fp_[5] - fm[5]) / 2h; atol=1e-5) && isapprox(f0[7], (fp_[6] - fm[6]) / 2h; atol=1e-4)
+    end
+    g = appd_test_article_geometry(); fpr = PAIN._appd_floor_props(g)
+    for sym in (true, false)
+        b = PAIN._appd_basis(2, sym; n_floor_max=5)
+        Kf, Mf = PAIN._appd_floor_block_KM(b, g.L, fpr)
+        @test Kf ≈ Kf' && Mf ≈ Mf'
+        for (j, p) in enumerate(b.p_floor)                    # diagonal = the per-term closed form (non-null components)
+            K3, M3 = PAIN._appd_floor_harmonic_KM(2, p, g.L, fpr, sym)
+            live = p > 0 ? (1:3) : (sym ? [1, 3] : [2])
+            r = 3(j - 1) .+ live
+            @test isapprox(Kf[r, r], K3[live, live]; rtol=1e-9) && isapprox(Mf[r, r], M3[live, live]; rtol=1e-9)
+        end
+    end
+    b = PAIN._appd_basis(2, true; n_floor_max=5)
+    Kf, Mf = PAIN._appd_floor_block_KM(b, g.L, fpr)
+    @test Mf[3, 6] ≈ fpr.mf * g.L / 2 * 2fpr.Lp / π rtol = 1e-10          # ∫cos 0 · cos(πy/Lp) dy = 2Lp/π
+    Kd, Md, _, _ = PAIN._appd_assemble_KM(b, g)                           # NASA's form: no cross terms
+    Kx, Mx, _, _ = PAIN._appd_assemble_KM(b, g; floor_cross_terms=true)
+    w0, w1 = PAIN._floor_dof(b, 1, 3), PAIN._floor_dof(b, 2, 3)
+    @test Md[w0, w1] == 0 && Mx[w0, w1] ≈ Mf[3, 6] && Kx[w0, w1] != 0
+    @test_throws ErrorException PAIN._appd_basis(1, true; n_floor_max=9)  # PAIN's limit; singular beyond
+end
+@testset "coupled solve: Rayleigh quotient, Ritz monotonicity, energy split (Phase 80b)" begin
+    d = appd_nasa_deck()
+    for sym in (true, false), cross in (false, true)
+        fam = PAIN._appd_family(d, 2, sym; n_circ=12, n_floor_max=5, floor_cross_terms=cross)
+        for k in 1:min(8, length(fam.ω2))
+            q = fam.Q[:, k]
+            @test dot(q, fam.K * q) / dot(q, fam.Mass * q) ≈ fam.ω2[k] rtol = 1e-8
+            sm, sk = PAIN._appd_shell_share(q, fam.b, fam.Mass), PAIN._appd_shell_share(q, fam.b, fam.K)
+            fl = 3fam.b.ns+1:fam.b.ndof
+            @test sm + dot(q[fl], fam.Mass[fl, fl] * q[fl]) / dot(q, fam.Mass * q) ≈ 1 atol = 1e-10
+            @test sk + dot(q[fl], fam.K[fl, fl] * q[fl]) / dot(q, fam.K * q) ≈ 1 atol = 1e-10
+        end
+        @test fam.Mass_exact ≈ PAIN._appd_assemble_KM(fam.b, d; floor_cross_terms=true)[2]
+        # nested bases: no frequency rises as terms are added
+        lo(nc, nf) = PAIN._appd_family(d, 2, sym; n_circ=nc, n_floor_max=nf, floor_cross_terms=cross).f_Hz[1:8]
+        @test all(lo(12, 5) .≤ lo(8, 5) .* (1 + 1e-9)) && all(lo(16, 5) .≤ lo(12, 5) .* (1 + 1e-9))
+        @test all(lo(12, 5) .≤ lo(12, 3) .* (1 + 1e-9)) && all(lo(12, 8) .≤ lo(12, 5) .* (1 + 1e-9))
+    end
+end
+@testset "shape peak and NASA's deck against Table D-1 (Phase 80)" begin
+    θ0, Lp = deg2rad(56.6), 0.848
+    @test PAIN._appd_shape_peak([0.5], [3], Float64[], Int[], true, θ0, Lp) ≈ 0.5 rtol = 1e-12
+    @test PAIN._appd_shape_peak([0.2], [2], [0.7], [1], false, θ0, Lp) ≈ 0.7 rtol = 1e-9     # sin(πy/Lp) peaks at the edge
+    @test PAIN._appd_shape_peak([0.3, 0.3], [1, 3], Float64[], Int[], true, θ0, Lp) ≈
+          maximum(abs(0.3 * (-cos(t)) + 0.3 * (-cos(3t))) for t in range(0, 2π; length=200_001)) rtol = 1e-8
+    d = appd_nasa_deck()
+    sm = appd_modes(d; n_modes=40, n_axial=d.n_axial, n_circ=d.n_circ, n_floor_max=d.n_floor_max)
+    d1 = structural_modes_from_table_d1(; n_keep=32)
+    @test all(abs(sm.modes[i].f_Hz / d1.modes[i].f_Hz - 1) ≤ 2e-4 for i in 1:32)           # Table D-1 reproduced
+    @test count(i -> abs(sm.modes[i].M_r / d1.modes[i].M_r - 1) ≤ 0.01, 1:32) ≥ 24
+    smx = appd_modes(d; n_modes=40, n_axial=d.n_axial, n_circ=d.n_circ, n_floor_max=d.n_floor_max, floor_cross_terms=true)
+    @test match_modes_by_shape(sm; mac_min=0.9, tol_frac=0.05)[1] == 32
+    @test match_modes_by_shape(smx; mac_min=0.9, tol_frac=0.05)[1] < 20                     # the cross terms change it
+    @test PAIN.appd_generalized_mass_from_shape(sm.modes[1], d) > 0
+end
+@testset "PAIN card input and input warnings for a new fuselage (Phase 80e)" begin
+    d = appd_nasa_deck()
+    fuse = PAIN.FuselageGeometry(d.L, d.a, d.theta0_deg)
+    ov = Dict{Symbol,Float64}(:t_shell_card_m => d.t_shell, :m_shell_kg_m2 => d.m_shell, :Dp_stringers_Nm => d.Dp_stringers,
+        :Dp_frames_Nm => d.Dp_frames, :t_floor_card_m => d.t_floor, :m_floor_kg_m2 => d.m_floor,
+        :Dp_floor_beams_Nm => d.Dp_floor_beams, :Dp_floor_supports_Nm => d.Dp_floor_supports, :E_Pa => d.E_shell, :nu => d.ν_shell)
+    g = PAIN.build_appd_geometry(fuse, ov)
+    @test g isa AppDDeck && all(getfield(g, f) == getfield(d, f) for f in fieldnames(AppDDeck))
+    @test PAIN.build_appd_geometry(fuse) isa AppDGeometry
+    @test_throws ErrorException PAIN.build_appd_geometry(fuse, Dict(:Dp_frames_Nm => 1.0))   # partial card set
+    @test length(PAIN.APPD_DECK_SPECS) == 8
+    @test isempty(PAIN.appd_input_warnings(d))
+    thick = AppDDeck(d.L, d.a, 95.0, d.E_shell, d.ν_shell, 0.03, d.m_shell, 0.0, 0.0, d.E_floor, d.ν_floor, d.t_floor,
+                     d.m_floor, 0.0, 0.0, 10, 12, 5)
+    w = PAIN.appd_input_warnings(thick)
+    @test any(occursin("thin-shell", x) for x in w) && any(occursin("θ0", x) for x in w)
+    ga = appd_test_article_geometry()
+    sm = appd_modes(ga; n_modes=32)
+    ws = PAIN.appd_input_warnings(ga, sm)
+    @test any(occursin("frame spacing", x) for x in ws)                  # 0.2 m frames against M ≥ 5 wavelengths
+    wide = AppDGeometry(ga.L, ga.a, ga.theta0_deg, ga.t_skin, ga.t_floor, ga.A_stringer, ga.d_stringer, ga.I_stringer,
+                        ga.A_frame, 0.01, ga.I_frame, ga.A_floor_beam, ga.I_floor_beam, ga.E, ga.ν, ga.ρ)
+    @test !any(occursin("frame spacing", x) for x in PAIN.appd_input_warnings(wide, sm))   # close frames: no warning
+end
+@testset "review fixes (Phase 80): one warning message, card provenance" begin
+    ga = appd_test_article_geometry()
+    thin_bad = AppDGeometry(ga.L, ga.a, 95.0, 0.05, ga.t_floor, ga.A_stringer, ga.d_stringer, ga.I_stringer, ga.A_frame,
+                            ga.ell_frame, ga.I_frame, ga.A_floor_beam, ga.I_floor_beam, ga.E, ga.ν, ga.ρ)
+    @test length(PAIN.appd_input_warnings(thin_bad)) == 2
+    @test_logs (:warn, r"thin-shell(.|\n)*θ0") match_mode=:any PAIN.build_structural_modes(
+        PAIN.FuselageGeometry(ga.L, ga.a, 56.6); structural_solver=:appd, n_keep=4, appd_geometry=thin_bad)
+    d = appd_nasa_deck()
+    @test PAIN.APPD_DECK_SPECS[4].nasa() == d.Dp_frames
+    # a family in NASA's form equals assembling without the floor cross terms
+    fam = PAIN._appd_family(d, 1, true; n_circ=12, n_floor_max=5)
+    K0, M0, _, _ = PAIN._appd_assemble_KM(fam.b, d)
+    @test fam.K ≈ K0 && fam.Mass ≈ M0 && !(fam.Mass_exact ≈ M0)
 end

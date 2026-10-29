@@ -38,8 +38,12 @@ const APPD_READINGS = (
     constraint_reduction = :nullspace_of_C,
 )
 
+"""Inputs the App. D solver accepts: `AppDGeometry` (stiffener sections, smeared by (D.24)) or `AppDDeck` (PAIN's own
+SHELL / PLATE cards, smeared properties given directly)."""
+abstract type AbstractAppDInput end
+
 """Geometry / material inputs for the App. D solver (any fuselage, not only the test article)."""
-struct AppDGeometry
+struct AppDGeometry <: AbstractAppDInput
     L::Float64                 # length [m]
     a::Float64                 # radius [m]
     theta0_deg::Float64        # floor angle [deg]
@@ -105,6 +109,59 @@ function AppDGeometry(fuse::FuselageGeometry;
                         A_floor_beam, I_floor_beam, E, ν, ρ)
 end
 
+"""
+PAIN's own MRP input (User Manual cards 7-15, printed pp. 18-22): smeared shell and floor properties as the program
+reads them. Shell: E, ν, thickness t (with smeared stiffener areas), mass per area (with smeared stiffener masses),
+additional bending rigidities D′ of the stringers and of the frames (stiffener E I / spacing, I about the shell centre
+line); floor: the same with D′ of the longitudinal floor beams and of the transverse floor supports. Isotropic sheet
+(Ex = Eθ on both cards of the test-article deck). `n_axial`, `n_circ`, `n_floor_max` are the deck's series limits
+(card 8). Phase 80, 2026-10-29.
+"""
+struct AppDDeck <: AbstractAppDInput
+    L::Float64
+    a::Float64
+    theta0_deg::Float64
+    E_shell::Float64
+    ν_shell::Float64
+    t_shell::Float64
+    m_shell::Float64
+    Dp_stringers::Float64
+    Dp_frames::Float64
+    E_floor::Float64
+    ν_floor::Float64
+    t_floor::Float64
+    m_floor::Float64
+    Dp_floor_beams::Float64
+    Dp_floor_supports::Float64
+    n_axial::Int
+    n_circ::Int
+    n_floor_max::Int
+end
+
+"""NASA's MRP deck for the test article (`data/cr3813/um_mrp_input_deck.csv`, User Manual pp. 42-43)."""
+function appd_nasa_deck(path::AbstractString=normpath(joinpath(@__DIR__, "..", "..", "data", "cr3813", "um_mrp_input_deck.csv")))
+    v = Dict{Tuple{String,String},Float64}()
+    for l in eachline(path)
+        (isempty(l) || startswith(l, "#") || startswith(l, "part,")) && continue
+        f = split(l, ",")
+        v[(String(f[1]), String(f[2]))] = parse(Float64, f[3])
+    end
+    for part in ("shell", "plate")
+        e2 = part == "shell" ? "Etheta" : "Ey"
+        n2 = part == "shell" ? "nu_theta" : "nu_y"
+        (v[(part, "Ex")] == v[(part, e2)] && v[(part, "nu_x")] == v[(part, n2)]) ||
+            error("appd_nasa_deck: orthotropic sheet on the $part card is not supported")
+    end
+    v[("general", "M_first")] == 1 && v[("general", "ns_first")] == 0 && v[("general", "np_first")] == 0 ||
+        error("appd_nasa_deck: series must start at M = 1, ns = 0, np = 0")
+    return AppDDeck(v[("shell", "length")], v[("shell", "radius")], v[("general", "theta0_deg")],
+        v[("shell", "Ex")], v[("shell", "nu_x")], v[("shell", "t")], v[("shell", "mass_per_area")],
+        v[("shell", "Dprime_stringers")], v[("shell", "Dprime_frames")],
+        v[("plate", "Ex")], v[("plate", "nu_x")], v[("plate", "t")], v[("plate", "mass_per_area")],
+        v[("plate", "Dprime_long_beams")], v[("plate", "Dprime_transverse_supports")],
+        Int(v[("general", "M_last")]), Int(v[("general", "ns_last")]), Int(v[("general", "np_last")]))
+end
+
 # ---------------------------------------------------------------------------
 # Constitutive scalars — (D.24) and p. D-10 thickness rule
 # ---------------------------------------------------------------------------
@@ -146,6 +203,25 @@ function _appd_floor_props(g::AppDGeometry)
     G = g.E / (2 * (1 + g.ν))
     mf = g.ρ * t_eq_f
     return (; Lp, t_eq_f, k_f, Dx, Dy, H, Gt=G * t_eq_f, Gt3=G * t_eq_f^3 / 12, mf, ν=g.ν)
+end
+
+# PAIN's cards give the smeared thickness and mass directly; the sheet's own bending rigidity is computed from the card
+# thickness (the only thickness the program reads) and the cards' D′ are added to it (Phase 80 reading, 2026-10-29).
+function _appd_shell_props(d::AppDDeck)
+    t = d.t_shell
+    k, D = _appd_kD(d.E_shell, d.ν_shell, t)
+    G = d.E_shell / (2 * (1 + d.ν_shell))
+    return (; t_eq=t, k_eq=k, D_eq=D, D_xs=D + d.Dp_stringers, D_θR=D + d.Dp_frames, Gt=G * t, Gt3=G * t^3 / 12,
+            ms=d.m_shell, ν=d.ν_shell, a=d.a, E=d.E_shell, ρ=d.m_shell / t)
+end
+
+function _appd_floor_props(d::AppDDeck)
+    Lp = 2 * d.a * sin(deg2rad(d.theta0_deg))
+    t = d.t_floor
+    k, D = _appd_kD(d.E_floor, d.ν_floor, t)
+    G = d.E_floor / (2 * (1 + d.ν_floor))
+    return (; Lp, t_eq_f=t, k_f=k, Dx=D + d.Dp_floor_beams, Dy=D + d.Dp_floor_supports, H=D, Gt=G * t,
+            Gt3=G * t^3 / 12, mf=d.m_floor, ν=d.ν_floor)
 end
 
 # ---------------------------------------------------------------------------
@@ -235,7 +311,7 @@ function _appd_shell_harmonic_KM(M::Int, n::Int, L, sp; arc_frac::Float64=1.0)
 end
 
 """Eigenfrequency (Hz) of one (M,n) from the App. D shell 3×3 (closed cylinder)."""
-function appd_shell_harmonic_frequency_Hz(M::Int, n::Int, g::AppDGeometry)
+function appd_shell_harmonic_frequency_Hz(M::Int, n::Int, g::AbstractAppDInput)
     sp = _appd_shell_props(g)
     K, Mass = _appd_shell_harmonic_KM(M, n, g.L, sp; arc_frac=1.0)
     if n == 0
@@ -252,7 +328,7 @@ end
 Donnell–Mushtari frequency from static condensation of the App. D shell 3×3
 (in-plane inertia neglected). Must match the Soedel/Leissa closed form within 1 %.
 """
-function appd_shell_condensed_frequency_Hz(M::Int, n::Int, g::AppDGeometry)
+function appd_shell_condensed_frequency_Hz(M::Int, n::Int, g::AbstractAppDInput)
     sp = _appd_shell_props(g)
     K, Mass = _appd_shell_harmonic_KM(M, n, g.L, sp; arc_frac=1.0)
     if n == 0
@@ -314,6 +390,65 @@ function _appd_floor_harmonic_KM(M::Int, p::Int, L, fp, sym::Bool)
     return K, Mass
 end
 
+"""Gauss–Legendre nodes and weights on [lo, hi] (Golub–Welsch)."""
+function _gauss_legendre(n::Int, lo::Float64, hi::Float64)
+    β = [k / sqrt(4k^2 - 1) for k in 1:n-1]
+    F = eigen(SymTridiagonal(zeros(n), β))
+    x = F.values
+    w = 2 .* F.vectors[1, :] .^ 2
+    return (hi - lo) / 2 .* x .+ (hi + lo) / 2, (hi - lo) / 2 .* w
+end
+
+"""
+Floor spanwise functions of family `sym` at y (from the floor centreline), with first and second derivatives:
+symmetric Ψu = Ψw = cos(k y), Ψv = sin(k y); antisymmetric Ψu = Ψw = sin(k y), Ψv = −cos(k y); k = pπ/Lp.
+Returns (Ψu, Ψu′, Ψv, Ψv′, Ψw, Ψw′, Ψw″).
+"""
+function _appd_floor_funcs(p::Int, y::Float64, Lp::Float64, sym::Bool)
+    k = p * π / Lp
+    c, s = cos(k * y), sin(k * y)
+    if sym
+        return (c, -k * s, s, k * c, c, -k * s, -k^2 * c)
+    else
+        return (s, k * c, -c, k * s, s, k * c, -k^2 * s)
+    end
+end
+
+"""
+Floor stiffness and mass over every pair of spanwise functions of one (M, parity) block (3np × 3np, layout of
+`_floor_dof` without the shell offset), by Gauss–Legendre quadrature over y ∈ [−Lp/2, Lp/2] (Phase 80a fix).
+Same energy as `_appd_floor_harmonic_KM` with u = U cos μx Ψu, v = V sin μx Ψv, w = W sin μx Ψw:
+membrane k_f(εx² + εy² + 2ν εx εy) + G t γ², orthotropic bending Dx w_xx² + Dy w_yy² + 2D₁ w_xx w_yy + 4D₆₆ w_xy²
+with D₁ = ν D_plate, D₆₆ = (1 − ν) D_plate / 2, so D₁ + 2D₆₆ = H = D_plate (the reading of Phase 78d F2).
+"""
+function _appd_floor_block_KM(b, L, fp)
+    Lp, μ, ν, kf, Gt = fp.Lp, b.M * π / L, fp.ν, fp.k_f, fp.Gt
+    D1, D66 = ν * fp.H, (1 - ν) * fp.H / 2
+    Ix = L / 2
+    ys, ws = _gauss_legendre(64, -Lp / 2, Lp / 2)
+    np = b.np
+    K = zeros(3np, 3np); M = zeros(3np, 3np)
+    d(j, c) = 3 * (j - 1) + c
+    for (y, wq) in zip(ys, ws)
+        F = [_appd_floor_funcs(p, y, Lp, b.sym) for p in b.p_floor]
+        for i in 1:np, j in 1:np
+            ui, dui, vi, dvi, wi, dwi, d2wi = F[i]
+            uj, duj, vj, dvj, wj, dwj, d2wj = F[j]
+            c = Ix * wq
+            K[d(i, 1), d(j, 1)] += c * (kf * μ^2 * ui * uj + Gt * dui * duj)
+            K[d(i, 2), d(j, 2)] += c * (kf * dvi * dvj + Gt * μ^2 * vi * vj)
+            K[d(i, 1), d(j, 2)] += c * (-ν * kf * μ * ui * dvj + Gt * μ * dui * vj)
+            K[d(j, 2), d(i, 1)] += c * (-ν * kf * μ * ui * dvj + Gt * μ * dui * vj)
+            K[d(i, 3), d(j, 3)] += c * (fp.Dx * μ^4 * wi * wj + fp.Dy * d2wi * d2wj -
+                                        D1 * μ^2 * (wi * d2wj + d2wi * wj) + 4D66 * μ^2 * dwi * dwj)
+            M[d(i, 1), d(j, 1)] += c * fp.mf * ui * uj
+            M[d(i, 2), d(j, 2)] += c * fp.mf * vi * vj
+            M[d(i, 3), d(j, 3)] += c * fp.mf * wi * wj
+        end
+    end
+    return K, M
+end
+
 # ---------------------------------------------------------------------------
 # Coupled shell∪floor eigenproblem with (D.17)–(D.21) constraints
 # ---------------------------------------------------------------------------
@@ -331,6 +466,9 @@ struct _AppDBasis
 end
 
 function _appd_basis(M::Int, sym::Bool; n_circ::Int=8, n_floor_max::Int=5)
+    # PAIN's own limit (User Manual card 8: final np ≤ 8). Beyond it cos(pπy/Lp) of both parities on the half period
+    # are numerically dependent: the floor mass matrix reaches cond 1e13 at np = 9 and is singular at 11 (Phase 80b).
+    0 ≤ n_floor_max ≤ 8 || error("n_floor_max = $n_floor_max outside 0–8 (PAIN's limit; the floor series is singular beyond)")
     ns_list = collect(0:n_circ)
     ps = collect(0:n_floor_max)          # antisymmetric p = 0: uniform floor sway (Phase 78d-4 J5)
     ns = length(ns_list)
@@ -341,7 +479,11 @@ end
 _shell_dof(b::_AppDBasis, i_n::Int, comp::Int) = 3 * (i_n - 1) + comp          # 1:U 2:V 3:W
 _floor_dof(b::_AppDBasis, i_p::Int, comp::Int) = 3 * b.ns + 3 * (i_p - 1) + comp
 
-function _appd_assemble_KM(b::_AppDBasis, g::AppDGeometry)
+# `floor_cross_terms`: see `appd_modes`. `floor_block`: a precomputed `_appd_floor_block_KM` result. `shell_kscale` multiplies the shell stiffness only, `floor_mscale` the floor
+# mass only (test-only limiting cases of Phase 80a: a near-rigid shell; a floor whose own modes lie far above the
+# range); production always uses 1.
+function _appd_assemble_KM(b::_AppDBasis, g::AbstractAppDInput; floor_cross_terms::Bool=false,
+                           shell_kscale::Float64=1.0, floor_mscale::Float64=1.0, floor_block=nothing)
     sp = _appd_shell_props(g)
     fp = _appd_floor_props(g)
     N = b.ndof
@@ -352,18 +494,25 @@ function _appd_assemble_KM(b::_AppDBasis, g::AppDGeometry)
     # Until 2026-10-28 the shell energy and mass were scaled by the cabin arc fraction (246.8°/360°).
     for (i, n) in enumerate(b.n_shell)
         K3, M3 = _appd_shell_harmonic_KM(b.M, n, g.L, sp; arc_frac=1.0)
+        K3 = shell_kscale * K3
         for c1 in 1:3, c2 in 1:3
             K[_shell_dof(b, i, c1), _shell_dof(b, i, c2)] += K3[c1, c2]
             M[_shell_dof(b, i, c1), _shell_dof(b, i, c2)] += M3[c1, c2]
         end
     end
-    for (j, p) in enumerate(b.p_floor)
-        K3, M3 = _appd_floor_harmonic_KM(b.M, p, g.L, fp, b.sym)
-        for c1 in 1:3, c2 in 1:3
-            K[_floor_dof(b, j, c1), _floor_dof(b, j, c2)] += K3[c1, c2]
-            M[_floor_dof(b, j, c1), _floor_dof(b, j, c2)] += M3[c1, c2]
-        end
+    # Floor (Phase 80, 2026-10-29). cos(pπy/Lp) and sin(pπy/Lp) on [−Lp/2, Lp/2] are not orthogonal when p and q
+    # differ in parity (e.g. ∫cos0·cos(πy/Lp) = 2Lp/π). NASA's program keeps only the diagonal of each spanwise term
+    # (`floor_cross_terms=false`, the default): with NASA's deck it then reproduces Table D-1's 32 frequencies within
+    # 0.012 % (MRP_APPD). With the cross terms the floor is the exact Ritz energy (`floor_cross_terms=true`); NASA's
+    # form puts the second and third clamped-plate floor modes of the near-rigid-shell limit 50–78 % low (80a).
+    Kf, Mf = floor_block === nothing ? _appd_floor_block_KM(b, g.L, fp) : floor_block
+    if !floor_cross_terms
+        mask = [div(i - 1, 3) == div(j - 1, 3) for i in 1:3b.np, j in 1:3b.np]
+        Kf = Kf .* mask; Mf = Mf .* mask
     end
+    fd = [_floor_dof(b, j, c) for j in 1:b.np for c in 1:3]
+    K[fd, fd] .+= Kf
+    M[fd, fd] .+= floor_mscale .* Mf
     # Symmetrize / floor tiny masses
     K = 0.5 * (K + K')
     M = 0.5 * (M + M')
@@ -385,7 +534,7 @@ Constraint matrix [C] for (D.17): C q = 0, from (D.4) at the +θ0 junction
 
 Axial φ factors cancel for a single M. Evaluated on the cos/sin amplitudes.
 """
-function _appd_constraint_matrix(b::_AppDBasis, g::AppDGeometry; rigid::Bool=true)
+function _appd_constraint_matrix(b::_AppDBasis, g::AbstractAppDInput; rigid::Bool=true)
     θ0 = deg2rad(g.theta0_deg)
     a = g.a
     Lp = 2 * a * sin(θ0)
@@ -460,7 +609,7 @@ function _appd_null_rows(b::_AppDBasis)
 end
 
 """(D.4) junction rows plus the n = 0 null-function rows: the constraint set the eigenproblem is reduced with."""
-_appd_all_constraints(b::_AppDBasis, g::AppDGeometry; rigid::Bool=true) =
+_appd_all_constraints(b::_AppDBasis, g::AbstractAppDInput; rigid::Bool=true) =
     vcat(_appd_constraint_matrix(b, g; rigid=rigid), _appd_null_rows(b))
 
 """Reduced eigenproblem via nullspace of C (≡ Eqs. D.18–D.21)."""
@@ -486,7 +635,7 @@ end
 Evaluate (D.4) residuals at +θ0 for a full DOF vector (per-M amplitudes).
 Returns the 4 residuals (or 3 if hinged).
 """
-function appd_constraint_residuals(q::AbstractVector, b::_AppDBasis, g::AppDGeometry; rigid::Bool=true)
+function appd_constraint_residuals(q::AbstractVector, b::_AppDBasis, g::AbstractAppDInput; rigid::Bool=true)
     C = _appd_constraint_matrix(b, g; rigid=rigid)
     return C * q
 end
@@ -494,7 +643,37 @@ end
 # ---------------------------------------------------------------------------
 # Shape extraction → StructuralMode fields (Eqs. D.26–D.29)
 # ---------------------------------------------------------------------------
-function _appd_extract_shapes(q::AbstractVector, b::_AppDBasis, g::AppDGeometry, Mr::Float64)
+"""
+Largest |normal displacement| of a shape in App. D's convention (θ from the top, floor upward): the shell over its whole
+circumference and the floor over its width. Coarse grid, then golden-section refinement around each grid maximum, so
+the result is the continuous maximum to ~1e-12 (Phase 80d).
+"""
+function _appd_shape_peak(C_shell, n_shell, C_floor, n_floor, sym::Bool, θ0::Float64, Lp::Float64)
+    ws(θ) = abs(sum((sym ? C * (-1)^n * cos(n * θ) : -C * (-1)^n * sin(n * θ) for (C, n) in zip(C_shell, n_shell)); init=0.0))
+    wf(x) = abs(sum((sym ? C * cos(n * π * x / Lp) : C * sin(n * π * x / Lp) for (C, n) in zip(C_floor, n_floor)); init=0.0))
+    function refine(f, lo, hi)
+        φ = (sqrt(5) - 1) / 2
+        a, b = lo, hi
+        c, d = b - φ * (b - a), a + φ * (b - a)
+        for _ in 1:80
+            f(c) > f(d) ? (b = d) : (a = c)
+            c, d = b - φ * (b - a), a + φ * (b - a)
+        end
+        return max(f((a + b) / 2), f(lo), f(hi))
+    end
+    function gridmax(f, lo, hi, n)
+        xs = range(lo, hi; length=n)
+        vals = f.(xs)
+        k = argmax(vals)
+        h = step(xs)
+        return refine(f, max(lo, xs[k] - h), min(hi, xs[k] + h))
+    end
+    p = isempty(C_shell) ? 0.0 : gridmax(ws, 0.0, 2π, 721)
+    return isempty(C_floor) ? p : max(p, gridmax(wf, -Lp / 2, Lp / 2, 201))
+end
+
+function _appd_extract_shapes(q::AbstractVector, b::_AppDBasis, g::AbstractAppDInput, Mr::Float64;
+                              n_keep_shell::Int=8, n_keep_floor::Int=5)
     # Phase 78d-4 J1: the solver applies (D.4) at θ0 with the cos nθ / sin nθ basis, i.e. App. D's equations on the
     # structure mirrored top to bottom; its amplitudes c_n are in θ from the bottom with the floor w positive
     # downward. App. D (Fig. D-1, (D.3)) and Table D-1 measure θ from the top (`shell_circumferential` applies
@@ -517,24 +696,11 @@ function _appd_extract_shapes(q::AbstractVector, b::_AppDBasis, g::AppDGeometry,
         push!(C_floor, -W)
         push!(n_floor, p)
     end
-    # Normalize max |normal displacement| = 1 (p. D-10)
-    θ0 = deg2rad(g.theta0_deg)
-    Lp = 2 * g.a * sin(θ0)
-    peak = 0.0
-    for θ in range(θ0, 2π - θ0; length=181)
-        s = 0.0
-        for (C, n) in zip(C_shell, n_shell)
-            s += b.sym ? C * (-1)^n * cos(n * θ) : -C * (-1)^n * sin(n * θ)
-        end
-        peak = max(peak, abs(s))
-    end
-    for x in range(-Lp / 2, Lp / 2; length=81)
-        s = 0.0
-        for (C, n) in zip(C_floor, n_floor)
-            s += b.sym ? C * cos(n * π * x / Lp) : C * sin(n * π * x / Lp)
-        end
-        peak = max(peak, abs(s))
-    end
+    # Normalize max |normal displacement| = 1 (p. D-10) over the whole shell and the floor. Until 2026-10-29 the shell
+    # search covered the cabin arc only; Table D-1 mode 14 peaks below the floor and was then scaled 1.26× too large
+    # (Phase 80, NASA's deck). The maximum is continuous (`_appd_shape_peak`); NASA's printed coefficients are up to
+    # 2.3 % larger, consistent with a peak taken on its 36-point output grid (deck card MODE SHAPES), not reproduced here.
+    peak = _appd_shape_peak(C_shell, n_shell, C_floor, n_floor, b.sym, deg2rad(g.theta0_deg), 2 * g.a * sin(deg2rad(g.theta0_deg)))
     if peak > 0
         C_shell ./= peak
         C_floor ./= peak
@@ -547,9 +713,41 @@ function _appd_extract_shapes(q::AbstractVector, b::_AppDBasis, g::AppDGeometry,
         kk = min(k, length(C))
         return C[ord[1:kk]], n[ord[1:kk]]
     end
-    Cs, ns = topk(C_shell, n_shell, 8)
-    Cf, nf = topk(C_floor, n_floor, 5)
+    Cs, ns = topk(C_shell, n_shell, n_keep_shell)
+    Cf, nf = topk(C_floor, n_floor, n_keep_floor)
     return Cs, ns, Cf, nf, Mr
+end
+
+"""
+Eigen-solution of one (M, parity) family: frequencies `f_Hz` (ω² ≥ 1 only), full coefficient vectors `Q` (columns),
+the assembled `K`, `Mass` (the matrices solved) and `Mass_exact` (with the floor cross terms, for generalized masses),
+and the basis `b`; `nothing` when the constraints leave no freedom or the solve fails. `shell_kscale` and
+`floor_mscale` are the test-only factors of `_appd_assemble_KM` (Phase 80a).
+"""
+function _appd_family(g::AbstractAppDInput, M::Int, sym::Bool; n_circ::Int=8, n_floor_max::Int=5,
+                      rigid::Bool=true, floor_cross_terms::Bool=false, shell_kscale::Float64=1.0,
+                      floor_mscale::Float64=1.0)
+    b = _appd_basis(M, sym; n_circ=n_circ, n_floor_max=n_floor_max)
+    fb = _appd_floor_block_KM(b, g.L, _appd_floor_props(g))     # the floor quadrature, once per family
+    K, Mass, _, _ = _appd_assemble_KM(b, g; floor_cross_terms, shell_kscale, floor_mscale, floor_block=fb)
+    Mass_exact = floor_cross_terms ? Mass :
+        _appd_assemble_KM(b, g; floor_cross_terms=true, shell_kscale, floor_mscale, floor_block=fb)[2]
+    red = _appd_reduce(K, Mass, _appd_all_constraints(b, g; rigid=rigid))
+    red === nothing && return nothing
+    Kr, Mr, E = red
+    F = try
+        eigen(Symmetric(Kr), Symmetric(Mr))
+    catch
+        return nothing
+    end
+    keep = findall(≥(1.0), F.values)
+    return (; b, K, Mass, Mass_exact, ω2=F.values[keep], f_Hz=sqrt.(F.values[keep]) ./ 2π, Q=E * F.vectors[:, keep])
+end
+
+"""Shell share of a mode's kinetic (`Mass`) or strain (`K`) energy: shell DOFs over the total (Phase 80)."""
+function _appd_shell_share(q::AbstractVector, b::_AppDBasis, A::AbstractMatrix)
+    s = 1:3b.ns
+    return dot(q[s], A[s, s] * q[s]) / dot(q, A * q)
 end
 
 # ---------------------------------------------------------------------------
@@ -557,44 +755,35 @@ end
 # ---------------------------------------------------------------------------
 
 """
-    appd_modes(geometry; n_modes=32, n_axial=6, n_circ=8, n_floor_max=5, …)
+    appd_modes(geometry; n_modes=32, n_axial=10, n_circ=12, n_floor_max=5, floor_cross_terms=false, …)
 
 Appendix D Rayleigh–Ritz eigenmodes (Eqs. D.17–D.26). Returns `StructuralModes`
 usable as `inp.structural`. No parameter is fitted to Table D-1.
+
+`floor_cross_terms=false` (default) is NASA's program: the floor stiffness and mass keep only the diagonal of each
+spanwise term; on NASA's deck (`appd_nasa_deck()`) this reproduces Table D-1. `true` adds the cross terms between floor
+terms of different parity (the exact Ritz energy of the same basis). Either way M_r is the generalized mass of the
+returned shape with the exact floor integral, as Table D-1's TOTAL MASS is (Phase 80, 2026-10-29).
 """
-function appd_modes(geometry::AppDGeometry;
+function appd_modes(geometry::AbstractAppDInput;
                     n_modes::Int=32,
-                    n_axial::Int=6,
-                    n_circ::Int=8,
+                    n_axial::Int=10,     # series limits NASA ran the test article with (User Manual card 8,
+                    n_circ::Int=12,      # pp. 42-43): M 1-10, ns 0-12, np 0-5 (Phase 80, 2026-10-29; was 6, 8, 5)
                     n_floor_max::Int=5,
                     include_antisym::Bool=true,
                     rigid::Bool=true,
+                    floor_cross_terms::Bool=false,
                     f_max_Hz::Float64=5000.0)
     cands = NamedTuple[]
-    basis_by_key = Dict{Tuple{Int,Bool},_AppDBasis}()
-    qfull_by_cand = Vector{Float64}[]   # kept only transiently for constraint checks
     for M in 1:n_axial
         for sym in (true, false)
             sym || include_antisym || continue
-            b = _appd_basis(M, sym; n_circ=n_circ, n_floor_max=n_floor_max)
-            basis_by_key[(M, sym)] = b
-            K, Mass, _, _ = _appd_assemble_KM(b, geometry)
-            C = _appd_all_constraints(b, geometry; rigid=rigid)
-            red = _appd_reduce(K, Mass, C)
-            red === nothing && continue
-            Kr, Mr, E = red
-            local F
-            try
-                F = eigen(Symmetric(Kr), Symmetric(Mr))
-            catch
-                continue
-            end
-            for (ei, ω2) in enumerate(F.values)
-                ω2 < 1.0 && continue
-                f = sqrt(ω2) / (2π)
+            fam = _appd_family(geometry, M, sym; n_circ, n_floor_max, rigid, floor_cross_terms)
+            fam === nothing && continue
+            b, Mass = fam.b, fam.Mass_exact
+            for (ei, f) in enumerate(fam.f_Hz)
                 f > f_max_Hz && continue
-                q1 = F.vectors[:, ei]
-                q = E * q1
+                q = fam.Q[:, ei]
                 # Rayleigh mass with unconstrained M*
                 Mr_raw = abs(dot(q, Mass * q))
                 Cs, ns, Cf, nf, Mr_n = _appd_extract_shapes(q, b, geometry, Mr_raw)
@@ -634,7 +823,7 @@ L, a, θ0 come from `fuse`).
 function build_structural_modes(fuse::FuselageGeometry;
                                 structural_solver::Symbol=:table_d1,
                                 n_keep::Int=32,
-                                appd_geometry::Union{Nothing,AppDGeometry}=nothing)
+                                appd_geometry::Union{Nothing,AbstractAppDInput}=nothing)
     if structural_solver === :table_d1 || structural_solver === :d1
         return structural_modes_from_table_d1(; L=fuse.L, a=fuse.a,
                                               theta0_deg=fuse.theta0_deg, n_keep=n_keep)
@@ -642,10 +831,34 @@ function build_structural_modes(fuse::FuselageGeometry;
         return structural_modes(fuse; n_keep=n_keep)
     elseif structural_solver === :appd
         g = appd_geometry === nothing ? AppDGeometry(fuse) : appd_geometry
-        return appd_modes(g; n_modes=n_keep)
+        sm = appd_modes(g; n_modes=n_keep)
+        w = appd_input_warnings(g, sm)
+        isempty(w) || @warn join(w, "\n")     # one message: a per-line maxlog would drop all but the first
+        return sm
     else
         error("unknown structural_solver=$structural_solver (use :table_d1, :ritz, :appd)")
     end
+end
+
+"""
+Inputs outside the App. D model's assumptions, as messages (Phase 80e; never alters an input): a / t < 20 (thin
+shell), θ0 outside 0°–90° (floor and junction defined for a floor below the axis), and for stiffener sections
+(`AppDGeometry`) the smearing assumption: frame spacing above a quarter of a mode's axial wavelength 2L/M, or stringer
+spacing above a quarter of its circumferential wavelength 2πa/n (n the mode's largest shell term), counted over `sm`.
+"""
+function appd_input_warnings(g::AbstractAppDInput, sm::Union{Nothing,StructuralModes}=nothing)
+    w = String[]
+    t = g isa AppDDeck ? g.t_shell : g.t_skin
+    g.a / t < 20 && push!(w, "App. D: a / t = $(round(g.a / t; digits=1)) < 20, outside thin-shell theory")
+    0 < g.theta0_deg < 90 || push!(w, "App. D: floor angle θ0 = $(g.theta0_deg)° outside 0°–90°")
+    if g isa AppDGeometry && sm !== nothing && !isempty(sm.modes)
+        nf = count(m -> g.ell_frame > (2g.L / m.M_axial) / 4, sm.modes)
+        ns = count(m -> !isempty(m.n_shell) && (n = m.n_shell[argmax(abs.(m.C_shell))]) > 0 &&
+                        g.d_stringer > (2π * g.a / n) / 4, sm.modes)
+        nf > 0 && push!(w, "App. D smearing: frame spacing $(g.ell_frame) m exceeds a quarter of the axial wavelength in $nf of $(length(sm.modes)) modes")
+        ns > 0 && push!(w, "App. D smearing: stringer spacing $(round(g.d_stringer; digits=4)) m exceeds a quarter of the circumferential wavelength in $ns of $(length(sm.modes)) modes")
+    end
+    return w
 end
 
 # ---------------------------------------------------------------------------
@@ -654,7 +867,7 @@ end
 
 """Generalized mass ∫ ρ φ² dA of the normal displacement from returned shape coefficients, over the cabin shell arc
 and the floor (w only; the solver's `M_r` is qᵀMq over u, v, w of the whole circumference, (D.30), Phase 78d-4)."""
-function appd_generalized_mass_from_shape(mode::StructuralMode, g::AppDGeometry)
+function appd_generalized_mass_from_shape(mode::StructuralMode, g::AbstractAppDInput)
     sp = _appd_shell_props(g)
     fp = _appd_floor_props(g)
     θ0 = deg2rad(g.theta0_deg)
@@ -705,7 +918,7 @@ end
 Max |C q| over the lowest `n_check` modes of each (M, parity) family (Eq. D.17).
 Used by V-UNIT; the reduction forces these to numerical nullspace tolerance.
 """
-function appd_max_constraint_residual(g::AppDGeometry;
+function appd_max_constraint_residual(g::AbstractAppDInput;
                                       n_axial::Int=4, n_circ::Int=8, n_floor_max::Int=5,
                                       n_check::Int=5, rigid::Bool=true)
     worst = 0.0
@@ -730,7 +943,7 @@ function appd_max_constraint_residual(g::AppDGeometry;
 end
 
 """Mass-matrix orthogonality max |q_iᵀ M q_j| / √(Mii Mjj) for i≠j in one family."""
-function appd_mode_orthogonality(g::AppDGeometry; M::Int=1, sym::Bool=true,
+function appd_mode_orthogonality(g::AbstractAppDInput; M::Int=1, sym::Bool=true,
                                  n_circ::Int=8, n_floor_max::Int=5, n_modes::Int=6,
                                  rigid::Bool=true)
     b = _appd_basis(M, sym; n_circ=n_circ, n_floor_max=n_floor_max)

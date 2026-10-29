@@ -130,6 +130,11 @@ end
 """Information row (no tolerance applies): its label or group carries "(info" (Phase 79a)."""
 _is_info_row(r::ValidationTableRow) = occursin("(info", r.quantity) || occursin("(info", r.group)
 
+"""Error-panel colour of a row: grey for a case without a criterion and for information rows (Phase 81: they have no
+tolerance, so green or red would claim one), else green within / red outside the criterion."""
+_error_point_color(r::ValidationTableRow, has_criterion::Bool) =
+    (!has_criterion || _is_info_row(r)) ? :gray40 : r.within_tolerance ? :green : :red
+
 """
     case_error_summary(result, spec) -> NamedTuple
 
@@ -621,7 +626,7 @@ function plot_case(result::ValidationCaseResult, spec::PlotSpec; path::Union{Not
                 gi = length(groups)
             end
             mk = _ERROR_MARKERS[mod1(gi, length(_ERROR_MARKERS))]
-            col = !crit_e ? :gray40 : row.within_tolerance ? :green : :red
+            col = _error_point_color(row, crit_e)
             scatter!(ax_e, [row.x], [e]; marker=mk, markersize=10, color=col)
         end
         if err_same_x && spec.xscale === :log10
@@ -642,6 +647,10 @@ function plot_case(result::ValidationCaseResult, spec::PlotSpec; path::Union{Not
                 push!(labs, "within criterion")
                 push!(elems, MarkerElement(marker=:circle, color=:red, markersize=10))
                 push!(labs, "outside")
+                if any(r -> _is_info_row(r), result.table)
+                    push!(elems, MarkerElement(marker=:circle, color=:gray40, markersize=10))
+                    push!(labs, "information (no criterion)")
+                end
             end
             Legend(fig[err_row, 2], elems, labs; framevisible=false, labelsize=10)
         end

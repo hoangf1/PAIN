@@ -57,6 +57,20 @@ const APPD_INPUT_SPECS = (
     (name="rho_struc_kg_m3", keys=(:rho_struc_kg_m3, :rho_struc, :ρ), nasa=() -> NASA_DEFAULTS.rho_struc_kg_m3),
 )
 
+# PAIN's own MRP card values (User Manual cards 10-15, Phase 80): a new fuselage may be described as NASA described the
+# test article (`appd_nasa_deck()`), with the smeared thickness and mass and the stiffener D′ given directly. All eight
+# together select `AppDDeck`; E and ν come from `E_Pa`, `nu` (APPD_INPUT_SPECS). Read only when supplied.
+const APPD_DECK_SPECS = (
+    (name="t_shell_card_m", keys=(:t_shell_card_m,), nasa=() -> appd_nasa_deck().t_shell),
+    (name="m_shell_kg_m2", keys=(:m_shell_kg_m2,), nasa=() -> appd_nasa_deck().m_shell),
+    (name="Dp_stringers_Nm", keys=(:Dp_stringers_Nm,), nasa=() -> appd_nasa_deck().Dp_stringers),
+    (name="Dp_frames_Nm", keys=(:Dp_frames_Nm,), nasa=() -> appd_nasa_deck().Dp_frames),
+    (name="t_floor_card_m", keys=(:t_floor_card_m,), nasa=() -> appd_nasa_deck().t_floor),
+    (name="m_floor_kg_m2", keys=(:m_floor_kg_m2,), nasa=() -> appd_nasa_deck().m_floor),
+    (name="Dp_floor_beams_Nm", keys=(:Dp_floor_beams_Nm,), nasa=() -> appd_nasa_deck().Dp_floor_beams),
+    (name="Dp_floor_supports_Nm", keys=(:Dp_floor_supports_Nm,), nasa=() -> appd_nasa_deck().Dp_floor_supports),
+)
+
 """Smeared Phase III wall mass from `MRP_*` (same formula as `PainInputs`)."""
 nasa_default_m_wall() =
     MRP_RHO_2024 * (MRP_T_SKIN + MRP_A_STRINGER / MRP_D_STRINGER + MRP_A_FRAME / MRP_ELL_FRAME)
@@ -409,6 +423,15 @@ function apply_aircraft_cabin_json(cfg, kw)
         push!(inputs, _input_row(spec.name, val, tag))
         appd_overrides[Symbol(spec.name)] = val
     end
+    for spec in APPD_DECK_SPECS
+        parsed = _first(_get_tagged(cabin, spec.keys; name=spec.name),
+                        _get_tagged(struct_j, spec.keys; name=spec.name))
+        parsed === nothing && continue
+        val, tag0 = parsed
+        push!(supplied, spec.name)
+        push!(inputs, _input_row(spec.name, val, tag0 === nothing ? resolve_plain_tag(val, spec.nasa()) : tag0))
+        appd_overrides[Symbol(spec.name)] = val
+    end
 
     if bands === nothing
         bj = _dict_get(cfg, :bands_Hz, nothing)
@@ -562,8 +585,11 @@ function collect_nasa_defaults_used(;
         elseif get(tag_of, "structural_solver", "") == "nasa_default"
             push!(out, _prov_row("structural_solver", "appd", "App. D / user tag nasa_default"))
         end
-        # Missing App. D skin/stringer/frame/floor → NASA MRP_* (30c)
+        # Missing App. D skin/stringer/frame/floor → NASA MRP_* (30c). With all eight PAIN card values the solver reads
+        # the card set (`AppDDeck`), so the section inputs are unused and not listed (Phase 80 review).
+        deck_used = all(sp.name in supplied for sp in APPD_DECK_SPECS)
         for spec in APPD_INPUT_SPECS
+            deck_used && !(spec.name in ("E_Pa", "nu")) && continue
             if !(spec.name in supplied)
                 push!(out, _prov_row(spec.name, spec.nasa(),
                                      "MRP_* / App. D test-article default (30c)"))
@@ -665,13 +691,25 @@ function resolve_cabin_blocks(cabin_blocks::Symbol, source::Symbol)
 end
 
 """
-Build `AppDGeometry` from fuselage + optional JSON overrides (30c).
-Missing fields use NASA MRP_* (flagged by 29b when on the parametric path).
-No hard-coded 0.508 / 1.83: L, a, θ0 come from `fuse`.
+Build the App. D input from fuselage + optional JSON overrides (30c). With all eight of PAIN's card values
+(`APPD_DECK_SPECS`, Phase 80) it returns an `AppDDeck` with NASA's series limits for the test article (M 1-10, ns 0-12,
+np 0-5); a partial set is an error. Otherwise an `AppDGeometry` from stiffener sections, missing fields from NASA MRP_*
+(flagged by 29b when on the parametric path). No hard-coded 0.508 / 1.83: L, a, θ0 come from `fuse`.
 """
 function build_appd_geometry(fuse::FuselageGeometry,
                              overrides::AbstractDict=Dict{Symbol,Float64}())
     getv(name::Symbol, default) = Float64(get(overrides, name, default))
+    deck = [Symbol(sp.name) for sp in APPD_DECK_SPECS]
+    nd = count(k -> haskey(overrides, k), deck)
+    if nd == length(deck)
+        E, ν = getv(:E_Pa, MRP_E_2024), getv(:nu, MRP_NU_2024)
+        o(k) = Float64(overrides[k])
+        return AppDDeck(fuse.L, fuse.a, fuse.theta0_deg, E, ν, o(:t_shell_card_m), o(:m_shell_kg_m2),
+                        o(:Dp_stringers_Nm), o(:Dp_frames_Nm), E, ν, o(:t_floor_card_m), o(:m_floor_kg_m2),
+                        o(:Dp_floor_beams_Nm), o(:Dp_floor_supports_Nm), 10, 12, 5)
+    elseif nd > 0
+        error("PAIN card values for the App. D solver: give all of $(join(string.(deck), ", ")) or none (got $nd)")
+    end
     return AppDGeometry(
         fuse.L, fuse.a, fuse.theta0_deg,
         getv(:t_skin_m, MRP_T_SKIN),

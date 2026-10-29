@@ -239,11 +239,53 @@ function _run_loudest_pt()
         "z=$(round(lp.z; digits=2)) m", "V-UNIT", "")
 end
 
+# Phase 81d (criterion fixed 2026-10-29 before the run): the point form of Eq. (8) on the converged CYL2D grid. The
+# all-node Eq. (C.10)-weighted volume average must be within 1 % of Eq. (8) for H1–H3 at NY = 40 (at NY = 10 it is
+# within 1.1 %, the residual being the discrete orthogonality of the coarse eigenvectors); the interior-node ratio of
+# LOUDEST_PT check (a) is shown at NY = 40 as information.
+const _P81_LOUDEST_NY = 40
+
+function _run_loudest_pt_grid()
+    r = run_pain_pipeline(; source=:e11, n_harmonics=3, bpf_Hz=200.0, blocking=R2, NY=_P81_LOUDEST_NY)
+    inp = r.inputs
+    qp = cabin_quadrature_points(inp)
+    pts = cabin_interior_points(inp)
+    table = ValidationTableRow[]; all_r = Float64[]; int_r = Float64[]
+    for H in 1:3
+        ωH = 2π * 200.0 * H
+        ref = tone_mean_square_pressure(inp, H, ωH)
+        ra = point_volume_average(point_tone_p2(inp, H, ωH; pts=qp), qp) / ref
+        ri = point_volume_average(point_tone_p2(inp, H, ωH; pts), pts) / ref
+        push!(table, ValidationTableRow("H$H all-node (C.10) average / Eq. (8), NY = $(_P81_LOUDEST_NY)", H, 1.0, ra, ra - 1,
+                                        abs(ra - 1) ≤ 0.01, "all nodes"))
+        push!(table, ValidationTableRow("H$H interior-node average / Eq. (8), NY = $(_P81_LOUDEST_NY) (info)", H + 0.3, 1.0, ri, ri - 1,
+                                        true, "interior nodes (info)"))
+        push!(all_r, ra); push!(int_r, ri)
+    end
+    n_ok = count(t -> t.group == "all nodes" && t.within_tolerance, table)
+    xs = [1.0, 2.0, 3.0]
+    series = [PlotSeries("all nodes, Eq. (C.10) weights", :computed_points, xs, all_r; panel=1),
+              PlotSeries("interior nodes only (information)", :computed_points, xs .+ 0.1, int_r; panel=1),
+              PlotSeries("Eq. (8)", :reference_points, xs, ones(3); panel=1)]
+    return ValidationCaseResult("LOUDEST_PT_GRID", _today_iso(),
+        (; criterion="all-node (C.10) average within 1 % of Eq. (8), H1-H3, NY = 40", date="2026-10-29", NY=_P81_LOUDEST_NY,
+           all_node=round.(all_r; digits=4), interior_info=round.(int_r; digits=4)),
+        table, series, n_ok == 3 ? :met : :not_met,
+        "$n_ok/3 within 1 % at NY = $(_P81_LOUDEST_NY): all-node $(join(round.(all_r; digits=4), ", ")); interior nodes " *
+        "(information) $(join(round.(int_r; digits=4), ", "))", "V-UNIT", "")
+end
+
 function _iso42_validation_cases()
     return [ValidationCase("LOUDEST_PT", "Interior level at the loudest point (42)", "42",
         [_data_path("cr3813", "t1_interior_targets.csv")], FigureRef("CR-3813", "Eq. (8), App. C (C.9–C.11)", 30),
         "(a) interior-node volume average within 1 % of Eq. (8) (H1–H3); (b) loudest-point dB(A) ≥ space average; (c) one mode alone reproduces φ² (relative spread ≤ 1e-9).",
         "2026-10-23", "V-UNIT", _run_loudest_pt,
         PlotSpec(; xlabel="tone frequency (Hz)", ylabel="tone SPL (dB)", panel_titles=["LOUDEST_PT"],
-                 error_mode=:none), "")]
+                 error_mode=:none), ""),
+        ValidationCase("LOUDEST_PT_GRID", "Point form of Eq. (8) on the converged CYL2D grid, NY = 40 (81d)", "81",
+            String[], FigureRef("CR-3813", "Eq. (8), App. C (C.9–C.11)", 30),
+            "The all-node Eq. (C.10)-weighted volume average of the point values within 1 % of Eq. (8) for H1–H3 at NY = 40; interior-node ratio as information.",
+            "2026-10-29", "V-UNIT", _run_loudest_pt_grid,
+            PlotSpec(; xlabel="harmonic", ylabel="volume average / Eq. (8)", panel_titles=["LOUDEST_PT_GRID"],
+                     error_mode=:relative_pct, error_tol=1.0, error_ylabel="error vs Eq. (8) (%)"), "")]
 end

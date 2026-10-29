@@ -2775,7 +2775,7 @@ _run_if("Validation case registry (34d)") do
     # Live in-process cross-checks with no digitized reference file:
     allowed_live_no_csv = ("F1A_GUTIN", "BBN_KIN", "UT_GRID",
         "ISO_BLOCKING", "ISO_FF_CONV", "ISO_GEXT_LINE", "ISO_TABLE8",
-        "ISO_CYL2D_EXACT", "ISO_CYL2D_BOUNDARY", "ISO_JOINT_ACC", "CYL2D_GRID_CONV",
+        "ISO_CYL2D_EXACT", "ISO_CYL2D_BOUNDARY", "ISO_JOINT_ACC", "CYL2D_GRID_CONV", "MRP_COUPLED_LIMITS", "LOUDEST_PT_GRID",
         "ISO_MODAL_DENSITY", "ISO_BB_BAND", "ISO_SIL",
         "TRIM_CLOSED", "NR_BAND_HAND", "HF_MASSLAW", "BEMT_HAND", "F1A_INDEP",
         # Phase 62 live checks (hand formulas, bounds, pipeline echo; MRP/TRIM_INPUT_QA read appE_article_inputs.csv)

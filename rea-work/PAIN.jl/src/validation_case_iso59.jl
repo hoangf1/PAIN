@@ -113,6 +113,42 @@ function _run_t2_meas_ext_br()
         joinpath(_VAL_REPORT_DIR, _P59_REPORT))
 end
 
+"""Least-squares slope (dB per octave) of `y` against log2 of `f`."""
+function _p81_slope_per_octave(f::AbstractVector, y::AbstractVector)
+    x = log2.(f); xm = sum(x) / length(x); ym = sum(y) / length(y)
+    return sum((x .- xm) .* (y .- ym)) / sum((x .- xm) .^ 2)
+end
+
+# Phase 81c (criterion fixed 2026-10-29 before the run): what the Fig. 5 construction fixes, independent of the rounded
+# ΔTL_M and of the mass-law offset: the slopes of its three segments against those of the digitized Fig. 15 curve.
+const _P81_SHARP_SEGMENTS = (("below f₀ (mass law, 6 dB/octave)", 63.0, 125.0),
+                             ("rise f₀ to f_b (18 dB/octave)", 160.0, 250.0),
+                             ("above f_b (mass law + ΔTL_M, 6 dB/octave)", 500.0, 1000.0))
+
+function _run_sharp_panel_d_shape()
+    t = _read_csv_numeric_nan(_data_path("cr172490", "cr172490_fig15_panelD.csv"))
+    m = 2780.0 * 0.0016; d = 0.0826
+    table = ValidationTableRow[]; xs = Float64[]; sf = Float64[]; sc = Float64[]
+    for (i, (name, lo, hi)) in enumerate(_P81_SHARP_SEGMENTS)
+        sel = [k for k in eachindex(t[:f_Hz]) if lo ≤ t[:f_Hz][k] ≤ hi && isfinite(t[:TL_0Pa_dB][k])]
+        f = t[:f_Hz][sel]
+        fig = _p81_slope_per_octave(f, t[:TL_0Pa_dB][sel])
+        con = _p81_slope_per_octave(f, [sharp_double_panel_TL(m, m, d, x; ΔTL_M=12.0) for x in f])
+        ok = abs(fig - con) ≤ 1.5
+        push!(table, ValidationTableRow("slope $name, dB/octave", i, fig, con, con - fig, ok, "segment slope"))
+        push!(xs, i); push!(sf, fig); push!(sc, con)
+    end
+    n_ok = count(r -> r.within_tolerance, table)
+    series = [PlotSeries("CR-172490 Fig. 15, digitized curve", :reference_points, xs, sf; panel=1),
+              PlotSeries("Sharp construction (Eqs. 5, 22; Fig. 5)", :computed_points, xs, sc; panel=1)]
+    return ValidationCaseResult("SHARP_PANEL_D_SHAPE", _today_iso(),
+        (; criterion="each segment slope within ±1.5 dB/octave of the figure's", date="2026-10-29",
+           slopes_figure=round.(sf; digits=2), slopes_construction=round.(sc; digits=2)),
+        table, series, n_ok == 3 ? :met : :not_met,
+        "$n_ok/3 segment slopes within ±1.5 dB/octave (figure $(join(round.(sf; digits=1), ", ")); construction " *
+        "$(join(round.(sc; digits=1), ", ")) dB/octave)", "V-UNIT", joinpath(_VAL_REPORT_DIR, _P59_REPORT))
+end
+
 function _iso59_validation_cases()
     mk(id, title, files, fig, crit, label, run, ylab, tol) = ValidationCase(id, title, "59", files, fig, crit, "2026-10-23", label, run,
         PlotSpec(; xlabel="1/3-octave band (Hz)", ylabel=ylab, xscale=:log10, panel_titles=[id], error_mode=:absolute, error_tol=tol), "")
@@ -121,6 +157,13 @@ function _iso59_validation_cases()
            [_data_path("cr172490", "cr172490_fig15_panelD.csv")], FigureRef("NASA CR-172490", "Fig. 15", 45),
            "Within 1 dB of the digitized predicted curve at ≥ 90 % of the points 50–2000 Hz, ΔTL_M = 12 dB as stated.",
            "V-UNIT", _run_sharp_panel_d, "TL (dB)", 1.0),
+        ValidationCase("SHARP_PANEL_D_SHAPE", "Sharp construction segment slopes vs CR-172490 Fig. 15, Panel D (81c)", "81",
+            [_data_path("cr172490", "cr172490_fig15_panelD.csv")], FigureRef("NASA CR-172490", "Fig. 15", 45),
+            "Each segment slope of the construction (below f₀ 63–125 Hz, rise 160–250 Hz, above f_b 500–1000 Hz; least-squares dB/octave) within ±1.5 dB/octave of the digitized figure.",
+            "2026-10-29", "V-UNIT", _run_sharp_panel_d_shape,
+            PlotSpec(; xlabel="segment (1 below f₀, 2 rise, 3 above f_b)", ylabel="slope (dB/octave)",
+                     panel_titles=["segment slopes"], error_mode=:absolute, error_tol=1.5,
+                     error_ylabel="construction − figure (dB/octave)"), ""),
         mk("NR_PROP_TP2444_BR", "TP-2444 NR with Sharp sound bridges in Eq. (23) (59c)",
            [_data_path("tp2444", "tp2444_fig17_exterior_passA.csv"), _data_path("tp2444", "tp2444_fig17_interior_passA.csv")],
            FigureRef("NASA TP-2444", "Fig. 17", 32), "Within ±5 dB in ≥ 75 % of the broadband bands 315–1250 Hz (as 47c).",

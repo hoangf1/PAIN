@@ -28,3 +28,23 @@ end
     a8, _ = PAIN._p67_f1a_chordwise(su.r, zero(su.chord), su.theta, Np, Tp, dr, su.B, su.Ω, su.c0, obs; nc=8)
     @test a8 ≈ a1 rtol = 1e-9
 end
+@testset "Phase 80 references (App. D solver verification)" begin
+    # Leissa SS-C-SS-C square plate: λ = ω a² √(ρh/D) = 28.95
+    f = PAIN._p80_clamped_plate_Hz(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1, true; nmodes=2)
+    @test isapprox(2π * f[1], 28.951; rtol=1e-3) && f[2] > f[1]
+    fo = PAIN._p80_clamped_plate_Hz(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1, false; nmodes=1)
+    @test fo[1] > f[1]                                   # the first odd mode lies above the first even one
+    d = appd_nasa_deck()
+    fs = PAIN._p80_shell_alone_Hz(d, 1, true; n_circ=6)
+    @test issorted(fs) && minimum(abs.(fs ./ PAIN.appd_shell_harmonic_frequency_Hz(1, 3, d) .- 1)) < 1e-12
+    m = StructuralMode(1, 100.0, true, 1.0, 1, [0.6, -0.3, 0.1], [2, 3, 5], [1.0, 0.2], [0, 1])
+    t = PAIN._p80_truncate(m, 2, 1)
+    @test t.n_shell == [2, 3] && t.n_floor == [0]
+    @test PAIN._p80_dense_peak(StructuralMode(1, 1.0, true, 1.0, 1, Float64[], Int[], [0.8], [0]), 56.6, 0.508) ≈ 0.8
+end
+@testset "Phase 81 slope helper" begin
+    f = [100.0, 200.0, 400.0]
+    @test PAIN._p81_slope_per_octave(f, [10.0, 16.0, 22.0]) ≈ 6.0
+    @test PAIN._p81_slope_per_octave(f, [10.0, 28.0, 46.0]) ≈ 18.0
+    @test PAIN._p81_slope_per_octave([100.0, 141.42, 200.0], [0.0, 3.0, 6.0]) ≈ 6.0 rtol = 1e-4
+end

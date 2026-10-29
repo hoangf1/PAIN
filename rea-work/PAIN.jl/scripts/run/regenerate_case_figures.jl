@@ -15,6 +15,7 @@ using PAIN
 using Dates
 
 function main(args)
+    PAIN.reload_validation_docs!()   # case records (map block → figure folder) as the docs stand now, not as precompiled
     ids = args == ["--all"] ? collect(PAIN.VALIDATION_CASE_ORDER) : args
     isempty(ids) && error("give case ids or --all")
     for id in ids

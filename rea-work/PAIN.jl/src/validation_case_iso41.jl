@@ -546,8 +546,8 @@ function _run_hf_masslaw()
     # Document that normal-incidence mass law is NOT the function's claim (info only)
     τ_ni = 1 / (1 + (ω * m / (2 * ρ_ext * c_ext))^2)
     push!(table, ValidationTableRow(
-        "info: normal-incidence τ=1/(1+(ωm/2ρc)²) not used (function is Eq.20 field-incidence)",
-        fc, τ_ni, tc.τ, tc.τ - τ_ni, true))
+        "normal-incidence τ=1/(1+(ωm/2ρc)²), not used: the function is Eq. (20) field incidence (info)",
+        fc, τ_ni, tc.τ, tc.τ - τ_ni, true, "normal incidence (info)"))   # Phase 81a: out of the chip
     series = [
         PlotSeries("hand Eq.(20) τ", :reference_points, [1.0, 2.0, 3.0],
                    [τ_f_ref, τ_R_ref, τ_ref]; panel=1),

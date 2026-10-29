@@ -596,19 +596,22 @@ function _run_iso_modal_density()
     prop = PropellerPlacement(0.965, 90.0, 0.662)
     cy = cyl2d_modes(56.6; n_modes=5, NY=10, c0=340.0)
     pts = grid_points(fuse, prop, GridSpec())
-    # Pressure shaped like the first structural mode so ⟨j²⟩ sits above the 1e-6 clamp floor
-    # in `joint_acceptance` / `band_joint_acceptance` (uniform A yields Ψ≈0 → clamp).
-    amps = ones(16, 10, 3)
-    phases = zeros(16, 10, 3)
-    st0 = sm.modes[1]
-    for p in pts
-        ψ = structural_shell_psi(st0, p.z, p.theta_deg, fuse.L)
-        for H in 1:3
-            amps[p.k, p.ell, H] = 1.0 + ψ
-        end
-    end
+    # Phase 81b (2026-10-29, post-hoc re-record): in each band the pressure is 1 + the sum of the shapes of that band's
+    # Table D-1 modes, so the band ⟨j²⟩ lies above the 1e-6 floor of `band_joint_acceptance`. Until 2026-10-29 one
+    # pressure (mode 1's shape) served every band; at 250 and 397 Hz the raw value fell below the floor and both sides
+    # were clamped to 1e-6, a pass by construction.
     ΔA = (π * fuse.a / 18)^2
-    inp = PainInputs(fuse, prop, sm, cy, amps, phases, pts, ΔA)
+    # Amendment, same day, post-hoc (after the first 81b run left the 250 and 397 Hz bands at the floor: their modes are
+    # floor-dominated, shell coefficients ~0.01, so 1 + ψ barely projects on them): the pressure is matched to the band,
+    # amplitude |Σψ| with phase 0 or π, so ⟨j²⟩ is about the mean of ψ² over the grid, ~1e-4 even for those modes.
+    function band_amps(lo, hi)
+        s = zeros(16, 10)
+        for p in pts, st in sm.modes
+            (lo ≤ st.f_Hz ≤ hi) || continue
+            s[p.k, p.ell] += structural_shell_psi(st, p.z, p.theta_deg, fuse.L)
+        end
+        return repeat(abs.(s), 1, 1, 3), repeat(ifelse.(s .< 0, Float64(π), 0.0), 1, 1, 3)
+    end
     table = ValidationTableRow[]
     xs = Float64[]; yref = Float64[]; ygot = Float64[]
     n_ok = 0
@@ -639,6 +642,8 @@ function _run_iso_modal_density()
                                         dens_got - dens_ref, ok))
         # band_joint_acceptance vs independent average of discrete joint_acceptance
         # (Ψ from the same Eq. 42 sums written out; j² formula written here — not band_joint_acceptance)
+        amps, phases = band_amps(lo, hi)
+        inp = PainInputs(fuse, prop, sm, cy, amps, phases, pts, ΔA)
         js_ref = Float64[]
         H = 3
         p2_mean = sum(abs2, view(amps, :, :, H)) / (size(amps, 1) * size(amps, 2))
@@ -663,7 +668,7 @@ function _run_iso_modal_density()
         ja_ref = clamp(ja_raw, 1e-6, 1.0)
         ja_got = band_joint_acceptance(inp, fc; H_anchor=3)
         rel = abs(ja_got - ja_ref) / max(abs(ja_ref), 1e-30)
-        okj = rel ≤ 1e-6
+        okj = rel ≤ 1e-6 && ja_raw > 1e-6                 # a value at the clamp floor proves nothing (Phase 81b)
         n_tot += 1
         n_ok += okj
         max_rel = max(max_rel, rel)

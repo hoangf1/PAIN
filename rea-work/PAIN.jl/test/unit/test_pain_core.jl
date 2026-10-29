@@ -114,6 +114,9 @@ end
     @test PAIN.structural_modal_density(sm, 20.0) ≈ 0.015 * sm.a * sm.L * (20 / 500) / 2π    # fallback, no mode in band
     @test PAIN.band_joint_acceptance(inp, 20.0) == 2.5e-4
     @test 1e-6 ≤ PAIN.band_joint_acceptance(inp, 500.0) ≤ 1
+    # Phase 81b: the 1e-6 floor engages when the raw band mean is below it (pressure with no projection: all zero)
+    z = PAIN.PainInputs(inp.fuse, inp.prop, inp.structural, inp.acoustic, zero(inp.amplitudes), inp.phases, inp.pts, inp.ΔA)
+    @test PAIN.band_joint_acceptance(z, 500.0) == 1e-6
     @test PAIN.broadband_cabin_p2(inp, 2000.0, 0.0) == 0.0
     @test PAIN.broadband_cabin_p2(inp, 2000.0, 2.0) ≈ 2PAIN.broadband_cabin_p2(inp, 2000.0, 1.0)
 end

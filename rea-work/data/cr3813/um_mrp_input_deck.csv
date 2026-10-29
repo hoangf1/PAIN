@@ -1,0 +1,34 @@
+# NASA's MRP input deck for the CR-3813 test article ("STIFFENED .032 IN CYLINDER, 20 IN RADIUS, WITH FLOOR AT 56.6
+# DEGREES. MODEL #5 CYLINDER. PHASE III. FREELY SUPPORTED END CONDITIONS, RIGID JOINT AT FLOOR-CYLINDER JUNCTION").
+# Source: PAIN User Manual (Pain User Manual.pdf), printed p. 42 (MRPSD, symmetric modes) and p. 43 (MRPAD, antisymmetric
+# modes), PDF pp. 46-47; the two decks carry identical values. Card meanings from the card list, printed pp. 20-22 (PDF pp.
+# 24-26): cards 10-12 SHELL, 13-15 PLATE. Shell and floor thickness include the smeared stiffener areas, masses per unit area
+# include the smeared stiffener masses; the additional bending rigidities are stiffener E*I / spacing with the moments of
+# inertia about the shell (floor) centre line. G blank on both cards: G = E / 2(1 + nu).
+# Transcribed by eye from the page scans 2026-10-29 (Phase 80), both pages read; no value changed or chosen.
+part,quantity,value,unit,card
+general,theta0_deg,56.6,deg,7
+general,M_first,1,-,8
+general,M_last,10,-,8
+general,ns_first,0,-,8
+general,ns_last,12,-,8
+general,np_first,0,-,8
+general,np_last,5,-,8
+shell,Ex,7.239495E10,N/m2,10
+shell,Etheta,7.239495E10,N/m2,10
+shell,nu_x,0.33,-,10
+shell,nu_theta,0.33,-,10
+shell,t,0.001153058,m,11
+shell,mass_per_area,3.113933,kg/m2,11
+shell,radius,0.508,m,11
+shell,length,1.8034,m,11
+shell,Dprime_stringers,62.352938,N m,12
+shell,Dprime_frames,1.200725E4,N m,12
+plate,Ex,7.239495E10,N/m2,13
+plate,Ey,7.239495E10,N/m2,13
+plate,nu_x,0.33,-,13
+plate,nu_y,0.33,-,13
+plate,t,0.00127622,m,14
+plate,mass_per_area,3.4465372,kg/m2,14
+plate,Dprime_long_beams,8.6297699E3,N m,15
+plate,Dprime_transverse_supports,5.4264354E3,N m,15

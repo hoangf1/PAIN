@@ -118,3 +118,11 @@ end
     @test PAIN._has_criterion(_res("X", PAIN.ValidationTableRow[]; verdict=:not_met))
     @test !PAIN._has_criterion(_res("X", PAIN.ValidationTableRow[]; verdict=:no_verdict))
 end
+
+@testset "error-panel colours: information rows grey (Phase 81)" begin
+    ok = PAIN.ValidationTableRow("x", 1.0, 1.0, 1.0, 0.0, true, "g")
+    bad = PAIN.ValidationTableRow("x", 1.0, 1.0, 2.0, 1.0, false, "g")
+    inf = PAIN.ValidationTableRow("x (info)", 1.0, 1.0, 2.0, 1.0, true, "g")
+    @test PAIN._error_point_color(ok, true) == :green && PAIN._error_point_color(bad, true) == :red
+    @test PAIN._error_point_color(inf, true) == :gray40 && PAIN._error_point_color(ok, false) == :gray40
+end

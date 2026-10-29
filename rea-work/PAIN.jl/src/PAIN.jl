@@ -57,6 +57,7 @@ include("validation_case_iso61.jl")   # phase 61 CR-3813 reproduction with the p
 include("validation_case_iso62.jl")   # phase 62 a proving case for every map block
 include("validation_case_iso66.jl")   # phase 66 further BEMT / F1A code checks
 include("validation_case_iso67.jl")   # phase 67 attribution of the source-block misses
+include("validation_case_iso80.jl")   # phase 80 App. D structural solver verification
 include("validation_case_extras.jl")
 include("validation_map.jl")
 include("validation_plots.jl")
@@ -82,7 +83,7 @@ export
     scale_acoustic_freq, acoustic_boundary_value,
     structural_modes, structural_modes_from_table_d1, fit_mrp_to_table_d1, match_ritz_to_table_d1, match_modes_by_identity, match_modes_by_shape, mode_shape_field, modal_assurance, channel_centroidal_I, angle_centroidal_I,
     StructuralModes, StructuralMode, structural_shell_psi, structural_floor_psi, TABLE_D1_CORE, TABLE_D1_FULL,
-    AppDGeometry, appd_test_article_geometry, appd_modes, build_structural_modes,
+    AppDGeometry, AppDDeck, appd_nasa_deck, appd_test_article_geometry, appd_modes, build_structural_modes,
     APPD_READINGS, donnell_mushtari_frequency_Hz, appd_shell_harmonic_frequency_Hz,
     appd_shell_condensed_frequency_Hz,
     appd_generalized_mass_from_shape, appd_smeared_stringer_frequency_Hz,
