@@ -2689,4 +2689,4 @@ as recorded). A miss refutes the mode set for that case; no other count is tried
 - [x] 85d Five documents, targeted tests, review, commit.
 
 **Result (2026-10-29).** Met cases on the map: 8 (T1_F1A_FILL, R996_FIG14, R996_FIG12, R996_FIG13A, PER_FIG7, BLK_P68, MRP_APPD,
-CYL2D_C1). No verdict changed to not met; no check was changed.
+CYL2D_C1). No verdict changed to not met; no check was changed. Label fix found in the review (2026-10-29): the error panels of BEMT_MOMENTUM, BEMT_HAND_TIP, BEMT_INTEGRALS, F1A_GW_FLIGHT and F1A_THICKNESS named the main panel's axis (r/R, θ) for a table x that encodes the operating point, θ + 1000 M_x or θ + 1000 × harmonic; each now names its own (`error_xlabel`), figures redrawn.

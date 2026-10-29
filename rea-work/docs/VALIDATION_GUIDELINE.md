@@ -3219,6 +3219,8 @@ card formulas) supports the P cases but reproduces no output, so it is verificat
 | P (3) | BLK_P68 (CR-172428 p. 68 printed blocking values), MRP_APPD (Table D-1, MRP's printed output from NASA's deck), CYL2D_C1 (Table C-1, CYL2D's printed output) | meaningful; met kept |
 | X (39) | AC_CABIN_DEMO, BBN_KIN, BEMT_HAND, BEMT_HAND_TIP, BEMT_INTEGRALS, BEMT_MOMENTUM, BEMT_SIMILARITY, BPM_RP1218, CABIN_GEOM_HAND, E11_FREEFIELD, F1A_GUTIN, F1A_GW_FLIGHT, F1A_INDEP, F1A_PLANE_PEAK, F1A_PROPERTIES, F1A_THICKNESS, FF_E11_MAP, HF_MASSLAW, ISO_BB_BAND, ISO_BLOCKING, ISO_CYL2D_BOUNDARY, ISO_CYL2D_EXACT, ISO_FF_CONV, ISO_GEXT_LINE, ISO_JOINT_ACC, ISO_MODAL_DENSITY, ISO_SIL, ISO_TABLE8, LOUDEST_PT_GRID, MRP_INPUT_QA, MRP_TRUNC, NR_BAND_HAND, PAIN_INPUT_ECHO, SHARP_PANEL_D_SHAPE, SRC_PASSTHROUGH, TRIM_CLOSED, TRIM_INPUT_QA, TRIM_PASSIVITY, UT_GRID | information since Phase 85 (`INFORMATION_ONLY_CASES`): no verdict, run and table unchanged, the earlier outcome kept in the record and in `original_verdict`; never a pass. Each reason is in the case record |
 
+**Figures (2026-10-29).** The error panels of BEMT_MOMENTUM, BEMT_HAND_TIP, BEMT_INTEGRALS, F1A_GW_FLIGHT and F1A_THICKNESS now label their x with what the table x encodes (operating point, θ + 1000 M_x, θ + 1000 × harmonic), not the main panel's axis.
+
 **Consequence.** After Phases 82 and 85, 8 cases carry a met verdict on the map; the verification checks still run (and their
 tests still assert that each check holds, through `underlying_verdict`), but no block is shown as validated by them.
 

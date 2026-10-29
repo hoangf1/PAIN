@@ -377,18 +377,22 @@ function _run_f1a_properties()
 end
 
 function _iso66_validation_cases()
-    mk(id, title, crit, run; ylab="value", xlab="x", errlab="") = ValidationCase(id, title, "66", String[],
+    # errxlab: what the table's x is when it is not the main panel's axis (label fix 2026-10-29)
+    mk(id, title, crit, run; ylab="value", xlab="x", errlab="", errxlab=nothing) = ValidationCase(id, title, "66", String[],
         FigureRef("Phase 66", "closed forms (§8j)", nothing), crit, "2026-10-24", "V-UNIT", run,
-        PlotSpec(; xlabel=xlab, ylabel=ylab, panel_titles=[id], error_mode=:absolute, error_tol=0.0, error_ylabel=errlab), "")
+        PlotSpec(; xlabel=xlab, ylabel=ylab, panel_titles=[id], error_mode=:absolute, error_tol=0.0, error_ylabel=errlab,
+                 error_xlabel=errxlab), "")
     return [
         mk("BEMT_MOMENTUM", "BEMT: momentum = blade element at every station (66a)",
            "Momentum and blade-element thrust/torque per station within 1e-8 relative, three operating points.", _run_bemt_momentum;
-           xlab="r/R", ylab="log10 |relative difference|", errlab="relative difference (dimensionless)"),
+           xlab="r/R", ylab="log10 |relative difference|", errlab="relative difference (dimensionless)",
+           errxlab="operating point + r/R (1: Hartzell 20 m/s, 2: Hartzell 40 m/s, 3: Report 996)"),
         mk("BEMT_HAND_TIP", "BEMT: hand BEM with tip loss, drag, nonlinear polar (66b)",
-           "T and Q within 1 % of the wrapper.", _run_bemt_hand_tip; xlab="r/R", ylab="N′ (N/m)", errlab="wrapper − hand (N | N m)"),
+           "T and Q within 1 % of the wrapper.", _run_bemt_hand_tip; xlab="r/R", ylab="N′ (N/m)", errlab="wrapper − hand (N | N m)",
+           errxlab="operating point (1: V = 20 m/s, 2: V = 40 m/s)"),
         mk("BEMT_INTEGRALS", "BEMT: integrals, Froude bound, station spacing (66c)",
            "B∫N′dr = T and P = ΩQ (1e-10); η ≤ η_i; halving the spacing changes T by < 0.5 %.", _run_bemt_integrals;
-           xlab="r/R", ylab="N′ (N/m)", errlab="got − ref (N | W | -)"),
+           xlab="r/R", ylab="N′ (N/m)", errlab="got − ref (N | W | -)", errxlab="propeller (1: Hartzell, 2: Report 996)"),
         mk("BEMT_SIMILARITY", "BEMT: C_T, C_P unchanged at fixed J (66d)",
            "C_T and C_P within 1e-6 relative when rpm and V scale together (Re/M-free polar).", _run_bemt_similarity;
            xlab="scale of V and rpm", ylab="relative change", errlab="change (dimensionless)"),
@@ -397,10 +401,12 @@ function _iso66_validation_cases()
            xlab="θ from flight direction (deg)", ylab="H1 SPL (dB)", errlab="F1A − Gutin (dB | deg)"),
         mk("F1A_GW_FLIGHT", "F1A vs Garrick–Watkins in flight (66f)",
            "H1 within 1 dB at M_x = 0.1, 0.2 and θ = 60°, 90°, 120°.", _run_f1a_gw_flight;
-           xlab="θ from flight direction (deg)", ylab="H1 SPL (dB)", errlab="F1A − Garrick–Watkins (dB)"),
+           xlab="θ from flight direction (deg)", ylab="H1 SPL (dB)", errlab="F1A − Garrick–Watkins (dB)",
+           errxlab="θ (deg) + 1000 × M_x"),
         mk("F1A_THICKNESS", "F1A thickness noise vs the compact far field (66g)",
            "H1–H3 within 1 dB at three angles.", _run_f1a_thickness;
-           xlab="θ from flight direction (deg)", ylab="SPL (dB)", errlab="F1A − compact (dB)"),
+           xlab="θ from flight direction (deg)", ylab="SPL (dB)", errlab="F1A − compact (dB)",
+           errxlab="θ (deg) + 1000 × harmonic"),
         mk("F1A_PROPERTIES", "F1A exact properties and convergence (66h)",
            "B scaling and 1/r within 1 %; < 0.1 dB between successive halvings of time step and station spacing.", _run_f1a_properties;
            xlab="check", ylab="H1 SPL (dB)", errlab="got − expected (ratio | dB)"),
