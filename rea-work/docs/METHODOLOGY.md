@@ -18,6 +18,8 @@ The layout each pipeline chunk follows (name, function, inputs and outputs, sour
 | **V-ASSUMED** | Physics the papers do not fix | Must be labelled assumed; unit tests verify code, not physics |
 | **X-EXTRAP** | The aircraft application, or CCBlade/F1A outside the cases it is checked against | An extrapolation, with no NASA validation inherited |
 
+**Which checks carry a verdict (rule 2026-10-29, Phase 82).** Only a comparison with measurement (V-EXP) or a reproduction of what PAIN printed from PAIN's own inputs (V-CODE against NASA's PAIN outputs) carries a met / not-met verdict on the validation map. Checks against analytic limits, laws, other methods or reports, or properties of printed tables are verification (V-UNIT): information cases or unit tests. Seven not-met cases became information cases under this rule (`INFORMATION_ONLY_CASES`; `VALIDATION_GUIDELINE.md` §2.15).
+
 ## 1. The pipeline at a glance
 
 Propeller noise at the fuselage skin -> blocking by the fuselage -> cabin and structural modes -> interior SPL -> dB(A), SIL.

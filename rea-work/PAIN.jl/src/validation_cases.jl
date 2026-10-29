@@ -482,9 +482,36 @@ function validation_case_runnable(id::AbstractString)
 end
 
 """
+Cases that are not validation cases under the meaningfulness rule (Phase 82, author 2026-10-29; `CLAUDE.md`): a verdict
+needs a comparison with experimental data, or a check that the code works exactly like PAIN given PAIN's own inputs.
+These compare with something else, so they run unchanged but carry no verdict (information); the outcome they
+recorded is kept in `inputs_echo.original_verdict` and in the reason text. Never a pass.
+"""
+const INFORMATION_ONLY_CASES = Dict(
+    "LOUDEST_PT" => "the point form against Eq. (8) is an internal consistency check",
+    "BLK_GAIN_MAP" => "a 0–6.02 dB gain range is a property of Eq. (43), not a PAIN output or a measurement",
+    "MRP_SHAPE_NORM" => "it tests a property of NASA's printed Table D-1, not this code",
+    "CYL2D_WEYL" => "Weyl's law is an asymptotic mode count, not a PAIN output or a measurement",
+    "MRP_COUPLED_LIMITS" => "analytic limits of the Ritz energy; PAIN's floor form is not that energy",
+    "F1A_GUTIN_ANGLES" => "Gutin's far-field formula is a different method, not a measurement",
+    "SHARP_PANEL_D" => "CR-172490's design figure is neither PAIN nor a measurement",
+)
+
+"""Turn a verdict-bearing result of an `INFORMATION_ONLY_CASES` case into an information result (no verdict)."""
+function _as_information_case(r::ValidationCaseResult)
+    why = get(INFORMATION_ONLY_CASES, r.id, nothing)
+    (why === nothing || r.verdict === :no_verdict) && return r
+    reason = "information: not a validation case under the 2026-10-29 rule ($why); recorded outcome unchanged, " *
+             "not a pass: $(replace(String(r.verdict), "_" => " ")), $(r.reason)"
+    return ValidationCaseResult(r.id, r.date, merge(r.inputs_echo, (; original_verdict=r.verdict)), r.table, r.series,
+                                :no_verdict, reason, r.label, r.report_path)
+end
+
+"""
     run_validation_case(id) -> ValidationCaseResult
 
-Run the registered case. Inputs are fixed; missing reference files yield `:no_verdict`.
+Run the registered case. Inputs are fixed; missing reference files yield `:no_verdict`; an
+`INFORMATION_ONLY_CASES` case returns no verdict (Phase 82).
 Greyed cases (`unavailable_reason` non-empty) still return their stub result if Run is forced.
 """
 function run_validation_case(id::AbstractString)
@@ -502,7 +529,7 @@ function run_validation_case(id::AbstractString)
             "",
         )
     end
-    return case.run()
+    return _as_information_case(case.run())
 end
 
 """Format a case result as plain text for the GUI results pane."""

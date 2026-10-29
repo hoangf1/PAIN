@@ -226,7 +226,7 @@ function _iso80_validation_cases()
             PlotSpec(; xlabel="100 × M + mode order (+50: antisymmetric)", ylabel="frequency (Hz)",
                      panel_titles=["vanishing floor, symmetric", "vanishing floor, antisymmetric",
                                    "near-rigid shell, symmetric", "near-rigid shell, antisymmetric"],
-                     error_mode=:relative_pct, error_ylabel="error vs reference (%; criteria 1 % and 2 %)"), ""),
+                     error_mode=:relative_pct, error_ylabel="error vs reference (%)"), ""),
         ValidationCase("MRP_TRUNC", "App. D solver shapes: unit maximum, and the Table D-1 print truncation (80d)", "80",
             [_data_path("cr3813", "um_mrp_input_deck.csv")], FigureRef("CR-3813", "Table D-1 (5 shell + 3 plate terms printed)", 113),
             "The solver's full shapes (NASA's deck, 32 lowest modes) have max |w| = 1 within 1e-6 over shell and floor. Diagnostic, no verdict: the shapes cut to 5 shell + 3 floor terms; the truncation reading of MRP_SHAPE_NORM is supported if > 1 in at least a third of the modes and the largest lies in [1.05, 1.5].",

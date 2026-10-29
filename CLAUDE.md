@@ -8,6 +8,8 @@ rea-work\docs\VALIDATION_GUIDELINE.md
 
 No calibration that makes a test pass by construction: never fit, scale, tune, select or clip any parameter, input, polar, option, sign or digitized value using the data a test case is compared against, and never compare a calibrated path with the data it was calibrated to; pass criteria are fixed and dated before the comparison, and any value chosen after seeing a result makes that result post-hoc (calibrated), not a pass.
 
+A validation case is meaningful, and may carry a met / not-met verdict, only if it (E) compares with experimental data, or (P) checks that the code works exactly like PAIN: given PAIN's own inputs (from PAIN's sources: CR-3813, the User Manual, CR-172428 and the reports they cite for their data) or experimental inputs, it reproduces what PAIN printed. A check against anything else (an analytic limit, a law, a different method or report, a property of a printed table, internal consistency) is verification: it may stay as an information case (no verdict) or a unit test, never a verdict on the validation map (rule 2026-10-29, Phase 82; list in PAIN.jl\src\validation_cases.jl INFORMATION_ONLY_CASES).
+
 Code changes delegated to Cursor (scripts\cursor-exec.ps1, write mode) must be checked before they are accepted or built on. After every Cursor run:
 1. Diff: snapshot the files before the run and review every changed file against it; revert or redo any edit outside the files the task names.
 2. Rules: confirm no criterion, tolerance, reference/digitized data file, recorded result or fitted parameter changed unless the task named it, and that any re-stated check carries a dated post-hoc label (rule above).

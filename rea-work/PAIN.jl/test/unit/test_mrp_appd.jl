@@ -333,3 +333,12 @@ end
     K0, M0, _, _ = PAIN._appd_assemble_KM(fam.b, d)
     @test fam.K ≈ K0 && fam.Mass ≈ M0 && !(fam.Mass_exact ≈ M0)
 end
+
+@testset "CR-172428 inputs with NASA's MRP deck modes (Phase 82c)" begin
+    d1 = PAIN.r172428_inputs(4000).structural.modes
+    dk = PAIN.r172428_inputs(4000; structural=:deck).structural.modes
+    @test length(dk) == length(d1) == 32
+    @test maximum(abs(a.f_Hz / b.f_Hz - 1) for (a, b) in zip(dk, d1)) < 2e-4            # Table D-1 within 0.02 %
+    @test maximum(length(m.C_shell) for m in dk) > maximum(length(m.C_shell) for m in d1)  # full series, not the 5 printed
+    @test_throws ErrorException PAIN.r172428_inputs(4000; structural=:ritz)
+end

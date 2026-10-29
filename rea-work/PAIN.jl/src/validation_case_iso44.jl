@@ -46,9 +46,11 @@ trim of App. B p. 197 (sidewall: PF105 0.0508 m + 1.456 kg/m² panel, η = 0.13;
 PF105 0.0127 m, no panel, η = 1.0; no mechanical path). c₀ = 343 m/s from the printed axial
 mode (93.78 Hz = c₀/2L_c). Structural modes: Table D-1 (the first 32 of NASA's 300, same
 numbers and frequencies as App. B); acoustic modes: CYL2D, 20 two-dimensional modes.
-`app_a=true` applies the App. A η_r′ correction (`η_r_trimmed_area`).
+`app_a=true` applies the App. A η_r′ correction (`η_r_trimmed_area`). `structural=:deck` (Phase 82c) takes the 32
+structural modes from the App. D solver on NASA's MRP deck (`appd_nasa_deck()`, full series) instead of Table D-1's
+printed (truncated) shapes; everything else is unchanged (82c: R172428_ETA stays 17/32, levels move < 1 dB).
 """
-function r172428_inputs(rpm::Integer; app_a::Bool=true)
+function r172428_inputs(rpm::Integer; app_a::Bool=true, structural::Symbol=:table_d1)
     fuse = FuselageGeometry(1.803, 0.508, 56.6)
     prop = PropellerPlacement(0.9652, 90.0, 0.662)
     f = r172428_appb_field(rpm; z_p=prop.z_p)
@@ -58,9 +60,11 @@ function r172428_inputs(rpm::Integer; app_a::Bool=true)
     ends = TrimStack(TrimElement[InsulationLayer(0.0127, pf105_table()), LimpMass(0.0, 1.0)],
                      "CR-172428 end cap")
     acoustic = cyl2d_modes(fuse.theta0_deg; n_modes=20, NY=10, c0=c0)
-    structural = structural_modes_from_table_d1(; n_keep=32)
+    structural_modes = structural === :deck ? appd_modes(appd_nasa_deck(); n_modes=32) :
+                       structural === :table_d1 ? structural_modes_from_table_d1(; n_keep=32) :
+                       error("r172428_inputs: structural must be :table_d1 or :deck (got $structural)")
     η_r_band = Dict(fc => 2 / fc for fc in third_octave_centers())
-    return PainInputs(fuse, prop, structural, acoustic, f.amps, f.phases, f.pts, (π * fuse.a / 18)^2;
+    return PainInputs(fuse, prop, structural_modes, acoustic, f.amps, f.phases, f.pts, (π * fuse.a / 18)^2;
                       sidewall=side, endplates=ends, mech=nothing, m_wall=3.113,
                       L_c=1.829, c0=c0, η_r_band, η_r_trimmed_area=app_a)
 end

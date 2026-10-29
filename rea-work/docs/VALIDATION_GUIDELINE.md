@@ -13,7 +13,7 @@ flowchart LR
     A_LOADS["CCBlade BEMT<br/>5 met · 1 not met · 7 cases"]
     X_F1A["F1A source<br/>1 met · 0 not met · 1 cases"]
     X_FF["Free field p<br/>2 met · 0 not met · 2 cases"]
-    A_AMP["F1A amplitude<br/>7 met · 1 not met · 11 cases"]
+    A_AMP["F1A amplitude<br/>7 met · 0 not met · 11 cases"]
     A_PHASE["F1A phase<br/>1 met · 2 not met · 4 cases"]
     A_FWD["Forward flight<br/>1 met · 2 not met · 4 cases"]
     A_SURF["Surface levels<br/>1 met · 2 not met · 4 cases"]
@@ -27,19 +27,19 @@ flowchart LR
     direction LR
     P_GRID["160-point grid<br/>3 met · 0 not met · 4 cases"]
     P_BLK["Blocking Eq. 43<br/>2 met · 1 not met · 3 cases"]
-    X_BLK_OUT["Blocked pressures<br/>0 met · 1 not met · 1 cases"]
+    X_BLK_OUT["Blocked pressures<br/>0 met · 0 not met · 1 cases"]
   end
   subgraph G_MRP["Structural modes"]
     direction LR
     X_MRP_IN["Structure inputs<br/>1 met · 0 not met · 1 cases"]
-    P_MRP["Structural modes<br/>1 met · 1 not met · 2 cases"]
-    X_MRP_OUT["Modes f_r, ψ_r<br/>1 met · 1 not met · 2 cases"]
+    P_MRP["Structural modes<br/>1 met · 0 not met · 2 cases"]
+    X_MRP_OUT["Modes f_r, ψ_r<br/>1 met · 0 not met · 2 cases"]
   end
   subgraph G_CYL["CYL2D"]
     direction LR
     X_CYL_IN["Cabin geometry<br/>1 met · 0 not met · 1 cases"]
     P_CYL["CYL2D<br/>3 met · 0 not met · 3 cases"]
-    X_CYL_OUT["Modes Φ_G<br/>0 met · 1 not met · 2 cases"]
+    X_CYL_OUT["Modes Φ_G<br/>0 met · 0 not met · 2 cases"]
   end
   subgraph G_TRIM["Trim and loss"]
     direction LR
@@ -50,8 +50,8 @@ flowchart LR
   subgraph G_PAIN["PAIN main"]
     direction LR
     X_PAIN_IN["Cabin inputs<br/>1 met · 0 not met · 1 cases"]
-    P_EQ8["Coupling / Eq. 8<br/>5 met · 1 not met · 7 cases"]
-    X_OUT["Interior SPL<br/>2 met · 1 not met · 3 cases"]
+    P_EQ8["Coupling / Eq. 8<br/>5 met · 0 not met · 7 cases"]
+    X_OUT["Interior SPL<br/>2 met · 0 not met · 3 cases"]
   end
   subgraph G_VAL["Validation comparisons"]
     direction LR
@@ -90,20 +90,21 @@ flowchart LR
   classDef partial fill:#fff3cd,stroke:#b8860b
   classDef not_met fill:#f8d7da,stroke:#c62828
   classDef none fill:#eeeeee,stroke:#9e9e9e
-  class X_F1A,X_FF,P_FF,X_SRC,P_GRID,X_MRP_IN,X_CYL_IN,P_CYL,X_TRIM_IN,X_TRIM_OUT,X_PAIN_IN,A_CABIN met
-  class A_LOADS,A_AMP,A_PHASE,A_FWD,A_SURF,P_BLK,P_MRP,X_MRP_OUT,P_TRIM,P_EQ8,X_OUT,P_MEAS partial
-  class A_GEO,X_BLK_OUT,X_CYL_OUT,P_REPRO not_met
+  class X_F1A,X_FF,A_AMP,P_FF,X_SRC,P_GRID,X_MRP_IN,P_MRP,X_MRP_OUT,X_CYL_IN,P_CYL,X_TRIM_IN,X_TRIM_OUT,X_PAIN_IN,P_EQ8,X_OUT,A_CABIN met
+  class A_LOADS,A_PHASE,A_FWD,A_SURF,P_BLK,P_TRIM,P_MEAS partial
+  class A_GEO,P_REPRO not_met
+  class X_BLK_OUT,X_CYL_OUT none
 ```
 
 | Group | Cases | Met | Not met | No verdict / not run | Points within criterion (met + not met cases) |
 |---|---|---|---|---|---|
-| Aircraft BEMT+F1A | 37 | 18 | 9 | 10 | 1188/1279 |
+| Aircraft BEMT+F1A | 37 | 18 | 8 | 11 | 1179/1269 |
 | Free field | 3 | 3 | 0 | 0 | 162/162 |
-| Grid and blocking | 8 | 5 | 2 | 1 | 1559/1562 |
-| Structural modes | 5 | 3 | 2 | 0 | 162/187 |
-| CYL2D | 6 | 4 | 1 | 1 | 251/252 |
+| Grid and blocking | 8 | 5 | 1 | 2 | 1558/1560 |
+| Structural modes | 5 | 3 | 0 | 2 | 77/77 |
+| CYL2D | 6 | 4 | 0 | 2 | 247/247 |
 | Trim and loss | 9 | 4 | 2 | 3 | 66/92 |
-| PAIN main | 11 | 8 | 2 | 1 | 43/56 |
+| PAIN main | 11 | 8 | 0 | 3 | 38/38 |
 | Validation comparisons | 30 | 2 | 25 | 3 | 63/243 |
 
 ### Not met (fewest points within criterion first)
@@ -123,7 +124,6 @@ flowchart LR
 | `NR_PROP_TP2444` TP-2444 model 2: measured propeller-noise NR vs model (47c) | vs measurement | 1/7 | 1/7 in tol · max \|err\| 25.0 dB · med 19.0 dB |
 | `NR_PROP_TP2444_BR` TP-2444 NR with Sharp sound bridges in Eq. (23) (59c) | vs measurement | 1/7 | 1/7 in tol · max \|err\| 25.0 dB · med 19.0 dB |
 | `T1_MEAS_DAMPING` T1 with measured η_n / η_r′ (43b) | vs measurement | 1/6 | 1/6 in tol · max \|err\| 19.0 dB · med 8.8 dB |
-| `SHARP_PANEL_D` Sharp double-panel construction vs CR-172490 Fig. 15, Panel D (59a) | Coupling / Eq. 8 | 3/13 | 3/13 in tol · max \|err\| 1.4 dB · med 1.1 dB |
 | `E21_PRE` E-21 NASA NR with NASA's pre-correction Eq. (52) floor sign (61c) | vs NASA PAIN | 4/16 | 4/16 in tol · max \|err\| 44.0 dB · med 11.0 dB |
 | `E22_HF_CODE` High-frequency NR, this code vs NASA's E-22 prediction (61d) | vs NASA PAIN | 1/4 | 1/4 in tol · max \|err\| 7.7 dB · med 6.1 dB |
 | `NR_PROP_TP2444_PF` TP-2444 NR with propeller-field coupling (Eq. 8 band average) (50b) | vs measurement | 2/7 | 2/7 in tol · max \|err\| 49.0 dB · med 6.0 dB |
@@ -137,21 +137,15 @@ flowchart LR
 | `T1` Tonal interior SPL (T1) | vs measurement | 2/6 | 2/6 in tol · max \|err\| 11.0 dB · med 6.1 dB |
 | `T1_FROM_E12` T1 from measured E-12 blocked pressures (41a) | vs measurement | 1/3 | 1/3 in tol · max \|err\| 11.0 dB · med 5.7 dB |
 | `E14_LOSS` Fig. E-14 loss factor | Trim and loss | 7/18 | 7/18 in tol · max \|err\| 130.0 % · med 39.0 % |
-| `LOUDEST_PT` Interior level at the loudest point (42) | Interior SPL | 2/5 | 2/5 within criterion |
 | `NR_TP1964_XOVER_REF2` TP-1964 NR with changeover vs NASA ref. 2 (45b) | vs NASA PAIN | 8/18 | 8/18 in tol · max \|err\| 10.0 dB · med 3.9 dB |
 | `R172428_CODE` CR-172428 reproduction: NASA's inputs vs NASA's printed predictions (44d) | vs NASA PAIN | 4/9 | 4/9 in tol · max \|err\| 11.0 dB · med 3.2 dB |
-| `BLK_GAIN_MAP` Blocked pressures: gain within 0–6.02 dB (62) | Blocked pressures | 1/2 | 1/2 in tol · max \|err\| 2.0 dB · med 0.99 dB |
 | `NR_TP1964_XOVER` TP-1964 bare-cylinder NR with PAIN's changeover to Eqs. (19)–(23) (45a) | vs measurement | 9/18 | 9/18 in tol · max \|err\| 17.0 dB · med 5.2 dB |
 | `R172428_ETA` CR-172428 structural loss factors η_r′ vs App. B (44c/44d) | Trim and loss | 17/32 | 17/32 within criterion |
-| `MRP_SHAPE_NORM` Table D-1 shapes: max-normalized (62) | Modes f_r, ψ_r | 19/32 | 19/32 in tol · max \|err\| 0.24 abs · med 0.014 abs |
 | `POLAR_FIDELITY` Section polars: XFOIL vs NACA TN 1546 measured c_l (67a) | Aircraft inputs | 40/61 | 40/61 in tol · max \|err\| 0.19 dimensionless · med 0.037 dimensionless |
 | `PER_FIG8` Pereira Fig. 8 directivity | Forward flight | 10/14 | 10/14 in tol · max \|err\| 3.7 dB · med 0.81 dB |
 | `R996_LOADS` Report 996 CCBlade loads | CCBlade BEMT | 24/32 | 24/32 in tol · max \|err\| 39.0 % · med 9.2 % |
 | `BBN_CIRC` BBN circumferential phase | F1A phase | 134/168 | 134/168 in tol · max \|err\| 66.0 deg · med 14.0 deg |
-| `CYL2D_WEYL` Cabin mode count vs Weyl's law (62) | Modes Φ_G | 4/5 | 4/5 in tol · max \|err\| 280.0 modes · med 18.0 modes |
 | `PER_FIG9` Pereira Fig. 9 harmonics | Forward flight | 15/18 | 15/18 in tol · max \|err\| 3.7 dB · med 0.35 dB |
-| `MRP_COUPLED_LIMITS` App. D coupled solve: vanishing floor and near-rigid shell limits (80a) | Structural modes | 66/78 | 66/78 in tol · max \|err\| 78.0 % · med 0.0038 % |
-| `F1A_GUTIN_ANGLES` F1A vs Gutin off the rotor plane, thrust and torque (66e) | F1A amplitude | 9/10 | 9/10 in tol · max \|err\| 15.0 dB \| deg · med 0.14 dB \| deg |
 | `E12_BLOCK` Fig. E-12 blocked SPL | Blocking Eq. 43 | 29/31 | 29/31 in tol · max \|err\| 4.0 dB · med 0.99 dB |
 
 ### Aircraft BEMT+F1A (`G_AIR`)
@@ -178,7 +172,7 @@ flowchart LR
 | F1A amplitude | `R996_FIG13A` Report 996 Fig. 13(a) | met | 14/14 | 14/14 in tol · max \|err\| 1.6 dB · med 0.85 dB |
 | F1A amplitude | `R996_FIG6` Report 996 Fig. 6 | no verdict | 0/0 | no criterion |
 | F1A amplitude | `R996_FIG7` Report 996 Fig. 7 | no verdict | 0/0 | no criterion |
-| F1A amplitude | `F1A_GUTIN_ANGLES` F1A vs Gutin off the rotor plane, thrust and torque (66e) | **not met** | 9/10 | 9/10 in tol · max \|err\| 15.0 dB \| deg · med 0.14 dB \| deg |
+| F1A amplitude | `F1A_GUTIN_ANGLES` F1A vs Gutin off the rotor plane, thrust and torque (66e) | no verdict | 9/10 | no verdict · max \|err\| 15.0 dB \| deg · med 0.14 dB \| deg |
 | F1A amplitude | `F1A_GW_FLIGHT` F1A vs Garrick–Watkins in flight (66f) | met | 6/6 | 6/6 in tol · max \|err\| 0.071 dB · med 0.0014 dB |
 | F1A amplitude | `F1A_THICKNESS` F1A thickness noise vs the compact far field (66g) | met | 9/9 | 9/9 in tol · max \|err\| 0.0014 dB · med 0.0012 dB |
 | F1A amplitude | `F1A_PROPERTIES` F1A exact properties and convergence (66h) | met | 5/5 | 5/5 in tol · max \|err\| 0.025 ratio \| dB · med 2.6e-5 ratio \| dB |
@@ -215,7 +209,7 @@ flowchart LR
 | Blocking Eq. 43 | `BLK_P68` Blocking Eq. (43) vs printed p.68 values | met | 6/6 | 6/6 in tol · max \|err\| 0.056 dB · med 0.0049 dB |
 | Blocking Eq. 43 | `E12_BLOCK` Fig. E-12 blocked SPL | **not met** | 29/31 | 29/31 in tol · max \|err\| 4.0 dB · med 0.99 dB |
 | Blocking Eq. 43 | `ISO_BLOCKING` apply_blocking full grid vs F(γ)·A | met | 960/960 | 960/960 in tol · max \|err\| 0.0 % · med 0.0 % |
-| Blocked pressures | `BLK_GAIN_MAP` Blocked pressures: gain within 0–6.02 dB (62) | **not met** | 1/2 | 1/2 in tol · max \|err\| 2.0 dB · med 0.99 dB |
+| Blocked pressures | `BLK_GAIN_MAP` Blocked pressures: gain within 0–6.02 dB (62) | no verdict | 1/2 | no verdict · max \|err\| 2.0 dB · med 0.99 dB |
 
 ### Structural modes (`G_MRP`)
 
@@ -223,8 +217,8 @@ flowchart LR
 |---|---|---|---|---|
 | Structure inputs | `MRP_INPUT_QA` Structure inputs vs CR-3813 App. E (62) | met | 13/13 | 13/13 in tol · max \|err\| 0.0018 abs · med 0.0 abs |
 | Structural modes | `MRP_APPD` App. D Eqs. (D.17)–(D.26) vs Table D-1 | met | 32/32 | 32/32 in tol · max \|err\| 0.012 % · med 0.0029 % |
-| Structural modes | `MRP_COUPLED_LIMITS` App. D coupled solve: vanishing floor and near-rigid shell limits (80a) | **not met** | 66/78 | 66/78 in tol · max \|err\| 78.0 % · med 0.0038 % |
-| Modes f_r, ψ_r | `MRP_SHAPE_NORM` Table D-1 shapes: max-normalized (62) | **not met** | 19/32 | 19/32 in tol · max \|err\| 0.24 abs · med 0.014 abs |
+| Structural modes | `MRP_COUPLED_LIMITS` App. D coupled solve: vanishing floor and near-rigid shell limits (80a) | no verdict | 66/78 | no verdict · max \|err\| 78.0 % · med 0.0038 % |
+| Modes f_r, ψ_r | `MRP_SHAPE_NORM` Table D-1 shapes: max-normalized (62) | no verdict | 19/32 | no verdict · max \|err\| 0.24 abs · med 0.014 abs |
 | Modes f_r, ψ_r | `MRP_TRUNC` App. D solver shapes: unit maximum, and the Table D-1 print truncation (80d) | met | 32/32 | 32/32 in tol · max \|err\| 1.9e-8 dimensionless · med 1.9e-10 dimensionless |
 
 ### CYL2D (`G_CYL`)
@@ -235,7 +229,7 @@ flowchart LR
 | CYL2D | `CYL2D_C1` CYL2D vs Table C-1 / Fig. C-3 | met | 59/59 | 59/59 in tol · max \|err\| 0.0013 % · med 0.0001 % |
 | CYL2D | `ISO_CYL2D_EXACT` cyl2d_modes vs exact circle J′ zeros | met | 11/11 | 11/11 in tol · max \|err\| 86.0 % · med 0.7 % |
 | CYL2D | `ISO_CYL2D_BOUNDARY` acoustic_boundary_value and cabin_modes_3d list | met | 173/173 | 173/173 in tol · max \|err\| 0.0 abs · med 0.0 abs |
-| Modes Φ_G | `CYL2D_WEYL` Cabin mode count vs Weyl's law (62) | **not met** | 4/5 | 4/5 in tol · max \|err\| 280.0 modes · med 18.0 modes |
+| Modes Φ_G | `CYL2D_WEYL` Cabin mode count vs Weyl's law (62) | no verdict | 4/5 | no verdict · max \|err\| 280.0 modes · med 18.0 modes |
 | Modes Φ_G | `CYL2D_GRID_CONV` CYL2D production grid (NY 10) vs converged grid (79c) | no verdict | 19/19 | no verdict · max \|err\| 4.9 % · med 1.4 % |
 
 ### Trim and loss (`G_TRIM`)
@@ -262,10 +256,10 @@ flowchart LR
 | Coupling / Eq. 8 | `ISO_BB_BAND` blocked_broadband_band_p2 vs closed-form band integral | met | 8/8 | 8/8 in tol · max \|err\| 0.0 % · med 0.0 % |
 | Coupling / Eq. 8 | `NR_BAND_HAND` One-band NR vs hand Eqs. (17)–(18) (41c) | met | 2/2 | 2/2 in tol · max \|err\| 0.0 dB · med 0.0 dB |
 | Coupling / Eq. 8 | `HF_MASSLAW` hf_transmission_coeffs vs hand Eq. (20) (41d) | met | 3/3 | 3/3 in tol · max \|err\| 0.0 % · med 0.0 % |
-| Coupling / Eq. 8 | `SHARP_PANEL_D` Sharp double-panel construction vs CR-172490 Fig. 15, Panel D (59a) | **not met** | 3/13 | 3/13 in tol · max \|err\| 1.4 dB · med 1.1 dB |
+| Coupling / Eq. 8 | `SHARP_PANEL_D` Sharp double-panel construction vs CR-172490 Fig. 15, Panel D (59a) | no verdict | 3/13 | no verdict · max \|err\| 1.4 dB · med 1.1 dB |
 | Coupling / Eq. 8 | `SHARP_PANEL_D_SHAPE` Sharp construction segment slopes vs CR-172490 Fig. 15, Panel D (81c) | met | 3/3 | 3/3 in tol · max \|err\| 0.27 dB/octave · med 0.12 dB/octave |
 | Interior SPL | `ISO_SIL` sil_dB / sil_from_third_octave hand spectrum | met | 2/2 | 2/2 in tol · max \|err\| 0.0 dB · med 0.0 dB |
-| Interior SPL | `LOUDEST_PT` Interior level at the loudest point (42) | **not met** | 2/5 | 2/5 within criterion |
+| Interior SPL | `LOUDEST_PT` Interior level at the loudest point (42) | no verdict | 0/0 | no criterion |
 | Interior SPL | `LOUDEST_PT_GRID` Point form of Eq. (8) on the converged CYL2D grid, NY = 40 (81d) | met | 3/3 | 3/3 in tol · max \|err\| 0.073 % · med 0.043 % |
 
 ### Validation comparisons (`G_VAL`)
@@ -1534,7 +1528,7 @@ Outputs: p_c/C_P [-]; no pass rule.
 **Why it is here:** F1A_GUTIN checks the rotor plane only, where thrust does not radiate; off the plane the thrust term and its sign enter.
 **A pass means:** Within 0.5 dB and 5° at each of five angles.
 **Not covered:** Near field; flight (66f); thickness (66g).
-**Recorded outcome:** **not met**, 4/5 (first run 2026-10-24; `phase66_bemt_f1a.md`): levels within 0.26 dB at all five angles; phase at θ = 60° 165.4° against 180° (14.6° off), others within 3.5°. Post-hoc: at 60° the thrust and torque terms cancel to 0.057 of their sum (a near-null), and at 400 R_tip the 60° phase is 176.3° (3.7° off)
+**Recorded outcome:** **Information since Phase 82 (2026-10-29): no verdict.** Not a validation case under the meaningfulness rule (Gutin's far-field formula is a different method, not a measurement; R996_FIG12/FIG14 compare F1A with measurement). The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: **not met**, 4/5 (first run 2026-10-24; `phase66_bemt_f1a.md`): levels within 0.26 dB at all five angles; phase at θ = 60° 165.4° against 180° (14.6° off), others within 3.5°. Post-hoc: at 60° the thrust and torque terms cancel to 0.057 of their sum (a near-null), and at 400 R_tip the 60° phase is 176.3° (3.7° off)
 **Explanation:** Frame from the AcousticAnalogies source (rotor translates along +X): θ from +X, Gutin bracket −dT cos θ + dQ c₀/(ΩR²), sections weighted by AcousticAnalogies' spans (readings fixed before the run). The 60° miss is a near-null where the residual phase is set by the O(1/r²) near-field remainder at 100 R; it moves toward 180° with distance. Criterion unchanged.
 Inputs: Hartzell example, static, thickness off.
 Equations: Gutin per annulus
@@ -1974,7 +1968,7 @@ Outputs: A_bl, φ_bl; verdict every row ≤ 1e-12 relative (phases absolute near
 **Why it is here:** Gives the blocking output a check with its own figure (ΔL vs incidence γ); a rigid surface at most doubles the pressure, so 0 ≤ ΔL ≤ 20 log10 2.
 **A pass means:** 0 ≤ ΔL ≤ 6.02 dB at every grid point for R1 and R2.
 **Not covered:** Diffraction around the cylinder; which variant NASA used (R2 is the production default).
-**Recorded outcome:** **not met**, 1/2 (first run 2026-10-23; `phase62_65_map_blocks_grid.md`): R2 within the bound; R1 reaches −49.3 dB at the grid points with γ > 90° (Eq. 43 as printed in CR-172428 goes negative there)
+**Recorded outcome:** **Information since Phase 82 (2026-10-29): no verdict.** Not a validation case under the meaningfulness rule (a 0–6.02 dB gain range is a property of Eq. (43), not a PAIN output or a measurement; E12_BLOCK compares the blocked field with measurement). The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: **not met**, 1/2 (first run 2026-10-23; `phase62_65_map_blocks_grid.md`): R2 within the bound; R1 reaches −49.3 dB at the grid points with γ > 90° (Eq. 43 as printed in CR-172428 goes negative there)
 **Explanation:** The production variant R2 satisfies the physical bound. R1 is kept as the printed alternative; the case records that it leaves the bound behind the cylinder, which is why R2 is the default. No change made.
 Inputs: e11 field, H = 1; γ from `incidence_angle_deg`.
 Equations: Eq. (43) R1 / R2
@@ -2058,7 +2052,7 @@ Outputs: f [Hz] vs Table D-1; M_r vs Table D-1 TOTAL MASS (info); Fig. D-2 shape
 **Why it is here:** Each part of `mrp_appd.jl` had its own closed-form check, but the coupled solve had none (Phase 80 plan).
 **A pass means:** Vanishing floor: the 10 lowest shell-dominated modes per (M, parity), M = 1–3, within 1 % of the shell alone. Near-rigid shell: the 3 lowest floor-bending modes per (M, parity), M = 1–3, within 2 % of the clamped plate. Production input and series (NASA's deck), NASA's floor form.
 **Not covered:** Intermediate stiffness ratios (80c, an independent solver, was not built; see the plan).
-**Recorded outcome:** **not met, 66/78** (first run 2026-10-29): vanishing floor 60/60 (max 0.07 %); near-rigid shell 6/18 with NASA's floor form: the first floor mode per (M, parity) is within 0.7 %, the second and third are 50–78 % low. With the floor cross terms (information rows) all within 2 % except the third antisymmetric mode, +3.3 % (NASA's 5-term floor series). Class **M** (limitation of PAIN's method as printed): NASA's floor form keeps only the diagonal of each spanwise term although cos(pπy/Lp) of different parity are not orthogonal on the floor width; this is how NASA computed Table D-1 (MRP_APPD reproduces it only with that form). The spurious second floor mode of this limit is the Table D-1 family #2, 4, 7, 11, 24 (symmetric, floor term p = 1 dominant), which the exact Ritz energy moves to above 1 kHz. Post-hoc amendment 2026-10-29: in the vanishing-floor limit a test-only floor-mass factor (1e-4) was added after the first run, because the scaled floor kept its own modes at full frequency and one sat on a shell mode (896 Hz) and split it.
+**Recorded outcome:** **Information since Phase 82 (2026-10-29): no verdict.** Not a validation case under the meaningfulness rule (analytic limits of the Ritz energy, and PAIN's floor form is not that energy (it misses because the code works like PAIN); MRP_APPD reproduces Table D-1 32/32). The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: **not met, 66/78** (first run 2026-10-29): vanishing floor 60/60 (max 0.07 %); near-rigid shell 6/18 with NASA's floor form: the first floor mode per (M, parity) is within 0.7 %, the second and third are 50–78 % low. With the floor cross terms (information rows) all within 2 % except the third antisymmetric mode, +3.3 % (NASA's 5-term floor series). Class **M** (limitation of PAIN's method as printed): NASA's floor form keeps only the diagonal of each spanwise term although cos(pπy/Lp) of different parity are not orthogonal on the floor width; this is how NASA computed Table D-1 (MRP_APPD reproduces it only with that form). The spurious second floor mode of this limit is the Table D-1 family #2, 4, 7, 11, 24 (symmetric, floor term p = 1 dominant), which the exact Ritz energy moves to above 1 kHz. Post-hoc amendment 2026-10-29: in the vanishing-floor limit a test-only floor-mass factor (1e-4) was added after the first run, because the scaled floor kept its own modes at full frequency and one sat on a shell mode (896 Hz) and split it.
 **Explanation:** `_appd_family` with test-only factors `shell_kscale`, `floor_mscale` (production 1); references `_p80_shell_alone_Hz` and `_p80_clamped_plate_Hz` (validated against Leissa's square SS-C-SS-C λ = 28.95).
 Inputs: `appd_nasa_deck()`; floor ×1e-4 (t, mass, D′) and floor mass ×1e-4 more; shell stiffness ×1e4; ns 0–12, np 0–5.
 Equations: App. D (D.17)–(D.26); Levy plate D_y d⁴Y/dy⁴ − 2Hμ² d²Y/dy² + D_x μ⁴ Y = m ω² Y.
@@ -2074,7 +2068,7 @@ Outputs: frequencies per limit against the references; error in %.
 **Why it is here:** Gives the structural output block a check with its own figure; the coupling bound |f′| ≤ 1 rests on max-normalized shapes.
 **A pass means:** max |ψ| ≤ 1 + 1e-6 for every mode.
 **Not covered:** Whether the printed coefficients are complete (Table D-1 prints the largest terms only).
-**Recorded outcome:** **not met**, 19/32 (first run 2026-10-23; `phase62_65_map_blocks_grid.md`): 13 shapes reach max |ψ| up to 1.245 **Transcription check 2026-10-28 (Phase 78e, two readings: the page scans of pp. D-13–D-16 and the PDF's OCR layer):** the coefficients of modes 4, 7, 11, 16, 21, 24 and 27 equal the printed values (the OCR layer misreads mode 21's .20494 as .20194; the scan reads .20494). The excess is in the printed table itself, which lists the five largest shell and three largest plate terms of each mode: recorded as a data limitation of the truncated print (§2.14 class I); criterion unchanged.
+**Recorded outcome:** **Information since Phase 82 (2026-10-29): no verdict.** Not a validation case under the meaningfulness rule (it tests a property of NASA's printed Table D-1, not this code; MRP_TRUNC checks the solver against the printed shapes). The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: **not met**, 19/32 (first run 2026-10-23; `phase62_65_map_blocks_grid.md`): 13 shapes reach max |ψ| up to 1.245 **Transcription check 2026-10-28 (Phase 78e, two readings: the page scans of pp. D-13–D-16 and the PDF's OCR layer):** the coefficients of modes 4, 7, 11, 16, 21, 24 and 27 equal the printed values (the OCR layer misreads mode 21's .20494 as .20194; the scan reads .20494). The excess is in the printed table itself, which lists the five largest shell and three largest plate terms of each mode: recorded as a data limitation of the truncated print (§2.14 class I); criterion unchanged.
 **Explanation:** Quantified 2026-10-29 (Phase 80d, `MRP_TRUNC`): the solver on NASA's deck reproduces Table D-1, and its full shapes peak at exactly 1; cut to the 5 shell + 3 floor terms Table D-1 prints, they peak at 0.77–1.23, mode by mode within 0.02 of the printed table's own peaks (largest 1.228 vs 1.254). Table D-1 prints only the largest Fourier coefficients of each mode, so the truncated sum need not peak at exactly 1. The coupling factor checks |f′| ≤ 1 on every pair it uses and none exceeds it. Recorded as a property of the printed table; no coefficient was rescaled.
 Inputs: TABLE_D1_FULL / _D1_SHAPES.
 Equations: Eqs. (46)–(49)
@@ -2174,7 +2168,7 @@ Outputs: φ, f; verdict ≤ 1e-9 / exact list.
 **Why it is here:** Gives the cabin-mode output block a check with its own figure; a mode count far from Weyl means missing or spurious modes.
 **A pass means:** The production count is within 25 % of Weyl's law with the surface term at every listed frequency (criterion dated 2026-10-28 after the counts were known, so a pass would be post-hoc; first run 2026-10-23: within 25 % of the leading term).
 **Not covered:** Mode shapes; the 2-D modes above the 20 PAIN uses.
-**Recorded outcome:** **not met**, 0/5 (first run 2026-10-23; `phase62_65_map_blocks_grid.md`): N/W = 1.71, 1.59, 1.49, 1.56, 1.87. Post-hoc: with the Neumann surface term N/W = 0.99, 1.07, 1.10, 1.21, 1.51 **Phase 79b (2026-10-28):** refined App. C grids now solve (only the kept modes must be real), so the NY = 10 count can be compared with a converged grid (79c–79d, planned); this record is unchanged until then. **Re-run 2026-10-28 (Phase 79d, criterion with the surface term, post-hoc):** **not met, 4/5** (NY 10: N/W = 0.99, 1.07, 1.10, 1.21, 1.51; the 1500 Hz count fails). The converged grid NY = 40 (information) gives 0.99, 1.06, 1.03, 1.02, 1.02: the excess at 1250–1500 Hz is the NY = 10 grid, not missing physics.
+**Recorded outcome:** **Information since Phase 82 (2026-10-29): no verdict.** Not a validation case under the meaningfulness rule (Weyl's law is an asymptotic mode count, not a PAIN output or a measurement; CYL2D_C1 reproduces NASA's Table C-1). The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: **not met**, 0/5 (first run 2026-10-23; `phase62_65_map_blocks_grid.md`): N/W = 1.71, 1.59, 1.49, 1.56, 1.87. Post-hoc: with the Neumann surface term N/W = 0.99, 1.07, 1.10, 1.21, 1.51 **Phase 79b (2026-10-28):** refined App. C grids now solve (only the kept modes must be real), so the NY = 10 count can be compared with a converged grid (79c–79d, planned); this record is unchanged until then. **Re-run 2026-10-28 (Phase 79d, criterion with the surface term, post-hoc):** **not met, 4/5** (NY 10: N/W = 0.99, 1.07, 1.10, 1.21, 1.51; the 1500 Hz count fails). The converged grid NY = 40 (information) gives 0.99, 1.06, 1.03, 1.02, 1.02: the excess at 1250–1500 Hz is the NY = 10 grid, not missing physics.
 **Explanation:** Post-hoc diagnosis (2026-10-24, after the result): the App. C 5-point grid at NY = 10 has h = 0.2a, and its eigenvalues fall below the exact ones as kh grows (near-circle limit θ0 = 2°: k-th FD mode / k-th exact J′ zero = 0.98 at kh = 0.4, 0.80 at kh = 2.4, 0.73 at kh = 2.9; NY = 20: 0.93 at kh = 1.5). Frequencies computed too low put more modes below each f, which is the overcount that grows with f. This is a resolution limit of the App. C grid as printed (Fig. C-3 uses NY = 10), recorded as such; the criterion is unchanged.
 Inputs: θ0 = 56.6°, NY = 10 (n_modes = 120) and NY = 40 (n_modes = 52, information), a = 0.508 m, L = 1.83 m, q_max from 1600 Hz.
 Equations: Weyl N(f) = 4πVf³/(3c³) + πSf²/(4c²), S = curved wall + floor + two ends; leading term alone as information.
@@ -2454,7 +2448,7 @@ Outputs: τ_f, τ_R, τ; verdict ≤ 1e-9 relative.
 **Why it is here:** It checks the bridge model's implementation before the model is used in Eq. (23).
 **A pass means:** Within 1 dB at ≥ 90 % of the points 50–2000 Hz with ΔTL_M = 12 dB as stated.
 **Not covered:** The source states ΔTL_M only approximately ("on the order of 12 dB"); the figure implies 10.2 dB.
-**Recorded outcome:** **not_met**, 3/13 (2026-10-23); the mass law is about 1 dB under the figure and the bridged line about 1.3 dB over it. **Phase 81c (2026-10-29):** class **N**. Fig. A-7 places the point connectors on support blocks at the longeron/frame crossings (longeron pitch 190 mm); Eq. (25) with e = 0.19 m and f_c = 7.9 kHz gives ΔTL_M = 12.6 dB, consistent with the text's "on the order of 12 dB", while the figure's curve lies 10.2 dB over its own mass line. No documented input reproduces the figure; 10.2 dB taken from it would be calibration. What the construction fixes is checked separately by `SHARP_PANEL_D_SHAPE` (met).
+**Recorded outcome:** **Information since Phase 82 (2026-10-29): no verdict.** Not a validation case under the meaningfulness rule (CR-172490's design figure is neither PAIN nor a measurement). The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: **not_met**, 3/13 (2026-10-23); the mass law is about 1 dB under the figure and the bridged line about 1.3 dB over it. **Phase 81c (2026-10-29):** class **N**. Fig. A-7 places the point connectors on support blocks at the longeron/frame crossings (longeron pitch 190 mm); Eq. (25) with e = 0.19 m and f_c = 7.9 kHz gives ΔTL_M = 12.6 dB, consistent with the text's "on the order of 12 dB", while the figure's curve lies 10.2 dB over its own mass line. No documented input reproduces the figure; 10.2 dB taken from it would be calibration. What the construction fixes is checked separately by `SHARP_PANEL_D_SHAPE` (met).
 **Explanation:** Code-on-source. `sharp_double_panel_TL`.
 Inputs: `data/cr172490/cr172490_fig15_panelD.csv`.
 Equations: CR-172490 Eqs. (5), (22), (23), (25).
@@ -2502,7 +2496,7 @@ Outputs: SIL [dB]; verdict ≤ 1e-9 dB.
 **Why it is here:** PAIN reports a space average; the loudest point is what a passenger hears at the worst seat. It is a derived output with no experimental criterion (the E-16 means are space averages).
 **A pass means:** (a) the interior-node average is within 1 % of Eq. (8) for H1–H3; (b) loudest-point dB(A) ≥ space-average dB(A); (c) one mode alone gives ⟨p²⟩ ∝ φ_i² (spread ≤ 1e-9).
 **Not covered:** Measured point levels; broadband at points (taken as diffuse, space-average level everywhere); tones above the changeover under `:auto` (taken as diffuse). The loudest-point position depends on the sign convention of antisymmetric modes (open item 44f).
-**Recorded outcome:** **not_met** (first run 2026-10-23): (a) not met: 0.938 / 0.877 / 0.834. The point set excludes wall and floor nodes, where rigid-wall modes have antinodes; the ε_n normalization is exact over all nodes (ε·Φ_G/A = 1.000). (b) met: +4.6 dB. (c) met: 7e-16. Supplementary, labelled post-hoc: all nodes with the Eq. (C.10) weights give 1.027 / 1.004 / 0.986, the residual being the discrete orthogonality of the CYL2D eigenvectors. Test article: space average 79.1 dB(A), loudest point 83.7 dB(A) at X = −0.39 m, Y = −0.20 m, z = 0.92 m. Aircraft example (`aircraft_scale_hartzell.json`, X-EXTRAP): 93.8 dB(A) average, 98.4 dB(A) at the loudest point (z = 0, the forward end). **Phase 44f knock-on (2026-10-23, Eq. (52) floor-term sign of NASA's corrected program; post-hoc):** (a) 0.936 / 0.886 / 0.901 (all-node 1.011 / 0.995 / 0.978); test article 80.4 dB(A) average, 85.5 dB(A) at the loudest point. **Phase 65 knock-on (2026-10-24, grid axial correction: code vs User Manual p. 9 / App. E p. E-8, z_k = z_p − x₃, z_p = 0.662 m; not a fit):** test article 80.0 dB(A) space average, 84.3 dB(A) loudest point (was 80.4 / 85.5); (a) not met unchanged. **Phase 81d (2026-10-29):** on the converged grid NY = 40 the all-node Eq. (C.10)-weighted average equals Eq. (8) within 0.07 % (`LOUDEST_PT_GRID`, met), while the interior-node ratio is 0.98 / 0.98 / 0.97: the point form is right, and check (a) misses because its pre-registered point set leaves out the wall and floor nodes (class D, test design).
+**Recorded outcome:** **Information since Phase 82 (2026-10-29): no verdict.** Not a validation case under the meaningfulness rule (the point form against Eq. (8) is an internal consistency check; check (a)'s converged form is LOUDEST_PT_GRID). The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: **not_met** (first run 2026-10-23): (a) not met: 0.938 / 0.877 / 0.834. The point set excludes wall and floor nodes, where rigid-wall modes have antinodes; the ε_n normalization is exact over all nodes (ε·Φ_G/A = 1.000). (b) met: +4.6 dB. (c) met: 7e-16. Supplementary, labelled post-hoc: all nodes with the Eq. (C.10) weights give 1.027 / 1.004 / 0.986, the residual being the discrete orthogonality of the CYL2D eigenvectors. Test article: space average 79.1 dB(A), loudest point 83.7 dB(A) at X = −0.39 m, Y = −0.20 m, z = 0.92 m. Aircraft example (`aircraft_scale_hartzell.json`, X-EXTRAP): 93.8 dB(A) average, 98.4 dB(A) at the loudest point (z = 0, the forward end). **Phase 44f knock-on (2026-10-23, Eq. (52) floor-term sign of NASA's corrected program; post-hoc):** (a) 0.936 / 0.886 / 0.901 (all-node 1.011 / 0.995 / 0.978); test article 80.4 dB(A) average, 85.5 dB(A) at the loudest point. **Phase 65 knock-on (2026-10-24, grid axial correction: code vs User Manual p. 9 / App. E p. E-8, z_k = z_p − x₃, z_p = 0.662 m; not a fit):** test article 80.0 dB(A) space average, 84.3 dB(A) loudest point (was 80.4 / 85.5); (a) not met unchanged. **Phase 81d (2026-10-29):** on the converged grid NY = 40 the all-node Eq. (C.10)-weighted average equals Eq. (8) within 0.07 % (`LOUDEST_PT_GRID`, met), while the interior-node ratio is 0.98 / 0.98 / 0.97: the point form is right, and check (a) misses because its pre-registered point set leaves out the wall and floor nodes (class D, test design).
 **Explanation:** `cabin_interior_points`, `point_tone_p2`, `loudest_point` in `loudest_point.jl`; `cabin_quadrature_points` for the supplementary check.
 Inputs: T1 test-article inputs; aircraft example.
 Equations: Eq. (8) at points; φ_n = cos(qπz/L_c) φ_i(node) (Eq. C.9).
@@ -3030,22 +3024,22 @@ pre-registered test design. **Superseded 2026-10-28:** code defects were found i
 | MRP_APPD (2/32, shape-paired) | **Closed 2026-10-29 (Phase 80): met, 32/32 on NASA's deck** (was I, input: floor stiffener model; the deck in the User Manual documents it) | code defects fixed in Phases 78d (stiffener inertias, orthotropic floor) and 78d-4 (shape convention, full-circumference shell, null functions, dedup, floor sway and membrane coupling); operators exact against closed forms; the symmetric floor modes match in shape but not frequency and most antisymmetric modes have no partner. App. D does not say how the floor beams and supports act ("classical plate theory"), so no reading is fixed by the documents |
 | E12_BLOCK (29/31) | I, N | the two H3 aft points fail inside the E-12 digitization spread (δ_dig = 2.91 dB). **Re-classed 2026-10-28 (A3b):** read from pixels, NASA's own E-12 − E-11 step matches Eq. (43) within ±1.5 dB at H1/H2 with no fore/aft trend, so no Eq. (43) term is missing. The fore/aft pattern was the by-eye digitization of steep slopes (I, as classed). H3 k10, where NASA's drawn line implies a 2.3 dB step, is not explained by the documents (N) |
 | E14_LOSS (7/18) | I (probable) | TRIM_CLOSED and TRIM_PASSIVITY pass; Fig. A-2 is digitized at six frequencies only |
-| LOUDEST_PT (a) | D | the pre-registered interior point set omits the wall nodes; with all nodes the ratio is 0.99–1.01 (post-hoc); on the converged grid NY = 40 the all-node average equals Eq. (8) within 0.07 % (LOUDEST_PT_GRID, met, 2026-10-29) |
+| LOUDEST_PT (a) | D; **information since Phase 82** (§2.15) | the pre-registered interior point set omits the wall nodes; with all nodes the ratio is 0.99–1.01 (post-hoc); on the converged grid NY = 40 the all-node average equals Eq. (8) within 0.07 % (LOUDEST_PT_GRID, met, 2026-10-29) |
 | REPRO_18b, E18_TONES, E21_E22_NR, REPRO_18b_PRE, E21_PRE, E22_HF_CODE | N | CR-3813's printed runs predate NASA's corrections; neither sign of the floor term reproduces them (Phase 61); the corrected program (CR-172428) is reproduced within 0.4 dB at H3 |
 | R172428_CODE, R172428_EXP | N | largest contributor (0,1) × mode 8 at H1; q = 0 modes absent from NASA's printed pairs, not explained by the documents (Q22, Phase 54) |
-| R172428_ETA (17/32) | I (probable) | modes 1–12 within 13 %; modes 13–32 use Table D-1 shapes truncated to five shell terms (see MRP_SHAPE_NORM) |
+| R172428_ETA (17/32) | **N** (was I, probable; re-classed 2026-10-29, Phase 82c) | modes 1–12 within 13 %. Not the truncated shapes: with NASA's full MRP-deck modes (82c, pre-registered) the count is the same 17/32 and the levels of R172428_CODE/EXP move < 1 dB. Not the inputs of Eq. (82): the generalized masses (total and shell) match App. B within 1 %, the trim admittance App. B p. 197 within 2 % to 1 kHz, and the ETASTR changes (App. A p. 178) are what the code does. Not η_r″: adding Σ η_r″ (Eq. 83) overshoots modes 1–12 by up to 100×. NASA's printed loss factor of the trim-damped modes above 500 Hz is 1.3–2× this code's, mode by mode, which the documents do not explain |
 | T1, T1_FROM_E12, T1_MEAS_DAMPING, UNC_COVER | I | the H3 excess is the e11 off-line (GEXT) field, an assumed extension (Phase 52, GEXT_BOUND); the cabin matches NASA at H3 |
 | T2 | A | the default broadband path is a calibrated surrogate (`bb_j2_scale`), labelled as such (Phase 55) |
 | T2_EQ19, T2_MEAS_EXT, T2_PRED_BB, NR_PROP_TP2444, NR_PROP_TP2444_BR, E22_BR, T2_MEAS_EXT_BR | M | PAIN's high-frequency trim noise reduction exceeds the measurement; NASA's own E-22 prediction is 32–44 dB above measured and the code is within 2–8 dB of NASA (Phases 47, 49, 59, 61); NASA states the trim model holds to about 1 kHz |
 | NR_PROP_TP2444_PF | A | the separable form of Eq. (66) used for the propeller field (Phase 50a, 0.4–2 dB) |
 | NR_TP1964, NR_TP1964_REF2, NR_TP1964_XOVER, NR_TP1964_XOVER_REF2 | M | the misses are Eq. (18) bands, where negative NR is a property of the equation (CR-159363 p. 138, Phase 53); the Eq. (19) bands agree within ±2.5 dB |
 | PROP_BB_FIG14, PROP_BB_FIG17 | A, I | BPM self-noise only (no inflow turbulence), assumed blade geometry; the BPM port itself reproduces NASA's printed output 270/270 (Phase 48). **Reopened 2026-10-28:** the BEMT behind them used the Report 996 polar file with one section and μ = 1 (plan Phases 69, 70 F4). **Closed 2026-10-28:** rerun with the fixed loader: 3/9 and 2/7, unchanged counts (FIG14 median 7.5 dB, was 9.2), so the miss is the BPM-only source model, as first classed |
-| SHARP_PANEL_D | **N** (was I) | the source's figure lies 10.2 dB over its mass line while its text and Eq. (25) with the Fig. A-7 lattice give about 12 dB (Phase 81c); the construction's slopes match the figure (SHARP_PANEL_D_SHAPE, met) |
-| BLK_GAIN_MAP | M | R1 is CR-172428 Eq. (43) as printed, negative behind the cylinder; the default R2 stays within 0–6.02 dB |
-| MRP_SHAPE_NORM | I | Table D-1 prints only the largest Fourier coefficients of each mode; quantified 2026-10-29 (MRP_TRUNC): the solver's shapes cut to the printed 5 + 3 terms reproduce the printed peaks |
-| MRP_COUPLED_LIMITS (66/78) | **M** | NASA's floor form omits the cross terms between floor terms of different parity; it is how Table D-1 was computed, so production keeps it (author 2026-10-29: the same function as PAIN); `floor_cross_terms=true` gives the exact Ritz energy |
-| CYL2D_WEYL | D, M | **Amended 2026-10-28 (Phase 71 A4):** the criterion compares with the Weyl leading term only, but a rigid-walled cavity's surface term is positive and large at low kh. With it (post-hoc) the ratio is 0.99, 1.07, 1.10, 1.21, so the first four frequencies are a test-design miss (D). The fifth (1.51) remains: the App. C 5-point grid at NY = 10 (as printed) computes high modes too low (near-circle check, post-hoc diagnosis) (M) |
-| F1A_GUTIN_ANGLES (4/5) | A | far-field Gutin reference at a near-null (θ = 60°: terms cancel to 5.7 %); at 400 R_tip the phase is within 3.7° (post-hoc) |
+| SHARP_PANEL_D | **N** (was I); **information since Phase 82** (§2.15) | the source's figure lies 10.2 dB over its mass line while its text and Eq. (25) with the Fig. A-7 lattice give about 12 dB (Phase 81c); the construction's slopes match the figure (SHARP_PANEL_D_SHAPE, met) |
+| BLK_GAIN_MAP | M; **information since Phase 82** (§2.15) | R1 is CR-172428 Eq. (43) as printed, negative behind the cylinder; the default R2 stays within 0–6.02 dB |
+| MRP_SHAPE_NORM | I; **information since Phase 82** (§2.15) | Table D-1 prints only the largest Fourier coefficients of each mode; quantified 2026-10-29 (MRP_TRUNC): the solver's shapes cut to the printed 5 + 3 terms reproduce the printed peaks |
+| MRP_COUPLED_LIMITS (66/78) | **M**; **information since Phase 82** (§2.15) | NASA's floor form omits the cross terms between floor terms of different parity; it is how Table D-1 was computed, so production keeps it (author 2026-10-29: the same function as PAIN); `floor_cross_terms=true` gives the exact Ritz energy |
+| CYL2D_WEYL | D, M; **information since Phase 82** (§2.15) | **Amended 2026-10-28 (Phase 71 A4):** the criterion compares with the Weyl leading term only, but a rigid-walled cavity's surface term is positive and large at low kh. With it (post-hoc) the ratio is 0.99, 1.07, 1.10, 1.21, so the first four frequencies are a test-design miss (D). The fifth (1.51) remains: the App. C 5-point grid at NY = 10 (as printed) computes high modes too low (near-circle check, post-hoc diagnosis) (M) |
+| F1A_GUTIN_ANGLES (4/5) | A; **information since Phase 82** (§2.15) | far-field Gutin reference at a near-null (θ = 60°: terms cancel to 5.7 %); at 400 R_tip the phase is within 3.7° (post-hoc) |
 | POLAR_FIDELITY, R996_LOADS, R996_PHASE (R996_FIG13A met since Phase 72; R996_FIG12 and R996_FIG14 met since Phase 76, thickness noise on) | A | XFOIL (forced transition) c_l 0.15–0.35 below NACA TN 1546 measured; BEMT thrust 25–32 % below Report 996 measured; the compact-chord F1A is not the cause (≤ 0.27 dB) (Phase 67). **Reopened 2026-10-28:** code defects in the polar path (one section at every station, μ = 1 in CCBlade, no Re/M interpolation, no stall), plan Phase 69. **Closed 2026-10-28:** rerun on the free-transition N_crit 8 set with the fixed loader (post-hoc): R996_LOADS 24/32 (was 6/32), FIG12 28/40 (was 21/40), FIG13A 8/14, PHASE 113.6° vs 155°. POLAR_FIDELITY held-out 16-312 13/26. **Phase 72 (2026-10-28, post-hoc):** with the observers on the documented side of the plane, FIG13A is met (14/14), FIG12 13/40 and FIG14 14/24 (was met). All the rest still not met: XFOIL section fidelity on the thicker sections (the held-out miss) and the loads that follow from it, class A. **Phase 73 (2026-10-28, bound, no verdict):** a c_l shift at the measured XFOIL − TN 1546 level moves thrust ≤ 7.9 % and the scaled-load levels ≤ 0.19 dB, so the section c_l is not the cause; XFOIL's c_d is about 25 % below TN 1546's and accounts for about half the torque gap. Still class A |
 | BBN_CIRC | I | assumed blade geometry for the Aero Commander (X-EXTRAP); low coherence pairs |
 | PER_FIG8, PER_FIG9 (PER_FIG7 met since Phase 76) | N (since Phase 74; was I, probable) | XFOIL NACA 4412 polars at Pereira's Reynolds number, where no measured section data exist in the documents (TR 824 is 3–9·10⁶); motor noise above H2. **Reopened 2026-10-28:** the BEMT read the lowest-Re polar table (2·10⁴) because CCBlade got μ = 1 (plan Phase 69). **Closed 2026-10-28:** with μ fixed, thrust is 14.65 N vs 14.55 N measured (+0.7 %) and torque +3.5 %, yet FIG7 2/3, FIG8 H1/H2 3/7 each, and FIG9 3/9 and 6/9 stay as before. So the miss is not the loads: the acoustic model (I, as first classed). **Phase 72 (2026-10-28):** with φ positive downstream as in Pereira Fig. 2b, our H1 directivity matches Pereira's own BEMT within 0.8 dB; FIG8 H1 5/7, FIG9 H1 0/9 (Fig. 9's measured H1 is about 4 dB below Fig. 8's at the same angles), FIG7 1/3. **Phase 76 (2026-10-28):** with the thickness term on (Pereira's own method includes it), FIG7 is met (3/3), FIG8 H1 6/7 and H2 4/7; FIG9 unchanged, its H1 miss is the Fig. 8/Fig. 9 inconsistency (I-04, Phase 74). **Phase 74 (2026-10-28):** the inconsistency was a misreading of Fig. 9 (H1 read as 80 dB); re-read from the PDF vectors, Fig. 9 equals Fig. 8 within 0.1 dB and FIG9 H1 is 9/9. What remains is H2 at φ = 20° (+3.7 dB in both cases), at −20° and +30° (FIG8 −3.2 and +3.0) and H1 at −20° (−2.0): the size of Pereira's CFD misses at the same angles (H2: 3.9, 3.1, 1.2, 0.2, 2.6, 1.9, 2.4 dB), and the measured H2 is not monotonic in φ. Class N (installation or measurement: open-jet nozzle 0.04 m behind the −20° microphone; the documents do not allow a test) |
@@ -3054,6 +3048,22 @@ pre-registered test design. **Superseded 2026-10-28:** code defects were found i
 correctly in every block (isolated checks met; open code defects: none). Every remaining experimental or code-on-NASA miss is
 classed above as a limitation of the method as printed, of a low-fidelity approximation, of the inputs, or of NASA's printed
 output; none is claimed as a pass.
+
+## 2.15 Meaningfulness audit of the not-met cases (Phase 82, 2026-10-29)
+
+**Rule (author 2026-10-29; `CLAUDE.md`).** A validation case is meaningful, and may carry a verdict, only if it **(E)** compares
+with experimental data, or **(P)** checks that the code works exactly like PAIN: given PAIN's own inputs (from PAIN's sources or
+experiment) it reproduces what PAIN printed. A check against anything else is verification: an information case (no verdict) or
+a unit test. The 43 not-met cases of the 2026-10-29 snapshot:
+
+| Class | Cases | Outcome |
+|---|---|---|
+| E (26) | E22_BR, R996_PHASE, T2, T2_EQ19, T2_MEAS_EXT, T2_MEAS_EXT_BR, T2_PRED_BB, UNC_COVER, E21_E22_NR, NR_PROP_TP2444, NR_PROP_TP2444_BR, NR_PROP_TP2444_PF, T1_MEAS_DAMPING, PROP_BB_FIG17, PROP_BB_FIG14, NR_TP1964, R172428_EXP, T1, T1_FROM_E12, NR_TP1964_XOVER, POLAR_FIDELITY, PER_FIG8, PER_FIG9, R996_LOADS, BBN_CIRC, E12_BLOCK | meaningful; verdict and §2.14 class kept |
+| P (10) | REPRO_18b, E21_PRE, E22_HF_CODE, E18_TONES, REPRO_18b_PRE, R172428_CODE, R172428_ETA, E14_LOSS (NASA's calculated Eq. (78) curve), NR_TP1964_REF2, NR_TP1964_XOVER_REF2 (NASA's prediction with the CR-159363 equations PAIN adopts) | meaningful; verdict kept. The one cause still untested, R172428_ETA's truncated shapes, was tested in 82c: refuted, re-classed N (§2.14) |
+| X (7) | LOUDEST_PT, BLK_GAIN_MAP, MRP_SHAPE_NORM, CYL2D_WEYL, MRP_COUPLED_LIMITS, F1A_GUTIN_ANGLES, SHARP_PANEL_D | not validation cases: information since Phase 82 (`INFORMATION_ONLY_CASES`): no verdict, run and table unchanged, the earlier outcome kept in the record and in `original_verdict`; never a pass |
+
+Met cases were not audited here (Phase 82 covers the not-met list the author asked for); a met case that fails the rule is
+not a validation pass either, and is listed for audit in the plan (Q63).
 
 ## 3. What “valid recreation” means for this project
 

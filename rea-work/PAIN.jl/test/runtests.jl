@@ -3181,8 +3181,8 @@ _run_if("Sharp sound bridges and the App. D mode extension (phases 59, 60)") do
           PAIN.sharp_mass_law_TL(8.896, 2fb; ρc1=1.21 * 343, ρc2=1.21 * 343) + 12 atol = 1e-9
     @test PAIN.sharp_double_panel_TL(4.448, 4.448, 0.0826, fb * (1 - 1e-9); ΔTL_M=12.0) ≈
           PAIN.sharp_double_panel_TL(4.448, 4.448, 0.0826, fb * (1 + 1e-9); ΔTL_M=12.0) atol = 1e-6   # continuous at f_b
-    r = run_validation_case("SHARP_PANEL_D")
-    @test r.verdict === :not_met && r.inputs_echo.n_ok == 3
+    r = run_validation_case("SHARP_PANEL_D")       # information since Phase 82; its recorded outcome is kept
+    @test r.verdict === :no_verdict && r.inputs_echo.original_verdict === :not_met && r.inputs_echo.n_ok == 3
     # 59b: off leaves Eq. (23) unchanged; on adds τ_B by hand to the trimmed term
     inp = PAIN.r172428_inputs(4000)
     fc = 1000 * 2^(1 / 3)
@@ -3419,8 +3419,8 @@ end
 
 _run_if("Loudest point (phase 42)") do
     # Criteria fixed 2026-10-23 (plan Phase 42); (a) recorded not met (interior point set), (b), (c) met.
-    r = run_validation_case("LOUDEST_PT")
-    @test r.verdict === :not_met
+    r = run_validation_case("LOUDEST_PT")          # information since Phase 82; its recorded outcome is kept
+    @test r.verdict === :no_verdict && r.inputs_echo.original_verdict === :not_met
     @test r.table[4].within_tolerance                       # (b) loudest ≥ average
     @test r.table[5].within_tolerance                       # (c) single-mode φ² shape
     @test all(abs.(r.inputs_echo.all_node_ratio_posthoc .- 1) .< 0.05)

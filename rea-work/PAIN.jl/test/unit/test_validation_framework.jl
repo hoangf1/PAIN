@@ -55,3 +55,14 @@ end
     s = read(p, String); rm(p)
     @test startswith(s, "H\n\n# PAIN validation report") && count("result: PASS", s) == 2
 end
+
+@testset "information-only cases (Phase 82 meaningfulness rule)" begin
+    @test all(id -> haskey(PAIN.VALIDATION_CASES, id), keys(PAIN.INFORMATION_ONLY_CASES))   # no stale or misspelt ids
+    row = PAIN.ValidationTableRow("x", 1.0, 1.0, 2.0, 1.0, false)
+    mk(id, v) = PAIN.ValidationCaseResult(id, "2026-10-29", (; n_ok=0), [row], PAIN.PlotSeries[], v, "0/1", "V-UNIT", "")
+    r = PAIN._as_information_case(mk("CYL2D_WEYL", :not_met))
+    @test r.verdict === :no_verdict && r.inputs_echo.original_verdict === :not_met && r.inputs_echo.n_ok == 0
+    @test occursin("not a pass: not met, 0/1", r.reason) && r.table == [row]
+    @test PAIN._as_information_case(mk("T1", :not_met)).verdict === :not_met               # a validation case is untouched
+    @test PAIN._as_information_case(mk("CYL2D_WEYL", :no_verdict)).reason == "0/1"
+end
