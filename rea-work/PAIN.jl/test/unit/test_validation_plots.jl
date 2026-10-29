@@ -132,6 +132,13 @@ end
     @test PAIN._scoreboard_block_status(["met", "not_met"]) === :partial
     @test PAIN._scoreboard_block_status(["not_met", "no_verdict"]) === :not_met
     @test PAIN._scoreboard_block_status(["no_verdict", ""]) === :none
+    # cell helpers: Markdown pipes escaped, Mermaid quotes and pipes replaced, points and verdict text
+    @test PAIN._md_cell("a|b") == "a\\|b"
+    @test PAIN._mermaid_text("say \"x\" | y") == "say 'x' / y"
+    @test PAIN._scoreboard_points(nothing) == "—" && PAIN._scoreboard_points((; n_within=3, n_rows=7)) == "3/7"
+    @test PAIN._scoreboard_verdict((; verdict="not_met"), "T1") == "not met"
+    @test PAIN._scoreboard_unrun("NO_SUCH_CASE") == "not in snapshot"
+    @test PAIN._scoreboard_verdict(nothing, "NO_SUCH_CASE") == "not in snapshot"
     # a synthetic snapshot: every case of block P_MRP met except one, which must be listed as not met, bold, with its
     # points and an escaped error text, and the block coloured amber
     b = first(b for b in PAIN._map_by_id("total").blocks if b.id == "P_MRP")

@@ -966,3 +966,15 @@ function appd_mode_orthogonality(g::AbstractAppDInput; M::Int=1, sym::Bool=true,
     end
     return worst
 end
+
+"""Structural modes NASA ran PAIN with for the test article (CR-172428 Table 6)."""
+const NASA_MRP_N_MODES = 300
+
+"""
+    nasa_deck_modes(; n_modes=NASA_MRP_N_MODES) -> StructuralModes
+
+NASA's structural mode set for the 1.016 m test article: the App. D solver on NASA's MRP deck (`appd_nasa_deck()`),
+which reproduces Table D-1 32/32 (Phase 80). The count is NASA's, 300 structural modes (CR-172428 Table 6), not chosen
+from a result (Phase 83, criteria dated 2026-10-29); Table D-1 prints only the first 32 (to 811 Hz).
+"""
+nasa_deck_modes(; n_modes::Int=NASA_MRP_N_MODES) = appd_modes(appd_nasa_deck(); n_modes)

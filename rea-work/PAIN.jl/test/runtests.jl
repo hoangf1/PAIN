@@ -3169,6 +3169,29 @@ _run_if("CR-3813 reproduction with NASA's pre-correction form (phase 61)") do
     end
 end
 
+_run_if("NASA's 300-mode set in the HF path and the reproduction (phase 83)") do
+    # Criteria fixed 2026-10-29 (plan §8aa) before any run. Recorded first-run results (all not met).
+    r = run_validation_case("E22_HF_DECK")
+    @test r.verdict === :not_met && r.inputs_echo.n_ok == 0 && r.inputs_echo.n == 4
+    @test all(>(0), r.inputs_echo.resonant_modes_per_band)          # resonant modes in every band (none with Table D-1)
+    @test all(r.inputs_echo.code .< r.inputs_echo.table_d1 .- 5)     # the modes lower NR by > 5 dB in every band
+    @test r.inputs_echo.table_d1 ≈ run_validation_case("E22_HF_CODE").inputs_echo.code atol = 0.01
+    t2 = run_validation_case("T2_EQ19_DECK")
+    @test t2.verdict === :not_met && t2.inputs_echo.n_ok == 0
+    @test all(t2.inputs_echo.got .> t2.inputs_echo.measured)          # over the measurement now (Table D-1: under)
+    @test all(t2.inputs_echo.table_d1 .< t2.inputs_echo.measured)
+    rp = run_validation_case("REPRO_18b_DECK")
+    @test rp.verdict === :not_met && rp.inputs_echo.n_ok == 0
+    @test maximum(abs.(rp.inputs_echo.got .- rp.inputs_echo.table_d1)) < 0.5   # the tones do not depend on the extra modes
+    # 83d: T2 compares a path fitted to E-9 with E-9, so it is information; its recorded outcome is kept
+    t = run_validation_case("T2")
+    @test t.verdict === :no_verdict && t.inputs_echo.original_verdict === :not_met
+    for id in ("E22_HF_DECK", "T2_EQ19_DECK", "REPRO_18b_DECK")
+        png = plot_case(run_validation_case(id), VALIDATION_CASES[id].plot_spec; path=joinpath(TEST_OUT, "$(id).png"))
+        @test isfile(png) && filesize(png) > 0
+    end
+end
+
 _run_if("Sharp sound bridges and the App. D mode extension (phases 59, 60)") do
     # Criteria and mapping fixed 2026-10-23 (plan §8g) before any run. Recorded first-run results.
     # 59a pieces by hand: Eq. (5) at normal incidence, Eq. (22), Eqs. (23) and (25), and the Fig. 5 construction

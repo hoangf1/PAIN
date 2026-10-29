@@ -80,7 +80,7 @@ function _run_e22_hf_code()
     end
     n = length(xs)
     series = [PlotSeries("NASA prediction (E-22)", :reference_points, xs, ref; panel=1),
-              PlotSeries("measured mean (E-22)", :reference_points, xs, meas; panel=1),
+              PlotSeries("measured mean (E-22)", :measured_points, xs, meas; panel=1),
               PlotSeries("this code, Eqs. 19–23", :computed, xs, got; panel=1)]
     r2 = x -> round.(x; digits=2)
     return ValidationCaseResult("E22_HF_CODE", _today_iso(),

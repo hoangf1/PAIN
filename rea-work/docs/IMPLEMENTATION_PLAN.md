@@ -390,7 +390,7 @@ Not blockers (recorded so nobody stops on them): BBN tip geometry beyond 40 in. 
 | Q60 | **CYL2D for other floor angles** (found by Phase 80f, 2026-10-29) | `cyl2d.jl`, production NY | Q59 | **done 2026-10-29**: production uses the next solvable grid when NY = 10 has no App. C solution for the floor angle (`cyl2d_modes_solvable`, Q60, 2026-10-29): NY = 10 is unchanged for θ0 = 56.6°; for θ0 = 45.3° (the 2.64 m example × 0.8) NY 10 and 11 give complex eigenvalues among the 20 kept modes and NY = 12 is used, with a warning. Over θ0 = 30°–80° the first solvable grid from NY 10 is within 3.3–6.6 % of NY = 60 (θ0 = 56.6°, NY 10: 4.9 %), so the fallback grid has the same discretization error class as the paper's; information, no criterion (probe 2026-10-29). `run_pain_pipeline` and the uncertainty chain call it; Phase 80f's θ0 × 0.8 row now has numbers (`phase80_mrp_sensitivity.md`) |
 | Q62 | **Validation status at a glance** (author 2026-10-29: the map as a flowchart at the top of the validation document, and per block the cases with the points they pass, to see what to work on next) | `validation_plots.jl`, `VALIDATION_GUIDELINE.md` §0 | — | **done 2026-10-29**: `write_validation_scoreboard` writes §0 from §2.13 and `case_error_summary.csv` (Mermaid map coloured by verdicts, group totals, not-met cases with the fewest points first, one table per group); `write_case_error_summary.jl` regenerates it with the CSV. Display only |
 | Q63 | **Phase 82 — meaningfulness audit of the not-met cases** (§8z; 2026-10-29) | `validation_cases.jl`, §2.15 | Q62 | **done 2026-10-29**: 26 E, 10 P kept; 7 X now information; R172428_ETA re-classed N (82c). **Open follow-up:** audit the met cases with the same rule (a met case that compares with neither measurement nor PAIN's printed output is not a validation pass) |
-| Q64 | **Phase 83 — the not-met cases with the fewest points: audit, solutions, runs** (§8aa; 2026-10-29) | `hf_broadband.jl`, `noise_reduction.jl`, `validation_case_iso83.jl` | Q63 | planned 2026-10-29; criteria in §8aa dated before any run. The met-case audit of Q63 is paused for this (author 2026-10-29: "i wanted the not met fewest criterions auditted and planned phases first"); its work in progress is kept outside the tree and resumes after Phase 83 |
+| Q64 | **Phase 83 — the not-met cases with the fewest points: audit, solutions, runs** (§8aa; 2026-10-29) | `hf_broadband.jl`, `noise_reduction.jl`, `validation_case_iso83.jl` | Q63 | **done 2026-10-29**: the mode-set cause refuted (E22_HF_DECK 0/4, T2_EQ19_DECK 0/3, REPRO_18b_DECK 0/3); T2 information; UNC_COVER re-stated; criteria in §8aa dated before the runs. The met-case audit of Q63 is paused for this (author 2026-10-29: "i wanted the not met fewest criterions auditted and planned phases first"); its work in progress is kept outside the tree and resumes after Phase 83 |
 | Q58 | **Phase 79 — CYL2D** (§8w; 2026-10-28) | `case_error_summary`, `cyl2d.jl`, CYL2D_WEYL | Q57 | **done 2026-10-28**: information rows leave the pass count; refinement fixed (79b); CYL2D_GRID_CONV (NY 10 within 4.9 % of NY 60); Weyl + surface term 4/5; production NY = 10 kept (decided 2026-10-28) |
 | Q57 | **Phase 78 — structural modes** (§8v; 2026-10-28) | `mrp_appd.jl`, MRP_APPD criterion, map | Q53 | **done 2026-10-28**: App. D solver fixes J1–J6; MRP_APPD not met 2/32 (class I, floor stiffener model undocumented); MRP_D1/MRP_RITZ off the map |
 | Q56 | **Phase 77 — POLAR_FIDELITY as an equivalent angle** (§8u; 2026-10-28) | `src/validation_case_iso67.jl`, figure | Q52 | **done 2026-10-28**: Δα shown next to Δc_l, display only |
@@ -488,35 +488,7 @@ Moved to §11. Summary: base H1–H3 = 82.73, 75.73, 77.05 dB (= 18b-r); H3 top 
 
 ## 8z. Phase 82 *(done 2026-10-29; moved to the bottom of this file on 2026-10-29; section number kept)*
 
-## 8aa. Phase 83 — the not-met cases with the fewest points: audit, solutions, runs *(planned 2026-10-29; author: "i wanted the not met fewest criterions auditted and planned phases first and solutions to those"; criteria below dated 2026-10-29, before any of these runs)*
-
-**Scope.** The nine cases at 0 points in `VALIDATION_GUIDELINE.md` §0 ("Not met, fewest points first"), audited for a cause the
-documents still allow testing. Each untested cause gets a phase item with its criterion fixed here; a case with none is
-re-stated with its evidence, and no verdict changes without a run.
-
-**83a Audit (2026-10-29, from the recorded runs; no new comparison).**
-
-| Case | Class | Untested cause the documents allow? | Solution |
-|---|---|---|---|
-| T2_EQ19, T2_MEAS_EXT, T2_MEAS_EXT_BR, T2_PRED_BB, E22_BR | E (M) | **Yes.** Eqs. (19)–(23) run on Table D-1's 32 modes, the highest at 811 Hz, so every band 1250–2500 Hz has no resonant mode and takes the asymptotic branch, and τ_f sums the 31 modes below 811 Hz only. NASA ran PAIN with MRP's mode set: 300 structural modes for this article (CR-172428 Table 6). The App. D solver reproduces Table D-1 32/32 on NASA's MRP deck (Phase 80) and gives 300 modes to 3.7 kHz (71 below 1250 Hz, 230 below 2500 Hz) | 83b, 83c |
-| T2 | not meaningful | its broadband path uses `bb_j2_scale`, fitted to Fig. E-9 (METHODOLOGY T2 row: "in-sample: `bb_j2_scale` was fitted"), and is compared with Fig. E-9: a calibrated path against its own data (`CLAUDE.md`) | 83d: information; T2_EQ19 is the printed-method T2 |
-| REPRO_18b | P (N) | No for the program form: REPRO_18b_PRE already reverts all three CR-172428 App. A changes (floor sign −1, R1 blocking, η_r′ of Eq. (82) on the untrimmed mass) and gets 1/3. The mode set is the one input left | 83e (secondary) |
-| UNC_COVER | E (re-stated) | The GEXT attribution (§2.14) is superseded in part: with NASA's printed App. B field and no GEXT, R172428_EXP at 4000 rpm gives H3 71.7 dB against NASA's own 71.3 dB (Table 10) and the measured 65.2 dB. The code reproduces NASA at H3 within 0.4 dB; the H3 excess over the measurement is PAIN's (class M), not the extension | none; re-stated |
-| R996_PHASE | E (A) | No. F1A 112.8° against the measured 155°; Report 996's own Eq. (2) gives 165°. F1A_INDEP rules out the wiring (0.02°) and Phase 73 the section polars; no documented input is left | none |
-
-| Item | What | Criterion (fixed 2026-10-29, before any run) |
-|---|---|---|
-| 83a | Audit above, written into `VALIDATION_GUIDELINE.md` §2.16 | — |
-| 83b | `E22_HF_DECK` (P): `E22_HF_CODE`'s inputs and options (Phase III trim η_T = 1.0, η_r′ ≤ 0.15) with the structural modes from the App. D solver on NASA's MRP deck, 300 modes (CR-172428 Table 6; the count is NASA's, not chosen from a result) | as E22_HF_CODE: \|code − NASA E-22 prediction\| ≤ 3 dB in ≥ 75 % of the bands 1250–2500 Hz |
-| 83c | `T2_EQ19_DECK` (E): T2_EQ19 with the same 300 deck modes, everything else as T2_EQ19 | as T2_EQ19 (its recorded criterion, unchanged) |
-| 83d | T2 becomes an information case (`INFORMATION_ONLY_CASES`; reason: calibrated to the data it is compared with) | — |
-| 83e | `REPRO_18b_DECK` (P, secondary): REPRO_18b with the 300 deck modes | as REPRO_18b: \|Δ\| ≤ 4 dB at H1–H3 against E-16's NASA prediction |
-| 83f | Five documents, §0 regenerated, targeted tests, review, commit | — |
-
-**Outcomes fixed before the runs.** If 83b is met, the T2-family class M statement (code within 2–8 dB of NASA) is replaced by
-"the code reproduces NASA's high-frequency prediction with NASA's mode set", and the 300-mode set becomes the input of the
-high-frequency cases (the Table D-1 runs kept as recorded). If 83b is not met, the 32-mode cause is refuted and recorded; no
-other mode count is tried. 83c and 83e are recorded whatever they give; no input is changed after seeing them.
+## 8aa. Phase 83 *(done 2026-10-29; moved to the bottom of this file on 2026-10-29; section number kept)*
 
 ## 9. Reference appendices
 
@@ -2642,3 +2614,35 @@ Every E and P case keeps its verdict and its §2.14 closure class; the one with 
 - [x] 82d Five documents, §0, targeted tests, review, commit.
 
 **Result (2026-10-29).** 82a: rule in `CLAUDE.md`, audit in `VALIDATION_GUIDELINE.md` §2.15. 82b: the 7 X cases are information cases (`INFORMATION_ONLY_CASES` in `validation_cases.jl`; `run_validation_case` returns no verdict and keeps `original_verdict`); their records say so, figures redrawn without a criterion band, snapshot and §0 regenerated. 82c: run once as pre-registered: R172428_ETA with the deck modes 17/32 (same as Table D-1), CODE 4/9, EXP 3/9, levels within 1 dB of the Table D-1 run, so the truncated shapes are not the cause. Follow-up diagnostics (after the result, information only): the generalized masses (total, shell) match App. B within 1 %, the trim admittance App. B p. 197 within 2 % to 1 kHz, ETASTR lines 47/50 (App. A p. 178) are what the code does, and adding Σ η_r″ overshoots modes 1–12 by up to 100×; NASA's printed loss factor of the trim-damped modes above 500 Hz stays 1.3–2× this code's, so R172428_ETA is re-classed N. The three _DECK variants were not registered as map cases (they duplicate the originals within 1 dB); `r172428_inputs(rpm; structural=:deck)` keeps the option, with a unit test.
+
+## 8aa. Phase 83 — the not-met cases with the fewest points: audit, solutions, runs *(done 2026-10-29; moved to the bottom 2026-10-29; planned 2026-10-29; author: "i wanted the not met fewest criterions auditted and planned phases first and solutions to those"; criteria below dated 2026-10-29, before any of these runs)*
+
+**Scope.** The nine cases at 0 points in `VALIDATION_GUIDELINE.md` §0 ("Not met, fewest points first"), audited for a cause the
+documents still allow testing. Each untested cause gets a phase item with its criterion fixed here; a case with none is
+re-stated with its evidence, and no verdict changes without a run.
+
+**83a Audit (2026-10-29, from the recorded runs; no new comparison).**
+
+| Case | Class | Untested cause the documents allow? | Solution |
+|---|---|---|---|
+| T2_EQ19, T2_MEAS_EXT, T2_MEAS_EXT_BR, T2_PRED_BB, E22_BR | E (M) | **Yes.** Eqs. (19)–(23) run on Table D-1's 32 modes, the highest at 811 Hz, so every band 1250–2500 Hz has no resonant mode and takes the asymptotic branch, and τ_f sums the 31 modes below 811 Hz only. NASA ran PAIN with MRP's mode set: 300 structural modes for this article (CR-172428 Table 6). The App. D solver reproduces Table D-1 32/32 on NASA's MRP deck (Phase 80) and gives 300 modes to 3.7 kHz (71 below 1250 Hz, 230 below 2500 Hz) | 83b, 83c |
+| T2 | not meaningful | its broadband path uses `bb_j2_scale`, fitted to Fig. E-9 (METHODOLOGY T2 row: "in-sample: `bb_j2_scale` was fitted"), and is compared with Fig. E-9: a calibrated path against its own data (`CLAUDE.md`) | 83d: information; T2_EQ19 is the printed-method T2 |
+| REPRO_18b | P (N) | No for the program form: REPRO_18b_PRE already reverts all three CR-172428 App. A changes (floor sign −1, R1 blocking, η_r′ of Eq. (82) on the untrimmed mass) and gets 1/3. The mode set is the one input left | 83e (secondary) |
+| UNC_COVER | E (re-stated) | The GEXT attribution (§2.14) is superseded in part: with NASA's printed App. B field and no GEXT, R172428_EXP at 4000 rpm gives H3 71.7 dB against NASA's own 71.3 dB (Table 10) and the measured 65.2 dB. The code reproduces NASA at H3 within 0.4 dB; the H3 excess over the measurement is PAIN's (class M), not the extension | none; re-stated |
+| R996_PHASE | E (A) | No. F1A 112.8° against the measured 155°; Report 996's own Eq. (2) gives 165°. F1A_INDEP rules out the wiring (0.02°) and Phase 73 the section polars; no documented input is left | none |
+
+| Item | What | Criterion (fixed 2026-10-29, before any run) |
+|---|---|---|
+| 83a | Audit above, written into `VALIDATION_GUIDELINE.md` §2.16 | — |
+| 83b | `E22_HF_DECK` (P): `E22_HF_CODE`'s inputs and options (Phase III trim η_T = 1.0, η_r′ ≤ 0.15) with the structural modes from the App. D solver on NASA's MRP deck, 300 modes (CR-172428 Table 6; the count is NASA's, not chosen from a result) | as E22_HF_CODE: \|code − NASA E-22 prediction\| ≤ 3 dB in ≥ 75 % of the bands 1250–2500 Hz |
+| 83c | `T2_EQ19_DECK` (E): T2_EQ19 with the same 300 deck modes, everything else as T2_EQ19 | as T2_EQ19 (its recorded criterion, unchanged) |
+| 83d | T2 becomes an information case (`INFORMATION_ONLY_CASES`; reason: calibrated to the data it is compared with) | — |
+| 83e | `REPRO_18b_DECK` (P, secondary): REPRO_18b with the 300 deck modes | as REPRO_18b: \|Δ\| ≤ 4 dB at H1–H3 against E-16's NASA prediction |
+| 83f | Five documents, §0 regenerated, targeted tests, review, commit | — |
+
+**Outcomes fixed before the runs.** If 83b is met, the T2-family class M statement (code within 2–8 dB of NASA) is replaced by
+"the code reproduces NASA's high-frequency prediction with NASA's mode set", and the 300-mode set becomes the input of the
+high-frequency cases (the Table D-1 runs kept as recorded). If 83b is not met, the 32-mode cause is refuted and recorded; no
+other mode count is tried. 83c and 83e are recorded whatever they give; no input is changed after seeing them.
+
+**Result (2026-10-29, first runs, criteria as fixed above).** 83b `E22_HF_DECK` **not met, 0/4**: NR 46.3, 45.8, 50.8, 50.5 dB against NASA's 52.0, 59.5, 69.0, 69.0 (Table D-1: 59.7, 61.6, 62.5, 63.4); 42, 68, 39, 40 modes resonant per band. The 32-mode cause is refuted; Table D-1 stays the input of the high-frequency cases and no other count was tried. 83c `T2_EQ19_DECK` **not met, 0/3**: 54.9, 54.2, 49.0 dB against E-9's 51.0, 46.0, 41.5 (Table D-1: 38.9, 35.9, 34.9). 83d: T2 is an information case. 83e `REPRO_18b_DECK` **not met, 0/3**: 88.15, 80.58, 78.33 dB (Table D-1: 88.20, 80.43, 78.21). New: `nasa_deck_modes`, `NASA_MRP_N_MODES`, `noise_reduction_test_article_inputs(; structural_set=:deck)`, `validation_case_iso83.jl`; report `validation_reports/phase83_deck_modes.md`; audit `VALIDATION_GUIDELINE.md` §2.16.

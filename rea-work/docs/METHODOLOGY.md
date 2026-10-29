@@ -20,6 +20,8 @@ The layout each pipeline chunk follows (name, function, inputs and outputs, sour
 
 **Which checks carry a verdict (rule 2026-10-29, Phase 82).** Only a comparison with measurement (V-EXP) or a reproduction of what PAIN printed from PAIN's own inputs (V-CODE against NASA's PAIN outputs) carries a met / not-met verdict on the validation map. Checks against analytic limits, laws, other methods or reports, or properties of printed tables are verification (V-UNIT): information cases or unit tests. Seven not-met cases became information cases under this rule (`INFORMATION_ONLY_CASES`; `VALIDATION_GUIDELINE.md` §2.15).
 
+**NASA's mode set in the high-frequency path (Phase 83, 2026-10-29).** Table D-1 prints 32 structural modes (to 811 Hz); NASA ran PAIN with 300 (CR-172428 Table 6). `nasa_deck_modes()` gives them from the App. D solver on NASA's deck, and `noise_reduction_test_article_inputs(; structural_set=:deck)` takes them. Run once against the original criteria, they do not reproduce NASA's E-22 prediction (0/4, now 6–19 dB below it) and move the E-16 tones by < 0.2 dB, so production keeps Table D-1. T2's surrogate path, fitted to Fig. E-9, carries no verdict (`INFORMATION_ONLY_CASES`).
+
 ## 1. The pipeline at a glance
 
 Propeller noise at the fuselage skin -> blocking by the fuselage -> cabin and structural modes -> interior SPL -> dB(A), SIL.

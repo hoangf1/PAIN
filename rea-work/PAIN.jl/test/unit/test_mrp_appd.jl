@@ -342,3 +342,20 @@ end
     @test maximum(length(m.C_shell) for m in dk) > maximum(length(m.C_shell) for m in d1)  # full series, not the 5 printed
     @test_throws ErrorException PAIN.r172428_inputs(4000; structural=:ritz)
 end
+
+@testset "NASA's 300-mode set on the MRP deck (Phase 83)" begin
+    @test PAIN.NASA_MRP_N_MODES == 300                                   # CR-172428 Table 6
+    dk = PAIN.nasa_deck_modes(; n_modes=40).modes
+    @test length(dk) == 40
+    d32 = PAIN.appd_modes(PAIN.appd_nasa_deck(); n_modes=32).modes
+    @test [m.f_Hz for m in dk[1:32]] ≈ [m.f_Hz for m in d32] rtol = 1e-10  # the same solve, more modes kept
+    @test issorted([m.f_Hz for m in dk]) && dk[end].f_Hz > 811.0          # past Table D-1's last mode
+    # the test-article NR inputs take the set as an option; the default stays Table D-1
+    @test length(PAIN.noise_reduction_test_article_inputs().structural.modes) == 32
+    @test length(PAIN.noise_reduction_test_article_inputs(; structural_set=:deck).structural.modes) == 300
+    @test_throws ErrorException PAIN.noise_reduction_test_article_inputs(; structural_set=:ritz)
+    # deck modes swapped into existing inputs, everything else kept (Phase 83 cases)
+    inp = PAIN.noise_reduction_test_article_inputs()
+    sw = PAIN._with_deck_modes(inp)
+    @test length(sw.structural.modes) == 300 && sw.sidewall === inp.sidewall && sw.m_wall == inp.m_wall
+end

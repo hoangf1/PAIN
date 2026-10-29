@@ -55,8 +55,8 @@ flowchart LR
   end
   subgraph G_VAL["Validation comparisons"]
     direction LR
-    P_REPRO["vs NASA PAIN<br/>0 met · 7 not met · 8 cases"]
-    P_MEAS["vs measurement<br/>1 met · 18 not met · 21 cases"]
+    P_REPRO["vs NASA PAIN<br/>0 met · 9 not met · 10 cases"]
+    P_MEAS["vs measurement<br/>1 met · 18 not met · 22 cases"]
     A_CABIN["Aircraft cabin<br/>1 met · 0 not met · 1 cases"]
   end
   A_GEO --> A_LOADS
@@ -105,17 +105,19 @@ flowchart LR
 | CYL2D | 6 | 4 | 0 | 2 | 247/247 |
 | Trim and loss | 9 | 4 | 2 | 3 | 66/92 |
 | PAIN main | 11 | 8 | 0 | 3 | 38/38 |
-| Validation comparisons | 30 | 2 | 25 | 3 | 63/243 |
+| Validation comparisons | 33 | 2 | 27 | 4 | 63/250 |
 
 ### Not met (fewest points within criterion first)
 
 | Case | Block | Points | Error |
 |---|---|---|---|
 | `E22_BR` E-22 reverberant NR with Sharp sound bridges, 1250–2500 Hz (59d) | vs measurement | 0/4 | 0/4 in tol · max \|err\| 33.0 dB · med 28.0 dB |
+| `E22_HF_DECK` High-frequency NR on NASA's 300 modes vs NASA's E-22 prediction (83b) | vs NASA PAIN | 0/4 | 0/4 in tol · max \|err\| 19.0 dB · med 16.0 dB |
 | `R996_PHASE` Report 996 page-12 phase | F1A phase | 0/1 | 0/1 in tol · max \|err\| 42.0 deg · med 42.0 deg |
 | `REPRO_18b` PAIN reproduction (18b-r) | vs NASA PAIN | 0/3 | 0/3 in tol · max \|err\| 10.0 dB · med 9.2 dB |
-| `T2` 1/3-octave (T2) | vs measurement | 0/3 | 0/3 in tol · max \|err\| 10.0 dB · med 7.6 dB |
+| `REPRO_18b_DECK` REPRO_18b on NASA's 300 modes vs E-16's NASA prediction (83e) | vs NASA PAIN | 0/3 | 0/3 in tol · max \|err\| 10.0 dB · med 9.1 dB |
 | `T2_EQ19` 1/3-octave Eq.(19) (T2_EQ19) | vs measurement | 0/19 | 0/19 in tol · max \|err\| 40.0 dB · med 10.0 dB |
+| `T2_EQ19_DECK` T2 with Eqs. (19)–(23) on NASA's 300 modes vs Fig. E-9 (83c) | vs measurement | 0/3 | 0/3 in tol · max \|err\| 8.2 dB · med 7.5 dB |
 | `T2_MEAS_EXT` T2 with the measured TP-2444 exterior spectrum (47d) | vs measurement | 0/4 | 0/4 in tol · max \|err\| 30.0 dB · med 28.0 dB |
 | `T2_MEAS_EXT_BR` T2 with the measured exterior and Sharp sound bridges (59e) | vs measurement | 0/3 | 0/3 in tol · max \|err\| 23.0 dB · med 18.0 dB |
 | `T2_PRED_BB` T2 fully predictive: BPM exterior → T2 cabin path → E-9 (48d) | vs measurement | 0/3 | 0/3 in tol · max \|err\| 32.0 dB · med 27.0 dB |
@@ -272,12 +274,15 @@ flowchart LR
 | vs NASA PAIN | `REPRO_18b_PRE` REPRO_18b with NASA's pre-correction Eq. (52) floor sign (61b) | **not met** | 1/3 | 1/3 in tol · max \|err\| 14.0 dB · med 6.1 dB |
 | vs NASA PAIN | `E21_PRE` E-21 NASA NR with NASA's pre-correction Eq. (52) floor sign (61c) | **not met** | 4/16 | 4/16 in tol · max \|err\| 44.0 dB · med 11.0 dB |
 | vs NASA PAIN | `E22_HF_CODE` High-frequency NR, this code vs NASA's E-22 prediction (61d) | **not met** | 1/4 | 1/4 in tol · max \|err\| 7.7 dB · med 6.1 dB |
+| vs NASA PAIN | `E22_HF_DECK` High-frequency NR on NASA's 300 modes vs NASA's E-22 prediction (83b) | **not met** | 0/4 | 0/4 in tol · max \|err\| 19.0 dB · med 16.0 dB |
+| vs NASA PAIN | `REPRO_18b_DECK` REPRO_18b on NASA's 300 modes vs E-16's NASA prediction (83e) | **not met** | 0/3 | 0/3 in tol · max \|err\| 10.0 dB · med 9.1 dB |
 | vs NASA PAIN | `R172428_CODE` CR-172428 reproduction: NASA's inputs vs NASA's printed predictions (44d) | **not met** | 4/9 | 4/9 in tol · max \|err\| 11.0 dB · med 3.2 dB |
 | vs NASA PAIN | `R172428_PAIRS` CR-172428 top modal contributions vs App. B (diagnostic) | no verdict | 0/0 | no criterion |
 | vs measurement | `UNC_COVER` Uncertainty coverage vs E-16 means (31e) | **not met** | 0/3 | 0/3 within criterion |
 | vs measurement | `T1` Tonal interior SPL (T1) | **not met** | 2/6 | 2/6 in tol · max \|err\| 11.0 dB · med 6.1 dB |
-| vs measurement | `T2` 1/3-octave (T2) | **not met** | 0/3 | 0/3 in tol · max \|err\| 10.0 dB · med 7.6 dB |
+| vs measurement | `T2` 1/3-octave (T2) | no verdict | 0/3 | no verdict · max \|err\| 10.0 dB · med 7.6 dB |
 | vs measurement | `T2_EQ19` 1/3-octave Eq.(19) (T2_EQ19) | **not met** | 0/19 | 0/19 in tol · max \|err\| 40.0 dB · med 10.0 dB |
+| vs measurement | `T2_EQ19_DECK` T2 with Eqs. (19)–(23) on NASA's 300 modes vs Fig. E-9 (83c) | **not met** | 0/3 | 0/3 in tol · max \|err\| 8.2 dB · med 7.5 dB |
 | vs measurement | `E21_E22_NR` Figs. E-21 / E-22 NR | **not met** | 5/35 | 5/35 in tol · max \|err\| 59.0 dB · med 16.0 dB |
 | vs measurement | `T1_FROM_E12` T1 from measured E-12 blocked pressures (41a) | **not met** | 1/3 | 1/3 in tol · max \|err\| 11.0 dB · med 5.7 dB |
 | vs measurement | `T1_MEAS_DAMPING` T1 with measured η_n / η_r′ (43b) | **not met** | 1/6 | 1/6 in tol · max \|err\| 19.0 dB · med 8.8 dB |
@@ -2618,6 +2623,38 @@ Inputs: E-22 data; E-21 inputs.
 Equations: Eqs. (19)–(23).
 Outputs: NR [dB].
 
+### Case: E22_HF_DECK
+**Title:** High-frequency NR on NASA's 300 modes vs NASA's E-22 prediction (83b)
+**Map / block:** total / P_REPRO
+**Category:** verification
+**Kind:** runnable
+**Source:** CR-3813 Fig. E-22 NASA prediction; NASA's MRP deck (User Manual pp. 42–43); CR-172428 Table 6 (300 structural modes); criterion fixed 2026-10-29 before the run (plan §8aa)
+**What it tests:** E22_HF_CODE with the structural modes NASA ran PAIN with: the App. D solver on NASA's deck, 300 modes to 3.7 kHz, in place of Table D-1's 32 (to 811 Hz). Every other input as E22_HF_CODE.
+**Why it is here:** With Table D-1 no structural mode is resonant at 1250–2500 Hz, so Eqs. (19)–(23) fall back to an asymptotic density; this was the one untested cause of the code-to-NASA difference (Phase 83a).
+**A pass means:** |Δ| ≤ 3 dB of NASA's prediction in ≥ 75 % of the bands 1250–2500 Hz (E22_HF_CODE's criterion).
+**Not covered:** NASA's 1983 high-frequency routine is not printed; CR-3813 does not state its own mode count for E-22.
+**Recorded outcome:** **not_met**, 0/4 (2026-10-29, first run): code − NASA −5.7, −13.7, −18.2, −18.5 dB (Table D-1: +7.7, +2.1, −6.5, −5.6); 39–68 modes resonant per band. The resonant modes lower NR by 12–19 dB, past NASA's curve, so the mode set does not explain the difference; as fixed before the run, no other count is tried and the high-frequency cases keep Table D-1.
+**Explanation:** Code-on-code. `hf_pressure_ratio` on `noise_reduction_test_article_inputs(; structural_set=:deck)`.
+Inputs: E-22 data; E-21 inputs; `nasa_deck_modes()`.
+Equations: Eqs. (19)–(23).
+Outputs: NR [dB], with the Table D-1 run beside it.
+
+### Case: REPRO_18b_DECK
+**Title:** REPRO_18b on NASA's 300 modes vs E-16's NASA prediction (83e)
+**Map / block:** total / P_REPRO
+**Category:** verification
+**Kind:** runnable
+**Source:** CR-3813 Fig. E-16 NASA PAIN circles; NASA's MRP deck; CR-172428 Table 6; criterion fixed 2026-10-29 before the run (plan §8aa)
+**What it tests:** REPRO_18b with NASA's 300 deck modes in place of Table D-1's 32; everything else as REPRO_18b.
+**Why it is here:** REPRO_18b_PRE already reverts all three CR-172428 App. A program changes; the mode set was the one input left (Phase 83a).
+**A pass means:** |Δ| ≤ 4 dB at H1–H3 against E-16's NASA prediction (REPRO_18b's criterion).
+**Not covered:** CR-3813 does not state the mode count of its E-16 run.
+**Recorded outcome:** **not_met**, 0/3 (2026-10-29, first run): 88.15, 80.58, 78.33 dB against NASA's 79.0, 75.5, 68.0 (Table D-1: 88.20, 80.43, 78.21). The tones move < 0.2 dB, so the mode set is not the cause.
+**Explanation:** Code-on-code. Tones of Eq. (8) via `interior_spl` on the REPRO_18b inputs with `nasa_deck_modes()`.
+Inputs: as REPRO_18b; `nasa_deck_modes()`.
+Equations: full cabin chain, Eq. (8).
+Outputs: SPL H1–H3 [dB], with the Table D-1 run beside it.
+
 ### Case: R172428_CODE
 **Title:** CR-172428 reproduction: NASA's inputs vs NASA's printed predictions (44d)
 **Map / block:** total / P_REPRO
@@ -2694,7 +2731,7 @@ Outputs: SPL_H1..H3 [dB]; verdict on gates A/B (still labeled not claimable).
 **Why it is here:** Tonal model puts no energy above 1 kHz; this covers three high bands (surrogate).
 **A pass means:** In-sample: |got − measured mean| ≤ tol_dB from CSV; bb_j2_scale = 0.5 was fitted earlier (stale).
 **Not covered:** Only 1.25–2 kHz; nothing above; amplitude convention fixed 2026-10-21, post-hoc. The exterior broadband input is modelled (V-ASSUMED). Phase 47 (2026-10-23) found a measured exterior for this article: the modelled one is 17 dB above it, and with the measured exterior this path gives 38.6 dB (Eqs. 19–23: 21.6 dB) against 51.0 dB at 1250 Hz. The surrogate's closeness to E-9 therefore rests on compensating errors. Phase 55 decision (2026-10-23): it stays the production default, labelled calibrated, because neither cabin path is validated above 1 kHz and switching would change the frozen baselines.
-**Recorded outcome:** 55.92, 53.56, 51.59 dB at L = 1.83 m (I-22 re-record 2026-10-22, post-hoc; earlier 1.803 m: 55.97, 53.63, 51.67); t2_third_octave.md. Isolation case HF_MASSLAW (41d); isolation passes: remaining miss attributed to model fidelity (method), not code.
+**Recorded outcome:** **Information since Phase 83d (2026-10-29): no verdict.** Not a validation case under the meaningfulness rule: its broadband path uses `bb_j2_scale`, fitted to Fig. E-9, and is compared with Fig. E-9; T2_EQ19 is the printed-method T2. The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: 55.92, 53.56, 51.59 dB at L = 1.83 m (I-22 re-record 2026-10-22, post-hoc; earlier 1.803 m: 55.97, 53.63, 51.67); t2_third_octave.md. Isolation case HF_MASSLAW (41d); isolation passes: remaining miss attributed to model fidelity (method), not code.
 **Explanation:** Experiment comparison (calibrated): surrogate broadband path vs Fig. E-9 means at 1.25, 1.6, 2 kHz. bb_j2_scale = 0.5 fitted earlier → post-hoc. Printed Eqs. (19)–(23) are case T2_EQ19.
 Inputs: `run_pain_pipeline(; source=:e11, n_harmonics=5, bpf_Hz=200, blocking=R2)`; `t2_third_octave_targets.csv`; bb_j2_scale = 0.5; L = 1.83 m.
 Equations: surrogate broadband (not printed Eqs. 19–23); `evaluate_T2`.
@@ -2715,6 +2752,22 @@ Outputs: 1/3-octave SPL [dB] at target bands; verdict vs CSV tol_dB.
 Inputs: same e11 geometry/blocking as T2; `broadband_model=:eq19` via T2_EQ19 runner; targets CSV; L = 1.83 m.
 Equations: Eqs. (19)–(23) in `hf_broadband.jl`; related Eq. (24)/(78) absorptions.
 Outputs: SPL [dB] at 1.25/1.6/2 kHz; verdict ±3.5 dB; E-21/E-22 full-band counts reported only.
+
+### Case: T2_EQ19_DECK
+**Title:** T2 with Eqs. (19)–(23) on NASA's 300 modes vs Fig. E-9 (83c)
+**Map / block:** total / P_MEAS
+**Category:** experiment
+**Kind:** runnable
+**Source:** CR-3813 Fig. E-9, p. 132; NASA's MRP deck; CR-172428 Table 6; criterion fixed 2026-10-29 before the run (plan §8aa)
+**What it tests:** T2_EQ19 with NASA's 300 deck modes in place of Table D-1's 32; everything else as T2_EQ19.
+**Why it is here:** Same cause as E22_HF_DECK, on the measurement (Phase 83a).
+**A pass means:** |got − Fig. E-9 mean| ≤ 3.5 dB at 1.25, 1.6, 2 kHz (T2_EQ19's criterion).
+**Not covered:** The exterior blocked continuum stays V-ASSUMED, as in T2_EQ19.
+**Recorded outcome:** **not_met**, 0/3 (2026-10-29, first run): 54.89, 54.18, 48.96 dB against 51.0, 46.0, 41.5 (Table D-1: 38.85, 35.94, 34.90). With the modes the prediction is 4–8 dB over the measurement instead of 6–12 dB under it; not met, and not adopted (the outcome rule of §8aa ties adoption to E22_HF_DECK).
+**Explanation:** Experiment comparison; `interior_spl(...; broadband_model=:eq19)` on the T2_EQ19 inputs with `nasa_deck_modes()`.
+Inputs: as T2_EQ19; `nasa_deck_modes()`.
+Equations: Eqs. (19)–(23).
+Outputs: SPL [dB] at 1.25/1.6/2 kHz, with the Table D-1 run beside it.
 
 ### Case: E21_E22_NR
 **Title:** Figs. E-21 / E-22 NR
@@ -3025,12 +3078,12 @@ pre-registered test design. **Superseded 2026-10-28:** code defects were found i
 | E12_BLOCK (29/31) | I, N | the two H3 aft points fail inside the E-12 digitization spread (δ_dig = 2.91 dB). **Re-classed 2026-10-28 (A3b):** read from pixels, NASA's own E-12 − E-11 step matches Eq. (43) within ±1.5 dB at H1/H2 with no fore/aft trend, so no Eq. (43) term is missing. The fore/aft pattern was the by-eye digitization of steep slopes (I, as classed). H3 k10, where NASA's drawn line implies a 2.3 dB step, is not explained by the documents (N) |
 | E14_LOSS (7/18) | I (probable) | TRIM_CLOSED and TRIM_PASSIVITY pass; Fig. A-2 is digitized at six frequencies only |
 | LOUDEST_PT (a) | D; **information since Phase 82** (§2.15) | the pre-registered interior point set omits the wall nodes; with all nodes the ratio is 0.99–1.01 (post-hoc); on the converged grid NY = 40 the all-node average equals Eq. (8) within 0.07 % (LOUDEST_PT_GRID, met, 2026-10-29) |
-| REPRO_18b, E18_TONES, E21_E22_NR, REPRO_18b_PRE, E21_PRE, E22_HF_CODE | N | CR-3813's printed runs predate NASA's corrections; neither sign of the floor term reproduces them (Phase 61); the corrected program (CR-172428) is reproduced within 0.4 dB at H3 |
+| REPRO_18b, E18_TONES, E21_E22_NR, REPRO_18b_PRE, E21_PRE, E22_HF_CODE | N | CR-3813's printed runs predate NASA's corrections; neither sign of the floor term reproduces them (Phase 61); the corrected program (CR-172428) is reproduced within 0.4 dB at H3. REPRO_18b_PRE reverts all three CR-172428 App. A changes, and NASA's 300-mode set moves the tones < 0.2 dB (REPRO_18b_DECK, Phase 83, 2026-10-29) |
 | R172428_CODE, R172428_EXP | N | largest contributor (0,1) × mode 8 at H1; q = 0 modes absent from NASA's printed pairs, not explained by the documents (Q22, Phase 54) |
 | R172428_ETA (17/32) | **N** (was I, probable; re-classed 2026-10-29, Phase 82c) | modes 1–12 within 13 %. Not the truncated shapes: with NASA's full MRP-deck modes (82c, pre-registered) the count is the same 17/32 and the levels of R172428_CODE/EXP move < 1 dB. Not the inputs of Eq. (82): the generalized masses (total and shell) match App. B within 1 %, the trim admittance App. B p. 197 within 2 % to 1 kHz, and the ETASTR changes (App. A p. 178) are what the code does. Not η_r″: adding Σ η_r″ (Eq. 83) overshoots modes 1–12 by up to 100×. NASA's printed loss factor of the trim-damped modes above 500 Hz is 1.3–2× this code's, mode by mode, which the documents do not explain |
-| T1, T1_FROM_E12, T1_MEAS_DAMPING, UNC_COVER | I | the H3 excess is the e11 off-line (GEXT) field, an assumed extension (Phase 52, GEXT_BOUND); the cabin matches NASA at H3 |
-| T2 | A | the default broadband path is a calibrated surrogate (`bb_j2_scale`), labelled as such (Phase 55) |
-| T2_EQ19, T2_MEAS_EXT, T2_PRED_BB, NR_PROP_TP2444, NR_PROP_TP2444_BR, E22_BR, T2_MEAS_EXT_BR | M | PAIN's high-frequency trim noise reduction exceeds the measurement; NASA's own E-22 prediction is 32–44 dB above measured and the code is within 2–8 dB of NASA (Phases 47, 49, 59, 61); NASA states the trim model holds to about 1 kHz |
+| T1, T1_FROM_E12, T1_MEAS_DAMPING, UNC_COVER | I; **H3 part re-stated M (Phase 83a, 2026-10-29)** | the H3 excess is the e11 off-line (GEXT) field, an assumed extension (Phase 52, GEXT_BOUND); the cabin matches NASA at H3. **Re-stated 2026-10-29 (Phase 83a):** with NASA's printed App. B field and no extension, R172428_EXP at 4000 rpm gives H3 71.7 dB, NASA's own prediction is 71.3 dB (CR-172428 Table 10) and the measurement 65.2 dB: the code reproduces NASA at H3 within 0.4 dB, and the excess over the measurement that remains without GEXT is PAIN's (M); GEXT accounts for the rest of T1's H3 excess |
+| T2 | A; **information since Phase 83d** (§2.16) | the default broadband path is a calibrated surrogate (`bb_j2_scale`, fitted to Fig. E-9), labelled as such (Phase 55); it is compared with the data it was fitted to, so it carries no verdict (2026-10-29) |
+| T2_EQ19, T2_MEAS_EXT, T2_PRED_BB, NR_PROP_TP2444, NR_PROP_TP2444_BR, E22_BR, T2_MEAS_EXT_BR | M | PAIN's high-frequency trim noise reduction exceeds the measurement; NASA's own E-22 prediction is 32–44 dB above measured and the code is within 2–8 dB of NASA (Phases 47, 49, 59, 61); NASA states the trim model holds to about 1 kHz. **Phase 83 (2026-10-29):** the one untested cause, Table D-1's 32 modes (no resonant mode above 811 Hz), is refuted: with NASA's 300 MRP-deck modes the code is 6–19 dB below NASA's E-22 prediction (E22_HF_DECK 0/4; it was within 2–8 dB) and T2_EQ19 moves 4–8 dB over E-9 (T2_EQ19_DECK 0/3); the class stays M |
 | NR_PROP_TP2444_PF | A | the separable form of Eq. (66) used for the propeller field (Phase 50a, 0.4–2 dB) |
 | NR_TP1964, NR_TP1964_REF2, NR_TP1964_XOVER, NR_TP1964_XOVER_REF2 | M | the misses are Eq. (18) bands, where negative NR is a property of the equation (CR-159363 p. 138, Phase 53); the Eq. (19) bands agree within ±2.5 dB |
 | PROP_BB_FIG14, PROP_BB_FIG17 | A, I | BPM self-noise only (no inflow turbulence), assumed blade geometry; the BPM port itself reproduces NASA's printed output 270/270 (Phase 48). **Reopened 2026-10-28:** the BEMT behind them used the Report 996 polar file with one section and μ = 1 (plan Phases 69, 70 F4). **Closed 2026-10-28:** rerun with the fixed loader: 3/9 and 2/7, unchanged counts (FIG14 median 7.5 dB, was 9.2), so the miss is the BPM-only source model, as first classed |
@@ -3064,6 +3117,23 @@ a unit test. The 43 not-met cases of the 2026-10-29 snapshot:
 
 Met cases were not audited here (Phase 82 covers the not-met list the author asked for); a met case that fails the rule is
 not a validation pass either, and is listed for audit in the plan (Q63).
+
+## 2.16 The not-met cases with the fewest points: audit and solutions (Phase 83, 2026-10-29)
+
+The nine cases at 0 points in §0, audited for a cause the documents still allow testing (plan §8aa, criteria dated before the
+runs). Each untested cause was run once against the original case's criterion.
+
+| Case | Class | Cause tested in Phase 83 | Result |
+|---|---|---|---|
+| T2_EQ19, T2_MEAS_EXT, T2_MEAS_EXT_BR, T2_PRED_BB, E22_BR | E (M) | Eqs. (19)–(23) ran on Table D-1's 32 modes (to 811 Hz): no resonant mode in any band 1250–2500 Hz, an asymptotic density instead. NASA ran PAIN with 300 MRP modes (CR-172428 Table 6); the App. D solver on NASA's deck gives them (39–68 resonant per band) | **Refuted.** E22_HF_DECK 0/4: the code goes from within 2–8 dB of NASA's E-22 prediction to 6–19 dB below it. T2_EQ19_DECK 0/3: 4–8 dB over E-9 (it was 6–12 dB under). Table D-1 kept; class M stays |
+| T2 | not meaningful | `bb_j2_scale` was fitted to Fig. E-9 and T2 is compared with Fig. E-9 | **Information** (83d); T2_EQ19 is the printed-method T2 |
+| REPRO_18b | P (N) | the mode set, the one input left after REPRO_18b_PRE reverted all three App. A program changes | **Refuted.** REPRO_18b_DECK 0/3; the tones move < 0.2 dB |
+| UNC_COVER | E | none: the GEXT attribution was checked against NASA's own field | **Re-stated** (§2.14): without GEXT the code reproduces NASA's H3 within 0.4 dB at 4000 rpm (71.7 vs 71.3 dB), 6.5 dB over the measurement: PAIN's (M) |
+| R996_PHASE | E (A) | none left: F1A_INDEP rules out the wiring (0.02°) and Phase 73 the polars; Report 996's own Eq. (2) gives 165° against the measured 155° | unchanged |
+
+**What this leaves.** For the 0-point cases no documented input or program form is left untested. The code reproduces NASA's
+corrected program where NASA printed it (CR-172428 at H3 within 0.4 dB). The remaining misses against measurement sit in
+PAIN's method (M) or in NASA's printed CR-3813 runs (N).
 
 ## 3. What “valid recreation” means for this project
 

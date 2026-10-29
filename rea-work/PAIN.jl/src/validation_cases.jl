@@ -495,6 +495,8 @@ const INFORMATION_ONLY_CASES = Dict(
     "MRP_COUPLED_LIMITS" => "analytic limits of the Ritz energy; PAIN's floor form is not that energy",
     "F1A_GUTIN_ANGLES" => "Gutin's far-field formula is a different method, not a measurement",
     "SHARP_PANEL_D" => "CR-172490's design figure is neither PAIN nor a measurement",
+    # Phase 83d (2026-10-29): a path calibrated to the data it is compared with (CLAUDE.md); T2_EQ19 is the printed-method T2
+    "T2" => "its broadband path uses `bb_j2_scale`, fitted to Fig. E-9, and is compared with Fig. E-9; T2_EQ19 carries the printed-method T2",
 )
 
 """Turn a verdict-bearing result of an `INFORMATION_ONLY_CASES` case into an information result (no verdict)."""

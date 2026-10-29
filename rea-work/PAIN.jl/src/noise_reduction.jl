@@ -368,12 +368,14 @@ Build Phase-III test-article `PainInputs` for noise-reduction (no propeller grid
 Eq. 18 uses j_r²^rev, not Ψ_G). Dummy unit amplitudes satisfy the struct.
 """
 function noise_reduction_test_article_inputs(; η_lining::Real=1.0,
-                                             NY::Int=10, n_modes::Int=20)
+                                             NY::Int=10, n_modes::Int=20, structural_set::Symbol=:table_d1)
     L = test_article_length()
     fuse = FuselageGeometry(L, 0.508, 56.6)
     prop = PropellerPlacement(0.965, 90.0, 0.662)
     acoustic = cyl2d_modes(56.6; n_modes, NY)
-    structural = structural_modes_from_table_d1(; n_keep=32)
+    structural = structural_set === :table_d1 ? structural_modes_from_table_d1(; n_keep=32) :
+                 structural_set === :deck ? nasa_deck_modes() :   # Phase 83: NASA's 300-mode set
+                 error("noise_reduction_test_article_inputs: structural_set must be :table_d1 or :deck (got $structural_set)")
     pts = grid_points(fuse, prop, GridSpec())
     # Dummy blocked field (unused by Eq. 18; required by PainInputs), indexed [k, ℓ, H] like the grid
     amps = ones(Float64, 16, 10, 1)
