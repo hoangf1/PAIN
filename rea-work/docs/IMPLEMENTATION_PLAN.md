@@ -240,7 +240,8 @@ or the other documents points there. When a phase is done, mark it done and move
 
 | Q | Item | Kind | Prerequisite | Output |
 |---|------|------|--------------|--------|
-| — | No open item (2026-10-29); Q67 (Phase 86) is done | — | — | — |
+| Q68 | **Phase 87 — NASA's printed per-mode values against ours** (§8ae; 2026-10-29) | printout comparison; code fix only if a printed value shows one | Q67 | planned 2026-10-29 (author: "yes create those phases"); criteria in §8ae dated before any run |
+| Q69 | **Phase 88 — the q = 0 hypothesis on NASA runs it was not chosen on** (§8ae; 2026-10-29) | diagnostic runs, held-out | Q68 (runs only if 87 finds no documented cause) | planned 2026-10-29; criteria and the held-out set in §8ae dated before any run |
 
 If a queue item is blocked on data, skip to the next unblocked item and say which data item blocks it.
 
@@ -284,6 +285,57 @@ The diagram matches the code (phases 21–22 done 2026-10-21): `propeller_ccblad
 | Driver | `scripts/run/run_pain.jl` |
 
 ---
+
+## 8ae. Phases 87–88 — the differences from NASA's corrected program *(planned 2026-10-29; author: "yes create those phases"; criteria below dated 2026-10-29, before any of these comparisons is computed)*
+
+**What is compared.** CR-3813 and the User Manual give PAIN's equations; CR-172428 gives NASA's inputs for the test article
+and what NASA's corrected program printed for them (App. B: per-mode tables, the five largest mode pairs, the interior
+levels). The code implements the equations and is run on CR-172428's inputs; any difference from App. B means NASA's
+program did something the equations do not say, or this code reads an equation differently. Three differences are open
+(`VALIDATION_GUIDELINE.md` §2.14, class N): the q = 0 cabin modes (our largest contributors, absent from NASA's pair lists),
+the floor-dominated pairs (10–12 dB low), and the trim-damped loss factors above 500 Hz (NASA 1.3–2× ours).
+
+**What is not yet compared.** App. B prints, for each of the 48 cabin modes PAIN used, NASA's normalization ε_n and modal
+loss factor η_n (`data/cr172428/appB_acoustic_modes.csv`, p. 195), and per pair the coupling loss η_r″ ("ETA R#"). These
+are NASA's own intermediate values; they have been used as NASA's numbers (44f) but never compared with this code's.
+NASA's list includes the q = 0 modes with non-zero ε_n and η_n, so PAIN summed them; the question is which factor made
+them small.
+
+### Phase 87 — NASA's printed per-mode values against ours (P, printed intermediate outputs)
+
+| Step | What | Criterion (fixed 2026-10-29, before any run) |
+|------|------|----------------------------------------------|
+| 87a | ε_n of the 48 printed cabin modes: `cabin_eps_3d` on CR-172428's inputs, matched by (Q, I) | |ours/NASA − 1| ≤ 1 % at every mode (printed to 5 digits) |
+| 87b | η_n of the same modes (Table 6 trim, at the mode frequency), matched by (Q, I) | |ours/NASA − 1| ≤ 2 % at every mode |
+| 87c | η_r″ of every printed pair with η_r″ ≥ 1e-4 (4000 and 5000 rpm lists), Eq. (83) with our f′, ε_n, η_n, M_r | |ours/NASA − 1| ≤ 10 % at ≥ 80 % of the pairs |
+| 87d | Read CR-3813 Eqs. (8), (57), (C.11) and App. C pp. C-6–C-8 for every place q enters, and list each against the code | a written table, no criterion |
+
+**Outcomes fixed before the runs.** Each step is a case that reproduces a PAIN printout (P), with a verdict. A miss that
+is systematic in q = 0 (all q = 0 modes off by one factor, the rest within the criterion) or in the floor-dominated modes
+is a documented cause: the code is changed to reproduce the printed value, the change is tested by 87a–c, and
+R172428_CODE, R172428_EXP and R172428_ETA are rerun against their registered criteria (their data played no part in the
+change). A miss with no pattern is recorded, and nothing is changed. A pass rules the printed quantity out.
+
+### Phase 88 — the q = 0 hypothesis on NASA runs it was not chosen on (held-out; only if 87 finds no documented cause)
+
+**Hypothesis H0 (fixed 2026-10-29).** NASA's program gave the q = 0 cabin modes no structural coupling (f₀M = 0),
+although CR-3813 Eq. (57) gives f₀M = 2/(Mπ). It was formed from the CR-172428 App. B pair lists, and its effect on
+R172428_CODE (8/9, Q22) has been seen, so neither can test it: both are excluded from the decision.
+
+**Held-out set.** NASA's CR-3813 printed predictions, which played no part in forming H0. CR-172428 App. A lists the three
+changes made after CR-3813 and none concerns q = 0, so H0, if true, held in both versions. The runs use the pre-correction
+form with all three App. A changes reverted (as REPRO_18b_PRE), plus H0:
+
+| Step | Run (diagnostic, `DIAGNOSTIC_CASES`, off the map) | Criterion (fixed 2026-10-29, before any run) |
+|------|---------------------------------------------------|----------------------------------------------|
+| 88a | E-16 tones: REPRO_18b_PRE + H0 against NASA's E-16 prediction | as REPRO_18b: ±4 dB at each of H1–H3 |
+| 88b | E-18 tones: E18_TONES in the pre-correction form + H0 against NASA's E-18 prediction | as E18_TONES: ±4 dB at each point |
+| 88c | E-21 NR: E21_PRE + H0 against NASA's E-21 prediction | as E21_PRE: |NR − NASA| ≤ 3 dB in ≥ 75 % of the counted bands |
+
+**Decision fixed before the runs.** H0 is supported only if all three meet their criteria; it then becomes a labelled
+option ("PAIN as NASA ran it: q = 0 uncoupled; no document"), never the default, and R172428_CODE keeps its recorded
+verdict. Otherwise H0 is refuted and recorded as such. No other variant of H0 (for example scaling f₀M, or excluding only
+some q = 0 modes) is tried after seeing a result.
 
 ## 9. Reference appendices
 

@@ -3174,6 +3174,13 @@ measured inputs that isolate a block (T1_FROM_E12, T1_MEAS_DAMPING, T2_MEAS_EXT)
 verdicts, and so do the cases that add a model beyond PAIN (the `_BR` sound-bridge cases, NR_PROP_TP2444_PF); both are
 listed in §2.14.
 
+## 2.20 Planned: the open differences from NASA's corrected program (Phases 87–88, criteria fixed 2026-10-29)
+
+Before any run: Phase 87 compares NASA's printed per-mode values (App. B: ε_n, η_n, η_r″) with this code's (P cases with a
+verdict); a systematic miss is a documented cause and is fixed. Phase 88, only if 87 finds none, tests the q = 0 hypothesis
+(NASA's program left the q = 0 cabin modes uncoupled) on CR-3813's printed runs, which played no part in forming it
+(diagnostics, off the map). Criteria and decision rules: `IMPLEMENTATION_PLAN.md` §8ae.
+
 ## 3. What “valid recreation” means for this project
 
 A recreation is **pipeline-valid** only if:
