@@ -2764,7 +2764,8 @@ _run_if("Validation case registry (34d)") do
     @test fig14.verdict === :met            # Phase 76 (2026-10-28): thickness on
     @test run_validation_case("MRP_RITZ").verdict === :no_verdict
     @test run_validation_case("BLK_P68").verdict === :met
-    @test run_validation_case("F1A_GUTIN").verdict === :met
+    f1a_gutin = run_validation_case("F1A_GUTIN")   # information since Phase 85 (2026-10-29); the check itself still holds
+    @test f1a_gutin.verdict === :no_verdict && PAIN.underlying_verdict(f1a_gutin) === :met
 
     # Task C4 — converted report-pointer cases → CSV replays
     # Allowed transcribed constant tables in src/ (not read from page images):
@@ -2791,7 +2792,7 @@ _run_if("Validation case registry (34d)") do
     for id in VALIDATION_CASE_ORDER
         results_by_id[id] = run_validation_case(id)
     end
-    @test results_by_id["UT_GRID"].verdict === :met
+    @test results_by_id["UT_GRID"].verdict === :no_verdict && PAIN.underlying_verdict(results_by_id["UT_GRID"]) === :met   # information since Phase 85
     for id in converted
         r = results_by_id[id]
         @test !isempty(r.series)
@@ -2950,7 +2951,7 @@ _run_if("Isolated block checks (phase 40, V-UNIT)") do
     for (id, verd, ntab) in expected
         @test haskey(VALIDATION_CASES, id)
         r = run_validation_case(id)
-        @test r.verdict === verd
+        @test r.verdict === :no_verdict && PAIN.underlying_verdict(r) === verd   # information since Phase 85 (2026-10-29)
         ntab === nothing || @test length(r.table) == ntab
         # Write figures only under TEST_OUT (suite must leave the tree clean).
         png = plot_case(r, VALIDATION_CASES[id].plot_spec;
@@ -2974,7 +2975,8 @@ _run_if("Isolation of failing cases (phase 41)") do
     for (id, verd) in expected
         @test haskey(VALIDATION_CASES, id)
         r = run_validation_case(id)
-        @test r.verdict === verd
+        @test PAIN.underlying_verdict(r) === verd   # the check itself; verification cases carry no verdict since Phase 85
+        @test (r.verdict === :no_verdict) == (haskey(PAIN.INFORMATION_ONLY_CASES, id) || verd === :no_verdict)
         @test !isempty(r.table)
         png = plot_case(r, VALIDATION_CASES[id].plot_spec;
                         path=joinpath(TEST_OUT, "$(id).png"))
@@ -3007,7 +3009,8 @@ _run_if("T1/T2 root causes (phase 43)") do
     for (id, verd) in expected
         @test haskey(VALIDATION_CASES, id)
         r = run_validation_case(id)
-        @test r.verdict === verd
+        @test PAIN.underlying_verdict(r) === verd   # the check itself; verification cases carry no verdict since Phase 85
+        @test (r.verdict === :no_verdict) == (haskey(PAIN.INFORMATION_ONLY_CASES, id) || verd === :no_verdict)
         @test !isempty(r.table)
         png = plot_case(r, VALIDATION_CASES[id].plot_spec;
                         path=joinpath(TEST_OUT, "$(id).png"))
@@ -3333,7 +3336,7 @@ end
 _run_if("Exterior broadband from RP-1218 (phase 48)") do
     # Criteria fixed 2026-10-23 (plan §8d Phase 48); 48b–48d decisions fixed before any comparison.
     r = run_validation_case("BPM_RP1218")
-    @test r.verdict === :met && r.inputs_echo.n_ok == r.inputs_echo.n == 270
+    @test r.verdict === :no_verdict && PAIN.underlying_verdict(r) === :met && r.inputs_echo.n_ok == r.inputs_echo.n == 270   # information since Phase 85
     # scaling laws of the port: span L → +3 dB per doubling, distance r → −6 dB, M⁵ in U at fixed Strouhal
     a = PAIN.bpm_tbl_te(1000.0, 0.3, 0.4, 1.2, 90.0, 90.0, 3.0, 50.0)
     b = PAIN.bpm_tbl_te(1000.0, 0.3, 0.8, 1.2, 90.0, 90.0, 3.0, 50.0)
@@ -3546,7 +3549,8 @@ _run_if("CR-172428 reproduction (phase 44)") do
                 ("R172428_TRIM", :no_verdict), ("R172428_PAIRS", :no_verdict))
     for (id, verd) in expected
         r = run_validation_case(id)
-        @test r.verdict === verd
+        @test PAIN.underlying_verdict(r) === verd   # the check itself; verification cases carry no verdict since Phase 85
+        @test (r.verdict === :no_verdict) == (haskey(PAIN.INFORMATION_ONLY_CASES, id) || verd === :no_verdict)
         @test !isempty(r.table)
         png = plot_case(r, VALIDATION_CASES[id].plot_spec; path=joinpath(TEST_OUT, "$(id).png"))
         @test isfile(png) && filesize(png) > 0

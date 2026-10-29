@@ -497,7 +497,51 @@ const INFORMATION_ONLY_CASES = Dict(
     "SHARP_PANEL_D" => "CR-172490's design figure is neither PAIN nor a measurement",
     # Phase 83d (2026-10-29): a path calibrated to the data it is compared with (CLAUDE.md); T2_EQ19 is the printed-method T2
     "T2" => "its broadband path uses `bb_j2_scale`, fitted to Fig. E-9, and is compared with Fig. E-9; T2_EQ19 carries the printed-method T2",
+    # Phase 85 (Q63, 2026-10-29): the met cases audited with the same rule. Each compares with an identity, a hand or closed
+    # form, a property, another method or code, or checks inputs rather than reproducing a PAIN output: verification.
+    "E11_FREEFIELD" => "two digitizations of Fig. E-11 against each other: input repeatability, not the code",
+    "ISO_FF_CONV" => "SPL↔Pa round trip and loader against a hand conversion: identity",
+    "ISO_TABLE8" => "the Table 8 calibration is the identity on its own peaks: identity",
+    "UT_GRID" => "grid coordinates against the User Manual's formulas: an input check, not a PAIN output",
+    "ISO_GEXT_LINE" => "grid extension returns its input on ℓ = 1: identity",
+    "ISO_BLOCKING" => "full-grid blocking against the same Eq. (43) factor: identity",
+    "MRP_TRUNC" => "a property of the solver's shapes (unit maximum), not a PAIN output or a measurement",
+    "ISO_CYL2D_EXACT" => "an analytic circular duct, not a PAIN output or a measurement",
+    "ISO_CYL2D_BOUNDARY" => "boundary values and mode list against the code's own nodes: internal consistency",
+    "TRIM_CLOSED" => "the trim stack against a closed-form transfer matrix: hand form",
+    "ISO_JOINT_ACC" => "joint acceptance against numerical quadrature of the same integral",
+    "ISO_MODAL_DENSITY" => "modal density against a count of the same modes: internal consistency",
+    "ISO_BB_BAND" => "band integral against its closed form",
+    "ISO_SIL" => "SIL against a hand evaluation",
+    "LOUDEST_PT_GRID" => "the point form against Eq. (8): internal consistency",
+    "NR_BAND_HAND" => "one NR band against a hand evaluation of Eqs. (17)–(18)",
+    "HF_MASSLAW" => "HF transmission against a hand evaluation of Eq. (20)",
+    "BPM_RP1218" => "NASA's BPM code is not PAIN, and RP-1218's tables are its output, not a measurement",
+    "SHARP_PANEL_D_SHAPE" => "CR-172490's design figure is neither PAIN nor a measurement",
+    "F1A_PLANE_PEAK" => "where the peak lies is a property of the field, not a PAIN output or a measurement",
+    "FF_E11_MAP" => "holds by construction (GEXT multiplies by ≤ 1)",
+    "SRC_PASSTHROUGH" => "the stored inputs against the source grid: plumbing identity",
+    "MRP_INPUT_QA" => "structural inputs against App. E's printed values: an input check, not a PAIN output",
+    "CABIN_GEOM_HAND" => "cabin geometry against hand formulas",
+    "TRIM_INPUT_QA" => "trim inputs against App. E's printed values: an input check, not a PAIN output",
+    "TRIM_PASSIVITY" => "passivity is a physical bound, not a PAIN output or a measurement",
+    "PAIN_INPUT_ECHO" => "resolved inputs against the User Manual's formulas: an input check, not a PAIN output",
+    "AC_CABIN_DEMO" => "the dB(A) sum against its own bands: arithmetic",
+    "BEMT_MOMENTUM" => "BEM momentum = blade element: identity of the converged solution",
+    "BEMT_HAND_TIP" => "the BEMT wrapper against a hand BEM",
+    "BEMT_INTEGRALS" => "integrals, the Froude bound and station convergence: internal consistency",
+    "BEMT_SIMILARITY" => "coefficients at fixed J: similarity identity",
+    "F1A_GW_FLIGHT" => "Garrick–Watkins is a different method, not a measurement",
+    "F1A_THICKNESS" => "the compact monopole form is a different method, not a measurement",
+    "F1A_PROPERTIES" => "blade-count and 1/r scaling and convergence: internal consistency",
+    "BEMT_HAND" => "the BEMT wrapper against a hand BEM",
+    "F1A_GUTIN" => "Gutin's far-field formula is a different method, not a measurement",
+    "F1A_INDEP" => "an independent F1A implementation is another code, not a measurement",
+    "BBN_KIN" => "the phase step m·B·Δψ is kinematics, not a PAIN output or a measurement",
 )
+
+"""Verdict of the check itself: an information case's recorded outcome (`original_verdict`), else its verdict."""
+underlying_verdict(r::ValidationCaseResult) = get(r.inputs_echo, :original_verdict, r.verdict)
 
 """Turn a verdict-bearing result of an `INFORMATION_ONLY_CASES` case into an information result (no verdict)."""
 function _as_information_case(r::ValidationCaseResult)

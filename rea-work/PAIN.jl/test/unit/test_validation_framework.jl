@@ -65,4 +65,10 @@ end
     @test occursin("not a pass: not met, 0/1", r.reason) && r.table == [row]
     @test PAIN._as_information_case(mk("T1", :not_met)).verdict === :not_met               # a validation case is untouched
     @test PAIN._as_information_case(mk("CYL2D_WEYL", :no_verdict)).reason == "0/1"
+    # underlying_verdict: the recorded outcome of an information case, else the verdict
+    @test PAIN.underlying_verdict(r) === :not_met && PAIN.underlying_verdict(mk("T1", :met)) === :met
+    # Phase 85: the met cases that keep a verdict compare with measurement (E) or reproduce a PAIN printout (P)
+    keep = ["T1_F1A_FILL", "R996_FIG14", "R996_FIG12", "R996_FIG13A", "PER_FIG7", "BLK_P68", "MRP_APPD", "CYL2D_C1"]
+    @test !any(id -> haskey(PAIN.INFORMATION_ONLY_CASES, id), keep)
+    @test all(id -> haskey(PAIN.INFORMATION_ONLY_CASES, id), ["UT_GRID", "MRP_INPUT_QA", "BPM_RP1218", "F1A_GUTIN", "ISO_SIL"])
 end
