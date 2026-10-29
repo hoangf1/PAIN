@@ -71,4 +71,11 @@ end
     keep = ["T1_F1A_FILL", "R996_FIG14", "R996_FIG12", "R996_FIG13A", "PER_FIG7", "BLK_P68", "MRP_APPD", "CYL2D_C1"]
     @test !any(id -> haskey(PAIN.INFORMATION_ONLY_CASES, id), keep)
     @test all(id -> haskey(PAIN.INFORMATION_ONLY_CASES, id), ["UT_GRID", "MRP_INPUT_QA", "BPM_RP1218", "F1A_GUTIN", "ISO_SIL"])
+    # Phase 86: diagnostic re-runs carry no verdict; the case each re-runs keeps its verdict
+    @test all(id -> haskey(PAIN.VALIDATION_CASES, id), keys(PAIN.DIAGNOSTIC_CASES))
+    @test isempty(intersect(keys(PAIN.DIAGNOSTIC_CASES), keys(PAIN.INFORMATION_ONLY_CASES)))
+    d = PAIN._as_information_case(mk("R172428_CODE_DECK", :not_met))
+    @test d.verdict === :no_verdict && PAIN.underlying_verdict(d) === :not_met && startswith(d.reason, "diagnostic: ")
+    @test PAIN.no_verdict_by_rule("E21_PRE") && PAIN.no_verdict_by_rule("UT_GRID") && !PAIN.no_verdict_by_rule("R172428_CODE")
+    @test PAIN._as_information_case(mk("R172428_CODE", :not_met)).verdict === :not_met
 end

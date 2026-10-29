@@ -152,6 +152,7 @@ export
     plot_case, validation_figure_path, validation_figure_stale, validation_figure_dir, VALIDATION_FIGURE_DIRS, validation_source_figure_path,
     case_error_summary, case_error_summary_path, write_case_error_summary, recorded_case_errors,
     validation_scoreboard_markdown, write_validation_scoreboard,
+    no_verdict_cases_markdown, no_verdict_cases_path, write_no_verdict_cases, on_validation_map, shown_validation_map,
     VALIDATION_SOURCE_FIGURE_FALLBACKS,
     CaseInfo, MapBlock, ValidationMap, CASE_INFO, VALIDATION_MAPS,
     validation_guideline_path, parse_validation_guideline_section,

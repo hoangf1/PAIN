@@ -277,6 +277,27 @@ function _map_by_id(map_id::AbstractString)
     error("unknown validation map id: $map_id")
 end
 
+"""
+    on_validation_map(id; rec=recorded_case_errors()) -> Bool
+
+A case is shown on the validation map only when its recorded verdict (the snapshot `case_error_summary.csv`) is met or
+not met (author 2026-10-29: "all no verdicts should be placed elsewhere"). Information cases, diagnostic re-runs, cases
+with no criterion, Pkg.test-only and unrun cases are listed in `docs/NO_VERDICT_CASES.md` and in the Validation tab.
+"""
+function on_validation_map(id::AbstractString; rec::AbstractDict=recorded_case_errors())
+    no_verdict_by_rule(id) && return false
+    r = get(rec, String(id), nothing)
+    return r !== nothing && r.verdict in ("met", "not_met")
+end
+
+"""The map as shown: every block (the program's stages) kept, each holding only its cases with a verdict."""
+function shown_validation_map(map_id::AbstractString; rec::AbstractDict=recorded_case_errors())
+    m = _map_by_id(map_id)
+    blocks = [MapBlock(b.id, b.title, b.code, b.note, b.what_it_does, filter(id -> on_validation_map(id; rec), b.cases),
+                       b.col, b.row, b.feeds, b.group, b.role, b.group_title) for b in m.blocks]
+    return ValidationMap(m.id, m.title, m.intro, m.what_is, m.how_to_read, blocks)
+end
+
 """Soft lookup for GUI: missing CASE_INFO → placeholder fields, no crash."""
 function _case_info_or_missing(id::AbstractString)
     if haskey(CASE_INFO, id)
@@ -295,7 +316,7 @@ function validation_map_json(map_id::AbstractString;
                              session_errors::Dict{String,NamedTuple}=Dict{String,NamedTuple}(),
                              recorded_errors::Union{Nothing,Dict{String,NamedTuple}}=nothing)
     recorded = recorded_errors === nothing ? recorded_case_errors() : recorded_errors
-    m = _map_by_id(map_id)
+    m = shown_validation_map(map_id; rec=recorded)
     blocks = []
     for b in m.blocks
         cases = []
@@ -405,9 +426,11 @@ function case_info_json(id::AbstractString;
     return JSON3.write(d)
 end
 
-"""JSON for a map block detail panel (title, what_it_does, code, role)."""
+"""JSON for a map block detail panel (title, what_it_does, code, role); `cases` are the ones on the map,
+`off_map_cases` the block's cases without a verdict."""
 function map_block_info_json(map_id::AbstractString, block_id::AbstractString)
-    m = _map_by_id(map_id)
+    m = shown_validation_map(map_id)
+    full = Dict(b.id => b.cases for b in _map_by_id(map_id).blocks)
     for b in m.blocks
         if b.id == block_id
             return JSON3.write(Dict(
@@ -424,6 +447,7 @@ function map_block_info_json(map_id::AbstractString, block_id::AbstractString)
                 "row" => b.row,
                 "feeds" => b.feeds,
                 "cases" => b.cases,
+                "off_map_cases" => setdiff(full[b.id], b.cases),
             ))
         end
     end
@@ -441,10 +465,12 @@ function map_block_info_json(map_id::AbstractString, block_id::AbstractString)
         "row" => 0,
         "feeds" => String[],
         "cases" => String[],
+        "off_map_cases" => String[],
     ))
 end
 
-"""Registry ids in map → block order (excludes UT_* / non-registry nodes)."""
+"""Registry ids in map → block order (excludes UT_* / non-registry nodes), then the registry ids placed on no block
+(`Map / block: none`) in registry order, so the Validation tab lists every registered case."""
 function validation_map_case_order()
     out = String[]
     for m in VALIDATION_MAPS
@@ -454,6 +480,8 @@ function validation_map_case_order()
             end
         end
     end
+    seen = Set(out)
+    append!(out, [id for id in VALIDATION_CASE_ORDER if !(id in seen)])
     return out
 end
 
@@ -508,7 +536,7 @@ Axis-aligned stage-group rectangles from map model data (own blocks only, includ
 Matches QML `groupBounds`. Returns `Dict(group_id => (x, y, w, h))`.
 """
 function validation_map_group_rects(map_id::AbstractString="total")
-    m = _map_by_id(map_id)
+    m = shown_validation_map(map_id)
     row_y = validation_map_row_y(m)
     rects = Dict{String,NamedTuple{(:x, :y, :w, :h),NTuple{4,Float64}}}()
     by_group = Dict{String,Vector{MapBlock}}()
@@ -556,7 +584,7 @@ function assert_validation_map_groups_disjoint(map_id::AbstractString="total")
         end
     end
     # No block of another group may overlap a group's rectangle.
-    m = _map_by_id(map_id)
+    m = shown_validation_map(map_id)
     row_y = validation_map_row_y(m)
     for b in m.blocks
         isempty(b.group) && continue

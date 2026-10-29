@@ -83,13 +83,20 @@ end
     @test PAIN.JSON3.read(PAIN.map_block_info_json("total", "NO_BLOCK")).title == PAIN._MISSING_DOC
     order = PAIN.validation_map_case_order()
     @test all(haskey(PAIN.VALIDATION_CASES, id) for id in order)
+    @test sort(order) == sort(PAIN.VALIDATION_CASE_ORDER) && "MRP_D1" in order          # off-block cases too (Validation tab)
     @test PAIN._map_block_chip_extra(0) == 0 && PAIN._map_block_chip_extra(3) == 4 + 3 * PAIN.VALIDATION_MAP_CHIP_ROW_H
     # Row tops: a row holding a block with many chips pushes the next row below that block's chips.
     MB(id, row, n) = (; id, col=0, row, cases=["C$k" for k in 1:n])
     ry = PAIN.validation_map_row_y((; blocks=[MB("a", 0, 5), MB("b", 1, 0)]))
     @test ry[2] >= ry[1] + PAIN._MAP_BLOCK_H + PAIN._map_block_chip_extra(5)
     @test ry == PAIN.validation_map_row_y((; blocks=[MB("a", 0, 0), MB("b", 1, 0)])) .+ [0, PAIN._MAP_BLOCK_H + PAIN._map_block_chip_extra(5) + PAIN._MAP_ROW_GAP - PAIN._MAP_CELL_H]
-    @test j.row_y == PAIN.validation_map_row_y(m)
+    @test j.row_y == PAIN.validation_map_row_y(PAIN.shown_validation_map("total"; rec=Dict{String,NamedTuple}()))
+    # Phase 86: the map shows only cases with a recorded verdict; every block (stage) stays
+    jr = PAIN.JSON3.read(PAIN.validation_map_json("total"))
+    @test isempty(c for b in j.blocks for c in b.cases)                                  # no snapshot, no chips
+    @test all(PAIN.on_validation_map(c.id) for b in jr.blocks for c in b.cases) && length(jr.blocks) == length(m.blocks)
+    @test !any(c.id in keys(PAIN.DIAGNOSTIC_CASES) || c.id in keys(PAIN.INFORMATION_ONLY_CASES) for b in jr.blocks for c in b.cases)
+    @test jr.row_y == PAIN.validation_map_row_y(PAIN.shown_validation_map("total"))
     br = PAIN._map_block_rect(MB("a", 0, 5), ry)
     @test br.y == ry[1] && br.h == PAIN._MAP_BLOCK_H + PAIN._map_block_chip_extra(5) && br.w == PAIN._MAP_BLOCK_W
     @test PAIN._map_block_rect((; col=2, row=1, cases=String[]), ry).x == PAIN._MAP_PAD + 2 * PAIN._MAP_CELL_W

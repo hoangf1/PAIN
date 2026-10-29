@@ -145,12 +145,30 @@ end
     row(v, k, n, t) = (; run_date="2000-01-01", source_date="2000-01-01", verdict=v, n_within=k, n_rows=n,
                        max_abs=1.0, median_abs=1.0, unit="%", text=t, chip_text=t)
     rec = Dict(id => row("met", 3, 3, "3/3") for id in b.cases)
-    bad = b.cases[end]; rec[bad] = row("not_met", 1, 4, "1/4 · max |err| 9 %")
+    shown = filter(id -> !PAIN.no_verdict_by_rule(id), b.cases)
+    bad = shown[end]; rec[bad] = row("not_met", 1, 4, "1/4 · max |err| 9 %")
     md = PAIN.validation_scoreboard_markdown(; rec)
     @test occursin("latest run 2000-01-01", md)
     @test occursin("| `$bad` ", md) && occursin("**not met** | 1/4 | 1/4 · max \\|err\\| 9 % |", md)
-    @test occursin(r"class [A-Z_,]*\bP_MRP\b[A-Z_,]* partial", md)
-    @test occursin("Pkg.test only", md) || !any(i -> PAIN.CASE_INFO[i].kind === :pkgtest, keys(PAIN.CASE_INFO))
+    @test occursin(r"class [A-Z_,]*\bP_MRP\b[A-Z_,]* " * (length(shown) > 1 ? "partial" : "not_met"), md)
+    # Phase 86: only cases with a verdict are on the map; a met information case and an unrun case are listed elsewhere
+    info = first(id for id in b.cases if PAIN.no_verdict_by_rule(id))
+    @test !occursin("| `$info` ", md) && !PAIN.on_validation_map(info; rec) && PAIN.on_validation_map(bad; rec)
+    @test !occursin("| `T1` ", md) && !PAIN.on_validation_map("T1"; rec)                # not in this snapshot
+    nv = PAIN.no_verdict_cases_markdown(; rec)
+    @test occursin("| `$info` ", nv) && occursin("| `T1` ", nv) && !occursin("| `$bad` ", nv)
+    @test occursin("## Information and verification under the meaningfulness rule", nv)
+    @test occursin("Pkg.test only", nv) || !any(i -> PAIN.CASE_INFO[i].kind === :pkgtest, keys(PAIN.CASE_INFO))
+    rec2 = merge(rec, Dict("R172428_CODE_DECK" => row("not_met", 4, 9, "4/9"), "R172428_CODE" => row("not_met", 4, 9, "4/9")))
+    nv2 = PAIN.no_verdict_cases_markdown(; rec=rec2)
+    @test occursin("## Diagnostic re-runs", nv2) && occursin("| `R172428_CODE_DECK` ", nv2) && !occursin("| `R172428_CODE` ", nv2)
+    @test sort(PAIN._no_verdict_case_ids(; rec=rec2)) == sort([id for id in keys(PAIN.CASE_INFO) if !PAIN.on_validation_map(id; rec=rec2)])
+    @test PAIN._no_verdict_kind("E21_PRE", nothing)[1] == "Diagnostic re-runs" && PAIN._no_verdict_kind("NO_SUCH", nothing)[1] == "Not in the snapshot"
+    @test PAIN._no_verdict_kind("T1", row("no_verdict", 0, 0, ""))[1] == "No criterion (displays and records)"
+    @test endswith(PAIN.no_verdict_cases_path(), joinpath("docs", "NO_VERDICT_CASES.md"))
+    pn = joinpath(UNIT_OUT, "no_verdict.md")
+    PAIN.write_no_verdict_cases(pn; rec); sn = read(pn, String); rm(pn)
+    @test startswith(sn, "# Cases without a verdict") && !occursin(r"[^\r]\n", sn)
     # writing replaces the marked section in place (idempotent) and keeps the rest of the file
     p = joinpath(UNIT_OUT, "guideline_scoreboard.md")
     write(p, "# Title\r\n\r\nbody\r\n")

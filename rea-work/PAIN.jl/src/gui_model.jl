@@ -162,17 +162,13 @@ function make_gui_observables(;
 end
 
 function _format_val_case_list()
-    # Map → block order; last column is the map title (caseIdFromRow still uses col 0).
+    # Map → block order, then the cases on no block; last column says where the case is listed (caseIdFromRow uses col 0).
     lines = String[]
-    for m in VALIDATION_MAPS
-        for b in m.blocks
-            for id in b.cases
-                haskey(VALIDATION_CASES, id) || continue
-                c = VALIDATION_CASES[id]
-                grey = isempty(c.unavailable_reason) ? "" : " [unavailable]"
-                push!(lines, "$(c.id)\t$(c.title)\tphase $(c.phase)\t$(c.label)$(grey)\t$(m.title)")
-            end
-        end
+    for id in validation_map_case_order()
+        c = VALIDATION_CASES[id]
+        grey = isempty(c.unavailable_reason) ? "" : " [unavailable]"
+        place = on_validation_map(id) ? "on the validation map" : "no verdict (NO_VERDICT_CASES.md)"
+        push!(lines, "$(c.id)\t$(c.title)\tphase $(c.phase)\t$(c.label)$(grey)\t$(place)")
     end
     return join(lines, "\n")
 end

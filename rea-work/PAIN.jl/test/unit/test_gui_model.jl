@@ -19,17 +19,17 @@
 end
 @testset "validation tab and map refresh" begin
     obs = PAIN.make_gui_observables()
-    r = PAIN.run_validation_gui!(obs, "CABIN_GEOM_HAND"; figure_dir=UNIT_OUT)
-    @test r !== nothing && obs["val_selected"][] == "CABIN_GEOM_HAND" && obs["val_plot_path"][] == joinpath(UNIT_OUT, "CABIN_GEOM_HAND.png")
-    @test isfile(obs["val_plot_path"][]) && startswith(obs["val_status"][], "Done CABIN_GEOM_HAND") && !obs["busy"][]
-    @test PAIN._GUI_LAST_VERDICTS["CABIN_GEOM_HAND"] == r.verdict
+    r = PAIN.run_validation_gui!(obs, "BLK_P68"; figure_dir=UNIT_OUT)
+    @test r !== nothing && obs["val_selected"][] == "BLK_P68" && obs["val_plot_path"][] == joinpath(UNIT_OUT, "BLK_P68.png")
+    @test isfile(obs["val_plot_path"][]) && startswith(obs["val_status"][], "Done BLK_P68") && !obs["busy"][]
+    @test PAIN._GUI_LAST_VERDICTS["BLK_P68"] == r.verdict
     m = PAIN.JSON3.read(obs["map_total_json"][])
-    chip = first(c for b in m.blocks for c in b.cases if c.id == "CABIN_GEOM_HAND")
+    chip = first(c for b in m.blocks for c in b.cases if c.id == "BLK_P68")
     @test chip.last == String(r.verdict) && chip.error_source == "run"                      # map refreshed after the run
     @test PAIN.run_validation_gui!(obs, "NO_SUCH"; figure_dir=UNIT_OUT) === nothing && startswith(obs["val_status"][], "Error (NO_SUCH)")
     obs["map_selected"][] = "T1"
     PAIN.reload_validation_docs_gui!(obs)
-    @test PAIN.JSON3.read(obs["map_detail_json"][]).id == "T1" && obs["val_criterion"][] == PAIN._criterion_for("CABIN_GEOM_HAND")
+    @test PAIN.JSON3.read(obs["map_detail_json"][]).id == "T1" && obs["val_criterion"][] == PAIN._criterion_for("BLK_P68")
     PAIN._refresh_map_json!(obs)
     @test PAIN.JSON3.read(obs["map_total_json"][]).id == "total"
     saved = copy(PAIN.VALIDATION_CASE_ORDER)

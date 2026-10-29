@@ -1,7 +1,8 @@
 #!/usr/bin/env julia
 # Phase 75a (IMPLEMENTATION_PLAN.md §8s): rerun validation cases offscreen, save each figure to its map-block folder
 # through the same `plot_case` path the GUI Run button uses, and update those cases' rows of
-# docs/validation_reports/case_error_summary.csv (other rows untouched). Display only: criteria and verdicts are
+# docs/validation_reports/case_error_summary.csv (other rows untouched), then §0 of VALIDATION_GUIDELINE.md and
+# docs/NO_VERDICT_CASES.md from it. Display only: criteria and verdicts are
 # whatever the case computes. Each updated row carries its own run_date; the file's "# generated" header keeps the
 # date of the last full snapshot (`write_case_error_summary.jl`). Never opens a GUI window.
 #
@@ -39,6 +40,8 @@ function main(args)
     end
     write(path, join(lines, "\n") * "\n")
     println("updated ", path)
+    println("updated ", PAIN.write_validation_scoreboard())   # §0 of VALIDATION_GUIDELINE.md from the updated rows
+    println("updated ", PAIN.write_no_verdict_cases())       # docs/NO_VERDICT_CASES.md
 end
 
 main(ARGS)

@@ -540,15 +540,38 @@ const INFORMATION_ONLY_CASES = Dict(
     "BBN_KIN" => "the phase step m·B·Δψ is kinematics, not a PAIN output or a measurement",
 )
 
-"""Verdict of the check itself: an information case's recorded outcome (`original_verdict`), else its verdict."""
+"""
+Diagnostic runs (author 2026-10-29: "these diagnostics shouldnt be included in a validation map"): a re-run of another
+case with one program form or input set changed to test a documented cause of that case's miss. The case they re-run
+carries the verdict; the diagnostic answers whether the cause holds, so it carries no verdict and stays off the map.
+Its recorded outcome is kept in `inputs_echo.original_verdict`, like an information case. The rule is by kind, applied
+to every such re-run whatever its outcome.
+"""
+const DIAGNOSTIC_CASES = Dict(
+    "REPRO_18b_PRE" => "re-runs REPRO_18b with the pre-correction Eq. (52) floor sign (Phase 61b): refuted",
+    "E21_PRE" => "re-runs the E-21 NASA comparison with the pre-correction Eq. (52) floor sign (Phase 61c): refuted",
+    "REPRO_18b_DECK" => "re-runs REPRO_18b_PRE on NASA's 300 MRP-deck modes (Phase 83e): refuted",
+    "E21_PRE_DECK" => "re-runs E21_PRE on NASA's 300 MRP-deck modes (Phase 84c): refuted",
+    "E22_HF_DECK" => "re-runs E22_HF_CODE on NASA's 300 MRP-deck modes (Phase 83b): refuted",
+    "T2_EQ19_DECK" => "re-runs T2_EQ19 on NASA's 300 MRP-deck modes (Phase 83c): refuted",
+    "R172428_CODE_DECK" => "re-runs R172428_CODE on NASA's 300 MRP-deck modes (Phase 84b): refuted",
+    "R172428_EXP_DECK" => "re-runs R172428_EXP on NASA's 300 MRP-deck modes (Phase 84b): refuted",
+)
+
+"""True for a case that carries no verdict by rule: an information case or a diagnostic run."""
+no_verdict_by_rule(id::AbstractString) = haskey(INFORMATION_ONLY_CASES, id) || haskey(DIAGNOSTIC_CASES, id)
+
+"""Verdict of the check itself: an information or diagnostic case's recorded outcome (`original_verdict`), else its verdict."""
 underlying_verdict(r::ValidationCaseResult) = get(r.inputs_echo, :original_verdict, r.verdict)
 
-"""Turn a verdict-bearing result of an `INFORMATION_ONLY_CASES` case into an information result (no verdict)."""
+"""Turn a verdict-bearing result of an `INFORMATION_ONLY_CASES` or `DIAGNOSTIC_CASES` case into a result with no verdict."""
 function _as_information_case(r::ValidationCaseResult)
-    why = get(INFORMATION_ONLY_CASES, r.id, nothing)
-    (why === nothing || r.verdict === :no_verdict) && return r
-    reason = "information: not a validation case under the 2026-10-29 rule ($why); recorded outcome unchanged, " *
-             "not a pass: $(replace(String(r.verdict), "_" => " ")), $(r.reason)"
+    info = get(INFORMATION_ONLY_CASES, r.id, nothing)
+    diag = get(DIAGNOSTIC_CASES, r.id, nothing)
+    (info === nothing && diag === nothing || r.verdict === :no_verdict) && return r
+    head = info !== nothing ? "information: not a validation case under the 2026-10-29 rule ($info)" :
+           "diagnostic: $diag; the case it re-runs carries the verdict"
+    reason = "$head; recorded outcome unchanged, not a pass: $(replace(String(r.verdict), "_" => " ")), $(r.reason)"
     return ValidationCaseResult(r.id, r.date, merge(r.inputs_echo, (; original_verdict=r.verdict)), r.table, r.series,
                                 :no_verdict, reason, r.label, r.report_path)
 end
@@ -557,7 +580,7 @@ end
     run_validation_case(id) -> ValidationCaseResult
 
 Run the registered case. Inputs are fixed; missing reference files yield `:no_verdict`; an
-`INFORMATION_ONLY_CASES` case returns no verdict (Phase 82).
+`INFORMATION_ONLY_CASES` or `DIAGNOSTIC_CASES` case returns no verdict (Phases 82, 86).
 Greyed cases (`unavailable_reason` non-empty) still return their stub result if Run is forced.
 """
 function run_validation_case(id::AbstractString)

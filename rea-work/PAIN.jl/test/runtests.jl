@@ -2507,7 +2507,7 @@ _run_if("Validation map errors (V-UNIT)") do
     @test before == after
 
     # Map / case JSON carry error fields + chip_row_h
-    parsed = JSON3.read(validation_map_json("total"; recorded_errors=Dict{String,NamedTuple}()))
+    parsed = JSON3.read(validation_map_json("total"))   # the map holds the cases with a recorded verdict (Phase 86)
     @test haskey(parsed, :chip_row_h)
     @test Int(parsed.chip_row_h) == PAIN.VALIDATION_MAP_CHIP_ROW_H
     chip = nothing
@@ -2553,8 +2553,7 @@ _run_if("Validation map errors (V-UNIT)") do
     end
 
     sess = Dict{String,NamedTuple}("R996_FIG14" => s14)
-    map_sess = JSON3.read(validation_map_json("total"; session_errors=sess,
-                                              recorded_errors=Dict{String,NamedTuple}()))
+    map_sess = JSON3.read(validation_map_json("total"; session_errors=sess))   # session text wins over the snapshot
     chip2 = nothing
     for b in map_sess.blocks, c in b.cases
         String(c.id) == "R996_FIG14" && (chip2 = c)
@@ -2615,7 +2614,7 @@ _run_if("Validation case registry (34d)") do
                     id in b.cases && (own = m.id)
                 end
             end
-            own == map_id && @test id in listed
+            own == map_id && @test (id in listed) == PAIN.on_validation_map(id)   # only cases with a verdict (Phase 86)
         end
     end
 
@@ -2976,7 +2975,7 @@ _run_if("Isolation of failing cases (phase 41)") do
         @test haskey(VALIDATION_CASES, id)
         r = run_validation_case(id)
         @test PAIN.underlying_verdict(r) === verd   # the check itself; verification cases carry no verdict since Phase 85
-        @test (r.verdict === :no_verdict) == (haskey(PAIN.INFORMATION_ONLY_CASES, id) || verd === :no_verdict)
+        @test (r.verdict === :no_verdict) == (PAIN.no_verdict_by_rule(id) || verd === :no_verdict)
         @test !isempty(r.table)
         png = plot_case(r, VALIDATION_CASES[id].plot_spec;
                         path=joinpath(TEST_OUT, "$(id).png"))
@@ -3010,7 +3009,7 @@ _run_if("T1/T2 root causes (phase 43)") do
         @test haskey(VALIDATION_CASES, id)
         r = run_validation_case(id)
         @test PAIN.underlying_verdict(r) === verd   # the check itself; verification cases carry no verdict since Phase 85
-        @test (r.verdict === :no_verdict) == (haskey(PAIN.INFORMATION_ONLY_CASES, id) || verd === :no_verdict)
+        @test (r.verdict === :no_verdict) == (PAIN.no_verdict_by_rule(id) || verd === :no_verdict)
         @test !isempty(r.table)
         png = plot_case(r, VALIDATION_CASES[id].plot_spec;
                         path=joinpath(TEST_OUT, "$(id).png"))
@@ -3158,10 +3157,10 @@ _run_if("CR-3813 reproduction with NASA's pre-correction form (phase 61)") do
     @test_throws ErrorException PAIN.PainInputs(inp.fuse, inp.prop, inp.structural, inp.acoustic, inp.amplitudes, inp.phases,
                                                 inp.pts, inp.ΔA; floor_sign=0.5)
     r = run_validation_case("REPRO_18b_PRE")
-    @test r.verdict === :not_met && r.inputs_echo.n_ok == 1
+    @test r.verdict === :no_verdict && PAIN.underlying_verdict(r) === :not_met && r.inputs_echo.n_ok == 1
     @test r.inputs_echo.corrected ≈ round.(run_validation_case("REPRO_18b").table[i].computed for i in 1:3; digits=2) atol = 0.01
     r2 = run_validation_case("E21_PRE")
-    @test r2.verdict === :not_met && r2.inputs_echo.n_ok == 1 && r2.inputs_echo.n == 4
+    @test r2.verdict === :no_verdict && PAIN.underlying_verdict(r2) === :not_met && r2.inputs_echo.n_ok == 1 && r2.inputs_echo.n == 4
     r3 = run_validation_case("E22_HF_CODE")
     @test r3.verdict === :not_met && r3.inputs_echo.n_ok == 1
     @test all(r3.inputs_echo.nasa_minus_measured .> 30)              # NASA's own HF prediction misses by > 30 dB
@@ -3175,28 +3174,28 @@ end
 _run_if("NASA's 300-mode set in the HF path and the reproductions (phases 83, 84)") do
     # Criteria fixed 2026-10-29 (plan §8aa) before any run. Recorded first-run results (all not met).
     r = run_validation_case("E22_HF_DECK")
-    @test r.verdict === :not_met && r.inputs_echo.n_ok == 0 && r.inputs_echo.n == 4
+    @test r.verdict === :no_verdict && PAIN.underlying_verdict(r) === :not_met && r.inputs_echo.n_ok == 0 && r.inputs_echo.n == 4
     @test all(>(0), r.inputs_echo.resonant_modes_per_band)          # resonant modes in every band (none with Table D-1)
     @test all(r.inputs_echo.code .< r.inputs_echo.table_d1 .- 5)     # the modes lower NR by > 5 dB in every band
     @test r.inputs_echo.table_d1 ≈ run_validation_case("E22_HF_CODE").inputs_echo.code atol = 0.01
     t2 = run_validation_case("T2_EQ19_DECK")
-    @test t2.verdict === :not_met && t2.inputs_echo.n_ok == 0
+    @test t2.verdict === :no_verdict && PAIN.underlying_verdict(t2) === :not_met && t2.inputs_echo.n_ok == 0
     @test all(t2.inputs_echo.got .> t2.inputs_echo.measured)          # over the measurement now (Table D-1: under)
     @test all(t2.inputs_echo.table_d1 .< t2.inputs_echo.measured)
     rp = run_validation_case("REPRO_18b_DECK")
-    @test rp.verdict === :not_met && rp.inputs_echo.n_ok == 0
+    @test rp.verdict === :no_verdict && PAIN.underlying_verdict(rp) === :not_met && rp.inputs_echo.n_ok == 0
     @test maximum(abs.(rp.inputs_echo.got .- rp.inputs_echo.table_d1)) < 0.5   # the tones do not depend on the extra modes
     # 83d: T2 compares a path fitted to E-9 with E-9, so it is information; its recorded outcome is kept
     t = run_validation_case("T2")
     @test t.verdict === :no_verdict && t.inputs_echo.original_verdict === :not_met
     # Phase 84 (criteria fixed 2026-10-29, plan §8ab): CR-172428 and E-21 on the 300 modes, recorded first runs
     rc, r0 = run_validation_case("R172428_CODE_DECK"), run_validation_case("R172428_CODE")
-    @test rc.verdict === :not_met && count(r -> r.within_tolerance, rc.table) == 4 && rc.inputs_echo.structural === :nasa300
+    @test rc.verdict === :no_verdict && PAIN.underlying_verdict(rc) === :not_met && count(r -> r.within_tolerance, rc.table) == 4 && rc.inputs_echo.structural === :nasa300
     @test maximum(abs.(rc.inputs_echo.ours .- r0.inputs_echo.ours)) < 2.5 && rc.inputs_echo.ours != r0.inputs_echo.ours
     re = run_validation_case("R172428_EXP_DECK")
-    @test re.verdict === :not_met && count(r -> r.within_tolerance, re.table) == 3
+    @test re.verdict === :no_verdict && PAIN.underlying_verdict(re) === :not_met && count(r -> r.within_tolerance, re.table) == 3
     e21 = run_validation_case("E21_PRE_DECK")
-    @test e21.verdict === :not_met && e21.inputs_echo.n_ok == 1 && e21.inputs_echo.n == 4
+    @test e21.verdict === :no_verdict && PAIN.underlying_verdict(e21) === :not_met && e21.inputs_echo.n_ok == 1 && e21.inputs_echo.n == 4
     @test maximum(abs.(e21.inputs_echo.code .- e21.inputs_echo.table_d1)) > 20   # above the crossover the modes matter
     for id in ("E22_HF_DECK", "T2_EQ19_DECK", "REPRO_18b_DECK", "E21_PRE_DECK", "R172428_CODE_DECK", "R172428_EXP_DECK")
         png = plot_case(run_validation_case(id), VALIDATION_CASES[id].plot_spec; path=joinpath(TEST_OUT, "$(id).png"))
@@ -3550,7 +3549,7 @@ _run_if("CR-172428 reproduction (phase 44)") do
     for (id, verd) in expected
         r = run_validation_case(id)
         @test PAIN.underlying_verdict(r) === verd   # the check itself; verification cases carry no verdict since Phase 85
-        @test (r.verdict === :no_verdict) == (haskey(PAIN.INFORMATION_ONLY_CASES, id) || verd === :no_verdict)
+        @test (r.verdict === :no_verdict) == (PAIN.no_verdict_by_rule(id) || verd === :no_verdict)
         @test !isempty(r.table)
         png = plot_case(r, VALIDATION_CASES[id].plot_spec; path=joinpath(TEST_OUT, "$(id).png"))
         @test isfile(png) && filesize(png) > 0
