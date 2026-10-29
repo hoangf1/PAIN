@@ -31,6 +31,12 @@ end
     @test c.modes[2].f_Hz_unit ≈ 340 / (2π) * sqrt(c.modes[2].lambda_unit)
     @test PAIN.cyl2d_modes(56.6; c0=680.0).modes[2].f_Hz_unit ≈ 2c.modes[2].f_Hz_unit
     @test_throws ErrorException PAIN.cyl2d_modes(56.6; NY=10, n_modes=500)
+    # Phase 79b: refined floored grids solve (complex pairs only above the kept modes); NY = 12 errored before
+    r12 = PAIN.cyl2d_modes(56.6; NY=12, n_modes=10)
+    @test length(r12.modes) == 10 && all(m -> isfinite(m.lambda_unit), r12.modes)
+    # the floorless circle converges to the J′ zeros (analytic): within 1 % at NY = 40 (6.7 % at NY = 10)
+    c40 = PAIN.cyl2d_modes(0.0; NY=40, n_modes=6)
+    @test maximum(abs.(sqrt.([m.lambda_unit for m in c40.modes[2:6]]) ./ [1.84118, 1.84118, 3.05424, 3.05424, 3.83171] .- 1)) < 0.01
     r1, ch, NY2 = PAIN.cyl2d_modes_search(56.6; n_modes=10, max_change=0.05)
     @test ch ≤ 0.05 && NY2 > r1.NY
     @test_throws ErrorException PAIN.cyl2d_modes_search(56.6; n_modes=10, max_change=1e-9)

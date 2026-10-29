@@ -1831,7 +1831,7 @@ Outputs: φ, f; verdict ≤ 1e-9 / exact list.
 **Why it is here:** Gives the cabin-mode output block a check with its own figure; a mode count far from Weyl means missing or spurious modes.
 **A pass means:** Within 25 % of the Weyl leading term at every listed frequency.
 **Not covered:** Mode shapes; the 2-D modes above the 20 PAIN uses.
-**Recorded outcome:** **not met**, 0/5 (first run 2026-10-23; `phase62_65_map_blocks_grid.md`): N/W = 1.71, 1.59, 1.49, 1.56, 1.87. Post-hoc: with the Neumann surface term N/W = 0.99, 1.07, 1.10, 1.21, 1.51
+**Recorded outcome:** **not met**, 0/5 (first run 2026-10-23; `phase62_65_map_blocks_grid.md`): N/W = 1.71, 1.59, 1.49, 1.56, 1.87. Post-hoc: with the Neumann surface term N/W = 0.99, 1.07, 1.10, 1.21, 1.51 **Phase 79b (2026-10-28):** refined App. C grids now solve (only the kept modes must be real), so the NY = 10 count can be compared with a converged grid (79c–79d, planned); this record is unchanged until then.
 **Explanation:** Post-hoc diagnosis (2026-10-24, after the result): the App. C 5-point grid at NY = 10 has h = 0.2a, and its eigenvalues fall below the exact ones as kh grows (near-circle limit θ0 = 2°: k-th FD mode / k-th exact J′ zero = 0.98 at kh = 0.4, 0.80 at kh = 2.4, 0.73 at kh = 2.9; NY = 20: 0.93 at kh = 1.5). Frequencies computed too low put more modes below each f, which is the overcount that grows with f. This is a resolution limit of the App. C grid as printed (Fig. C-3 uses NY = 10), recorded as such; the criterion is unchanged.
 Inputs: θ0 = 56.6°, NY = 10, n_modes = 120, a = 0.508 m, L = 1.83 m.
 Equations: Weyl N(f) = 4πVf³/(3c³) (+ Sf²/(4c²), post-hoc)

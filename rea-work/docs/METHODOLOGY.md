@@ -411,9 +411,12 @@ frequency *ratios* f_i/f_1 (modes 2–19) within 0.1 % (c0-free; worst 0.0003 %)
 This reproduces NASA's table shape, not an experiment. Two transcription errors in the earlier reference values were corrected
 (modes 3 and 19), and the mode 5 mass reads 0.49815 on the page scan. Two points are inferences and are V-ASSUMED: the node rule
 above, and, for the boundary integrals, the ends of the first and last wall and floor segments placed at θ0 and the floor edge
-(the segments cover the whole transmitting surface). App. C holds only on grids where B_E is non-singular and the spectrum is real:
-for θ0 = 56.6° that is NY = 8, 10 and 11 among 8–14 (NY = 10 is the paper's grid); `cyl2d_modes_search` applies the 1 %
-next-valid-grid rule for other floors.
+(the segments cover the whole transmitting surface). App. C holds only on grids where B_E is non-singular and the kept modes are real. The curved-wall ghost-point rows make
+the matrix non-symmetric, so refined grids have complex pairs high in the spectrum; since Phase 79b (2026-10-28) only the
+kept modes must be real (|Im|/|Re| ≤ 10⁻³; before, any complex eigenvalue rejected the grid, so for θ0 = 56.6° only
+NY = 8, 10 and 11 solved). The floorless circle then converges to the J′ zeros (6.7 % at NY 10, 0.5 % at NY 30–40) and
+the floored section converges with a ±1 % grid-alignment wobble (NY 40 and 60 within 0.3 %); against NY 60 the paper's
+NY = 10 grid is up to 4.1 % high (mode 2). `cyl2d_modes_search` applies the 1 % next-valid-grid rule for other floors.
 
 Three-dimensional modes n = (q, i) use Eq. (C.7) for the frequency and Eq. (C.9) for the shape; the axial count q ≤ ⌈2ω_H L_c/(π c_int)⌉
 is V-ASSUMED (cavity length L_c and interior sound speed; defaults L_c = structure L, c_int = c0). ε_n for q > 0 is twice the q = 0 value (∫cos² dz = L_c/2). This is Eq. (C.11) as printed (CR-3813 pp. C-6, C-7: ε_q = 2 for q = 0, 1 for q > 0; read from the page images in plan 19c, 2026-10-20), no longer an interpretation. The factor 2 is confirmed by quadrature to 1e-15; the q = 0 value itself (the Eq. (C.10) node sum with C(j) weights) differs from an independent quadrature of the true cabin by 0.65 % to 5.4 % over modes 0–9, so the 0.5 % criterion of 19c is not met, a property of the printed discretization, recorded and not corrected (`eps_n_quadrature.md`). Reading ε_n(q > 0) = ε_n(q = 0) instead moves H1–H3 of the 18b run by −0.10, −2.02, −0.82 dB and does not close the miss (`eps_n_quadrature.md`; not adopted). Under Eq. (8) the q > 0 modes raise
