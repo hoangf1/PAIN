@@ -2578,7 +2578,8 @@ _run_if("Validation case registry (34d)") do
         @test !isempty(c.id)
         @test !isempty(c.criterion_date)
     end
-    # Task C: every registry id has CASE_INFO and appears in exactly one map block
+    # Task C: every registry id has CASE_INFO and appears in exactly one map block, except the cases kept off the map
+    # ("Map / block: none / …", Phase 78f 2026-10-28: MRP_D1, MRP_RITZ), which appear in none
     block_hits = Dict{String,Int}()
     for m in VALIDATION_MAPS
         for b in m.blocks
@@ -2589,8 +2590,9 @@ _run_if("Validation case registry (34d)") do
     end
     for id in VALIDATION_CASE_ORDER
         @test haskey(CASE_INFO, id)
-        @test get(block_hits, id, 0) == 1
+        @test get(block_hits, id, 0) == (CASE_INFO[id].map_id == "none" ? 0 : 1)
     end
+    @test sort([id for id in VALIDATION_CASE_ORDER if CASE_INFO[id].map_id == "none"]) == ["MRP_D1", "MRP_RITZ"]
     for map_id in ("total",)
         raw = validation_map_json(map_id)
         parsed = JSON3.read(raw)
@@ -2687,9 +2689,9 @@ _run_if("Validation case registry (34d)") do
         @test b.role in ("input", "function", "output", "check")
     end
     @test !haskey(CASE_INFO, "R996_FIG8")
-    # Every case Map / block points at total
+    # Every case Map / block points at total, except the off-map regression cases (Phase 78f, "none")
     for id in keys(CASE_INFO)
-        @test CASE_INFO[id].map_id == "total"
+        @test CASE_INFO[id].map_id == (id in ("MRP_D1", "MRP_RITZ") ? "none" : "total")
     end
     # Temp-doc edit → case_info_json changes (single source)
     mktempdir() do tmp
@@ -2773,7 +2775,7 @@ _run_if("Validation case registry (34d)") do
     # Live in-process cross-checks with no digitized reference file:
     allowed_live_no_csv = ("F1A_GUTIN", "BBN_KIN", "UT_GRID",
         "ISO_BLOCKING", "ISO_FF_CONV", "ISO_GEXT_LINE", "ISO_TABLE8",
-        "ISO_CYL2D_EXACT", "ISO_CYL2D_BOUNDARY", "ISO_JOINT_ACC",
+        "ISO_CYL2D_EXACT", "ISO_CYL2D_BOUNDARY", "ISO_JOINT_ACC", "CYL2D_GRID_CONV",
         "ISO_MODAL_DENSITY", "ISO_BB_BAND", "ISO_SIL",
         "TRIM_CLOSED", "NR_BAND_HAND", "HF_MASSLAW", "BEMT_HAND", "F1A_INDEP",
         # Phase 62 live checks (hand formulas, bounds, pipeline echo; MRP/TRIM_INPUT_QA read appE_article_inputs.csv)

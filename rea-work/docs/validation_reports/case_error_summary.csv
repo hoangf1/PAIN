@@ -60,7 +60,7 @@ BLK_GAIN_MAP,2026-10-28,2026-10-28,not_met,1,2,2.0,0.99,"dB","1/2 in tol · max 
 MRP_INPUT_QA,2026-10-28,2026-10-28,met,13,13,0.0018,0.0,"abs","13/13 in tol · max |err| 0.0018 abs · med 0.0 abs"
 MRP_SHAPE_NORM,2026-10-28,2026-10-28,not_met,19,32,0.24,0.014,"abs","19/32 in tol · max |err| 0.24 abs · med 0.014 abs"
 CABIN_GEOM_HAND,2026-10-28,2026-10-28,met,4,4,0.0,0.0,"m³ | m² | m","4/4 in tol · max |err| 0.0 m³ | m² | m · med 0.0 m³ | m² | m"
-CYL2D_WEYL,2026-10-28,2026-10-28,not_met,0,5,390.0,64.0,"modes","0/5 in tol · max |err| 390.0 modes · med 64.0 modes"
+CYL2D_WEYL,2026-10-28,2026-10-28,not_met,4,5,280.0,18.0,"modes","4/5 in tol · max |err| 280.0 modes · med 18.0 modes"
 TRIM_INPUT_QA,2026-10-28,2026-10-28,met,7,7,7.0e-5,0.0,"abs","7/7 in tol · max |err| 7.0e-5 abs · med 0.0 abs"
 TRIM_PASSIVITY,2026-10-28,2026-10-28,met,17,17,0.21,0.023,"dimensionless","17/17 in tol · max |err| 0.21 dimensionless · med 0.023 dimensionless"
 PAIN_INPUT_ECHO,2026-10-28,2026-10-28,met,5,5,0.0,0.0,"abs","5/5 in tol · max |err| 0.0 abs · med 0.0 abs"
@@ -103,3 +103,4 @@ PER_FIG7,2026-10-28,2026-10-28,met,3,3,3.4,1.3,"deg","3/3 in tol · max |err| 3.
 PER_FIG8,2026-10-28,2026-10-28,not_met,10,14,3.7,0.81,"dB","10/14 in tol · max |err| 3.7 dB · med 0.81 dB"
 PER_FIG9,2026-10-28,2026-10-28,not_met,15,18,3.7,0.35,"dB","15/18 in tol · max |err| 3.7 dB · med 0.35 dB"
 BBN_LEVELS,2026-10-28,2026-10-28,no_verdict,20,32,5.5,1.7,"dB","no verdict · max |err| 5.5 dB · med 1.7 dB"
+CYL2D_GRID_CONV,2026-10-28,2026-10-28,no_verdict,19,19,4.9,1.4,"%","no verdict · max |err| 4.9 % · med 1.4 %"

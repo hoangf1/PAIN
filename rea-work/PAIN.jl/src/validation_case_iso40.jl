@@ -497,6 +497,43 @@ function _run_iso_cyl2d_exact()
     )
 end
 
+# --- 79c CYL2D_GRID_CONV -------------------------------------------------------------
+"""Phase 79c: the production App. C grid (NY = 10, Fig. C-3) against a converged grid (NY = 60, possible since 79b) on
+the real floored section θ0 = 56.6°, modes paired by parity and order. No criterion: the error is the documented
+discretization error of the paper's grid (NY 40 against NY 60 shows the reference has converged)."""
+function _run_cyl2d_grid_conv()
+    c0 = 340.0; θ0 = 56.6; n_modes = 20
+    r10, r40, r60 = (cyl2d_modes(θ0; n_modes, NY, c0) for NY in (10, 40, 60))
+    par(r, s) = [m.f_Hz_unit for m in r.modes if m.symmetric == s]
+    table = ValidationTableRow[]; series = PlotSeries[]
+    for (si, s) in enumerate((true, false))
+        f10, f40, f60 = par(r10, s), par(r40, s), par(r60, s)
+        n = min(length(f10), length(f40), length(f60))
+        lab = s ? "symmetric" : "antisymmetric"
+        ks = Float64[]
+        for k in 1:n
+            f60[k] < 1.0 && continue                                  # the 0 Hz rigid mode
+            push!(table, ValidationTableRow("$lab mode $k NY10 vs NY60", 100si + k, f60[k], f10[k], f10[k] - f60[k], true, "NY10 $lab"))
+            push!(table, ValidationTableRow("$lab mode $k NY40 vs NY60 (info)", 100si + k + 0.5, f60[k], f40[k], f40[k] - f60[k], true, "NY40 $lab (info)"))
+            push!(ks, k)
+        end
+        idx = Int.(ks)
+        push!(series, PlotSeries("NY = 60 (reference)", :reference_points, ks, f60[idx]; panel=si))
+        push!(series, PlotSeries("NY = 40", :reference_curve, ks, f40[idx]; panel=si))
+        push!(series, PlotSeries("NY = 10 (App. C, production)", :computed, ks, f10[idx]; panel=si))
+    end
+    e10 = [abs(t.residual / t.reference) for t in table if !occursin("(info", t.quantity)]
+    e40 = [abs(t.residual / t.reference) for t in table if occursin("(info", t.quantity)]
+    return ValidationCaseResult(
+        "CYL2D_GRID_CONV", _today_iso(),
+        (; criterion="none (information: discretization error of the production grid)", date="2026-10-28",
+         theta0_deg=θ0, c0, max_rel_NY10=maximum(e10), max_rel_NY40=maximum(e40)),
+        table, series, :no_verdict,
+        "production NY = 10 against converged NY = 60 (θ0 = 56.6°, $(length(e10)) modes): max |e| " *
+        "$(round(100maximum(e10); digits=2)) %; reference converged: NY 40 vs 60 max $(round(100maximum(e40); digits=2)) %",
+        "diagnostic", "")
+end
+
 # --- 40g ISO_JOINT_ACC ---------------------------------------------------------------
 
 function _run_iso_joint_acc()
@@ -896,6 +933,14 @@ function _iso40_validation_cases()
                      panel_titles=["circle modes"],
                      error_mode=:relative_pct, error_tol=2.0,
                      error_ylabel="% vs J′ zero"), ""),
+        ValidationCase("CYL2D_GRID_CONV", "CYL2D production grid (NY 10) vs converged grid (79c)", "79",
+            String[], FigureRef("CR-3813", "App. C Fig. C-3 grid", nothing),
+            "No criterion (information): per-mode error of the App. C NY = 10 grid against NY = 60 on the floored section.",
+            "2026-10-28", "diagnostic", _run_cyl2d_grid_conv,
+            PlotSpec(; xlabel="mode order within parity", ylabel="frequency (Hz, a = 1 m, c = 340 m/s)",
+                     panel_titles=["symmetric modes", "antisymmetric modes"],
+                     error_mode=:relative_pct, error_ylabel="error vs NY 60 (%)",
+                     error_xlabel="100 × parity + mode order (1: symmetric, 2: antisymmetric)"), ""),
         ValidationCase("ISO_JOINT_ACC", "structural_joint_acceptance vs quadrature (40g)", "40",
             String[], FigureRef("—", "analytic (quadrature)", nothing),
             "≤ 1e-4 relative against direct numerical quadrature for three modes.",

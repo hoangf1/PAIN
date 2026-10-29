@@ -1691,7 +1691,7 @@ Outputs: code / printed per quantity.
 
 ### Case: MRP_D1
 **Title:** MRP Table D-1 seed
-**Map / block:** total / P_MRP
+**Map / block:** none / P_MRP
 **Category:** input_qa
 **Kind:** runnable
 **Source:** CR-3813 Table D-1, p.113
@@ -1699,7 +1699,7 @@ Outputs: code / printed per quantity.
 **Why it is here:** Production structural modes come from Table D-1, not from the raw Ritz solve.
 **A pass means:** Residual 0 by construction — transcription only; verdict always no_verdict.
 **Not covered:** Says nothing about the Ritz or App. D solvers.
-**Recorded outcome:** by construction, no verdict
+**Recorded outcome:** by construction, no verdict **Off the map 2026-10-28 (Phase 78f, author):** no verdict is possible (MRP_D1 is 0 by construction; MRP_RITZ is a calibrated fit to Table D-1), so the case is kept as a registered regression check and unit test but no longer shown on the Validation map ("none / P_MRP"; P_MRP keeps its figure folder).
 **Explanation:** Input QA: production `structural_modes_from_table_d1` copies CR-3813 Table D-1 frequencies and modal masses. Residual is 0 by construction. Always `:no_verdict`. See MRP_RITZ / MRP_APPD for solvers.
 Inputs: Constant table `TABLE_D1_FULL` (n_keep = 32); L does not change the seed frequencies.
 Equations: none (table load); code `structural_modes_from_table_d1`.
@@ -1707,7 +1707,7 @@ Outputs: mode frequencies f [Hz] equal to Table D-1; verdict `:no_verdict`.
 
 ### Case: MRP_RITZ
 **Title:** MRP raw Ritz vs Table D-1
-**Map / block:** total / P_MRP
+**Map / block:** none / P_MRP
 **Category:** calibrated
 **Kind:** runnable
 **Source:** CR-3813 Table D-1
@@ -1715,7 +1715,7 @@ Outputs: mode frequencies f [Hz] equal to Table D-1; verdict `:no_verdict`.
 **Why it is here:** The only check of the fitted structural surrogate (not Eq. D.25).
 **A pass means:** None — calibrated fit (k_scale, edge_factor, floor_scale fitted to this table); always no_verdict.
 **Not covered:** Not evidence; Eq. (D.25) not implemented in this path (w-only surrogate).
-**Recorded outcome:** 29/32 within 5 % at L = 1.83 m (I-22 re-record 2026-10-22, post-hoc; was 26/32 at 1.803 m); always no_verdict (calibrated surrogate)
+**Recorded outcome:** 29/32 within 5 % at L = 1.83 m (I-22 re-record 2026-10-22, post-hoc; was 26/32 at 1.803 m); always no_verdict (calibrated surrogate) **Off the map 2026-10-28 (Phase 78f, author):** no verdict is possible (MRP_D1 is 0 by construction; MRP_RITZ is a calibrated fit to Table D-1), so the case is kept as a registered regression check and unit test but no longer shown on the Validation map ("none / P_MRP"; P_MRP keeps its figure folder).
 **Explanation:** Diagnostic / calibrated: raw `structural_modes` uses three scales fitted to Table D-1, not the printed App. D operator. Live count is reported; CLAUDE.md forbids quoting a calibrated path as a pass. Production uses Table D-1 (MRP_D1).
 Inputs: `FuselageGeometry(test_article_length(), 0.508, 56.6)`; hybrid=false; n_keep=48; tol_frac=0.05; scales already in code (not re-fit here).
 Equations: simplified Donnell/Ritz surrogate in `mrp.jl` (not Eq. D.25).
@@ -1826,16 +1826,32 @@ Outputs: φ, f; verdict ≤ 1e-9 / exact list.
 **Map / block:** total / X_CYL_OUT
 **Category:** verification
 **Kind:** runnable
-**Source:** Weyl's law (leading term 4πVf³/(3c³)); phase 62 criterion 2026-10-23
-**What it tests:** The cumulative number of 3-D cabin modes (CYL2D × axial, NY = 10, 120 cross-section modes) below f, at 500–1500 Hz.
+**Source:** Weyl's law with the rigid-wall (Neumann) surface term, 4πVf³/(3c³) + πSf²/(4c²); criterion 2026-10-28 (Phase 79d, post-hoc); first criterion (leading term) 2026-10-23
+**What it tests:** The cumulative number of 3-D cabin modes (CYL2D × axial) below f at 500–1500 Hz on the production grid (NY = 10, 120 cross-section modes); the converged grid (NY = 40) as information.
 **Why it is here:** Gives the cabin-mode output block a check with its own figure; a mode count far from Weyl means missing or spurious modes.
-**A pass means:** Within 25 % of the Weyl leading term at every listed frequency.
+**A pass means:** The production count is within 25 % of Weyl's law with the surface term at every listed frequency (criterion dated 2026-10-28 after the counts were known, so a pass would be post-hoc; first run 2026-10-23: within 25 % of the leading term).
 **Not covered:** Mode shapes; the 2-D modes above the 20 PAIN uses.
-**Recorded outcome:** **not met**, 0/5 (first run 2026-10-23; `phase62_65_map_blocks_grid.md`): N/W = 1.71, 1.59, 1.49, 1.56, 1.87. Post-hoc: with the Neumann surface term N/W = 0.99, 1.07, 1.10, 1.21, 1.51 **Phase 79b (2026-10-28):** refined App. C grids now solve (only the kept modes must be real), so the NY = 10 count can be compared with a converged grid (79c–79d, planned); this record is unchanged until then.
+**Recorded outcome:** **not met**, 0/5 (first run 2026-10-23; `phase62_65_map_blocks_grid.md`): N/W = 1.71, 1.59, 1.49, 1.56, 1.87. Post-hoc: with the Neumann surface term N/W = 0.99, 1.07, 1.10, 1.21, 1.51 **Phase 79b (2026-10-28):** refined App. C grids now solve (only the kept modes must be real), so the NY = 10 count can be compared with a converged grid (79c–79d, planned); this record is unchanged until then. **Re-run 2026-10-28 (Phase 79d, criterion with the surface term, post-hoc):** **not met, 4/5** (NY 10: N/W = 0.99, 1.07, 1.10, 1.21, 1.51; the 1500 Hz count fails). The converged grid NY = 40 (information) gives 0.99, 1.06, 1.03, 1.02, 1.02: the excess at 1250–1500 Hz is the NY = 10 grid, not missing physics.
 **Explanation:** Post-hoc diagnosis (2026-10-24, after the result): the App. C 5-point grid at NY = 10 has h = 0.2a, and its eigenvalues fall below the exact ones as kh grows (near-circle limit θ0 = 2°: k-th FD mode / k-th exact J′ zero = 0.98 at kh = 0.4, 0.80 at kh = 2.4, 0.73 at kh = 2.9; NY = 20: 0.93 at kh = 1.5). Frequencies computed too low put more modes below each f, which is the overcount that grows with f. This is a resolution limit of the App. C grid as printed (Fig. C-3 uses NY = 10), recorded as such; the criterion is unchanged.
-Inputs: θ0 = 56.6°, NY = 10, n_modes = 120, a = 0.508 m, L = 1.83 m.
-Equations: Weyl N(f) = 4πVf³/(3c³) (+ Sf²/(4c²), post-hoc)
-Outputs: N(f) and W(f).
+Inputs: θ0 = 56.6°, NY = 10 (n_modes = 120) and NY = 40 (n_modes = 52, information), a = 0.508 m, L = 1.83 m, q_max from 1600 Hz.
+Equations: Weyl N(f) = 4πVf³/(3c³) + πSf²/(4c²), S = curved wall + floor + two ends; leading term alone as information.
+Outputs: N(f) for NY 10 and NY 40; both Weyl curves.
+
+### Case: CYL2D_GRID_CONV
+**Title:** CYL2D production grid (NY 10) vs converged grid (79c)
+**Map / block:** total / X_CYL_OUT
+**Category:** verification
+**Kind:** runnable
+**Source:** CR-3813 App. C Fig. C-3 (NY = 10 grid); Phase 79c, 2026-10-28 (author: a separate figure for the grid error)
+**What it tests:** The per-mode error of the App. C NY = 10 grid on the real floored section (θ0 = 56.6°) against a converged NY = 60 grid, modes paired by parity and order; NY = 40 against NY = 60 shows that the reference has converged.
+**Why it is here:** CYL2D_C1 reproduces NASA's Table C-1 on NY = 10, but that says nothing about how far NY = 10 is from the continuous cabin; refined grids became solvable in Phase 79b.
+**A pass means:** No criterion (information, no verdict): the error is the discretization error of the paper's grid.
+**Not covered:** Mode shapes and generalized masses; whether production should move to a finer grid (author decision).
+**Recorded outcome:** **no verdict** (first run 2026-10-28): 19 modes, NY = 10 at most 4.94 % from NY = 60; NY 40 against NY 60 at most 0.21 %.
+**Explanation:** Same `cyl2d_modes` on three grids (Phase 79b guard: only the kept modes must be real). Rows "NY40 vs NY60 (info)" stay out of the chip roll-up.
+Inputs: θ0 = 56.6°, NY = 10, 40, 60, n_modes = 20 per grid, c = 340 m/s, a = 1 m.
+Equations: App. C (C.3)–(C.6).
+Outputs: f per mode on each grid; error of NY 10 (and NY 40, information) against NY 60 in %.
 
 ### Chunk 6: Trim and loss (`G_TRIM`)
 

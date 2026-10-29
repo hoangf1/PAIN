@@ -190,6 +190,8 @@ function parse_validation_guideline_section(md::AbstractString)
     end
     for id in case_order
         info = cases[id]
+        # "Map / block: none / <block>" keeps a registered case off the map (Phase 78f); the block names its figure folder.
+        info.map_id == "none" && continue
         key = (info.map_id, info.block_id)
         haskey(block_index, key) ||
             error("VALIDATION_GUIDELINE.md §2.13: Case $id Map / block $(info.map_id) / $(info.block_id) not found")

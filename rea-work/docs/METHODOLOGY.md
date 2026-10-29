@@ -391,7 +391,8 @@ chunk is checked against those, against an independent exact solution (the circl
 | `ISO_CYL2D_BOUNDARY` | Boundary φ rebuilt from node values; (q, i) list complete and sorted | Boundary and mode enumeration had no gate | ≤ 1e-9; list exact; f matches Eq. (C.7)/(C.12) | met 173/173 (2026-10-23) |
 | `ISO_CYL2D_EXACT` | The floorless circle (θ₀ = 0°) against f = c·j′/(2πa) from independent J′ zeros | `CYL2D_C1` only compares with tables of the same report | first 10 modes within 2 % at NY = 20; error at NY = 20 below NY = 10 | met: max error 0.966 % (NY 20), 6.676 % (NY 10) |
 | `CYL2D_C1` | App. C scheme: ratios f_i/f_1, Φ_G, symmetry, Fig. C-3 nodes | Cabin modes set resonances and coupling | ratios within 0.1 % (c0-free; re-stated post-hoc 2026-10-21) | met |
-| `CYL2D_WEYL` | Cumulative 3-D mode count (NY = 10) at 500–1500 Hz | A count far from Weyl means missing or spurious modes | within 25 % of the Weyl leading term | **not met** 0/5 (N/W 1.49–1.87; post-hoc, with the Neumann surface term 0.99–1.51) |
+| `CYL2D_WEYL` | Cumulative 3-D mode count (NY = 10) at 500–1500 Hz | A count far from Weyl means missing or spurious modes | within 25 % of Weyl with the rigid-wall surface term (2026-10-28, post-hoc; first run: leading term, 0/5) | **not met** 4/5 (N/W 0.99–1.51; converged NY = 40: 0.99–1.06) |
+| `CYL2D_GRID_CONV` | Production NY = 10 against a converged NY = 60 grid on the floored section | How far the paper's grid is from the continuous cabin | none (information) | no verdict: ≤ 4.9 % (19 modes); NY 40 vs 60 ≤ 0.21 % |
 
 **Implementation notes and claims.**
 

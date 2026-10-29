@@ -572,7 +572,9 @@ function plot_case(result::ValidationCaseResult, spec::PlotSpec; path::Union{Not
             isfinite(e) && isfinite(row.x) && push!(errs, e)
         end
         ylim_e, clipped = _error_ylims(errs, spec.error_tol)
-        title_e = "error per point (green = within criterion)"
+        # no criterion (no_verdict): grey points, no within/outside legend (2026-10-28 label fix)
+        crit_e = result.verdict !== :no_verdict
+        title_e = crit_e ? "error per point (green = within criterion)" : "error per point (no criterion)"
         clipped && (title_e *= " — clipped")
         # When error_xlabel is set, error-panel x is not the main-panel coordinate:
         # keep linear scale and do not inherit main xlim / log ticks.
@@ -614,7 +616,7 @@ function plot_case(result::ValidationCaseResult, spec::PlotSpec; path::Union{Not
                 gi = length(groups)
             end
             mk = _ERROR_MARKERS[mod1(gi, length(_ERROR_MARKERS))]
-            col = row.within_tolerance ? :green : :red
+            col = !crit_e ? :gray40 : row.within_tolerance ? :green : :red
             scatter!(ax_e, [row.x], [e]; marker=mk, markersize=10, color=col)
         end
         if err_same_x && spec.xscale === :log10
@@ -630,10 +632,12 @@ function plot_case(result::ValidationCaseResult, spec::PlotSpec; path::Union{Not
                 push!(elems, MarkerElement(marker=mk, color=:gray40, markersize=10))
                 push!(labs, g)
             end
-            push!(elems, MarkerElement(marker=:circle, color=:green, markersize=10))
-            push!(labs, "within criterion")
-            push!(elems, MarkerElement(marker=:circle, color=:red, markersize=10))
-            push!(labs, "outside")
+            if crit_e
+                push!(elems, MarkerElement(marker=:circle, color=:green, markersize=10))
+                push!(labs, "within criterion")
+                push!(elems, MarkerElement(marker=:circle, color=:red, markersize=10))
+                push!(labs, "outside")
+            end
             Legend(fig[err_row, 2], elems, labs; framevisible=false, labelsize=10)
         end
     end
