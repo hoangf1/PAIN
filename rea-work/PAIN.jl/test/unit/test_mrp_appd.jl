@@ -127,6 +127,32 @@ end
     an = [(0.0, ta, 0.0, ha), (0.0, ba, -ta / 2, ta / 2)]
     @test angle_centroidal_I(ha, ba, ta) ≈ strips_I(an) rtol = 2e-2
     @test angle_centroidal_I(ha, 0.0, ta) ≈ ta * ha^3 / 12                     # no base leg: a plain leg
-    @test PAIN.MRP_I_FRAME ≈ channel_centroidal_I(0.038, 0.017, 0.00081) && PAIN.MRP_I_FLOOR_BEAM == PAIN.MRP_I_FRAME
+    @test PAIN.MRP_I_FRAME ≈ channel_centroidal_I(0.038, 0.017, 0.00081)
+    # V1 (Phase 78d-3): floor beam about the floor mid-plane, which lies h/2 + t_floor/2 above the channel centroid
+    about(rects, y0) = sum(((x1 - x0) * (y1 - y0r) / 2000) * (y - y0)^2 for (x0, x1, y0r, y1) in rects
+                           for y in range(y0r, y1; length=2001)[1:end-1] .+ (y1 - y0r) / 4000)
+    @test PAIN.MRP_I_FLOOR_BEAM ≈ about(ch, h / 2 + 0.00081 / 2) rtol = 1e-3
+    @test PAIN.MRP_I_FLOOR_BEAM > 2 * PAIN.MRP_I_FRAME
     @test PAIN.MRP_I_FRAME / (0.038^3 * 0.00081 / 12) > 3.5                   # the flanges were missing before Phase 78d
+end
+@testset "shape (MAC) pairing of modes to Table D-1 (Phase 78d-3)" begin
+    d1 = structural_modes_from_table_d1()
+    n, pairs = match_modes_by_shape(d1)
+    @test n == 32 && all(p -> p.found && p.mac > 0.999 && p.err < 1e-12, pairs)      # Table D-1 against itself
+    # right frequencies and identities, wrong shapes: give each mode the shape of the next mode of its (sym, m) family
+    fam = Dict{Tuple{Bool,Int},Vector{Int}}()
+    for (i, x) in enumerate(d1.modes); push!(get!(fam, (x.symmetric, x.M_axial), Int[]), i); end
+    shuffled = copy(d1.modes)
+    for idx in values(fam), (k, i) in enumerate(idx)
+        j = idx[mod1(k + 1, length(idx))]; y = d1.modes[j]; x = d1.modes[i]
+        shuffled[i] = StructuralMode(x.index, x.f_Hz, x.symmetric, x.M_r, x.M_axial, y.C_shell, y.n_shell, y.C_floor, y.n_floor)
+    end
+    ns, ps = match_modes_by_shape(StructuralModes(shuffled, d1.L, d1.a, d1.theta0_deg, "shuffled"))
+    @test ns < 16                                                 # most modes now pair with a wrong frequency
+    off = StructuralModes([StructuralMode(x.index, 1.1x.f_Hz, x.symmetric, x.M_r, x.M_axial, x.C_shell, x.n_shell,
+                                          x.C_floor, x.n_floor) for x in d1.modes], d1.L, d1.a, d1.theta0_deg, "off")
+    @test match_modes_by_shape(off)[1] == 0
+    @test modal_assurance([1.0, 2.0], [2.0, 4.0]) ≈ 1.0 && modal_assurance([1.0, 0.0], [0.0, 1.0]) == 0.0
+    f = mode_shape_field(d1.modes[1], d1.a, d1.theta0_deg)
+    @test length(f) == 181 + 61 && maximum(abs, f) > 0
 end

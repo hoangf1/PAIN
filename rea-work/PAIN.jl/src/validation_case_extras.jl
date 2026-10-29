@@ -460,10 +460,12 @@ App. D solver vs Table D-1 (38g). Criterion fixed 2026-10-22 before any run:
 function _run_mrp_appd()
     g = appd_test_article_geometry()
     modes = appd_modes(g; n_modes=80, n_axial=7, n_circ=8, n_floor_max=5)
-    # Criterion 2026-10-28 (Phase 78a, before its first run): identity matching (symmetry, axial m, dominant shell and
-    # floor orders). The 2026-10-22 frequency-only count passed by construction against the denser solver spectrum
-    # and is kept as information. Count rule unchanged: ≥ 75 % of 32 within 5 %, no calibration.
-    npass, pairs = match_modes_by_identity(modes; tol_frac=0.05)
+    # Criterion 2026-10-28 (Phase 78d-3, author): pairing by shape, MAC ≥ 0.9 against the Table D-1 shape rebuilt from
+    # its printed coefficients (same symmetry and axial index), then frequency within 5 %. It replaces the 78a
+    # dominant-order identity (labels flip between near-equal coefficients) and the 2026-10-22 frequency-only count
+    # (passes by construction against a dense spectrum); both are kept as information. Count rule unchanged.
+    npass, pairs = match_modes_by_shape(modes; mac_min=0.9, tol_frac=0.05)
+    n_ident, _ = match_modes_by_identity(modes; tol_frac=0.05)
     n_greedy, _ = match_ritz_to_table_d1(modes; tol_frac=0.05)
     n_ref = length(TABLE_D1_FULL)
     frac = npass / n_ref
@@ -472,7 +474,8 @@ function _run_mrp_appd()
     table = ValidationTableRow[]
     idxs = Float64[]; ref_f = Float64[]; got_f = Float64[]
     for p in pairs
-        push!(table, ValidationTableRow(p.found ? "f_Hz mode $(p.d1)" : "f_Hz mode $(p.d1) (no solver mode of this identity)",
+        push!(table, ValidationTableRow(p.found ? "f_Hz mode $(p.d1) (MAC $(round(p.mac; digits=2)))" :
+                                        "f_Hz mode $(p.d1) (no solver mode with MAC ≥ 0.9; best $(round(p.mac; digits=2)))",
                                         Float64(p.d1), p.ref, p.got, p.got - p.ref, p.ok))
         p.found || continue
         push!(idxs, Float64(p.d1)); push!(ref_f, p.ref); push!(got_f, p.got)
@@ -520,13 +523,13 @@ function _run_mrp_appd()
         PlotSeries("App. D solver", :computed, idxs, got_f; panel=1),
     ]
     verdict = met ? :met : :not_met
-    reason = "$npass/$n_ref modes within 5 % of the Table D-1 mode of the same identity ($(round(100 * frac; digits=1)) %; " *
-             "$n_missing with no solver mode of that identity); criterion ≥ 75 % of 32, identity matching fixed 2026-10-28 " *
-             "(frequency-only count, for information: $n_greedy/32). $d2_notes"
+    reason = "$npass/$n_ref Table D-1 modes with a shape partner (MAC ≥ 0.9) within 5 % ($(round(100 * frac; digits=1)) %; " *
+             "$n_missing with no shape partner); criterion ≥ 75 % of 32, shape pairing fixed 2026-10-28 (post-hoc: floor-beam " *
+             "reading V1 chosen after the diagnostic). Information: dominant-order identity $n_ident/32, frequency-only $n_greedy/32. $d2_notes"
     return ValidationCaseResult(
         "MRP_APPD", _today_iso(),
-        (; n_modes=n_ref, npass, n_missing, n_greedy_info=n_greedy, tol_frac=0.05,
-         count_rule="≥75% of 32 within 5%, identity-matched", count_rule_date="2026-10-22; identity matching 2026-10-28",
+        (; n_modes=n_ref, npass, n_missing, n_identity_info=n_ident, n_greedy_info=n_greedy, tol_frac=0.05, mac_min=0.9,
+         count_rule="≥75% of 32 within 5%, shape-paired (MAC ≥ 0.9)", count_rule_date="2026-10-22; shape pairing 2026-10-28",
          calibration=false,
          L=g.L, readings=APPD_READINGS,
          reference_tables=["TABLE_D1_FULL", "fig_d2_mode1_digitized.csv"]),

@@ -266,7 +266,10 @@ end
 # and the floor-beam area had one flange.
 const MRP_A_FLOOR_BEAM = MRP_A_FRAME
 const MRP_I_FRAME = channel_centroidal_I(0.038, 0.017, 0.00081)
-const MRP_I_FLOOR_BEAM = MRP_I_FRAME
+# Floor beams and supports (Phase 78d-3, V1, author 2026-10-28; post-hoc): channels riveted under the floor plate bend
+# about the floor mid-plane (composite action), I = I_c + A·(h/2 + t_floor/2)². App. D does not say how the floor's
+# stiffeners enter ("classical plate theory"); this reading was chosen after the 78d-2 diagnostic.
+const MRP_I_FLOOR_BEAM = MRP_I_FRAME + MRP_A_FRAME * (0.038 / 2 + 0.00081 / 2)^2
 const MRP_I_STRINGER = angle_centroidal_I(0.0112, 0.00953, 0.00051)
 # The legacy Ritz surrogate (`structural_modes`, MRP_RITZ) has three scales fitted to Table D-1 with the pre-Phase-78
 # section values; its inputs stay at those values so the fitted surrogate is unchanged (it is calibrated and never a
@@ -595,6 +598,61 @@ function match_modes_by_identity(sm::StructuralModes; tol_frac::Float64=0.05)
         ok = err ≤ tol_frac
         npass += ok
         push!(pairs, (; d1=i, ref=f, ritz=j, got=sm.modes[j].f_Hz, err, ok, found=true))
+    end
+    return npass, pairs
+end
+
+"""
+    mode_shape_field(mode, a, theta0_deg; nθ=181, ny=61) -> Vector{Float64}
+
+Normal displacement of a mode sampled on the shell arc θ0…2π−θ0 (θ from the bottom centerline, Eqs. 46–47) and
+across the floor (Eqs. 48–49), each sample weighted by √(arc length) so that dot products approximate ∫ψ² ds
+(Phase 78d-3).
+"""
+function mode_shape_field(mode::StructuralMode, a::Real, theta0_deg::Real; nθ::Int=181, ny::Int=61)
+    θ0 = deg2rad(theta0_deg); Lp = 2a * sin(θ0)
+    θs = range(θ0, 2π - θ0; length=nθ); ys = range(-Lp / 2, Lp / 2; length=ny)
+    s = [shell_circumferential(mode, θ) for θ in θs]
+    f = [isempty(mode.C_floor) ? 0.0 :
+         sum((mode.symmetric ? C * cos(n * π * y / Lp) : C * sin(n * π * y / Lp)) for (C, n) in zip(mode.C_floor, mode.n_floor))
+         for y in ys]
+    return vcat(s .* sqrt(a * step(θs)), f .* sqrt(step(ys)))
+end
+
+"""Modal assurance criterion of two sampled shapes: (a·b)² / ((a·a)(b·b)), 1 for the same shape."""
+modal_assurance(a::AbstractVector, b::AbstractVector) = dot(a, b)^2 / (dot(a, a) * dot(b, b))
+
+"""
+    match_modes_by_shape(sm::StructuralModes; mac_min=0.9, tol_frac=0.05) -> (npass, pairs)
+
+Phase 78d-3 (criterion 2026-10-28, author): each Table D-1 mode (shape rebuilt from its printed coefficients) is
+paired with the unused mode of `sm` of the same symmetry and axial index with the highest MAC, provided
+MAC ≥ `mac_min`; it passes when that partner is within `tol_frac` in frequency. Robust where the dominant-order
+labels of `match_modes_by_identity` flip between near-equal coefficients.
+"""
+function match_modes_by_shape(sm::StructuralModes; mac_min::Float64=0.9, tol_frac::Float64=0.05)
+    used = falses(length(sm.modes))
+    fields = [mode_shape_field(x, sm.a, sm.theta0_deg) for x in sm.modes]
+    d1 = structural_modes_from_table_d1(; L=sm.L, a=sm.a, theta0_deg=sm.theta0_deg)
+    pairs = NamedTuple[]
+    npass = 0
+    for x in d1.modes
+        fx = mode_shape_field(x, sm.a, sm.theta0_deg)
+        best_j, best_mac = 0, -1.0
+        for (j, y) in enumerate(sm.modes)
+            (used[j] || y.symmetric != x.symmetric || y.M_axial != x.M_axial) && continue
+            m = modal_assurance(fx, fields[j])
+            m > best_mac && ((best_j, best_mac) = (j, m))
+        end
+        if best_j == 0 || best_mac < mac_min
+            push!(pairs, (; d1=x.index, ref=x.f_Hz, ritz=0, got=NaN, err=NaN, mac=max(best_mac, 0.0), ok=false, found=false))
+            continue
+        end
+        used[best_j] = true
+        err = abs(sm.modes[best_j].f_Hz - x.f_Hz) / x.f_Hz
+        ok = err ≤ tol_frac
+        npass += ok
+        push!(pairs, (; d1=x.index, ref=x.f_Hz, ritz=best_j, got=sm.modes[best_j].f_Hz, err, mac=best_mac, ok, found=true))
     end
     return npass, pairs
 end

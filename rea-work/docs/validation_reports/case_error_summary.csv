@@ -11,7 +11,7 @@ E12_BLOCK,2026-10-28,2026-10-28,not_met,29,31,4.0,0.99,"dB","29/31 in tol · max
 ISO_BLOCKING,2026-10-28,2026-10-28,met,960,960,0.0,0.0,"%","960/960 in tol · max |err| 0.0 % · med 0.0 %"
 MRP_D1,2026-10-28,2026-10-28,no_verdict,32,32,0.0,0.0,"Hz","no verdict · max |err| 0.0 Hz · med 0.0 Hz"
 MRP_RITZ,2026-10-28,2026-10-28,no_verdict,29,32,24.0,1.2,"%","no verdict · max |err| 24.0 % · med 1.2 %"
-MRP_APPD,2026-10-28,2026-10-28,not_met,2,32,42.0,16.0,"%","2/32 in tol · max |err| 42.0 % · med 16.0 %"
+MRP_APPD,2026-10-28,2026-10-28,not_met,2,32,50.0,7.2,"%","2/32 in tol · max |err| 50.0 % · med 7.2 %"
 CYL2D_C1,2026-10-28,2026-10-28,met,59,59,0.0013,0.0001,"%","59/59 in tol · max |err| 0.0013 % · med 0.0001 %"
 ISO_CYL2D_EXACT,2026-10-28,2026-10-28,met,12,21,86.0,2.0,"%","12/21 in tol · max |err| 86.0 % · med 2.0 %"
 ISO_CYL2D_BOUNDARY,2026-10-28,2026-10-28,met,173,173,0.0,0.0,"abs","173/173 in tol · max |err| 0.0 abs · med 0.0 abs"
