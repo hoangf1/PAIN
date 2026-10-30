@@ -240,7 +240,7 @@ or the other documents points there. When a phase is done, mark it done and move
 
 | Q | Item | Kind | Prerequisite | Output |
 |---|------|------|--------------|--------|
-| — | No open item (2026-10-30); Phases 90–98 are done | — | — | — |
+| Q79 | **Phase 99 — did CR-3813's program already use the band-centre η_n?** (§8ao) | held-out test | Phase 96 | BAND_REPRO_18b, BAND_E18 |
 
 If a queue item is blocked on data, skip to the next unblocked item and say which data item blocks it.
 
@@ -284,6 +284,21 @@ The diagram matches the code (phases 21–22 done 2026-10-21): `propeller_ccblad
 | Driver | `scripts/run/run_pain.jl` |
 
 ---
+
+## 8ao. Phase 99 — did CR-3813's program already use the band-centre η_n? (criteria fixed 2026-10-30, before the run)
+
+*(Planned 2026-10-30 under the author's overnight instruction.)* Hypothesis H_band: the program that produced CR-3813's
+printed runs already evaluated η_n at the nominal band centre (Phase 95), with the q = 0 modes coupled (Phase 88) and
+the other pre-correction choices (floor sign −1, printed Eq. (82)). The rule was read from CR-172428's App. B only, so
+CR-3813's printed runs are held out. The runs are diagnostics (no verdict; their recorded outcomes are kept).
+
+| Step | Case | Run | Criterion (that of the case it re-runs) |
+|---|---|---|---|
+| 99a | BAND_REPRO_18b | REPRO_18b_PRE with η_n per mode by the band rule | ±4 dB at H1–H3 against E-16's NASA prediction |
+| 99b | BAND_E18 | E18_TONES' run in the pre-correction form with the band rule | ±4 dB per harmonic against E-18's NASA prediction |
+
+**Decision (fixed before the run).** H_band is supported only if both are met. If supported, `_pre_correction_form`
+gains the band rule; otherwise it is recorded as refuted and no variant is tried.
 
 ## 9. Reference appendices
 
