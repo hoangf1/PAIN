@@ -35,28 +35,32 @@ function r172428_flight10_field()
 end
 
 """
-    r172428_flight10_inputs(; trim_band_centre=false) -> PainInputs
+    r172428_flight10_inputs(; trim_band_centre=false, floor_sign=-1.0) -> PainInputs
 
 Run 10 from PAIN's printed deck (App. D p. 229): ρ, c outside 1.1012, 334.08 and inside 1.204, 343.0; L = 9.27 m,
 a = 0.84 m, L_c = 7.89 m, θ₀ = 50°; bare η_r = 2/f per band; acoustic loss factors from the trim; sidewall trim
 0.055 m PF-105 (App. D table) + 1.95 kg/m², η_T = 2.0; no end-cap trim. Structural modes: the App. D solver on NASA's
 Merlin deck (lowest 400; NASA kept 20 per axial order and symmetry, which differs only near the top of the list).
-Acoustic modes: CYL2D at θ₀ = 50°, 20 two-dimensional modes, NY = 11 (assumption: NY = 10 of Fig. C-3 has complex
-eigenvalues at 50°; the nearest grid that solves, chosen before any level was computed). Shell mass 4.54 kg/m² (the deck).
+Acoustic modes: CYL2D at θ₀ = 50°, 20 two-dimensional modes, on NASA's printed Merlin grid: NY = 11 with the node rule
+0.45h, which reproduces CR-172428 App. C p. 212 (ε(0,0) and all printed types; Phase 103). Chosen from that print for this
+diagnostic run only (Phase 105, post-hoc; the default node rule 0.4h is unchanged). Shell mass 4.54 kg/m² (the deck).
+The Eq. (52) floor term enters with the pre-correction sign (`floor_sign = −1`): run 10's printed η_r″ follow it
+(Phase 103; held-out H1/H5 pairs 8/10 against 5/10, Phase 108), so NASA computed run 10 before CR-172428 App. A item 2.
 """
-function r172428_flight10_inputs(; trim_band_centre::Bool=false)
+function r172428_flight10_inputs(; trim_band_centre::Bool=false, floor_sign::Real=-1.0)
     fuse = FuselageGeometry(9.27, 0.84, 50.0)
     prop = PropellerPlacement(2.35, 75.0, 1.12)        # card 36: 75° from the bottom vertical (Phase 104)
     f = r172428_flight10_field()
     side = TrimStack(TrimElement[InsulationLayer(0.055, pf105_deck_table()), LimpMass(1.95, 2.0)], "Merlin IVC sidewall trim")
     ends = TrimStack(TrimElement[InsulationLayer(0.0, pf105_deck_table()), LimpMass(0.0, 1.0)], "no end-cap trim")
     structural = appd_modes(merlin_mrp_deck(); n_modes=400, n_axial=10, n_circ=14, n_floor_max=5)
-    acoustic = cyl2d_modes(fuse.theta0_deg; n_modes=20, NY=11, c0=343.0)   # NY = 10 (Fig. C-3) gives complex eigenvalues at 50°
+    acoustic = cyl2d_modes(fuse.theta0_deg; n_modes=20, NY=11, c0=343.0, node_tol=0.45)   # NASA's printed Merlin grid
     η_r_band = Dict(fc => 2 / fc for fc in third_octave_centers())
     return PainInputs(fuse, prop, structural, acoustic, f.amps, f.phases, f.pts, (π * fuse.a / 18)^2;
                       sidewall=side, endplates=ends, mech=nothing, m_wall=4.54, L_c=7.89,
                       ρ_ext=1.1012, c_ext=334.08, ρ_int=1.204, c_int=343.0, η_r_band, trim_band_centre,
-                      allow_extrapolation=true)   # mode 1 (39.6 Hz) is below the 50 Hz table start (X-EXTRAP)
+                      allow_extrapolation=true,   # mode 1 (39.6 Hz) is below the 50 Hz table start (X-EXTRAP)
+                      floor_sign)                 # NASA's run 10 predates App. A item 2 (Phase 108, held-out H1/H5 pairs)
 end
 
 """H2–H4 levels of run 10: (a) as shipped, (b) with the trim per band."""

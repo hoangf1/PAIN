@@ -67,6 +67,9 @@ include("validation_case_iso99.jl")   # phase 99 band-centre η_n in CR-3813's p
 include("validation_case_iso100.jl")  # phase 100 NASA's per-band PF-105 table (App. D deck)
 include("validation_case_iso101.jl")  # phase 101 Merlin IVC modes vs App. C (flight run 10)
 include("validation_case_iso102.jl")  # phase 102 flight run 10, H2–H4 (diagnostic)
+include("validation_case_iso105.jl")  # phase 105 CYL2D grid rule vs printed cabin modes
+include("validation_case_iso106.jl")  # phase 106 cabin-mode frequency, 2-D part at 341 m/s
+include("validation_case_iso108.jl")  # phase 108 run 10 floor-term sign (diagnostic)
 include("validation_case_iso90.jl")   # phase 90 Eq. (43) blocking vs Report 996 Fig. 10 (measured)
 include("validation_case_extras.jl")
 include("validation_map.jl")
@@ -83,7 +86,7 @@ export
     blocking_factor, blocked_amplitude, BlockingVariant, R1, R2,
     delta_L_blocking_dB, BLOCKING_P68_CHECKPOINTS,
     extend_line_to_grid,
-    cyl2d_modes, cyl2d_modes_search, cyl2d_modes_solvable, Cyl2DResult, AcousticMode, TABLE_C1_FREQ_HZ, TABLE_C1_GENMASS, TABLE_C1_SYMMETRIC, TABLE_C1_C0,
+    cyl2d_modes, cyl2d_modes_search, cyl2d_modes_solvable, Cyl2DResult, AcousticMode, CYL2D_C0, TABLE_C1_FREQ_HZ, TABLE_C1_GENMASS, TABLE_C1_SYMMETRIC, TABLE_C1_C0,
     cabin_frequency_3d, cabin_eps_3d, axial_truncation, cabin_modes_3d,
     mode_animation_frames, render_mode_animation, render_mode_frame_pngs, axial_factor,
     FIG_C3_PRINTED_ROWS, CYL2D_C1_DISPLAY_INPUTS, cyl2d_c1_for_display, mode_animation_cache_dir,

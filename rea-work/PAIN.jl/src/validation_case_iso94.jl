@@ -41,7 +41,7 @@ function _run_appb_eta_n_t2()
         mode = Int(t[:eta_n_mode][k]); j = findfirst(==(mode), Int.(ac_tab[:mode]))
         q = Int(ac_tab[:Q][j]); I = Int(ac_tab[:I][j]); ac = _acmode_by_I(inp, I)
         ours = _eta_n_at_mode(inp, ac, q; V)
-        ωn = 2π * cabin_frequency_3d(ac, inp.fuse.a, inp.L_c, q; c0=inp.c_int)
+        ωn = 2π * cabin_frequency_3d(ac, inp.fuse.a, inp.L_c, q; c0=inp.c_int, c2d=inp.c_cyl2d)
         nasa = t[:eta_n][k]; ok = abs(ours / nasa - 1) ≤ 0.10; n_ok += ok
         push!(xs, mode); push!(ref, nasa); push!(got, ours); push!(band, acoustic_N_per_mode(inp, ac, q, ωn; V) / ωn^2)
         push!(table, ValidationTableRow("mode $mode (Q=$q, I=$I)", mode, nasa, ours, ours - nasa, ok))

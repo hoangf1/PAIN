@@ -1,7 +1,7 @@
 # Unit tests: src/printed_outputs.jl (Phase 64). Manual §5.4.3 tables: decompositions add up.
 @testset "printed outputs (Manual §5.4.3)" begin
     rp = run_pain_pipeline(; source=:e11, n_harmonics=2, bpf_Hz=200.0, blocking=R2)
-    inp = PAIN._with_fields(rp.inputs; q_max=2)
+    inp = PAIN._with_fields(rp.inputs; q_max=2, q0_coupled=true)   # q = 0 coupled so its f̄′ parts are non-zero (default false since Phase 93)
     fc = 400.0
     lo, hi = fc * (1 - 0.116), fc * (1 + 0.116)
     @test PAIN.structural_modes_in_band(inp, fc) == count(m -> lo ≤ m.f_Hz ≤ hi, inp.structural.modes)

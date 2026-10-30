@@ -819,7 +819,7 @@ function _run_iso_cyl2d_boundary()
     # frequency formula check (independent)
     for row in list[1:min(20, end)]
         m = cy.modes[findfirst(x -> x.index == row.i, cy.modes)]
-        f_ref = (c0 / (2π)) * sqrt(m.lambda_unit / a^2 + (row.q * π / L)^2)
+        f_ref = sqrt((CYL2D_C0 / (2π))^2 * m.lambda_unit / a^2 + (row.q * c0 / (2L))^2)   # 2-D part at CYL2D's speed (Phase 106)
         rel = abs(row.f_Hz - f_ref) / max(abs(f_ref), 1e-30)
         ok = rel ≤ tol
         n_tot += 1

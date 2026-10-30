@@ -240,12 +240,7 @@ or the other documents points there. When a phase is done, mark it done and move
 
 | Q | Item | Kind | Prerequisite | Output |
 |---|------|------|--------------|--------|
-| Q85 | **Phase 105 — CYL2D's grid rule at any floor angle** (§8au) [CONFIRM] | code fix + held-out P test | Phase 103 | node rule r ≤ 1 + 0.45h, NY = 10 else the next grid that solves; CYL2D_PRINTED on the 62.6° and 73.7° lists |
-| Q86 | **Phase 106 — cabin-mode frequency: CYL2D's 2-D part at 341 m/s** (§8av) [CONFIRM] [AUTHOR: baselines] | code fix + held-out P test | Phase 103 | `cabin_frequency_3d` 2-D part at 341 m/s, axial at card 2's c; CABIN_FREQ_PRINTED on App. B's 48 printed modes; knock-on re-runs |
-| Q87 | **Phase 107 — MRPMOD's 5 shell / 3 floor terms on the solver path** (§8aw) [CONFIRM] | code fix | Phase 103 | `appd_modes` keeps 5 / 3 terms; unit test against Table D-1's sets; knock-on re-runs |
-| Q88 | **Phase 108 — the floor term's sign in run 10** (§8ax) | held-out diagnostic, then decision | Phases 104–107 | H1/H5 printed η_r″ (10 pairs) decide H_pre; run-10 option only if supported |
-| Q89 | **Phase 109 — run 10 after 104–108; pair residuals** (§8ay) | diagnostic | Phase 108 | FLIGHT10_H234 and the 15 pairs re-run; trim area card A_t and App. C's η_n checked from the documents |
-| Q90 | **Phase 110 — FLIGHT_MODES second transcription pass** (§8az) | data quality | Phase 101 | second pass of App. C pp. 213–216 with SHELL W / PLATE W; FLIGHT_MODES re-run (post-hoc); mass misses split by component |
+| — | No open item (2026-10-30); Phases 90–111 are done | — | — | — |
 
 If a queue item is blocked on data, skip to the next unblocked item and say which data item blocks it.
 
@@ -289,100 +284,6 @@ The diagram matches the code (phases 21–22 done 2026-10-21): `propeller_ccblad
 | Driver | `scripts/run/run_pain.jl` |
 
 ---
-
-## 8au. Phase 105 — CYL2D's grid rule at any floor angle (planned 2026-10-30) [CONFIRM]
-
-*(Planned 2026-10-30; Phase 103 finding D2.)* CYL2D's only input is θ₀ (User Manual §5.1); its grid is fixed inside the
-program. Phase 103 found NASA's Merlin grid (App. C p. 212, θ₀ = 50°): NY = 11 with the node rule r ≤ 1 + th,
-t = 0.43–0.50, reproduces the printed ε(0,0) = 0.96723 exactly and all ten printed symmetries; Table C-1 (56.6°, NY = 10)
-allows t = 0.32–0.47. The code's t = 0.40 gives a different grid at 50° (ε 0.98259; I = 13 at 430 Hz against 416 Hz).
-
-**Steps.** (a) Node rule t = 0.45 (inside both ranges); grid NY = 10, else the next NY that solves (the rule of
-`cyl2d_modes_solvable`), wherever the pipeline builds CYL2D modes from θ₀ (run 10's hand-set NY = 11 becomes the rule).
-The uncertainty module's node_tol values (0.32, 0.40, 0.47) become (0.43, 0.45, 0.47). (b) Transcribe, in two passes
-(pass 1 OCR, pass 2 by eye, every disagreement re-read at higher resolution) **before any comparison**, the acoustic-mode
-lists PAIN printed for CR-172428's small-diameter aircraft (App. C p. 221, PDF 231) and narrow-body aircraft (App. C
-p. 225, PDF 235), and their MRPMOD decks' θ₀ and a (App. C p. 210, PDF 220; Phase 103 read 62.6° and 73.7° on a
-low-resolution render only, so both are confirmed here).
-(c) Run CYL2D_PRINTED.
-
-**Criterion (fixed 2026-10-30, before these two lists are transcribed or compared).** CYL2D_PRINTED (P, block CYL2D).
-For each of the two aircraft: (i) ε of the (0, 0) mode within 0.02 % of the printed value; (ii) every 2-D frequency
-f_2D = √(f² − (QΔ)²) from a legible printed (Q, I) row, with Δ the printed (1, 0) frequency, within 0.1 % of CYL2D's at
-c = 341 m/s divided by a; (iii) every printed mode type equal to CYL2D's for that I. **Met** if (i)–(iii) hold for both
-aircraft. Recorded alongside, seen and labelled post-hoc: Table C-1 (56.6°) and the Merlin list (50°). If not met: the
-rule is not adopted and the grid each aircraft needs is recorded as a diagnostic.
-
-## 8av. Phase 106 — cabin-mode frequency: CYL2D's 2-D part at 341 m/s (planned 2026-10-30) [CONFIRM] [AUTHOR: baselines]
-
-*(Planned 2026-10-30; Phase 103 finding D3.)* PAIN keeps CYL2D's 2-D frequencies, which CYL2D computes for a = 1 m at its
-own 341 m/s (Table C-1, `TABLE_C1_C0`), and adds the axial term at the deck's interior c (card 2). The code puts both at
-card 2's c. Evidence: the Merlin list implies c = 341.00 ± 0.02 m/s for every printed 2-D frequency (Phase 103); App. B
-p. 185 prints (0, 1) and (0, 2) at 195.87 and 236.96 Hz, Table C-1 divided by a = 0.508 m, with its axial spacing at
-343 m/s. This is the 0.5–0.6 % cabin-frequency offset Phase 92 could not explain (e.g. 603.4 against 600.3 Hz at
-4000 rpm H3, a −5.2 dB pair).
-
-**Steps.** (a) `cabin_frequency_3d`: f_n = √[(f_2D at 341 m/s / a)² + (q c_int / 2L_c)²]; every user of ω_n follows
-(Eq. 8 and 77 denominators, Eq. 83, band counts). A flag keeps the old form for diagnostics. (b) Run
-CABIN_FREQ_PRINTED. (c) Knock-on re-runs, labelled post-hoc where seen (the original results stay on record): APPB_ETA_N,
-APPB_ETA_N_T2(_BAND), APPB_ETA_RPP, APPB_PAIRS, R172428_CODE, R172428_ETA, R172428_ETAT2 (including the 3000 rpm H3
-gap), the E-18/E-21 and REPRO cases, FLIGHT10_H234. (d) **[AUTHOR]** Every CYL2D path moves (the e11 runs at c = 340 m/s
-by 0.3 %), so `phase17_baselines.csv` changes (R11): stop and ask before renewing it.
-
-**Criterion (fixed 2026-10-30).** CABIN_FREQ_PRINTED (P, block CYL2D): App. B p. 185's 48 printed cabin modes
-(`appB_acoustic_modes.csv`, Phase 44b; c = 343 m/s, L_c = 1.829 m, a = 0.508 m, θ₀ = 56.6°): |ours − printed| ≤ 0.02 Hz
-or ≤ 0.02 % (the larger) at every mode with f > 0. **Met** if all are. Two of the 48 rows were seen in Phase 103; the
-341 m/s is Table C-1's (2026-10-20), not formed on this list. Recorded alongside, seen (post-hoc): the Merlin list (L_c
-from its (1, 0) row) and run 10's twelve printed cabin frequencies.
-
-## 8aw. Phase 107 — MRPMOD's 5 shell / 3 floor terms on the solver path (planned 2026-10-30) [CONFIRM]
-
-*(Planned 2026-10-30; Phase 103 finding D4.)* MRPMOD hands PAIN at most 5 shell and 3 floor generalized coordinates per
-mode (User Manual §5.3.1 card 4; the Merlin MRPMOD deck "5 3"); Table D-1, which PAIN reads, has exactly 5 and 3. The
-`:appd` solver path passes 8 and 5, so its shapes, couplings and Ψ_G differ from what PAIN used.
-
-**Steps.** (a) `appd_modes` keeps the 5 largest shell and 3 largest floor coefficients (keywords `n_keep_shell`,
-`n_keep_floor`, defaults 5 and 3); M_r stays the generalized mass of the full shape (MRPMOD prints MRP's), and the
-normalization stays the full shape's peak. (b) Unit test (verification; seen in Phase 103 at 32/32 and 32/32): the
-kept shell and floor index sets equal Table D-1's at all 32 modes. (c) Knock-on re-runs of the solver-based cases
-(post-hoc where seen) and FLIGHT10_H234.
-
-## 8ax. Phase 108 — the floor term's sign in run 10 (planned 2026-10-30; held-out diagnostic, then decision)
-
-*(Planned 2026-10-30; Phase 103 finding D5.)* With D1–D4 applied, NASA's printed H2–H4 η_r″ of run 10 follow the
-coupling with the floor term subtracted (η ratios 0.54–1.52, 12 of 15 pair levels within 3 dB); App. B's follow it
-added (Phase 44f; Table D-1 12/19 within 10 % against 0/19). The mode files carry the same sign convention on both
-aircraft (solver against App. C 19/19, against Table D-1 20/20). Hypothesis H_pre: run 10 was computed before CR-172428
-App. A item 2 (the floor-sign correction) was applied, while its printed field already carries item 3's 4 dB limit.
-
-**Test (fixed 2026-10-30, before any H1 or H5 pair is computed).** NASA's printed η_r″ of the 10 H1 and H5 pairs
-(`appD_run10_pairs.csv`; η_r″ does not depend on the field, so the cut field rows of H1 and H5 do not matter), with
-Phases 104–107 applied (in the script's process if not yet merged), against this code's with the floor term added (+)
-and subtracted (−). Pairs printed as 0.00000 are skipped. For each sign, count the pairs with ours/NASA in [0.4, 2.5].
-H_pre is **supported** if the count with − is ≥ 7/10 and larger than with +; **refuted** if the count with + is ≥ 7/10
-and larger than with −; otherwise **undecided**. Diagnostic, no verdict.
-
-**Decision.** If supported: the run-10 case uses the pre-correction sign as a documented input of that NASA run (an
-option of `r172428_flight10_inputs`, as REPRO_18b_PRE does for CR-3813's runs); no default changes elsewhere. If refuted
-or undecided: no change, and the pair differences stay open for Phase 109.
-
-## 8ay. Phase 109 — run 10 after 104–108; the pair residuals (planned 2026-10-30; diagnostic)
-
-*(Planned 2026-10-30.)* After D1–D4, run 10 is within 1.1 dB of PAIN at H2–H4 (Phase 103), but pair levels still differ by
-several dB, and NASA's η_r″ sit near 0.6× this code's away from resonance. Steps: (a) re-run FLIGHT10_H234 and the 15
-H2–H4 pairs with what Phases 104–108 adopted (post-hoc). (b) Read from the documents, before any change: where PAIN uses
-the trim area of card 20 (A_t = 28.10 m² in run 10's deck, which CR-172428 §5.1 computes at radius a − h_t over L_c) and
-whether this code's Eq. (77) wall integral (radius a over L_c) should use it. (c) If CR-172428 §4 documents the inputs of
-the App. C business-aircraft run (trim, L_c), compare this code's η_n with App. C p. 212's printed loss factors (P);
-otherwise not run. No verdict on FLIGHT10_H234: FLIGHT_MODES is not met and the levels have been seen.
-
-## 8az. Phase 110 — FLIGHT_MODES second transcription pass (planned 2026-10-30; data quality)
-
-*(Planned 2026-10-30.)* Phase 101 asked for two passes over App. C pp. 213–216 and did one. Steps: (a) second pass
-(OCR, then eye, every disagreement re-read zoomed without looking at this code's values), adding the printed SHELL W and
-PLATE W masses and CMNS/CMNP of every mode. (b) FLIGHT_MODES re-run on the checked transcription, labelled post-hoc; the
-first-pass verdict (197/221, not met) stays on record. (c) Diagnostic: for the generalized-mass misses, which component
-(shell or plate) differs.
 
 ## 9. Reference appendices
 

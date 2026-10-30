@@ -1,3 +1,4 @@
+# Re-recorded 2026-10-30 (Phase 106 code-on-code fix: the 2-D part of every cabin-mode frequency at CYL2D's 341 m/s, CR-172428 App. B p. 185 / App. C p. 212; author's go-ahead 2026-10-30, "keep running until all phases are complete"; freeze script brought to the form the test pins): 6 of 157 values changed; previous values: spl_bare_H1 96.0126396, spl_bare_H2 86.97454037, spl_bare_H3 87.15129417, spl_phase3_H1 86.58579147, spl_phase3_H2 80.02437911, spl_phase3_H3 76.39465344.
 # Re-recorded 2026-10-23 (Phase 65 grid axial correction: z_k = z_p - x3 and z_p = 0.662 m, code vs User Manual pp. 8-9 / CR-3813 App. E p. E-8; not a fit): 102 of 157 values changed; previous values: spl_bare_H1 96.78208021, spl_bare_H2 88.09439097, spl_bare_H3 83.40048887, spl_phase3_H1 87.36278363, spl_phase3_H2 81.02392946, spl_phase3_H3 75.23210106 (psiG values: see git history).
 # Re-recorded 2026-10-23 (Phase 44f code-on-code fix: Eq. (52) floor term sign of NASA's corrected program, CR-172428 App. A item 2 / App. B ETA R#; post-hoc): spl_bare_H1 92.99090643, spl_bare_H2 86.16476857, spl_bare_H3 84.74939004, max_abs_fprime 0.188455127, fprime_n0_r1 -0.09005570782, fprime_n0_r2 -0.09722023082, fprime_n0_r5 -0.03104340358, fprime_n0_r6 -0.07582727088, fprime_n0_r7 -0.03420469066, fprime_n1_r8 -0.04379696582, fprime_n2_r1 0.06017331467, fprime_n2_r2 0.05519253515, fprime_n2_r5 0.02081969509, fprime_n2_r6 0.09564100493, fprime_n2_r7 0.0226229422, fprime_n3_r8 -0.188455127, fprime_n4_r1 -0.07797163657, fprime_n4_r2 -0.07229116827, fprime_n4_r5 -0.02072109502, fprime_n4_r6 0.1228335921, fprime_n4_r7 -0.0227064636, fprime_n5_r1 -0.02821403983, fprime_n5_r2 -0.03341975717, fprime_n5_r5 -0.005678559589, fprime_n5_r6 0.1065035092, fprime_n5_r7 -0.006281401035, spl_phase3_H1 84.24297514, spl_phase3_H2 77.62908855, spl_phase3_H3 77.8033043 (previous values).
 # Re-recorded 2026-10-23: spl_phase3_H1..H3 only, after the Phase 44 code-on-code fix of Eq. (83) (eta_r'' uses the bare f'(n,r), CR-3813 p. 43; was the trim-weighted f-bar'): previous values 84.2101723, 77.65565218, 78.05937629. Bare-cabin values unchanged (tau_t = 1).
@@ -5,7 +6,7 @@
 # Re-recorded 2026-10-22 at L = 1.83 m (I-22, post-hoc; earlier 1.803 m values: see length_sensitivity.md)
 # Phase 17 regression baselines (prior: 2026-10-21 amplitude-convention I-17/F4; 2026-10-20 eta_T=0.5). e11 source, R2 blocking, BPF 200 Hz, 3 harmonics. name,value
 name,value
-spl_bare_H1,96.0126396
+spl_bare_H1,96.21689123
 psiG_H1_mode1,0.1478604743
 psiG_H1_mode2,0.1020146682
 psiG_H1_mode3,0.002773044442
@@ -38,7 +39,7 @@ psiG_H1_mode29,0.2518655896
 psiG_H1_mode30,1.808567232
 psiG_H1_mode31,5.418512682
 psiG_H1_mode32,6.391518666
-spl_bare_H2,86.97454037
+spl_bare_H2,87.12473554
 psiG_H2_mode1,0.01821123935
 psiG_H2_mode2,0.01818306203
 psiG_H2_mode3,0.0004835693271
@@ -71,7 +72,7 @@ psiG_H2_mode29,0.1112645461
 psiG_H2_mode30,0.3619921743
 psiG_H2_mode31,0.8724133717
 psiG_H2_mode32,0.9259496618
-spl_bare_H3,87.15129417
+spl_bare_H3,87.36617724
 psiG_H3_mode1,0.001640291754
 psiG_H3_mode2,0.002106466409
 psiG_H3_mode3,5.281028962e-05
@@ -153,9 +154,9 @@ fprime_n5_r5,0.006138483209
 fprime_n5_r6,0.07793260188
 fprime_n5_r7,0.008540740687
 fprime_n5_r8,0
-spl_phase3_H1,86.58579147
-spl_phase3_H2,80.02437911
-spl_phase3_H3,76.39465344
+spl_phase3_H1,86.60260896
+spl_phase3_H2,80.22292223
+spl_phase3_H3,76.89931992
 band_1250,55.90863155
 band_1600,53.55059234
 band_2000,51.57687438

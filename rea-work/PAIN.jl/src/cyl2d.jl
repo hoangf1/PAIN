@@ -6,7 +6,10 @@ centerline. The floor lies on a grid line and there are NY intervals from floor 
 crown, h = (1 + cos θ0)/NY (Fig. C-3 uses NY = 10).
 
   * a node is in the cabin when r ≤ 1 + 0.4h and above the floor (inferred rule; any
-    value in 0.31h–0.47h gives the Fig. C-3 row counts 3,5,6,6,7,7,7,7,7,7,6);
+    value in 0.31h–0.47h gives the Fig. C-3 row counts 3,5,6,6,7,7,7,7,7,7,6). NASA's printed grids of
+    CR-172428 App. C need 0.43h–0.50h at 50° (NY = 11) and 0.40h–0.55h at 73.7° (NY = 8); the rule
+    "0.45h, NY = 10 else the next grid that solves" was tested and not met (Phase 105, 2026-10-30), so the
+    default is unchanged;
   * Eq. (C.1) at every cabin node (interior and boundary);
   * Eq. (C.2) at every boundary node with θ_mn of the node, θ_mn set to 0 below θ0;
   * the two missing equations: zero tangential gradient at the boundary points with two
@@ -423,12 +426,20 @@ end
 # --- three-dimensional cabin modes (phase 15b) ------------------------------------------
 
 """
-    cabin_frequency_3d(mode, a, L, q; c0) -> Hz
-
-Eq. (C.7)/(C.12): f_n = √[(f_i/a)² + (q c0/(2L))²] for the 3-D mode n = (q, i).
+CYL2D's own sound speed [m/s]: CYL2D computes its frequencies for a = 1 m at this speed and PAIN keeps them (Table C-1;
+CR-172428 App. B p. 185 and App. C p. 212 print the 2-D part at 341 m/s whatever the deck's c; Phase 103 D3, Phase 106).
 """
-cabin_frequency_3d(mode::AcousticMode, a::Real, L::Real, q::Int; c0::Real=340.0) =
-    (c0 / (2π)) * sqrt(mode.lambda_unit / a^2 + (q * π / L)^2)
+const CYL2D_C0 = TABLE_C1_C0
+
+"""
+    cabin_frequency_3d(mode, a, L, q; c0, c2d=CYL2D_C0) -> Hz
+
+Eq. (C.7)/(C.12): f_n = √[(f_i/a)² + (q c0/(2L))²] for the 3-D mode n = (q, i), with the 2-D frequency f_i from CYL2D at
+its own speed `c2d` (341 m/s, as PAIN does since Phase 106) and the axial term at the cabin's `c0` (card 2).
+`c2d = c0` gives the form used before Phase 106 (both parts at `c0`).
+"""
+cabin_frequency_3d(mode::AcousticMode, a::Real, L::Real, q::Int; c0::Real=340.0, c2d::Real=CYL2D_C0) =
+    sqrt((c2d / (2π))^2 * mode.lambda_unit / a^2 + (q * c0 / (2L))^2)
 
 """
     cabin_eps_3d(mode, q) -> ε_n
@@ -443,10 +454,10 @@ cabin_eps_3d(mode::AcousticMode, q::Int) = q == 0 ? mode.eps_n : 2 * mode.eps_n
 axial_truncation(ωH::Real, L::Real, c0::Real) = ceil(Int, 2 * ωH * L / (π * c0))
 
 """All 3-D cabin modes n = (q, i), q = 0..q_max, as (q, i, f_Hz, eps_n) tuples sorted by frequency."""
-function cabin_modes_3d(cy::Cyl2DResult, a::Real, L::Real, q_max::Int; c0::Real=340.0)
+function cabin_modes_3d(cy::Cyl2DResult, a::Real, L::Real, q_max::Int; c0::Real=340.0, c2d::Real=CYL2D_C0)
     out = NamedTuple{(:q, :i, :f_Hz, :eps_n),Tuple{Int,Int,Float64,Float64}}[]
     for q in 0:q_max, m in cy.modes
-        f = cabin_frequency_3d(m, a, L, q; c0=c0)
+        f = cabin_frequency_3d(m, a, L, q; c0=c0, c2d=c2d)
         push!(out, (q=q, i=m.index, f_Hz=f, eps_n=cabin_eps_3d(m, q)))
     end
     sort!(out; by=x -> x.f_Hz)

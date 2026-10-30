@@ -2751,10 +2751,11 @@ _run_if("Validation case registry (34d)") do
     # grid axial correction 2026-10-23 (code vs User Manual p. 9 / App. E p. E-8: z_k = z_p − x₃,
     # z_p = 0.662 m; not a fit): 88.20, 80.43, 78.21; and after the Phase 93 default form (CR-172428 program,
     # taken from CR-172428's printouts, not from E-16; 2026-10-29): 88.94, 79.35, 78.57; and after the Phase 96
-    # band-centre η_n rule (2026-10-30, read from App. B, not from E-16): 88.55, 79.36, 78.36
+    # band-centre η_n rule (2026-10-30, read from App. B, not from E-16): 88.55, 79.36, 78.36; and after Phase 106 (2-D cabin-mode
+    # part at CYL2D's 341 m/s, from CR-172428's printed cabin lists, not from E-16; 2026-10-30, post-hoc): 88.55, 79.56, 78.81
     @test rr.table[1].computed ≈ 88.55 atol=0.01
-    @test rr.table[2].computed ≈ 79.36 atol=0.01
-    @test rr.table[3].computed ≈ 78.36 atol=0.01
+    @test rr.table[2].computed ≈ 79.56 atol=0.01
+    @test rr.table[3].computed ≈ 78.81 atol=0.01
     png = plot_case(r1, VALIDATION_CASES["CYL2D_C1"].plot_spec;
                     path=joinpath(TEST_OUT, "CYL2D_C1.png"))
     @test isfile(png)
@@ -3187,7 +3188,7 @@ _run_if("NASA's 300-mode set in the HF path and the reproductions (phases 83, 84
     @test all(t2.inputs_echo.got .> t2.inputs_echo.measured)          # over the measurement now (Table D-1: under)
     @test all(t2.inputs_echo.table_d1 .< t2.inputs_echo.measured)
     rp = run_validation_case("REPRO_18b_DECK")
-    @test rp.verdict === :no_verdict && PAIN.underlying_verdict(rp) === :not_met && rp.inputs_echo.n_ok == 1   # 0 before Phase 93
+    @test rp.verdict === :no_verdict && PAIN.underlying_verdict(rp) === :not_met && rp.inputs_echo.n_ok == 0   # 0 before Phase 93, 1 after; 0 after Phases 106–107 (post-hoc)
     @test maximum(abs.(rp.inputs_echo.got .- rp.inputs_echo.table_d1)) < 0.75  # the tones hardly depend on the extra modes (0.67 dB)
     # 83d: T2 compares a path fitted to E-9 with E-9, so it is information; its recorded outcome is kept
     t = run_validation_case("T2")
@@ -3195,9 +3196,9 @@ _run_if("NASA's 300-mode set in the HF path and the reproductions (phases 83, 84
     # Phase 84 (criteria fixed 2026-10-29, plan §8ab): CR-172428 and E-21 on the 300 modes, recorded first runs
     rc, r0 = run_validation_case("R172428_CODE_DECK"), run_validation_case("R172428_CODE")
     @test rc.verdict === :no_verdict && PAIN.underlying_verdict(rc) === :not_met && count(r -> r.within_tolerance, rc.table) == 4 && rc.inputs_echo.structural === :nasa300
-    @test maximum(abs.(rc.inputs_echo.ours .- r0.inputs_echo.ours)) < 2.5 && rc.inputs_echo.ours != r0.inputs_echo.ours
+    @test maximum(abs.(rc.inputs_echo.ours .- r0.inputs_echo.ours)) < 4.2 && rc.inputs_echo.ours != r0.inputs_echo.ours   # 2.5 before Phases 106–107
     re = run_validation_case("R172428_EXP_DECK")
-    @test re.verdict === :no_verdict && PAIN.underlying_verdict(re) === :not_met && count(r -> r.within_tolerance, re.table) == 4   # 3 before Phase 93
+    @test re.verdict === :no_verdict && PAIN.underlying_verdict(re) === :not_met && count(r -> r.within_tolerance, re.table) == 5   # 3 before Phase 93, 4 after; 5 after Phases 106–107 (post-hoc)
     e21 = run_validation_case("E21_PRE_DECK")
     @test e21.verdict === :no_verdict && PAIN.underlying_verdict(e21) === :not_met && e21.inputs_echo.n_ok == 1 && e21.inputs_echo.n == 4
     @test maximum(abs.(e21.inputs_echo.code .- e21.inputs_echo.table_d1)) > 20   # above the crossover the modes matter
@@ -3230,12 +3231,12 @@ _run_if("NASA's App. B per-mode values, the q = 0 hypothesis, η_n per mode (pha
     e = run_validation_case("APPB_EPS_N")
     @test e.verdict === :met && e.inputs_echo.n == 48 && all(r -> abs(r.computed / r.reference - 1) < 1e-4, e.table)
     h = run_validation_case("APPB_ETA_N")
-    @test h.verdict === :not_met && h.inputs_echo.n_ok == 16 && h.inputs_echo.n == 46 && h.inputs_echo.skipped == [1, 2]   # 11 with Fig. A-2 (before Phase 100)
+    @test h.verdict === :not_met && h.inputs_echo.n_ok == 12 && h.inputs_echo.n == 46 && h.inputs_echo.skipped == [1, 2]   # 11 with Fig. A-2, 16 with the deck table; 12 after Phase 106 (post-hoc)
     @test isnan(PAIN._eta_n_at_mode(inp, inp.acoustic.modes[1], 1))                                 # 93.8 Hz: below Fig. A-2
     hi = [r for r in h.table if r.x ≥ 25]                                                           # modes ≥ 465 Hz
     @test all(r -> abs(r.computed / r.reference - 1) ≤ 0.10, hi)
     p = run_validation_case("APPB_ETA_RPP")
-    @test p.verdict === :not_met && p.inputs_echo.n_ok == 12 && p.inputs_echo.n == 19   # 8 with Fig. A-2 (before Phase 100)
+    @test p.verdict === :met && p.inputs_echo.n_ok == 16 && p.inputs_echo.n == 19   # 8 with Fig. A-2, 12 with the deck table (not met); 16 after Phase 106 (post-hoc)
     # NASA prints one η_r″ for cabin mode 19 × structural mode 6 at 400 and 250 Hz; the tone-frequency N does not
     i4 = findfirst(r -> occursin("4000 rpm H2: cabin mode 19 × structural mode 6", r.quantity), p.table)
     i5 = findfirst(r -> occursin("5000 rpm H1: cabin mode 19 × structural mode 6", r.quantity), p.table)
@@ -3282,16 +3283,16 @@ _run_if("NASA's printed mode-pair contributions (phase 92)") do
     @test length(terms) > 100
     @test tone_mean_square_pressure(inp, 1, 2π * 200.0) == p2                     # collecting changes nothing
     a = run_validation_case("APPB_PAIRS")
-    @test a.verdict === :no_verdict && a.inputs_echo.n == 25 && a.inputs_echo.n_ok == 15
-    @test occursin("4000:H1 95.4 %", a.reason)                                     # q = 0 dominates this code's H1 (92.4 % with Fig. A-2)
+    @test a.verdict === :no_verdict && a.inputs_echo.n == 25 && a.inputs_echo.n_ok == 21   # re-recorded after Phases 106–107 (2026-10-30, post-hoc)
+    @test occursin("4000:H1 94.9 %", a.reason)                                     # q = 0 dominates this code's H1 (92.4 % with Fig. A-2)
     b = run_validation_case("APPB_PAIRS_Q0_ETAN")
-    @test b.verdict === :no_verdict && b.inputs_echo.n_ok == 16 && occursin("4000:H1 0.0 %", b.reason)
+    @test b.verdict === :no_verdict && b.inputs_echo.n_ok == 22 && occursin("4000:H1 0.0 %", b.reason)   # re-recorded after Phases 106–107 (2026-10-30, post-hoc)
     q = run_validation_case("R172428_CODE_Q0")                                     # 92b: 2/3 held out, not supported
-    @test q.verdict === :no_verdict && PAIN.underlying_verdict(q) === :not_met
-    @test q.inputs_echo.n_ok == 2 && q.inputs_echo.n_held == 3
+    @test q.verdict === :no_verdict && PAIN.underlying_verdict(q) === :met   # not met (2/3) before Phase 106; post-hoc
+    @test q.inputs_echo.n_ok == 3 && q.inputs_echo.n_held == 3
     h3 = only(r for r in q.table if r.quantity == "3000 rpm H3")
-    @test 3.0 < h3.residual < 3.2                                                   # missed by 0.09 dB
-    @test count(r -> abs(r.residual) ≤ 3.0, q.table) == 8
+    @test 1.7 < h3.residual < 1.9                                                   # +3.09 before Phase 106 (missed by 0.09 dB)
+    @test count(r -> abs(r.residual) ≤ 3.0, q.table) == 9
     c = run_validation_case("R172428_CODE_Q0_ETAN")
     @test c.verdict === :no_verdict && all(r -> abs(r.residual) < 2.5, c.table)     # post-hoc, no criterion
     @test !inp.q0_coupled && inp.η_n_per_mode                                      # Phase 93 defaults
@@ -3317,13 +3318,13 @@ _run_if("CR-172428 program form as default; held-out Table 12 (phases 93, 94)") 
     @test tone_mean_square_pressure(inp, 1, ωH) != tone_mean_square_pressure(old, 1, ωH)
     # R172428_CODE keeps CR-3813's tone sum (its recorded 4/9); the default form against it is post-hoc
     c = run_validation_case("R172428_CODE")
-    @test c.verdict === :not_met && count(r -> r.within_tolerance, c.table) == 4
+    @test c.verdict === :not_met && count(r -> r.within_tolerance, c.table) == 5   # 4 before Phase 106 (post-hoc)
     # 94a, 94b (P, held out): met
     t = run_validation_case("R172428_ETAT2")
     @test t.verdict === :met && t.inputs_echo.n_ok == 9 && maximum(abs(r.residual) for r in t.table) < 2.15   # 1.69 before Phase 96, 2.09 after
     e = run_validation_case("APPB_ETA_N_T2")
     @test e.verdict === :met && e.inputs_echo.n_ok == 3
-    @test e.inputs_echo.ours ≈ [0.0876, 0.0779, 0.0827] atol = 1e-4   # deck table (Phase 100); Fig. A-2: 0.0877, 0.0782, 0.0829
+    @test e.inputs_echo.ours ≈ [0.0884, 0.0787, 0.0833] atol = 1e-4   # Phase 106; deck table 0.0876, 0.0779, 0.0827; Fig. A-2: 0.0877, 0.0782, 0.0829
     # η_T is an input: the η_T = 2.0 run differs from the Table 6 one
     @test interior_spl(r172428_inputs(4000; η_T=2.0); bpf_Hz=200.0, n_harmonics=1).harmonic_SPL_dB[1] !=
           interior_spl(inp; bpf_Hz=200.0, n_harmonics=1).harmonic_SPL_dB[1]
@@ -3348,12 +3349,12 @@ _run_if("NASA's band-centre η_n rule (phases 95, 96)") do
     @test PAIN.acoustic_N_per_mode(inp, ac, 0, ωn; V) ≈ hand rtol = 1e-12
     @test PAIN.acoustic_N_per_mode(PAIN._with_fields(inp; η_n_band_omega=false), ac, 0, ωn; V) != hand
     a = run_validation_case("APPB_ETA_N_BAND")                                       # 96a, post-hoc
-    @test a.verdict === :no_verdict && a.inputs_echo.n == 46 && a.inputs_echo.n_10pct == 45 && a.inputs_echo.n_2pct_nasa_admittance == 45   # 42 with Fig. A-2 (before Phase 100)
+    @test a.verdict === :no_verdict && a.inputs_echo.n == 46 && a.inputs_echo.n_10pct == 46 && a.inputs_echo.n_2pct_nasa_admittance == 46   # 42 with Fig. A-2, 45 with the deck table; 46 after Phase 106 (post-hoc)
     b = run_validation_case("APPB_ETA_N_T2_BAND")                                    # 96b, P, held out
     @test b.verdict === :met && b.inputs_echo.n_ok == 3
-    @test b.inputs_echo.ours ≈ [0.0887, 0.0776, 0.0822] atol = 1e-4                 # deck table (Phase 100); Fig. A-2: 0.0894, 0.0779, 0.0827
+    @test b.inputs_echo.ours ≈ [0.0898, 0.0783, 0.0827] atol = 1e-4                 # Phase 106; deck table 0.0887, 0.0776, 0.0822
     d = run_validation_case("R172428_CODE_DEFAULT")                                  # 96d, post-hoc
-    @test d.verdict === :no_verdict && count(r -> r.within_tolerance, d.table) == 8
+    @test d.verdict === :no_verdict && count(r -> r.within_tolerance, d.table) == 9   # 8 before Phase 106
     for id in ("APPB_ETA_N_BAND", "APPB_ETA_N_T2_BAND", "R172428_CODE_DEFAULT")
         png = plot_case(run_validation_case(id), VALIDATION_CASES[id].plot_spec; path=joinpath(TEST_OUT, "$(id).png"))
         @test isfile(png) && filesize(png) > 0
@@ -3393,6 +3394,66 @@ _run_if("Merlin IVC modes vs CR-172428 App. C (phase 101)") do
     @test isfile(png) && filesize(png) > 0
 end
 
+_run_if("FLIGHT_MODES second transcription pass and mass parts (phase 110)") do
+    # Plan §8az: the checked transcription keeps FLIGHT_MODES' verdict (first pass) and re-runs it post-hoc.
+    r = run_validation_case("FLIGHT_MODES_P2")
+    @test r.verdict === :no_verdict && PAIN.underlying_verdict(r) === :met && r.inputs_echo.n_ok == 199 && r.inputs_echo.n == 221
+    @test run_validation_case("FLIGHT_MODES").verdict === :not_met                                  # first-pass verdict on record
+    c = PAIN._appc_mode_rows("appC_merlin_structural_modes_checked.csv")
+    @test length(c.mode) == 221 && c.M[findfirst(==(230), c.mode)] == 4 && c.M_total_kg[findfirst(==(174), c.mode)] == 73.40
+    # mass parts: the shell and plate normal-displacement parts match NASA's; mode 41's total does not (in-plane part)
+    g = PAIN.merlin_mrp_deck()
+    full = PAIN.appd_modes(g; n_modes=60, n_axial=10, n_circ=14, n_floor_max=5, n_keep_shell=typemax(Int), n_keep_floor=typemax(Int)).modes
+    x = only(m for m in full if m.symmetric && m.M_axial == 1 && abs(m.f_Hz - 231.09) < 1)
+    pr = PAIN._mode_mass_parts(x, g)
+    @test isapprox(pr.shell, 19.749; rtol=0.01) && isapprox(pr.plate, 4.557; rtol=0.01) && x.M_r > 1.5 * 1002.69
+end
+
+_run_if("Run 10's floor-term sign on the printed H1/H5 pairs (phase 108)") do
+    # Plan §8ax; test fixed 2026-10-30 before any H1/H5 pair was computed. Recorded first run: H_pre supported (8 vs 5).
+    r = run_validation_case("FLIGHT10_FLOOR_SIGN")
+    @test r.verdict === :no_verdict && r.inputs_echo.n == 10
+    @test r.inputs_echo.count_minus == 8 && r.inputs_echo.count_plus == 5 && r.inputs_echo.outcome == "supported"
+    @test PAIN.r172428_flight10_inputs().floor_sign == -1.0 && PAIN.r172428_inputs(4000).floor_sign == 1.0   # run 10 only
+end
+
+_run_if("Cabin-mode frequency: CYL2D's 2-D part at 341 m/s (phase 106)") do
+    # Plan §8av; criterion fixed 2026-10-30. Recorded first run: met (47/47; 6/47 in the form before Phase 106).
+    ac = PAIN.cyl2d_modes(56.6; NY=10, c0=343.0); m = ac.modes[2]
+    @test PAIN.cabin_frequency_3d(m, 0.508, 1.829, 0; c0=343.0) ≈ 195.87 atol = 0.01            # App. B p. 185, (0, 1)
+    @test PAIN.cabin_frequency_3d(m, 0.508, 1.829, 0; c0=343.0, c2d=343.0) ≈ 195.87 * 343 / 341 rtol = 1e-4
+    @test PAIN.cabin_frequency_3d(ac.modes[1], 0.508, 1.829, 1; c0=343.0) ≈ 343 / (2 * 1.829)       # axial part at card 2's c
+    r = run_validation_case("CABIN_FREQ_PRINTED")
+    @test r.verdict === :met && r.inputs_echo.n_ok == r.inputs_echo.n == 47 && r.inputs_echo.n_old == 6
+    @test r.inputs_echo.m_ok == 80 && r.inputs_echo.m_n == 81
+end
+
+_run_if("MRPMOD's 5 shell / 3 floor terms on the solver path (phase 107)") do
+    # Plan §8aw (verification; seen in Phase 103): the solver keeps MRPMOD's term budget, and the kept index sets are
+    # Table D-1's (what PAIN reads) at all 32 modes.
+    d1 = PAIN.structural_modes_from_table_d1(; n_keep=32); so = PAIN.appd_modes(PAIN.appd_nasa_deck(); n_modes=32)
+    @test all(length(m.n_shell) == 5 && length(m.n_floor) == 3 for m in so.modes)
+    @test count(i -> Set(d1.modes[i].n_shell) == Set(so.modes[i].n_shell), 1:32) == 32
+    @test count(i -> Set(d1.modes[i].n_floor) == Set(so.modes[i].n_floor), 1:32) == 32
+    wide = PAIN.appd_modes(PAIN.appd_nasa_deck(); n_modes=32, n_keep_shell=8, n_keep_floor=5)
+    @test all(length(m.n_shell) == 8 for m in wide.modes) && [m.M_r for m in wide.modes] == [m.M_r for m in so.modes]
+end
+
+_run_if("CYL2D grid rule vs PAIN's printed cabin modes (phase 105)") do
+    # Plan §8au; criterion fixed 2026-10-30 before the two held-out lists were transcribed. Recorded first run: not met.
+    @test PAIN.cyl2d_modes(56.6).NY == 10 && PAIN._build_grid(deg2rad(50.0), 11).h > 0          # default node rule unchanged
+    sd = PAIN._printed_2d_list("appC_smalldia_acoustic_modes.csv"); nb = PAIN._printed_2d_list("appC_narrowbody_acoustic_modes.csv")
+    @test sd.eps00_printed && sd.eps00 == 0.96858 && !nb.eps00_printed && nb.eps00 ≈ 1.9508 / 2
+    @test isapprox(sd.Δ, 14.913; atol=0.001) && isapprox(nb.Δ, 8.1667; atol=0.001)                # the prints' own axial spacing
+    r = run_validation_case("CYL2D_PRINTED")
+    @test r.verdict === :not_met
+    @test occursin("narrow body (θ₀ 73.7°, NY 12)", r.reason) && occursin("2-D f 51/51", r.reason)  # Merlin (seen) reproduced
+    # Diagnostic (after the verdict): NASA's narrow-body grid is NY = 8 with 0.45h
+    cy = PAIN.cyl2d_modes(73.7; NY=8, c0=341.0, node_tol=0.45)
+    @test cy.modes[1].eps_n ≈ nb.eps00 rtol = 2e-4
+    @test all(abs(cy.modes[findfirst(m -> m.index == q.I, cy.modes)].f_Hz_unit / 1.875 / q.f2d - 1) < 2e-4 for q in nb.pts)
+end
+
 _run_if("Run 10's field angle as printed (phase 104)") do
     # Plan §8at: the deck's printed field cards (k = 1, ℓ = 1, 2) sit on printed grid lines L = 9 + ℓ, θ from the bottom.
     f = PAIN.r172428_flight10_field()
@@ -3422,11 +3483,13 @@ _run_if("Flight run 10, H2–H4, and the trim per band (phase 102)") do
     @test all(f.amps[:, :, 1] .== 0) && f.amps[7, 10, 3] ≈ PAIN.spl_dB_to_peak_Pa(133.3)        # H3 peak, printed 133.3 dB
     @test only(p.theta_deg for p in f.pts if p.k == 1 && p.ell == 10) == 75.0                    # propeller line (Phase 104)
     r = run_validation_case("FLIGHT10_H234")
-    @test r.verdict === :no_verdict && r.inputs_echo.closer == 0
-    # Re-recorded after Phase 104 (θ as printed; post-hoc, seen in Phase 103). Phase 102 recorded 98.30 / 89.76 / 79.19
-    # and 98.68 / 89.77 / 79.17 with the flipped field.
-    @test r.inputs_echo.as_shipped ≈ [96.80, 88.85, 80.67] atol = 0.01
-    @test r.inputs_echo.band ≈ [97.14, 88.87, 80.64] atol = 0.01
+    @test r.verdict === :no_verdict && r.inputs_echo.closer == 3   # 0/3 until Phase 108 (pre-correction sign); post-hoc
+    # Re-recorded after Phase 104 (θ as printed) and Phase 105 (NASA's printed Merlin grid, NY = 11, 0.45h); post-hoc, seen
+    # in Phase 103. Phase 102 recorded 98.30 / 89.76 / 79.19 and 98.68 / 89.77 / 79.17; Phase 104 96.80 / 88.85 / 80.67.
+    # After Phases 106 (2-D part at 341 m/s) and 107 (5 shell / 3 floor terms): post-hoc; Phase 105 gave 97.13 / 89.37 / 81.34.
+    # After Phase 108 (run 10's pre-correction floor-term sign, post-hoc): Phases 106–107 gave 97.33 / 89.00 / 82.86.
+    @test r.inputs_echo.as_shipped ≈ [94.60, 87.44, 83.89] atol = 0.01
+    @test r.inputs_echo.band ≈ [94.99, 87.47, 83.91] atol = 0.01
     png = plot_case(r, VALIDATION_CASES["FLIGHT10_H234"].plot_spec; path=joinpath(TEST_OUT, "FLIGHT10_H234.png"))
     @test isfile(png) && filesize(png) > 0
 end
@@ -3563,7 +3626,7 @@ _run_if("Propeller-field NR and open items (phases 50, 53, 56, 57)") do
     # scale_acoustic_freq: f_unit/a equals the q = 0 cabin frequency from the mode eigenvalue (c0 = 340)
     cy = PAIN.cyl2d_modes(56.6; n_modes=6, NY=10)
     for mo in cy.modes[2:6]
-        @test PAIN.scale_acoustic_freq(mo.f_Hz_unit, 0.508) ≈ PAIN.cabin_frequency_3d(mo, 0.508, 1.83, 0; c0=340.0) rtol = 1e-9
+        @test PAIN.scale_acoustic_freq(mo.f_Hz_unit, 0.508) ≈ PAIN.cabin_frequency_3d(mo, 0.508, 1.83, 0; c0=340.0, c2d=340.0) rtol = 1e-9
     end
     # hf_broadband_spectrum: its 1.25 kHz band is the Eq. (19)–(23) value of the blocked broadband level
     rp = run_pain_pipeline(; source=:e11, n_harmonics=5, bpf_Hz=200.0, blocking=R2)

@@ -576,6 +576,8 @@ const DIAGNOSTIC_CASES = Dict(
     "R172428_TRIM_DECK" => "sets NASA's App. D PF-105 deck table against App. B's trim admittances; selects the input (Phase 100a)",
     # Phase 102 (2026-10-30): flight run 10, H2–H4; FLIGHT_MODES not met, so no verdict
     "FLIGHT10_H234" => "sets the code as it ships and the trim per band against PAIN's printed run 10 levels (Phase 102)",
+    "FLIGHT_MODES_P2" => "re-runs FLIGHT_MODES on the checked (second-pass) App. C transcription (Phase 110, post-hoc)",
+    "FLIGHT10_FLOOR_SIGN" => "tests on the printed H1/H5 pairs whether run 10 used the pre-correction floor-term sign (Phase 108)",
 )
 
 """True for a case that carries no verdict by rule: an information case or a diagnostic run."""

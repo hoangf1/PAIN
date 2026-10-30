@@ -2479,6 +2479,9 @@ function _finish_validation_registry!()
     append!(cases, _iso100_validation_cases()) # phase 100 NASA's per-band PF-105 table
     append!(cases, _iso101_validation_cases()) # phase 101 Merlin IVC modes vs App. C
     append!(cases, _iso102_validation_cases()) # phase 102 flight run 10, H2–H4 (diagnostic)
+    append!(cases, _iso105_validation_cases()) # phase 105 CYL2D grid rule vs printed cabin modes
+    append!(cases, _iso106_validation_cases()) # phase 106 cabin-mode frequency vs printed lists
+    append!(cases, _iso108_validation_cases()) # phase 108 run 10 floor-term sign (diagnostic)
     append!(cases, _iso90_validation_cases())  # phase 90 Report 996 Fig. 10 reflecting walls
 
     # E21_E22_NR (38a), T2_EQ19 (38c), E18_TONES (38d), E15_STRUCT_LOSS (38e); no greyed placeholders.
@@ -2565,7 +2568,7 @@ function _finish_validation_registry!()
         "UT_GRID", "GEXT_BOUND", "ISO_GEXT_LINE",
         "BLK_P68", "E12_BLOCK", "ISO_BLOCKING",
         "MRP_D1", "MRP_RITZ", "MRP_APPD", "MRP_COUPLED_LIMITS", "MRP_TRUNC",
-        "CYL2D_C1", "ISO_CYL2D_EXACT", "ISO_CYL2D_BOUNDARY",
+        "CYL2D_C1", "CYL2D_PRINTED", "CABIN_FREQ_PRINTED", "ISO_CYL2D_EXACT", "ISO_CYL2D_BOUNDARY",
         "E14_LOSS", "E15_STRUCT_LOSS", "TRIM_CLOSED", "ISO_JOINT_ACC",
         "ISO_MODAL_DENSITY", "ISO_BB_BAND", "ISO_SIL", "LOUDEST_PT", "LOUDEST_PT_GRID", "NR_BAND_HAND", "HF_MASSLAW",
         "REPRO_18b", "E18_TONES",
@@ -2575,7 +2578,7 @@ function _finish_validation_registry!()
         "SHARP_PANEL_D", "SHARP_PANEL_D_SHAPE", "NR_PROP_TP2444_BR", "E22_BR", "T2_MEAS_EXT_BR",
         "REPRO_18b_PRE", "E21_PRE", "E22_HF_CODE", "E22_HF_DECK", "REPRO_18b_DECK", "T2_EQ19_DECK", "E21_PRE_DECK", "R172428_CODE_DECK", "R172428_EXP_DECK",
         "APPB_EPS_N", "APPB_ETA_N", "APPB_ETA_RPP", "Q0_REPRO_18b", "Q0_E18", "Q0_E21", "R172428_CODE_ETAN", "R996_FIG10_FLAT", "R996_FIG10_CIRC",
-        "APPB_PAIRS", "APPB_PAIRS_Q0_ETAN", "R172428_CODE_Q0", "R172428_CODE_Q0_ETAN", "R172428_ETAT2", "APPB_ETA_N_T2", "APPB_ETA_N_BAND", "APPB_ETA_N_T2_BAND", "R172428_CODE_DEFAULT", "BAND_REPRO_18b", "BAND_E18", "R172428_TRIM_DECK", "FLIGHT_MODES", "FLIGHT10_H234",
+        "APPB_PAIRS", "APPB_PAIRS_Q0_ETAN", "R172428_CODE_Q0", "R172428_CODE_Q0_ETAN", "R172428_ETAT2", "APPB_ETA_N_T2", "APPB_ETA_N_BAND", "APPB_ETA_N_T2_BAND", "R172428_CODE_DEFAULT", "BAND_REPRO_18b", "BAND_E18", "R172428_TRIM_DECK", "FLIGHT_MODES", "FLIGHT_MODES_P2", "FLIGHT10_H234", "FLIGHT10_FLOOR_SIGN",
         "F1A_PLANE_PEAK", "FF_E11_MAP", "SRC_PASSTHROUGH", "BLK_GAIN_MAP", "MRP_INPUT_QA", "MRP_SHAPE_NORM",
         "CABIN_GEOM_HAND", "CYL2D_WEYL", "CYL2D_GRID_CONV", "TRIM_INPUT_QA", "TRIM_PASSIVITY", "PAIN_INPUT_ECHO", "AC_CABIN_DEMO",
         "BEMT_MOMENTUM", "BEMT_HAND_TIP", "BEMT_INTEGRALS", "BEMT_SIMILARITY",

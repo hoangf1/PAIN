@@ -673,7 +673,7 @@ function _appd_shape_peak(C_shell, n_shell, C_floor, n_floor, sym::Bool, θ0::Fl
 end
 
 function _appd_extract_shapes(q::AbstractVector, b::_AppDBasis, g::AbstractAppDInput, Mr::Float64;
-                              n_keep_shell::Int=8, n_keep_floor::Int=5)
+                              n_keep_shell::Int=5, n_keep_floor::Int=3)
     # Phase 78d-4 J1: the solver applies (D.4) at θ0 with the cos nθ / sin nθ basis, i.e. App. D's equations on the
     # structure mirrored top to bottom; its amplitudes c_n are in θ from the bottom with the floor w positive
     # downward. App. D (Fig. D-1, (D.3)) and Table D-1 measure θ from the top (`shell_circumferential` applies
@@ -706,7 +706,8 @@ function _appd_extract_shapes(q::AbstractVector, b::_AppDBasis, g::AbstractAppDI
         C_floor ./= peak
         Mr = Mr / peak^2
     end
-    # Keep largest coefficients (same budget as Table D-1 print)
+    # Keep the largest coefficients: MRPMOD hands PAIN at most 5 shell and 3 floor terms (User Manual §5.3.1 card 4; Table D-1
+    # has exactly 5 and 3). Phase 107 (2026-10-30), was 8 and 5. M_r and the peak normalization stay those of the full shape.
     function topk(C, n, k)
         isempty(C) && return C, n
         ord = sortperm(abs.(C); rev=true)
@@ -773,7 +774,8 @@ function appd_modes(geometry::AbstractAppDInput;
                     include_antisym::Bool=true,
                     rigid::Bool=true,
                     floor_cross_terms::Bool=false,
-                    f_max_Hz::Float64=5000.0)
+                    f_max_Hz::Float64=5000.0,
+                    n_keep_shell::Int=5, n_keep_floor::Int=3)   # MRPMOD's term budget (Phase 107)
     cands = NamedTuple[]
     for M in 1:n_axial
         for sym in (true, false)
@@ -786,7 +788,7 @@ function appd_modes(geometry::AbstractAppDInput;
                 q = fam.Q[:, ei]
                 # Rayleigh mass with unconstrained M*
                 Mr_raw = abs(dot(q, Mass * q))
-                Cs, ns, Cf, nf, Mr_n = _appd_extract_shapes(q, b, geometry, Mr_raw)
+                Cs, ns, Cf, nf, Mr_n = _appd_extract_shapes(q, b, geometry, Mr_raw; n_keep_shell, n_keep_floor)
                 (isempty(Cs) && isempty(Cf)) && continue
                 push!(cands, (; f, sym, Mr=Mr_n, m=M, C_shell=Cs, n_shell=ns,
                                C_floor=Cf, n_floor=nf, q=q, key=(M, sym)))

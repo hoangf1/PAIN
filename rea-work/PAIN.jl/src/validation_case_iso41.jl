@@ -450,7 +450,7 @@ function _run_nr_band_hand()
     mA4_τ = (ρ_ext * c_ext * A / (2 * ω))^2
     pref = 8 / (c_ω * ω) * (Abar / V)^2 * mA4_τ * c_int^2 * ω^3
     q = 0
-    ωn = 2π * cabin_frequency_3d(ac1, a, inp.L_c, q; c0=c_int)
+    ωn = 2π * cabin_frequency_3d(ac1, a, inp.L_c, q; c0=c_int, c2d=inp.c_cyl2d)
     εn = cabin_eps_3d(ac1, q)
     ωr = 2π * st.f_Hz
     j2 = structural_joint_acceptance(st, ω; a, L, c0=c_ext)

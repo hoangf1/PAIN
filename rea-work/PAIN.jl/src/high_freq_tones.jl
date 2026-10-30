@@ -80,7 +80,7 @@ function modes_in_tone_band(inp::PainInputs, ωH::Real; c_ω::Real=C_OMEGA_THIRD
     qtop = something(q_max, inp.q_max, axial_truncation(hi, L_c, c_int))
     ac_list = NamedTuple[]
     for q in 0:qtop, ac in inp.acoustic.modes
-        ωn = 2π * cabin_frequency_3d(ac, a, L_c, q; c0=c_int)
+        ωn = 2π * cabin_frequency_3d(ac, a, L_c, q; c0=c_int, c2d=inp.c_cyl2d)
         (lo ≤ ωn ≤ hi) && push!(ac_list, (; ac, q, ωn, εn=cabin_eps_3d(ac, q)))
     end
     st_list = NamedTuple[]

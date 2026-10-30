@@ -66,8 +66,10 @@ end
     @test PAIN.acoustic_boundary_value(m, mid) ≈ (m.phi_boundary[3] + m.phi_boundary[4]) / 2 atol = 1e-9
     @test PAIN.scale_acoustic_freq(300.0, 0.5) == 600.0
     a, L = 0.508, 1.83
-    @test PAIN.cabin_frequency_3d(m, a, L, 0) ≈ m.f_Hz_unit / a rtol = 1e-12
-    @test PAIN.cabin_frequency_3d(m, a, L, 2) ≈ hypot(m.f_Hz_unit / a, 2 * 340 / (2L)) rtol = 1e-12
+    # Phase 106: the 2-D part at CYL2D's 341 m/s (`m` was solved at the default c0 = 340), the axial part at c0
+    @test PAIN.cabin_frequency_3d(m, a, L, 0) ≈ m.f_Hz_unit / a * PAIN.CYL2D_C0 / 340 rtol = 1e-12
+    @test PAIN.cabin_frequency_3d(m, a, L, 0; c2d=340.0) ≈ m.f_Hz_unit / a rtol = 1e-12
+    @test PAIN.cabin_frequency_3d(m, a, L, 2) ≈ hypot(m.f_Hz_unit / a * PAIN.CYL2D_C0 / 340, 2 * 340 / (2L)) rtol = 1e-12
     @test PAIN.cabin_eps_3d(m, 0) == m.eps_n && PAIN.cabin_eps_3d(m, 3) == 2m.eps_n
     @test PAIN.axial_truncation(2π * 200, 1.83, 340.0) == ceil(Int, 4 * 200 * 1.83 / 340)
     m3 = PAIN.cabin_modes_3d(c, a, L, 2)

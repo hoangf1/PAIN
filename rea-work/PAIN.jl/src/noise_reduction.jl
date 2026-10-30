@@ -116,7 +116,7 @@ function acoustic_modes_in_band(inp::PainInputs, fc::Real; c_ω::Real=C_OMEGA_TH
     qtop = something(inp.q_max, axial_truncation(hi, L_c, c_int))
     n = 0
     for q in 0:qtop, ac in inp.acoustic.modes
-        ωn = 2π * cabin_frequency_3d(ac, a, L_c, q; c0=c_int)
+        ωn = 2π * cabin_frequency_3d(ac, a, L_c, q; c0=c_int, c2d=inp.c_cyl2d)
         (lo ≤ ωn ≤ hi) && (n += 1)
     end
     return n
@@ -231,7 +231,7 @@ function w_in_reverberant(inp::PainInputs, fc::Real;
     W = 0.0
     contribs = NamedTuple[]
     for q in 0:qtop, ac in inp.acoustic.modes
-        ωn = 2π * cabin_frequency_3d(ac, a, L_c, q; c0=c_int)
+        ωn = 2π * cabin_frequency_3d(ac, a, L_c, q; c0=c_int, c2d=inp.c_cyl2d)
         ωn == 0 && continue   # rigid-body: η_n undefined / Inf; no band contribution in the closed form
         εn = cabin_eps_3d(ac, q)
         N = acoustic_N(inp, ac, q, f_band, ωn; ξ, ξ_e=ξe, V)
@@ -320,7 +320,7 @@ function noise_reduction_band(inp::PainInputs, fc::Real;
     pref = 8 / (c_ω * ω) * (Abar / V)^2 * mA4_τ * c_int^2 * ω^3
     ratio = 0.0
     for q in 0:qtop, ac in inp.acoustic.modes
-        ωn = 2π * cabin_frequency_3d(ac, a, L_c, q; c0=c_int)
+        ωn = 2π * cabin_frequency_3d(ac, a, L_c, q; c0=c_int, c2d=inp.c_cyl2d)
         ωn == 0 && continue
         εn = cabin_eps_3d(ac, q)
         N = acoustic_N(inp, ac, q, f_band, ωn; ξ, ξ_e=ξe, V)

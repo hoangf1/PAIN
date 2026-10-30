@@ -13,7 +13,7 @@ _acmode_by_I(inp::PainInputs, I::Integer) = inp.acoustic.modes[findfirst(m -> m.
 where the Fig. A-2 insulation table has no data.
 """
 function _eta_n_at_mode(inp::PainInputs, ac, q::Integer; V::Real=cabin_volume(inp))
-    f = cabin_frequency_3d(ac, inp.fuse.a, inp.L_c, q; c0=inp.c_int)
+    f = cabin_frequency_3d(ac, inp.fuse.a, inp.L_c, q; c0=inp.c_int, c2d=inp.c_cyl2d)
     f < 100 && return NaN
     ω = 2π * f
     ξ = trim_conductance(inp.sidewall, ω, inp.m_wall; ρ0=inp.ρ_int, c0=inp.c_int)
@@ -61,7 +61,7 @@ function _eta_r_pp_pair(inp::PainInputs, ac, q::Integer, st, f_H::Real; V::Real=
     a, L = inp.fuse.a, inp.fuse.L; θ0 = deg2rad(inp.fuse.theta0_deg)
     A = L * (2a * sin(θ0) + 2a * (π - θ0))
     ωH = 2π * f_H
-    ωn = 2π * cabin_frequency_3d(ac, a, inp.L_c, q; c0=inp.c_int); ωr = 2π * st.f_Hz
+    ωn = 2π * cabin_frequency_3d(ac, a, inp.L_c, q; c0=inp.c_int, c2d=inp.c_cyl2d); ωr = 2π * st.f_Hz
     ξ = trim_conductance(inp.sidewall, ωH, inp.m_wall; ρ0=inp.ρ_int, c0=inp.c_int)
     ξe = trim_conductance(inp.endplates, ωH, Inf; ρ0=inp.ρ_int, c0=inp.c_int)
     N = acoustic_N(inp, ac, q, f_H, ωn; ξ, ξ_e=ξe, V)

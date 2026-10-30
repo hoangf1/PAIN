@@ -48,3 +48,12 @@ diagnosed.
 from the bottom centreline (the deck's ℓ = 1…10 are L = 10…19, CR-172428 App. A item 5). With θ as printed and the
 propeller at 75°: as shipped 96.80 / 88.85 / 80.67 dB, trim per band 97.14 / 88.87 / 80.64 dB (+0.21 / +0.79 / −3.25 dB
 from PAIN as shipped); the trim per band is still closer at 0/3. The table above is the first run and stays on record.
+
+**After Phase 105 (2026-10-30, post-hoc).** CYL2D on NASA's printed Merlin grid (NY = 11, node rule 0.45h; App. C
+p. 212): as shipped 97.13 / 89.37 / 81.34 dB, trim per band 97.47 / 89.40 / 81.31 dB; still 0/3.
+
+**After Phases 106–107 (2026-10-30, post-hoc).** 2-D cabin-mode part at 341 m/s and MRPMOD's 5 / 3 terms: as shipped
+97.33 / 89.00 / 82.86 dB, trim per band 97.66 / 89.02 / 82.80 dB; still 0/3.
+
+**After Phase 108 (2026-10-30, post-hoc).** Run 10's pre-correction floor sign (Phase 108): as shipped 94.60 / 87.44 /
+83.89 dB, trim per band 94.99 / 87.47 / 83.91 dB; the trim per band is now closer at 3/3, by at most 0.4 dB.

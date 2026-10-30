@@ -100,7 +100,7 @@ function point_tone_p2(inp::PainInputs, H::Int, ωH::Float64; pts=cabin_interior
     field = [zeros(ComplexF64, nn, nz) for _ in 1:nst]
     φnode = zeros(nn)
     for q in 0:qtop, ac in inp.acoustic.modes
-        ωn = 2π * cabin_frequency_3d(ac, a, L_c, q; c0=c_int)
+        ωn = 2π * cabin_frequency_3d(ac, a, L_c, q; c0=c_int, c2d=inp.c_cyl2d)
         εn = cabin_eps_3d(ac, q)
         N = tone_acoustic_N(inp, ac, q, fH, ωn; ξ, ξ_e=ξe, V)
         for (i, (m, n)) in enumerate(pts.nodes)

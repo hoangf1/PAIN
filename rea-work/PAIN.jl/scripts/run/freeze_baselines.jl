@@ -9,10 +9,13 @@ println(io, "# Re-recorded 2026-10-22 at L = 1.83 m (I-22, post-hoc; earlier 1.8
 println(io, "# Phase 17 regression baselines (prior: 2026-10-21 amplitude-convention I-17/F4; 2026-10-20 eta_T=0.5). e11 source, R2 blocking, BPF 200 Hz, 3 harmonics. name,value")
 println(io, "name,value")
 for trim in (:bare, :phase3)
-    r = run_pain_pipeline(; source=:e11, n_harmonics=3, bpf_Hz=200.0, blocking=R2, trim=trim)
+    # The form the test pins (Phase 93): printed Eq. (82) and the CR-3813 tone sum (`_cr3813_tone_form`); until 2026-10-30
+    # this script used the defaults and no longer matched the test.
+    r = run_pain_pipeline(; source=:e11, n_harmonics=3, bpf_Hz=200.0, blocking=R2, trim=trim, η_r_trimmed_area=false)
     inp = r.inputs
+    spl17 = interior_spl(PAIN._cr3813_tone_form(inp); bpf_Hz=200.0, n_harmonics=3, broadband=false).harmonic_SPL_dB
     for H in 1:3
-        @printf(io, "spl_%s_H%d,%.10g\n", trim, H, r.spectrum.harmonic_SPL_dB[H])
+        @printf(io, "spl_%s_H%d,%.10g\n", trim, H, spl17[H])
         trim === :bare || continue
         for (j, st) in enumerate(inp.structural.modes)
             @printf(io, "psiG_H%d_mode%d,%.10g\n", H, j, generalized_force(st, H, inp.amplitudes, inp.phases, inp.pts, inp.fuse; ΔA=inp.ΔA))

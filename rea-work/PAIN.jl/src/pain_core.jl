@@ -101,6 +101,9 @@ struct PainInputs
     # true takes the trim of a tone (τ_t, and ξ, ξ_e when η_n is at the tone) and of a structural mode (C_w in Eq. 82)
     # at the nominal 1/3-octave centre holding the tone or mode (Phase 102 diagnostic option, untested; default false).
     trim_band_centre::Bool
+    # Speed [m/s] of the 2-D part of every cabin-mode frequency (Phase 106): CYL2D's 341 m/s, as PAIN keeps CYL2D's
+    # frequencies (CR-172428 App. B p. 185, App. C p. 212); the axial part stays at c_int. `c_int` = the form before Phase 106.
+    c_cyl2d::Float64
 end
 
 function PainInputs(fuse, prop, structural, acoustic, amplitudes, phases, pts, ΔA::Real;
@@ -118,7 +121,7 @@ function PainInputs(fuse, prop, structural, acoustic, amplitudes, phases, pts, �
                     η_r_band_is_prime::Bool=false,
                     η_r_trimmed_area::Bool=true,
                     floor_sign::Real=1.0, q0_coupled::Bool=false, η_n_per_mode::Bool=true, η_n_band_omega::Bool=true,
-                    trim_band_centre::Bool=false)
+                    trim_band_centre::Bool=false, c_cyl2d::Union{Nothing,Real}=CYL2D_C0)
     abs(floor_sign) == 1 || error("PainInputs: floor_sign must be +1 or −1 (got $floor_sign)")
     (sidewall === nothing) == (endplates === nothing) ||
         error("PainInputs: give both `sidewall` and `endplates` trim stacks, or neither (bare cabin)")
@@ -137,7 +140,7 @@ function PainInputs(fuse, prop, structural, acoustic, amplitudes, phases, pts, �
                       q_max === nothing ? nothing : Int(q_max), allow_extrapolation, ρ0f, c0f,
                       ρe, ce, ρi, ci, Lc, float(d), xover, bands_n, ηr_n, ηn_n,
                       η_r_band_is_prime, η_r_trimmed_area, float(floor_sign), q0_coupled, η_n_per_mode, η_n_band_omega,
-                      trim_band_centre)
+                      trim_band_centre, float(something(c_cyl2d, ci)))
 end
 
 """Trim stacks present (sidewall and end plates)?"""
@@ -453,7 +456,7 @@ function tone_mean_square_pressure(inp::PainInputs, H::Int, ωH::Float64;
     fH = ωH / 2π
     p2 = 0.0
     for q in 0:qtop, ac in inp.acoustic.modes
-        ωn = 2π * cabin_frequency_3d(ac, a, L_c, q; c0=c_int)
+        ωn = 2π * cabin_frequency_3d(ac, a, L_c, q; c0=c_int, c2d=inp.c_cyl2d)
         εn = cabin_eps_3d(ac, q)
         N = tone_acoustic_N(inp, ac, q, fH, ωn; ξ, ξ_e=ξe, V)
         Dn = (ωn^2 - ωH^2)^2 + N^2

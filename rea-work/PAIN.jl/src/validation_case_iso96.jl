@@ -6,13 +6,13 @@ const _P96_REPORT = "phase95_96_eta_n_band_rule.md"
 
 """η_n of cabin mode (ac, q) by the code's default rule (`acoustic_N_per_mode`)."""
 function _eta_n_default(inp::PainInputs, ac, q::Integer; V::Real=cabin_volume(inp))
-    ωn = 2π * cabin_frequency_3d(ac, inp.fuse.a, inp.L_c, q; c0=inp.c_int)
+    ωn = 2π * cabin_frequency_3d(ac, inp.fuse.a, inp.L_c, q; c0=inp.c_int, c2d=inp.c_cyl2d)
     return ωn > 0 ? acoustic_N_per_mode(inp, ac, q, ωn; V) / ωn^2 : NaN
 end
 
 """η_n by the same rule with NASA's printed admittance (App. B p. 197) at the nominal centre, for the echo."""
 function _eta_n_nasa_admittance(inp::PainInputs, ac, q::Integer, tr; V::Real=cabin_volume(inp))
-    ωn = 2π * cabin_frequency_3d(ac, inp.fuse.a, inp.L_c, q; c0=inp.c_int)
+    ωn = 2π * cabin_frequency_3d(ac, inp.fuse.a, inp.L_c, q; c0=inp.c_int, c2d=inp.c_cyl2d)
     fc = max(100.0, nominal_band_centre(ωn / 2π))
     j = findfirst(==(fc), tr[:f_Hz])
     N = acoustic_loss_modal(ac, q, 2π * fc, ωn; a=inp.fuse.a, L=inp.L_c, V, c0=inp.c_int,
@@ -28,7 +28,7 @@ function _run_appb_eta_n_band()
     table = ValidationTableRow[]; xs = Float64[]; ref = Float64[]; got = Float64[]; n2 = 0; n10 = 0; nn = 0
     for k in eachindex(ac_tab[:mode])
         q = Int(ac_tab[:Q][k]); I = Int(ac_tab[:I][k]); ac = _acmode_by_I(inp, I)
-        cabin_frequency_3d(ac, inp.fuse.a, inp.L_c, q; c0=inp.c_int) < 100 && continue
+        cabin_frequency_3d(ac, inp.fuse.a, inp.L_c, q; c0=inp.c_int, c2d=inp.c_cyl2d) < 100 && continue
         mode = Int(ac_tab[:mode][k]); nasa = ac_tab[:loss_factor][k]
         ours = _eta_n_default(inp, ac, q; V); r = ours / nasa
         n2 += abs(r - 1) ≤ 0.02; n10 += abs(r - 1) ≤ 0.10

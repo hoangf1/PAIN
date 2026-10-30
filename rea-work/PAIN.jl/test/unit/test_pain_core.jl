@@ -42,7 +42,9 @@ end
         @test fp - fm ≈ 2ax * Ip / den rtol = 1e-6 atol = 1e-12
         @test abs(fp) ≤ 1
         @test PAIN.coupling_factor(ac, st, inp.fuse; τ_t=0.25) ≈ ax * (0.5Is + Ip) / den rtol = 1e-6 atol = 1e-12
-        @test PAIN.coupling_factor(ac, st, inp) == PAIN.coupling_factor(ac, st, inp.fuse; L_c=inp.L_c, d=inp.d)
+        # q = 0 is coupled only with q0_coupled (default false since Phase 93)
+        @test PAIN.coupling_factor(ac, st, PAIN._with_fields(inp; q0_coupled=true)) == PAIN.coupling_factor(ac, st, inp.fuse; L_c=inp.L_c, d=inp.d)
+        @test inp.q0_coupled || PAIN.coupling_factor(ac, st, inp) == 0.0
     end
     @test_throws ErrorException PAIN.coupling_factor(ac_s, inp.structural.modes[1], inp.fuse; floor_sign=2)
 end
@@ -182,6 +184,7 @@ end
     fc = PAIN.nearest_third_octave(ωn / 2π, PAIN.third_octave_centers())
     ξ = PAIN.trim_conductance(inp.sidewall, 2π * fc, inp.m_wall; ρ0=inp.ρ_int, c0=inp.c_int)
     ξe = PAIN.trim_conductance(inp.endplates, 2π * fc, Inf; ρ0=inp.ρ_int, c0=inp.c_int)
-    @test PAIN.acoustic_N_per_mode(inp, ac, 0, ωn; V) ≈ PAIN.acoustic_N(inp, ac, 0, ωn / 2π, ωn; ξ, ξ_e=ξe, V) rtol = 1e-12
+    old = PAIN._with_fields(inp; η_n_band_omega=false)                               # the Phase 89 reading (default true since Phase 96)
+    @test PAIN.acoustic_N_per_mode(old, ac, 0, ωn; V) ≈ PAIN.acoustic_N(old, ac, 0, ωn / 2π, ωn; ξ, ξ_e=ξe, V) rtol = 1e-12
     @test PAIN.acoustic_N_per_mode(inp, inp.acoustic.modes[1], 0, 0.0; V) == 0.0     # rigid mode: N = η ω_n² = 0
 end
