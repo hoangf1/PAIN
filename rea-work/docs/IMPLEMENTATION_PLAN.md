@@ -240,7 +240,7 @@ or the other documents points there. When a phase is done, mark it done and move
 
 | Q | Item | Kind | Prerequisite | Output |
 |---|------|------|--------------|--------|
-| — | No open item (2026-10-29); Phases 90–91 are done | — | — | — |
+| Q73 | **Phase 92 — which mode pairs differ from NASA's printed contributors** (§8ai) | diagnostic + held-out test | App. B contributor lists | 92a table; 92b 3000 rpm held-out run; report |
 
 If a queue item is blocked on data, skip to the next unblocked item and say which data item blocks it.
 
@@ -284,6 +284,32 @@ The diagram matches the code (phases 21–22 done 2026-10-21): `propeller_ccblad
 | Driver | `scripts/run/run_pain.jl` |
 
 ---
+
+## 8ai. Phase 92 — NASA's printed mode-pair contributions (CR-172428 App. B pp. 207, 212)
+
+*(planned 2026-10-29; author: "at this point if tuning helps us find the solution to the issue thats fine since thats
+diagnostics". Everything in this phase is a diagnostic: no verdict, off the map, defaults unchanged unless 92b says so.)*
+
+**92a (run 2026-10-29, before this entry was written; a diagnostic, recorded as found).** Eq. (8) split into its
+acoustic × structural pair terms for `r172428_inputs(4000)` and `(5000)` and set against the 25 pairs NASA prints (five
+largest per tone, 4000 rpm H1–H3, 5000 rpm H1–H2). Found: (i) of the 25 printed pairs 15 are within ±2 dB of this code;
+(ii) NASA lists no q = 0 cabin mode at any of the five tones, while in this code q = 0 pairs are the largest at 4000 H1
+(Q0 I1 × st8, 5.55 Pa², NASA's whole tone 0.59 Pa²), 5000 H1 and 5000 H2; (iii) without the q = 0 terms the five tones
+are 91.26, 79.80, 71.59, 84.18, 89.26 dB against NASA's 91.69, 78.19, 71.30, 86.4, 91.1. CR-172428 App. A shows the
+program reads FQM(IQ,M) but not how FQM is filled, so the documents do not say why q = 0 drops out. Because (iii) was
+seen, R172428_CODE with q = 0 off is post-hoc on those six points.
+
+**92b held-out test (criterion fixed 2026-10-29, before the run).** Hypothesis H_q0': in the program NASA ran for
+CR-172428 the q = 0 cabin modes add nothing to Eq. (8) (`q0_coupled = false`, CR-172428 inputs, post-correction form).
+Held out: the 3000 rpm H1–H3 NASA predictions (Table 10), not run with q = 0 off before this entry. **Supported** if
+this code is within ±3 dB of NASA at all three. Phase 88 refuted the same switch on CR-3813's pre-correction runs
+(E-16/E-18); those came from the earlier program, so 92b tests the CR-172428 program only. If supported: the CR-172428
+reproduction cases gain diagnostic re-runs with q = 0 off (labelled post-hoc where the points were seen), the default
+stays `q0_coupled = true` (CR-3813 as printed), and the finding is recorded as reverse-engineered, not documented. If
+not supported: recorded, and no variant is tried.
+
+**92c (diagnostic).** The pairs still more than 2 dB off after 92b, with the term (η_n, η_r″, mode frequency) that
+accounts for each.
 
 ## 9. Reference appendices
 
