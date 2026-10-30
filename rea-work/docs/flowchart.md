@@ -22,7 +22,9 @@ Colour key in diagrams: green = check exists and passes as stated; orange = plan
 - **2026-10-30 (Phases 95–96):** no box changes; η_n per cabin mode is taken at the nominal 1/3-octave centre holding the mode (`nominal_band_centre`, `η_n_band_omega`).
 - **2026-10-29 (Phases 93–94):** the PAIN core defaults to the CR-172428 program form (App. A Eq. (82), q = 0 uncoupled, η_n per cabin mode in the tone paths via `tone_acoustic_N`; the noise-reduction path keeps η_n at the band centre); no box changes. New P cases R172428_ETAT2 and APPB_ETA_N_T2.
 - **2026-10-29 (Phase 92):** no flowchart change; `tone_mean_square_pressure` can return its per-pair terms (`terms`), and four diagnostic cases (APPB_PAIRS…, R172428_CODE_Q0…) sit off the map.
-- **2026-10-29 (Phase 91):** no flowchart change; `notebooks/01_pain_step_by_step.jl` follows the chain of this file stage by stage.
+- **2026-10-30 (Phases 100–102):** the stage group *Aircraft BEMT+F1A* is renamed **Airfoil BEMT+F1A** in every diagram and in `VALIDATION_GUIDELINE.md` §2.13 (`Group title:` of `G_AIR`), which is where the GUI map reads it; the group id `G_AIR` and every block, edge, case and number are unchanged. Diagram 1 is rendered on the methodology website (`site/build_site.jl`), which also generates one flowchart per
+  stage directly from `VALIDATION_GUIDELINE.md` §2.13 (Phase 103), so those cannot drift from the GUI map.
+- **2026-10-29 (Phase 91):** no flowchart change; the walk-through (`WALKTHROUGH.md` §1, Phase 101) follows the chain of this file stage by stage.
 - **2026-10-29 (Phase 90):** no flowchart change; the Blocking Eq. 43 block gains a measured case, R996_FIG10_FLAT.
 - **2026-10-29 (Phases 87–89):** no flowchart change. New P cases on the map: APPB_EPS_N (CYL2D), APPB_ETA_N (Trim and loss), APPB_ETA_RPP (Coupling / Eq. 8); options `q0_coupled` and `η_n_per_mode` (diagnostics only, defaults unchanged).
 - **2026-10-29 (Phase 86):** no flowchart change. The validation map shows only cases with a verdict; diagnostics and other no-verdict cases are listed in `NO_VERDICT_CASES.md`.
@@ -50,7 +52,7 @@ Whole program (titles only). Same structure as the GUI `total` map.
 
 ```mermaid
 flowchart LR
-  subgraph G_AIR["Aircraft BEMT+F1A"]
+  subgraph G_AIR["Airfoil BEMT+F1A"]
     direction LR
     A_GEO["Aircraft inputs"] --> A_LOADS["CCBlade BEMT"]
     A_LOADS -->|L, D| X_F1A["F1A source"]
@@ -119,7 +121,7 @@ flowchart LR
 
 | Block | Status / evidence | Where |
 |-------|-------------------|-------|
-| Aircraft BEMT+F1A | Source path; X-EXTRAP for cabin | Diagram 3; map `G_AIR` |
+| Airfoil BEMT+F1A | Source path; X-EXTRAP for cabin | Diagram 3; map `G_AIR` |
 | e11 free field | Digitization QA; ANOPP H3/phases | E11_FREEFIELD |
 | Grid + blocking | Unit + Eq. 43 checks | UT_GRID, BLK_P68, E12_BLOCK |
 | Structural / CYL2D / trim | Table D-1 / C-1 / App. A | MRP_*, CYL2D_C1, UT_TRIM, E14/E15 |
@@ -188,7 +190,7 @@ Purpose: free-field source vs BBN, Report 996, Pereira. Cabin result is extrapol
 flowchart LR
   IN["XFOIL polars"]
 
-  subgraph FWD["Aircraft BEMT+F1A"]
+  subgraph FWD["Airfoil BEMT+F1A"]
     direction TB
     A1["aircraft.json"]
     A2["CCBlade BEMT"]
@@ -332,7 +334,7 @@ GUI tab **Validation map** shows one map `total` (`src/validation_map.jl`), laid
 
 ```mermaid
 flowchart LR
-  subgraph G_AIR["Aircraft BEMT+F1A"]
+  subgraph G_AIR["Airfoil BEMT+F1A"]
     direction LR
     A_GEO["Aircraft inputs"] --> A_LOADS["CCBlade BEMT"] --> X_F1A["F1A source"] --> X_FF["Free field p"]
   end

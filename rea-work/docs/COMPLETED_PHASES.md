@@ -185,6 +185,11 @@ Not blockers (recorded so nobody stops on them): BBN tip geometry beyond 40 in. 
 | Q77 | **Phase 96 — NASA's band-centre η_n rule as the default** (§8am) | code default + held-out re-checks | Phase 95 | **done 2026-10-30**: default; APPB_ETA_N_T2_BAND met 3/3; R172428_ETAT2 met 9/9 |
 | Q78 | **Phases 97–98 — PF-105 trace; the η_r′ gap** (diagnostics) | diagnostic | Phase 96 | **done 2026-10-30**: Fig. A-2 trace failed its QA, no value adopted; η_r′ gap (trim term 1.4–2.1× low above 470 Hz) not explained by masses, band centre, Ση″ or Eq. (A.8) variants; no code change |
 | Q79 | **Phase 99 — did CR-3813's program already use the band-centre η_n?** (§8ao) | held-out test | Phase 96 | **done 2026-10-30**: refuted (BAND_REPRO_18b 1/3, BAND_E18 2/3; rule moves the runs ≤ 0.6 dB) |
+| Q80 | **Phase 100 — rename the map group to *Airfoil BEMT+F1A*** (§8ap) | documentation / label | author request | **done 2026-10-30**: 21 places; no case, criterion, input or number changed |
+| Q81 | **Phase 101 — methodology website; the notebooks retired** (§8aq) | documentation | Phase 100 | **done 2026-10-30**: `site/build_site.jl` → one 1.8 MB page, 9 documents + 134 case cards + 74 figures; `notebooks/` removed |
+| Q82 | **Phase 102 — run-status boxes on every Run button** (§8ar) | GUI | — | **done 2026-10-30**: READY / RECORDED / GENERATING / FRESH / STALE + verbose log; smoke grabs the window, unit tests in `test/unit/test_gui_model.jl` |
+| Q84 | **Phase 103 — the website as a read-through** (§8as) | documentation | Phase 101 | **done 2026-10-30**: 1.8 MB of concatenated documents → an 88 KB read-through; 8 stage sections, generated stage flowcharts, 48 verdict cases only |
+| Q85 | **Phase 104 — equations in LaTeX, readable claims, figure lightbox** (§8at) | documentation | Phase 103 | **done 2026-10-30**: 4 Key equation blocks added to `METHODOLOGY.md`, each checked against its code; MathJax vendored; claims as collapsible callouts; stale grid sign in §10 Key formulas corrected |
 | Q58 | **Phase 79 — CYL2D** (§8w; 2026-10-28) | `case_error_summary`, `cyl2d.jl`, CYL2D_WEYL | Q57 | **done 2026-10-28**: information rows leave the pass count; refinement fixed (79b); CYL2D_GRID_CONV (NY 10 within 4.9 % of NY 60); Weyl + surface term 4/5; production NY = 10 kept (decided 2026-10-28) |
 | Q57 | **Phase 78 — structural modes** (§8v; 2026-10-28) | `mrp_appd.jl`, MRP_APPD criterion, map | Q53 | **done 2026-10-28**: App. D solver fixes J1–J6; MRP_APPD not met 2/32 (class I, floor stiffener model undocumented); MRP_D1/MRP_RITZ off the map |
 | Q56 | **Phase 77 — POLAR_FIDELITY as an equivalent angle** (§8u; 2026-10-28) | `src/validation_case_iso67.jl`, figure | Q52 | **done 2026-10-28**: Δα shown next to Δc_l, display only |
@@ -1246,7 +1251,7 @@ tests against analytic limits first (V-UNIT), then the NASA comparison with crit
 
 **Phase 36 result (2026-10-22, display only; no criterion, verdict or tuning).** Done: `src/mode_animation.jl` (frame generator from `cyl2d_modes`, node values unchanged, interpolation for drawing only; GIF and peak-frame PNG; Eq. C.9 axial factor), GUI "Cabin modes" tab (mode 0–19, q, structural mode r, play/pause/speed, Refresh via the 37i cooperative loop; f, Φ_G, symmetry; Fig. C-3 values for modes 0–5; fixed `CYL2D_C1` inputs c0 = 341, θ₀ = 56.6°, NY = 10), and 36d (Table D-1 ψ shape image and f′). Cache under `gui/cache/mode_anim/` is git-ignored. Tests: 309 new pass, registry 1232 pass, `smoke_gui_model.jl` and `smoke_qml_load.jl` pass offscreen.
 
-**Total flowchart (2026-10-22, author request; no case, verdict, criterion or number changed).** The GUI Validation map tab is now one horizontal `total` map: 28 blocks and all 37 cases in stage groups (Aircraft BEMT+F1A, Free field, Grid and blocking, Structural modes, CYL2D, Trim and loss, PAIN main, Validation comparisons), each stage an input, function and output block, with the checks branching off the outputs; titles only on blocks; scrolls in both directions (drag, Shift+wheel, scroll bars), Ctrl+wheel zoom and Fit. Positions, groups and edges are fields of `VALIDATION_GUIDELINE.md` §2.13 (`Position`, `Feeds`, `Group`, `Role`). `docs/flowchart.md` was shortened the same way (short node text, status moved to tables and a short Status section; overview = total flowchart). Smoke checks that the eight group rectangles are pairwise disjoint; screenshots `figures/VALIDATION_MAP_TOTAL.png` and `VALIDATION_MAP_TOTAL_right.png` (offscreen, 1842×751).
+**Total flowchart (2026-10-22, author request; no case, verdict, criterion or number changed).** The GUI Validation map tab is now one horizontal `total` map: 28 blocks and all 37 cases in stage groups (Airfoil BEMT+F1A, Free field, Grid and blocking, Structural modes, CYL2D, Trim and loss, PAIN main, Validation comparisons), each stage an input, function and output block, with the checks branching off the outputs; titles only on blocks; scrolls in both directions (drag, Shift+wheel, scroll bars), Ctrl+wheel zoom and Fit. Positions, groups and edges are fields of `VALIDATION_GUIDELINE.md` §2.13 (`Position`, `Feeds`, `Group`, `Role`). `docs/flowchart.md` was shortened the same way (short node text, status moved to tables and a short Status section; overview = total flowchart). Smoke checks that the eight group rectangles are pairwise disjoint; screenshots `figures/VALIDATION_MAP_TOTAL.png` and `VALIDATION_MAP_TOTAL_right.png` (offscreen, 1842×751).
 
 **Phases 29b and 29c done (2026-10-22).** Guard: an aircraft run that uses a test-article default without an `assumed` or `measured` tag lists it in one `@warn`, in `result.provenance.nasa_defaults`, in the printed-outputs header and in the GUI status (guarded: cabin geometry L, a, θ₀, r_p, φ_p, z_p, rotation, η_n_bare, C, NY, c0, ρ0, d, L_c, wall mass, `structural_solver=table_d1`, H = 3 anchor, `bb_alpha`, `bb_j2_scale`, absorption curve, Phase III trim, PF-105 table, end-plate mass, η_lining). Provenance: aircraft JSON `cabin.*` entries take a plain number or `{"value": v, "tag": "measured"|"assumed"|"nasa_default"}`; tags go to `result.provenance.inputs`, the report table and the GUI echo; an unknown tag is an error; a result that uses any NASA default is labelled "NASA test article inputs used for: …, not the aircraft". New `src/aircraft_provenance.jl`, example `examples/aircraft_scale_hartzell_cabin_full.json`. Validation, e11 and synthetic paths bit-identical. Tests: 33 new pass, registry 1461 and printed outputs 162 pass, both smoke scripts pass offscreen.
 
@@ -2445,3 +2450,144 @@ CR-3813's printed runs are held out. The runs are diagnostics (no verdict; their
 gains the band rule; otherwise it is recorded as refuted and no variant is tried.
 
 **Result (2026-10-30).** Refuted: 99a 1/3, 99b 2/3. Record: `validation_reports/phase99_band_rule_cr3813.md`.
+
+---
+
+## 8ap. Phase 100 — the map group renamed *Airfoil BEMT+F1A* *(done 2026-10-30; author request: "i dont like how its called aircraft bemt+f1a i think it should be airfoil bemt+f1a"; documentation, no comparison)*
+
+- [x] 100a `Group title:` of `G_AIR` in `VALIDATION_GUIDELINE.md` §2.13 — the one place the GUI map reads the name from.
+- [x] 100b The same name in `METHODOLOGY.md` §2.3 (heading and chunk line, so the `#23-airfoil-bemtf1a` anchor follows),
+      `METHODOLOGY_STRUCTURE.md`, `flowchart.md` (3 diagrams and the status table), `specs/total_flowchart.md`,
+      `README.md`, and this file's Phase-record sentence.
+- [x] 100c Prose that named the group — "the Aircraft pipeline", "inside the Aircraft group", "aircraft checks
+      above/below the BEMT→F1A chain" — now says *Airfoil BEMT+F1A* / *airfoil-source checks*. Prose about the
+      aircraft itself (the `A_GEO` block title *Aircraft inputs*, the aircraft JSON, the aircraft source and the
+      aircraft cabin claim) is unchanged: those are about the aircraft, not about this group.
+- [x] 100d The assertions that pin the name: `test/runtests.jl` (`air.group_title`) and `scripts/smoke/smoke_gui_model.jl`.
+
+**Result (2026-10-30).** 21 occurrences renamed. The group id `G_AIR` and every block id, edge, position, case,
+criterion, input and recorded number are unchanged — this is a label, so no result moved and nothing is re-stated.
+The GUI picks the name up by re-parsing §2.13, and the offscreen map screenshots
+(`figures/VALIDATION_MAP_TOTAL*.png`) were regenerated by the smoke run that checks it.
+
+---
+
+## 8aq. Phase 101 — the methodology website; the Pluto notebooks retired *(done 2026-10-30; author request: "instead of pluto in notebooks can i just make an html methodology website to launch", "i essentially want it all in one html/website", "update the read me as well on how to open the website that includes basically the methodology and validation cases summarized"; documentation, no comparison)*
+
+- [x] 101a `site/build_site.jl`: one self-contained `index.html` from the nine project documents, with a sidebar that
+      lists every document and its sections and filters as you type, `#` permalinks, light/dark following the system,
+      and the mermaid diagrams of `flowchart.md` and §2.13 rendered (mermaid 10.9.1 vendored in `site/vendor/`, so the
+      page needs no network). Stdlib `Markdown` only; no package was added.
+- [x] 101b A generated **Validation cases** section: one card per registered case with its criterion and the date that
+      criterion was fixed (copied from the case record), the verdict, error line and run date from the recorded
+      snapshot, and the recorded figure. Cards are grouped by the map stage their block belongs to, read from §2.13.
+- [x] 101c `docs/WALKTHROUGH.md` carries both Pluto notebooks: part 1 the program stage by stage on the test article
+      (grid, Eq. 43, blocked pressure, modes, Eq. 8 tones) with five figures, part 2 reading a registered case.
+      `PAIN.jl/scripts/run/write_walkthrough.jl` regenerates it and its figures from a live run.
+- [x] 101d `notebooks/` removed (the two notebooks, `check_notebooks.jl`, and the Pluto environment).
+      `rea-work/site/out/` is generated and git-ignored.
+- [x] 101e `README.md` Step 6 says how to build and open it, and what it does not do; `site/README.md` has the detail.
+
+**Result (2026-10-30).** `index.html` 1.8 MB with 74 figures beside it in `out/assets/`; 9 documents (423 headings in
+the nav) and 134 case cards. Two markdown-fidelity fixes were needed against Julia's parser, which is not GFM:
+underscores inside a word (`A_GEO`, `z_k`, `MRP_INPUT_QA`) were being read as emphasis and are now parked on a
+private-use character while parsing, and anchor slugs keep `_` so links written for GitHub (`#case-blk_p68`) resolve.
+Deep links re-anchor after the lazy figures and the diagrams have settled, or they land past their target.
+
+**The build runs nothing.** It renders the documents and the recorded snapshot as they stand on disk, so it cannot
+change a verdict, fix a criterion or produce a number. The walk-through is the one part that runs the code, and it is
+display only: its numbers carry no criterion, and the case it reads (`R172428_CODE`, not met 4/9) is quoted with the
+criterion and date from the registry, matching the recorded snapshot row exactly.
+
+---
+
+## 8ar. Phase 102 — run-status boxes on every Run button *(done 2026-10-30; author request: "i would also like some verbose/status boxes whenever you click a run button to let user know if its stale or actually generating something"; GUI, no comparison)*
+
+- [x] 102a `*_state` and `*_log` Observables for the four panels that run something (`run`, `val`, `po`, `cm`), with
+      `gui_log!` / `gui_run_begin!` / `gui_run_end!` / `gui_mark_snapshot!` in `gui_model.jl`. Each log line yields, so
+      the cooperative Qt loop repaints and the steps appear while the run is still going.
+- [x] 102b The four run paths log their steps: the validation case (criterion, computing, verdict, figure), the
+      aircraft pipeline (JSON, settings, the slow BEMT→F1A→Eq. 8 leg, metrics), the printed outputs, and the cabin
+      mode frames. Run all keeps one cumulative log (`track = false` on the nested calls) instead of clearing it per
+      case.
+- [x] 102c QML inline component `RunStatusBox` in `gui/main.qml`, on all five Run buttons (Run tab, Validation tab,
+      the Validation map detail panel, Printed outputs, Cabin modes): a coloured pill, a spinner while running, one
+      line of plain English about what the pill means, and **Show log** for the verbose record (it opens by itself
+      while a run is in progress).
+- [x] 102d **STALE** is decided in QML, not Julia: each box carries the `signature` of the inputs its panel would run
+      with, captures it when the run starts, and compares after. Changing a field after a run flags the result at
+      once. **RECORDED** comes from Julia, when a case is selected whose result was read from
+      `case_error_summary.csv` rather than run in this session.
+- [x] 102e Checks: `scripts/smoke/smoke_qml_load.jl` gained a child that opens the Validation tab, runs BLK_P68, grabs
+      the window (temp folder, never the repository) and asserts the pill ends on `done` with that run's steps in the
+      log; unit tests in `test/unit/test_gui_model.jl` cover the log cap, the begin/end transitions, the snapshot
+      state with its recorded date, the error state, and the cumulative Run-all log.
+
+**Result (2026-10-30).** Five states a user can act on: READY (nothing run), RECORDED (read from disk, press Run to
+compute it now), GENERATING (with the steps appearing as they finish), FRESH, STALE (an input moved since). The boxes
+display state only — no criterion, verdict, tolerance or number is computed, read or changed by any of this.
+
+---
+
+## 8as. Phase 103 — the website rebuilt as a read-through *(done 2026-10-30; author: "the website is too long its not supposed to combine all the md files into one… a comprehensive short easy to read website where the methodology and validation are paired with validation figures only being the validation cases to prove the methodology ensuring pain's functionality rather than including every single case and unit test and at the start of the main sections to implement the flowchart and readme shouldnt even be in here its for a read through"; documentation, no comparison)*
+
+Phase 101 built the site by rendering every document onto one page. That is a reference, not something anyone reads
+through: 1.8 MB, nine documents, 423 headings and all 134 registered cases, most of which cannot carry a verdict.
+Phase 103 replaces it with a read-through.
+
+- [x] 103a The page is now eight **stage** sections (free-field source, blocking, CYL2D, structural modes, trim and
+      loss, PAIN main, end-to-end interior SPL, metrics), not one section per document. The README, the plan, the
+      completed phases, the chunk-layout rules and the full case register are linked at the foot, not inlined.
+- [x] 103b **Each stage opens with its own flowchart**, generated from the `Position` / `Feeds` / `Group` / `Role`
+      fields of `VALIDATION_GUIDELINE.md` §2.13 — the same fields the GUI map reads, so a stage picture cannot drift
+      from the map. Chain blocks left to right, check blocks dashed with their met / not-met count, and a faint node
+      for the stage this one feeds. The whole-program diagram at the top is `flowchart.md` §1.
+- [x] 103c Methodology and validation are paired in the same section: the stage's *Validation chunk*, *What it does*,
+      *Chain* and *Claim* parts are lifted from `METHODOLOGY.md` (not rewritten here, so they cannot drift), then the
+      cases for that stage. The implementation notes and the long miss analyses stay in the document.
+- [x] 103d **Only cases carrying a verdict appear** — 48 of 134, the same set the validation map shows. Information
+      cases, unit tests, diagnostics and displays are left out: under the rule of 2026-10-29 they cannot carry a
+      verdict, so they show the code works, not that the method matches reality. A stage whose blocks hold none
+      (Free field, Metrics) says so in place of its cards.
+- [x] 103e The 21 verdict-bearing cases that had no figure on disk were regenerated
+      (`scripts/run/regenerate_case_figures.jl`), so every card on the page carries its figure. Their snapshot rows
+      were rewritten with that run date; the verdicts were diffed against the previous snapshot before and after.
+- [x] 103f `site/README.md` and `README.md` Step 6 rewritten for what the page now is and what it leaves out.
+
+**Result (2026-10-30).** 88 KB instead of 1.8 MB, 48 case cards instead of 134, eight generated stage diagrams plus
+the overview. Two extraction fixes were needed: the grade table and the verdict rule both live under one
+`METHODOLOGY.md` heading whose remainder is a running phase log, so the table is cut at the first bold paragraph and
+the rule is truncated at the end of its first sentence; and an internal link whose target is not on the page is
+unwrapped to plain text rather than left dead.
+
+**The build still runs nothing.** It renders the documents and the recorded snapshot as they stand, so it cannot
+change a verdict, fix a criterion or produce a number.
+
+---
+
+## 8at. Phase 104 — equations in LaTeX, readable claims, a figure lightbox *(done 2026-10-30; author: "would help if the equations were in latex in the claims for the site and making claims more readable since its giant paragrpahs" / "also helps if i could click on the figure and have it maximize into the window instead of zooming in individually"; documentation, no comparison)*
+
+- [x] 104a **The equations were not in the documents to begin with.** The stage sections of `METHODOLOGY.md` referred
+      to them only by number ("Eq. (43)", "Eq. (8)", "Eqs. 63–83"), so there was nothing for LaTeX to render. Four
+      `**Key equation.**` parts were added, in `$$...$$`, each transcription checked against the code that
+      implements it: Eq. (43) with the R2 floor and the User Manual grid (`blocking.jl`, `geometry.jl`), Eqs.
+      (C.7)/(C.12) (`cyl2d.jl` `cabin_frequency_3d`), Eq. (A.22), and Eq. (8) with Ψ_G of Eq. (42)
+      (`pain_core.jl` `tone_mean_square_pressure`). They sit in the document, so GitHub renders them too and the
+      page cannot disagree with the source.
+- [x] 104b MathJax 3.2.2 (`tex-svg`, glyphs as paths so no font files are needed) vendored in `site/vendor/`.
+      Julia's Markdown escapes `$`, `{` and `}` into HTML entities, so `extract_math` lifts `$...$` and `$$...$$`
+      out before parsing and restores them as MathJax delimiters — the same guard the underscores already needed.
+- [x] 104c Claims are callouts: `shape_claims` pulls the `Claim: ...` grade line out as the heading and breaks the
+      body at the bold run-ins the author already wrote (`**Re-stated 2026-10-21 (post-hoc):**` and the like).
+      **No words change — only where the paragraph breaks.** A claim over about ten lines collapses behind
+      *Show the whole claim*; 3 of the 7 need it (the CYL2D claim is ~1700 characters in the document).
+- [x] 104d Clicking any case figure or stage diagram fills the window (Esc or a click closes it, page scroll locked).
+      Diagrams are cloned as SVG so they scale rather than pixelate.
+- [x] 104e **Correction to `IMPLEMENTATION_PLAN.md` §10 Key formulas:** it still printed
+      `z_k = z_p + (πa/18)(k_p − k)`, the pre-Phase-65 sign — the grid mirrored about the propeller plane, fixed in
+      the code on 2026-10-23. `geometry.jl` (`z = zp - x3`) and `METHODOLOGY.md` §2.1 both use the minus. The line
+      is corrected with a dated note. The grid equation added in 104a was taken from the code, not from that line.
+
+**Result (2026-10-30).** 98 KB; 15 equations render with no error; 8 diagrams; 48 case figures, every one clickable.
+Checked in a real browser (headless Chrome DOM dump): the collapse buttons are created, the diagrams become SVG, and
+MathJax produces no error node.

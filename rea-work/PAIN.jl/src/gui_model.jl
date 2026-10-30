@@ -14,6 +14,68 @@ const _GUI_SOURCE_MSG = "the Run tab runs the aircraft pipeline only; e11 / synt
 validity_for_source(source::Symbol) =
     source === :e11 ? "V-EXP" : "X-EXTRAP"
 
+# --- Phase 102: run-status boxes ------------------------------------------------------------------------------
+# A panel's Run button must say what the user is looking at: nothing run yet, a result recorded earlier and read
+# from disk, a run in progress, a result this session computed, or one made out of date by an input that moved
+# since. `*_state` carries the first four (QML decides the fifth, STALE, from the inputs); `*_log` carries the
+# steps. The GUI runs these from `@async` on the cooperative Qt loop, so each log line yields and the window
+# repaints while the run is still going.
+
+"""Longest verbose log a panel keeps; older lines are dropped."""
+const _GUI_LOG_MAX_LINES = 300
+
+"""Append one timestamped line to a panel's verbose log and let the window repaint."""
+function gui_log!(obs::AbstractDict, panel::AbstractString, line::AbstractString)
+    key = "$(panel)_log"
+    haskey(obs, key) || return nothing
+    stamp = Dates.format(Dates.now(), "HH:MM:SS")
+    lines = split(String(obs[key][]), '\n'; keepempty=false)
+    push!(lines, "[$stamp] $line")
+    length(lines) > _GUI_LOG_MAX_LINES && (lines = lines[(end - _GUI_LOG_MAX_LINES + 1):end])
+    obs[key][] = join(lines, "\n")
+    yield()
+    return nothing
+end
+
+"""Start a panel's run: clear the log, flip the pill to `running`, return the start time."""
+function gui_run_begin!(obs::AbstractDict, panel::AbstractString, what::AbstractString)
+    haskey(obs, "$(panel)_state") || return time()
+    obs["$(panel)_log"][] = ""
+    obs["$(panel)_state"][] = "running"
+    gui_log!(obs, panel, what)
+    return time()
+end
+
+"""Finish a panel's run: flip the pill to `done` / `error` and log how long it took."""
+function gui_run_end!(obs::AbstractDict, panel::AbstractString, t0::Real;
+                      state::AbstractString="done", note::AbstractString="")
+    haskey(obs, "$(panel)_state") || return nothing
+    obs["$(panel)_state"][] = String(state)
+    secs = round(time() - float(t0); digits=1)
+    gui_log!(obs, panel, isempty(note) ? "finished in $(secs) s" : "$(note) — $(secs) s")
+    return nothing
+end
+
+"""
+Pill for a case that is shown but has not been run in this session: `snapshot` when
+`case_error_summary.csv` has a recorded result for it, `ready` when it has none.
+"""
+function gui_mark_snapshot!(obs::AbstractDict, panel::AbstractString, id::AbstractString)
+    haskey(obs, "$(panel)_state") || return nothing
+    rec = recorded_case_errors()
+    r = get(rec, String(id), nothing)
+    if r === nothing
+        obs["$(panel)_state"][] = "ready"
+        obs["$(panel)_log"][] = ""
+    else
+        obs["$(panel)_state"][] = "snapshot"
+        obs["$(panel)_log"][] = "Showing the recorded result for $(id), not a run from this session.\n" *
+                                "recorded $(r.run_date): $(r.text)\n" *
+                                "Press Run to compute it now."
+    end
+    return nothing
+end
+
 function _refresh_map_json!(obs::AbstractDict)
     obs["map_total_json"][] = validation_map_json("total";
         last=_GUI_LAST_VERDICTS, session_errors=_GUI_LAST_ERRORS)
@@ -98,6 +160,16 @@ function make_gui_observables(;
         "eta_n_band" => Observable(""),
         "status" => Observable("Ready. Choose aircraft JSON and press Run."),
         "busy" => Observable(false),
+        # Phase 102 — run-status boxes. `*_state` drives the pill a panel shows (ready / snapshot / running /
+        # done / error); `*_log` is the verbose line-by-line record of the run the box can expand.
+        "run_state" => Observable("ready"),
+        "run_log" => Observable(""),
+        "val_state" => Observable("ready"),
+        "val_log" => Observable(""),
+        "po_state" => Observable("ready"),
+        "po_log" => Observable(""),
+        "cm_state" => Observable("ready"),
+        "cm_log" => Observable(""),
         "smoke_ms" => Observable(0.0),
         "validity_tag" => Observable(""),
         "tonal_text" => Observable(""),
@@ -128,6 +200,7 @@ function make_gui_observables(;
         "map_content_width" => Observable(0.0),
         "map_view_width" => Observable(0.0),
         "smoke_map_png" => Observable(""),
+        "smoke_runbox_png" => Observable(""),   # Phase 102: offscreen shot of the Validation tab run-status box
         # Phase 38h — Manual §5.4.3 printed outputs (read-only)
         "po_status" => Observable("Ready. Press Run / Refresh for the current Run-tab case."),
         "po_text" => Observable(""),
@@ -186,8 +259,11 @@ Run one registered case, write its PNG, and push results into Validation-tab Obs
 Long cases may be called from a `@async` wrapper by the QML side. `figure_dir` (tests) writes the
 PNG there instead of `docs/validation_reports/figures`.
 """
-function run_validation_gui!(obs::AbstractDict, id::AbstractString; figure_dir::Union{Nothing,AbstractString}=nothing)
+function run_validation_gui!(obs::AbstractDict, id::AbstractString; figure_dir::Union{Nothing,AbstractString}=nothing,
+                             track::Bool=true)
     obs["val_status"][] = "Running $id…"
+    t0 = track ? gui_run_begin!(obs, "val", "Running case $id") : time()
+    track || gui_log!(obs, "val", "running $id")
     obs["busy"][] = true
     try
         haskey(VALIDATION_CASES, id) || error("unknown case: $id")
@@ -195,9 +271,14 @@ function run_validation_gui!(obs::AbstractDict, id::AbstractString; figure_dir::
         obs["val_selected"][] = String(id)
         obs["val_criterion"][] = _criterion_for(id)
         obs["val_info_json"][] = case_info_json(id; session_errors=_GUI_LAST_ERRORS)
+        gui_log!(obs, "val", "criterion ($(case.criterion_date)): $(case.criterion_text)")
+        gui_log!(obs, "val", "computing (the panel does not update again until the case returns)")
         result = run_validation_case(id)
+        gui_log!(obs, "val", "verdict: $(result.verdict) — $(result.reason)")
+        gui_log!(obs, "val", "drawing the figure from this run")
         png = plot_case(result, case.plot_spec;
                         path=figure_dir === nothing ? nothing : joinpath(figure_dir, "$(id).png"))
+        gui_log!(obs, "val", "figure: $(png)")
         src = validation_source_figure_path(id)
         # Clear then set so QML Image reloads even when the path string is unchanged.
         obs["val_plot_path"][] = ""
@@ -213,10 +294,13 @@ function run_validation_gui!(obs::AbstractDict, id::AbstractString; figure_dir::
             obs["map_detail_json"][] = case_info_json(id; session_errors=_GUI_LAST_ERRORS)
         end
         _refresh_map_json!(obs)
+        track && gui_run_end!(obs, "val", t0; note="$id $(result.verdict)")
         return result
     catch e
         obs["val_status"][] = "Error ($id): $(sprint(showerror, e))"
         obs["val_result_text"][] = sprint(showerror, e)
+        gui_log!(obs, "val", "error: $(sprint(showerror, e))")
+        track && gui_run_end!(obs, "val", t0; state="error", note="stopped")
         return nothing
     finally
         obs["busy"][] = false
@@ -225,13 +309,16 @@ end
 
 """Run every runnable registered case sequentially (skips greyed)."""
 function run_all_validation_gui!(obs::AbstractDict; figure_dir::Union{Nothing,AbstractString}=nothing)
+    runnable = [c for c in list_validation_cases() if isempty(c.unavailable_reason)]
+    t0 = gui_run_begin!(obs, "val", "Run all: $(length(runnable)) runnable cases, one after another")
     n = 0
-    for c in list_validation_cases()
-        isempty(c.unavailable_reason) || continue
-        run_validation_gui!(obs, c.id; figure_dir)
+    for c in runnable
         n += 1
+        gui_log!(obs, "val", "($n/$(length(runnable))) $(c.id)")
+        run_validation_gui!(obs, c.id; figure_dir, track=false)
     end
     obs["val_status"][] = "Run all finished ($n runnable cases)."
+    gui_run_end!(obs, "val", t0; note="ran $n cases")
     return true
 end
 
@@ -244,6 +331,7 @@ Build the current Run-tab case, fill Manual §5.4.3 printed-output Observables
 function run_printed_outputs_gui!(obs::AbstractDict)
     obs["busy"][] = true
     obs["po_status"][] = "Running printed outputs…"
+    t0 = gui_run_begin!(obs, "po", "Building the Manual §5.4.3 printed outputs for the current Run-tab case")
     try
         src = Symbol(String(obs["source"][]))
         src === :aircraft || error(_GUI_SOURCE_MSG)
@@ -283,7 +371,10 @@ function run_printed_outputs_gui!(obs::AbstractDict)
             bands=bands_kw, η_r_band=ηr_kw, η_n_band=ηn_kw,
         )
         isfile(json_path) || error("aircraft JSON not found: $json_path")
+        gui_log!(obs, "po", "aircraft JSON: $(basename(json_path))")
+        gui_log!(obs, "po", "running the pipeline (blocking $(blk), $(nH) harmonics at $(bpf) Hz)")
         result = run_pain_pipeline(; common..., aircraft_json=json_path)
+        gui_log!(obs, "po", "collecting the printed tables")
         out = printed_outputs(result.inputs; bpf_Hz=bpf, n_harmonics=nH)
         obs["po_text"][] = format_printed_outputs_text(out)
         obs["po_json"][] = printed_outputs_gui_json(out)
@@ -296,11 +387,14 @@ function run_printed_outputs_gui!(obs::AbstractDict)
             !isempty(labels.uses_defaults) && (po_st *= " — " * labels.uses_defaults)
         end
         obs["po_status"][] = po_st
+        gui_run_end!(obs, "po", t0; note="printed outputs built")
         return out
     catch e
         obs["po_status"][] = "Error: $(sprint(showerror, e))"
         obs["po_text"][] = sprint(showerror, e)
         obs["po_json"][] = "{}"
+        gui_log!(obs, "po", "error: $(sprint(showerror, e))")
+        gui_run_end!(obs, "po", t0; state="error", note="stopped")
         return nothing
     finally
         obs["busy"][] = false
@@ -318,6 +412,7 @@ Optional 36d: structural ψ PNG and f′ for the selected structural mode.
 function fill_cabin_modes_gui!(obs::AbstractDict)
     obs["busy"][] = true
     obs["cm_status"][] = "Building cabin mode frames…"
+    t0 = gui_run_begin!(obs, "cm", "Rendering the cabin and structural mode frames")
     try
         mode = Int(round(Float64(obs["cm_mode"][])))
         q = Int(round(Float64(obs["cm_q"][])))
@@ -334,7 +429,9 @@ function fill_cabin_modes_gui!(obs::AbstractDict)
         obs["cm_theta0"][] = string(inp.theta0_deg)
         obs["cm_NY"][] = string(inp.NY)
 
+        gui_log!(obs, "cm", "solving CYL2D for the display inputs")
         cy = cyl2d_c1_for_display()
+        gui_log!(obs, "cm", "building $(nframes) frames of cabin mode $(mode) (q=$(q))")
         fr = mode_animation_frames(cy, mode; nframes=nframes, grid=61)
         cache = mode_animation_cache_dir()
         stem = joinpath(cache, "mode_$(lpad(mode, 2, '0'))_q$(q)")
@@ -357,6 +454,7 @@ function fill_cabin_modes_gui!(obs::AbstractDict)
             "z=L → $(round(afL; digits=4))"
         obs["cm_note"][] = fr.note
 
+        gui_log!(obs, "cm", "rendering the structural mode shape and f′")
         # 36d — structural shape + f′ (display only)
         st_idx = clamp(Int(round(Float64(obs["cm_struct_mode"][]))), 1, 32)
         obs["cm_struct_mode"][] = Float64(st_idx)
@@ -374,9 +472,12 @@ function fill_cabin_modes_gui!(obs::AbstractDict)
 
         obs["cm_status"][] = "Done mode $mode (q=$q): f=$(obs["cm_f"][]), " *
             "$(obs["cm_symmetry"][]), $(nframes) frames."
+        gui_run_end!(obs, "cm", t0; note="mode $mode (q=$q), $(nframes) frames")
         return fr
     catch e
         obs["cm_status"][] = "Error: $(sprint(showerror, e))"
+        gui_log!(obs, "cm", "error: $(sprint(showerror, e))")
+        gui_run_end!(obs, "cm", t0; state="error", note="stopped")
         return nothing
     finally
         obs["busy"][] = false
@@ -392,6 +493,7 @@ Single `run()` for the QML button. Reads input Observables, calls
 function run_pain_gui!(obs::AbstractDict)
     obs["busy"][] = true
     obs["status"][] = "Running…"
+    t0 = gui_run_begin!(obs, "run", "Running the aircraft pipeline")
     try
         src = Symbol(String(obs["source"][]))
         src === :aircraft || error(_GUI_SOURCE_MSG)
@@ -431,7 +533,11 @@ function run_pain_gui!(obs::AbstractDict)
             bands=bands_kw, η_r_band=ηr_kw, η_n_band=ηn_kw,
         )
         isfile(json_path) || error("aircraft JSON not found: $json_path")
+        gui_log!(obs, "run", "aircraft JSON: $(basename(json_path))")
+        gui_log!(obs, "run", "blocking $(blk), $(nH) harmonics at $(bpf) Hz, trim $(trim)")
+        gui_log!(obs, "run", "BEMT → F1A → grid → blocking → modes → Eq. (8) — this is the slow part")
         result = run_pain_pipeline(; common..., aircraft_json=json_path)
+        gui_log!(obs, "run", "pipeline done; computing dB(A) and SIL")
 
         tag = validity_for_source(result.source)
         spec = result.spectrum
@@ -457,10 +563,13 @@ function run_pain_gui!(obs::AbstractDict)
             !isempty(labels.nasa_article) && (st *= " — " * labels.nasa_article)
         end
         obs["status"][] = st
+        gui_run_end!(obs, "run", t0; note="interior spectrum ready ($tag)")
         return true
     catch e
         obs["status"][] = "Error: $(sprint(showerror, e))"
         obs["validity_tag"][] = ""
+        gui_log!(obs, "run", "error: $(sprint(showerror, e))")
+        gui_run_end!(obs, "run", t0; state="error", note="stopped")
         return false
     finally
         obs["busy"][] = false

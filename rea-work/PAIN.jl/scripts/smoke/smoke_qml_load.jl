@@ -73,6 +73,38 @@ function _smoke_map_canvas()
     println("smoke_qml_load: map canvas PASS")
 end
 
+"""
+Phase 102: the Validation tab's run-status box, drawn. Runs one case through the Run handler, then grabs the window
+and checks the Observables the box binds to: the pill ends on `done`, and the verbose log holds the steps of the run
+that just happened (not a recorded one). The PNG goes to a temp folder, never into the repository.
+"""
+function _smoke_run_status_box()
+    png = get(ENV, "PAIN_SMOKE_RUNBOX_PNG", joinpath(mktempdir(), "RUN_STATUS_BOX.png"))
+    println("smoke_qml_load: run-status box main(; smoke_runbox_png=…)")
+    main(; smoke_runbox_png=png)
+    obs = PAIN._GUI_OBS[]
+    @assert obs !== nothing
+    for k in ("run_state", "run_log", "val_state", "val_log", "po_state", "po_log", "cm_state", "cm_log")
+        @assert haskey(obs, k) "missing run-status Observable: $k"
+    end
+    state = String(obs["val_state"][])
+    log = String(obs["val_log"][])
+    @assert state == "done" "expected the box to end on done, got: $state"
+    @assert occursin("Running case BLK_P68", log) "verbose log missing the start line:\n$log"
+    @assert occursin("criterion (", log) "verbose log missing the criterion line:\n$log"
+    @assert occursin("verdict: met", log) "verbose log missing the verdict line:\n$log"
+    @assert occursin("finished in", log) || occursin(" — ", log) "verbose log missing the finish line:\n$log"
+    @assert isfile(png) && filesize(png) > 0 "expected a run-status-box screenshot at $png"
+    println("smoke_qml_load: run-status box PASS (", filesize(png), " bytes, ",
+            count(==('\n'), log) + 1, " log lines)")
+end
+
+if get(ENV, "PAIN_SMOKE_RUNBOX_ONLY", "") == "1"
+    _smoke_run_status_box()
+    println("smoke_qml_load PASS (run-status-box child)")
+    exit(0)
+end
+
 if get(ENV, "PAIN_SMOKE_CASE_ONLY", "") == "1"
     _smoke_button_path_blk_p68()
     println("smoke_qml_load PASS (case-only child)")
@@ -131,4 +163,14 @@ child_map = addenv(
 )
 println("smoke_qml_load: spawning child for total map canvas / VALIDATION_MAP_TOTAL.png")
 run(child_map)
+
+# Child: the run-status box on the Validation tab (Phase 102). Writes its PNG to a temp folder.
+child_box = addenv(
+    `$(Base.julia_cmd()) --project=$proj $(abspath(@__FILE__))`,
+    "PAIN_SMOKE_RUNBOX_ONLY" => "1",
+    "QT_QPA_PLATFORM" => "offscreen",
+    "QT_QPA_FONTDIR" => get(ENV, "QT_QPA_FONTDIR", "C:/Windows/Fonts"),
+)
+println("smoke_qml_load: spawning child for the run-status box")
+run(child_box)
 println("smoke_qml_load PASS")

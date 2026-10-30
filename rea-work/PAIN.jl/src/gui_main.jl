@@ -78,6 +78,13 @@ function select_validation_case_from_qml(id::AbstractString)
         validation_figure_stale(sid) ?
         "Selected $sid — the saved figure is older than the recorded result ($(recorded_case_errors()[sid].run_date)); press Run to redraw it." :
         "Selected $sid — press Run."
+    # Phase 102: the run-status box must not imply this case was run now — what is on screen came off disk.
+    gui_mark_snapshot!(obs, "val", sid)
+    validation_figure_stale(sid) &&
+        gui_log!(obs, "val", "the saved figure is older than that recorded result; Run redraws it")
+    if haskey(VALIDATION_CASES, sid) && !isempty(VALIDATION_CASES[sid].unavailable_reason)
+        gui_log!(obs, "val", "unavailable (greyed): $(VALIDATION_CASES[sid].unavailable_reason)")
+    end
     return nothing
 end
 
@@ -255,7 +262,7 @@ main()
 button), waits until Done, then quits (for button-path smoke tests).
 """
 function main(args=ARGS; smoke_ms::Real=0, smoke_case::AbstractString="",
-              smoke_map_png::AbstractString="")
+              smoke_map_png::AbstractString="", smoke_runbox_png::AbstractString="")
     ENV["QT_QUICK_CONTROLS_STYLE"] = get(ENV, "QT_QUICK_CONTROLS_STYLE", "Fusion")
     # Offscreen Qt often has no bundled fonts; point at the OS font dir so map titles render.
     if lowercase(get(ENV, "QT_QPA_PLATFORM", "")) == "offscreen" && !haskey(ENV, "QT_QPA_FONTDIR")
@@ -270,6 +277,10 @@ function main(args=ARGS; smoke_ms::Real=0, smoke_case::AbstractString="",
     obs = make_gui_observables()
     smoke_ms > 0 && (obs["smoke_ms"][] = Float64(smoke_ms))
     obs["smoke_case"] = Observable(String(smoke_case))
+    if !isempty(smoke_runbox_png)
+        obs["smoke_runbox_png"][] = abspath(String(smoke_runbox_png))
+        smoke_ms > 0 || (obs["smoke_ms"][] = 120000.0)   # the QML timer quits once the shot is written
+    end
     if !isempty(smoke_map_png)
         obs["smoke_map_png"][] = abspath(String(smoke_map_png))
         # Give the map tab time to lay out before auto-quit when capturing.
