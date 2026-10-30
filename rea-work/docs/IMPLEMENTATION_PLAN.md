@@ -240,7 +240,7 @@ or the other documents points there. When a phase is done, mark it done and move
 
 | Q | Item | Kind | Prerequisite | Output |
 |---|------|------|--------------|--------|
-| — | No open item (2026-10-30); Phases 90–101 are done | — | — | — |
+| Q82 | **Phase 102 — flight run 10, H2–H4: the code as it ships and the trim per band against PAIN's printed levels** (§8ar) | diagnostic | Phase 101 | FLIGHT10_H234 |
 
 If a queue item is blocked on data, skip to the next unblocked item and say which data item blocks it.
 
@@ -284,6 +284,29 @@ The diagram matches the code (phases 21–22 done 2026-10-21): `propeller_ccblad
 | Driver | `scripts/run/run_pain.jl` |
 
 ---
+
+## 8ar. Phase 102 — flight run 10, H2–H4 (diagnostic; what is compared fixed 2026-10-30, before the run)
+
+*(Planned 2026-10-30; author: "Yes, run H2–H4".)* Phase 101 stopped because the scan cuts phase rows of the H1 and H5
+fields and FLIGHT_MODES was not met. The H2–H4 fields (CR-172428 App. D pp. 231–233, PDF 241–243) are complete. This
+phase is a **diagnostic**: no verdict, no default change, whatever the result (Phase 101's decision rule).
+
+**Inputs, all from CR-172428.** Field: 16 axial × 19 circumferential points per harmonic, amplitude (dB) and phase
+(degrees), transcribed as in Phase 44a (pass 1 RapidOCR per cell, pass 2 by eye, every disagreement re-read at higher
+resolution; amplitude rows checked for the mirror symmetry about θ = 75°). Geometry and grid: axial locations as
+printed, propeller plane 1.12 m from the forward end, θ as printed. PAIN deck (p. 229): ρ, c inside and outside, the 21
+bands, η_r = 2/f per band, acoustic loss factors zero, sidewall trim 0.055 m PF-105 (App. D table, Phase 100) +
+1.95 kg/m², η_T = 2.0, no end-cap trim. Cabin: L = 9.27 m, L_c = 7.89 m, θ₀ = 50°, a = 0.84 m, CYL2D modes. Structural
+modes: the solver on NASA's Merlin deck (`merlin_mrp_deck()`), NASA's 20 per axial order and symmetry. Blocking:
+whatever the field already carries. App. B's field is the blocked field PAIN used, and App. D's pages are the same PAIN
+echo, so no further blocking is applied. Anything else the code needs is stated in the report as an assumption.
+
+**Runs.** (a) The code as it ships. (b) The same with the trim per band (`trim_band_centre`): τ_t of a tone and C_w
+of a structural mode (Eq. 82) taken at the nominal centre of the 1/3-octave band holding the tone or mode.
+
+**Recorded (FLIGHT10_H234, no verdict).** Per tone, the level against PAIN's printed 96.59, 88.06 and 83.92 dB, and
+whether (b) is closer than (a). H_bandtrim is "supported in the diagnostic" if (b) is closer at ≥ 2 of 3 tones and
+"not supported" otherwise. Either way the default stays. A support would justify planning a held-out test.
 
 ## 9. Reference appendices
 
