@@ -1,0 +1,25 @@
+# NASA CR-172428 App. C p. 213 (Pain Validation.pdf PDF p. 223): for structural modes 1-19 of the business aircraft
+# (Merlin IVC), the printed largest shell generalized coordinate CMNS (with its circumferential order NS) and largest
+# plate coordinate CMNP (with its plate order NP), signed, as MRPMOD printed them (frequency, type and M are in
+# appC_merlin_structural_modes.csv). Transcribed by eye 2026-10-30 (Phase 103) from 300 dpi renders; modes 1 and 6 CMNP
+# re-read at 600 dpi (.8908, -.5824: the print's 8 and 0 look alike). Mode 10 CMNS reads -.2687 (6 or 5 unclear). One pass.
+mode,NS,CMNS,NP,CMNP
+1,1,0.7309,0,0.8908
+2,2,0.6761,1,0.4457
+3,2,0.5748,1,-0.2677
+4,2,0.6169,0,-0.5435
+5,1,-0.7027,1,0.3168
+6,2,0.2442,1,-0.5824
+7,2,0.7326,1,0.4426
+8,3,0.2490,1,0.9554
+9,4,0.1078,1,0.7309
+10,3,-0.2687,1,-1.1167
+11,4,0.0920,1,0.7732
+12,2,0.5946,1,1.2011
+13,3,0.7640,1,-0.4707
+14,2,0.3620,0,0.3677
+15,3,-0.8450,1,0.4567
+16,5,-0.0929,1,0.7934
+17,2,-0.3670,0,1.0190
+18,3,0.7048,1,-0.2535
+19,5,-0.0944,1,0.8060

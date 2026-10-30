@@ -188,6 +188,7 @@ Not blockers (recorded so nobody stops on them): BBN tip geometry beyond 40 in. 
 | Q80 | **Phase 100 — NASA's per-band PF-105 input table (CR-172428 App. D deck)** (§8ap) | held-out test | Phase 96 | **done 2026-10-30**: supported (Re β 200 Hz +2.7 %, end-cap Im β 1600 Hz +1.7 %, 84/84 admittances, trim factor within 0.001 dB); R172428_ETAT2 9/9, APPB_ETA_N_T2_BAND 3/3 met; deck table is the CR-172428 default |
 | Q81 | **Phase 101 — CR-172428 flight run 10 reproduced from its printed deck; trim per band tested on it** (§8aq) | reproduction + held-out test | Phase 100 | **done 2026-10-30**: FLIGHT_MODES not met (197/221; frequencies 219/221); 101b–d not run (101a not met; H1/H5 field phases cut off in the scan); no default changed |
 | Q82 | **Phase 102 — flight run 10, H2–H4: the code as it ships and the trim per band against PAIN's printed levels** (§8ar) | diagnostic | Phase 101 | **done 2026-10-30**: as shipped 98.30 / 89.76 / 79.19 dB vs PAIN 96.59 / 88.06 / 83.92; trim per band closer at 0/3 (not supported, moves ≤ 0.4 dB); no default changed |
+| Q83 | **Phase 103 — flight run 10, H4: where the 4.7 dB goes** (§8as) | diagnostic | Phase 102 | **done 2026-10-30**: five findings (field θ flipped; CYL2D grid at 50°; CYL2D 2-D part at 341 m/s; MRPMOD 5/3 terms; floor-term sign open); with the first four, H2–H4 = +0.74 / +0.94 / −1.06 dB against PAIN (post-hoc); fix Phases 104–110 planned; no code or default changed |
 | Q58 | **Phase 79 — CYL2D** (§8w; 2026-10-28) | `case_error_summary`, `cyl2d.jl`, CYL2D_WEYL | Q57 | **done 2026-10-28**: information rows leave the pass count; refinement fixed (79b); CYL2D_GRID_CONV (NY 10 within 4.9 % of NY 60); Weyl + surface term 4/5; production NY = 10 kept (decided 2026-10-28) |
 | Q57 | **Phase 78 — structural modes** (§8v; 2026-10-28) | `mrp_appd.jl`, MRP_APPD criterion, map | Q53 | **done 2026-10-28**: App. D solver fixes J1–J6; MRP_APPD not met 2/32 (class I, floor stiffener model undocumented); MRP_D1/MRP_RITZ off the map |
 | Q56 | **Phase 77 — POLAR_FIDELITY as an equivalent angle** (§8u; 2026-10-28) | `src/validation_case_iso67.jl`, figure | Q52 | **done 2026-10-28**: Δα shown next to Δc_l, display only |
@@ -2544,3 +2545,28 @@ whether (b) is closer than (a). H_bandtrim is "supported in the diagnostic" if (
 "not supported" otherwise. Either way the default stays. A support would justify planning a held-out test.
 
 **Result (2026-10-30).** H_bandtrim not supported (0/3). Record: `validation_reports/phase102_flight_run10_h234.md`.
+
+## 8as. Phase 103 — flight run 10, H4: where the 4.7 dB goes (diagnostic, 2026-10-30)
+
+*(Done 2026-10-30; moved to the bottom 2026-10-30. Author: "continue to diagnose the issue and create phases for fix dont
+implement any fixes just yet".)* Diagnostic: no `src/` change, no default changed, no verdict. Every variant is built in
+the process of `scripts/checks/diag_run10_h4.jl`, which writes `validation_reports/phase103_run10_h4_diagnosis.md`. New data (CR-172428, one pass, by eye):
+`appD_run10_pairs.csv` (App. D pp. 235–236: PAIN's five largest pairs per tone, H1–H5), `appC_merlin_acoustic_modes.csv`
+(App. C p. 212), `appC_merlin_mode_signs.csv` (App. C p. 213), `appD_run10_deck_field.csv` (App. D p. 229).
+
+**Findings.** D1: run 10's printed θ is from the bottom centreline (deck ℓ = printed L − 9, App. A item 5; the "upper
+quarter" of the User Manual); Phase 102's code flipped it. The printed field is the deck's free field + 3.9–4.0 dB (App. A
+item 3's limit), so reading it as the blocked field is confirmed. D2: NASA's CYL2D grid at θ₀ = 50° is NY = 11 with the
+node rule r ≤ 1 + th, t = 0.43–0.50 (printed ε(0,0) 0.96723 exactly; Table C-1 allows 0.32–0.47); the code uses 0.40.
+D3: PAIN takes CYL2D's 2-D frequencies at 341 m/s and the axial term at card 2's c (every printed Merlin 2-D frequency
+implies 341.00 ± 0.02 m/s; App. B p. 185 shows the same); with D2 and D3 eleven of the twelve printed run-10 cabin frequencies are
+reproduced to 0.1 Hz, and Q4 I3 prints 219.4 against 218.4 Hz here (the glyph may be 218.4); I = 13's 2-D frequency is 416.2 Hz against 432.4 Hz as shipped. D4: MRPMOD hands PAIN 5 shell / 3 floor terms (Table
+D-1); the solver path passes 8 / 5. D5: with D1–D4, NASA's printed η_r″ follow the floor term subtracted while App. B's
+follow it added; the mode files and cabin modes behave the same on both aircraft. Open; hypothesis H_pre (run 10 predates
+App. A item 2) is Phase 108's held-out test on the H1/H5 pairs, which this phase did not compute.
+
+**Run 10 (dB; PAIN 96.59 / 88.06 / 83.92).** As shipped 98.30 / 89.76 / 79.19; D1 96.80 / 88.85 / 80.67; + D2
+97.13 / 89.37 / 81.34; + D3 97.34 / 89.22 / 82.28; + D4 97.33 / 89.00 / 82.86 (+0.74 / +0.94 / −1.06); floor term
+subtracted (post-hoc, not adopted) 94.60 / 87.44 / 83.89. All post-hoc: run 10's levels were seen in Phase 102.
+
+**Planned.** Phases 104–110 (`IMPLEMENTATION_PLAN.md` §8at–§8az, queue Q84–Q90).
