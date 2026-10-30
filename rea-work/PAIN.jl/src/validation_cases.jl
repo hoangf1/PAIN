@@ -569,6 +569,9 @@ const DIAGNOSTIC_CASES = Dict(
     # Phase 96 (2026-10-30): the band-centre η_n rule read from App. B (post-hoc on those values)
     "APPB_ETA_N_BAND" => "sets the default η_n rule against the App. B values it was read from, post-hoc (Phase 96a)",
     "R172428_CODE_DEFAULT" => "re-runs R172428_CODE with the code as it ships, post-hoc (Phase 96d)",
+    # Phase 99 (2026-10-30): the band-centre η_n in the program behind CR-3813's printed runs, held out
+    "BAND_REPRO_18b" => "re-runs REPRO_18b_PRE with the band-centre η_n of Phase 95 (Phase 99a)",
+    "BAND_E18" => "re-runs E18_TONES in the pre-correction form with the band-centre η_n (Phase 99b)",
 )
 
 """True for a case that carries no verdict by rule: an information case or a diagnostic run."""

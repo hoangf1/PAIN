@@ -3360,6 +3360,19 @@ _run_if("NASA's band-centre η_n rule (phases 95, 96)") do
     end
 end
 
+_run_if("Band-centre η_n in CR-3813's program (phase 99)") do
+    # Plan §8ao; criteria and decision fixed 2026-10-30 before the run. Recorded first-run results (refuted).
+    pre = PAIN._pre_correction_band(r172428_inputs(4000))
+    @test pre.floor_sign == -1.0 && pre.q0_coupled && pre.η_n_per_mode && pre.η_n_band_omega && !pre.η_r_trimmed_area
+    for (id, k) in (("BAND_REPRO_18b", 1), ("BAND_E18", 2))
+        r = run_validation_case(id)
+        @test r.verdict === :no_verdict && PAIN.underlying_verdict(r) === :not_met && r.inputs_echo.n_ok == k
+        @test maximum(abs.(r.inputs_echo.got .- r.inputs_echo.tone_eta_n)) < 0.6     # the rule barely moves these runs
+        png = plot_case(r, VALIDATION_CASES[id].plot_spec; path=joinpath(TEST_OUT, "$(id).png"))
+        @test isfile(png) && filesize(png) > 0
+    end
+end
+
 _run_if("Sharp sound bridges and the App. D mode extension (phases 59, 60)") do
     # Criteria and mapping fixed 2026-10-23 (plan §8g) before any run. Recorded first-run results.
     # 59a pieces by hand: Eq. (5) at normal incidence, Eq. (22), Eqs. (23) and (25), and the Fig. 5 construction

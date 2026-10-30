@@ -184,6 +184,7 @@ Not blockers (recorded so nobody stops on them): BBN tip geometry beyond 40 in. 
 | Q76 | **Phase 95 — where the cabin-mode damping η_n differs from NASA's** (§8al) | diagnostic | App. B pp. 195, 197 | **done 2026-10-30**: V2 (NASA admittance, ω at the band centre) 44/46; nominal band edges 45/46 |
 | Q77 | **Phase 96 — NASA's band-centre η_n rule as the default** (§8am) | code default + held-out re-checks | Phase 95 | **done 2026-10-30**: default; APPB_ETA_N_T2_BAND met 3/3; R172428_ETAT2 met 9/9 |
 | Q78 | **Phases 97–98 — PF-105 trace; the η_r′ gap** (diagnostics) | diagnostic | Phase 96 | **done 2026-10-30**: Fig. A-2 trace failed its QA, no value adopted; η_r′ gap (trim term 1.4–2.1× low above 470 Hz) not explained by masses, band centre, Ση″ or Eq. (A.8) variants; no code change |
+| Q79 | **Phase 99 — did CR-3813's program already use the band-centre η_n?** (§8ao) | held-out test | Phase 96 | **done 2026-10-30**: refuted (BAND_REPRO_18b 1/3, BAND_E18 2/3; rule moves the runs ≤ 0.6 dB) |
 | Q58 | **Phase 79 — CYL2D** (§8w; 2026-10-28) | `case_error_summary`, `cyl2d.jl`, CYL2D_WEYL | Q57 | **done 2026-10-28**: information rows leave the pass count; refinement fixed (79b); CYL2D_GRID_CONV (NY 10 within 4.9 % of NY 60); Weyl + surface term 4/5; production NY = 10 kept (decided 2026-10-28) |
 | Q57 | **Phase 78 — structural modes** (§8v; 2026-10-28) | `mrp_appd.jl`, MRP_APPD criterion, map | Q53 | **done 2026-10-28**: App. D solver fixes J1–J6; MRP_APPD not met 2/32 (class I, floor stiffener model undocumented); MRP_D1/MRP_RITZ off the map |
 | Q56 | **Phase 77 — POLAR_FIDELITY as an equivalent angle** (§8u; 2026-10-28) | `src/validation_case_iso67.jl`, figure | Q52 | **done 2026-10-28**: Δα shown next to Δc_l, display only |
@@ -2427,3 +2428,20 @@ named.
 ## 8an. Phases 97–98 — PF-105 trace; the η_r′ gap (diagnostics, done 2026-10-30)
 
 *(Run 2026-10-30 under the author's overnight instruction "keep running diagnostics and implementing fixes until the whole code reproduces pains output". Diagnostics, no code change.)* Record: `validation_reports/phase95_96_eta_n_band_rule.md`, section "Phases 97–98". 97: an automated trace of Fig. A-2 (α, φ at 125–250 Hz) failed its QA fixed before the run; no value adopted. 98: R172428_ETA's gap is the trim term of Eq. (82), 1.4–2.1× low above 470 Hz; masses, the skin mass, the band centre, an included Ση″ and alternative forms of Eq. (A.8) are ruled out; the likely cause, the PF-105 properties between the marked frequencies, is not determinable from the documents.
+
+## 8ao. Phase 99 — did CR-3813's program already use the band-centre η_n? (criteria fixed 2026-10-30, before the run)
+
+*(Done 2026-10-30; moved to the bottom 2026-10-30. Planned 2026-10-30 under the author's overnight instruction.)* Hypothesis H_band: the program that produced CR-3813's
+printed runs already evaluated η_n at the nominal band centre (Phase 95), with the q = 0 modes coupled (Phase 88) and
+the other pre-correction choices (floor sign −1, printed Eq. (82)). The rule was read from CR-172428's App. B only, so
+CR-3813's printed runs are held out. The runs are diagnostics (no verdict; their recorded outcomes are kept).
+
+| Step | Case | Run | Criterion (that of the case it re-runs) |
+|---|---|---|---|
+| 99a | BAND_REPRO_18b | REPRO_18b_PRE with η_n per mode by the band rule | ±4 dB at H1–H3 against E-16's NASA prediction |
+| 99b | BAND_E18 | E18_TONES' run in the pre-correction form with the band rule | ±4 dB per harmonic against E-18's NASA prediction |
+
+**Decision (fixed before the run).** H_band is supported only if both are met. If supported, `_pre_correction_form`
+gains the band rule; otherwise it is recorded as refuted and no variant is tried.
+
+**Result (2026-10-30).** Refuted: 99a 1/3, 99b 2/3. Record: `validation_reports/phase99_band_rule_cr3813.md`.

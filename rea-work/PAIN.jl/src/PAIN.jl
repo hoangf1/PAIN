@@ -63,6 +63,7 @@ include("validation_case_iso87.jl")   # phases 87–89 NASA's App. B per-mode va
 include("validation_case_iso92.jl")   # phase 92 NASA's printed mode-pair contributions; q = 0 on 3000 rpm held out
 include("validation_case_iso94.jl")   # phase 94 held-out CR-172428 Table 12 (η_T = 2.0)
 include("validation_case_iso96.jl")   # phase 96 band-centre η_n rule
+include("validation_case_iso99.jl")   # phase 99 band-centre η_n in CR-3813's program (held out)
 include("validation_case_iso90.jl")   # phase 90 Eq. (43) blocking vs Report 996 Fig. 10 (measured)
 include("validation_case_extras.jl")
 include("validation_map.jl")
