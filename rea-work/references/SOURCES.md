@@ -39,3 +39,10 @@ Downloaded 2026-10-22 from the NASA Technical Reports Server (public use permitt
 |------|--------|------|
 | `NASA_CR_172490.pdf` | May, Plotkin, Selden, Sharp: *Lightweight sidewalls for aircraft interior noise control*, NASA CR-172490, 1985 (Sharp double-panel model with sound bridges, §2.3; Panel D prediction Fig. 15) | https://ntrs.nasa.gov/citations/19870002890 |
 - `NASA_CR_172490.pdf`: SHA-256 `1c1ea678a0cbd959d4b3864e5f357db53a59653f845e49ce3add5d48d0749d22`
+
+## Added 2026-10-30
+
+| File | Report | NTRS |
+|------|--------|------|
+| `NASA_CR_178004.pdf` | Wilby, McDaniel, Wilby: *In-flight acoustic measurements on a light twin-engined turboprop airplane*, NASA CR-178004, November 1985 (Gulfstream Commander 695A; exterior and interior levels per propeller harmonic, untreated and fibreglass-treated cabin; 238 pages) | https://ntrs.nasa.gov/citations/19860010618 |
+- `NASA_CR_178004.pdf`: SHA-256 `3c7b58b3ff0d7c74adc30a384a0b2cbee3b7e9da8549f8c231dbab1630732a6a`
