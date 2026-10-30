@@ -86,6 +86,12 @@ struct PainInputs
     # Eq. (52) floor-term sign (phase 61): +1 = NASA's corrected program (CR-172428 p. 178, 44f);
     # −1 = the pre-correction program that produced CR-3813's printed outputs
     floor_sign::Float64
+    # Phase 88 diagnostic (2026-10-29): false gives the q = 0 cabin modes no structural coupling (f₀M = 0), the
+    # hypothesis that NASA's program did so; not documented (CR-3813 Eq. (57) gives f₀M = 2/(Mπ)), default true
+    q0_coupled::Bool
+    # Phase 89 option (2026-10-29): true gives each cabin mode one η_n (Eq. 77 at the mode frequency, trim conductance at
+    # the 1/3-octave band centre holding the mode), used in Eqs. (8) and (83) at every tone; false = at the tone frequency
+    η_n_per_mode::Bool
 end
 
 function PainInputs(fuse, prop, structural, acoustic, amplitudes, phases, pts, ΔA::Real;
@@ -102,7 +108,7 @@ function PainInputs(fuse, prop, structural, acoustic, amplitudes, phases, pts, �
                     bands=nothing, η_r_band=nothing, η_n_band=nothing,
                     η_r_band_is_prime::Bool=false,
                     η_r_trimmed_area::Bool=false,
-                    floor_sign::Real=1.0)
+                    floor_sign::Real=1.0, q0_coupled::Bool=true, η_n_per_mode::Bool=false)
     abs(floor_sign) == 1 || error("PainInputs: floor_sign must be +1 or −1 (got $floor_sign)")
     (sidewall === nothing) == (endplates === nothing) ||
         error("PainInputs: give both `sidewall` and `endplates` trim stacks, or neither (bare cabin)")
@@ -120,7 +126,7 @@ function PainInputs(fuse, prop, structural, acoustic, amplitudes, phases, pts, �
                       sidewall, endplates, mech, m, float(η_n_bare), float(C_struc),
                       q_max === nothing ? nothing : Int(q_max), allow_extrapolation, ρ0f, c0f,
                       ρe, ce, ρi, ci, Lc, float(d), xover, bands_n, ηr_n, ηn_n,
-                      η_r_band_is_prime, η_r_trimmed_area, float(floor_sign))
+                      η_r_band_is_prime, η_r_trimmed_area, float(floor_sign), q0_coupled, η_n_per_mode)
 end
 
 """Trim stacks present (sidewall and end plates)?"""
@@ -314,6 +320,7 @@ function coupling_factor(ac::AcousticMode, st::StructuralMode,
 end
 
 coupling_factor(ac::AcousticMode, st::StructuralMode, inp::PainInputs; τ_t::Float64=1.0, q::Int=0) =
+    q == 0 && !inp.q0_coupled ? 0.0 :
     coupling_factor(ac, st, inp.fuse; τ_t, q, L_c=inp.L_c, d=inp.d, floor_sign=inp.floor_sign)
 
 """Sums S_c = Σ A cos φ ψ^r(x_m), S_s = Σ A sin φ ψ^r(x_m) of Eq. (42), over the whole grid.
@@ -431,7 +438,7 @@ function tone_mean_square_pressure(inp::PainInputs, H::Int, ωH::Float64;
     for q in 0:qtop, ac in inp.acoustic.modes
         ωn = 2π * cabin_frequency_3d(ac, a, L_c, q; c0=c_int)
         εn = cabin_eps_3d(ac, q)
-        N = acoustic_N(inp, ac, q, fH, ωn; ξ, ξ_e=ξe, V)
+        N = inp.η_n_per_mode && trimmed ? acoustic_N_per_mode(inp, ac, q, ωn; V) : acoustic_N(inp, ac, q, fH, ωn; ξ, ξ_e=ξe, V)
         Dn = (ωn^2 - ωH^2)^2 + N^2
         for (j, st) in enumerate(inp.structural.modes)
             f = coupling_factor(ac, st, inp; τ_t, q)
@@ -870,6 +877,21 @@ function acoustic_N(inp::PainInputs, ac, q::Integer, f_Hz::Real, ωn::Real;
     else
         return inp.η_n_bare * ωn^2
     end
+end
+
+"""
+N = η_n ω_n² of cabin mode (ac, q) as a property of the mode (Phase 89 option `η_n_per_mode`): Eq. (77) at the mode
+frequency (ω = ω_n in Eq. 77, so the rigid-body mode has N = 0), with the sidewall and end-plate trim conductance at
+the nominal 1/3-octave band centre holding the mode (100 Hz for modes below that band). Needs trim stacks.
+"""
+function acoustic_N_per_mode(inp::PainInputs, ac, q::Integer, ωn::Real; V::Real=cabin_volume(inp))
+    fn = ωn / 2π
+    fn > 0 || return 0.0
+    ωc = 2π * max(100.0, nearest_third_octave(fn, third_octave_centers()))
+    ext = inp.allow_extrapolation
+    ξ = trim_conductance(inp.sidewall, ωc, inp.m_wall; ρ0=inp.ρ_int, c0=inp.c_int, allow_extrapolation=ext)
+    ξe = trim_conductance(inp.endplates, ωc, Inf; ρ0=inp.ρ_int, c0=inp.c_int, allow_extrapolation=ext)
+    return acoustic_N(inp, ac, q, fn, ωn; ξ, ξ_e=ξe, V)
 end
 
 """Band-average η_n at centre `fc` [Hz]: card override or trim / bare as before."""

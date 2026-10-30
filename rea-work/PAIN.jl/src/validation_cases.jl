@@ -556,6 +556,11 @@ const DIAGNOSTIC_CASES = Dict(
     "T2_EQ19_DECK" => "re-runs T2_EQ19 on NASA's 300 MRP-deck modes (Phase 83c): refuted",
     "R172428_CODE_DECK" => "re-runs R172428_CODE on NASA's 300 MRP-deck modes (Phase 84b): refuted",
     "R172428_EXP_DECK" => "re-runs R172428_EXP on NASA's 300 MRP-deck modes (Phase 84b): refuted",
+    # Phase 88 (2026-10-29): the q = 0 hypothesis on CR-3813's printed runs, held out
+    "Q0_REPRO_18b" => "re-runs REPRO_18b_PRE with the q = 0 cabin modes uncoupled (Phase 88a)",
+    "Q0_E18" => "re-runs E18_TONES in the pre-correction form with the q = 0 cabin modes uncoupled (Phase 88b)",
+    "Q0_E21" => "re-runs E21_PRE with the q = 0 cabin modes uncoupled (Phase 88c)",
+    "R172428_CODE_ETAN" => "re-runs R172428_CODE with η_n per cabin mode, trim per 1/3-octave band (Phase 89b)",
 )
 
 """True for a case that carries no verdict by rule: an information case or a diagnostic run."""

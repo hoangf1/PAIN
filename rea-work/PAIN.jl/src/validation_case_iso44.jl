@@ -74,11 +74,12 @@ end
 """rpm values whose App. B field has been transcribed (files present)."""
 _r172428_rpms() = [rpm for rpm in (3000, 4000, 5000) if isfile(_r172428_csv("appB_$(rpm)rpm_H1.csv"))]
 
-function _r172428_levels(; structural::Symbol=:table_d1)
+function _r172428_levels(; structural::Symbol=:table_d1, η_n_per_mode::Bool=false)
     pred = _read_csv_numeric_nan(_r172428_csv("appB_predictions.csv"))
     out = NamedTuple[]
     for rpm in _r172428_rpms()
         inp = r172428_inputs(rpm; structural)
+        η_n_per_mode && (inp = _with_fields(inp; η_n_per_mode=true))   # Phase 89 option
         bpf = 3 * rpm / 60
         spl = interior_spl(inp; bpf_Hz=bpf, n_harmonics=3).harmonic_SPL_dB
         for H in 1:3
@@ -90,8 +91,8 @@ function _r172428_levels(; structural::Symbol=:table_d1)
     return out
 end
 
-function _run_r172428_vs(which::Symbol; structural::Symbol=:table_d1)
-    lv = _r172428_levels(; structural)
+function _run_r172428_vs(which::Symbol; structural::Symbol=:table_d1, η_n_per_mode::Bool=false)
+    lv = _r172428_levels(; structural, η_n_per_mode)
     deck = structural === :nasa300   # Phase 84b: NASA's 300 modes, criteria fixed 2026-10-29
     tol = which === :code ? 3.0 : 4.0
     table = ValidationTableRow[]
@@ -111,16 +112,18 @@ function _run_r172428_vs(which::Symbol; structural::Symbol=:table_d1)
     series = [
         PlotSeries("NASA PAIN (CR-172428 App. B / Table 10)", :reference_points, xs, [r.nasa for r in lv]; panel=1),
         PlotSeries("measured (Table 5)", :measured_points, xs, [r.measured for r in lv]; panel=1),
-        PlotSeries(deck ? "this code, NASA inputs, NASA's 300 modes" : "this code, NASA inputs", :computed_points, xs, [r.ours for r in lv]; panel=1),
+        PlotSeries(deck ? "this code, NASA inputs, NASA's 300 modes" :
+                   η_n_per_mode ? "this code, NASA inputs, η_n per mode (H1)" : "this code, NASA inputs",
+                   :computed_points, xs, [r.ours for r in lv]; panel=1),
     ]
     crit = which === :code ? "±3 dB of NASA's printed prediction at ≥ 7 of 9 points (3000/4000/5000 rpm, H1–H3)" :
                              "±4 dB of the measured space average at each of the 9 points"
     reason = "$n_ok/$n within ±$(tol) dB" * (complete ? "" : "; criterion needs 9 points, $n transcribed " *
              "(rpm $(join(_r172428_rpms(), ", ")))") *
              "; H1–H3 = " * join(["$(r.rpm):H$(r.H) $(round(r.ours; digits=2))" for r in lv], ", ")
-    id = (which === :code ? "R172428_CODE" : "R172428_EXP") * (deck ? "_DECK" : "")
+    id = (which === :code ? "R172428_CODE" : "R172428_EXP") * (deck ? "_DECK" : "") * (η_n_per_mode ? "_ETAN" : "")
     return ValidationCaseResult(id, _today_iso(),
-        (; criterion=crit, date=deck ? "2026-10-29" : "2026-10-23", rpms=_r172428_rpms(), structural,
+        (; criterion=crit, date=deck || η_n_per_mode ? "2026-10-29" : "2026-10-23", rpms=_r172428_rpms(), structural, η_n_per_mode,
            ours=[r.ours for r in lv], nasa=[r.nasa for r in lv], measured=[r.measured for r in lv]),
         table, series, verdict, reason, which === :code ? "V-CODE" : "V-EXP", "")
 end

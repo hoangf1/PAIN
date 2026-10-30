@@ -173,6 +173,9 @@ Not blockers (recorded so nobody stops on them): BBN tip geometry beyond 40 in. 
 | Q65 | **Phase 84 — the next tier of not-met cases: audit, NASA's mode counts in the CR-172428 and E-21 runs** (§8ab; 2026-10-29) | `validation_case_iso83.jl` | Q64 | **done 2026-10-29**: NASA's mode counts refuted for CR-172428 (4/9, 3/9) and E-21 (1/4); the rest of the tier has no untested documented cause; criteria in §8ab dated before the runs |
 | Q66 | **Phase 85 — meaningfulness audit of the met cases** (§8ac; 2026-10-29) | `validation_cases.jl`, §2.18 | Q63 | **done 2026-10-29**: 5 E and 3 P keep met; 39 verification checks are information cases (no verdict, outcome kept) |
 | Q67 | **Phase 86 — validation map: only cases with a verdict; diagnostics; completed phases in their own file** (§8ad; 2026-10-29) | `validation_cases.jl`, `validation_map.jl`, `validation_plots.jl`, docs | Q66 | **done 2026-10-29**: 8 diagnostics, map 41 cases (8 met, 33 not met), `NO_VERDICT_CASES.md`, `COMPLETED_PHASES.md` |
+| Q68 | **Phase 87 — NASA's printed per-mode values against ours** (§8ae) | P cases | Q67 | **done 2026-10-29**: ε_n met 48/48; η_n not met 11/46; η_r″ not met 8/19; no q = 0 or floor pattern, no code change |
+| Q69 | **Phase 88 — the q = 0 hypothesis held out** (§8ae) | diagnostics | Q68 | **done 2026-10-29**: refuted (2/3, 1/3, 1/4) |
+| Q70 | **Phase 89 — η_n per cabin mode, trim per 1/3-octave band** (§8af) | option + diagnostic | Q69 | **done 2026-10-29**: 5/9, not adopted (decision ≥ 7/9); option `η_n_per_mode` kept, default false |
 | Q58 | **Phase 79 — CYL2D** (§8w; 2026-10-28) | `case_error_summary`, `cyl2d.jl`, CYL2D_WEYL | Q57 | **done 2026-10-28**: information rows leave the pass count; refinement fixed (79b); CYL2D_GRID_CONV (NY 10 within 4.9 % of NY 60); Weyl + surface term 4/5; production NY = 10 kept (decided 2026-10-28) |
 | Q57 | **Phase 78 — structural modes** (§8v; 2026-10-28) | `mrp_appd.jl`, MRP_APPD criterion, map | Q53 | **done 2026-10-28**: App. D solver fixes J1–J6; MRP_APPD not met 2/32 (class I, floor stiffener model undocumented); MRP_D1/MRP_RITZ off the map |
 | Q56 | **Phase 77 — POLAR_FIDELITY as an equivalent angle** (§8u; 2026-10-28) | `src/validation_case_iso67.jl`, figure | Q52 | **done 2026-10-28**: Δα shown next to Δc_l, display only |
@@ -2192,3 +2195,77 @@ CYL2D_C1). No verdict changed to not met; no check was changed. Label fix found 
 
 **Result (2026-10-29).** Map: 41 cases, 8 met, 33 not met. Off the map: 76 (8 diagnostic, 47 information, 18 with no
 criterion, 3 not in the snapshot). No criterion or recorded number changed.
+
+## 8ae. Phases 87–88 — the differences from NASA's corrected program *(done 2026-10-29; moved to the bottom 2026-10-29; planned 2026-10-29; author: "yes create those phases", run on "Run them"; criteria below dated 2026-10-29, before any of these comparisons is computed)*
+
+**What is compared.** CR-3813 and the User Manual give PAIN's equations; CR-172428 gives NASA's inputs for the test article
+and what NASA's corrected program printed for them (App. B: per-mode tables, the five largest mode pairs, the interior
+levels). The code implements the equations and is run on CR-172428's inputs; any difference from App. B means NASA's
+program did something the equations do not say, or this code reads an equation differently. Three differences are open
+(`VALIDATION_GUIDELINE.md` §2.14, class N): the q = 0 cabin modes (our largest contributors, absent from NASA's pair lists),
+the floor-dominated pairs (10–12 dB low), and the trim-damped loss factors above 500 Hz (NASA 1.3–2× ours).
+
+**What is not yet compared.** App. B prints, for each of the 48 cabin modes PAIN used, NASA's normalization ε_n and modal
+loss factor η_n (`data/cr172428/appB_acoustic_modes.csv`, p. 195), and per pair the coupling loss η_r″ ("ETA R#"). These
+are NASA's own intermediate values; they have been used as NASA's numbers (44f) but never compared with this code's.
+NASA's list includes the q = 0 modes with non-zero ε_n and η_n, so PAIN summed them; the question is which factor made
+them small.
+
+### Phase 87 — NASA's printed per-mode values against ours (P, printed intermediate outputs)
+
+| Step | What | Criterion (fixed 2026-10-29, before any run) |
+|------|------|----------------------------------------------|
+| 87a | ε_n of the 48 printed cabin modes: `cabin_eps_3d` on CR-172428's inputs, matched by (Q, I) | |ours/NASA − 1| ≤ 1 % at every mode (printed to 5 digits) |
+| 87b | η_n of the same modes (Table 6 trim, at the mode frequency), matched by (Q, I) | |ours/NASA − 1| ≤ 2 % at every mode |
+| 87c | η_r″ of every printed pair with η_r″ ≥ 1e-4 (4000 and 5000 rpm lists), Eq. (83) with our f′, ε_n, η_n, M_r | |ours/NASA − 1| ≤ 10 % at ≥ 80 % of the pairs |
+| 87d | Read CR-3813 Eqs. (8), (57), (C.11) and App. C pp. C-6–C-8 for every place q enters, and list each against the code | a written table, no criterion |
+
+**Outcomes fixed before the runs.** Each step is a case that reproduces a PAIN printout (P), with a verdict. A miss that
+is systematic in q = 0 (all q = 0 modes off by one factor, the rest within the criterion) or in the floor-dominated modes
+is a documented cause: the code is changed to reproduce the printed value, the change is tested by 87a–c, and
+R172428_CODE, R172428_EXP and R172428_ETA are rerun against their registered criteria (their data played no part in the
+change). A miss with no pattern is recorded, and nothing is changed. A pass rules the printed quantity out.
+
+### Phase 88 — the q = 0 hypothesis on NASA runs it was not chosen on (held-out; only if 87 finds no documented cause)
+
+**Hypothesis H0 (fixed 2026-10-29).** NASA's program gave the q = 0 cabin modes no structural coupling (f₀M = 0),
+although CR-3813 Eq. (57) gives f₀M = 2/(Mπ). It was formed from the CR-172428 App. B pair lists, and its effect on
+R172428_CODE (8/9, Q22) has been seen, so neither can test it: both are excluded from the decision.
+
+**Held-out set.** NASA's CR-3813 printed predictions, which played no part in forming H0. CR-172428 App. A lists the three
+changes made after CR-3813 and none concerns q = 0, so H0, if true, held in both versions. The runs use the pre-correction
+form with all three App. A changes reverted (as REPRO_18b_PRE), plus H0:
+
+| Step | Run (diagnostic, `DIAGNOSTIC_CASES`, off the map) | Criterion (fixed 2026-10-29, before any run) |
+|------|---------------------------------------------------|----------------------------------------------|
+| 88a | E-16 tones: REPRO_18b_PRE + H0 against NASA's E-16 prediction | as REPRO_18b: ±4 dB at each of H1–H3 |
+| 88b | E-18 tones: E18_TONES in the pre-correction form + H0 against NASA's E-18 prediction | as E18_TONES: ±4 dB at each point |
+| 88c | E-21 NR: E21_PRE + H0 against NASA's E-21 prediction | as E21_PRE: |NR − NASA| ≤ 3 dB in ≥ 75 % of the counted bands |
+
+**Decision fixed before the runs.** H0 is supported only if all three meet their criteria; it then becomes a labelled
+option ("PAIN as NASA ran it: q = 0 uncoupled; no document"), never the default, and R172428_CODE keeps its recorded
+verdict. Otherwise H0 is refuted and recorded as such. No other variant of H0 (for example scaling f₀M, or excluding only
+some q = 0 modes) is tried after seeing a result.
+
+**Result (2026-10-29).** 87a met 48/48; 87b not met 11/46; 87c not met 8/19; 87d table in `validation_reports/phase87_appb_per_mode.md`. No systematic q = 0 or floor miss, so no code changed. 88: H0 refuted (2/3, 1/3, 1/4; `phase88_q0_held_out.md`). The 87b/87c pattern (trim per 1/3-octave band, η_r″ per mode pair) is Phase 89 (§8af).
+
+## 8af. Phase 89 — η_n per cabin mode with the trim per 1/3-octave band *(done 2026-10-29; moved to the bottom 2026-10-29; planned 2026-10-29 from the Phase 87 tables; criteria below dated 2026-10-29, before the option is written or any level is computed with it)*
+
+**Reading H1 (formed from APPB_ETA_N and APPB_ETA_RPP, so neither tests it).** NASA's program gave each cabin mode one
+loss factor, a property of the mode: Eq. (77) with the sidewall and end-plate trim conductance taken at the centre of the
+1/3-octave band holding the mode frequency (App. B p. 195 steps at the band edges), used for N in Eq. (8) and Eq. (83) at
+every tone (App. B prints the same η_r″ for a pair at 250 and 400 Hz). This code takes the trim and N at the tone
+frequency. H1 reproduces 87b only to 0.86–1.39 (post-hoc), so it is at most part of NASA's form.
+
+| Step | What | Criterion (fixed 2026-10-29, before any run) |
+|------|------|----------------------------------------------|
+| 89a | `PainInputs(...; η_n_per_mode=true)` (default false): in `tone_mean_square_pressure`, N of mode (q, i) = Eq. (77) at the mode frequency with ξ, ξ_e at the band centre holding it (100 Hz for modes below 89 Hz) | unit test: N of a mode is the same at two tones and equals `acoustic_N` with the band-centre ξ; default runs unchanged bitwise |
+| 89b | `R172428_CODE_ETAN` (diagnostic): R172428_CODE with H1 | **decision**: R172428_CODE's criterion, ±3 dB of NASA's printed prediction at ≥ 7 of 9 points |
+| 89c | Information, post-hoc (formation data): APPB_ETA_N and APPB_ETA_RPP with H1 | no criterion |
+
+**Decision fixed before the runs.** If 89b is met, H1 becomes the default tone path (PAIN as App. B shows it), every
+affected case is rerun against its registered criterion, and the change is recorded as a documented correction (source:
+App. B pp. 195, 197, 202). If 89b is not met, H1 stays an option, not adopted, and is recorded as not reproducing NASA's
+levels. No other form of H1 (other band edges, other frequencies for ξ) is tried after seeing 89b.
+
+**Result (2026-10-29).** 89a done; 89b R172428_CODE_ETAN 5/9 (R172428_CODE 4/9): H1 **not adopted**, option kept (default false); 89c information: η_r″ within 10 % at 10/19 pairs. Record: `validation_reports/phase87_appb_per_mode.md`.

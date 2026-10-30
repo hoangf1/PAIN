@@ -91,3 +91,17 @@ end
     r = PAIN._p62_result("UNIT", PAIN.ValidationTableRow[], PAIN.PlotSeries[], true, "fine", (; x=1))
     @test r.verdict == :met && r.reason == "fine" && r.inputs_echo.date == "2026-10-23"
 end
+@testset "iso87: App. B per-mode helpers (phases 87–89)" begin
+    inp = PAIN.r172428_inputs(4000)
+    @test PAIN._acmode_by_I(inp, 2).index == 2
+    ac = PAIN._acmode_by_I(inp, 1)
+    @test isnan(PAIN._eta_n_at_mode(inp, inp.acoustic.modes[1], 1))                 # 93.8 Hz, below the Fig. A-2 table
+    η = PAIN._eta_n_at_mode(inp, ac, 1)                                               # 218 Hz
+    ωn = 2π * PAIN.cabin_frequency_3d(ac, inp.fuse.a, inp.L_c, 1; c0=inp.c_int)
+    @test η > 0 && η ≈ PAIN.acoustic_N(inp, ac, 1, ωn / 2π, ωn;
+        ξ=PAIN.trim_conductance(inp.sidewall, ωn, inp.m_wall; ρ0=inp.ρ_int, c0=inp.c_int),
+        ξ_e=PAIN.trim_conductance(inp.endplates, ωn, Inf; ρ0=inp.ρ_int, c0=inp.c_int), V=PAIN.cabin_volume(inp)) / ωn^2
+    st = inp.structural.modes[6]; a19 = PAIN._acmode_by_I(inp, 4)                     # App. B pair 19 (Q2, I4) × 6
+    a = PAIN._eta_r_pp_pair(inp, a19, 2, st, 250.0); b = PAIN._eta_r_pp_pair(inp, a19, 2, st, 400.0)
+    @test a > 0 && b > 0 && a != b                                                    # N taken at the tone frequency
+end

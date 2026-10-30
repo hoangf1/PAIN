@@ -240,7 +240,8 @@ or the other documents points there. When a phase is done, mark it done and move
 
 | Q | Item | Kind | Prerequisite | Output |
 |---|------|------|--------------|--------|
-| Q70 | **Phase 89 — η_n per cabin mode, trim per 1/3-octave band** (§8af; 2026-10-29) | option + diagnostic run | Q69 | planned 2026-10-29 (follow-up of Phase 87, run on "Run them"); criteria in §8af dated before any run |
+| Q71 | **Phase 90 — Eq. (43) blocking against Report 996 Fig. 10 (measured)** (§8ag; 2026-10-29) | digitization + E case | — | planned 2026-10-29 (author: "6 i think would be worth"); criteria in §8ag dated before any comparison |
+| Q72 | **Phase 91 — notebooks that walk through the program** (§8ah; 2026-10-29) | documentation | — | planned 2026-10-29 (author: "5 yeah this would be very helpful") |
 
 If a queue item is blocked on data, skip to the next unblocked item and say which data item blocks it.
 
@@ -285,24 +286,32 @@ The diagram matches the code (phases 21–22 done 2026-10-21): `propeller_ccblad
 
 ---
 
-## 8af. Phase 89 — η_n per cabin mode with the trim per 1/3-octave band *(planned 2026-10-29 from the Phase 87 tables; criteria below dated 2026-10-29, before the option is written or any level is computed with it)*
+## 8ag. Phase 90 — Eq. (43) blocking against Report 996 Fig. 10 *(planned 2026-10-29; author: "6 i think would be worth"; criteria below dated 2026-10-29, before Fig. 10 is digitized or any comparison is computed)*
 
-**Reading H1 (formed from APPB_ETA_N and APPB_ETA_RPP, so neither tests it).** NASA's program gave each cabin mode one
-loss factor, a property of the mode: Eq. (77) with the sidewall and end-plate trim conductance taken at the centre of the
-1/3-octave band holding the mode frequency (App. B p. 195 steps at the band edges), used for N in Eq. (8) and Eq. (83) at
-every tone (App. B prints the same η_r″ for a pair at 250 and 400 Hz). This code takes the trim and N at the tone
-frequency. H1 reproduces 87b only to 0.86–1.39 (post-hoc), so it is at most part of NASA's form.
+**Data.** NACA Report 996 Fig. 10 (PDF p. 12, printed p. 8): measured total rms pressure p̄ (dynes/cm²) against x/D along a
+line parallel to the propeller axis at the blade-tip clearance, in free space, at a flat vertical wall and at a circular
+wall; NACA 4-(5)(08)-03, B = 2, β(0.75R) = 20°, M_t 0.60, d/D = 0.083, D = 4 ft (Report 996 p. 5). Walls 3 ft high; flat
+6 ft long; circular 4 ft long, radius not stated (Fig. 5, p. 10).
 
-| Step | What | Criterion (fixed 2026-10-29, before any run) |
-|------|------|----------------------------------------------|
-| 89a | `PainInputs(...; η_n_per_mode=true)` (default false): in `tone_mean_square_pressure`, N of mode (q, i) = Eq. (77) at the mode frequency with ξ, ξ_e at the band centre holding it (100 Hz for modes below 89 Hz) | unit test: N of a mode is the same at two tones and equals `acoustic_N` with the band-centre ξ; default runs unchanged bitwise |
-| 89b | `R172428_CODE_ETAN` (diagnostic): R172428_CODE with H1 | **decision**: R172428_CODE's criterion, ±3 dB of NASA's printed prediction at ≥ 7 of 9 points |
-| 89c | Information, post-hoc (formation data): APPB_ETA_N and APPB_ETA_RPP with H1 | no criterion |
+**Model.** Eq. (43) (CR-3813 p. 31, Magliozzi [6]): p_wall = F(γ) p_free, γ the angle between the hub-to-point line and the
+wall normal. Flat wall: γ = atan(|x/D| / (0.5 + d/D)). Magliozzi fitted Eq. (43) to prop-fan fuselage data (J. Aircraft
+1980); that paper is not in hand, so whether Report 996 was among its data is not known (recorded).
 
-**Decision fixed before the runs.** If 89b is met, H1 becomes the default tone path (PAIN as App. B shows it), every
-affected case is rerun against its registered criterion, and the change is recorded as a documented correction (source:
-App. B pp. 195, 197, 202). If 89b is not met, H1 stays an option, not adopted, and is recorded as not reproducing NASA's
-levels. No other form of H1 (other band edges, other frequencies for ξ) is tried after seeing 89b.
+| Step | What | Criterion (fixed 2026-10-29, before any comparison) |
+|------|------|------------------------------------------------------|
+| 90a | Digitize Fig. 10 with a pixel-calibrated script (§2.2): gridlines located in the pixels, each marker's centre found in the pixels; `data/report996/tr996_fig10_reflecting_walls.csv` | QA: every gridline found; each value read twice (two windows) within 10 dynes/cm² |
+| 90b | `R996_FIG10_FLAT` (E): Eq. (43) R1 against the measured ratio p_flat/p_free at each x/D where both are measured | \|20 log₁₀ F_R1 − 20 log₁₀(p_flat/p_free)\| ≤ 1.5 dB at ≥ 4 of the 5 points |
+| 90c | Information (no verdict): R2 on the flat wall; R1 and R2 on the circular wall with an assumed radius of 1.5 ft (semicircle of the 3 ft height), axis parallel to the propeller axis | no criterion (radius assumed) |
+
+## 8ah. Phase 91 — notebooks that walk through the program *(planned 2026-10-29; author: "5 yeah this would be very helpful"; documentation, no comparison)*
+
+- 91a `notebooks/` with its own environment (Pluto, so the package's dependencies do not change); each notebook is a plain
+  Julia file that also runs as a script.
+- 91b Notebook 1 — the program step by step on the test article: free field (E-11), the 160-point grid, Eq. (43) blocking,
+  structural and cabin modes, Eq. (8) tones, interior SPL; each step's figure and the equation it implements.
+- 91c Notebook 2 — validation: running a case, reading its table and figure, the map and `NO_VERDICT_CASES.md`, the
+  meaningfulness rule, with R172428_CODE and APPB_EPS_N as examples.
+- 91d Each notebook runs from start to end as a script (test: run headless); outputs go to a temp directory, not the repo.
 
 ## 9. Reference appendices
 
@@ -471,12 +480,11 @@ has no thickness noise.
 
 ### Optional future work *(not blockers)*
 
-1. Full App. D Peterson off-diagonal matrices from cleaner source  
-2. OEM Hartzell geometry / thickness-noise F1A without Table-8 cal  
-3. Exterior Spbl measurement to remove `j2_scale` Spbl-anchor correction  
-4. Lab coupon closure of App. A transfer matrix  
-5. Notebooks  
-6. Check R1/R2 blocking against NACA Report 996 Fig. 10 (pressure at a flat wall about twice the free-space value; one condition, wall-plane pressure, no phase; needs digitizing)
+Items 1–6 were decided by the author on 2026-10-29: 1 (cleaner App. D matrices) not needed, MRP_APPD reproduces Table D-1
+32/32 on NASA's deck; 2 (OEM Hartzell geometry) removed, proprietary and aircraft predictions are out of scope; 3 (measured
+exterior broadband to replace `j2_scale`) removed, CR-3813 gives no broadband exterior input (tried with TP-2444's
+measured spectrum, T2_MEAS_EXT, and BPM, T2_PRED_BB); 4 (lab coupon of the App. A trim) removed, not available; 5
+(notebooks) is Phase 91; 6 (R1/R2 blocking against Report 996 Fig. 10) is Phase 90.
 7. ~~Faster test cycle (testset filter + DaemonMode)~~ → **P1 done 2026-10-22** (`COMPLETED_PHASES.md` §11)
 
 ---

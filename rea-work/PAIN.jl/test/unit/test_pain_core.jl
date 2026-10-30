@@ -175,3 +175,13 @@ end
     @test PAIN.resolve_η_n_band(inp, 500.0; V=1.0, S=2.0, S_e=0.5, ξ=0.1, ξ_e=0.2) ≈
           PAIN.acoustic_loss_average(2π * 500; V=1.0, S=2.0, S_e=0.5, ξ=0.1, ξ_e=0.2, c0=inp.c_int)
 end
+@testset "acoustic_N_per_mode (Phase 89 option)" begin
+    inp = PAIN.r172428_inputs(4000)
+    ac = inp.acoustic.modes[3]; V = PAIN.cabin_volume(inp)
+    ωn = 2π * PAIN.cabin_frequency_3d(ac, inp.fuse.a, inp.L_c, 0; c0=inp.c_int)
+    fc = PAIN.nearest_third_octave(ωn / 2π, PAIN.third_octave_centers())
+    ξ = PAIN.trim_conductance(inp.sidewall, 2π * fc, inp.m_wall; ρ0=inp.ρ_int, c0=inp.c_int)
+    ξe = PAIN.trim_conductance(inp.endplates, 2π * fc, Inf; ρ0=inp.ρ_int, c0=inp.c_int)
+    @test PAIN.acoustic_N_per_mode(inp, ac, 0, ωn; V) ≈ PAIN.acoustic_N(inp, ac, 0, ωn / 2π, ωn; ξ, ξ_e=ξe, V) rtol = 1e-12
+    @test PAIN.acoustic_N_per_mode(inp, inp.acoustic.modes[1], 0, 0.0; V) == 0.0     # rigid mode: N = η ω_n² = 0
+end

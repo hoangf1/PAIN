@@ -3203,6 +3203,54 @@ _run_if("NASA's 300-mode set in the HF path and the reproductions (phases 83, 84
     end
 end
 
+_run_if("NASA's App. B per-mode values, the q = 0 hypothesis, η_n per mode (phases 87–89)") do
+    # Criteria fixed 2026-10-29 (plan §8ae, §8af) before any run. Recorded first-run results.
+    inp = r172428_inputs(4000)
+    ac0 = inp.acoustic.modes[1]; st = inp.structural.modes[13]
+    nq = PAIN._with_fields(inp; q0_coupled=false)
+    @test coupling_factor(ac0, st, nq; q=0) == 0.0 && coupling_factor(ac0, st, inp; q=0) != 0.0     # q = 0 uncoupled
+    @test coupling_factor(ac0, st, nq; q=1) == coupling_factor(ac0, st, inp; q=1)                     # q > 0 untouched
+    # η_n per mode: one N per mode whatever the tone, equal to Eq. (77) with the band-centre trim conductance
+    ac = PAIN._acmode_by_I(inp, 1); ωn = 2π * PAIN.cabin_frequency_3d(ac, inp.fuse.a, inp.L_c, 1; c0=inp.c_int)  # 218 Hz
+    ωc = 2π * PAIN.nearest_third_octave(ωn / 2π, PAIN.third_octave_centers()); V = PAIN.cabin_volume(inp)   # 200 Hz band
+    ξ = PAIN.trim_conductance(inp.sidewall, ωc, inp.m_wall; ρ0=inp.ρ_int, c0=inp.c_int)
+    ξe = PAIN.trim_conductance(inp.endplates, ωc, Inf; ρ0=inp.ρ_int, c0=inp.c_int)
+    @test PAIN.acoustic_N_per_mode(inp, ac, 1, ωn; V) ≈ PAIN.acoustic_N(inp, ac, 1, ωn / 2π, ωn; ξ, ξ_e=ξe, V) rtol = 1e-12
+    @test PAIN.acoustic_N_per_mode(inp, ac, 1, ωn; V) != PAIN.acoustic_N(inp, ac, 1, ωn / 2π, ωn; ξ=0.5ξ, ξ_e=ξe, V)
+    pm = PAIN._with_fields(inp; η_n_per_mode=true)
+    @test tone_mean_square_pressure(pm, 1, 2π * 200.0) != tone_mean_square_pressure(inp, 1, 2π * 200.0)
+    @test !inp.η_n_per_mode && inp.q0_coupled                                                         # defaults unchanged
+    # 87a–c (P cases)
+    e = run_validation_case("APPB_EPS_N")
+    @test e.verdict === :met && e.inputs_echo.n == 48 && all(r -> abs(r.computed / r.reference - 1) < 1e-4, e.table)
+    h = run_validation_case("APPB_ETA_N")
+    @test h.verdict === :not_met && h.inputs_echo.n_ok == 11 && h.inputs_echo.n == 46 && h.inputs_echo.skipped == [1, 2]
+    @test isnan(PAIN._eta_n_at_mode(inp, inp.acoustic.modes[1], 1))                                 # 93.8 Hz: below Fig. A-2
+    hi = [r for r in h.table if r.x ≥ 25]                                                           # modes ≥ 465 Hz
+    @test all(r -> abs(r.computed / r.reference - 1) ≤ 0.10, hi)
+    p = run_validation_case("APPB_ETA_RPP")
+    @test p.verdict === :not_met && p.inputs_echo.n_ok == 8 && p.inputs_echo.n == 19
+    # NASA prints one η_r″ for cabin mode 19 × structural mode 6 at 400 and 250 Hz; the tone-frequency N does not
+    i4 = findfirst(r -> occursin("4000 rpm H2: cabin mode 19 × structural mode 6", r.quantity), p.table)
+    i5 = findfirst(r -> occursin("5000 rpm H1: cabin mode 19 × structural mode 6", r.quantity), p.table)
+    @test p.table[i4].reference == p.table[i5].reference && p.table[i5].computed > 5 * p.table[i4].computed
+    # 88 (diagnostics): the q = 0 hypothesis refuted on CR-3813's runs
+    for (id, k, n) in (("Q0_REPRO_18b", 2, 3), ("Q0_E18", 1, 3), ("Q0_E21", 1, 4))
+        r = run_validation_case(id)
+        @test r.verdict === :no_verdict && PAIN.underlying_verdict(r) === :not_met
+        @test r.inputs_echo.n_ok == k && get(r.inputs_echo, :n, 3) == n
+    end
+    q = run_validation_case("Q0_REPRO_18b")
+    @test all(q.inputs_echo.got .!= q.inputs_echo.q0_coupled)                                       # the option acts
+    # 89b (diagnostic): η_n per mode, 5/9, not adopted
+    r = run_validation_case("R172428_CODE_ETAN")
+    @test r.verdict === :no_verdict && PAIN.underlying_verdict(r) === :not_met && count(x -> x.within_tolerance, r.table) == 5
+    for id in ("APPB_EPS_N", "APPB_ETA_N", "APPB_ETA_RPP", "Q0_REPRO_18b", "R172428_CODE_ETAN")
+        png = plot_case(run_validation_case(id), VALIDATION_CASES[id].plot_spec; path=joinpath(TEST_OUT, "$(id).png"))
+        @test isfile(png) && filesize(png) > 0
+    end
+end
+
 _run_if("Sharp sound bridges and the App. D mode extension (phases 59, 60)") do
     # Criteria and mapping fixed 2026-10-23 (plan §8g) before any run. Recorded first-run results.
     # 59a pieces by hand: Eq. (5) at normal incidence, Eq. (22), Eqs. (23) and (25), and the Fig. 5 construction
