@@ -240,7 +240,7 @@ or the other documents points there. When a phase is done, mark it done and move
 
 | Q | Item | Kind | Prerequisite | Output |
 |---|------|------|--------------|--------|
-| — | No open item (2026-10-29); Phases 90–94 are done | — | — | — |
+| Q76 | **Phase 95 — where the cabin-mode damping η_n differs from NASA's** (§8al) | diagnostic | App. B pp. 195, 197 | 95a table; 95b variants V1–V3 on APPB_ETA_N; report |
 
 If a queue item is blocked on data, skip to the next unblocked item and say which data item blocks it.
 
@@ -284,6 +284,33 @@ The diagram matches the code (phases 21–22 done 2026-10-21): `propeller_ccblad
 | Driver | `scripts/run/run_pain.jl` |
 
 ---
+
+## 8al. Phase 95 — where the cabin-mode damping η_n differs from NASA's (diagnostic)
+
+*(planned 2026-10-30; author: "Yes, run it", on feeding NASA's printed trim admittances into the loss factors.
+Diagnostic: no verdict, off the map, defaults unchanged; every variant below is post-hoc, because the η_n pattern of
+87b was seen first.)*
+
+**95a (run 2026-10-30 before this entry; recorded as found).** This code's trim admittance β of the Table 6 trim at the
+1/3-octave centres against App. B p. 197. Sidewall: Re β and Im β within about 3 % from 315 Hz up, within about 10 % at
+100–160 Hz, Re β 27 % high at 200 Hz (0.072 against 0.0565, the trim resonance) and 10 % high at 250 Hz (0.725
+against 0.660). End cap: Im β within a few %, Re β up to 4.6× NASA's below 250 Hz (0.0016 against 0.00035 at 200 Hz),
+small in absolute terms. So the sidewall admittance PAIN printed is reproduced at the band centres; what changes η_n
+below 470 Hz is where Eq. (77) is evaluated between them.
+
+**95b variants (fixed 2026-10-30, before the run).** η_n of the 46 App. B cabin modes (as APPB_ETA_N, same 2 % band
+for reading only) with N of Eq. (77):
+
+| Variant | ξ, ξ_e | ω in Eq. (77) |
+|---|---|---|
+| V0 | this code's, at the 1/3-octave centre holding the mode (the Phase 93 default) | ω_n |
+| V1 | NASA's printed (App. B p. 197), at the centre holding the mode | ω_n |
+| V2 | NASA's printed, at the centre holding the mode | ω_c, the band centre |
+| V3 | this code's, at the centre holding the mode | ω_c |
+
+Recorded per variant: modes within 2 %, the ratio range for modes below and above 470 Hz. V1 against V0 isolates the
+admittance; V2/V3 against V0/V1 isolate the ω of Eq. (77). If a variant reproduces App. B at nearly every mode, it is
+reported as the reading that matches NASA's printout; adopting it as a default is a separate decision for the author.
 
 ## 9. Reference appendices
 
