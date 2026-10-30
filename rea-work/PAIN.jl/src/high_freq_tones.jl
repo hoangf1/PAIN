@@ -109,7 +109,7 @@ function band_average_loss_factors(inp::PainInputs, ωH::Real, band;
     fH = ωH / 2π
     ηn_vals = Float64[]
     for m in band.ac_list
-        N = acoustic_N(inp, m.ac, m.q, fH, m.ωn; ξ, ξ_e=ξe, V)
+        N = tone_acoustic_N(inp, m.ac, m.q, fH, m.ωn; ξ, ξ_e=ξe, V)
         η = m.ωn == 0 ? NaN : N / m.ωn^2
         isfinite(η) && η > 0 && push!(ηn_vals, η)
     end

@@ -178,6 +178,9 @@ Not blockers (recorded so nobody stops on them): BBN tip geometry beyond 40 in. 
 | Q70 | **Phase 89 — η_n per cabin mode, trim per 1/3-octave band** (§8af) | option + diagnostic | Q69 | **done 2026-10-29**: 5/9, not adopted (decision ≥ 7/9); option `η_n_per_mode` kept, default false |
 | Q71 | **Phase 90 — Eq. (43) blocking against Report 996 Fig. 10** (§8ag) | digitization + E case | — | **done 2026-10-29**: R996_FIG10_FLAT met 5/5; circular wall information (R1 6 dB over the measured 0.7–4.9 dB) |
 | Q72 | **Phase 91 — notebooks that walk through the program** (§8ah) | documentation | — | **done 2026-10-29**: `notebooks/01_pain_step_by_step.jl`, `02_validation_cases.jl`; Pluto check 18 and 12 cells, 0 errors |
+| Q73 | **Phase 92 — NASA's printed mode-pair contributions** (§8ai) | diagnostic + held-out test | App. B contributor lists | **done 2026-10-29**: 15/25 pairs within ±2 dB; q = 0 held-out test not met (2/3, by 0.09 dB); q = 0 off + η_n per mode (post-hoc) within 2.4 dB at 9/9 |
+| Q74 | **Phase 93 — NASA's latest program form as the default** (§8aj) | code default | Phase 92 | **done 2026-10-29**: App. A Eq. (82), q = 0 off, η_n per mode by default; CR-3813 forms pinned where they reproduce CR-3813 |
+| Q75 | **Phase 94 — held-out test on CR-172428 Table 12 (η_T = 2.0)** (§8ak) | P case | Phase 93 | **done 2026-10-29**: R172428_ETAT2 met 9/9; APPB_ETA_N_T2 met 3/3 |
 | Q58 | **Phase 79 — CYL2D** (§8w; 2026-10-28) | `case_error_summary`, `cyl2d.jl`, CYL2D_WEYL | Q57 | **done 2026-10-28**: information rows leave the pass count; refinement fixed (79b); CYL2D_GRID_CONV (NY 10 within 4.9 % of NY 60); Weyl + surface term 4/5; production NY = 10 kept (decided 2026-10-28) |
 | Q57 | **Phase 78 — structural modes** (§8v; 2026-10-28) | `mrp_appd.jl`, MRP_APPD criterion, map | Q53 | **done 2026-10-28**: App. D solver fixes J1–J6; MRP_APPD not met 2/32 (class I, floor stiffener model undocumented); MRP_D1/MRP_RITZ off the map |
 | Q56 | **Phase 77 — POLAR_FIDELITY as an equivalent angle** (§8u; 2026-10-28) | `src/validation_case_iso67.jl`, figure | Q52 | **done 2026-10-28**: Δα shown next to Δc_l, display only |
@@ -2302,3 +2305,63 @@ wall normal. Flat wall: γ = atan(|x/D| / (0.5 + d/D)). Magliozzi fitted Eq. (43
 - [x] 91d Each notebook runs from start to end as a script (test: run headless); outputs go to a temp directory, not the repo.
 
 **Result (2026-10-29).** `rea-work/notebooks/` (own environment with Pluto 1.1.0; each notebook activates `PAIN.jl`): `01_pain_step_by_step.jl` (18 cells) and `02_validation_cases.jl` (12 cells). `check_notebooks.jl` runs both through Pluto headless from temp copies: 0 cell errors; both also run as plain scripts. How to open them: `notebooks/README.md`.
+
+## 8ai. Phase 92 — NASA's printed mode-pair contributions (CR-172428 App. B pp. 207, 212)
+
+*(done 2026-10-29; moved to the bottom 2026-10-29; planned 2026-10-29; author: "at this point if tuning helps us find the solution to the issue thats fine since thats
+diagnostics". Everything in this phase is a diagnostic: no verdict, off the map, defaults unchanged unless 92b says so.)*
+
+**92a (run 2026-10-29, before this entry was written; a diagnostic, recorded as found).** Eq. (8) split into its
+acoustic × structural pair terms for `r172428_inputs(4000)` and `(5000)` and set against the 25 pairs NASA prints (five
+largest per tone, 4000 rpm H1–H3, 5000 rpm H1–H2). Found: (i) of the 25 printed pairs 15 are within ±2 dB of this code;
+(ii) NASA lists no q = 0 cabin mode at any of the five tones, while in this code q = 0 pairs are the largest at 4000 H1
+(Q0 I1 × st8, 5.55 Pa², NASA's whole tone 0.59 Pa²), 5000 H1 and 5000 H2; (iii) without the q = 0 terms the five tones
+are 91.26, 79.80, 71.59, 84.18, 89.26 dB against NASA's 91.69, 78.19, 71.30, 86.4, 91.1. CR-172428 App. A shows the
+program reads FQM(IQ,M) but not how FQM is filled, so the documents do not say why q = 0 drops out. Because (iii) was
+seen, R172428_CODE with q = 0 off is post-hoc on those six points.
+
+**92b held-out test (criterion fixed 2026-10-29, before the run).** Hypothesis H_q0': in the program NASA ran for
+CR-172428 the q = 0 cabin modes add nothing to Eq. (8) (`q0_coupled = false`, CR-172428 inputs, post-correction form).
+Held out: the 3000 rpm H1–H3 NASA predictions (Table 10), not run with q = 0 off before this entry. **Supported** if
+this code is within ±3 dB of NASA at all three. Phase 88 refuted the same switch on CR-3813's pre-correction runs
+(E-16/E-18); those came from the earlier program, so 92b tests the CR-172428 program only. If supported: the CR-172428
+reproduction cases gain diagnostic re-runs with q = 0 off (labelled post-hoc where the points were seen), the default
+stays `q0_coupled = true` (CR-3813 as printed), and the finding is recorded as reverse-engineered, not documented. If
+not supported: recorded, and no variant is tried.
+
+**92c (diagnostic).** The pairs still more than 2 dB off after 92b, with the term (η_n, η_r″, mode frequency) that
+accounts for each.
+
+**Result (2026-10-29).** 92a: 15/25 pairs within ±2 dB, no q = 0 pair in NASA's lists. 92b: **not supported**, 2/3 held-out points (3000 H3 +3.09 dB). 92c (post-hoc): q = 0 off and η_n per mode put all nine levels within ±2.4 dB; the pairs still off follow cabin-mode frequencies about 0.5 % from NASA's. Defaults unchanged. Record: `validation_reports/phase92_appb_pairs.md`.
+
+## 8aj. Phase 93 — NASA's latest program form as the default
+
+*(done 2026-10-29; moved to the bottom 2026-10-29; planned 2026-10-29; author: "whatever makes it match the outputs hopefully thats the latest release".)* CR-172428
+(Pope, September 1984) is the latest PAIN document; CR-3813 is July 1984. The defaults become the program NASA ran for
+CR-172428: the three App. A corrections (floor sign, already default; Eq. (82) over the trimmed area,
+`η_r_trimmed_area = true`; the 4 dB blocking limit R2, already the pipeline default) and the two behaviours inferred in
+Phase 92 (`q0_coupled = false`, `η_n_per_mode = true`; not documented). Cases that reproduce CR-3813's printed runs use
+`_pre_correction_form` (all of these reverted); R172428_CODE keeps the tone sum as CR-3813 prints it
+(`_cr3813_tone_form`), because the inferred form was chosen from its points: comparing the default with them is
+post-hoc (R172428_CODE_Q0_ETAN, diagnostic). Every other case runs the new default; criteria are unchanged and changed
+recorded results are re-recorded with this phase named. Not a calibration of those cases: the form was taken from
+NASA's CR-172428 printouts only.
+
+## 8ak. Phase 94 — held-out test on CR-172428 Table 12 (criteria fixed 2026-10-29, before any run; done 2026-10-29)
+
+CR-172428 pp. 85–86 print a second PAIN run, not used by any earlier phase: Table 6 inputs with the trim panel loss
+factor η_T = 2.0 (Table 12, nine points; Fig. 35) and, in the text, η_n of App. B cabin modes 6, 7, 8 at that η_T
+(0.088, 0.077, 0.081). Transcribed to `data/cr172428/table12_eta_T2_predictions.csv`. This code has not been run with
+η_T = 2.0 before these criteria were written.
+
+| Step | Case | Run | Criterion (P) |
+|---|---|---|---|
+| 94a | R172428_ETAT2 | `r172428_inputs(rpm; η_T=2.0)`, Phase 93 default form, H1–H3 at 3000/4000/5000 rpm | ±3 dB of Table 12 at ≥ 7 of 9 (R172428_CODE's criterion) |
+| 94b | APPB_ETA_N_T2 | η_n of App. B modes 6, 7, 8 at their own frequency, η_T = 2.0 (as APPB_ETA_N) | within ±10 % of the printed value at all three |
+
+Both carry a verdict (P: NASA's inputs, NASA's printed output, the code as it ships). Caveat stated with the result: the
+default form was inferred from the η_T = 0.13 run of the same article, so 94a is held out in its inputs and outputs but
+not independent of the article. If 94a is not met the form is still recorded as inferred, and the defaults stay as the
+author asked, with the result stated.
+
+**Result (2026-10-29).** 94a R172428_ETAT2 **met** 9/9 (largest |Δ| 1.69 dB); 94b APPB_ETA_N_T2 **met** 3/3. Record: `validation_reports/phase94_table12_eta_T2.md`.

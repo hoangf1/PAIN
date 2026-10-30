@@ -102,7 +102,7 @@ function point_tone_p2(inp::PainInputs, H::Int, ωH::Float64; pts=cabin_interior
     for q in 0:qtop, ac in inp.acoustic.modes
         ωn = 2π * cabin_frequency_3d(ac, a, L_c, q; c0=c_int)
         εn = cabin_eps_3d(ac, q)
-        N = acoustic_N(inp, ac, q, fH, ωn; ξ, ξ_e=ξe, V)
+        N = tone_acoustic_N(inp, ac, q, fH, ωn; ξ, ξ_e=ξe, V)
         for (i, (m, n)) in enumerate(pts.nodes)
             φnode[i] = _phi_node_full(ac, m, n)
         end
@@ -182,6 +182,15 @@ end
 _with_fields(inp::PainInputs; kw...) =
     PainInputs((haskey(kw, f) ? kw[f] : getfield(inp, f) for f in fieldnames(PainInputs))...)
 
+"""Tone sum as CR-3813 prints it (Eq. (57) q = 0 coupling, η_n at the tone); other choices of `inp` kept (Phase 93)."""
+_cr3813_tone_form(inp::PainInputs) = _with_fields(inp; q0_coupled=true, η_n_per_mode=false)
+
+"""
+The program before NASA's CR-172428 corrections, which produced CR-3813's printed outputs (Phases 61, 88): pre-correction
+floor sign, printed Eq. (82), and the CR-3813 tone form. Blocking is set by the caller (R1).
+"""
+_pre_correction_form(inp::PainInputs) = _with_fields(_cr3813_tone_form(inp); floor_sign=-1.0, η_r_trimmed_area=false)
+
 """
 LOUDEST_PT (Phase 42, V-UNIT; criteria fixed 2026-10-23): (a) the interior-node volume average of
 the point ⟨p²⟩ equals the space-average Eq. (8) within 1 % for H1–H3; (b) the loudest-point dB(A)
@@ -212,7 +221,7 @@ function _run_loudest_pt()
                                     lp.dBA_max - lp.dBA_avg, lp.dBA_max - lp.dBA_avg, ok_b))
     # (c) single acoustic mode, q = 0: point ⟨p²⟩/φ_i² constant over the nodes
     ac1 = inp.acoustic.modes[2]
-    one = _with_fields(inp; q_max=0,
+    one = _with_fields(inp; q_max=0, q0_coupled=true,   # a q = 0 mode-shape check: the mode must be driven
                        acoustic=Cyl2DResult(inp.acoustic.theta0_deg, [ac1], "single mode (42c)",
                                             inp.acoustic.NY, inp.acoustic.h, inp.acoustic.c0))
     p1 = point_tone_p2(one, 1, 2π * 200.0; pts)[:, 1]

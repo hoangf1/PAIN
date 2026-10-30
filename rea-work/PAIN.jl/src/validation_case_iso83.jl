@@ -106,8 +106,8 @@ function _run_e21_pre_deck()
     e21 = _read_csv_numeric_nan(_data_path("cr3813", "e21_noise_reduction_range.csv"))
     bands = Float64.(e21[:band_Hz]); nasa = Float64.(e21[:nasa_pred_dB])
     excluded = Set([80.0, 100.0, 125.0, 160.0])
-    pre(set) = noise_reduction_spectrum(_with_fields(noise_reduction_test_article_inputs(; η_lining=1.0, structural_set=set);
-                                                     floor_sign=-1.0); bands, η_r_cap=0.15)
+    pre(set) = noise_reduction_spectrum(_pre_correction_form(noise_reduction_test_article_inputs(; η_lining=1.0, structural_set=set));
+                                        bands, η_r_cap=0.15)
     deck = pre(:deck); d1 = pre(:table_d1)
     table = ValidationTableRow[]; n_ok = 0; n = 0
     xs = Float64[]; ref = Float64[]; got = Float64[]; old = Float64[]

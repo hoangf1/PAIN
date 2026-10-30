@@ -10,7 +10,7 @@ function _run_repro_18b_pre()
     p3 = phase3_trim(; η_lining=0.5)
     r = run_pain_pipeline(; source=:e11, e11_amp_csv=paths.anopp_spl, n_harmonics=3, bpf_Hz=200.0,
                           blocking=R1, sidewall_trim_stack=p3.sidewall, end_trim_stack=p3.ends, mech=p3.mech)
-    pre = interior_spl(_with_fields(r.inputs; floor_sign=-1.0); bpf_Hz=200.0, n_harmonics=3, broadband=false).harmonic_SPL_dB
+    pre = interior_spl(_pre_correction_form(r.inputs); bpf_Hz=200.0, n_harmonics=3, broadband=false).harmonic_SPL_dB
     post = r.spectrum.harmonic_SPL_dB
     cols = _read_csv_numeric(targets)
     table = ValidationTableRow[]; n_ok = 0; xs = Float64[]; nasa = Float64[]
@@ -38,7 +38,7 @@ function _run_e21_pre()
     bands = Float64.(e21[:band_Hz]); nasa = Float64.(e21[:nasa_pred_dB])
     excluded = Set([80.0, 100.0, 125.0, 160.0])
     base = noise_reduction_test_article_inputs(; η_lining=1.0)
-    pre = noise_reduction_spectrum(_with_fields(base; floor_sign=-1.0); bands, η_r_cap=0.15)
+    pre = noise_reduction_spectrum(_pre_correction_form(base); bands, η_r_cap=0.15)
     post = noise_reduction_spectrum(base; bands, η_r_cap=0.15)
     table = ValidationTableRow[]; n_ok = 0; n = 0
     xs = Float64[]; ref = Float64[]; g_pre = Float64[]; g_post = Float64[]

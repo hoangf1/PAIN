@@ -780,7 +780,7 @@ _run_if("Resonance form of Eq. (8) (17g)") do
     rigid = [m for m in r0.acoustic.modes if m.index == 0]
     @test length(rigid) == 1
     inp_r = PainInputs(r0.fuse, r0.prop, r0.structural, Cyl2DResult(r0.acoustic.theta0_deg, rigid, "rigid", r0.acoustic.NY, r0.acoustic.h, r0.acoustic.c0),
-                       r0.ff.amplitudes, r0.ff.phases, r0.ff.pts, r0.inputs.ΔA)
+                       r0.ff.amplitudes, r0.ff.phases, r0.ff.pts, r0.inputs.ΔA; q0_coupled=true)   # q = 0 driven (Phase 93)
     p_r = tone_mean_square_pressure(inp_r, 1, ωH; q_max=0)
     @test isfinite(p_r) && p_r > 0
 end
@@ -872,6 +872,7 @@ _run_if("Eq. (8) tone pressure: scaling laws and independent re-implementation (
     # skip the rigid-body mode in the direct form (1/ωn⁴ is singular there); compare on the code with that mode removed
     nz = [m for m in inp.acoustic.modes if m.index != 0]
     inp_nz = _rebuild(inp; acoustic=Cyl2DResult(inp.acoustic.theta0_deg, nz, inp.acoustic.notes, inp.acoustic.NY, inp.acoustic.h, inp.acoustic.c0))
+    inp_nz = PAIN._cr3813_tone_form(inp_nz)            # direct_p2 is CR-3813's Eq. (8) as printed (Phase 93)
     @test direct_p2(inp_nz, 1, ωH) ≈ tone_mean_square_pressure(inp_nz, 1, ωH) rtol = 2e-3
     # q_max: more axial modes never lower the sum (all terms positive)
     @test tone_mean_square_pressure(inp, 1, ωH; q_max=6) ≥ tone_mean_square_pressure(inp, 1, ωH; q_max=0)
@@ -905,10 +906,12 @@ _run_if("Phase 17 regression baselines (17k, frozen 2026-10-20)") do
     @test length(names) == length(base[:value])
     got = Dict{String,Float64}()
     for trim in (:bare, :phase3)
-        r = run_pain_pipeline(; source=:e11, n_harmonics=3, bpf_Hz=200.0, blocking=R2, trim=trim)
+        # frozen 2026-10-20 in the form of that date: printed Eq. (82), CR-3813 tone sum (Phase 93 pins it)
+        r = run_pain_pipeline(; source=:e11, n_harmonics=3, bpf_Hz=200.0, blocking=R2, trim=trim, η_r_trimmed_area=false)
         inp = r.inputs
+        spl17 = interior_spl(PAIN._cr3813_tone_form(inp); bpf_Hz=200.0, n_harmonics=3, broadband=false).harmonic_SPL_dB
         for H in 1:3
-            got["spl_$(trim)_H$H"] = r.spectrum.harmonic_SPL_dB[H]
+            got["spl_$(trim)_H$H"] = spl17[H]
             trim === :bare && for (j, st) in enumerate(inp.structural.modes)
                 got["psiG_H$(H)_mode$j"] = generalized_force(st, H, inp.amplitudes, inp.phases, inp.pts, inp.fuse; ΔA=inp.ΔA)
             end
@@ -1508,9 +1511,10 @@ _run_if("High-frequency tones Eqs. (11)–(16) (38b)") do
         names = [split(l, ",")[1] for l in readlines(joinpath(@__DIR__, "..", "..", "data", "baselines", "phase17_baselines.csv")) if !startswith(l, "#") && !startswith(l, "name") && !isempty(strip(l))]
         got = Dict{String,Float64}()
         for trim in (:bare, :phase3)
-            rr = run_pain_pipeline(; source=:e11, n_harmonics=3, bpf_Hz=200.0, blocking=R2, trim=trim)
+            rr = run_pain_pipeline(; source=:e11, n_harmonics=3, bpf_Hz=200.0, blocking=R2, trim=trim, η_r_trimmed_area=false)
+            spl17 = interior_spl(PAIN._cr3813_tone_form(rr.inputs); bpf_Hz=200.0, n_harmonics=3, broadband=false).harmonic_SPL_dB
             for H in 1:3
-                got["spl_$(trim)_H$H"] = rr.spectrum.harmonic_SPL_dB[H]
+                got["spl_$(trim)_H$H"] = spl17[H]   # baselines frozen in the 2026-10-20 form (Phase 93)
             end
         end
         for (n, v) in zip(names, base[:value])
@@ -2745,10 +2749,11 @@ _run_if("Validation case registry (34d)") do
     # Phase 44 code-on-code fix of Eq. (83) (η_r'' with the bare f'): 85.93, 78.32, 79.57; and after the
     # Phase 44f floor-term sign (2026-10-23, post-hoc): 89.03, 81.24, 77.06; and after the Phase 65
     # grid axial correction 2026-10-23 (code vs User Manual p. 9 / App. E p. E-8: z_k = z_p − x₃,
-    # z_p = 0.662 m; not a fit): 88.20, 80.43, 78.21
-    @test rr.table[1].computed ≈ 88.20 atol=0.01
-    @test rr.table[2].computed ≈ 80.43 atol=0.01
-    @test rr.table[3].computed ≈ 78.21 atol=0.01
+    # z_p = 0.662 m; not a fit): 88.20, 80.43, 78.21; and after the Phase 93 default form (CR-172428 program,
+    # taken from CR-172428's printouts, not from E-16; 2026-10-29): 88.94, 79.35, 78.57
+    @test rr.table[1].computed ≈ 88.94 atol=0.01
+    @test rr.table[2].computed ≈ 79.35 atol=0.01
+    @test rr.table[3].computed ≈ 78.57 atol=0.01
     png = plot_case(r1, VALIDATION_CASES["CYL2D_C1"].plot_spec;
                     path=joinpath(TEST_OUT, "CYL2D_C1.png"))
     @test isfile(png)
@@ -3002,7 +3007,7 @@ _run_if("T1/T2 root causes (phase 43)") do
         ("H3_ATTRIB", :no_verdict),
         ("NR_TP1964", :not_met),
         ("NR_TP1964_REF2", :not_met),
-        ("T1_F1A_FILL", :met),           # first run 2026-10-23: 2/3; 3/3 after the 44f sign fix (post-hoc)
+        ("T1_F1A_FILL", :not_met),       # first run 2026-10-23: 2/3; 3/3 after the 44f sign fix (post-hoc); 2/3 with the Phase 93 defaults
         ("T1_F1A_MEAS_DAMP", :no_verdict),
     )
     for (id, verd) in expected
@@ -3048,10 +3053,8 @@ _run_if("Isolated checks for T1/T2 functions (phase 46)") do
     ev = PAIN.tone_expected_value(inp, H, ωH)
     band = PAIN.modes_in_tone_band(inp, ωH)
     @test ev.N_n == length(band.ac_list) && ev.N_r == length(band.st_list) && ev.N_r > 0
-    η̄_n = sum(m -> PAIN.acoustic_N(inp, m.ac, m.q, 600.0, m.ωn;
-                                   ξ=PAIN.trim_conductance(inp.sidewall, ωH, inp.m_wall; ρ0=inp.ρ_int, c0=inp.c_int),
-                                   ξ_e=PAIN.trim_conductance(inp.endplates, ωH, Inf; ρ0=inp.ρ_int, c0=inp.c_int),
-                                   V=PAIN.cabin_volume(inp)) / m.ωn^2, band.ac_list) / ev.N_n
+    @test inp.η_n_per_mode                                         # Phase 93 default: each mode's own η_n
+    η̄_n = sum(m -> PAIN.acoustic_N_per_mode(inp, m.ac, m.q, m.ωn; V=PAIN.cabin_volume(inp)) / m.ωn^2, band.ac_list) / ev.N_n
     η̄_r = sum(m -> PAIN.structural_η_r_prime(inp, m.st, m.ωr), band.st_list) / ev.N_r
     @test ev.η̄_n ≈ η̄_n rtol = 1e-12
     @test ev.η̄_r ≈ η̄_r rtol = 1e-12
@@ -3137,7 +3140,7 @@ end
 _run_if("CR-3813 reproduction with NASA's pre-correction form (phase 61)") do
     # Criteria fixed 2026-10-23 (plan §8h) before any run. Recorded first-run results (all not met).
     # 61a: floor_sign = +1 is the default and leaves f′ unchanged; −1 flips only the floor integral of Eq. (52)
-    inp = PAIN.noise_reduction_test_article_inputs(; η_lining=1.0)
+    inp = PAIN._cr3813_tone_form(PAIN.noise_reduction_test_article_inputs(; η_lining=1.0))   # q = 0 coupled (Phase 93)
     @test inp.floor_sign == 1.0
     pre = PAIN._with_fields(inp; floor_sign=-1.0)
     fuse = inp.fuse; a = fuse.a; θ0 = deg2rad(fuse.theta0_deg); Lp = 2a * sin(θ0); den = Lp + 2a * (π - θ0)
@@ -3164,7 +3167,7 @@ _run_if("CR-3813 reproduction with NASA's pre-correction form (phase 61)") do
     r3 = run_validation_case("E22_HF_CODE")
     @test r3.verdict === :not_met && r3.inputs_echo.n_ok == 1
     @test all(r3.inputs_echo.nasa_minus_measured .> 30)              # NASA's own HF prediction misses by > 30 dB
-    @test all(abs.(r3.inputs_echo.code .- r3.inputs_echo.nasa) .< 8)  # the code is within 8 dB of NASA
+    @test all(abs.(r3.inputs_echo.code .- r3.inputs_echo.nasa) .< 10) # within 10 dB of NASA (8 before the Phase 93 defaults)
     for id in ("REPRO_18b_PRE", "E21_PRE", "E22_HF_CODE")
         png = plot_case(run_validation_case(id), VALIDATION_CASES[id].plot_spec; path=joinpath(TEST_OUT, "$(id).png"))
         @test isfile(png) && filesize(png) > 0
@@ -3183,8 +3186,8 @@ _run_if("NASA's 300-mode set in the HF path and the reproductions (phases 83, 84
     @test all(t2.inputs_echo.got .> t2.inputs_echo.measured)          # over the measurement now (Table D-1: under)
     @test all(t2.inputs_echo.table_d1 .< t2.inputs_echo.measured)
     rp = run_validation_case("REPRO_18b_DECK")
-    @test rp.verdict === :no_verdict && PAIN.underlying_verdict(rp) === :not_met && rp.inputs_echo.n_ok == 0
-    @test maximum(abs.(rp.inputs_echo.got .- rp.inputs_echo.table_d1)) < 0.5   # the tones do not depend on the extra modes
+    @test rp.verdict === :no_verdict && PAIN.underlying_verdict(rp) === :not_met && rp.inputs_echo.n_ok == 1   # 0 before Phase 93
+    @test maximum(abs.(rp.inputs_echo.got .- rp.inputs_echo.table_d1)) < 0.75  # the tones hardly depend on the extra modes (0.67 dB)
     # 83d: T2 compares a path fitted to E-9 with E-9, so it is information; its recorded outcome is kept
     t = run_validation_case("T2")
     @test t.verdict === :no_verdict && t.inputs_echo.original_verdict === :not_met
@@ -3193,7 +3196,7 @@ _run_if("NASA's 300-mode set in the HF path and the reproductions (phases 83, 84
     @test rc.verdict === :no_verdict && PAIN.underlying_verdict(rc) === :not_met && count(r -> r.within_tolerance, rc.table) == 4 && rc.inputs_echo.structural === :nasa300
     @test maximum(abs.(rc.inputs_echo.ours .- r0.inputs_echo.ours)) < 2.5 && rc.inputs_echo.ours != r0.inputs_echo.ours
     re = run_validation_case("R172428_EXP_DECK")
-    @test re.verdict === :no_verdict && PAIN.underlying_verdict(re) === :not_met && count(r -> r.within_tolerance, re.table) == 3
+    @test re.verdict === :no_verdict && PAIN.underlying_verdict(re) === :not_met && count(r -> r.within_tolerance, re.table) == 4   # 3 before Phase 93
     e21 = run_validation_case("E21_PRE_DECK")
     @test e21.verdict === :no_verdict && PAIN.underlying_verdict(e21) === :not_met && e21.inputs_echo.n_ok == 1 && e21.inputs_echo.n == 4
     @test maximum(abs.(e21.inputs_echo.code .- e21.inputs_echo.table_d1)) > 20   # above the crossover the modes matter
@@ -3205,7 +3208,7 @@ end
 
 _run_if("NASA's App. B per-mode values, the q = 0 hypothesis, η_n per mode (phases 87–89)") do
     # Criteria fixed 2026-10-29 (plan §8ae, §8af) before any run. Recorded first-run results.
-    inp = r172428_inputs(4000)
+    inp = PAIN._cr3813_tone_form(r172428_inputs(4000))                                               # q = 0 coupled
     ac0 = inp.acoustic.modes[1]; st = inp.structural.modes[13]
     nq = PAIN._with_fields(inp; q0_coupled=false)
     @test coupling_factor(ac0, st, nq; q=0) == 0.0 && coupling_factor(ac0, st, inp; q=0) != 0.0     # q = 0 uncoupled
@@ -3219,7 +3222,8 @@ _run_if("NASA's App. B per-mode values, the q = 0 hypothesis, η_n per mode (pha
     @test PAIN.acoustic_N_per_mode(inp, ac, 1, ωn; V) != PAIN.acoustic_N(inp, ac, 1, ωn / 2π, ωn; ξ=0.5ξ, ξ_e=ξe, V)
     pm = PAIN._with_fields(inp; η_n_per_mode=true)
     @test tone_mean_square_pressure(pm, 1, 2π * 200.0) != tone_mean_square_pressure(inp, 1, 2π * 200.0)
-    @test !inp.η_n_per_mode && inp.q0_coupled                                                         # defaults unchanged
+    d = r172428_inputs(4000)
+    @test d.η_n_per_mode && !d.q0_coupled && d.η_r_trimmed_area                                     # Phase 93 defaults
     # 87a–c (P cases)
     e = run_validation_case("APPB_EPS_N")
     @test e.verdict === :met && e.inputs_echo.n == 48 && all(r -> abs(r.computed / r.reference - 1) < 1e-4, e.table)
@@ -3267,6 +3271,66 @@ _run_if("Eq. (43) blocking against Report 996 Fig. 10 (phase 90)") do
     end
 end
 
+_run_if("NASA's printed mode-pair contributions (phase 92)") do
+    # Plan §8ai; 92b criterion fixed 2026-10-29 before the run. Recorded first-run results.
+    inp = r172428_inputs(4000)
+    terms = NamedTuple[]
+    p2 = tone_mean_square_pressure(inp, 1, 2π * 200.0; terms)
+    @test sum(t.p2 for t in terms) ≈ p2 rtol = 1e-12                              # the pair terms are the sum
+    @test length(terms) > 100
+    @test tone_mean_square_pressure(inp, 1, 2π * 200.0) == p2                     # collecting changes nothing
+    a = run_validation_case("APPB_PAIRS")
+    @test a.verdict === :no_verdict && a.inputs_echo.n == 25 && a.inputs_echo.n_ok == 15
+    @test occursin("4000:H1 92.4 %", a.reason)                                     # q = 0 dominates this code's H1
+    b = run_validation_case("APPB_PAIRS_Q0_ETAN")
+    @test b.verdict === :no_verdict && b.inputs_echo.n_ok == 16 && occursin("4000:H1 0.0 %", b.reason)
+    q = run_validation_case("R172428_CODE_Q0")                                     # 92b: 2/3 held out, not supported
+    @test q.verdict === :no_verdict && PAIN.underlying_verdict(q) === :not_met
+    @test q.inputs_echo.n_ok == 2 && q.inputs_echo.n_held == 3
+    h3 = only(r for r in q.table if r.quantity == "3000 rpm H3")
+    @test 3.0 < h3.residual < 3.2                                                   # missed by 0.09 dB
+    @test count(r -> abs(r.residual) ≤ 3.0, q.table) == 8
+    c = run_validation_case("R172428_CODE_Q0_ETAN")
+    @test c.verdict === :no_verdict && all(r -> abs(r.residual) < 2.5, c.table)     # post-hoc, no criterion
+    @test !inp.q0_coupled && inp.η_n_per_mode                                      # Phase 93 defaults
+    for id in ("APPB_PAIRS", "APPB_PAIRS_Q0_ETAN", "R172428_CODE_Q0", "R172428_CODE_Q0_ETAN")
+        png = plot_case(run_validation_case(id), VALIDATION_CASES[id].plot_spec; path=joinpath(TEST_OUT, "$(id).png"))
+        @test isfile(png) && filesize(png) > 0
+    end
+end
+
+_run_if("CR-172428 program form as default; held-out Table 12 (phases 93, 94)") do
+    # Plan §8aj, §8ak; Phase 94 criteria fixed 2026-10-29 before any run (commit 8387c80). Recorded first-run results.
+    inp = r172428_inputs(4000)
+    old = PAIN._cr3813_tone_form(inp)
+    @test old.q0_coupled && !old.η_n_per_mode && old.η_r_trimmed_area == inp.η_r_trimmed_area
+    pre = PAIN._pre_correction_form(inp)
+    @test pre.floor_sign == -1.0 && !pre.η_r_trimmed_area && pre.q0_coupled && !pre.η_n_per_mode
+    # every tone path takes the same N: the point field averages to Eq. (8) in the default form too
+    ωH = 2π * 200.0
+    ac = inp.acoustic.modes[3]; ωn = 2π * PAIN.cabin_frequency_3d(ac, inp.fuse.a, inp.L_c, 1; c0=inp.c_int)
+    V = PAIN.cabin_volume(inp)
+    @test PAIN.tone_acoustic_N(inp, ac, 1, 200.0, ωn; ξ=0.0, ξ_e=0.0, V) == PAIN.acoustic_N_per_mode(inp, ac, 1, ωn; V)
+    @test PAIN.tone_acoustic_N(old, ac, 1, 200.0, ωn; ξ=0.1, ξ_e=0.0, V) == PAIN.acoustic_N(old, ac, 1, 200.0, ωn; ξ=0.1, ξ_e=0.0, V)
+    @test tone_mean_square_pressure(inp, 1, ωH) != tone_mean_square_pressure(old, 1, ωH)
+    # R172428_CODE keeps CR-3813's tone sum (its recorded 4/9); the default form against it is post-hoc
+    c = run_validation_case("R172428_CODE")
+    @test c.verdict === :not_met && count(r -> r.within_tolerance, c.table) == 4
+    # 94a, 94b (P, held out): met
+    t = run_validation_case("R172428_ETAT2")
+    @test t.verdict === :met && t.inputs_echo.n_ok == 9 && maximum(abs(r.residual) for r in t.table) < 1.75
+    e = run_validation_case("APPB_ETA_N_T2")
+    @test e.verdict === :met && e.inputs_echo.n_ok == 3
+    @test e.inputs_echo.ours ≈ [0.0877, 0.0782, 0.0829] atol = 1e-4
+    # η_T is an input: the η_T = 2.0 run differs from the Table 6 one
+    @test interior_spl(r172428_inputs(4000; η_T=2.0); bpf_Hz=200.0, n_harmonics=1).harmonic_SPL_dB[1] !=
+          interior_spl(inp; bpf_Hz=200.0, n_harmonics=1).harmonic_SPL_dB[1]
+    for id in ("R172428_ETAT2", "APPB_ETA_N_T2")
+        png = plot_case(run_validation_case(id), VALIDATION_CASES[id].plot_spec; path=joinpath(TEST_OUT, "$(id).png"))
+        @test isfile(png) && filesize(png) > 0
+    end
+end
+
 _run_if("Sharp sound bridges and the App. D mode extension (phases 59, 60)") do
     # Criteria and mapping fixed 2026-10-23 (plan §8g) before any run. Recorded first-run results.
     # 59a pieces by hand: Eq. (5) at normal incidence, Eq. (22), Eqs. (23) and (25), and the Fig. 5 construction
@@ -3297,7 +3361,7 @@ _run_if("Sharp sound bridges and the App. D mode extension (phases 59, 60)") do
     # 59c–59e recorded (not met)
     for (id, check) in (("NR_PROP_TP2444_BR", rr -> rr.inputs_echo.n_ok == 1),
                         ("E22_BR", rr -> rr.inputs_echo.n_ok == 0),
-                        ("T2_MEAS_EXT_BR", rr -> abs(rr.inputs_echo.interior_dB[1] - 28.36) < 0.01))
+                        ("T2_MEAS_EXT_BR", rr -> abs(rr.inputs_echo.interior_dB[1] - 30.13) < 0.01))   # 28.36 before Phase 93
         rr = run_validation_case(id)
         @test rr.verdict === :not_met && check(rr)
         png = plot_case(rr, VALIDATION_CASES[id].plot_spec; path=joinpath(TEST_OUT, "$(id).png"))
@@ -3316,8 +3380,8 @@ _run_if("Propeller-field NR and open items (phases 50, 53, 56, 57)") do
     # Criteria fixed 2026-10-23 (plan §8e Phase 50, §8f Phases 53, 56, 57) before these checks were run.
     # 50b recorded result (first valid run 2026-10-23): not met 2/7
     r = run_validation_case("NR_PROP_TP2444_PF")
-    @test r.verdict === :not_met && r.inputs_echo.n_ok == 2
-    @test all(abs.(r.inputs_echo.NR_model[1:5] .- r.inputs_echo.NR_meas[1:5]) .< 7.0)   # 315–800 Hz within 7 dB
+    @test r.verdict === :not_met && r.inputs_echo.n_ok == 1                              # 2 before the Phase 93 defaults
+    @test all(abs.(r.inputs_echo.NR_model[1:5] .- r.inputs_echo.NR_meas[1:5]) .< 11.0)  # 315–800 Hz within 11 dB (7 before Phase 93)
     png = plot_case(r, VALIDATION_CASES["NR_PROP_TP2444_PF"].plot_spec; path=joinpath(TEST_OUT, "NR_PROP_TP2444_PF.png"))
     @test isfile(png) && filesize(png) > 0
     # the propeller-field band NR reduces to the tone path at one frequency: n_freq = 1 at fc = H·BPF
@@ -3494,7 +3558,7 @@ _run_if("T2 with the measured TP-2444 exterior (phase 47)") do
     r2 = run_validation_case("T2_MEAS_EXT")
     @test r2.verdict === :not_met
     @test r2.inputs_echo.L_ext_1250_bb ≈ 85.42 atol = 0.01
-    @test r2.inputs_echo.interior_dB[1] ≈ 21.55 atol = 0.01            # 21.25 before the Phase 49 Eq. (20) reading correction
+    @test r2.inputs_echo.interior_dB[1] ≈ 26.88 atol = 0.01            # 21.25 before the Phase 49 Eq. (20) reading correction; 21.55 before Phase 93
     @test r2.inputs_echo.L_int_fig17_1250_bb ≈ 51.51 atol = 0.01
     for (id, rr) in (("NR_PROP_TP2444", r), ("T2_MEAS_EXT", r2))
         png = plot_case(rr, VALIDATION_CASES[id].plot_spec; path=joinpath(TEST_OUT, "$(id).png"))
@@ -3551,6 +3615,7 @@ _run_if("CR-172428 reproduction (phase 44)") do
         @test abs(trimmed_modal_mass(st, fuse, inp.m_wall) / ref - 1) ≤ 0.04
     end
     # Eq. (83) uses the bare f′ (τ = 1), Eq. (8) the trimmed f̄′: an independent sum must equal the code.
+    inp = PAIN._cr3813_tone_form(inp)          # the hand sum below is the tone sum as CR-3813 prints it (Phase 93)
     H = 1; ωH = 2π * 200.0
     a, L = fuse.a, fuse.L; θ0 = deg2rad(fuse.theta0_deg); Lp = 2a * sin(θ0)
     A = L * (Lp + 2a * (π - θ0)); V = PAIN.cabin_volume(inp)
@@ -3578,7 +3643,7 @@ _run_if("CR-172428 reproduction (phase 44)") do
             p2 += pref * εn * fbar^2 * Ψ / (st.M_r^2 * Dn * Dr)
         end
     end
-    @test PAIN.tone_mean_square_pressure(inp, H, ωH) ≈ p2 rtol = 1e-10
+    @test PAIN.tone_mean_square_pressure(PAIN._cr3813_tone_form(inp), H, ωH) ≈ p2 rtol = 1e-10   # hand sum: CR-3813 tone form
     # 44f: the bare f′ against the f′ implied by NASA's printed η_r″ (Eq. 83 solved with NASA's own ε_n, η_n, M_r).
     # Recorded 2026-10-23 (post-hoc): 4000 rpm pairs chose the sign; 5000 rpm pairs are out of sample. Pairs with
     # η_r″ printed to one significant digit (< 1e-4) are skipped.

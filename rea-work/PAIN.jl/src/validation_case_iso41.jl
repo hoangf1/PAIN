@@ -438,7 +438,7 @@ function _run_nr_band_hand()
     η_n_stated = 0.05
     η_r_stated = 0.08
     inp = PainInputs(fuse, prop, structural, acoustic, amps, phases, pts, ΔA;
-                     η_n_bare=η_n_stated, q_max=0,
+                     η_n_bare=η_n_stated, q_max=0, q0_coupled=true,   # one q = 0 mode: it must be driven (Phase 93)
                      ρ0=ρ_ext, c0=c_ext, ρ_ext=ρ_ext, c_ext=c_ext, ρ_int=ρ_int, c_int=c_int,
                      η_r_band=Dict(fc => η_r_stated), η_n_band=Dict(fc => η_n_stated))
     got = noise_reduction_band(inp, fc; c_ω)

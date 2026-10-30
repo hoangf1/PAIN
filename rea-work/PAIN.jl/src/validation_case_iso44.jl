@@ -51,12 +51,12 @@ structural modes from the App. D solver on NASA's MRP deck (`appd_nasa_deck()`, 
 printed (truncated) shapes; everything else is unchanged (82c: R172428_ETA stays 17/32, levels move < 1 dB).
 `structural=:nasa300` (Phase 84b) takes NASA's 300 modes from the same solve (`nasa_deck_modes()`; CR-172428 Table 6).
 """
-function r172428_inputs(rpm::Integer; app_a::Bool=true, structural::Symbol=:table_d1)
+function r172428_inputs(rpm::Integer; app_a::Bool=true, structural::Symbol=:table_d1, η_T::Real=0.13)
     fuse = FuselageGeometry(1.803, 0.508, 56.6)
     prop = PropellerPlacement(0.9652, 90.0, 0.662)
     f = r172428_appb_field(rpm; z_p=prop.z_p)
     c0 = 343.0
-    side = TrimStack(TrimElement[InsulationLayer(0.0508, pf105_table()), LimpMass(1.456, 0.13)],
+    side = TrimStack(TrimElement[InsulationLayer(0.0508, pf105_table()), LimpMass(1.456, η_T)],
                      "CR-172428 sidewall trim")
     ends = TrimStack(TrimElement[InsulationLayer(0.0127, pf105_table()), LimpMass(0.0, 1.0)],
                      "CR-172428 end cap")
@@ -74,12 +74,14 @@ end
 """rpm values whose App. B field has been transcribed (files present)."""
 _r172428_rpms() = [rpm for rpm in (3000, 4000, 5000) if isfile(_r172428_csv("appB_$(rpm)rpm_H1.csv"))]
 
-function _r172428_levels(; structural::Symbol=:table_d1, η_n_per_mode::Bool=false)
+function _r172428_levels(; structural::Symbol=:table_d1, η_n_per_mode::Bool=false, q0_coupled::Bool=true)
+    # defaults: the tone sum as CR-3813 prints it (R172428_CODE; Phase 93 keeps it, the default form was inferred from
+    # these points)
     pred = _read_csv_numeric_nan(_r172428_csv("appB_predictions.csv"))
     out = NamedTuple[]
     for rpm in _r172428_rpms()
         inp = r172428_inputs(rpm; structural)
-        η_n_per_mode && (inp = _with_fields(inp; η_n_per_mode=true))   # Phase 89 option
+        inp = _with_fields(inp; η_n_per_mode, q0_coupled)               # Phases 89, 92, 93
         bpf = 3 * rpm / 60
         spl = interior_spl(inp; bpf_Hz=bpf, n_harmonics=3).harmonic_SPL_dB
         for H in 1:3
@@ -91,8 +93,10 @@ function _r172428_levels(; structural::Symbol=:table_d1, η_n_per_mode::Bool=fal
     return out
 end
 
-function _run_r172428_vs(which::Symbol; structural::Symbol=:table_d1, η_n_per_mode::Bool=false)
-    lv = _r172428_levels(; structural, η_n_per_mode)
+# Phase 93: R172428_CODE (and its _DECK, _ETAN re-runs) keep the tone sum as CR-3813 prints it; R172428_EXP runs the
+# default form (q = 0 off, η_n per mode), taken from NASA's printouts, not from the measurements.
+function _run_r172428_vs(which::Symbol; structural::Symbol=:table_d1, η_n_per_mode::Bool=which !== :code)
+    lv = _r172428_levels(; structural, η_n_per_mode, q0_coupled=which === :code)
     deck = structural === :nasa300   # Phase 84b: NASA's 300 modes, criteria fixed 2026-10-29
     tol = which === :code ? 3.0 : 4.0
     table = ValidationTableRow[]
@@ -113,7 +117,8 @@ function _run_r172428_vs(which::Symbol; structural::Symbol=:table_d1, η_n_per_m
         PlotSeries("NASA PAIN (CR-172428 App. B / Table 10)", :reference_points, xs, [r.nasa for r in lv]; panel=1),
         PlotSeries("measured (Table 5)", :measured_points, xs, [r.measured for r in lv]; panel=1),
         PlotSeries(deck ? "this code, NASA inputs, NASA's 300 modes" :
-                   η_n_per_mode ? "this code, NASA inputs, η_n per mode (H1)" : "this code, NASA inputs",
+                   which !== :code ? "this code (default form), NASA inputs" :
+                   η_n_per_mode ? "this code, NASA inputs, η_n per mode (H1)" : "this code, NASA inputs, CR-3813 tone sum",
                    :computed_points, xs, [r.ours for r in lv]; panel=1),
     ]
     crit = which === :code ? "±3 dB of NASA's printed prediction at ≥ 7 of 9 points (3000/4000/5000 rpm, H1–H3)" :
@@ -121,9 +126,9 @@ function _run_r172428_vs(which::Symbol; structural::Symbol=:table_d1, η_n_per_m
     reason = "$n_ok/$n within ±$(tol) dB" * (complete ? "" : "; criterion needs 9 points, $n transcribed " *
              "(rpm $(join(_r172428_rpms(), ", ")))") *
              "; H1–H3 = " * join(["$(r.rpm):H$(r.H) $(round(r.ours; digits=2))" for r in lv], ", ")
-    id = (which === :code ? "R172428_CODE" : "R172428_EXP") * (deck ? "_DECK" : "") * (η_n_per_mode ? "_ETAN" : "")
+    id = (which === :code ? "R172428_CODE" : "R172428_EXP") * (deck ? "_DECK" : "") * (which === :code && η_n_per_mode ? "_ETAN" : "")
     return ValidationCaseResult(id, _today_iso(),
-        (; criterion=crit, date=deck || η_n_per_mode ? "2026-10-29" : "2026-10-23", rpms=_r172428_rpms(), structural, η_n_per_mode,
+        (; criterion=crit, date=deck || (which === :code && η_n_per_mode) ? "2026-10-29" : "2026-10-23", rpms=_r172428_rpms(), structural, η_n_per_mode,
            ours=[r.ours for r in lv], nasa=[r.nasa for r in lv], measured=[r.measured for r in lv]),
         table, series, verdict, reason, which === :code ? "V-CODE" : "V-EXP", "")
 end
@@ -216,7 +221,8 @@ function _run_r172428_pairs()
                          collect(1.0:length(pr)), [r.residual for r in pr]; panel=1)]
     return ValidationCaseResult("R172428_PAIRS", _today_iso(),
         (; criterion="none (diagnostic)", date="2026-10-23"), table, series, :no_verdict,
-        "no criterion; per-pair ratio ours/NASA in dB (residual column)", "diagnostic", "")
+        "no criterion; per-pair ratio ours/NASA in dB (residual column); this code in its default form (Phase 93: q = 0 " *
+        "uncoupled, η_n per mode; before 2026-10-29 the CR-3813 tone sum)", "diagnostic", "")
 end
 
 function _iso44_validation_cases()

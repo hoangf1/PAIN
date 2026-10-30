@@ -240,8 +240,7 @@ or the other documents points there. When a phase is done, mark it done and move
 
 | Q | Item | Kind | Prerequisite | Output |
 |---|------|------|--------------|--------|
-| Q74 | **Phase 93 — NASA's latest program form as the default** (§8aj) | code default | Phase 92 | defaults; pinned cases; recorded results |
-| Q75 | **Phase 94 — held-out test of that form on CR-172428 Table 12 (η_T = 2.0)** (§8ak) | P case | Phase 93 | R172428_ETAT2, APPB_ETA_N_T2 |
+| — | No open item (2026-10-29); Phases 90–94 are done | — | — | — |
 
 If a queue item is blocked on data, skip to the next unblocked item and say which data item blocks it.
 
@@ -285,36 +284,6 @@ The diagram matches the code (phases 21–22 done 2026-10-21): `propeller_ccblad
 | Driver | `scripts/run/run_pain.jl` |
 
 ---
-
-## 8aj. Phase 93 — NASA's latest program form as the default
-
-*(planned 2026-10-29; author: "whatever makes it match the outputs hopefully thats the latest release".)* CR-172428
-(Pope, September 1984) is the latest PAIN document; CR-3813 is July 1984. The defaults become the program NASA ran for
-CR-172428: the three App. A corrections (floor sign, already default; Eq. (82) over the trimmed area,
-`η_r_trimmed_area = true`; the 4 dB blocking limit R2, already the pipeline default) and the two behaviours inferred in
-Phase 92 (`q0_coupled = false`, `η_n_per_mode = true`; not documented). Cases that reproduce CR-3813's printed runs use
-`_pre_correction_form` (all of these reverted); R172428_CODE keeps the tone sum as CR-3813 prints it
-(`_cr3813_tone_form`), because the inferred form was chosen from its points: comparing the default with them is
-post-hoc (R172428_CODE_Q0_ETAN, diagnostic). Every other case runs the new default; criteria are unchanged and changed
-recorded results are re-recorded with this phase named. Not a calibration of those cases: the form was taken from
-NASA's CR-172428 printouts only.
-
-## 8ak. Phase 94 — held-out test on CR-172428 Table 12 (criteria fixed 2026-10-29, before any run)
-
-CR-172428 pp. 85–86 print a second PAIN run, not used by any earlier phase: Table 6 inputs with the trim panel loss
-factor η_T = 2.0 (Table 12, nine points; Fig. 35) and, in the text, η_n of App. B cabin modes 6, 7, 8 at that η_T
-(0.088, 0.077, 0.081). Transcribed to `data/cr172428/table12_eta_T2_predictions.csv`. This code has not been run with
-η_T = 2.0 before these criteria were written.
-
-| Step | Case | Run | Criterion (P) |
-|---|---|---|---|
-| 94a | R172428_ETAT2 | `r172428_inputs(rpm; η_T=2.0)`, Phase 93 default form, H1–H3 at 3000/4000/5000 rpm | ±3 dB of Table 12 at ≥ 7 of 9 (R172428_CODE's criterion) |
-| 94b | APPB_ETA_N_T2 | η_n of App. B modes 6, 7, 8 at their own frequency, η_T = 2.0 (as APPB_ETA_N) | within ±10 % of the printed value at all three |
-
-Both carry a verdict (P: NASA's inputs, NASA's printed output, the code as it ships). Caveat stated with the result: the
-default form was inferred from the η_T = 0.13 run of the same article, so 94a is held out in its inputs and outputs but
-not independent of the article. If 94a is not met the form is still recorded as inferred, and the defaults stay as the
-author asked, with the result stated.
 
 ## 9. Reference appendices
 

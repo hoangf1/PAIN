@@ -60,6 +60,8 @@ include("validation_case_iso67.jl")   # phase 67 attribution of the source-block
 include("validation_case_iso80.jl")   # phase 80 App. D structural solver verification
 include("validation_case_iso83.jl")   # phase 83 high-frequency NR and reproduction on NASA's 300-mode set
 include("validation_case_iso87.jl")   # phases 87–89 NASA's App. B per-mode values; q = 0 held out; η_n per mode
+include("validation_case_iso92.jl")   # phase 92 NASA's printed mode-pair contributions; q = 0 on 3000 rpm held out
+include("validation_case_iso94.jl")   # phase 94 held-out CR-172428 Table 12 (η_T = 2.0)
 include("validation_case_iso90.jl")   # phase 90 Eq. (43) blocking vs Report 996 Fig. 10 (measured)
 include("validation_case_extras.jl")
 include("validation_map.jl")
@@ -242,7 +244,7 @@ function run_pain_pipeline(;
         f1a_pattern_phases::Union{Nothing,Array{Float64,3}}=nothing,
         tone_model::Symbol=:eq8,
         η_r_band_is_prime::Bool=false,
-        η_r_trimmed_area::Bool=false)
+        η_r_trimmed_area::Bool=true)
     trim in (:auto, :bare, :phase3, :custom) ||
         error("trim must be :auto, :bare, :phase3 or :custom")
 

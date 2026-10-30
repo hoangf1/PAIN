@@ -561,6 +561,11 @@ const DIAGNOSTIC_CASES = Dict(
     "Q0_E18" => "re-runs E18_TONES in the pre-correction form with the q = 0 cabin modes uncoupled (Phase 88b)",
     "Q0_E21" => "re-runs E21_PRE with the q = 0 cabin modes uncoupled (Phase 88c)",
     "R172428_CODE_ETAN" => "re-runs R172428_CODE with η_n per cabin mode, trim per 1/3-octave band (Phase 89b)",
+    # Phase 92 (2026-10-29): NASA's printed mode-pair contributions; q = 0 off on the held-out 3000 rpm points
+    "APPB_PAIRS" => "sets this code's Eq. (8) pair terms against NASA's printed largest contributors (Phase 92a)",
+    "APPB_PAIRS_Q0_ETAN" => "re-runs APPB_PAIRS with q = 0 off and η_n per cabin mode, post-hoc (Phase 92c)",
+    "R172428_CODE_Q0" => "re-runs R172428_CODE with the q = 0 cabin modes uncoupled; 3000 rpm held out (Phase 92b)",
+    "R172428_CODE_Q0_ETAN" => "re-runs R172428_CODE with q = 0 off and η_n per cabin mode, post-hoc (Phase 92c)",
 )
 
 """True for a case that carries no verdict by rule: an information case or a diagnostic run."""

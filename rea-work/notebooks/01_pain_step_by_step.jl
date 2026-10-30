@@ -175,8 +175,8 @@ md"""
 
 * Set `blocking = R2` in *Inputs*: the tones drop by 1.3–1.8 dB (R2 is 0.8 × R1, at most −1.9 dB, and never below
   free field).
-* Set `η_T = 1.0`: the trim absorbs more and the modes' damping rises; the tones fall by 1.2–2.0 dB (the trim of Fig.
-  E-18's case).
+* Set `η_T = 1.0` (the trim of Fig. E-18's case): the trim absorbs more; H2 and H3 fall by 1.2–1.6 dB, while H1 rises
+  by 0.4 dB.
 """
 
 # ╔═╡ Cell order:

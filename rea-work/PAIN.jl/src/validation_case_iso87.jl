@@ -103,7 +103,7 @@ function _run_q0_repro_18b()
     paths = default_e11_paths(); p3 = phase3_trim(; η_lining=0.5)
     r = run_pain_pipeline(; source=:e11, e11_amp_csv=paths.anopp_spl, n_harmonics=3, bpf_Hz=200.0,
                           blocking=R1, sidewall_trim_stack=p3.sidewall, end_trim_stack=p3.ends, mech=p3.mech)
-    pre = _with_fields(r.inputs; floor_sign=-1.0)
+    pre = _pre_correction_form(r.inputs)
     got = interior_spl(_with_fields(pre; q0_coupled=false); bpf_Hz=200.0, n_harmonics=3, broadband=false).harmonic_SPL_dB
     base = interior_spl(pre; bpf_Hz=200.0, n_harmonics=3, broadband=false).harmonic_SPL_dB
     table = ValidationTableRow[]; n_ok = 0; xs = Float64[]; nasa = Float64[]
@@ -133,7 +133,7 @@ function _run_q0_e18()
     paths = default_e11_paths(); p3 = phase3_trim(; η_lining=1.0)
     r = run_pain_pipeline(; source=:e11, e11_amp_csv=paths.anopp_spl, n_harmonics=3, bpf_Hz=200.0,
                           blocking=R1, sidewall_trim_stack=p3.sidewall, end_trim_stack=p3.ends, mech=p3.mech)
-    pre = _with_fields(r.inputs; floor_sign=-1.0)
+    pre = _pre_correction_form(r.inputs)
     spl(inp) = interior_spl(inp; bpf_Hz=200.0, n_harmonics=3, broadband=false, tone_model=:eq8, η_r_cap=0.15).harmonic_SPL_dB
     got = spl(_with_fields(pre; q0_coupled=false)); base = spl(pre)
     table = ValidationTableRow[]; n_ok = 0; xs = Float64[]; ref = Float64[]
@@ -161,7 +161,7 @@ function _run_q0_e21()
     e21 = _read_csv_numeric_nan(_data_path("cr3813", "e21_noise_reduction_range.csv"))
     bands = Float64.(e21[:band_Hz]); nasa = Float64.(e21[:nasa_pred_dB])
     excluded = Set([80.0, 100.0, 125.0, 160.0])
-    pre = _with_fields(noise_reduction_test_article_inputs(; η_lining=1.0); floor_sign=-1.0)
+    pre = _pre_correction_form(noise_reduction_test_article_inputs(; η_lining=1.0))
     q0 = noise_reduction_spectrum(_with_fields(pre; q0_coupled=false); bands, η_r_cap=0.15)
     base = noise_reduction_spectrum(pre; bands, η_r_cap=0.15)
     table = ValidationTableRow[]; n_ok = 0; n = 0; xs = Float64[]; ref = Float64[]; g1 = Float64[]; g0 = Float64[]

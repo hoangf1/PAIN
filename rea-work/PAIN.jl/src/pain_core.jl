@@ -81,16 +81,18 @@ struct PainInputs
     # decay inputs (phase 43b). Default false keeps Manual card 11–14 = pre-trim η_r.
     η_r_band_is_prime::Bool
     # CR-172428 App. A (phase 44c): Eq. (82) with m̄_r = m M_r / M_r^X (trimmed-area modal
-    # mass); false = CR-3813 printed Eq. (82) (trim taken to cover the whole surface).
+    # mass); false = CR-3813 printed Eq. (82) (trim taken to cover the whole surface). Default true since Phase 93.
     η_r_trimmed_area::Bool
     # Eq. (52) floor-term sign (phase 61): +1 = NASA's corrected program (CR-172428 p. 178, 44f);
     # −1 = the pre-correction program that produced CR-3813's printed outputs
     floor_sign::Float64
-    # Phase 88 diagnostic (2026-10-29): false gives the q = 0 cabin modes no structural coupling (f₀M = 0), the
-    # hypothesis that NASA's program did so; not documented (CR-3813 Eq. (57) gives f₀M = 2/(Mπ)), default true
+    # false gives the q = 0 cabin modes no structural coupling (f₀M = 0). CR-3813 Eq. (57) gives f₀M = 2/(Mπ) (true);
+    # NASA's CR-172428 run behaves as false (Phase 92, inferred from its printed contributors, not documented).
+    # Default false since Phase 93 (author 2026-10-29: match NASA's latest program).
     q0_coupled::Bool
-    # Phase 89 option (2026-10-29): true gives each cabin mode one η_n (Eq. 77 at the mode frequency, trim conductance at
-    # the 1/3-octave band centre holding the mode), used in Eqs. (8) and (83) at every tone; false = at the tone frequency
+    # true gives each cabin mode one η_n (Eq. 77 at the mode frequency, trim conductance at the 1/3-octave band centre
+    # holding the mode), used in Eqs. (8) and (83) at every tone; false = at the tone frequency (CR-3813 as printed).
+    # Phase 89 option; default true since Phase 93 (Phase 92: NASA's printed η_r″ follow it; inferred, not documented).
     η_n_per_mode::Bool
 end
 
@@ -107,8 +109,8 @@ function PainInputs(fuse, prop, structural, acoustic, amplitudes, phases, pts, �
                     crossover_band_Hz::Union{Nothing,Real}=nothing,
                     bands=nothing, η_r_band=nothing, η_n_band=nothing,
                     η_r_band_is_prime::Bool=false,
-                    η_r_trimmed_area::Bool=false,
-                    floor_sign::Real=1.0, q0_coupled::Bool=true, η_n_per_mode::Bool=false)
+                    η_r_trimmed_area::Bool=true,
+                    floor_sign::Real=1.0, q0_coupled::Bool=false, η_n_per_mode::Bool=true)
     abs(floor_sign) == 1 || error("PainInputs: floor_sign must be +1 or −1 (got $floor_sign)")
     (sidewall === nothing) == (endplates === nothing) ||
         error("PainInputs: give both `sidewall` and `endplates` trim stacks, or neither (bare cabin)")
@@ -398,10 +400,13 @@ resonance denominators are multiplied out so that the rigid-body cabin mode (ω_
 ε_n ω_H⁶ / [(ω_n² − ω_H²)² + N²] with N = η_n ω_n², Eq. (77) in its ω_n-free form. η_n: Eq. (77) with ξ, ξ_e from the trim
 at ω_H (`η_n_bare` ω_n² when there is no trim); η_r' from Eqs. (79)–(82) at ω_r; η_r'' from Eq. (83) for every (n, r)
 pair (register item i). Cabin modes are n = (q, i), q = 0…q_max (V-ASSUMED truncation).
+`terms` (a vector) collects one named tuple per (n, r) pair: q, i, r, f_n_Hz, f_r_Hz, η_n, η_r_pp, p2 (Phase 92;
+`modal_tone_contributions` sorts them).
 """
 function tone_mean_square_pressure(inp::PainInputs, H::Int, ωH::Float64;
                                     q_max::Union{Nothing,Int}=nothing,
-                                    η_r_cap::Union{Nothing,Float64}=nothing)
+                                    η_r_cap::Union{Nothing,Float64}=nothing,
+                                    terms::Union{Nothing,Vector}=nothing)
     fuse = inp.fuse
     a, L = fuse.a, fuse.L
     L_c = inp.L_c
@@ -438,7 +443,7 @@ function tone_mean_square_pressure(inp::PainInputs, H::Int, ωH::Float64;
     for q in 0:qtop, ac in inp.acoustic.modes
         ωn = 2π * cabin_frequency_3d(ac, a, L_c, q; c0=c_int)
         εn = cabin_eps_3d(ac, q)
-        N = inp.η_n_per_mode && trimmed ? acoustic_N_per_mode(inp, ac, q, ωn; V) : acoustic_N(inp, ac, q, fH, ωn; ξ, ξ_e=ξe, V)
+        N = tone_acoustic_N(inp, ac, q, fH, ωn; ξ, ξ_e=ξe, V)
         Dn = (ωn^2 - ωH^2)^2 + N^2
         for (j, st) in enumerate(inp.structural.modes)
             f = coupling_factor(ac, st, inp; τ_t, q)
@@ -448,7 +453,11 @@ function tone_mean_square_pressure(inp::PainInputs, H::Int, ωH::Float64;
             f′ = τ_t == 1 ? f : coupling_factor(ac, st, inp; τ_t=1.0, q)
             ηrpp = structural_loss_coupled(N, ωn, ωr[j], f′, εn, st.M_r, V, A; ρ0=ρ_int, c0=c_int)
             Dr = (ωr[j]^2 - ωH^2)^2 + ((ηrp[j] + ηrpp) * ωr[j]^2)^2
-            p2 += pref * εn * f^2 * Ψ[j] / (st.M_r^2 * Dn * Dr)
+            t = pref * εn * f^2 * Ψ[j] / (st.M_r^2 * Dn * Dr)
+            p2 += t
+            # Phase 92: per-pair terms, as CR-172428 App. B prints its largest contributors
+            terms === nothing || push!(terms, (; q, i=ac.index, r=st.index, f_n_Hz=ωn / 2π, f_r_Hz=st.f_Hz,
+                                               η_n=ωn > 0 ? N / ωn^2 : 0.0, η_r_pp=ηrpp, p2=t))   # rigid mode: η_n = 0
         end
     end
     return p2
@@ -893,6 +902,13 @@ function acoustic_N_per_mode(inp::PainInputs, ac, q::Integer, ωn::Real; V::Real
     ξe = trim_conductance(inp.endplates, ωc, Inf; ρ0=inp.ρ_int, c0=inp.c_int, allow_extrapolation=ext)
     return acoustic_N(inp, ac, q, fn, ωn; ξ, ξ_e=ξe, V)
 end
+
+"""
+N of cabin mode (ac, q) in a tone at `f_Hz`: `acoustic_N_per_mode` when `inp.η_n_per_mode` and the cabin is trimmed,
+else `acoustic_N` at the tone (ξ, ξ_e at the tone). Every tone path (Eq. 8, the point field, Eqs. 15–16) uses it.
+"""
+tone_acoustic_N(inp::PainInputs, ac, q::Integer, f_Hz::Real, ωn::Real; ξ::Real, ξ_e::Real, V::Real) =
+    inp.η_n_per_mode && has_trim(inp) ? acoustic_N_per_mode(inp, ac, q, ωn; V) : acoustic_N(inp, ac, q, f_Hz, ωn; ξ, ξ_e, V)
 
 """Band-average η_n at centre `fc` [Hz]: card override or trim / bare as before."""
 function resolve_η_n_band(inp::PainInputs, fc::Real; ξ::Real=0.0, ξ_e::Real=0.0,

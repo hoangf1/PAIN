@@ -17,66 +17,20 @@ function structural_modes_in_band(inp::PainInputs, fc::Real; c_ω::Real=C_OMEGA_
 end
 
 """
-Per-(n,r) contributions to ⟨p²⟩_H from the same loop as `tone_mean_square_pressure`
-(Eq. 8). Returns a Vector of NamedTuples `(q, i, r, f_n_Hz, f_r_Hz, p2, share)` sorted
-by `p2` descending. Does not alter any existing result.
+Per-(n,r) contributions to ⟨p²⟩_H, collected from `tone_mean_square_pressure` itself (Eq. 8; its `terms`, so every
+option of the tone sum applies). Returns a Vector of NamedTuples `(q, i, r, f_n_Hz, f_r_Hz, η_n, η_r_pp, p2, share)`
+sorted by `p2` descending, and the total. Does not alter any existing result.
 """
 function modal_tone_contributions(inp::PainInputs, H::Int, ωH::Float64;
                                   q_max::Union{Nothing,Int}=nothing,
                                   η_r_cap::Union{Nothing,Float64}=nothing)
-    fuse = inp.fuse
-    a, L = fuse.a, fuse.L
-    L_c = inp.L_c
-    θ0 = deg2rad(fuse.theta0_deg)
-    Lp = 2a * sin(θ0)
-    A = L * (Lp + 2a * (π - θ0))
-    V = cabin_volume(inp)
-    ρ_ext, c_ext = inp.ρ_ext, inp.c_ext
-    ρ_int, c_int = inp.ρ_int, inp.c_int
-    ext = inp.allow_extrapolation
-    qtop = something(q_max, inp.q_max, axial_truncation(ωH, L_c, c_int))
-
-    trimmed = has_trim(inp)
-    τ_t = sidewall_tau(inp, ωH)
-    ξ = trimmed ? trim_conductance(inp.sidewall, ωH, inp.m_wall; ρ0=ρ_int, c0=c_int, allow_extrapolation=ext) : 0.0
-    ξe = trimmed ? trim_conductance(inp.endplates, ωH, Inf; ρ0=ρ_int, c0=c_int, allow_extrapolation=ext) : 0.0
-
-    nst = length(inp.structural.modes)
-    Ψ = Vector{Float64}(undef, nst)
-    ωr = Vector{Float64}(undef, nst)
-    ηrp = Vector{Float64}(undef, nst)
-    for (j, st) in enumerate(inp.structural.modes)
-        Ψ[j] = generalized_force(st, H, inp.amplitudes, inp.phases, inp.pts, fuse; ΔA=inp.ΔA)
-        ωr[j] = 2π * st.f_Hz
-        ηrp[j] = structural_η_r_prime(inp, st, ωr[j]; η_r_cap)
-    end
-
-    pref = (c_int / V)^2 * (ρ_ext * c_ext * A)^2 * ωH^4
-    fH = ωH / 2π
     rows = NamedTuple[]
-    total = 0.0
-    for q in 0:qtop, ac in inp.acoustic.modes
-        ωn = 2π * cabin_frequency_3d(ac, a, L_c, q; c0=c_int)
-        εn = cabin_eps_3d(ac, q)
-        N = acoustic_N(inp, ac, q, fH, ωn; ξ, ξ_e=ξe, V)
-        Dn = (ωn^2 - ωH^2)^2 + N^2
-        for (j, st) in enumerate(inp.structural.modes)
-            f = coupling_factor(ac, st, inp; τ_t, q)
-            f == 0 && continue
-            # Eq. (83) uses the bare f′(n,r) (no trim weighting; CR-3813 p. 43, CR-172428 p. 177/178:
-            # TONE line 107 / NRED line 79). f̄′ (with √τ_t) is only for transmission (Eq. 8 / 18).
-            f′ = τ_t == 1 ? f : coupling_factor(ac, st, inp; τ_t=1.0, q)
-            ηrpp = structural_loss_coupled(N, ωn, ωr[j], f′, εn, st.M_r, V, A; ρ0=ρ_int, c0=c_int)
-            Dr = (ωr[j]^2 - ωH^2)^2 + ((ηrp[j] + ηrpp) * ωr[j]^2)^2
-            p2 = pref * εn * f^2 * Ψ[j] / (st.M_r^2 * Dn * Dr)
-            p2 == 0 && continue
-            total += p2
-            push!(rows, (; q, i=ac.index, r=st.index, f_n_Hz=ωn / 2π, f_r_Hz=st.f_Hz, p2))
-        end
-    end
+    tone_mean_square_pressure(inp, H, ωH; q_max, η_r_cap, terms=rows)
+    filter!(t -> t.p2 != 0, rows)
     sort!(rows; by=x -> x.p2, rev=true)
+    total = sum((t.p2 for t in rows); init=0.0)
     denom = total > 0 ? total : 1.0
-    return [(; row.q, row.i, row.r, row.f_n_Hz, row.f_r_Hz, row.p2, share=row.p2 / denom) for row in rows], total
+    return [merge(t, (; share=t.p2 / denom)) for t in rows], total
 end
 
 """
