@@ -187,6 +187,7 @@ Not blockers (recorded so nobody stops on them): BBN tip geometry beyond 40 in. 
 | Q79 | **Phase 99 — did CR-3813's program already use the band-centre η_n?** (§8ao) | held-out test | Phase 96 | **done 2026-10-30**: refuted (BAND_REPRO_18b 1/3, BAND_E18 2/3; rule moves the runs ≤ 0.6 dB) |
 | Q80 | **Phase 100 — NASA's per-band PF-105 input table (CR-172428 App. D deck)** (§8ap) | held-out test | Phase 96 | **done 2026-10-30**: supported (Re β 200 Hz +2.7 %, end-cap Im β 1600 Hz +1.7 %, 84/84 admittances, trim factor within 0.001 dB); R172428_ETAT2 9/9, APPB_ETA_N_T2_BAND 3/3 met; deck table is the CR-172428 default |
 | Q81 | **Phase 101 — CR-172428 flight run 10 reproduced from its printed deck; trim per band tested on it** (§8aq) | reproduction + held-out test | Phase 100 | **done 2026-10-30**: FLIGHT_MODES not met (197/221; frequencies 219/221); 101b–d not run (101a not met; H1/H5 field phases cut off in the scan); no default changed |
+| Q82 | **Phase 102 — flight run 10, H2–H4: the code as it ships and the trim per band against PAIN's printed levels** (§8ar) | diagnostic | Phase 101 | **done 2026-10-30**: as shipped 98.30 / 89.76 / 79.19 dB vs PAIN 96.59 / 88.06 / 83.92; trim per band closer at 0/3 (not supported, moves ≤ 0.4 dB); no default changed |
 | Q58 | **Phase 79 — CYL2D** (§8w; 2026-10-28) | `case_error_summary`, `cyl2d.jl`, CYL2D_WEYL | Q57 | **done 2026-10-28**: information rows leave the pass count; refinement fixed (79b); CYL2D_GRID_CONV (NY 10 within 4.9 % of NY 60); Weyl + surface term 4/5; production NY = 10 kept (decided 2026-10-28) |
 | Q57 | **Phase 78 — structural modes** (§8v; 2026-10-28) | `mrp_appd.jl`, MRP_APPD criterion, map | Q53 | **done 2026-10-28**: App. D solver fixes J1–J6; MRP_APPD not met 2/32 (class I, floor stiffener model undocumented); MRP_D1/MRP_RITZ off the map |
 | Q56 | **Phase 77 — POLAR_FIDELITY as an equivalent angle** (§8u; 2026-10-28) | `src/validation_case_iso67.jl`, figure | Q52 | **done 2026-10-28**: Δα shown next to Δc_l, display only |
@@ -2518,3 +2519,28 @@ nothing changes. Recorded with the option, with no role in the decision: R172428
 (3000 rpm H3), R172428_EXP. If 101a is not met, 101b–101d run as diagnostics only and the default does not change.
 
 **Result (2026-10-30).** 101a FLIGHT_MODES not met (197/221, 89.1 %); 101b–101d not run. Record: `validation_reports/phase101_flight_run10.md`.
+
+## 8ar. Phase 102 — flight run 10, H2–H4 (diagnostic; what is compared fixed 2026-10-30, before the run)
+
+*(Done 2026-10-30; moved to the bottom 2026-10-30. Planned 2026-10-30; author: "Yes, run H2–H4".)* Phase 101 stopped because the scan cuts phase rows of the H1 and H5
+fields and FLIGHT_MODES was not met. The H2–H4 fields (CR-172428 App. D pp. 231–233, PDF 241–243) are complete. This
+phase is a **diagnostic**: no verdict, no default change, whatever the result (Phase 101's decision rule).
+
+**Inputs, all from CR-172428.** Field: 16 axial × 19 circumferential points per harmonic, amplitude (dB) and phase
+(degrees), transcribed as in Phase 44a (pass 1 RapidOCR per cell, pass 2 by eye, every disagreement re-read at higher
+resolution; amplitude rows checked for the mirror symmetry about θ = 75°). Geometry and grid: axial locations as
+printed, propeller plane 1.12 m from the forward end, θ as printed. PAIN deck (p. 229): ρ, c inside and outside, the 21
+bands, η_r = 2/f per band, acoustic loss factors zero, sidewall trim 0.055 m PF-105 (App. D table, Phase 100) +
+1.95 kg/m², η_T = 2.0, no end-cap trim. Cabin: L = 9.27 m, L_c = 7.89 m, θ₀ = 50°, a = 0.84 m, CYL2D modes. Structural
+modes: the solver on NASA's Merlin deck (`merlin_mrp_deck()`), NASA's 20 per axial order and symmetry. Blocking:
+whatever the field already carries. App. B's field is the blocked field PAIN used, and App. D's pages are the same PAIN
+echo, so no further blocking is applied. Anything else the code needs is stated in the report as an assumption.
+
+**Runs.** (a) The code as it ships. (b) The same with the trim per band (`trim_band_centre`): τ_t of a tone and C_w
+of a structural mode (Eq. 82) taken at the nominal centre of the 1/3-octave band holding the tone or mode.
+
+**Recorded (FLIGHT10_H234, no verdict).** Per tone, the level against PAIN's printed 96.59, 88.06 and 83.92 dB, and
+whether (b) is closer than (a). H_bandtrim is "supported in the diagnostic" if (b) is closer at ≥ 2 of 3 tones and
+"not supported" otherwise. Either way the default stays. A support would justify planning a held-out test.
+
+**Result (2026-10-30).** H_bandtrim not supported (0/3). Record: `validation_reports/phase102_flight_run10_h234.md`.

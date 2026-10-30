@@ -3393,6 +3393,23 @@ _run_if("Merlin IVC modes vs CR-172428 App. C (phase 101)") do
     @test isfile(png) && filesize(png) > 0
 end
 
+_run_if("Flight run 10, H2–H4, and the trim per band (phase 102)") do
+    # Plan §8ar; diagnostic, recorded first-run result (not supported).
+    inp = PAIN.r172428_flight10_inputs(); bnd = PAIN.r172428_flight10_inputs(; trim_band_centre=true)
+    @test !inp.trim_band_centre && bnd.trim_band_centre
+    @test PAIN._trim_ω(inp, 2π * 209.1) == 2π * 209.1 && PAIN._trim_ω(bnd, 2π * 209.1) == 2π * 200.0
+    @test PAIN.sidewall_tau(bnd, 2π * 209.1) == PAIN.sidewall_tau(inp, 2π * 200.0) != PAIN.sidewall_tau(inp, 2π * 209.1)
+    f = PAIN.r172428_flight10_field()
+    @test all(f.amps[:, :, 1] .== 0) && f.amps[7, 10, 3] ≈ PAIN.spl_dB_to_peak_Pa(133.3)        # H3 peak, printed 133.3 dB
+    @test only(p.theta_deg for p in f.pts if p.k == 1 && p.ell == 10) == 105.0                   # propeller line
+    r = run_validation_case("FLIGHT10_H234")
+    @test r.verdict === :no_verdict && r.inputs_echo.closer == 0
+    @test r.inputs_echo.as_shipped ≈ [98.30, 89.76, 79.19] atol = 0.01
+    @test r.inputs_echo.band ≈ [98.68, 89.77, 79.17] atol = 0.01
+    png = plot_case(r, VALIDATION_CASES["FLIGHT10_H234"].plot_spec; path=joinpath(TEST_OUT, "FLIGHT10_H234.png"))
+    @test isfile(png) && filesize(png) > 0
+end
+
 _run_if("Band-centre η_n in CR-3813's program (phase 99)") do
     # Plan §8ao; criteria and decision fixed 2026-10-30 before the run. Recorded first-run results (refuted).
     pre = PAIN._pre_correction_band(r172428_inputs(4000))

@@ -98,6 +98,9 @@ struct PainInputs
     # as NASA's printed η_n show (Phase 95: 45/46 App. B modes with NASA's admittance); false = Phase 89 reading
     # (ω = ω_n, conductance at the exact centre). Default true since Phase 96; inferred, not documented.
     η_n_band_omega::Bool
+    # true takes the trim of a tone (τ_t, and ξ, ξ_e when η_n is at the tone) and of a structural mode (C_w in Eq. 82)
+    # at the nominal 1/3-octave centre holding the tone or mode (Phase 102 diagnostic option, untested; default false).
+    trim_band_centre::Bool
 end
 
 function PainInputs(fuse, prop, structural, acoustic, amplitudes, phases, pts, ΔA::Real;
@@ -114,7 +117,8 @@ function PainInputs(fuse, prop, structural, acoustic, amplitudes, phases, pts, �
                     bands=nothing, η_r_band=nothing, η_n_band=nothing,
                     η_r_band_is_prime::Bool=false,
                     η_r_trimmed_area::Bool=true,
-                    floor_sign::Real=1.0, q0_coupled::Bool=false, η_n_per_mode::Bool=true, η_n_band_omega::Bool=true)
+                    floor_sign::Real=1.0, q0_coupled::Bool=false, η_n_per_mode::Bool=true, η_n_band_omega::Bool=true,
+                    trim_band_centre::Bool=false)
     abs(floor_sign) == 1 || error("PainInputs: floor_sign must be +1 or −1 (got $floor_sign)")
     (sidewall === nothing) == (endplates === nothing) ||
         error("PainInputs: give both `sidewall` and `endplates` trim stacks, or neither (bare cabin)")
@@ -132,7 +136,8 @@ function PainInputs(fuse, prop, structural, acoustic, amplitudes, phases, pts, �
                       sidewall, endplates, mech, m, float(η_n_bare), float(C_struc),
                       q_max === nothing ? nothing : Int(q_max), allow_extrapolation, ρ0f, c0f,
                       ρe, ce, ρi, ci, Lc, float(d), xover, bands_n, ηr_n, ηn_n,
-                      η_r_band_is_prime, η_r_trimmed_area, float(floor_sign), q0_coupled, η_n_per_mode, η_n_band_omega)
+                      η_r_band_is_prime, η_r_trimmed_area, float(floor_sign), q0_coupled, η_n_per_mode, η_n_band_omega,
+                      trim_band_centre)
 end
 
 """Trim stacks present (sidewall and end plates)?"""
@@ -141,7 +146,10 @@ has_trim(inp::PainInputs) = inp.sidewall !== nothing
 """τ_t(ω) of Eq. (A.22) for the sidewall trim (1 for a bare cabin)."""
 sidewall_tau(inp::PainInputs, ω::Real) =
     inp.sidewall === nothing ? 1.0 :
-    trim_tau(inp.sidewall, ω; mech=inp.mech, allow_extrapolation=inp.allow_extrapolation)
+    trim_tau(inp.sidewall, _trim_ω(inp, ω); mech=inp.mech, allow_extrapolation=inp.allow_extrapolation)
+
+"""ω at which the trim is evaluated: ω itself, or the nominal 1/3-octave centre holding it (`inp.trim_band_centre`)."""
+_trim_ω(inp::PainInputs, ω::Real) = inp.trim_band_centre ? 2π * nominal_band_centre(ω / 2π) : float(ω)
 
 struct InteriorSpectrum
     bpf_Hz::Float64
@@ -426,8 +434,8 @@ function tone_mean_square_pressure(inp::PainInputs, H::Int, ωH::Float64;
 
     trimmed = has_trim(inp)
     τ_t = sidewall_tau(inp, ωH)
-    ξ = trimmed ? trim_conductance(inp.sidewall, ωH, inp.m_wall; ρ0=ρ_int, c0=c_int, allow_extrapolation=ext) : 0.0
-    ξe = trimmed ? trim_conductance(inp.endplates, ωH, Inf; ρ0=ρ_int, c0=c_int, allow_extrapolation=ext) : 0.0
+    ξ = trimmed ? trim_conductance(inp.sidewall, _trim_ω(inp, ωH), inp.m_wall; ρ0=ρ_int, c0=c_int, allow_extrapolation=ext) : 0.0
+    ξe = trimmed ? trim_conductance(inp.endplates, _trim_ω(inp, ωH), Inf; ρ0=ρ_int, c0=c_int, allow_extrapolation=ext) : 0.0
 
     # per structural mode: Ψ_G, ω_r, η_r' (radiation uses exterior air; card 11–14 η_r override)
     nst = length(inp.structural.modes)
@@ -830,7 +838,7 @@ function structural_η_r_prime(inp::PainInputs, st::StructuralMode, ωr::Real;
     if has_trim(inp)
         m_eq82 = inp.η_r_trimmed_area ? app_a_modal_mass_per_area(st, fuse, inp.m_wall) : inp.m_wall
         return structural_loss_with_trim(ηr, ωr, m_eq82,
-                                         trim_Cw(inp.sidewall, ωr; allow_extrapolation=inp.allow_extrapolation);
+                                         trim_Cw(inp.sidewall, _trim_ω(inp, ωr); allow_extrapolation=inp.allow_extrapolation);
                                          η_r_cap)
     else
         return apply_η_r_cap(ηr, η_r_cap)

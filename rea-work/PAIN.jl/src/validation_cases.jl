@@ -574,6 +574,8 @@ const DIAGNOSTIC_CASES = Dict(
     "BAND_E18" => "re-runs E18_TONES in the pre-correction form with the band-centre η_n (Phase 99b)",
     # Phase 100 (2026-10-30): NASA's per-band PF-105 table against the App. B admittances (selects the insulation input)
     "R172428_TRIM_DECK" => "sets NASA's App. D PF-105 deck table against App. B's trim admittances; selects the input (Phase 100a)",
+    # Phase 102 (2026-10-30): flight run 10, H2–H4; FLIGHT_MODES not met, so no verdict
+    "FLIGHT10_H234" => "sets the code as it ships and the trim per band against PAIN's printed run 10 levels (Phase 102)",
 )
 
 """True for a case that carries no verdict by rule: an information case or a diagnostic run."""

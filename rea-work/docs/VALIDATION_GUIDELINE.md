@@ -3415,6 +3415,22 @@ Inputs: `data/cr172428/appC_merlin_mrp_deck.csv`, `data/cr172428/appC_merlin_str
 Equations: App. D Eqs. (D.17)–(D.29).
 Outputs: f_r [Hz], generalized mass [kg].
 
+### Case: FLIGHT10_H234
+**Title:** CR-172428 flight run 10, H2–H4: as shipped and trim per band vs PAIN (102)
+**Map / block:** total / P_REPRO
+**Category:** verification
+**Kind:** runnable
+**Source:** CR-172428 App. D pp. 229–237 (deck, field, printed levels); what is compared fixed 2026-10-30 before the run (plan §8ar, commit f00c03f)
+**What it tests:** Run 10 from PAIN's printed deck and field, H2–H4 (H1 and H5 fields are cut off in the scan), with the code as it ships and with the trim of tones and modes at the band centre (`trim_band_centre`).
+**Why it is here:** The flight tones lie off band centres, so they test whether PAIN takes the trim per band (diagnostic).
+**A pass means:** No verdict (FLIGHT_MODES not met); per tone, which form is closer to PAIN's printed level is recorded.
+**Not covered:** H1 and H5; the mode list of NASA's file (lowest 400 used); CYL2D at NY = 11 (assumption).
+**Recorded outcome:** no verdict (2026-10-30): as shipped 98.30 / 89.76 / 79.19 dB, trim per band 98.68 / 89.77 / 79.17 dB, PAIN 96.59 / 88.06 / 83.92 dB; the trim per band is closer at 0/3 (not supported).
+**Explanation:** `r172428_flight10_inputs()` and `_run_flight10_h234` in `validation_case_iso102.jl`.
+Inputs: `data/cr172428/appD_run10_H{2,3,4}.csv`, `merlin_mrp_deck()`, App. D deck values.
+Equations: Eq. (8).
+Outputs: SPL [dB re 20 μPa].
+
 ## 2.14 Closure register: every case that is not met, and why (2026-10-24)
 
 Written after Phases 62–67. Every registered case that is **not met** is listed with the class of its cause and the
@@ -3624,6 +3640,12 @@ CR-172428 prints PAIN's complete flight-test run 10. The MRP solver on NASA's Me
 printed frequencies (219/221 within 2 %) but not enough generalized masses (FLIGHT_MODES not met, 197/221). The scan
 cuts the bottom phase rows of the H1 and H5 fields, so the run itself was not reproduced and the trim per band (101d)
 stays untested. Record: `validation_reports/phase101_flight_run10.md`.
+
+## 2.31 Phase 102: flight run 10, H2–H4 (2026-10-30, diagnostic)
+
+From PAIN's printed deck and field, the code as it ships is within 1.7 dB of PAIN's printed run 10 levels at H2 and H3
+and 4.7 dB low at H4 (FLIGHT10_H234, no verdict). Taking the trim at the band centre moves them by at most 0.4 dB, so
+the trim per band is not supported. Record: `validation_reports/phase102_flight_run10_h234.md`.
 
 ## 3. What “valid recreation” means for this project
 
