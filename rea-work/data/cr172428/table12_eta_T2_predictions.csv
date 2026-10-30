@@ -1,0 +1,18 @@
+# NASA CR-172428 Table 12 (p. 86, printed -86-): predicted vs measured space-average SPL with the trim panel loss factor
+# eta_T = 2.0 ("to suppress predicted trim resonance"), blocked field limited to 4 dB (Fig. 35); other inputs as Table 6.
+# Text p. 85 (printed -85-): with eta_T = 2 the acoustic loss factors fall to 0.088 (mode 6), 0.077 (mode 7), 0.081 (mode 8)
+# (rows with H = 0 below; mode numbers of App. B p. 195). Transcribed 2026-10-29 (Phase 94) from the OCR text, checked
+# against the difference column (predicted - measured).
+rpm,H,nasa_pred_dB,measured_dB,eta_n_mode,eta_n
+3000,1,62.1,81.0,,
+3000,2,65.5,69.1,,
+3000,3,56.9,52.9,,
+4000,1,91.2,90.3,,
+4000,2,73.8,80.3,,
+4000,3,67.4,65.2,,
+5000,1,92.9,100.2,,
+5000,2,89.6,91.5,,
+5000,3,74.0,74.0,,
+4000,0,,,6,0.088
+4000,0,,,7,0.077
+4000,0,,,8,0.081

@@ -240,7 +240,8 @@ or the other documents points there. When a phase is done, mark it done and move
 
 | Q | Item | Kind | Prerequisite | Output |
 |---|------|------|--------------|--------|
-| Q73 | **Phase 92 — which mode pairs differ from NASA's printed contributors** (§8ai) | diagnostic + held-out test | App. B contributor lists | 92a table; 92b 3000 rpm held-out run; report |
+| Q74 | **Phase 93 — NASA's latest program form as the default** (§8aj) | code default | Phase 92 | defaults; pinned cases; recorded results |
+| Q75 | **Phase 94 — held-out test of that form on CR-172428 Table 12 (η_T = 2.0)** (§8ak) | P case | Phase 93 | R172428_ETAT2, APPB_ETA_N_T2 |
 
 If a queue item is blocked on data, skip to the next unblocked item and say which data item blocks it.
 
@@ -285,31 +286,35 @@ The diagram matches the code (phases 21–22 done 2026-10-21): `propeller_ccblad
 
 ---
 
-## 8ai. Phase 92 — NASA's printed mode-pair contributions (CR-172428 App. B pp. 207, 212)
+## 8aj. Phase 93 — NASA's latest program form as the default
 
-*(planned 2026-10-29; author: "at this point if tuning helps us find the solution to the issue thats fine since thats
-diagnostics". Everything in this phase is a diagnostic: no verdict, off the map, defaults unchanged unless 92b says so.)*
+*(planned 2026-10-29; author: "whatever makes it match the outputs hopefully thats the latest release".)* CR-172428
+(Pope, September 1984) is the latest PAIN document; CR-3813 is July 1984. The defaults become the program NASA ran for
+CR-172428: the three App. A corrections (floor sign, already default; Eq. (82) over the trimmed area,
+`η_r_trimmed_area = true`; the 4 dB blocking limit R2, already the pipeline default) and the two behaviours inferred in
+Phase 92 (`q0_coupled = false`, `η_n_per_mode = true`; not documented). Cases that reproduce CR-3813's printed runs use
+`_pre_correction_form` (all of these reverted); R172428_CODE keeps the tone sum as CR-3813 prints it
+(`_cr3813_tone_form`), because the inferred form was chosen from its points: comparing the default with them is
+post-hoc (R172428_CODE_Q0_ETAN, diagnostic). Every other case runs the new default; criteria are unchanged and changed
+recorded results are re-recorded with this phase named. Not a calibration of those cases: the form was taken from
+NASA's CR-172428 printouts only.
 
-**92a (run 2026-10-29, before this entry was written; a diagnostic, recorded as found).** Eq. (8) split into its
-acoustic × structural pair terms for `r172428_inputs(4000)` and `(5000)` and set against the 25 pairs NASA prints (five
-largest per tone, 4000 rpm H1–H3, 5000 rpm H1–H2). Found: (i) of the 25 printed pairs 15 are within ±2 dB of this code;
-(ii) NASA lists no q = 0 cabin mode at any of the five tones, while in this code q = 0 pairs are the largest at 4000 H1
-(Q0 I1 × st8, 5.55 Pa², NASA's whole tone 0.59 Pa²), 5000 H1 and 5000 H2; (iii) without the q = 0 terms the five tones
-are 91.26, 79.80, 71.59, 84.18, 89.26 dB against NASA's 91.69, 78.19, 71.30, 86.4, 91.1. CR-172428 App. A shows the
-program reads FQM(IQ,M) but not how FQM is filled, so the documents do not say why q = 0 drops out. Because (iii) was
-seen, R172428_CODE with q = 0 off is post-hoc on those six points.
+## 8ak. Phase 94 — held-out test on CR-172428 Table 12 (criteria fixed 2026-10-29, before any run)
 
-**92b held-out test (criterion fixed 2026-10-29, before the run).** Hypothesis H_q0': in the program NASA ran for
-CR-172428 the q = 0 cabin modes add nothing to Eq. (8) (`q0_coupled = false`, CR-172428 inputs, post-correction form).
-Held out: the 3000 rpm H1–H3 NASA predictions (Table 10), not run with q = 0 off before this entry. **Supported** if
-this code is within ±3 dB of NASA at all three. Phase 88 refuted the same switch on CR-3813's pre-correction runs
-(E-16/E-18); those came from the earlier program, so 92b tests the CR-172428 program only. If supported: the CR-172428
-reproduction cases gain diagnostic re-runs with q = 0 off (labelled post-hoc where the points were seen), the default
-stays `q0_coupled = true` (CR-3813 as printed), and the finding is recorded as reverse-engineered, not documented. If
-not supported: recorded, and no variant is tried.
+CR-172428 pp. 85–86 print a second PAIN run, not used by any earlier phase: Table 6 inputs with the trim panel loss
+factor η_T = 2.0 (Table 12, nine points; Fig. 35) and, in the text, η_n of App. B cabin modes 6, 7, 8 at that η_T
+(0.088, 0.077, 0.081). Transcribed to `data/cr172428/table12_eta_T2_predictions.csv`. This code has not been run with
+η_T = 2.0 before these criteria were written.
 
-**92c (diagnostic).** The pairs still more than 2 dB off after 92b, with the term (η_n, η_r″, mode frequency) that
-accounts for each.
+| Step | Case | Run | Criterion (P) |
+|---|---|---|---|
+| 94a | R172428_ETAT2 | `r172428_inputs(rpm; η_T=2.0)`, Phase 93 default form, H1–H3 at 3000/4000/5000 rpm | ±3 dB of Table 12 at ≥ 7 of 9 (R172428_CODE's criterion) |
+| 94b | APPB_ETA_N_T2 | η_n of App. B modes 6, 7, 8 at their own frequency, η_T = 2.0 (as APPB_ETA_N) | within ±10 % of the printed value at all three |
+
+Both carry a verdict (P: NASA's inputs, NASA's printed output, the code as it ships). Caveat stated with the result: the
+default form was inferred from the η_T = 0.13 run of the same article, so 94a is held out in its inputs and outputs but
+not independent of the article. If 94a is not met the form is still recorded as inferred, and the defaults stay as the
+author asked, with the result stated.
 
 ## 9. Reference appendices
 
