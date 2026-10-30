@@ -69,6 +69,10 @@ end
 """Fig. A-2 (Owens-Corning PF-105, 9.6 kg/m³), digitized at its six marked frequencies, 100–6300 Hz (`data/cr3813/fig_a2_pf105.csv`)."""
 pf105_table() = load_insulation_table(joinpath(_TRIM_DATA_DIR, "cr3813", "fig_a2_pf105.csv"))
 
+"""NASA's per-band PF-105 table (CR-172428 App. D input deck, cards 22–33; 21 bands, 50–5000 Hz), as printed: λ at
+1600 Hz is NASA's 0.01 m (`data/cr172428/appD_pf105_deck.csv`, Phase 100)."""
+pf105_deck_table() = load_insulation_table(joinpath(_TRIM_DATA_DIR, "cr172428", "appD_pf105_deck.csv"); name="PF-105 (App. D deck)")
+
 function _interp_logf(f::Float64, fs::Vector{Float64}, ys::AbstractVector{Float64})
     x = log10(f)
     xs = log10.(fs)

@@ -37,7 +37,7 @@ function r172428_appb_field(rpm::Integer; n_harmonics::Int=3, z_p::Real=0.662)
 end
 
 """
-    r172428_inputs(rpm; app_a=true) -> PainInputs
+    r172428_inputs(rpm; app_a=true, structural=:table_d1, η_T=0.13, insulation=:deck) -> PainInputs
 
 CR-172428 Table 6 and App. B inputs: L = 1.803 m, a = 0.508 m, θ₀ = 56.6°, L_c = 1.829 m,
 shell mass 3.113 kg/m², propeller r_p = 0.9652 m, z_p = 0.662 m, rotation +1; bare structural
@@ -50,15 +50,20 @@ numbers and frequencies as App. B); acoustic modes: CYL2D, 20 two-dimensional mo
 structural modes from the App. D solver on NASA's MRP deck (`appd_nasa_deck()`, full series) instead of Table D-1's
 printed (truncated) shapes; everything else is unchanged (82c: R172428_ETA stays 17/32, levels move < 1 dB).
 `structural=:nasa300` (Phase 84b) takes NASA's 300 modes from the same solve (`nasa_deck_modes()`; CR-172428 Table 6).
+`insulation=:deck` (default since Phase 100) takes NASA's per-band PF-105 table from the App. D input deck
+(`pf105_deck_table()`, 50–5000 Hz, as printed); `:fig_a2` interpolates the six markers of CR-3813 Fig. A-2 (before 2026-10-30).
 """
-function r172428_inputs(rpm::Integer; app_a::Bool=true, structural::Symbol=:table_d1, η_T::Real=0.13)
+function r172428_inputs(rpm::Integer; app_a::Bool=true, structural::Symbol=:table_d1, η_T::Real=0.13,
+                        insulation::Symbol=:deck)
     fuse = FuselageGeometry(1.803, 0.508, 56.6)
     prop = PropellerPlacement(0.9652, 90.0, 0.662)
     f = r172428_appb_field(rpm; z_p=prop.z_p)
     c0 = 343.0
-    side = TrimStack(TrimElement[InsulationLayer(0.0508, pf105_table()), LimpMass(1.456, η_T)],
+    mat = insulation === :deck ? pf105_deck_table() : insulation === :fig_a2 ? pf105_table() :
+          error("r172428_inputs: insulation must be :deck or :fig_a2 (got $insulation)")
+    side = TrimStack(TrimElement[InsulationLayer(0.0508, mat), LimpMass(1.456, η_T)],
                      "CR-172428 sidewall trim")
-    ends = TrimStack(TrimElement[InsulationLayer(0.0127, pf105_table()), LimpMass(0.0, 1.0)],
+    ends = TrimStack(TrimElement[InsulationLayer(0.0127, mat), LimpMass(0.0, 1.0)],
                      "CR-172428 end cap")
     acoustic = cyl2d_modes(fuse.theta0_deg; n_modes=20, NY=10, c0=c0)
     structural_modes = structural === :deck ? appd_modes(appd_nasa_deck(); n_modes=32) :
@@ -173,7 +178,7 @@ function _run_r172428_trim()
     fs = Float64[]; tf_o = Float64[]; tf_n = Float64[]
     for i in eachindex(c[:f_Hz])
         f = c[:f_Hz][i]
-        f < 100 && continue                       # PF105 table covers 100–6300 Hz (Fig. A-2)
+        f < first(inp.sidewall.elements[1].material.f_Hz) && continue   # deck table from 50 Hz; Fig. A-2 from 100 Hz
         ω = 2π * f
         tf = -10 * log10(trim_tau(inp.sidewall, ω))
         β = trim_admittance(inp.sidewall, ω, inp.m_wall; ρ0=inp.ρ_int, c0=inp.c_int)

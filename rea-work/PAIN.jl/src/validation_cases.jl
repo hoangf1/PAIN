@@ -572,6 +572,8 @@ const DIAGNOSTIC_CASES = Dict(
     # Phase 99 (2026-10-30): the band-centre η_n in the program behind CR-3813's printed runs, held out
     "BAND_REPRO_18b" => "re-runs REPRO_18b_PRE with the band-centre η_n of Phase 95 (Phase 99a)",
     "BAND_E18" => "re-runs E18_TONES in the pre-correction form with the band-centre η_n (Phase 99b)",
+    # Phase 100 (2026-10-30): NASA's per-band PF-105 table against the App. B admittances (selects the insulation input)
+    "R172428_TRIM_DECK" => "sets NASA's App. D PF-105 deck table against App. B's trim admittances; selects the input (Phase 100a)",
 )
 
 """True for a case that carries no verdict by rule: an information case or a diagnostic run."""

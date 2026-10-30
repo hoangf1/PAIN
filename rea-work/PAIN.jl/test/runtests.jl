@@ -3230,12 +3230,12 @@ _run_if("NASA's App. B per-mode values, the q = 0 hypothesis, η_n per mode (pha
     e = run_validation_case("APPB_EPS_N")
     @test e.verdict === :met && e.inputs_echo.n == 48 && all(r -> abs(r.computed / r.reference - 1) < 1e-4, e.table)
     h = run_validation_case("APPB_ETA_N")
-    @test h.verdict === :not_met && h.inputs_echo.n_ok == 11 && h.inputs_echo.n == 46 && h.inputs_echo.skipped == [1, 2]
+    @test h.verdict === :not_met && h.inputs_echo.n_ok == 16 && h.inputs_echo.n == 46 && h.inputs_echo.skipped == [1, 2]   # 11 with Fig. A-2 (before Phase 100)
     @test isnan(PAIN._eta_n_at_mode(inp, inp.acoustic.modes[1], 1))                                 # 93.8 Hz: below Fig. A-2
     hi = [r for r in h.table if r.x ≥ 25]                                                           # modes ≥ 465 Hz
     @test all(r -> abs(r.computed / r.reference - 1) ≤ 0.10, hi)
     p = run_validation_case("APPB_ETA_RPP")
-    @test p.verdict === :not_met && p.inputs_echo.n_ok == 8 && p.inputs_echo.n == 19
+    @test p.verdict === :not_met && p.inputs_echo.n_ok == 12 && p.inputs_echo.n == 19   # 8 with Fig. A-2 (before Phase 100)
     # NASA prints one η_r″ for cabin mode 19 × structural mode 6 at 400 and 250 Hz; the tone-frequency N does not
     i4 = findfirst(r -> occursin("4000 rpm H2: cabin mode 19 × structural mode 6", r.quantity), p.table)
     i5 = findfirst(r -> occursin("5000 rpm H1: cabin mode 19 × structural mode 6", r.quantity), p.table)
@@ -3283,7 +3283,7 @@ _run_if("NASA's printed mode-pair contributions (phase 92)") do
     @test tone_mean_square_pressure(inp, 1, 2π * 200.0) == p2                     # collecting changes nothing
     a = run_validation_case("APPB_PAIRS")
     @test a.verdict === :no_verdict && a.inputs_echo.n == 25 && a.inputs_echo.n_ok == 15
-    @test occursin("4000:H1 92.4 %", a.reason)                                     # q = 0 dominates this code's H1
+    @test occursin("4000:H1 95.4 %", a.reason)                                     # q = 0 dominates this code's H1 (92.4 % with Fig. A-2)
     b = run_validation_case("APPB_PAIRS_Q0_ETAN")
     @test b.verdict === :no_verdict && b.inputs_echo.n_ok == 16 && occursin("4000:H1 0.0 %", b.reason)
     q = run_validation_case("R172428_CODE_Q0")                                     # 92b: 2/3 held out, not supported
@@ -3323,7 +3323,7 @@ _run_if("CR-172428 program form as default; held-out Table 12 (phases 93, 94)") 
     @test t.verdict === :met && t.inputs_echo.n_ok == 9 && maximum(abs(r.residual) for r in t.table) < 2.15   # 1.69 before Phase 96, 2.09 after
     e = run_validation_case("APPB_ETA_N_T2")
     @test e.verdict === :met && e.inputs_echo.n_ok == 3
-    @test e.inputs_echo.ours ≈ [0.0877, 0.0782, 0.0829] atol = 1e-4
+    @test e.inputs_echo.ours ≈ [0.0876, 0.0779, 0.0827] atol = 1e-4   # deck table (Phase 100); Fig. A-2: 0.0877, 0.0782, 0.0829
     # η_T is an input: the η_T = 2.0 run differs from the Table 6 one
     @test interior_spl(r172428_inputs(4000; η_T=2.0); bpf_Hz=200.0, n_harmonics=1).harmonic_SPL_dB[1] !=
           interior_spl(inp; bpf_Hz=200.0, n_harmonics=1).harmonic_SPL_dB[1]
@@ -3348,16 +3348,37 @@ _run_if("NASA's band-centre η_n rule (phases 95, 96)") do
     @test PAIN.acoustic_N_per_mode(inp, ac, 0, ωn; V) ≈ hand rtol = 1e-12
     @test PAIN.acoustic_N_per_mode(PAIN._with_fields(inp; η_n_band_omega=false), ac, 0, ωn; V) != hand
     a = run_validation_case("APPB_ETA_N_BAND")                                       # 96a, post-hoc
-    @test a.verdict === :no_verdict && a.inputs_echo.n == 46 && a.inputs_echo.n_10pct == 42 && a.inputs_echo.n_2pct_nasa_admittance == 45
+    @test a.verdict === :no_verdict && a.inputs_echo.n == 46 && a.inputs_echo.n_10pct == 45 && a.inputs_echo.n_2pct_nasa_admittance == 45   # 42 with Fig. A-2 (before Phase 100)
     b = run_validation_case("APPB_ETA_N_T2_BAND")                                    # 96b, P, held out
     @test b.verdict === :met && b.inputs_echo.n_ok == 3
-    @test b.inputs_echo.ours ≈ [0.0894, 0.0779, 0.0827] atol = 1e-4
+    @test b.inputs_echo.ours ≈ [0.0887, 0.0776, 0.0822] atol = 1e-4                 # deck table (Phase 100); Fig. A-2: 0.0894, 0.0779, 0.0827
     d = run_validation_case("R172428_CODE_DEFAULT")                                  # 96d, post-hoc
     @test d.verdict === :no_verdict && count(r -> r.within_tolerance, d.table) == 8
     for id in ("APPB_ETA_N_BAND", "APPB_ETA_N_T2_BAND", "R172428_CODE_DEFAULT")
         png = plot_case(run_validation_case(id), VALIDATION_CASES[id].plot_spec; path=joinpath(TEST_OUT, "$(id).png"))
         @test isfile(png) && filesize(png) > 0
     end
+end
+
+_run_if("NASA's per-band PF-105 table (phase 100)") do
+    # Plan §8ap; predictions and decision fixed 2026-10-30 before the run. Recorded first-run results.
+    d = PAIN.pf105_deck_table()
+    @test length(d.f_Hz) == 21 && first(d.f_Hz) == 50.0 && last(d.f_Hz) == 5000.0
+    @test d.alpha_dB_per_m[d.f_Hz .== 200.0] == [10.1] && d.lambda_m[d.f_Hz .== 1600.0] == [0.01]   # as printed (App. D p. 229)
+    @test r172428_inputs(4000).sidewall.elements[1].material.name == "PF-105 (App. D deck)"          # Phase 100 default
+    @test r172428_inputs(4000; insulation=:fig_a2).sidewall.elements[1].material.name == "PF-105"
+    @test_throws ErrorException r172428_inputs(4000; insulation=:foo)
+    t = run_validation_case("R172428_TRIM_DECK")                                     # 100a, diagnostic
+    @test t.verdict === :no_verdict
+    @test abs(t.inputs_echo.p200) ≤ 10 && abs(t.inputs_echo.p1600) ≤ 15               # both predictions hold
+    @test t.inputs_echo.n_deck == 84 && t.inputs_echo.of_deck == 84 && t.inputs_echo.n_fig == 49
+    # the deck table reproduces NASA's printed trim factor (App. B p. 197) where Fig. A-2 did not, 200 Hz included
+    tr = run_validation_case("R172428_TRIM")
+    @test maximum(abs(r.residual) for r in tr.table if startswith(r.quantity, "trim factor")) < 0.01
+    inp_f = r172428_inputs(4000; insulation=:fig_a2)
+    @test abs(-10 * log10(PAIN.trim_tau(inp_f.sidewall, 2π * 200.0)) + 17.316) > 0.5
+    png = plot_case(t, VALIDATION_CASES["R172428_TRIM_DECK"].plot_spec; path=joinpath(TEST_OUT, "R172428_TRIM_DECK.png"))
+    @test isfile(png) && filesize(png) > 0
 end
 
 _run_if("Band-centre η_n in CR-3813's program (phase 99)") do

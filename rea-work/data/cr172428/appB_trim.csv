@@ -2,7 +2,8 @@
 # Sidewall: trim panel 1.4560 kg/m2, PF105 insulation 0.0508 m, panel area 3.5725 m2, panel loss factor 0.13.
 # End caps: insulation 0.0127 m, panel 0 kg/m2, area 0.6744 m2, loss factor 1.0. trim_factor_dB = trim transmission
 # loss (negative = increased transmission). Band-average eta_r below 200 Hz struck out by hand in the source (left empty).
-# Admittances: sidewall and end cap (real, imag). Transcribed by eye 2026-10-23 (phase 44b).
+# Admittances: sidewall and end cap (real, imag). Transcribed by eye 2026-10-23 (phase 44b). End-cap real at 1600 Hz
+# corrected 2026-10-30 (Phase 100) to the printed .13507E+01 (was entered as 0.13507), checked on a 400 dpi render.
 f_Hz,trim_factor_dB,band_avg_eta_r,side_adm_re,side_adm_im,end_adm_re,end_adm_im
 50,-0.860,,0.073537,0.19551,0.00031166,-0.017163
 63,-1.184,,0.052484,0.15210,0.00031912,-0.018932
@@ -19,7 +20,7 @@ f_Hz,trim_factor_dB,band_avg_eta_r,side_adm_re,side_adm_im,end_adm_re,end_adm_im
 800,19.992,0.030452,0.011656,0.054583,0.011206,-0.24023
 1000,23.229,0.038648,0.0095801,0.043536,0.028631,-0.32123
 1250,27.827,0.033380,0.0074347,0.035532,0.073771,-0.43522
-1600,33.918,0.029042,0.0050542,0.028074,0.13507,-0.27651
+1600,33.918,0.029042,0.0050542,0.028074,1.3507,-0.27651
 2000,39.134,0.015655,0.0036905,0.022382,0.31970,-0.74743
 2500,43.725,0.013037,0.0027730,0.017840,0.66590,-0.90756
 3150,48.095,0.012491,0.0021165,0.014140,1.0782,-0.77303

@@ -185,6 +185,7 @@ Not blockers (recorded so nobody stops on them): BBN tip geometry beyond 40 in. 
 | Q77 | **Phase 96 — NASA's band-centre η_n rule as the default** (§8am) | code default + held-out re-checks | Phase 95 | **done 2026-10-30**: default; APPB_ETA_N_T2_BAND met 3/3; R172428_ETAT2 met 9/9 |
 | Q78 | **Phases 97–98 — PF-105 trace; the η_r′ gap** (diagnostics) | diagnostic | Phase 96 | **done 2026-10-30**: Fig. A-2 trace failed its QA, no value adopted; η_r′ gap (trim term 1.4–2.1× low above 470 Hz) not explained by masses, band centre, Ση″ or Eq. (A.8) variants; no code change |
 | Q79 | **Phase 99 — did CR-3813's program already use the band-centre η_n?** (§8ao) | held-out test | Phase 96 | **done 2026-10-30**: refuted (BAND_REPRO_18b 1/3, BAND_E18 2/3; rule moves the runs ≤ 0.6 dB) |
+| Q80 | **Phase 100 — NASA's per-band PF-105 input table (CR-172428 App. D deck)** (§8ap) | held-out test | Phase 96 | **done 2026-10-30**: supported (Re β 200 Hz +2.7 %, end-cap Im β 1600 Hz +1.7 %, 84/84 admittances, trim factor within 0.001 dB); R172428_ETAT2 9/9, APPB_ETA_N_T2_BAND 3/3 met; deck table is the CR-172428 default |
 | Q58 | **Phase 79 — CYL2D** (§8w; 2026-10-28) | `case_error_summary`, `cyl2d.jl`, CYL2D_WEYL | Q57 | **done 2026-10-28**: information rows leave the pass count; refinement fixed (79b); CYL2D_GRID_CONV (NY 10 within 4.9 % of NY 60); Weyl + surface term 4/5; production NY = 10 kept (decided 2026-10-28) |
 | Q57 | **Phase 78 — structural modes** (§8v; 2026-10-28) | `mrp_appd.jl`, MRP_APPD criterion, map | Q53 | **done 2026-10-28**: App. D solver fixes J1–J6; MRP_APPD not met 2/32 (class I, floor stiffener model undocumented); MRP_D1/MRP_RITZ off the map |
 | Q56 | **Phase 77 — POLAR_FIDELITY as an equivalent angle** (§8u; 2026-10-28) | `src/validation_case_iso67.jl`, figure | Q52 | **done 2026-10-28**: Δα shown next to Δc_l, display only |
@@ -2445,3 +2446,34 @@ CR-3813's printed runs are held out. The runs are diagnostics (no verdict; their
 gains the band rule; otherwise it is recorded as refuted and no variant is tried.
 
 **Result (2026-10-30).** Refuted: 99a 1/3, 99b 2/3. Record: `validation_reports/phase99_band_rule_cr3813.md`.
+
+## 8ap. Phase 100 — NASA's per-band PF-105 input table (criteria fixed 2026-10-30, before the run)
+
+*(Done 2026-10-30; moved to the bottom 2026-10-30. Planned 2026-10-30; author: "Yes, run Phase 100".)* PAIN takes the insulation properties as one value per
+1/3-octave band (User Manual cards 22–33, read from the Beranek/Schultz figure). CR-172428 App. D (PDF p. 239,
+printed -229-) prints the PAIN input deck of flight-test run 10, with NASA's 21-band PF-105 table, 50–5000 Hz
+(α, λ, |W|, φ). Checked against the page image 2026-10-30. At the six marked frequencies of Fig. A-2 it agrees with
+this code's marker table; between them it differs (α at 200 Hz: 10.1 dB/m against 13.7 interpolated). It prints
+λ = 0.01 m at 1600 Hz (the curve gives about 0.10), a typo as NASA ran it. This code interpolates Fig. A-2's six
+markers and has no data below 100 Hz.
+
+Hypothesis H_deck: NASA's App. B scale-model runs used this same table, as printed. Two signs in App. B p. 197 were
+noted before the run: App. B lists admittances from 50 Hz (Fig. A-2 starts at 100 Hz), and the end-cap Im β at
+1600 Hz (−0.2765) breaks the trend of its neighbours (−0.435 at 1250, −0.747 at 2000).
+
+| Step | Case | Run | Criterion / prediction (fixed before the run) |
+|---|---|---|---|
+| 100a | R172428_TRIM_DECK (diagnostic) | App. B trim (Table 6) with the deck table as printed, no variant | Predictions: (i) sidewall Re β at 200 Hz within 10 % of App. B's 0.0565; (ii) end-cap Im β at 1600 Hz within 15 % of −0.2765. Band counts within 10 % (Re and Im, sidewall and end cap, 50–5000 Hz) are recorded |
+| 100b | R172428_ETAT2 (held out) | Table 12 levels, deck table | Its own criterion: ±3 dB at ≥ 7 of 9 |
+| 100c | APPB_ETA_N_T2_BAND (held out) | η_n at η_T = 2.0, deck table | Its own criterion: ±10 % at modes 6, 7, 8 |
+
+Recorded with the deck table, with no role in the decision: R172428_ETA, APPB_ETA_N_BAND, R172428_CODE_DEFAULT,
+R172428_EXP, R172428_TRIM.
+
+**Decision (fixed before the run).** H_deck is supported only if both predictions of 100a hold. If it is supported and
+100b and 100c stay met, `r172428_inputs` takes the deck table by default (`insulation=:deck`; the Fig. A-2 marker table
+stays as `insulation=:fig_a2`). Otherwise the result is recorded and nothing changes. Only the table as printed is
+run; no corrected or mixed variant is tried. CR-3813's own runs (Phase III trim) keep the Fig. A-2 table, because
+CR-3813 does not print its deck.
+
+**Result (2026-10-30).** H_deck supported; held-out cases met; the deck table is the default of `r172428_inputs`. Record: `validation_reports/phase100_pf105_deck.md`.
