@@ -2750,10 +2750,11 @@ _run_if("Validation case registry (34d)") do
     # Phase 44f floor-term sign (2026-10-23, post-hoc): 89.03, 81.24, 77.06; and after the Phase 65
     # grid axial correction 2026-10-23 (code vs User Manual p. 9 / App. E p. E-8: z_k = z_p − x₃,
     # z_p = 0.662 m; not a fit): 88.20, 80.43, 78.21; and after the Phase 93 default form (CR-172428 program,
-    # taken from CR-172428's printouts, not from E-16; 2026-10-29): 88.94, 79.35, 78.57
-    @test rr.table[1].computed ≈ 88.94 atol=0.01
-    @test rr.table[2].computed ≈ 79.35 atol=0.01
-    @test rr.table[3].computed ≈ 78.57 atol=0.01
+    # taken from CR-172428's printouts, not from E-16; 2026-10-29): 88.94, 79.35, 78.57; and after the Phase 96
+    # band-centre η_n rule (2026-10-30, read from App. B, not from E-16): 88.55, 79.36, 78.36
+    @test rr.table[1].computed ≈ 88.55 atol=0.01
+    @test rr.table[2].computed ≈ 79.36 atol=0.01
+    @test rr.table[3].computed ≈ 78.36 atol=0.01
     png = plot_case(r1, VALIDATION_CASES["CYL2D_C1"].plot_spec;
                     path=joinpath(TEST_OUT, "CYL2D_C1.png"))
     @test isfile(png)
@@ -3218,8 +3219,9 @@ _run_if("NASA's App. B per-mode values, the q = 0 hypothesis, η_n per mode (pha
     ωc = 2π * PAIN.nearest_third_octave(ωn / 2π, PAIN.third_octave_centers()); V = PAIN.cabin_volume(inp)   # 200 Hz band
     ξ = PAIN.trim_conductance(inp.sidewall, ωc, inp.m_wall; ρ0=inp.ρ_int, c0=inp.c_int)
     ξe = PAIN.trim_conductance(inp.endplates, ωc, Inf; ρ0=inp.ρ_int, c0=inp.c_int)
-    @test PAIN.acoustic_N_per_mode(inp, ac, 1, ωn; V) ≈ PAIN.acoustic_N(inp, ac, 1, ωn / 2π, ωn; ξ, ξ_e=ξe, V) rtol = 1e-12
-    @test PAIN.acoustic_N_per_mode(inp, ac, 1, ωn; V) != PAIN.acoustic_N(inp, ac, 1, ωn / 2π, ωn; ξ=0.5ξ, ξ_e=ξe, V)
+    p89 = PAIN._with_fields(inp; η_n_band_omega=false)                                               # the Phase 89 reading
+    @test PAIN.acoustic_N_per_mode(p89, ac, 1, ωn; V) ≈ PAIN.acoustic_N(p89, ac, 1, ωn / 2π, ωn; ξ, ξ_e=ξe, V) rtol = 1e-12
+    @test PAIN.acoustic_N_per_mode(p89, ac, 1, ωn; V) != PAIN.acoustic_N(p89, ac, 1, ωn / 2π, ωn; ξ=0.5ξ, ξ_e=ξe, V)
     pm = PAIN._with_fields(inp; η_n_per_mode=true)
     @test tone_mean_square_pressure(pm, 1, 2π * 200.0) != tone_mean_square_pressure(inp, 1, 2π * 200.0)
     d = r172428_inputs(4000)
@@ -3318,7 +3320,7 @@ _run_if("CR-172428 program form as default; held-out Table 12 (phases 93, 94)") 
     @test c.verdict === :not_met && count(r -> r.within_tolerance, c.table) == 4
     # 94a, 94b (P, held out): met
     t = run_validation_case("R172428_ETAT2")
-    @test t.verdict === :met && t.inputs_echo.n_ok == 9 && maximum(abs(r.residual) for r in t.table) < 1.75
+    @test t.verdict === :met && t.inputs_echo.n_ok == 9 && maximum(abs(r.residual) for r in t.table) < 2.15   # 1.69 before Phase 96, 2.09 after
     e = run_validation_case("APPB_ETA_N_T2")
     @test e.verdict === :met && e.inputs_echo.n_ok == 3
     @test e.inputs_echo.ours ≈ [0.0877, 0.0782, 0.0829] atol = 1e-4
@@ -3326,6 +3328,33 @@ _run_if("CR-172428 program form as default; held-out Table 12 (phases 93, 94)") 
     @test interior_spl(r172428_inputs(4000; η_T=2.0); bpf_Hz=200.0, n_harmonics=1).harmonic_SPL_dB[1] !=
           interior_spl(inp; bpf_Hz=200.0, n_harmonics=1).harmonic_SPL_dB[1]
     for id in ("R172428_ETAT2", "APPB_ETA_N_T2")
+        png = plot_case(run_validation_case(id), VALIDATION_CASES[id].plot_spec; path=joinpath(TEST_OUT, "$(id).png"))
+        @test isfile(png) && filesize(png) > 0
+    end
+end
+
+_run_if("NASA's band-centre η_n rule (phases 95, 96)") do
+    # Plan §8al, §8am; 96b criterion fixed 2026-10-30 before the run. Recorded first-run results.
+    @test PAIN.nominal_band_centre(281.3) == 315.0 && PAIN.nominal_band_centre(280.0) == 250.0   # edge 280.6 Hz
+    @test PAIN.nominal_band_centre(562.6) == 630.0 && PAIN.nominal_band_centre(199.5) == 200.0
+    inp = r172428_inputs(4000); V = PAIN.cabin_volume(inp)
+    @test inp.η_n_band_omega                                                         # Phase 96 default
+    # the rule by hand: Eq. (77) with ω and the conductance both at the nominal centre (238 Hz → 250 Hz)
+    ac = PAIN._acmode_by_I(inp, 2); ωn = 2π * PAIN.cabin_frequency_3d(ac, inp.fuse.a, inp.L_c, 0; c0=inp.c_int)
+    ωc = 2π * 250.0
+    ξ = PAIN.trim_conductance(inp.sidewall, ωc, inp.m_wall; ρ0=inp.ρ_int, c0=inp.c_int)
+    ξe = PAIN.trim_conductance(inp.endplates, ωc, Inf; ρ0=inp.ρ_int, c0=inp.c_int)
+    hand = PAIN.acoustic_loss_modal(ac, 0, ωc, ωn; a=inp.fuse.a, L=inp.L_c, V, c0=inp.c_int, ξ, ξ_e=ξe).N
+    @test PAIN.acoustic_N_per_mode(inp, ac, 0, ωn; V) ≈ hand rtol = 1e-12
+    @test PAIN.acoustic_N_per_mode(PAIN._with_fields(inp; η_n_band_omega=false), ac, 0, ωn; V) != hand
+    a = run_validation_case("APPB_ETA_N_BAND")                                       # 96a, post-hoc
+    @test a.verdict === :no_verdict && a.inputs_echo.n == 46 && a.inputs_echo.n_10pct == 42 && a.inputs_echo.n_2pct_nasa_admittance == 45
+    b = run_validation_case("APPB_ETA_N_T2_BAND")                                    # 96b, P, held out
+    @test b.verdict === :met && b.inputs_echo.n_ok == 3
+    @test b.inputs_echo.ours ≈ [0.0894, 0.0779, 0.0827] atol = 1e-4
+    d = run_validation_case("R172428_CODE_DEFAULT")                                  # 96d, post-hoc
+    @test d.verdict === :no_verdict && count(r -> r.within_tolerance, d.table) == 8
+    for id in ("APPB_ETA_N_BAND", "APPB_ETA_N_T2_BAND", "R172428_CODE_DEFAULT")
         png = plot_case(run_validation_case(id), VALIDATION_CASES[id].plot_spec; path=joinpath(TEST_OUT, "$(id).png"))
         @test isfile(png) && filesize(png) > 0
     end

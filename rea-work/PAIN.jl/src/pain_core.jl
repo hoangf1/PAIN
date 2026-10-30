@@ -94,6 +94,10 @@ struct PainInputs
     # holding the mode), used in Eqs. (8) and (83) at every tone; false = at the tone frequency (CR-3813 as printed).
     # Phase 89 option; default true since Phase 93 (Phase 92: NASA's printed η_r″ follow it; inferred, not documented).
     η_n_per_mode::Bool
+    # With η_n_per_mode: true evaluates Eq. (77) at the nominal 1/3-octave centre holding the mode for both ω and ξ, ξ_e,
+    # as NASA's printed η_n show (Phase 95: 45/46 App. B modes with NASA's admittance); false = Phase 89 reading
+    # (ω = ω_n, conductance at the exact centre). Default true since Phase 96; inferred, not documented.
+    η_n_band_omega::Bool
 end
 
 function PainInputs(fuse, prop, structural, acoustic, amplitudes, phases, pts, ΔA::Real;
@@ -110,7 +114,7 @@ function PainInputs(fuse, prop, structural, acoustic, amplitudes, phases, pts, �
                     bands=nothing, η_r_band=nothing, η_n_band=nothing,
                     η_r_band_is_prime::Bool=false,
                     η_r_trimmed_area::Bool=true,
-                    floor_sign::Real=1.0, q0_coupled::Bool=false, η_n_per_mode::Bool=true)
+                    floor_sign::Real=1.0, q0_coupled::Bool=false, η_n_per_mode::Bool=true, η_n_band_omega::Bool=true)
     abs(floor_sign) == 1 || error("PainInputs: floor_sign must be +1 or −1 (got $floor_sign)")
     (sidewall === nothing) == (endplates === nothing) ||
         error("PainInputs: give both `sidewall` and `endplates` trim stacks, or neither (bare cabin)")
@@ -128,7 +132,7 @@ function PainInputs(fuse, prop, structural, acoustic, amplitudes, phases, pts, �
                       sidewall, endplates, mech, m, float(η_n_bare), float(C_struc),
                       q_max === nothing ? nothing : Int(q_max), allow_extrapolation, ρ0f, c0f,
                       ρe, ce, ρi, ci, Lc, float(d), xover, bands_n, ηr_n, ηn_n,
-                      η_r_band_is_prime, η_r_trimmed_area, float(floor_sign), q0_coupled, η_n_per_mode)
+                      η_r_band_is_prime, η_r_trimmed_area, float(floor_sign), q0_coupled, η_n_per_mode, η_n_band_omega)
 end
 
 """Trim stacks present (sidewall and end plates)?"""
@@ -888,19 +892,28 @@ function acoustic_N(inp::PainInputs, ac, q::Integer, f_Hz::Real, ωn::Real;
     end
 end
 
+"""Nominal 1/3-octave centres (ISO 266), 50 Hz … 10 kHz."""
+const NOMINAL_THIRD_OCTAVES = [50.0, 63.0, 80.0, 100.0, 125.0, 160.0, 200.0, 250.0, 315.0, 400.0, 500.0, 630.0, 800.0,
+                               1000.0, 1250.0, 1600.0, 2000.0, 2500.0, 3150.0, 4000.0, 5000.0, 6300.0, 8000.0, 10000.0]
+
+"""Nominal 1/3-octave centre holding `f` [Hz]: log-nearest nominal centre (edges at the geometric means of nominal centres)."""
+nominal_band_centre(f::Real) = NOMINAL_THIRD_OCTAVES[argmin(abs.(log.(NOMINAL_THIRD_OCTAVES ./ float(f))))]
+
 """
-N = η_n ω_n² of cabin mode (ac, q) as a property of the mode (Phase 89 option `η_n_per_mode`): Eq. (77) at the mode
-frequency (ω = ω_n in Eq. 77, so the rigid-body mode has N = 0), with the sidewall and end-plate trim conductance at
-the nominal 1/3-octave band centre holding the mode (100 Hz for modes below that band). Needs trim stacks.
+N = η_n ω_n² of cabin mode (ac, q) as a property of the mode (`η_n_per_mode`), with the sidewall and end-plate trim
+conductance at a 1/3-octave centre holding the mode (100 Hz for modes below that band; the rigid-body mode has N = 0).
+`inp.η_n_band_omega` (Phase 96 default): the nominal centre (`nominal_band_centre`) and Eq. (77) evaluated there, ω = ω_c,
+as NASA's printed η_n show (Phase 95). Otherwise (Phase 89): the exact centre linearly nearest, ω = ω_n. Needs trim stacks.
 """
 function acoustic_N_per_mode(inp::PainInputs, ac, q::Integer, ωn::Real; V::Real=cabin_volume(inp))
     fn = ωn / 2π
     fn > 0 || return 0.0
-    ωc = 2π * max(100.0, nearest_third_octave(fn, third_octave_centers()))
+    fc = max(100.0, inp.η_n_band_omega ? nominal_band_centre(fn) : nearest_third_octave(fn, third_octave_centers()))
+    ωc = 2π * fc
     ext = inp.allow_extrapolation
     ξ = trim_conductance(inp.sidewall, ωc, inp.m_wall; ρ0=inp.ρ_int, c0=inp.c_int, allow_extrapolation=ext)
     ξe = trim_conductance(inp.endplates, ωc, Inf; ρ0=inp.ρ_int, c0=inp.c_int, allow_extrapolation=ext)
-    return acoustic_N(inp, ac, q, fn, ωn; ξ, ξ_e=ξe, V)
+    return acoustic_N(inp, ac, q, inp.η_n_band_omega ? fc : fn, ωn; ξ, ξ_e=ξe, V)
 end
 
 """

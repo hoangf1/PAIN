@@ -8,7 +8,7 @@ const _P92_REPORT = "phase92_appb_pairs.md"
 
 """This code's Eq. (8) pair terms at `rpm`, harmonic `H` (CR-172428 inputs; Phase 89/92 options as given)."""
 function _r172428_pair_terms(rpm::Integer, H::Integer; q0_coupled::Bool=true, η_n_per_mode::Bool=false)
-    inp = _with_fields(r172428_inputs(rpm); q0_coupled, η_n_per_mode)
+    inp = _with_fields(r172428_inputs(rpm); q0_coupled, η_n_per_mode, η_n_band_omega=false)   # Phase 89 reading, as recorded
     return modal_tone_contributions(inp, H, 2π * H * 3 * rpm / 60)[1]
 end
 
@@ -65,7 +65,7 @@ end
 the combination formed after 92a, post-hoc at every point, no criterion.
 """
 function _run_r172428_code_q0(; η_n_per_mode::Bool=false)
-    lv = _r172428_levels(; q0_coupled=false, η_n_per_mode)
+    lv = _r172428_levels(; q0_coupled=false, η_n_per_mode, η_n_band_omega=false)   # Phase 89 reading, as recorded
     table = ValidationTableRow[]; n_ok = 0; n_held = 0
     for r in lv
         held = r.rpm == 3000 && !η_n_per_mode

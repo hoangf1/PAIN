@@ -74,14 +74,15 @@ end
 """rpm values whose App. B field has been transcribed (files present)."""
 _r172428_rpms() = [rpm for rpm in (3000, 4000, 5000) if isfile(_r172428_csv("appB_$(rpm)rpm_H1.csv"))]
 
-function _r172428_levels(; structural::Symbol=:table_d1, η_n_per_mode::Bool=false, q0_coupled::Bool=true)
+function _r172428_levels(; structural::Symbol=:table_d1, η_n_per_mode::Bool=false, q0_coupled::Bool=true,
+                         η_n_band_omega::Bool=true)
     # defaults: the tone sum as CR-3813 prints it (R172428_CODE; Phase 93 keeps it, the default form was inferred from
     # these points)
     pred = _read_csv_numeric_nan(_r172428_csv("appB_predictions.csv"))
     out = NamedTuple[]
     for rpm in _r172428_rpms()
         inp = r172428_inputs(rpm; structural)
-        inp = _with_fields(inp; η_n_per_mode, q0_coupled)               # Phases 89, 92, 93
+        inp = _with_fields(inp; η_n_per_mode, q0_coupled, η_n_band_omega)   # Phases 89, 92, 93, 96
         bpf = 3 * rpm / 60
         spl = interior_spl(inp; bpf_Hz=bpf, n_harmonics=3).harmonic_SPL_dB
         for H in 1:3
@@ -96,7 +97,8 @@ end
 # Phase 93: R172428_CODE (and its _DECK, _ETAN re-runs) keep the tone sum as CR-3813 prints it; R172428_EXP runs the
 # default form (q = 0 off, η_n per mode), taken from NASA's printouts, not from the measurements.
 function _run_r172428_vs(which::Symbol; structural::Symbol=:table_d1, η_n_per_mode::Bool=which !== :code)
-    lv = _r172428_levels(; structural, η_n_per_mode, q0_coupled=which === :code)
+    # R172428_CODE_ETAN keeps the Phase 89 reading of η_n per mode (η_n_band_omega = false), as recorded
+    lv = _r172428_levels(; structural, η_n_per_mode, q0_coupled=which === :code, η_n_band_omega=which !== :code)
     deck = structural === :nasa300   # Phase 84b: NASA's 300 modes, criteria fixed 2026-10-29
     tol = which === :code ? 3.0 : 4.0
     table = ValidationTableRow[]

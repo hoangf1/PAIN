@@ -566,6 +566,9 @@ const DIAGNOSTIC_CASES = Dict(
     "APPB_PAIRS_Q0_ETAN" => "re-runs APPB_PAIRS with q = 0 off and η_n per cabin mode, post-hoc (Phase 92c)",
     "R172428_CODE_Q0" => "re-runs R172428_CODE with the q = 0 cabin modes uncoupled; 3000 rpm held out (Phase 92b)",
     "R172428_CODE_Q0_ETAN" => "re-runs R172428_CODE with q = 0 off and η_n per cabin mode, post-hoc (Phase 92c)",
+    # Phase 96 (2026-10-30): the band-centre η_n rule read from App. B (post-hoc on those values)
+    "APPB_ETA_N_BAND" => "sets the default η_n rule against the App. B values it was read from, post-hoc (Phase 96a)",
+    "R172428_CODE_DEFAULT" => "re-runs R172428_CODE with the code as it ships, post-hoc (Phase 96d)",
 )
 
 """True for a case that carries no verdict by rule: an information case or a diagnostic run."""
