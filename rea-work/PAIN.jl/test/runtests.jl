@@ -3381,6 +3381,18 @@ _run_if("NASA's per-band PF-105 table (phase 100)") do
     @test isfile(png) && filesize(png) > 0
 end
 
+_run_if("Merlin IVC modes vs CR-172428 App. C (phase 101)") do
+    # Plan §8aq; criterion fixed 2026-10-30 before the run. Recorded first-run result (not met).
+    d = PAIN.merlin_mrp_deck()
+    @test d.a == 0.84 && d.L == 9.27 && d.theta0_deg == 50.0 && d.n_circ == 14 && d.m_floor == 13.66
+    r = run_validation_case("FLIGHT_MODES")
+    @test r.verdict === :not_met && r.inputs_echo.n == 221 && r.inputs_echo.n_ok == 197 && r.inputs_echo.n_freq == 219
+    m1 = only(t for t in r.table if startswith(t.quantity, "mode 1 "))                  # 39.60 Hz, 137.89 kg printed
+    @test abs(m1.computed / m1.reference - 1) < 0.01
+    png = plot_case(r, VALIDATION_CASES["FLIGHT_MODES"].plot_spec; path=joinpath(TEST_OUT, "FLIGHT_MODES.png"))
+    @test isfile(png) && filesize(png) > 0
+end
+
 _run_if("Band-centre η_n in CR-3813's program (phase 99)") do
     # Plan §8ao; criteria and decision fixed 2026-10-30 before the run. Recorded first-run results (refuted).
     pre = PAIN._pre_correction_band(r172428_inputs(4000))

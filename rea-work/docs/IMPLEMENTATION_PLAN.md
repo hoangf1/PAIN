@@ -240,7 +240,7 @@ or the other documents points there. When a phase is done, mark it done and move
 
 | Q | Item | Kind | Prerequisite | Output |
 |---|------|------|--------------|--------|
-| Q81 | **Phase 101 — CR-172428 flight run 10 reproduced from its printed deck; trim per band tested on it** (§8aq) | reproduction + held-out test | Phase 100 | FLIGHT_MODES, FLIGHT10_REPRO, FLIGHT10_ETAT, H_bandtrim |
+| — | No open item (2026-10-30); Phases 90–101 are done | — | — | — |
 
 If a queue item is blocked on data, skip to the next unblocked item and say which data item blocks it.
 
@@ -284,44 +284,6 @@ The diagram matches the code (phases 21–22 done 2026-10-21): `propeller_ccblad
 | Driver | `scripts/run/run_pain.jl` |
 
 ---
-
-## 8aq. Phase 101 — flight run 10 from its printed deck; the trim per band (criteria fixed 2026-10-30, before any run)
-
-*(Planned 2026-10-30; author: "Yes, plan it".)* **Question.** Does PAIN take the trim of a tone (τ_t) and of a structural
-mode (C_w in Eq. 82) at the nominal centre of the 1/3-octave band holding it, as it does for η_n (Phase 95)? PAIN reads
-the insulation per band (cards 22–33) and App. B p. 197 prints the trim per band. The App. A listing (CR-172428 p. 178)
-shows subroutine TONE applying `TAUE` and MRTRED `TAU`, but not where `TAUE` is evaluated. This code takes τ_t at the
-tone and C_w at the mode frequency. The idea came from CR-172428's 3000 rpm H3 (450 Hz, +3.6 dB, R172428_CODE_DEFAULT),
-so those levels cannot test it.
-
-**Held-out data.** CR-172428 App. D prints PAIN's full run for flight-test run 10 (Merlin IVC, 4-blade Dowty Rotol,
-1568 rpm, BPF 104.5 Hz): the input deck (PDF p. 239, printed -229-), the propeller field for 5 harmonics (pp. 240–244,
--230- to -234-), and PAIN's tone results (p. 245 on, -235-). All five tones sit off a band centre (104.5, 209.1, 313.6,
-418.1, 522.7 Hz). Section 5.3.4 (p. 152) also prints PAIN's change of the run 10 levels for η_T 2.0 → 0.2: +2.75, −0.48,
-+1.95, +4.58, +3.73 dB. Table 23 gives PAIN's run 10–12 predictions as a cross-check. None of this has been compared
-with this code.
-
-**Inputs.** The deck gives the cabin (L = 9.27 m, L_c = 7.89 m), the bands, the bare η_r = 2/f per band, zero acoustic
-loss factors, the trim (0.055 m PF-105 with the App. D table + 1.95 kg/m², η_T = 2.0, area 28.10 m²), the propeller
-(2.35 m … +1.0 rotation) and the field. Section 5.3.3: floor angle 50°, structural modes from the business-aircraft
-MRP inputs of Table 13 (the modal file of App. C), blocking Eq. (43) × 0.8 (≤ 4 dB, App. A change 3). App. C prints
-only PAIN's structural-mode list (frequencies, generalized masses), not the shapes, so the shapes come from this code's
-MRP solve of Table 13 and step 101a checks that solve against App. C. All printed values are transcribed by eye twice
-(two passes, compared before use).
-
-| Step | Case | Run | Criterion (fixed before the run) | Kind |
-|---|---|---|---|---|
-| 101a | FLIGHT_MODES | MRP solve of Table 13 vs App. C's business-aircraft mode list | f_r within 2 % and generalized mass within 10 % for ≥ 90 % of the listed modes up to 1 kHz | P |
-| 101b | FLIGHT10_REPRO | Run 10, code as it ships (τ_t at the tone, C_w at f_r) | ±3 dB of PAIN's printed space-average level at ≥ 4 of 5 harmonics | P if 101a is met; else diagnostic |
-| 101c | FLIGHT10_ETAT | Run 10 at η_T = 0.2 minus η_T = 2.0, code as it ships | ±1 dB of the printed +2.75, −0.48, +1.95, +4.58, +3.73 dB at ≥ 4 of 5 | P if 101a is met; else diagnostic |
-| 101d | H_bandtrim | 101b and 101c with τ_t and C_w at the nominal centre of the band holding the tone / mode (option `trim_band_centre`) | see decision | diagnostic |
-
-**Decision (fixed before the run).** H_bandtrim is supported only if, with the option on, 101b and 101c both meet their
-criteria and the mean |Δ| of 101b is lower than with the code as it ships. If it is supported and R172428_ETAT2 and
-APPB_ETA_N_T2_BAND stay met, `trim_band_centre` becomes the default; 101b and 101c keep their recorded first-run
-(as-shipped) verdicts, and their re-runs with the option are labelled post-hoc. Otherwise the result is recorded and
-nothing changes. Recorded with the option, with no role in the decision: R172428_ETA (η_r′ per mode), R172428_CODE_DEFAULT
-(3000 rpm H3), R172428_EXP. If 101a is not met, 101b–101d run as diagnostics only and the default does not change.
 
 ## 9. Reference appendices
 

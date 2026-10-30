@@ -65,6 +65,7 @@ include("validation_case_iso94.jl")   # phase 94 held-out CR-172428 Table 12 (η
 include("validation_case_iso96.jl")   # phase 96 band-centre η_n rule
 include("validation_case_iso99.jl")   # phase 99 band-centre η_n in CR-3813's program (held out)
 include("validation_case_iso100.jl")  # phase 100 NASA's per-band PF-105 table (App. D deck)
+include("validation_case_iso101.jl")  # phase 101 Merlin IVC modes vs App. C (flight run 10)
 include("validation_case_iso90.jl")   # phase 90 Eq. (43) blocking vs Report 996 Fig. 10 (measured)
 include("validation_case_extras.jl")
 include("validation_map.jl")

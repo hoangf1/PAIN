@@ -1,0 +1,31 @@
+# NASA's MRP input deck for the Merlin IVC (business aircraft) of CR-172428, used for flight-test run 10.
+# Source: CR-172428 App. C, PDF pp. 214 (symmetric, printed -204-) and 215 (antisymmetric, -205-); the two decks carry
+# identical values and agree with Table 13 (business). Card 8: M 1-10, ns 0-14, np 0-5. Shell thickness and mass are the
+# equivalent (skin + smeared stiffener) values; D' = stiffener EI / spacing. Transcribed by eye 2026-10-30 (Phase 101),
+# both pages read and compared; no value changed or chosen.
+part,quantity,value,unit,card
+general,theta0_deg,50.0,deg,7
+general,M_first,1,-,8
+general,M_last,10,-,8
+general,ns_first,0,-,8
+general,ns_last,14,-,8
+general,np_first,0,-,8
+general,np_last,5,-,8
+shell,Ex,7.240E10,N/m2,10
+shell,Etheta,7.240E10,N/m2,10
+shell,nu_x,0.33,-,10
+shell,nu_theta,0.33,-,10
+shell,t,0.00164,m,11
+shell,mass_per_area,4.54,kg/m2,11
+shell,radius,0.84,m,11
+shell,length,9.27,m,11
+shell,Dprime_stringers,2.712E3,N m,12
+shell,Dprime_frames,1.756E4,N m,12
+plate,Ex,7.240E10,N/m2,13
+plate,Ey,7.240E10,N/m2,13
+plate,nu_x,0.33,-,13
+plate,nu_y,0.33,-,13
+plate,t,0.00151,m,14
+plate,mass_per_area,13.66,kg/m2,14
+plate,Dprime_long_beams,1.57E5,N m,15
+plate,Dprime_transverse_supports,7.48E4,N m,15
