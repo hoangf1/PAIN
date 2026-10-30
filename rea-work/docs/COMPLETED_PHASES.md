@@ -177,6 +177,7 @@ Not blockers (recorded so nobody stops on them): BBN tip geometry beyond 40 in. 
 | Q69 | **Phase 88 — the q = 0 hypothesis held out** (§8ae) | diagnostics | Q68 | **done 2026-10-29**: refuted (2/3, 1/3, 1/4) |
 | Q70 | **Phase 89 — η_n per cabin mode, trim per 1/3-octave band** (§8af) | option + diagnostic | Q69 | **done 2026-10-29**: 5/9, not adopted (decision ≥ 7/9); option `η_n_per_mode` kept, default false |
 | Q71 | **Phase 90 — Eq. (43) blocking against Report 996 Fig. 10** (§8ag) | digitization + E case | — | **done 2026-10-29**: R996_FIG10_FLAT met 5/5; circular wall information (R1 6 dB over the measured 0.7–4.9 dB) |
+| Q72 | **Phase 91 — notebooks that walk through the program** (§8ah) | documentation | — | **done 2026-10-29**: `notebooks/01_pain_step_by_step.jl`, `02_validation_cases.jl`; Pluto check 18 and 12 cells, 0 errors |
 | Q58 | **Phase 79 — CYL2D** (§8w; 2026-10-28) | `case_error_summary`, `cyl2d.jl`, CYL2D_WEYL | Q57 | **done 2026-10-28**: information rows leave the pass count; refinement fixed (79b); CYL2D_GRID_CONV (NY 10 within 4.9 % of NY 60); Weyl + surface term 4/5; production NY = 10 kept (decided 2026-10-28) |
 | Q57 | **Phase 78 — structural modes** (§8v; 2026-10-28) | `mrp_appd.jl`, MRP_APPD criterion, map | Q53 | **done 2026-10-28**: App. D solver fixes J1–J6; MRP_APPD not met 2/32 (class I, floor stiffener model undocumented); MRP_D1/MRP_RITZ off the map |
 | Q56 | **Phase 77 — POLAR_FIDELITY as an equivalent angle** (§8u; 2026-10-28) | `src/validation_case_iso67.jl`, figure | Q52 | **done 2026-10-28**: Δα shown next to Δc_l, display only |
@@ -2289,3 +2290,15 @@ wall normal. Flat wall: γ = atan(|x/D| / (0.5 + d/D)). Magliozzi fitted Eq. (43
 | 90c | Information (no verdict): R2 on the flat wall; R1 and R2 on the circular wall with an assumed radius of 1.5 ft (semicircle of the 3 ft height), axis parallel to the propeller axis | no criterion (radius assumed) |
 
 **Result (2026-10-29).** 90a QA passed (two reads within 10 dynes/cm²); 90b R996_FIG10_FLAT **met** 5/5; 90c circular wall information. Record: `validation_reports/phase90_r996_fig10_blocking.md`.
+
+## 8ah. Phase 91 — notebooks that walk through the program *(done 2026-10-29; moved to the bottom 2026-10-29; planned 2026-10-29; author: "5 yeah this would be very helpful", Pluto chosen: "yeah do pluto"; documentation, no comparison)*
+
+- [x] 91a `notebooks/` with its own environment (Pluto, so the package's dependencies do not change); each notebook is a plain
+  Julia file that also runs as a script.
+- [x] 91b Notebook 1 — the program step by step on the test article: free field (E-11), the 160-point grid, Eq. (43) blocking,
+  structural and cabin modes, Eq. (8) tones, interior SPL; each step's figure and the equation it implements.
+- [x] 91c Notebook 2 — validation: running a case, reading its table and figure, the map and `NO_VERDICT_CASES.md`, the
+  meaningfulness rule, with R172428_CODE and APPB_EPS_N as examples.
+- [x] 91d Each notebook runs from start to end as a script (test: run headless); outputs go to a temp directory, not the repo.
+
+**Result (2026-10-29).** `rea-work/notebooks/` (own environment with Pluto 1.1.0; each notebook activates `PAIN.jl`): `01_pain_step_by_step.jl` (18 cells) and `02_validation_cases.jl` (12 cells). `check_notebooks.jl` runs both through Pluto headless from temp copies: 0 cell errors; both also run as plain scripts. How to open them: `notebooks/README.md`.

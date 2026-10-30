@@ -240,7 +240,7 @@ or the other documents points there. When a phase is done, mark it done and move
 
 | Q | Item | Kind | Prerequisite | Output |
 |---|------|------|--------------|--------|
-| Q72 | **Phase 91 — notebooks that walk through the program** (§8ah; 2026-10-29) | documentation | — | planned 2026-10-29 (author: "5 yeah this would be very helpful") |
+| — | No open item (2026-10-29); Phases 90–91 are done | — | — | — |
 
 If a queue item is blocked on data, skip to the next unblocked item and say which data item blocks it.
 
@@ -284,16 +284,6 @@ The diagram matches the code (phases 21–22 done 2026-10-21): `propeller_ccblad
 | Driver | `scripts/run/run_pain.jl` |
 
 ---
-
-## 8ah. Phase 91 — notebooks that walk through the program *(planned 2026-10-29; author: "5 yeah this would be very helpful"; documentation, no comparison)*
-
-- 91a `notebooks/` with its own environment (Pluto, so the package's dependencies do not change); each notebook is a plain
-  Julia file that also runs as a script.
-- 91b Notebook 1 — the program step by step on the test article: free field (E-11), the 160-point grid, Eq. (43) blocking,
-  structural and cabin modes, Eq. (8) tones, interior SPL; each step's figure and the equation it implements.
-- 91c Notebook 2 — validation: running a case, reading its table and figure, the map and `NO_VERDICT_CASES.md`, the
-  meaningfulness rule, with R172428_CODE and APPB_EPS_N as examples.
-- 91d Each notebook runs from start to end as a script (test: run headless); outputs go to a temp directory, not the repo.
 
 ## 9. Reference appendices
 

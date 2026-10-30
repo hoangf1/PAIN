@@ -3352,6 +3352,11 @@ R996_FIG10_FLAT (E) is **met**, 5/5 within ±1.5 dB: at a flat wall Report 996 m
 near normal incidence (γ ≤ 23°). The circular wall (information) measured 0.7–4.9 dB, under R1's 6 dB; NASA's R2 (4 dB) is
 closer there and 2 dB under the flat wall. Eq. (43) has no term for curvature. Caveat: Magliozzi's fit data are not in hand.
 
+## 2.23 Notebooks (Phase 91, 2026-10-29)
+
+`notebooks/02_validation_cases.jl` runs a case and shows its criterion, verdict, table and figure; it changes no case and
+adds none. `notebooks/check_notebooks.jl` checks that both notebooks run without a cell error.
+
 ## 3. What “valid recreation” means for this project
 
 A recreation is **pipeline-valid** only if:
