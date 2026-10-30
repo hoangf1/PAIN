@@ -240,7 +240,7 @@ or the other documents points there. When a phase is done, mark it done and move
 
 | Q | Item | Kind | Prerequisite | Output |
 |---|------|------|--------------|--------|
-| — | No open item (2026-10-30); Phases 90–99 are done | — | — | — |
+| Q80 | **Phase 100 — NASA's per-band PF-105 input table (CR-172428 App. D deck)** (§8ap) | held-out test | Phase 96 | R172428_TRIM_DECK, R172428_ETAT2, APPB_ETA_N_T2_BAND |
 
 If a queue item is blocked on data, skip to the next unblocked item and say which data item blocks it.
 
@@ -284,6 +284,35 @@ The diagram matches the code (phases 21–22 done 2026-10-21): `propeller_ccblad
 | Driver | `scripts/run/run_pain.jl` |
 
 ---
+
+## 8ap. Phase 100 — NASA's per-band PF-105 input table (criteria fixed 2026-10-30, before the run)
+
+*(Planned 2026-10-30; author: "Yes, run Phase 100".)* PAIN takes the insulation properties as one value per
+1/3-octave band (User Manual cards 22–33, read from the Beranek/Schultz figure). CR-172428 App. D (PDF p. 239,
+printed -229-) prints the PAIN input deck of flight-test run 10, with NASA's 21-band PF-105 table, 50–5000 Hz
+(α, λ, |W|, φ). Checked against the page image 2026-10-30. At the six marked frequencies of Fig. A-2 it agrees with
+this code's marker table; between them it differs (α at 200 Hz: 10.1 dB/m against 13.7 interpolated). It prints
+λ = 0.01 m at 1600 Hz (the curve gives about 0.10), a typo as NASA ran it. This code interpolates Fig. A-2's six
+markers and has no data below 100 Hz.
+
+Hypothesis H_deck: NASA's App. B scale-model runs used this same table, as printed. Two signs in App. B p. 197 were
+noted before the run: App. B lists admittances from 50 Hz (Fig. A-2 starts at 100 Hz), and the end-cap Im β at
+1600 Hz (−0.2765) breaks the trend of its neighbours (−0.435 at 1250, −0.747 at 2000).
+
+| Step | Case | Run | Criterion / prediction (fixed before the run) |
+|---|---|---|---|
+| 100a | R172428_TRIM_DECK (diagnostic) | App. B trim (Table 6) with the deck table as printed, no variant | Predictions: (i) sidewall Re β at 200 Hz within 10 % of App. B's 0.0565; (ii) end-cap Im β at 1600 Hz within 15 % of −0.2765. Band counts within 10 % (Re and Im, sidewall and end cap, 50–5000 Hz) are recorded |
+| 100b | R172428_ETAT2 (held out) | Table 12 levels, deck table | Its own criterion: ±3 dB at ≥ 7 of 9 |
+| 100c | APPB_ETA_N_T2_BAND (held out) | η_n at η_T = 2.0, deck table | Its own criterion: ±10 % at modes 6, 7, 8 |
+
+Recorded with the deck table, with no role in the decision: R172428_ETA, APPB_ETA_N_BAND, R172428_CODE_DEFAULT,
+R172428_EXP, R172428_TRIM.
+
+**Decision (fixed before the run).** H_deck is supported only if both predictions of 100a hold. If it is supported and
+100b and 100c stay met, `r172428_inputs` takes the deck table by default (`insulation=:deck`; the Fig. A-2 marker table
+stays as `insulation=:fig_a2`). Otherwise the result is recorded and nothing changes. Only the table as printed is
+run; no corrected or mixed variant is tried. CR-3813's own runs (Phase III trim) keep the Fig. A-2 table, because
+CR-3813 does not print its deck.
 
 ## 9. Reference appendices
 
