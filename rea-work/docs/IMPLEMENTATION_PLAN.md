@@ -241,6 +241,7 @@ or the other documents points there. When a phase is done, mark it done and move
 | Q | Item | Kind | Prerequisite | Output |
 |---|------|------|--------------|--------|
 | Q76 | **Phase 95 — where the cabin-mode damping η_n differs from NASA's** (§8al) | diagnostic | App. B pp. 195, 197 | 95a table; 95b variants V1–V3 on APPB_ETA_N; report |
+| Q77 | **Phase 96 — NASA's band-centre η_n rule as the default** (§8am) | code default + held-out re-checks | Phase 95 | default; APPB_ETA_N_BAND; APPB_ETA_N_T2_BAND; R172428_ETAT2 re-run |
 
 If a queue item is blocked on data, skip to the next unblocked item and say which data item blocks it.
 
@@ -311,6 +312,32 @@ for reading only) with N of Eq. (77):
 Recorded per variant: modes within 2 %, the ratio range for modes below and above 470 Hz. V1 against V0 isolates the
 admittance; V2/V3 against V0/V1 isolate the ω of Eq. (77). If a variant reproduces App. B at nearly every mode, it is
 reported as the reading that matches NASA's printout; adopting it as a default is a separate decision for the author.
+
+**95b result (run 2026-10-30).** Modes within 2 % of App. B: V0 5/46, V1 7/46, V2 44/46, V3 0/46. The two V2
+misses (281.3 and 562.6 Hz) lie on band edges: assigned by the nominal centres (log-nearest of 250, 315, …), both
+give ratio 1.000. Post-hoc reading (seen after V2): NASA's program evaluates Eq. (77) for each cabin mode at the
+**nominal 1/3-octave centre holding the mode, for both ω and the trim conductance**; with NASA's printed admittance this
+reproduces 45/46 modes within 2 % (the 46th, 448 Hz, is 0.5 Hz from the 400/500 Hz edge and falls in the other band
+here). With this code's admittance the same rule gives 42/46 within 10 % (0/46 within 2 %); the largest differences,
+up to 29 % at 188–218 Hz, follow this code's conductance near the 200 Hz trim resonance (95a).
+
+## 8am. Phase 96 — NASA's band-centre η_n rule as the default
+
+*(planned 2026-10-30; author: "Yes, apply it".)* The η_n of each cabin mode becomes Eq. (77) at the nominal
+1/3-octave centre holding the mode (log-nearest of the nominal centres 100, 125, … Hz; 100 Hz below that band), for both
+ω and ξ, ξ_e (new `PainInputs` field `η_n_band_omega = true`; false keeps the Phase 89 reading, ω = ω_n with the exact
+centre). Inferred from NASA's printout (Phase 95), not documented. The Phase 89 and 92 diagnostics keep the Phase 89
+reading so that their records stand.
+
+| Step | Case | Run | Criterion |
+|---|---|---|---|
+| 96a | APPB_ETA_N_BAND | η_n of the 46 App. B modes by the new default (this code's admittance) | none: diagnostic, post-hoc (the rule was read from these values); NASA's printed admittance echoed |
+| 96b | APPB_ETA_N_T2_BAND | η_n of App. B modes 6, 7, 8 at η_T = 2.0 by the new default | P, held out (the η_T = 2.0 values played no part in Phase 95): within ±10 % at all three (fixed 2026-10-30, before the run) |
+| 96c | R172428_ETAT2 (re-run) | Table 12 levels with the new default | its criterion unchanged (±3 dB at ≥ 7 of 9); recorded outcome re-recorded with this phase named |
+| 96d | R172428_CODE_DEFAULT | R172428_CODE's nine points with the code as it ships | none: diagnostic, post-hoc |
+
+All other cases run the new default with unchanged criteria; changed recorded results are re-recorded with this phase
+named.
 
 ## 9. Reference appendices
 
