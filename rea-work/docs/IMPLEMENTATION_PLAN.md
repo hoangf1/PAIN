@@ -240,7 +240,6 @@ or the other documents points there. When a phase is done, mark it done and move
 
 | Q | Item | Kind | Prerequisite | Output |
 |---|------|------|--------------|--------|
-| Q71 | **Phase 90 — Eq. (43) blocking against Report 996 Fig. 10 (measured)** (§8ag; 2026-10-29) | digitization + E case | — | planned 2026-10-29 (author: "6 i think would be worth"); criteria in §8ag dated before any comparison |
 | Q72 | **Phase 91 — notebooks that walk through the program** (§8ah; 2026-10-29) | documentation | — | planned 2026-10-29 (author: "5 yeah this would be very helpful") |
 
 If a queue item is blocked on data, skip to the next unblocked item and say which data item blocks it.
@@ -285,23 +284,6 @@ The diagram matches the code (phases 21–22 done 2026-10-21): `propeller_ccblad
 | Driver | `scripts/run/run_pain.jl` |
 
 ---
-
-## 8ag. Phase 90 — Eq. (43) blocking against Report 996 Fig. 10 *(planned 2026-10-29; author: "6 i think would be worth"; criteria below dated 2026-10-29, before Fig. 10 is digitized or any comparison is computed)*
-
-**Data.** NACA Report 996 Fig. 10 (PDF p. 12, printed p. 8): measured total rms pressure p̄ (dynes/cm²) against x/D along a
-line parallel to the propeller axis at the blade-tip clearance, in free space, at a flat vertical wall and at a circular
-wall; NACA 4-(5)(08)-03, B = 2, β(0.75R) = 20°, M_t 0.60, d/D = 0.083, D = 4 ft (Report 996 p. 5). Walls 3 ft high; flat
-6 ft long; circular 4 ft long, radius not stated (Fig. 5, p. 10).
-
-**Model.** Eq. (43) (CR-3813 p. 31, Magliozzi [6]): p_wall = F(γ) p_free, γ the angle between the hub-to-point line and the
-wall normal. Flat wall: γ = atan(|x/D| / (0.5 + d/D)). Magliozzi fitted Eq. (43) to prop-fan fuselage data (J. Aircraft
-1980); that paper is not in hand, so whether Report 996 was among its data is not known (recorded).
-
-| Step | What | Criterion (fixed 2026-10-29, before any comparison) |
-|------|------|------------------------------------------------------|
-| 90a | Digitize Fig. 10 with a pixel-calibrated script (§2.2): gridlines located in the pixels, each marker's centre found in the pixels; `data/report996/tr996_fig10_reflecting_walls.csv` | QA: every gridline found; each value read twice (two windows) within 10 dynes/cm² |
-| 90b | `R996_FIG10_FLAT` (E): Eq. (43) R1 against the measured ratio p_flat/p_free at each x/D where both are measured | \|20 log₁₀ F_R1 − 20 log₁₀(p_flat/p_free)\| ≤ 1.5 dB at ≥ 4 of the 5 points |
-| 90c | Information (no verdict): R2 on the flat wall; R1 and R2 on the circular wall with an assumed radius of 1.5 ft (semicircle of the 3 ft height), axis parallel to the propeller axis | no criterion (radius assumed) |
 
 ## 8ah. Phase 91 — notebooks that walk through the program *(planned 2026-10-29; author: "5 yeah this would be very helpful"; documentation, no comparison)*
 

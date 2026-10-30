@@ -2656,7 +2656,7 @@ _run_if("Validation case registry (34d)") do
         "X_F1A", "X_FF", "X_SRC", "X_BLK_OUT", "X_OUT",
     ]) ⊆ Set(b.id for b in total.blocks)
     blk_p68 = only(b for b in total.blocks if b.id == "P_BLK")
-    @test blk_p68.cases == ["BLK_P68", "E12_BLOCK", "ISO_BLOCKING"]
+    @test blk_p68.cases == ["BLK_P68", "E12_BLOCK", "ISO_BLOCKING", "R996_FIG10_FLAT", "R996_FIG10_CIRC"]   # + Phase 90
     amp = only(b for b in total.blocks if b.id == "A_AMP")
     @test amp.cases ==
           ["F1A_GUTIN", "R996_FIG14", "R996_FIG12", "R996_FIG13A", "R996_FIG6", "R996_FIG7",
@@ -3246,6 +3246,22 @@ _run_if("NASA's App. B per-mode values, the q = 0 hypothesis, η_n per mode (pha
     r = run_validation_case("R172428_CODE_ETAN")
     @test r.verdict === :no_verdict && PAIN.underlying_verdict(r) === :not_met && count(x -> x.within_tolerance, r.table) == 5
     for id in ("APPB_EPS_N", "APPB_ETA_N", "APPB_ETA_RPP", "Q0_REPRO_18b", "R172428_CODE_ETAN")
+        png = plot_case(run_validation_case(id), VALIDATION_CASES[id].plot_spec; path=joinpath(TEST_OUT, "$(id).png"))
+        @test isfile(png) && filesize(png) > 0
+    end
+end
+
+_run_if("Eq. (43) blocking against Report 996 Fig. 10 (phase 90)") do
+    # Criterion fixed 2026-10-29 (plan §8ag) before digitizing. Recorded first-run results.
+    r = run_validation_case("R996_FIG10_FLAT")
+    @test r.verdict === :met && r.inputs_echo.n_ok == 5 && r.inputs_echo.n == 5
+    @test all(4.0 .< r.inputs_echo.measured_dB .< 7.5)                       # about the doubling (6.02 dB)
+    @test maximum(abs.(r.inputs_echo.R1_dB .- r.inputs_echo.measured_dB)) < 1.5
+    @test all(r.inputs_echo.R2_dB .< r.inputs_echo.R1_dB .- 1.9)            # R2 is 0.8 F: about 2 dB under R1
+    c = run_validation_case("R996_FIG10_CIRC")
+    @test c.verdict === :no_verdict && c.inputs_echo.R1_dB == r.inputs_echo.R1_dB   # Eq. (43): same γ, same F
+    @test all(c.inputs_echo.measured_dB .< r.inputs_echo.measured_dB)              # the curved wall raises less
+    for id in ("R996_FIG10_FLAT", "R996_FIG10_CIRC")
         png = plot_case(run_validation_case(id), VALIDATION_CASES[id].plot_spec; path=joinpath(TEST_OUT, "$(id).png"))
         @test isfile(png) && filesize(png) > 0
     end

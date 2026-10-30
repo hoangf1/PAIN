@@ -1,0 +1,27 @@
+# NACA Report 996 Fig. 10 (PDF p. 12, printed p. 8): total rms pressure vs x/D, NACA 4-(5)(08)-03, B = 2,
+# beta(0.75R) = 20 deg, M_t 0.60, d/D = 0.083, D = 4 ft. Digitized 2026-10-29 (Phase 90a) by
+# data/digitizers/dig_r996_fig10.py at 400 dpi: gridlines from pixel darkness (x fit max residual 0.0014 x/D,
+# y fit max residual 2.0 dynes/cm^2), marker centre = midpoint of the rows at >= half its widest ink extent, read with 14 and 18 px half-windows;
+# p_dyn_cm2 = mean of the two reads, read_diff = their difference (max 10.0). x/D on the gridlines (0.125 pitch).
+series,x_over_D,p_dyn_cm2,read_diff
+free_space,-1.0,173.1,0.0
+free_space,-0.75,256.5,0.0
+free_space,-0.5,359.7,2.5
+free_space,-0.25,740.3,2.5
+free_space,-0.125,829.9,2.5
+free_space,0.0,773.9,2.5
+free_space,0.125,650.7,0.0
+free_space,0.25,430.6,5.0
+free_space,0.5,232.8,0.0
+free_space,0.75,107.2,0.0
+free_space,1.0,90.4,1.2
+flat_wall,-0.25,1251.5,0.0
+flat_wall,-0.125,1669.4,7.5
+flat_wall,0.0,1545.0,0.0
+flat_wall,0.125,1339.8,0.0
+flat_wall,0.25,997.8,5.0
+circular_wall,-0.25,800.0,0.0
+circular_wall,-0.125,1154.5,5.0
+circular_wall,0.0,1258.3,3.7
+circular_wall,0.125,1081.1,0.0
+circular_wall,0.25,759.0,10.0

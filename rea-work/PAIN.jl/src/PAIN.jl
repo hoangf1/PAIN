@@ -59,7 +59,8 @@ include("validation_case_iso66.jl")   # phase 66 further BEMT / F1A code checks
 include("validation_case_iso67.jl")   # phase 67 attribution of the source-block misses
 include("validation_case_iso80.jl")   # phase 80 App. D structural solver verification
 include("validation_case_iso83.jl")   # phase 83 high-frequency NR and reproduction on NASA's 300-mode set
-include("validation_case_iso87.jl")   # phases 87–88 NASA's App. B per-mode values; q = 0 hypothesis held out
+include("validation_case_iso87.jl")   # phases 87–89 NASA's App. B per-mode values; q = 0 held out; η_n per mode
+include("validation_case_iso90.jl")   # phase 90 Eq. (43) blocking vs Report 996 Fig. 10 (measured)
 include("validation_case_extras.jl")
 include("validation_map.jl")
 include("validation_plots.jl")

@@ -105,3 +105,10 @@ end
     a = PAIN._eta_r_pp_pair(inp, a19, 2, st, 250.0); b = PAIN._eta_r_pp_pair(inp, a19, 2, st, 400.0)
     @test a > 0 && b > 0 && a != b                                                    # N taken at the tone frequency
 end
+@testset "iso90: Report 996 Fig. 10 helpers (phase 90)" begin
+    d = PAIN._r996_fig10()
+    @test sort(collect(keys(d))) == ["circular_wall", "flat_wall", "free_space"]
+    @test length(d["free_space"]) == 11 && length(d["flat_wall"]) == 5 && length(d["circular_wall"]) == 5
+    @test PAIN._r996_fig10_gamma_deg(0.0) == 0.0
+    @test PAIN._r996_fig10_gamma_deg(-0.25) ≈ rad2deg(atan(0.25 / 0.583)) && PAIN._r996_fig10_gamma_deg(0.25) == PAIN._r996_fig10_gamma_deg(-0.25)
+end

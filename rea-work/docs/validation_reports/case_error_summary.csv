@@ -121,3 +121,5 @@ Q0_REPRO_18b,2026-10-29,2026-10-29,no_verdict,2,3,13.0,3.1,"dB","no verdict · m
 Q0_E18,2026-10-29,2026-10-29,no_verdict,1,3,11.0,4.3,"dB","no verdict · max |err| 11.0 dB · med 4.3 dB"
 Q0_E21,2026-10-29,2026-10-29,no_verdict,3,16,59.0,12.0,"dB","no verdict · max |err| 59.0 dB · med 12.0 dB"
 R172428_CODE_ETAN,2026-10-29,2026-10-29,no_verdict,5,9,11.0,2.8,"dB","no verdict · max |err| 11.0 dB · med 2.8 dB"
+R996_FIG10_FLAT,2026-10-29,2026-10-29,met,5,5,1.4,0.28,"dB","5/5 in tol · max |err| 1.4 dB · med 0.28 dB"
+R996_FIG10_CIRC,2026-10-29,2026-10-29,no_verdict,1,5,5.3,1.8,"dB","no verdict · max |err| 5.3 dB · med 1.8 dB"

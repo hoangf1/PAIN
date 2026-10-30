@@ -2471,7 +2471,8 @@ function _finish_validation_registry!()
     append!(cases, _iso67_validation_cases())  # phase 67 polars / compact chord
     append!(cases, _iso80_validation_cases())  # phase 80 App. D solver verification
     append!(cases, _iso83_validation_cases())  # phase 83 NASA's 300-mode set
-    append!(cases, _iso87_validation_cases())  # phases 87–88 App. B per-mode values; q = 0 held out
+    append!(cases, _iso87_validation_cases())  # phases 87–89 App. B per-mode values; q = 0 held out; η_n per mode
+    append!(cases, _iso90_validation_cases())  # phase 90 Report 996 Fig. 10 reflecting walls
 
     # E21_E22_NR (38a), T2_EQ19 (38c), E18_TONES (38d), E15_STRUCT_LOSS (38e); no greyed placeholders.
     push!(cases, ValidationCase(
@@ -2566,7 +2567,7 @@ function _finish_validation_registry!()
         "NR_PROP_TP2444", "T2_MEAS_EXT", "BPM_RP1218", "PROP_BB_FIG14", "PROP_BB_FIG17", "T2_PRED_BB", "NR_PROP_TP2444_PF",
         "SHARP_PANEL_D", "SHARP_PANEL_D_SHAPE", "NR_PROP_TP2444_BR", "E22_BR", "T2_MEAS_EXT_BR",
         "REPRO_18b_PRE", "E21_PRE", "E22_HF_CODE", "E22_HF_DECK", "REPRO_18b_DECK", "T2_EQ19_DECK", "E21_PRE_DECK", "R172428_CODE_DECK", "R172428_EXP_DECK",
-        "APPB_EPS_N", "APPB_ETA_N", "APPB_ETA_RPP", "Q0_REPRO_18b", "Q0_E18", "Q0_E21", "R172428_CODE_ETAN",
+        "APPB_EPS_N", "APPB_ETA_N", "APPB_ETA_RPP", "Q0_REPRO_18b", "Q0_E18", "Q0_E21", "R172428_CODE_ETAN", "R996_FIG10_FLAT", "R996_FIG10_CIRC",
         "F1A_PLANE_PEAK", "FF_E11_MAP", "SRC_PASSTHROUGH", "BLK_GAIN_MAP", "MRP_INPUT_QA", "MRP_SHAPE_NORM",
         "CABIN_GEOM_HAND", "CYL2D_WEYL", "CYL2D_GRID_CONV", "TRIM_INPUT_QA", "TRIM_PASSIVITY", "PAIN_INPUT_ECHO", "AC_CABIN_DEMO",
         "BEMT_MOMENTUM", "BEMT_HAND_TIP", "BEMT_INTEGRALS", "BEMT_SIMILARITY",

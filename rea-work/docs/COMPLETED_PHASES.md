@@ -176,6 +176,7 @@ Not blockers (recorded so nobody stops on them): BBN tip geometry beyond 40 in. 
 | Q68 | **Phase 87 — NASA's printed per-mode values against ours** (§8ae) | P cases | Q67 | **done 2026-10-29**: ε_n met 48/48; η_n not met 11/46; η_r″ not met 8/19; no q = 0 or floor pattern, no code change |
 | Q69 | **Phase 88 — the q = 0 hypothesis held out** (§8ae) | diagnostics | Q68 | **done 2026-10-29**: refuted (2/3, 1/3, 1/4) |
 | Q70 | **Phase 89 — η_n per cabin mode, trim per 1/3-octave band** (§8af) | option + diagnostic | Q69 | **done 2026-10-29**: 5/9, not adopted (decision ≥ 7/9); option `η_n_per_mode` kept, default false |
+| Q71 | **Phase 90 — Eq. (43) blocking against Report 996 Fig. 10** (§8ag) | digitization + E case | — | **done 2026-10-29**: R996_FIG10_FLAT met 5/5; circular wall information (R1 6 dB over the measured 0.7–4.9 dB) |
 | Q58 | **Phase 79 — CYL2D** (§8w; 2026-10-28) | `case_error_summary`, `cyl2d.jl`, CYL2D_WEYL | Q57 | **done 2026-10-28**: information rows leave the pass count; refinement fixed (79b); CYL2D_GRID_CONV (NY 10 within 4.9 % of NY 60); Weyl + surface term 4/5; production NY = 10 kept (decided 2026-10-28) |
 | Q57 | **Phase 78 — structural modes** (§8v; 2026-10-28) | `mrp_appd.jl`, MRP_APPD criterion, map | Q53 | **done 2026-10-28**: App. D solver fixes J1–J6; MRP_APPD not met 2/32 (class I, floor stiffener model undocumented); MRP_D1/MRP_RITZ off the map |
 | Q56 | **Phase 77 — POLAR_FIDELITY as an equivalent angle** (§8u; 2026-10-28) | `src/validation_case_iso67.jl`, figure | Q52 | **done 2026-10-28**: Δα shown next to Δc_l, display only |
@@ -2269,3 +2270,22 @@ App. B pp. 195, 197, 202). If 89b is not met, H1 stays an option, not adopted, a
 levels. No other form of H1 (other band edges, other frequencies for ξ) is tried after seeing 89b.
 
 **Result (2026-10-29).** 89a done; 89b R172428_CODE_ETAN 5/9 (R172428_CODE 4/9): H1 **not adopted**, option kept (default false); 89c information: η_r″ within 10 % at 10/19 pairs. Record: `validation_reports/phase87_appb_per_mode.md`.
+
+## 8ag. Phase 90 — Eq. (43) blocking against Report 996 Fig. 10 *(done 2026-10-29; moved to the bottom 2026-10-29; planned 2026-10-29; author: "6 i think would be worth"; criteria below dated 2026-10-29, before Fig. 10 is digitized or any comparison is computed)*
+
+**Data.** NACA Report 996 Fig. 10 (PDF p. 12, printed p. 8): measured total rms pressure p̄ (dynes/cm²) against x/D along a
+line parallel to the propeller axis at the blade-tip clearance, in free space, at a flat vertical wall and at a circular
+wall; NACA 4-(5)(08)-03, B = 2, β(0.75R) = 20°, M_t 0.60, d/D = 0.083, D = 4 ft (Report 996 p. 5). Walls 3 ft high; flat
+6 ft long; circular 4 ft long, radius not stated (Fig. 5, p. 10).
+
+**Model.** Eq. (43) (CR-3813 p. 31, Magliozzi [6]): p_wall = F(γ) p_free, γ the angle between the hub-to-point line and the
+wall normal. Flat wall: γ = atan(|x/D| / (0.5 + d/D)). Magliozzi fitted Eq. (43) to prop-fan fuselage data (J. Aircraft
+1980); that paper is not in hand, so whether Report 996 was among its data is not known (recorded).
+
+| Step | What | Criterion (fixed 2026-10-29, before any comparison) |
+|------|------|------------------------------------------------------|
+| 90a | Digitize Fig. 10 with a pixel-calibrated script (§2.2): gridlines located in the pixels, each marker's centre found in the pixels; `data/report996/tr996_fig10_reflecting_walls.csv` | QA: every gridline found; each value read twice (two windows) within 10 dynes/cm² |
+| 90b | `R996_FIG10_FLAT` (E): Eq. (43) R1 against the measured ratio p_flat/p_free at each x/D where both are measured | \|20 log₁₀ F_R1 − 20 log₁₀(p_flat/p_free)\| ≤ 1.5 dB at ≥ 4 of the 5 points |
+| 90c | Information (no verdict): R2 on the flat wall; R1 and R2 on the circular wall with an assumed radius of 1.5 ft (semicircle of the 3 ft height), axis parallel to the propeller axis | no criterion (radius assumed) |
+
+**Result (2026-10-29).** 90a QA passed (two reads within 10 dynes/cm²); 90b R996_FIG10_FLAT **met** 5/5; 90c circular wall information. Record: `validation_reports/phase90_r996_fig10_blocking.md`.
