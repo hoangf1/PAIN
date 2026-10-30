@@ -74,7 +74,7 @@ function _smoke_map_canvas()
 end
 
 """
-Phase 102: the Validation tab's run-status box, drawn. Runs one case through the Run handler, then grabs the window
+Phase 114: the Validation tab's run-status box, drawn. Runs one case through the Run handler, then grabs the window
 and checks the Observables the box binds to: the pill ends on `done`, and the verbose log holds the steps of the run
 that just happened (not a recorded one). The PNG goes to a temp folder, never into the repository.
 """
@@ -164,7 +164,7 @@ child_map = addenv(
 println("smoke_qml_load: spawning child for total map canvas / VALIDATION_MAP_TOTAL.png")
 run(child_map)
 
-# Child: the run-status box on the Validation tab (Phase 102). Writes its PNG to a temp folder.
+# Child: the run-status box on the Validation tab (Phase 114). Writes its PNG to a temp folder.
 child_box = addenv(
     `$(Base.julia_cmd()) --project=$proj $(abspath(@__FILE__))`,
     "PAIN_SMOKE_RUNBOX_ONLY" => "1",

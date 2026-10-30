@@ -78,7 +78,7 @@ function select_validation_case_from_qml(id::AbstractString)
         validation_figure_stale(sid) ?
         "Selected $sid — the saved figure is older than the recorded result ($(recorded_case_errors()[sid].run_date)); press Run to redraw it." :
         "Selected $sid — press Run."
-    # Phase 102: the run-status box must not imply this case was run now — what is on screen came off disk.
+    # Phase 114: the run-status box must not imply this case was run now — what is on screen came off disk.
     gui_mark_snapshot!(obs, "val", sid)
     validation_figure_stale(sid) &&
         gui_log!(obs, "val", "the saved figure is older than that recorded result; Run redraws it")

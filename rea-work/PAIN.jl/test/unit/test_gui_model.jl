@@ -17,7 +17,7 @@
     @test all(length(split(l, '\t')) == 5 for l in lines)
     @test startswith(PAIN._criterion_for("T1"), "criterion (2026-10-20): ") && PAIN._criterion_for("NOPE") == ""
 end
-# Phase 102: the run-status boxes. `*_state` is the pill a Run button shows and `*_log` the verbose record of the
+# Phase 114: the run-status boxes. `*_state` is the pill a Run button shows and `*_log` the verbose record of the
 # run behind it. These assert the states a user distinguishes: a recorded result read from disk, a run in progress,
 # and a result this session computed — with the steps of that run, not of a previous one, in the log.
 @testset "run-status state and verbose log" begin

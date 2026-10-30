@@ -3532,7 +3532,7 @@ R996_FIG10_FLAT (E) is **met**, 5/5 within ±1.5 dB: at a flat wall Report 996 m
 near normal incidence (γ ≤ 23°). The circular wall (information) measured 0.7–4.9 dB, under R1's 6 dB; NASA's R2 (4 dB) is
 closer there and 2 dB under the flat wall. Eq. (43) has no term for curvature. Caveat: Magliozzi's fit data are not in hand.
 
-## 2.23 Walk-through and the methodology website (Phase 91, 2026-10-29; replaced by Phases 101–102, 2026-10-30)
+## 2.23 Walk-through and the methodology website (Phase 91, 2026-10-29; replaced by Phases 113–114, 2026-10-30)
 
 `docs/WALKTHROUGH.md` §2 runs a case and shows its criterion, verdict and table; it changes no case and adds none.
 `PAIN.jl/scripts/run/write_walkthrough.jl` regenerates it, with its figures, from a live run.

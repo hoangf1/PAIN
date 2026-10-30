@@ -240,8 +240,8 @@ or the other documents points there. When a phase is done, mark it done and move
 
 | Q | Item | Kind | Prerequisite | Output |
 |---|------|------|--------------|--------|
-| Q83 | **[AUTHOR] Eq. (43) past γ = 90°** — writing the walk-through (Phase 101) showed that 64 of the test article's 160 grid points have γ > 90°, where R1 applies the printed curve unclamped: F = 0.43 (−7.3 dB) at 100°, 0.0034 (−49.5 dB) at the grid's maximum 117.8°. R2's `max(1, 0.8F)` floor hides this; R1 has no floor. CR-3813 p. 31 presents Eq. (43) as a blocking (reflection) curve, so whether it is meant to attenuate behind the shadow line, or to be clamped at F = 1, is a reading of the source, not a code defect. **Nothing was changed.** Deciding it would move R1 results, so it needs the author and a criterion fixed before any run | question for the author | — | a decision, then (if it changes) a dated re-run of the R1 cases |
-| — | No other open item (2026-10-30); Phases 90–104 are done | — | — | — |
+| Q95 | **[AUTHOR] Eq. (43) past γ = 90°** — writing the walk-through (Phase 113) showed that 64 of the test article's 160 grid points have γ > 90°, where R1 applies the printed curve unclamped: F = 0.43 (−7.3 dB) at 100°, 0.0034 (−49.5 dB) at the grid's maximum 117.8°. R2's `max(1, 0.8F)` floor hides this; R1 has no floor. CR-3813 p. 31 presents Eq. (43) as a blocking (reflection) curve, so whether it is meant to attenuate behind the shadow line, or to be clamped at F = 1, is a reading of the source, not a code defect. **Nothing was changed.** Deciding it would move R1 results, so it needs the author and a criterion fixed before any run | question for the author | — | a decision, then (if it changes) a dated re-run of the R1 cases |
+| — | No other open item (2026-10-30); Phases 90–99 and 112–116 are done | — | — | — |
 
 If a queue item is blocked on data, skip to the next unblocked item and say which data item blocks it.
 
@@ -465,7 +465,7 @@ Items 1–6 were decided by the author on 2026-10-29: 1 (cleaner App. D matrices
 exterior broadband to replace `j2_scale`) removed, CR-3813 gives no broadband exterior input (tried with TP-2444's
 measured spectrum, T2_MEAS_EXT, and BPM, T2_PRED_BB); 4 (lab coupon of the App. A trim) removed, not available; 5
 (notebooks) was Phase 91, retired 2026-10-30 and replaced by `docs/WALKTHROUGH.md` and the methodology website
-(Phase 101); 6 (R1/R2 blocking against Report 996 Fig. 10) is Phase 90.
+(Phase 113); 6 (R1/R2 blocking against Report 996 Fig. 10) is Phase 90.
 7. ~~Faster test cycle (testset filter + DaemonMode)~~ → **P1 done 2026-10-22** (`COMPLETED_PHASES.md` §11)
 8. ~~Flight test NASA CR-178004 (Commander 695A, `references/NASA_CR_178004.pdf`) as an E case~~ → **not used**
    (author 2026-10-30). Its harmonic levels are measured, but the cabin has a rectangular cross-section (TM-85722:

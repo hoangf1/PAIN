@@ -14,7 +14,7 @@ const _GUI_SOURCE_MSG = "the Run tab runs the aircraft pipeline only; e11 / synt
 validity_for_source(source::Symbol) =
     source === :e11 ? "V-EXP" : "X-EXTRAP"
 
-# --- Phase 102: run-status boxes ------------------------------------------------------------------------------
+# --- Phase 114: run-status boxes ------------------------------------------------------------------------------
 # A panel's Run button must say what the user is looking at: nothing run yet, a result recorded earlier and read
 # from disk, a run in progress, a result this session computed, or one made out of date by an input that moved
 # since. `*_state` carries the first four (QML decides the fifth, STALE, from the inputs); `*_log` carries the
@@ -160,7 +160,7 @@ function make_gui_observables(;
         "eta_n_band" => Observable(""),
         "status" => Observable("Ready. Choose aircraft JSON and press Run."),
         "busy" => Observable(false),
-        # Phase 102 — run-status boxes. `*_state` drives the pill a panel shows (ready / snapshot / running /
+        # Phase 114 — run-status boxes. `*_state` drives the pill a panel shows (ready / snapshot / running /
         # done / error); `*_log` is the verbose line-by-line record of the run the box can expand.
         "run_state" => Observable("ready"),
         "run_log" => Observable(""),
@@ -200,7 +200,7 @@ function make_gui_observables(;
         "map_content_width" => Observable(0.0),
         "map_view_width" => Observable(0.0),
         "smoke_map_png" => Observable(""),
-        "smoke_runbox_png" => Observable(""),   # Phase 102: offscreen shot of the Validation tab run-status box
+        "smoke_runbox_png" => Observable(""),   # Phase 114: offscreen shot of the Validation tab run-status box
         # Phase 38h — Manual §5.4.3 printed outputs (read-only)
         "po_status" => Observable("Ready. Press Run / Refresh for the current Run-tab case."),
         "po_text" => Observable(""),

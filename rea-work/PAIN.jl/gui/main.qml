@@ -19,7 +19,7 @@ ApplicationWindow {
     readonly property color border: "#d5dbe3"
 
 
-    // Phase 102 - run-status box. Every Run button gets one, so the user can tell which of five things the panel
+    // Phase 114 - run-status box. Every Run button gets one, so the user can tell which of five things the panel
     // is showing: nothing run yet, a result recorded earlier and read from disk, a run in progress, a result this
     // session just computed, or one that is out of date because an input moved since. runState comes from Julia
     // (the *_state Observables); STALE is decided here, by comparing the inputs now on screen with the ones the
@@ -405,7 +405,7 @@ ApplicationWindow {
         }
     }
 
-    // Phase 102 smoke: open the Validation tab, run one case, and save a shot of the window so the run-status
+    // Phase 114 smoke: open the Validation tab, run one case, and save a shot of the window so the run-status
     // box (pill, hint and verbose log) is checked as it is drawn, not only as Observables.
     Timer {
         interval: 300

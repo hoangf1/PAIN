@@ -185,11 +185,11 @@ Not blockers (recorded so nobody stops on them): BBN tip geometry beyond 40 in. 
 | Q77 | **Phase 96 — NASA's band-centre η_n rule as the default** (§8am) | code default + held-out re-checks | Phase 95 | **done 2026-10-30**: default; APPB_ETA_N_T2_BAND met 3/3; R172428_ETAT2 met 9/9 |
 | Q78 | **Phases 97–98 — PF-105 trace; the η_r′ gap** (diagnostics) | diagnostic | Phase 96 | **done 2026-10-30**: Fig. A-2 trace failed its QA, no value adopted; η_r′ gap (trim term 1.4–2.1× low above 470 Hz) not explained by masses, band centre, Ση″ or Eq. (A.8) variants; no code change |
 | Q79 | **Phase 99 — did CR-3813's program already use the band-centre η_n?** (§8ao) | held-out test | Phase 96 | **done 2026-10-30**: refuted (BAND_REPRO_18b 1/3, BAND_E18 2/3; rule moves the runs ≤ 0.6 dB) |
-| Q80 | **Phase 100 — rename the map group to *Airfoil BEMT+F1A*** (§8ap) | documentation / label | author request | **done 2026-10-30**: 21 places; no case, criterion, input or number changed |
-| Q81 | **Phase 101 — methodology website; the notebooks retired** (§8aq) | documentation | Phase 100 | **done 2026-10-30**: `site/build_site.jl` → one 1.8 MB page, 9 documents + 134 case cards + 74 figures; `notebooks/` removed |
-| Q82 | **Phase 102 — run-status boxes on every Run button** (§8ar) | GUI | — | **done 2026-10-30**: READY / RECORDED / GENERATING / FRESH / STALE + verbose log; smoke grabs the window, unit tests in `test/unit/test_gui_model.jl` |
-| Q84 | **Phase 103 — the website as a read-through** (§8as) | documentation | Phase 101 | **done 2026-10-30**: 1.8 MB of concatenated documents → an 88 KB read-through; 8 stage sections, generated stage flowcharts, 48 verdict cases only |
-| Q85 | **Phase 104 — equations in LaTeX, readable claims, figure lightbox** (§8at) | documentation | Phase 103 | **done 2026-10-30**: 4 Key equation blocks added to `METHODOLOGY.md`, each checked against its code; MathJax vendored; claims as collapsible callouts; stale grid sign in §10 Key formulas corrected |
+| Q92 | **Phase 112 — rename the map group to *Airfoil BEMT+F1A*** (§8bb) | documentation / label | author request | **done 2026-10-30**: 21 places; no case, criterion, input or number changed |
+| Q93 | **Phase 113 — methodology website; the notebooks retired** (§8bc) | documentation | Phase 112 | **done 2026-10-30**: `site/build_site.jl` → one 1.8 MB page, 9 documents + 134 case cards + 74 figures; `notebooks/` removed |
+| Q94 | **Phase 114 — run-status boxes on every Run button** (§8bd) | GUI | — | **done 2026-10-30**: READY / RECORDED / GENERATING / FRESH / STALE + verbose log; smoke grabs the window, unit tests in `test/unit/test_gui_model.jl` |
+| Q96 | **Phase 115 — the website as a read-through** (§8be) | documentation | Phase 113 | **done 2026-10-30**: 1.8 MB of concatenated documents → an 88 KB read-through; 8 stage sections, generated stage flowcharts, 48 verdict cases only |
+| Q97 | **Phase 116 — equations in LaTeX, readable claims, figure lightbox** (§8bf) | documentation | Phase 115 | **done 2026-10-30**: 4 Key equation blocks added to `METHODOLOGY.md`, each checked against its code; MathJax vendored; claims as collapsible callouts; stale grid sign in §10 Key formulas corrected |
 | Q58 | **Phase 79 — CYL2D** (§8w; 2026-10-28) | `case_error_summary`, `cyl2d.jl`, CYL2D_WEYL | Q57 | **done 2026-10-28**: information rows leave the pass count; refinement fixed (79b); CYL2D_GRID_CONV (NY 10 within 4.9 % of NY 60); Weyl + surface term 4/5; production NY = 10 kept (decided 2026-10-28) |
 | Q57 | **Phase 78 — structural modes** (§8v; 2026-10-28) | `mrp_appd.jl`, MRP_APPD criterion, map | Q53 | **done 2026-10-28**: App. D solver fixes J1–J6; MRP_APPD not met 2/32 (class I, floor stiffener model undocumented); MRP_D1/MRP_RITZ off the map |
 | Q56 | **Phase 77 — POLAR_FIDELITY as an equivalent angle** (§8u; 2026-10-28) | `src/validation_case_iso67.jl`, figure | Q52 | **done 2026-10-28**: Δα shown next to Δc_l, display only |
@@ -2453,7 +2453,7 @@ gains the band rule; otherwise it is recorded as refuted and no variant is tried
 
 ---
 
-## 8ap. Phase 100 — the map group renamed *Airfoil BEMT+F1A* *(done 2026-10-30; author request: "i dont like how its called aircraft bemt+f1a i think it should be airfoil bemt+f1a"; documentation, no comparison)*
+## 8bb. Phase 112 — the map group renamed *Airfoil BEMT+F1A* *(done 2026-10-30; author request: "i dont like how its called aircraft bemt+f1a i think it should be airfoil bemt+f1a"; documentation, no comparison)*
 
 - [x] 100a `Group title:` of `G_AIR` in `VALIDATION_GUIDELINE.md` §2.13 — the one place the GUI map reads the name from.
 - [x] 100b The same name in `METHODOLOGY.md` §2.3 (heading and chunk line, so the `#23-airfoil-bemtf1a` anchor follows),
@@ -2472,7 +2472,7 @@ The GUI picks the name up by re-parsing §2.13, and the offscreen map screenshot
 
 ---
 
-## 8aq. Phase 101 — the methodology website; the Pluto notebooks retired *(done 2026-10-30; author request: "instead of pluto in notebooks can i just make an html methodology website to launch", "i essentially want it all in one html/website", "update the read me as well on how to open the website that includes basically the methodology and validation cases summarized"; documentation, no comparison)*
+## 8bc. Phase 113 — the methodology website; the Pluto notebooks retired *(done 2026-10-30; author request: "instead of pluto in notebooks can i just make an html methodology website to launch", "i essentially want it all in one html/website", "update the read me as well on how to open the website that includes basically the methodology and validation cases summarized"; documentation, no comparison)*
 
 - [x] 101a `site/build_site.jl`: one self-contained `index.html` from the nine project documents, with a sidebar that
       lists every document and its sections and filters as you type, `#` permalinks, light/dark following the system,
@@ -2501,7 +2501,7 @@ criterion and date from the registry, matching the recorded snapshot row exactly
 
 ---
 
-## 8ar. Phase 102 — run-status boxes on every Run button *(done 2026-10-30; author request: "i would also like some verbose/status boxes whenever you click a run button to let user know if its stale or actually generating something"; GUI, no comparison)*
+## 8bd. Phase 114 — run-status boxes on every Run button *(done 2026-10-30; author request: "i would also like some verbose/status boxes whenever you click a run button to let user know if its stale or actually generating something"; GUI, no comparison)*
 
 - [x] 102a `*_state` and `*_log` Observables for the four panels that run something (`run`, `val`, `po`, `cm`), with
       `gui_log!` / `gui_run_begin!` / `gui_run_end!` / `gui_mark_snapshot!` in `gui_model.jl`. Each log line yields, so
@@ -2529,11 +2529,11 @@ display state only — no criterion, verdict, tolerance or number is computed, r
 
 ---
 
-## 8as. Phase 103 — the website rebuilt as a read-through *(done 2026-10-30; author: "the website is too long its not supposed to combine all the md files into one… a comprehensive short easy to read website where the methodology and validation are paired with validation figures only being the validation cases to prove the methodology ensuring pain's functionality rather than including every single case and unit test and at the start of the main sections to implement the flowchart and readme shouldnt even be in here its for a read through"; documentation, no comparison)*
+## 8be. Phase 115 — the website rebuilt as a read-through *(done 2026-10-30; author: "the website is too long its not supposed to combine all the md files into one… a comprehensive short easy to read website where the methodology and validation are paired with validation figures only being the validation cases to prove the methodology ensuring pain's functionality rather than including every single case and unit test and at the start of the main sections to implement the flowchart and readme shouldnt even be in here its for a read through"; documentation, no comparison)*
 
-Phase 101 built the site by rendering every document onto one page. That is a reference, not something anyone reads
+Phase 113 built the site by rendering every document onto one page. That is a reference, not something anyone reads
 through: 1.8 MB, nine documents, 423 headings and all 134 registered cases, most of which cannot carry a verdict.
-Phase 103 replaces it with a read-through.
+Phase 115 replaces it with a read-through.
 
 - [x] 103a The page is now eight **stage** sections (free-field source, blocking, CYL2D, structural modes, trim and
       loss, PAIN main, end-to-end interior SPL, metrics), not one section per document. The README, the plan, the
@@ -2565,7 +2565,7 @@ change a verdict, fix a criterion or produce a number.
 
 ---
 
-## 8at. Phase 104 — equations in LaTeX, readable claims, a figure lightbox *(done 2026-10-30; author: "would help if the equations were in latex in the claims for the site and making claims more readable since its giant paragrpahs" / "also helps if i could click on the figure and have it maximize into the window instead of zooming in individually"; documentation, no comparison)*
+## 8bf. Phase 116 — equations in LaTeX, readable claims, a figure lightbox *(done 2026-10-30; author: "would help if the equations were in latex in the claims for the site and making claims more readable since its giant paragrpahs" / "also helps if i could click on the figure and have it maximize into the window instead of zooming in individually"; documentation, no comparison)*
 
 - [x] 104a **The equations were not in the documents to begin with.** The stage sections of `METHODOLOGY.md` referred
       to them only by number ("Eq. (43)", "Eq. (8)", "Eqs. 63–83"), so there was nothing for LaTeX to render. Four
