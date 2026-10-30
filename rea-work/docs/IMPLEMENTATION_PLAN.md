@@ -458,6 +458,11 @@ exterior broadband to replace `j2_scale`) removed, CR-3813 gives no broadband ex
 measured spectrum, T2_MEAS_EXT, and BPM, T2_PRED_BB); 4 (lab coupon of the App. A trim) removed, not available; 5
 (notebooks) is Phase 91; 6 (R1/R2 blocking against Report 996 Fig. 10) is Phase 90.
 7. ~~Faster test cycle (testset filter + DaemonMode)~~ → **P1 done 2026-10-22** (`COMPLETED_PHASES.md` §11)
+8. ~~Flight test NASA CR-178004 (Commander 695A, `references/NASA_CR_178004.pdf`) as an E case~~ → **not used**
+   (author 2026-10-30). Its harmonic levels are measured, but the cabin has a rectangular cross-section (TM-85722:
+   1.45 m high, 5.33 m long), which PAIN's cylinder-with-floor cannot represent, and only one exterior point per side
+   was measured; an "equivalent circle" would make any miss uninterpretable. The structure is in NASA CR-172245
+   (Vaicaitis & Slazak 1983) if this is ever revisited.
 
 ---
 
