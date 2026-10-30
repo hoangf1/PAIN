@@ -3393,6 +3393,25 @@ _run_if("Merlin IVC modes vs CR-172428 App. C (phase 101)") do
     @test isfile(png) && filesize(png) > 0
 end
 
+_run_if("Run 10's field angle as printed (phase 104)") do
+    # Plan §8at: the deck's printed field cards (k = 1, ℓ = 1, 2) sit on printed grid lines L = 9 + ℓ, θ from the bottom.
+    f = PAIN.r172428_flight10_field()
+    θ(L) = only(p.theta_deg for p in f.pts if p.k == 1 && p.ell == L)
+    @test θ(10) == 75.0 && θ(19) == 165.0 && θ(1) == -15.0                                     # upper quarter: 75° → 165°
+    @test PAIN.r172428_flight10_inputs().prop.phi_p_deg == 75.0
+    deck = [split(l, ",") for l in eachline(PAIN._r172428_csv("appD_run10_deck_field.csv")) if !startswith(l, "#")][2:end]
+    n = 0
+    for c in deck
+        k, l, H = parse.(Int, c[[1, 2, 6]]); 2 ≤ H ≤ 4 || continue
+        ph, A = parse(Float64, c[7]), parse(Float64, c[8])
+        @test isapprox(rad2deg(f.phases[k, 9 + l, H]), ph; atol=0.1)                           # deck phase = printed phase
+        ΔdB = 20log10(f.amps[k, 9 + l, H] / A)                                                  # printed blocked / deck free field
+        @test 3.8 ≤ ΔdB ≤ 20log10(0.8 * 10^0.3) + 0.05                                          # App. A item 3: ≤ 4.06 dB
+        n += 1
+    end
+    @test n == 6
+end
+
 _run_if("Flight run 10, H2–H4, and the trim per band (phase 102)") do
     # Plan §8ar; diagnostic, recorded first-run result (not supported).
     inp = PAIN.r172428_flight10_inputs(); bnd = PAIN.r172428_flight10_inputs(; trim_band_centre=true)
@@ -3401,11 +3420,13 @@ _run_if("Flight run 10, H2–H4, and the trim per band (phase 102)") do
     @test PAIN.sidewall_tau(bnd, 2π * 209.1) == PAIN.sidewall_tau(inp, 2π * 200.0) != PAIN.sidewall_tau(inp, 2π * 209.1)
     f = PAIN.r172428_flight10_field()
     @test all(f.amps[:, :, 1] .== 0) && f.amps[7, 10, 3] ≈ PAIN.spl_dB_to_peak_Pa(133.3)        # H3 peak, printed 133.3 dB
-    @test only(p.theta_deg for p in f.pts if p.k == 1 && p.ell == 10) == 105.0                   # propeller line
+    @test only(p.theta_deg for p in f.pts if p.k == 1 && p.ell == 10) == 75.0                    # propeller line (Phase 104)
     r = run_validation_case("FLIGHT10_H234")
     @test r.verdict === :no_verdict && r.inputs_echo.closer == 0
-    @test r.inputs_echo.as_shipped ≈ [98.30, 89.76, 79.19] atol = 0.01
-    @test r.inputs_echo.band ≈ [98.68, 89.77, 79.17] atol = 0.01
+    # Re-recorded after Phase 104 (θ as printed; post-hoc, seen in Phase 103). Phase 102 recorded 98.30 / 89.76 / 79.19
+    # and 98.68 / 89.77 / 79.17 with the flipped field.
+    @test r.inputs_echo.as_shipped ≈ [96.80, 88.85, 80.67] atol = 0.01
+    @test r.inputs_echo.band ≈ [97.14, 88.87, 80.64] atol = 0.01
     png = plot_case(r, VALIDATION_CASES["FLIGHT10_H234"].plot_spec; path=joinpath(TEST_OUT, "FLIGHT10_H234.png"))
     @test isfile(png) && filesize(png) > 0
 end

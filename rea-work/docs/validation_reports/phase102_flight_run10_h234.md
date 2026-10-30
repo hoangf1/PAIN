@@ -43,3 +43,8 @@ The trim per band is not what separates this code from PAIN here. The option sta
 `trim_band_centre`. As shipped, the code is within 1.7 dB of PAIN at H2 and H3 on a second fuselage built from PAIN's
 own deck, and 4.7 dB low at H4. This is information only: FLIGHT_MODES is not met, and the H4 shortfall is not
 diagnosed.
+
+**Re-run after Phase 104 (2026-10-30, post-hoc).** Phase 103 found the field flipped top to bottom: the printed θ is
+from the bottom centreline (the deck's ℓ = 1…10 are L = 10…19, CR-172428 App. A item 5). With θ as printed and the
+propeller at 75°: as shipped 96.80 / 88.85 / 80.67 dB, trim per band 97.14 / 88.87 / 80.64 dB (+0.21 / +0.79 / −3.25 dB
+from PAIN as shipped); the trim per band is still closer at 0/3. The table above is the first run and stays on record.

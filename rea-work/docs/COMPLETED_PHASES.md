@@ -189,6 +189,7 @@ Not blockers (recorded so nobody stops on them): BBN tip geometry beyond 40 in. 
 | Q81 | **Phase 101 — CR-172428 flight run 10 reproduced from its printed deck; trim per band tested on it** (§8aq) | reproduction + held-out test | Phase 100 | **done 2026-10-30**: FLIGHT_MODES not met (197/221; frequencies 219/221); 101b–d not run (101a not met; H1/H5 field phases cut off in the scan); no default changed |
 | Q82 | **Phase 102 — flight run 10, H2–H4: the code as it ships and the trim per band against PAIN's printed levels** (§8ar) | diagnostic | Phase 101 | **done 2026-10-30**: as shipped 98.30 / 89.76 / 79.19 dB vs PAIN 96.59 / 88.06 / 83.92; trim per band closer at 0/3 (not supported, moves ≤ 0.4 dB); no default changed |
 | Q83 | **Phase 103 — flight run 10, H4: where the 4.7 dB goes** (§8as) | diagnostic | Phase 102 | **done 2026-10-30**: five findings (field θ flipped; CYL2D grid at 50°; CYL2D 2-D part at 341 m/s; MRPMOD 5/3 terms; floor-term sign open); with the first four, H2–H4 = +0.74 / +0.94 / −1.06 dB against PAIN (post-hoc); fix Phases 104–110 planned; no code or default changed |
+| Q84 | **Phase 104 — run 10's field angle as printed** (§8at) [CONFIRM] | code fix (input of a NASA run) | Phase 103 | **done 2026-10-30**: θ as printed, propeller at 75°; deck cards 6/6; FLIGHT10_H234 96.80 / 88.85 / 80.67 dB (post-hoc; was 98.30 / 89.76 / 79.19) |
 | Q58 | **Phase 79 — CYL2D** (§8w; 2026-10-28) | `case_error_summary`, `cyl2d.jl`, CYL2D_WEYL | Q57 | **done 2026-10-28**: information rows leave the pass count; refinement fixed (79b); CYL2D_GRID_CONV (NY 10 within 4.9 % of NY 60); Weyl + surface term 4/5; production NY = 10 kept (decided 2026-10-28) |
 | Q57 | **Phase 78 — structural modes** (§8v; 2026-10-28) | `mrp_appd.jl`, MRP_APPD criterion, map | Q53 | **done 2026-10-28**: App. D solver fixes J1–J6; MRP_APPD not met 2/32 (class I, floor stiffener model undocumented); MRP_D1/MRP_RITZ off the map |
 | Q56 | **Phase 77 — POLAR_FIDELITY as an equivalent angle** (§8u; 2026-10-28) | `src/validation_case_iso67.jl`, figure | Q52 | **done 2026-10-28**: Δα shown next to Δc_l, display only |
@@ -2570,3 +2571,26 @@ App. A item 2) is Phase 108's held-out test on the H1/H5 pairs, which this phase
 subtracted (post-hoc, not adopted) 94.60 / 87.44 / 83.89. All post-hoc: run 10's levels were seen in Phase 102.
 
 **Planned.** Phases 104–110 (`IMPLEMENTATION_PLAN.md` §8at–§8az, queue Q84–Q90).
+
+## 8at. Phase 104 — run 10's field angle as printed (done 2026-10-30)
+
+*(Done 2026-10-30; author: "Yes, run Phase 104"; moved to the bottom 2026-10-30. Planned 2026-10-30 from the Phase 103 diagnosis, `validation_reports/phase103_run10_h4_diagnosis.md`, finding D1; author: "create phases for fix
+dont implement any fixes just yet".)* Code-on-code fix of the input of a NASA run: no criterion is involved and nothing
+is fitted. Phase 102's plan said "θ as printed"; `r172428_flight10_field()` used 180° − θ instead, which puts the
+propeller 15° above the horizontal instead of 15° below.
+
+**Evidence (documents, not levels).** User Manual card 36 (φ between the vertical and the propeller line; θ₀ = 0 at the
+bottom centreline everywhere in PAIN) and the card 37 note (the field is input on "the upper quarter of the fuselage
+skin"); CR-172428 App. A item 5 (`LU = L+9`: the deck's ℓ = 1…10 are grid lines 10…19, from the propeller line up); the
+deck's printed field cards (p. 229: k = 1, ℓ = 1, 2) carry the phases printed at L = 10 and 11 (`appD_run10_deck_field.csv`);
+App. B's printed θ is read from the bottom (Phase 44).
+
+**Steps.** (a) `r172428_flight10_field()`: θ = −15° + 10°(L − 1) from the bottom centreline; `r172428_flight10_inputs()`:
+`PropellerPlacement(2.35, 75.0, 1.12)`. (b) The header of `appD_run10_H{2,3,4}.csv` says the printed θ is from the bottom
+centreline (values unchanged). (c) Unit test (verification, no verdict): for the six printed deck cards with H = 2–4,
+the printed phase at L = 9 + ℓ equals the deck phase within 0.1°, and the printed level exceeds the deck's free field
+(rms) by 3.8–4.1 dB (App. A item 3: at most 20 log₁₀(0.8 × 10^0.3) = 4.06 dB); θ of L = 10 is 75°. (d) Re-run
+FLIGHT10_H234 (diagnostic; post-hoc, since Phase 103 showed 96.80 / 88.85 / 80.67 dB); Phase 102's record stays.
+(e) Five docs.
+
+**Result (2026-10-30).** Done. `r172428_flight10_field()` reads θ as printed (−15° + 10°(L − 1) from the bottom centreline) and the propeller sits at 75°; the data headers say so. Unit test (phase 104): the six deck cards land on L = 9 + ℓ with the printed phase (within 0.1°) and 3.9–4.0 dB above the deck's free field. FLIGHT10_H234 re-run (diagnostic, post-hoc): as shipped 96.80 / 88.85 / 80.67 dB, trim per band 97.14 / 88.87 / 80.64 dB, PAIN 96.59 / 88.06 / 83.92 dB (+0.21 / +0.79 / −3.25 as shipped); the trim per band is still closer at 0/3. Phase 102's recorded 98.30 / 89.76 / 79.19 dB stays on record.

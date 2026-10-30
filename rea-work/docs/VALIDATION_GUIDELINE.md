@@ -3425,7 +3425,7 @@ Outputs: f_r [Hz], generalized mass [kg].
 **Why it is here:** The flight tones lie off band centres, so they test whether PAIN takes the trim per band (diagnostic).
 **A pass means:** No verdict (FLIGHT_MODES not met); per tone, which form is closer to PAIN's printed level is recorded.
 **Not covered:** H1 and H5; the mode list of NASA's file (lowest 400 used); CYL2D at NY = 11 (assumption).
-**Recorded outcome:** no verdict (2026-10-30): as shipped 98.30 / 89.76 / 79.19 dB, trim per band 98.68 / 89.77 / 79.17 dB, PAIN 96.59 / 88.06 / 83.92 dB; the trim per band is closer at 0/3 (not supported).
+**Recorded outcome:** no verdict (2026-10-30): as shipped 98.30 / 89.76 / 79.19 dB, trim per band 98.68 / 89.77 / 79.17 dB, PAIN 96.59 / 88.06 / 83.92 dB; the trim per band is closer at 0/3 (not supported). **Re-run after Phase 104 (2026-10-30, post-hoc; θ as printed, from the bottom):** as shipped 96.80 / 88.85 / 80.67 dB, trim per band 97.14 / 88.87 / 80.64 dB; still 0/3.
 **Explanation:** `r172428_flight10_inputs()` and `_run_flight10_h234` in `validation_case_iso102.jl`.
 Inputs: `data/cr172428/appD_run10_H{2,3,4}.csv`, `merlin_mrp_deck()`, App. D deck values.
 Equations: Eq. (8).
@@ -3666,6 +3666,13 @@ are transcribed or computed:
   larger), with the 2-D part at 341 m/s and the axial part at 343 m/s. Met if all are.
 - **H_pre** (diagnostic; Phase 108): the 10 H1/H5 printed η_r″ of run 10; supported if ≥ 7/10 lie within [0.4, 2.5]×
   NASA's with the floor term subtracted and more than with it added; refuted in the mirror case; otherwise undecided.
+
+## 2.33 Phase 104: run 10's field angle as printed (2026-10-30)
+
+Code-on-code fix of a NASA run's input (Phase 103, D1): run 10's printed θ is read from the bottom centreline and the
+propeller sits at 75°. The deck's six printed H2–H4 field cards land on L = 9 + ℓ with the printed phase and 3.9–4.0 dB
+above the free field (App. A item 3), a unit test. FLIGHT10_H234 (no verdict) re-run post-hoc: 96.80 / 88.85 / 80.67 dB
+against PAIN's 96.59 / 88.06 / 83.92 dB.
 
 ## 3. What “valid recreation” means for this project
 

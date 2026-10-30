@@ -1,6 +1,7 @@
 # NASA CR-172428 App. D (Pain Validation.pdf PDF p. 241, printed -231-): propeller field PAIN used in flight-test
 # run 10 (Merlin IVC, 4-blade Dowty Rotol, 1568 rpm), harmonic 2 (209.1 Hz); 16 axial (k) x 19 circumferential (L) points.
-# theta_print_deg = the printed THETA, measured from the vertical; the propeller line is at 75 deg (L = 10, peak level).
+# theta_print_deg = the printed THETA, measured from the bottom centreline (Phase 104, 2026-10-30; the deck's l = 1..10
+# are L = 10..19, CR-172428 App. A item 5); the propeller line is at 75 deg (L = 10, peak level).
 # z_m = printed axial location from the forward end of the fuselage (propeller plane 1.12 m, k = 8).
 # Transcribed 2026-10-30 (Phase 102): pass 1 RapidOCR (whole page and per cell, 300 dpi); pass 2 by eye from deskewed
 # 300 dpi crops of the full table; every cell where both OCR readings agreed with each other but not with the eye reading

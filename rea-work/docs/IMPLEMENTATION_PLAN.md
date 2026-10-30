@@ -240,7 +240,6 @@ or the other documents points there. When a phase is done, mark it done and move
 
 | Q | Item | Kind | Prerequisite | Output |
 |---|------|------|--------------|--------|
-| Q84 | **Phase 104 — run 10's field angle as printed** (§8at) [CONFIRM] | code fix (input of a NASA run) | Phase 103 | `r172428_flight10_field` θ from the bottom, propeller at 75°; deck-card unit test; FLIGHT10_H234 re-run (post-hoc) |
 | Q85 | **Phase 105 — CYL2D's grid rule at any floor angle** (§8au) [CONFIRM] | code fix + held-out P test | Phase 103 | node rule r ≤ 1 + 0.45h, NY = 10 else the next grid that solves; CYL2D_PRINTED on the 62.6° and 73.7° lists |
 | Q86 | **Phase 106 — cabin-mode frequency: CYL2D's 2-D part at 341 m/s** (§8av) [CONFIRM] [AUTHOR: baselines] | code fix + held-out P test | Phase 103 | `cabin_frequency_3d` 2-D part at 341 m/s, axial at card 2's c; CABIN_FREQ_PRINTED on App. B's 48 printed modes; knock-on re-runs |
 | Q87 | **Phase 107 — MRPMOD's 5 shell / 3 floor terms on the solver path** (§8aw) [CONFIRM] | code fix | Phase 103 | `appd_modes` keeps 5 / 3 terms; unit test against Table D-1's sets; knock-on re-runs |
@@ -290,27 +289,6 @@ The diagram matches the code (phases 21–22 done 2026-10-21): `propeller_ccblad
 | Driver | `scripts/run/run_pain.jl` |
 
 ---
-
-## 8at. Phase 104 — run 10's field angle as printed (planned 2026-10-30) [CONFIRM]
-
-*(Planned 2026-10-30 from the Phase 103 diagnosis, `validation_reports/phase103_run10_h4_diagnosis.md`, finding D1; author: "create phases for fix
-dont implement any fixes just yet".)* Code-on-code fix of the input of a NASA run: no criterion is involved and nothing
-is fitted. Phase 102's plan said "θ as printed"; `r172428_flight10_field()` used 180° − θ instead, which puts the
-propeller 15° above the horizontal instead of 15° below.
-
-**Evidence (documents, not levels).** User Manual card 36 (φ between the vertical and the propeller line; θ₀ = 0 at the
-bottom centreline everywhere in PAIN) and the card 37 note (the field is input on "the upper quarter of the fuselage
-skin"); CR-172428 App. A item 5 (`LU = L+9`: the deck's ℓ = 1…10 are grid lines 10…19, from the propeller line up); the
-deck's printed field cards (p. 229: k = 1, ℓ = 1, 2) carry the phases printed at L = 10 and 11 (`appD_run10_deck_field.csv`);
-App. B's printed θ is read from the bottom (Phase 44).
-
-**Steps.** (a) `r172428_flight10_field()`: θ = −15° + 10°(L − 1) from the bottom centreline; `r172428_flight10_inputs()`:
-`PropellerPlacement(2.35, 75.0, 1.12)`. (b) The header of `appD_run10_H{2,3,4}.csv` says the printed θ is from the bottom
-centreline (values unchanged). (c) Unit test (verification, no verdict): for the six printed deck cards with H = 2–4,
-the printed phase at L = 9 + ℓ equals the deck phase within 0.1°, and the printed level exceeds the deck's free field
-(rms) by 3.8–4.1 dB (App. A item 3: at most 20 log₁₀(0.8 × 10^0.3) = 4.06 dB); θ of L = 10 is 75°. (d) Re-run
-FLIGHT10_H234 (diagnostic; post-hoc, since Phase 103 showed 96.80 / 88.85 / 80.67 dB); Phase 102's record stays.
-(e) Five docs.
 
 ## 8au. Phase 105 — CYL2D's grid rule at any floor angle (planned 2026-10-30) [CONFIRM]
 

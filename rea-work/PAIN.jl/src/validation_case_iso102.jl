@@ -14,7 +14,9 @@ const FLIGHT10_BPF_Hz = 1568.0 * 4 / 60
     r172428_flight10_field() -> (; amps, phases, pts)
 
 Run 10's field on the 16 × 19 grid (App. D pp. 231–233; H2–H4 only, H1 and H5 are cut off in the scan and left at
-zero). θ from the bottom centreline = 180° − the printed θ (printed from the vertical; propeller line 75°).
+zero). θ as printed, from the bottom centreline: −15° + 10°(L − 1), propeller line 75° at L = 10 (Phase 104: the deck's
+ℓ = 1…10 are grid lines L = 10…19, CR-172428 App. A item 5, the "upper quarter" of User Manual card 37; Phase 102 used
+180° − θ, which put the propeller 15° above the horizontal instead of 15° below).
 """
 function r172428_flight10_field()
     amps = zeros(16, 19, 4); phases = zeros(16, 19, 4); zs = zeros(16)
@@ -27,7 +29,7 @@ function r172428_flight10_field()
             phases[k, L, H] = deg2rad(c[:phase_deg][i])
         end
     end
-    pts = [(; k, ell=L, x1=NaN, x2=NaN, x3=1.12 - zs[k], theta_deg=180.0 - (-15.0 + 10.0 * (L - 1)),
+    pts = [(; k, ell=L, x1=NaN, x2=NaN, x3=1.12 - zs[k], theta_deg=-15.0 + 10.0 * (L - 1),
              alpha_deg=abs(-15.0 + 10.0 * (L - 1) - 75.0), z=zs[k]) for k in 1:16 for L in 1:19]
     return (; amps, phases, pts)
 end
@@ -44,7 +46,7 @@ eigenvalues at 50°; the nearest grid that solves, chosen before any level was c
 """
 function r172428_flight10_inputs(; trim_band_centre::Bool=false)
     fuse = FuselageGeometry(9.27, 0.84, 50.0)
-    prop = PropellerPlacement(2.35, 105.0, 1.12)
+    prop = PropellerPlacement(2.35, 75.0, 1.12)        # card 36: 75° from the bottom vertical (Phase 104)
     f = r172428_flight10_field()
     side = TrimStack(TrimElement[InsulationLayer(0.055, pf105_deck_table()), LimpMass(1.95, 2.0)], "Merlin IVC sidewall trim")
     ends = TrimStack(TrimElement[InsulationLayer(0.0, pf105_deck_table()), LimpMass(0.0, 1.0)], "no end-cap trim")
