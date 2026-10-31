@@ -18,6 +18,142 @@ ApplicationWindow {
     readonly property color warn: "#8a4b08"
     readonly property color border: "#d5dbe3"
 
+
+    // Phase 114 - run-status box. Every Run button gets one, so the user can tell which of five things the panel
+    // is showing: nothing run yet, a result recorded earlier and read from disk, a run in progress, a result this
+    // session just computed, or one that is out of date because an input moved since. runState comes from Julia
+    // (the *_state Observables); STALE is decided here, by comparing the inputs now on screen with the ones the
+    // run actually used.
+    component RunStatusBox: Frame {
+        id: rsb
+        property string runState: "ready"      // ready | snapshot | running | done | error
+        property string statusText: ""
+        property string logText: ""
+        property string signature: ""          // the inputs this panel would run with, as one string
+        property string pendingSignature: ""
+        property string ranSignature: ""
+        property bool expanded: false
+        readonly property bool stale: runState === "done" && signature !== ranSignature
+        readonly property string shownState: stale ? "stale" : runState
+
+        function stateColor(st) {
+            if (st === "running") return "#0b5fa5"
+            if (st === "done") return root.accent
+            if (st === "stale" || st === "snapshot") return root.warn
+            if (st === "error") return "#a32015"
+            return root.muted
+        }
+        function stateLabel(st) {
+            if (st === "running") return "GENERATING"
+            if (st === "done") return "FRESH"
+            if (st === "stale") return "STALE"
+            if (st === "snapshot") return "RECORDED"
+            if (st === "error") return "ERROR"
+            return "READY"
+        }
+        function stateHint(st) {
+            if (st === "running") return "Running now. Each step appears below as it finishes."
+            if (st === "done") return "Generated in this session, from the inputs now on screen."
+            if (st === "stale") return "An input changed since this result was generated, so what you see is out of date. Press Run to regenerate it."
+            if (st === "snapshot") return "Read from disk - recorded earlier, not run in this session. Press Run to compute it now."
+            if (st === "error") return "The run stopped before it finished. The reason is in the log below."
+            return "Nothing has been run in this session yet."
+        }
+
+        onRunStateChanged: {
+            if (runState === "running") {
+                pendingSignature = signature
+                expanded = true
+            } else if (runState === "done") {
+                ranSignature = pendingSignature
+            }
+        }
+
+        Layout.fillWidth: true
+        padding: 8
+
+        ColumnLayout {
+            anchors.fill: parent
+            spacing: 6
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 8
+
+                Rectangle {
+                    radius: 3
+                    color: rsb.stateColor(rsb.shownState)
+                    implicitWidth: rsbPill.implicitWidth + 12
+                    implicitHeight: rsbPill.implicitHeight + 6
+                    Text {
+                        id: rsbPill
+                        anchors.centerIn: parent
+                        text: rsb.stateLabel(rsb.shownState)
+                        color: "#ffffff"
+                        font.pixelSize: 10
+                        font.bold: true
+                    }
+                }
+
+                BusyIndicator {
+                    running: rsb.runState === "running"
+                    visible: running
+                    implicitWidth: 18
+                    implicitHeight: 18
+                }
+
+                Text {
+                    Layout.fillWidth: true
+                    text: rsb.statusText
+                    color: root.ink
+                    font.pixelSize: 12
+                    // Wrap like the plain status line this box replaced; a very long reason still elides.
+                    wrapMode: Text.WordWrap
+                    maximumLineCount: 3
+                    elide: Text.ElideRight
+                }
+
+                Button {
+                    text: rsb.expanded ? "Hide log" : "Show log"
+                    flat: true
+                    font.pixelSize: 11
+                    onClicked: rsb.expanded = !rsb.expanded
+                }
+            }
+
+            Text {
+                Layout.fillWidth: true
+                text: rsb.stateHint(rsb.shownState)
+                color: (rsb.shownState === "stale" || rsb.shownState === "error") ? root.warn : root.muted
+                font.pixelSize: 11
+                wrapMode: Text.WordWrap
+            }
+
+            ScrollView {
+                visible: rsb.expanded && rsb.logText.length > 0
+                Layout.fillWidth: true
+                Layout.preferredHeight: 110
+                clip: true
+                TextArea {
+                    readOnly: true
+                    text: rsb.logText
+                    font.family: "Consolas"
+                    font.pixelSize: 11
+                    wrapMode: TextArea.NoWrap
+                    onTextChanged: cursorPosition = length
+                }
+            }
+        }
+    }
+
+    // The inputs the Run tab and the printed-output tab would run with; a change here makes their result stale.
+    function pipelineSignature() {
+        return [pain.source, pain.blocking, pain.L, pain.a, pain.theta0_deg, pain.r_p, pain.phi_p_deg, pain.z_p,
+                pain.n_harmonics, pain.bpf_Hz, pain.C_struc, pain.eta_n_bare, pain.trim, pain.aircraft_json,
+                pain.rho0, pain.c0, pain.rho_ext, pain.rho_int, pain.c_ext, pain.c_int, pain.L_c, pain.d_cavity,
+                pain.rotation_direction, pain.bands_Hz, pain.eta_r_band, pain.eta_n_band].join("|")
+    }
+
     function isExtrapolated() {
         return pain.validity_tag === "X-EXTRAP"
     }
@@ -269,7 +405,42 @@ ApplicationWindow {
         }
     }
 
+    // Phase 114 smoke: open the Validation tab, run one case, and save a shot of the window so the run-status
+    // box (pill, hint and verbose log) is checked as it is drawn, not only as Observables.
+    Timer {
+        interval: 300
+        running: String(pain.smoke_runbox_png || "").length > 0
+        repeat: false
+        onTriggered: {
+            tabs.currentIndex = 1
+            Julia.select_validation_case_from_qml("BLK_P68")
+            Julia.run_validation_from_qml("BLK_P68")
+        }
+    }
+    Timer {
+        property real elapsedMs: 0
+        property bool shotTaken: false
+        interval: 250
+        running: String(pain.smoke_runbox_png || "").length > 0
+        repeat: true
+        onTriggered: {
+            elapsedMs += interval
+            if (shotTaken) return
+            var st = String(pain.val_status || "")
+            if ((!pain.busy && st.indexOf("Done") === 0) || elapsedMs >= 90000) {
+                shotTaken = true
+                mainColumn.grabToImage(function (result) {
+                    result.saveToFile(String(pain.smoke_runbox_png))
+                    console.log("RUN_STATUS_BOX saved:", String(pain.smoke_runbox_png))
+                    Julia.mark_gui_closed_from_qml()
+                    Qt.quit()
+                })
+            }
+        }
+    }
+
     ColumnLayout {
+        id: mainColumn
         anchors.fill: parent
         anchors.margins: 16
         spacing: 12
@@ -498,12 +669,11 @@ ApplicationWindow {
                         anchors.margins: 12
                         spacing: 8
 
-                        Text {
-                            text: pain.status
-                            wrapMode: Text.WordWrap
-                            Layout.fillWidth: true
-                            color: root.ink
-                            font.pixelSize: 13
+                        RunStatusBox {
+                            runState: pain.run_state
+                            statusText: pain.status
+                            logText: pain.run_log
+                            signature: root.pipelineSignature()
                         }
 
                         RowLayout {
@@ -684,12 +854,11 @@ ApplicationWindow {
                             width: valDetailScroll.availableWidth
                             spacing: 8
 
-                            Text {
-                                text: pain.val_status
-                                wrapMode: Text.WordWrap
-                                Layout.fillWidth: true
-                                color: root.ink
-                                font.pixelSize: 13
+                            RunStatusBox {
+                                runState: pain.val_state
+                                statusText: pain.val_status
+                                logText: pain.val_log
+                                signature: pain.val_selected
                             }
                             Text {
                                 text: (root.valInfo && root.valInfo.title)
@@ -1533,6 +1702,14 @@ ApplicationWindow {
                                 }
                             }
 
+                            RunStatusBox {
+                                visible: !!(root.mapDetail && root.mapDetail.detail_kind !== "block")
+                                runState: pain.val_state
+                                statusText: pain.val_status
+                                logText: pain.val_log
+                                signature: pain.map_selected
+                            }
+
                             Text {
                                 text: "Code vs figure"
                                 font.bold: true
@@ -1651,12 +1828,11 @@ ApplicationWindow {
                         anchors.fill: parent
                         anchors.margins: 12
                         spacing: 8
-                        Text {
-                            text: "Status: " + pain.po_status
-                            color: root.muted
-                            font.pixelSize: 12
-                            wrapMode: Text.WordWrap
-                            Layout.fillWidth: true
+                        RunStatusBox {
+                            runState: pain.po_state
+                            statusText: pain.po_status
+                            logText: pain.po_log
+                            signature: root.pipelineSignature()
                         }
                         ScrollView {
                             Layout.fillWidth: true
@@ -1756,6 +1932,13 @@ ApplicationWindow {
                             onClicked: Julia.run_cabin_modes_from_qml()
                         }
                     }
+                }
+
+                RunStatusBox {
+                    runState: pain.cm_state
+                    statusText: pain.cm_status
+                    logText: pain.cm_log
+                    signature: [pain.cm_mode, pain.cm_q, pain.cm_nframes, pain.cm_struct_mode].join("|")
                 }
 
                 Timer {

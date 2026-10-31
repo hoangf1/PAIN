@@ -80,7 +80,7 @@ PAIN.select_map_block_from_qml("A_GEO")
 bdet = JSON3.read(obs["map_detail_json"][])
 @assert String(bdet.detail_kind) == "block"
 @assert String(bdet.id) == "A_GEO"
-@assert occursin("Aircraft BEMT+F1A", String(bdet.group_title))
+@assert occursin("Airfoil BEMT+F1A", String(bdet.group_title))
 # Task F2 — case_info_json from §2.13
 blk = JSON3.read(case_info_json("BLK_P68"))
 @assert occursin("R2", String(blk.explanation)) "BLK_P68 explanation must mention R2"

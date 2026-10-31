@@ -20,3 +20,6 @@ rea-work/data/_scratch/
 *.pyc
 .ipynb_checkpoints/
 rea-work/PAIN.jl/gui/cache/
+
+# Generated methodology website (rea-work/site/build_site.jl)
+rea-work/site/out/

@@ -2679,7 +2679,7 @@ _run_if("Validation case registry (34d)") do
     @test "NR_BAND_HAND" in only(b for b in total.blocks if b.id == "P_EQ8").cases
     @test "HF_MASSLAW" in only(b for b in total.blocks if b.id == "P_EQ8").cases
     air = only(b for b in total.blocks if b.id == "A_GEO")
-    @test air.group_title == "Aircraft BEMT+F1A"
+    @test air.group_title == "Airfoil BEMT+F1A"
     @test air.role == "input"
     # Feeds targets exist; layout positions present; no empty-role pipeline without group
     ids = Set(b.id for b in total.blocks)

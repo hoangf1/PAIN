@@ -16,7 +16,7 @@ check it, and which registered cases do the checking.
 
 | # | Part | Content | Rule |
 |---|------|---------|------|
-| 1 | **Chunk name** | The map group title, e.g. *Aircraft BEMT+F1A*. State in one sentence why the chunk is split into several checks (no source covers the whole chain). | Same name as the map group |
+| 1 | **Chunk name** | The map group title, e.g. *Airfoil BEMT+F1A*. State in one sentence why the chunk is split into several checks (no source covers the whole chain). | Same name as the map group |
 | 2 | **High-level function** | One bullet per tool or sub-model: *Tool (method) does X.* | Name the tool and the method; no equations |
 | 3 | **Chain** | One line of blocks in order, inputs first: `Input -> Block -> Block -> Output`. | Block names equal the map block titles |
 | 4 | **Inputs and outputs per block** | A table with one row per block: *Block / Inputs / Outputs*. | Every output named here is an input of the next row, or a chunk output |
@@ -76,7 +76,7 @@ check it, and which registered cases do the checking.
 | Chunk | `METHODOLOGY.md` | Structure applied |
 |-------|------------------|-------------------|
 | 1a Free field, NASA measured data, and the 160-point grid | §2.2 | **done** |
-| 1b Aircraft BEMT+F1A | §2.3 | **done** |
+| 1b Airfoil BEMT+F1A | §2.3 | **done** |
 | 2 Blocking | §3 | **done** |
 | 3 Cabin acoustic modes (CYL2D) | §4 | **done** |
 | 4 Structural modes (MRP) | §5 | **done** |
