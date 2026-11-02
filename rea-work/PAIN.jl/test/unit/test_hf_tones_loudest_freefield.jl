@@ -109,3 +109,12 @@ end
     @test_throws ErrorException PAIN.freefield_from_e11_csv(p.A, p.phases, fuse, prop; grid_fill=:bad)
     @test_throws ErrorException PAIN.freefield_from_e11_csv(p.A, p.phases, fuse, prop; grid_fill=:f1a_relative)
 end
+@testset "CR-3813 tone form and the pre-correction program (Phases 93, 99)" begin
+    inp = PAIN._with_fields(PAIN.r172428_inputs(4000); floor_sign=1.0, η_r_trimmed_area=true, q0_coupled=false,
+                            η_n_per_mode=true, η_n_band_omega=false, m_wall=3.0)
+    t = PAIN._cr3813_tone_form(inp)
+    @test t.q0_coupled && !t.η_n_per_mode
+    @test t.floor_sign == 1.0 && t.η_r_trimmed_area && !t.η_n_band_omega && t.m_wall == 3.0   # other choices kept
+    p = PAIN._pre_correction_form(inp)
+    @test p.floor_sign == -1.0 && !p.η_r_trimmed_area && p.q0_coupled && !p.η_n_per_mode && p.m_wall == 3.0
+end

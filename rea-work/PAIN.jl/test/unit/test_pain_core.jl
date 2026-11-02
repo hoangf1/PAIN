@@ -188,3 +188,20 @@ end
     @test PAIN.acoustic_N_per_mode(old, ac, 0, ωn; V) ≈ PAIN.acoustic_N(old, ac, 0, ωn / 2π, ωn; ξ, ξ_e=ξe, V) rtol = 1e-12
     @test PAIN.acoustic_N_per_mode(inp, inp.acoustic.modes[1], 0, 0.0; V) == 0.0     # rigid mode: N = η ω_n² = 0
 end
+@testset "nominal band centre, trim at the band centre, tone N (Phases 93–99)" begin
+    @test PAIN.nominal_band_centre(1000.0) == 1000.0 && PAIN.nominal_band_centre(1584.9) == 1600.0   # ISO 266 nominal values
+    @test PAIN.nominal_band_centre(1110.0) == 1000.0 && PAIN.nominal_band_centre(1125.0) == 1250.0   # edge √(1000·1250) = 1118 Hz
+    @test PAIN.nominal_band_centre(62) == 63.0 && PAIN.nominal_band_centre(10.0) == 50.0 && PAIN.nominal_band_centre(2e4) == 1e4
+    inp = PAIN.r172428_inputs(4000)
+    @test PAIN._trim_ω(inp, 2π * 1200) == 2π * 1200
+    @test PAIN._trim_ω(PAIN._with_fields(inp; trim_band_centre=true), 2π * 1200) ≈ 2π * 1250
+    ac = inp.acoustic.modes[3]; V = PAIN.cabin_volume(inp)
+    ωn = 2π * PAIN.cabin_frequency_3d(ac, inp.fuse.a, inp.L_c, 1; c0=inp.c_int)
+    ξ, ξe = 0.05, 0.002
+    tone = PAIN._with_fields(inp; η_n_per_mode=false)
+    N(i, f; s=ξ) = PAIN.tone_acoustic_N(i, ac, 1, f, ωn; ξ=s, ξ_e=ξe, V)
+    @test N(tone, 200.0) ≈ PAIN.acoustic_N(tone, ac, 1, 200.0, ωn; ξ, ξ_e=ξe, V) && N(tone, 400.0) ≈ 2N(tone, 200.0)   # at the tone: N ∝ ω
+    @test N(inp, 200.0) ≈ PAIN.acoustic_N_per_mode(inp, ac, 1, ωn; V) && N(inp, 400.0; s=2ξ) == N(inp, 200.0)          # per mode: no tone ω, ξ
+    bare = PAIN._with_fields(inp; sidewall=nothing, endplates=nothing, mech=nothing)
+    @test N(bare, 200.0) ≈ bare.η_n_bare * ωn^2                                        # bare cabin: η_n ω_n² whatever the flag
+end
