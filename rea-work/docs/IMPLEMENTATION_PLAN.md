@@ -241,6 +241,7 @@ or the other documents points there. When a phase is done, mark it done and move
 | Q | Item | Kind | Prerequisite | Output |
 |---|------|------|--------------|--------|
 | Q95 | **[AUTHOR] Eq. (43) past γ = 90°** — writing the walk-through (Phase 113) showed that 64 of the test article's 160 grid points have γ > 90°, where R1 applies the printed curve unclamped: F = 0.43 (−7.3 dB) at 100°, 0.0034 (−49.5 dB) at the grid's maximum 117.8°. R2's `max(1, 0.8F)` floor hides this; R1 has no floor. CR-3813 p. 31 presents Eq. (43) as a blocking (reflection) curve, so whether it is meant to attenuate behind the shadow line, or to be clamped at F = 1, is a reading of the source, not a code defect. **Nothing was changed.** Deciding it would move R1 results, so it needs the author and a criterion fixed before any run | question for the author | — | a decision, then (if it changes) a dated re-run of the R1 cases |
+| Q100 | **Phase 118 — input completeness, missing-input search, full-input misses, Q95, review checks** (§8bh; author 2026-11-02: "implement all four of these in my code") | validation rule, documents, code | Phase 117 | 15 cases off the map by the 118a rule, the 118b search record, the 118c table, R1 clamped past 90°, `CLAUDE.md` checks |
 | — | No other open item (2026-11-02); Phases 90–117 are done (112–116 merged from branch `heart`, numbered 100–104 there) | — | — | — |
 
 If a queue item is blocked on data, skip to the next unblocked item and say which data item blocks it.
@@ -260,6 +261,62 @@ The methodology website is built from the repository root, not from `PAIN.jl` (i
 cd C:\Users\FrancisHoang\git\PAIN
 julia --project=rea-work/PAIN.jl rea-work/site/build_site.jl
 ```
+
+## 8bh. Phase 118 — input completeness, missing-input search, the full-input misses, Q95, review checks (planned 2026-11-02; rule and per-case table fixed before any case is moved or re-run)
+
+*(Planned 2026-11-02; author: "implement all four of these in my code", answering the recommendation that followed the
+end-to-end audit.)* The audit found that the CR-3813 printed runs miss because inputs NASA never printed are filled by
+this code (E-11's off-line field by GEXT, an assumed exterior), not because of tolerances or code structure. Five parts.
+
+**118a. Input-completeness rule (fixed 2026-11-02, applied by kind to every case with a verdict, met and not met).**
+A case keeps a verdict only if every input that enters its compared quantity is (i) printed or measured in the source
+it is compared with or in the reports that source cites for its data (a P case: the PAIN run's own inputs; an E case:
+the experiment's measured or stated configuration), or (ii) computed by this code from inputs of kind (i). An input
+fails if the case supplies it by an assumed extension or fill of a measured field (GEXT, the F1A-relative fill), an
+assumed geometry or spectrum shape, an extrapolation beyond the measured range, or a stand-in from another article or
+figure. A failing input counts unless a recorded check shows it moves no compared value by more than a tenth of the
+case's tolerance. A modelling choice of the method under test (an E case's model) is not an input. A case that fails
+moves to `INFORMATION_ONLY_CASES` with the failing input named; its run, table and recorded outcome stay, and are never
+a pass. The 51 cases with a verdict (2026-10-30 snapshot), read from their runners:
+
+| Case | Failing input | Outcome |
+|---|---|---|
+| REPRO_18b, E18_TONES | PAIN's 160-point field for CR-3813's runs is not printed; the code uses E-11's ℓ = 1 line and GEXT off the line | moves |
+| T1, T1_MEAS_DAMPING, UNC_COVER | E-11 + GEXT off-line field (GEXT_BOUND: its variants flip T1) | moves |
+| T1_FROM_E12 | off-line field GEXT of the E-12 line | moves |
+| T1_F1A_FILL | off-line field filled from an F1A pattern of the assumed test-propeller blade (proprietary, CR-172428 p. 56) | moves |
+| T2_EQ19 | exterior broadband continuum assumed (S_pbl ∝ f⁻², anchored on the H3 tone of the E-11 + GEXT field) | moves |
+| T2_MEAS_EXT, T2_MEAS_EXT_BR | exterior at 1600 and 2000 Hz extrapolated from 1250 Hz with Fig. 14's slope (another rpm and figure) | moves |
+| T2_PRED_BB, PROP_BB_FIG14, PROP_BB_FIG17 | assumed blade (Report 996 planform scaled; the real blade is proprietary) | moves |
+| BBN_CIRC | assumed Aero Commander blade geometry | moves |
+| the other 36 | none: printed decks, App. B/C/D/E values, measured spectra of the same article, printed geometry | verdict kept |
+
+Kept with a note: POLAR_FIDELITY (verdict on held-out 16-312 only; 16-506/509 chose N_crit and carry none); the
+R996_FIG cases (loads scaled to the measured T and Q of the same tests, an experimental input); NR_PROP_TP2444* and
+E22_BR (Sharp-bridge mapping is the model under test; its inputs are CR-172428's Phase III trim); E21_E22_NR (80–160 Hz,
+where the end-plate allowance is assumed, are outside its criterion).
+
+**118b. Search for the missing inputs (criterion fixed 2026-11-02).** In the 18 reference PDFs in `rea-work/references`,
+look for: an off-line free or blocked field of the CR-3813 test article at 4000 rpm H1–H3; the field PAIN used for
+CR-3813's E-16/E-18 runs; the test propeller's blade geometry; the Aero Commander blade geometry; the test article's
+exterior broadband spectrum above 1250 Hz. An input counts as found only if it is printed (table or plot) for the same
+article, propeller, rpm and harmonic or band. A found input is used in a new dated phase with the case's criterion
+unchanged; nothing is re-run here.
+
+**118c. The full-input not-met cases, fewest points first.** For each case still not met after 118a, list the
+documented causes and which phase tested each; a cause that the documents name and no phase has tested is run once
+against the case's unchanged criterion, the run's form fixed before it. No criterion changes.
+
+**118d. Q95 — Eq. (43) past γ = 90° (decided from the documents).** CR-3813 p. 31: the amplitudes "are increased" by
+the empirical curve; CR-172428 p. 68 reads Eq. (43) as 6 dB at γ = 0 falling "finally to zero at 90°", and its 0.8
+change (p. 150) is described as a cap on the increase. Neither document gives the curve a meaning past 90°, where the
+printed formula turns into an attenuation (−49.5 dB at 117.8°). Decision: R1 = max(1, F(γ)), i.e. no change past 90°,
+as R2 already does. Below 90° nothing changes (F > 1 there; BLK_P68 must stay 6/6). Cases using R1 are re-run once
+after the change and their new outcomes recorded with this reason; the App. B and run 10 fields are PAIN's blocked
+fields as printed, so the CR-172428 cases do not apply Eq. (43) and must not move.
+
+**118e. Review checks restored to `CLAUDE.md`** without Cursor: diff review, unchanged criteria and data unless named,
+running the affected checks, tests that fail when the behaviour is wrong, labels, `/code-review` before commit.
 
 ---
 
