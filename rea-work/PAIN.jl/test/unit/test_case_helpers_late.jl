@@ -46,7 +46,12 @@ end
     lv = PAIN._r172428_levels()
     @test length(lv) == 3 * length(rpms)
     r1 = first(lv)
-    @test r1.ours ≈ PAIN.interior_spl(PAIN.r172428_inputs(r1.rpm); bpf_Hz=3 * r1.rpm / 60, n_harmonics=3).harmonic_SPL_dB[r1.H]
+    @test (r1.rpm, r1.H, r1.nasa, r1.measured) == (3000, 1, 63.3, 81.0)          # App. B / Table 10 and Table 5, as transcribed
+    # the levels are the tone sum as CR-3813 prints it (R172428_CODE, Phase 93), not the code's default form (Phases 93–96)
+    inp = PAIN.r172428_inputs(r1.rpm)
+    spl(i) = PAIN.interior_spl(i; bpf_Hz=3 * r1.rpm / 60, n_harmonics=3).harmonic_SPL_dB[r1.H]
+    @test r1.ours ≈ spl(PAIN._with_fields(inp; q0_coupled=true, η_n_per_mode=false, η_n_band_omega=true))
+    @test abs(r1.ours - spl(inp)) > 1                                                # the pin matters: the default form differs
 end
 @testset "iso47/48/50: narrowband → 1/3-octave, propeller-field NR" begin
     fq = collect(0.0:5.0:3000.0)
@@ -111,4 +116,75 @@ end
     @test length(d["free_space"]) == 11 && length(d["flat_wall"]) == 5 && length(d["circular_wall"]) == 5
     @test PAIN._r996_fig10_gamma_deg(0.0) == 0.0
     @test PAIN._r996_fig10_gamma_deg(-0.25) ≈ rad2deg(atan(0.25 / 0.583)) && PAIN._r996_fig10_gamma_deg(0.25) == PAIN._r996_fig10_gamma_deg(-0.25)
+end
+@testset "iso92/94: App. B printed pairs, pair terms, Table 12" begin
+    @test abs(PAIN._dB_re20μPa(4e-10)) < 1e-12 && PAIN._dB_re20μPa(4e-8) ≈ 20
+    pp = PAIN._appb_printed_pairs()
+    @test length(pp) == 25 && count(r -> r.rpm == 4000, pp) == 15                   # 5 pairs at 4000 rpm H1–H3, 5000 rpm H1–H2
+    @test pp[1] == (rpm=4000, H=1, Q=2, I=0, st=13, η_r_hash=0.0, p2=1.5586e-2)        # p. 207, first row
+    on = PAIN._r172428_pair_terms(4000, 1); off = PAIN._r172428_pair_terms(4000, 1; q0_coupled=false)
+    @test any(t -> t.q == 0 && t.p2 > 0, on) && all(t -> t.q != 0 || t.p2 == 0, off)  # Eq. (57) q = 0 coupling switch
+    t12 = PAIN._r172428_table12()
+    @test length(t12[:rpm]) == 12 && (t12[:rpm][1], t12[:H][1], t12[:nasa_pred_dB][1], t12[:measured_dB][1]) == (3000, 1, 62.1, 81.0)
+end
+@testset "iso96/99: η_n band-centre rule, pre-correction band form" begin
+    inp = PAIN.r172428_inputs(4000); V = PAIN.cabin_volume(inp)
+    ac = PAIN._acmode_by_I(inp, 1)
+    ωn = 2π * PAIN.cabin_frequency_3d(ac, inp.fuse.a, inp.L_c, 1; c0=inp.c_int, c2d=inp.c_cyl2d)
+    fc = max(100.0, PAIN.nominal_band_centre(ωn / 2π))
+    ξ = PAIN.trim_conductance(inp.sidewall, 2π * fc, inp.m_wall; ρ0=inp.ρ_int, c0=inp.c_int)
+    ξe = PAIN.trim_conductance(inp.endplates, 2π * fc, Inf; ρ0=inp.ρ_int, c0=inp.c_int)
+    tr(s, e) = Dict(:f_Hz => [fc], :side_adm_re => [s], :end_adm_re => [e])
+    η(s, e) = PAIN._eta_n_nasa_admittance(inp, ac, 1, tr(s, e); V)
+    @test η(ξ, ξe) ≈ PAIN._eta_n_default(inp, ac, 1; V) rtol = 1e-12                  # same admittance → same η_n
+    @test η(0.0, 0.0) == 0 && η(2ξ, 0.0) ≈ 2η(ξ, 0.0) && η(ξ, ξe) > η(ξ, 0.0)         # Eq. (77) linear in ξ, ξ_e
+    b = PAIN._pre_correction_band(PAIN._with_fields(inp; floor_sign=1.0, η_r_trimmed_area=true, η_n_per_mode=false,
+                                                    η_n_band_omega=false))
+    @test b.floor_sign == -1.0 && !b.η_r_trimmed_area && b.q0_coupled && b.η_n_per_mode && b.η_n_band_omega
+end
+@testset "iso100/101: App. D PF-105 admittances, Merlin MRP deck, App. C mode list, mass parts" begin
+    dk = PAIN._appb_admittance_rows(:deck); fg = PAIN._appb_admittance_rows(:fig_a2)
+    @test length(dk) == 4 * 21 && first(dk).f == 50 && length(fg) == 4 * 18 && first(fg).f == 100   # Fig. A-2 starts at 100 Hz
+    @test dk[1].q == "sidewall Re β" && dk[1].nasa == 0.073537 && dk[4].q == "end-cap Im β" && dk[4].nasa == -0.017163  # p. 197
+    inp = PAIN.r172428_inputs(4000; insulation=:deck)
+    @test dk[1].ours ≈ real(PAIN.trim_admittance(inp.sidewall, 2π * 50, inp.m_wall; ρ0=inp.ρ_int, c0=inp.c_int))
+    @test dk[1].rel ≈ dk[1].ours / dk[1].nasa - 1
+    g = PAIN.merlin_mrp_deck()                                                        # App. C pp. 204–205
+    @test (g.L, g.a, g.theta0_deg, g.t_shell, g.m_shell, g.m_floor) == (9.27, 0.84, 50.0, 0.00164, 4.54, 13.66)
+    @test g.Dp_stringers == 2712.0 && g.Dp_floor_beams == 1.57e5
+    c = PAIN._appc_mode_rows("appC_merlin_structural_modes.csv")
+    @test length(c.mode) == 221 && (c.mode[1], c.f_Hz[1], c.types[1], c.M[1], c.M_total_kg[1]) == (1, 39.60, "S", 1, 137.89)
+    @test c.types[2] == "A" && c.f_Hz[2] == 56.82
+    # ψ_s = cos 2θ (∫ψ² dθ = π) and a uniform floor (ψ_p = 1), then a cos(πx/L_p) floor (mean square ½)
+    Lp = 2 * 0.84 * sind(50)
+    m1 = PAIN._mode_mass_parts(PAIN.StructuralMode(1, 100.0, true, 1.0, 1, [1.0], [2], [1.0], [0]), g)
+    @test m1.shell ≈ 4.54 * π * 0.84 * 9.27 / 2 rtol = 1e-6
+    @test m1.plate ≈ 13.66 * Lp * 9.27 / 2 rtol = 1e-9
+    m2 = PAIN._mode_mass_parts(PAIN.StructuralMode(1, 100.0, true, 1.0, 1, Float64[], Int[], [1.0], [1]), g)
+    @test m2.shell == 0
+    @test m2.plate ≈ m1.plate / 2 rtol = 1e-6
+end
+@testset "iso102/105/108: flight run 10 field and inputs, printed 2-D lists, run 10 pair η_r″" begin
+    f = PAIN.r172428_flight10_field()
+    @test size(f.amps) == (16, 19, 4) && all(iszero, f.amps[:, :, 1])               # H1 cut off in the scan
+    @test f.amps[1, 1, 2] ≈ sqrt(2) * 20e-6 * 10^(108.9 / 20) && f.phases[1, 1, 2] ≈ deg2rad(-150.3)   # App. D p. 231, L 1, k 1
+    p1 = f.pts[1]; p10 = f.pts[10]
+    @test (p1.k, p1.ell, p1.theta_deg, p1.alpha_deg) == (1, 1, -15.0, 90.0) && p1.x3 ≈ 1.12 - 0.094
+    @test (p10.ell, p10.theta_deg, p10.alpha_deg) == (10, 75.0, 0.0)                 # propeller line at L = 10
+    inp = PAIN.r172428_flight10_inputs()
+    @test (inp.fuse.L, inp.fuse.a, inp.fuse.theta0_deg, inp.m_wall, inp.L_c) == (9.27, 0.84, 50.0, 4.54, 7.89)
+    @test (inp.ρ_ext, inp.c_ext, inp.ρ_int, inp.c_int) == (1.1012, 334.08, 1.204, 343.0)
+    @test inp.floor_sign == -1.0 && !inp.trim_band_centre && length(inp.acoustic.modes) == 20
+    alt = PAIN._with_fields(inp; floor_sign=1.0)
+    k = PAIN.r172428_flight10_inputs(; trim_band_centre=true, floor_sign=1.0)
+    @test k.trim_band_centre && k.floor_sign == 1.0
+    a = PAIN._run10_pair_eta(inp, 2, 4, 3, 39); b = PAIN._run10_pair_eta(alt, 2, 4, 3, 39)   # App. D, H2 row 1
+    @test a > 0 && b > 0 && a != b                                                    # η_r″ carries the floor term
+    @test isnan(PAIN._run10_pair_eta(inp, 2, 99, 3, 39))                             # pair not in the sum
+    s = PAIN._printed_2d_list("appC_smalldia_acoustic_modes.csv")
+    @test s.Δ ≈ 14.91 rtol = 0.01                                                     # (1, 0) printed at 14.91 Hz
+    @test s.eps00 == 0.96858 && s.eps00_printed                                       # ε(0, 0) printed
+    @test all(r -> r.I > 0, s.pts) && first(s.pts).Q == 0 && first(s.pts).f2d == 83.88   # Q = 0: f_2D is the printed f
+    n = PAIN._printed_2d_list("appC_narrowbody_acoustic_modes.csv")
+    @test !n.eps00_printed && n.eps00 ≈ 1.9508 / 2                                    # Eq. (C.11): half the (Q ≥ 1, 0) ε
 end

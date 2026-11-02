@@ -241,7 +241,7 @@ or the other documents points there. When a phase is done, mark it done and move
 | Q | Item | Kind | Prerequisite | Output |
 |---|------|------|--------------|--------|
 | Q101 | **The T1 family on CR-172428 App. B's printed field** (found in Phase 118b) — T1, T1_MEAS_DAMPING, UNC_COVER (and T1_FROM_E12's off-line part) re-run with App. B's 4000 rpm blocked field in place of E-11 + GEXT, against E-16's unchanged criteria; criterion and form to be fixed before any run | held-out E test | Phase 118 | not started |
-| — | No other open item (2026-11-02); Phases 90–118 are done (112–116 merged from branch `heart`, numbered 100–104 there) | — | — | — |
+| — | No other open item (2026-11-02); Phases 90–118 are done (118f: unit-test gaps; 112–116 merged from branch `heart`, numbered 100–104 there) | — | — | — |
 
 If a queue item is blocked on data, skip to the next unblocked item and say which data item blocks it.
 

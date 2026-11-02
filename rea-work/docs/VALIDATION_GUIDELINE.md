@@ -3814,6 +3814,8 @@ R996_FIG10_FLAT see no γ > 90°, and the CR-172428 cases use App. B's blocked f
 by ≤ 0.3 dB in their medians (REPRO_18b, E18_TONES, Q0_REPRO_18b, Q0_E18, BAND_REPRO_18b, REPRO_18b_DECK);
 BLK_GAIN_MAP now holds on the grid (2/2).
 
+**118f. Unit-test gaps (verification, no verdict).** Unit-test gaps found while running Phase 118's tests (both failures pre-date 118, verified on d673393). (1) `test_case_helpers_late.jl` iso44 compared `_r172428_levels()` (pinned to CR-3813's tone form, R172428_CODE, Phase 93) with `interior_spl` of the default form (q = 0 off, η_n per mode since Phases 93–96): the test was stale, the case is not; it now compares the same form and checks that the default form differs. (2) 21 functions added in Phases 92–110 had no unit test; each now has a hand-value or limit test that fails if the function is wrong (five mutants checked). No criterion, recorded result, default or data file changed. The map and `NO_VERDICT_CASES.md` are unchanged.
+
 ## 3. What “valid recreation” means for this project
 
 A recreation is **pipeline-valid** only if:

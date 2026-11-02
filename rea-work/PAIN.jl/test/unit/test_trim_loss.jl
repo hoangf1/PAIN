@@ -144,3 +144,9 @@ end
     @test PAIN.structural_loss_coupled(50.0, 900.0, 900.0, 0.3, 2.0, 1.5, 2.0, 4.0) ≈ 1.225 * 340^2 * 16 * 2 * 0.09 / (1.5 * 2) / 50
     @test PAIN.structural_loss_coupled(50.0, 900.0, 950.0, 0.3, 2.0, 1.5, 2.0, 4.0) < PAIN.structural_loss_coupled(50.0, 900.0, 900.0, 0.3, 2.0, 1.5, 2.0, 4.0)
 end
+@testset "PF-105 App. D deck table (Phase 100)" begin
+    d = PAIN.pf105_deck_table()
+    @test length(d.f_Hz) == 21 && first(d.f_Hz) == 50 && last(d.f_Hz) == 5000
+    @test d.lambda_m[1] == 1.63 && d.W_rayl[1] == 1180 && d.lambda_m[d.f_Hz .== 1600] == [0.01]   # NASA's 0.01 m, as printed
+    @test d.name == "PF-105 (App. D deck)" && d.density == 9.6
+end
