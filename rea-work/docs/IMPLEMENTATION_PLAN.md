@@ -45,7 +45,7 @@ Single source of truth for building this project without re-deriving context in 
 | R10 | **Wording.** Cite NASA figures and equations by number and page. Follow the paper's form, not another normalization. No "expected to fail" wording; never "until compared to ANOPP" (no ANOPP comparison will happen). Be concise. |
 | R11 | **Frozen baselines.** `Pkg.test()` compares against `data/baselines/phase17_baselines.csv` at rtol 1e-6. Renewing it is a dated decision of the author, recorded in its header and here. |
 | R12 | **Numbering.** Phases are numbered in run order. Do not renumber. A new sub-step takes the next free letter of its phase. |
-| R13 | **Cursor writer check (CLAUDE.md, 2026-10-21).** Code changes delegated to Cursor (`scripts\cursor-exec.ps1`, write mode) are checked before they are accepted or built on: (1) diff against a pre-run snapshot and revert edits outside the named files; (2) confirm no criterion, tolerance, reference/digitized data, recorded result or fitted parameter changed unless the task named it (post-hoc labels dated); (3) run the affected checks yourself (`Pkg.test()` from `PAIN.jl`, or GUI smokes) and read the output; (4) spot-check reported numbers against `docs/validation_reports`; (5) confirm the five docs were updated. One Cursor writer at a time; a failed check is fixed before the next task. |
+| R13 | **Retired 2026-11-02 (author): Cursor is no longer used for edits.** The Cursor writer check (2026-10-21) and `scripts\cursor-exec.ps1` were removed with it. Number kept so the later rules keep theirs (R12). |
 
 ### 0.3 Per-step workflow
 
