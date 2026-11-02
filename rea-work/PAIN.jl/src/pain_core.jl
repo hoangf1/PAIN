@@ -68,7 +68,7 @@ struct PainInputs
     ρ_int::Float64
     c_int::Float64
     L_c::Float64                # cavity length [m]; acoustic axial scale (card 9)
-    d::Float64                  # structure start relative to cavity start [m] (card 9)
+    d::Float64                  # structure start relative to cavity start [m] (card 9; + for L < L_c, − for L > L_c)
     # Manual card 10: high-frequency crossover band centre [Hz]; `nothing` = estimate
     # (default: band containing f = 4.1 c₀/∛V, card 10 option a / phase 43a;
     #  `:ten_modes` option = lowest 1/3-oct with ≥ 10 acoustic modes, phase 38b).
@@ -180,13 +180,16 @@ Axial factor f_qM of CR-3813 Eq. (57), generalized for cavity ≠ structure (Man
 
 When L = L_c and d = 0 (printed case): f_qM = (1/L)∫₀ᴸ cos(qπz/L) sin(Mπz/L) dz.
 
-Otherwise (Methodology §3.5: L ≠ L_c → Ref. [3]; Manual: d = structure start from cavity start):
-acoustic shape cos(qπ(z−d)/L_c) on the cavity interval [d, d+L_c], structural sin(Mπz/L) on [0, L],
-integral over the overlap, normalized by structure length L:
+Otherwise (Methodology §3.5: L ≠ L_c → Ref. [3]; Manual card 9: d = distance of the start of the structure from the start
+of the cavity, + for L < L_c, − for L > L_c): the structure lies on [d, d+L] in the cavity's frame, so in the structure's
+frame z ∈ [0, L] the cavity is [−d, −d+L_c] and the acoustic shape is cos(qπ(z+d)/L_c). Integral over the overlap,
+normalized by structure length L:
 
-    f_qM = (1/L) ∫_{overlap} cos(q π (z−d)/L_c) sin(M π z/L) dz,
-    overlap = [d, d+L_c] ∩ [0, L].
+    f_qM = (1/L) ∫_{overlap} cos(q π (z+d)/L_c) sin(M π z/L) dz,
+    overlap = [−d, −d+L_c] ∩ [0, L].
 
+For a structure inside the cavity this is CR-159363 (Ref. [3]) Eq. (25) with c_d = d/L, κ = qL/L_c. Before 2026-11-02
+(Phase 117) the cavity was placed at [d, d+L_c], the opposite sign; every recorded case uses d = 0, where both agree.
 Closed form; the L = L_c, d = 0 branch is the printed Eq. (57) (bitwise same as pre-38f-1).
 """
 function axial_coupling(q::Int, M::Int; L::Real=1.0, L_c::Real=L, d::Real=0.0)
@@ -196,19 +199,19 @@ function axial_coupling(q::Int, M::Int; L::Real=1.0, L_c::Real=L, d::Real=0.0)
         # M = q already returned; M − q ≠ 0. M = 0 against q > 0: second term uses M − q.
         return (1 / (2π)) * ((1 - cos((M + q) * π)) / (M + q) + (1 - cos((M - q) * π)) / (M - q))
     end
-    z0 = max(0.0, df)
-    z1 = min(Lf, df + Lcf)
+    z0 = max(0.0, -df)
+    z1 = min(Lf, -df + Lcf)
     z1 ≤ z0 && return 0.0
-    return _axial_overlap_integral(q, M, Lf, Lcf, df, z0, z1) / Lf
+    return _axial_overlap_integral(q, M, Lf, Lcf, -df, z0, z1) / Lf
 end
 
-"""∫_{z0}^{z1} cos(qπ(z−d)/L_c) sin(Mπz/L) dz (indefinite closed form)."""
-function _axial_overlap_integral(q::Int, M::Int, L::Float64, L_c::Float64, d::Float64,
+"""∫_{z0}^{z1} cos(qπ(z−s)/L_c) sin(Mπz/L) dz (indefinite closed form); s is the cavity start in the structure's frame."""
+function _axial_overlap_integral(q::Int, M::Int, L::Float64, L_c::Float64, s::Float64,
                                  z0::Float64, z1::Float64)
     α = q * π / L_c
     β = M * π / L
-    # cos(α(z−d)) = cos(αz)cos(αd) + sin(αz)sin(αd)
-    cφ, sφ = cos(α * d), sin(α * d)
+    # cos(α(z−s)) = cos(αz)cos(αs) + sin(αz)sin(αs)
+    cφ, sφ = cos(α * s), sin(α * s)
     return cφ * _int_cos_sin(α, β, z0, z1) + sφ * _int_sin_sin(α, β, z0, z1)
 end
 

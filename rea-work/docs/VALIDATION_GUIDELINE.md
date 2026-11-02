@@ -3790,6 +3790,16 @@ The documents do not say how CYL2D chooses its grid (CR-3813 App. C: h = δa, no
 the only input). Closed as not explained by the documents; CYL2D grids at floor angles other than 56.6° remain a stated
 difference from PAIN (CYL2D_PRINTED not met).
 
+## 2.39 Phase 117: run 10's η_r″ at 0.65× NASA's (2026-11-02, diagnostic)
+
+Tests fixed in `IMPLEMENTATION_PLAN.md` §8bg (commit 001b34f) before any factor was computed; no case and no verdict (a
+script, `scripts/checks/diag_run10_eta_rpp.jl`). On the 24 printed pairs the ratio is a pair-independent 0.65 (Spearman ρ
+with the resonance share 0.00): not the generalized mass (this code's M_r equals App. C's printed total, median 1.000; no
+printed mass kind meets H_M) and not the cabin damping. The candidate read afterwards, f′ divided by the length over the
+cavity when L > L_c, is post-hoc and left to the author (Q99). On the way, `axial_coupling`'s sign of the cavity offset d
+was fixed to Manual card 9 and CR-159363 Eq. (25), with a unit test against Eq. (25) as printed; every recorded case has
+d = 0, so no recorded value moves. Record: `validation_reports/phase117_run10_eta_rpp.md`.
+
 ## 3. What “valid recreation” means for this project
 
 A recreation is **pipeline-valid** only if:

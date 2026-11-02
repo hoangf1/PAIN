@@ -6,10 +6,10 @@ _quad(f, a, b; N=20_000) = (h = (b - a) / N; h * sum(f(a + (i - 0.5) * h) for i 
         @test PAIN._int_cos_sin(a, b, 0.1, 0.9) ≈ _quad(z -> cos(a * z) * sin(b * z), 0.1, 0.9) atol = 1e-8
         @test PAIN._int_sin_sin(a, b, 0.1, 0.9) ≈ _quad(z -> sin(a * z) * sin(b * z), 0.1, 0.9) atol = 1e-8
     end
-    L, Lc, d = 1.83, 1.5, 0.2
+    L, Lc, d = 1.83, 1.5, -0.2   # Manual card 9: d < 0 for L > L_c; the cavity is [−d, −d+L_c] in the structure's frame
     for (q, M) in ((0, 1), (1, 2), (2, 1), (3, 3))
-        ref = _quad(z -> cos(q * π * (z - d) / Lc) * sin(M * π * z / L), d, d + Lc)
-        @test PAIN._axial_overlap_integral(q, M, L, Lc, d, d, d + Lc) ≈ ref atol = 1e-8
+        ref = _quad(z -> cos(q * π * (z + d) / Lc) * sin(M * π * z / L), -d, -d + Lc)
+        @test PAIN._axial_overlap_integral(q, M, L, Lc, -d, -d, -d + Lc) ≈ ref atol = 1e-8
         @test PAIN.axial_coupling(q, M; L, L_c=Lc, d) ≈ ref / L atol = 1e-8
         # printed Eq. (57) branch (L = L_c, d = 0) against quadrature
         @test PAIN.axial_coupling(q, M; L=L) ≈ _quad(z -> cos(q * π * z / L) * sin(M * π * z / L), 0, L) / L atol = 1e-8

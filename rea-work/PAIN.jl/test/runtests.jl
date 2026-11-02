@@ -1746,12 +1746,13 @@ _run_if("Card inputs 38f-1 (air split, L_c/d, rotation)") do
     @test tc_i.losses.η_rad_int / tc0.losses.η_rad_int ≈ 1.10 / 1.225 rtol=1e-12
     @test tc_i.τ_f / tc0.τ_f ≈ (1.10 / 1.225)^2 rtol=1e-12
 
-    # 3. L_c = L, d = 0 identical; L_c < L, d > 0: V scales, modes, coupling vs numerical
+    # 3. L_c = L, d = 0 identical; L_c < L, d < 0 (Manual card 9: structure starts before the cavity): V scales, modes,
+    # coupling vs numerical
     @test axial_coupling(0, 1) ≈ axial_coupling(0, 1; L=inp0.fuse.L, L_c=inp0.fuse.L, d=0.0) rtol=0
     @test cabin_volume(inp0) ≈ cabin_volume(inp0.fuse; L_c=inp0.fuse.L) rtol=0
     L = inp0.fuse.L
     L_c = 0.6 * L
-    d = 0.15 * L
+    d = -0.15 * L
     inp_cav = _rebuild(inp0; L_c=L_c, d=d)
     @test cabin_volume(inp_cav) / cabin_volume(inp0) ≈ L_c / L rtol=1e-14
     # Mode set: q_max truncation uses L_c → fewer axial modes at fixed ω when L_c shrinks
@@ -1762,20 +1763,20 @@ _run_if("Card inputs 38f-1 (air split, L_c/d, rotation)") do
     cy = inp0.acoustic
     st = inp0.structural.modes[2]   # M_axial ≥ 1
     ac = cy.modes[2]
-    q = 0
+    q = 1   # q ≥ 1 so the axial shape, and the test, depend on the sign of d (Phase 117)
     f_code = coupling_factor(ac, st, inp_cav; q=q)
     # Independent trapz of axial factor × circumferential (reuse shell/floor integrals)
-    z0, z1 = max(0.0, d), min(L, d + L_c)
+    z0, z1 = max(0.0, -d), min(L, -d + L_c)   # the cavity [−d, −d+L_c] in the structure's frame
     zs = range(z0, z1; length=4001)
     dz = zs[2] - zs[1]
     M = st.M_axial
     Iax = 0.0
     for z in zs
-        Iax += cos(q * π * (z - d) / L_c) * sin(M * π * z / L) * dz
+        Iax += cos(q * π * (z + d) / L_c) * sin(M * π * z / L) * dz
     end
     # endpoint trapz correction
-    Iax -= 0.5 * dz * (cos(q * π * (z0 - d) / L_c) * sin(M * π * z0 / L) +
-                       cos(q * π * (z1 - d) / L_c) * sin(M * π * z1 / L))
+    Iax -= 0.5 * dz * (cos(q * π * (z0 + d) / L_c) * sin(M * π * z0 / L) +
+                       cos(q * π * (z1 + d) / L_c) * sin(M * π * z1 / L))
     f_qM_num = Iax / L
     θ0 = deg2rad(inp0.fuse.theta0_deg)
     a = inp0.fuse.a
@@ -1785,6 +1786,15 @@ _run_if("Card inputs 38f-1 (air split, L_c/d, rotation)") do
     f_num = f_qM_num * (Is + Ip) / (Lp + 2a * (π - θ0))   # floor-term sign of NASA's corrected program (44f, 2026-10-23)
     @test f_code ≈ f_num rtol=1e-6
     @test axial_coupling(q, M; L=L, L_c=L_c, d=d) ≈ f_qM_num rtol=1e-6
+    # Structure inside a longer cavity (Phase 117): CR-159363 (Ref. [3] of CR-3813) Eq. (25) as printed, c_d = d/L,
+    # κ = qL/L_c, against the code for d > 0 (Manual card 9: + when L < L_c). The pre-2026-11-02 sign of d fails it.
+    for (q25, M25, Lc25, d25) in ((1, 1, 1.5, 0.2), (2, 3, 1.5, 0.2), (3, 2, 1.3, 0.25), (1, 4, 2.0, 0.6))
+        κ, cd = q25 * 1.0 / Lc25, d25 / 1.0
+        cdif(x) = (cos(π * cd * x) - cos(π * (1 + cd) * x)) / (2π * x)
+        sdif(x) = (sin(π * (1 + cd) * x) - sin(π * cd * x)) / (2π * x)
+        f25 = cos(π * cd * M25) * (cdif(M25 - κ) + cdif(M25 + κ)) - sin(π * cd * M25) * (sdif(M25 - κ) + sdif(M25 + κ))
+        @test axial_coupling(q25, M25; L=1.0, L_c=Lc25, d=d25) ≈ f25 rtol=1e-10
+    end
 
     # 4. Rotation direction: +1 unchanged; −1 flips azimuth + phase; twice restores
     fuse = inp0.fuse

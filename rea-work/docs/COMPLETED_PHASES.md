@@ -202,6 +202,7 @@ Not blockers (recorded so nobody stops on them): BBN tip geometry beyond 40 in. 
 | Q94 | **Phase 114 — run-status boxes on every Run button** (§8bd) | GUI | — | **done 2026-10-30**: READY / RECORDED / GENERATING / FRESH / STALE + verbose log; smoke grabs the window, unit tests in `test/unit/test_gui_model.jl` |
 | Q96 | **Phase 115 — the website as a read-through** (§8be) | documentation | Phase 113 | **done 2026-10-30**: 1.8 MB of concatenated documents → an 88 KB read-through; 8 stage sections, generated stage flowcharts, 48 verdict cases only |
 | Q97 | **Phase 116 — equations in LaTeX, readable claims, figure lightbox** (§8bf) | documentation | Phase 115 | **done 2026-10-30**: 4 Key equation blocks added to `METHODOLOGY.md`, each checked against its code; MathJax vendored; claims as collapsible callouts; stale grid sign in §10 Key formulas corrected |
+| Q98 | **Phase 117 — run 10's η_r″ at 0.6× NASA's away from resonance** (§8bg) | diagnostic | Phase 109 | **done 2026-11-02**: a pair-independent 0.65 (not M_r, not η_n); post-hoc candidate f′ over the cavity (L > L_c) left to the author (Q99); `axial_coupling` sign of d fixed to Manual card 9 (no recorded value moves) |
 | Q58 | **Phase 79 — CYL2D** (§8w; 2026-10-28) | `case_error_summary`, `cyl2d.jl`, CYL2D_WEYL | Q57 | **done 2026-10-28**: information rows leave the pass count; refinement fixed (79b); CYL2D_GRID_CONV (NY 10 within 4.9 % of NY 60); Weyl + surface term 4/5; production NY = 10 kept (decided 2026-10-28) |
 | Q57 | **Phase 78 — structural modes** (§8v; 2026-10-28) | `mrp_appd.jl`, MRP_APPD criterion, map | Q53 | **done 2026-10-28**: App. D solver fixes J1–J6; MRP_APPD not met 2/32 (class I, floor stiffener model undocumented); MRP_D1/MRP_RITZ off the map |
 | Q56 | **Phase 77 — POLAR_FIDELITY as an equivalent angle** (§8u; 2026-10-28) | `src/validation_case_iso67.jl`, figure | Q52 | **done 2026-10-28**: Δα shown next to Δc_l, display only |
@@ -2867,3 +2868,36 @@ change a verdict, fix a criterion or produce a number.
 **Result (2026-10-30).** 98 KB; 15 equations render with no error; 8 diagrams; 48 case figures, every one clickable.
 Checked in a real browser (headless Chrome DOM dump): the collapse buttons are created, the diagrams become SVG, and
 MathJax produces no error node.
+
+---
+
+## 8bg. Phase 117 — run 10's η_r″ at 0.6× NASA's away from resonance (done 2026-11-02; diagnostic; tests fixed before any factor was computed, commit 001b34f)
+
+*(Planned 2026-11-02 from the audit of the PAIN end-to-end misses; author: "yes you have full freedom/permissions".)* After
+Phases 104–108, this code's η_r″ (Eq. 83) for run 10's printed pairs sits near 0.6× NASA's printed ETA R# away from
+resonance (Phase 109), while App. B's pairs agree within 10 % (APPB_ETA_RPP met 16/19). Eq. (83) as printed (CR-3813
+p. 43) is ρc₀²A²ε_n f′²/(ω_n²M_rV) · η_n/[(1 − ω_r²/ω_n²)² + η_n²]; the code's form with N = η_nω_n² is the same
+expression. The candidates are therefore its factors: M_r, η_n (through N), f′, ε_n, and the constants ρc₀², A, V.
+
+**Tests (fixed 2026-11-02, before any factor is computed).** Diagnostic, no verdict; every variant lives in the script's
+process (`scripts/checks/diag_run10_eta_rpp.jl`), run 10 as `r172428_flight10_inputs()` ships (floor sign −1).
+- (a) Factor table: for each of the 24 printed pairs with ETA R# > 0 (`appD_run10_pairs.csv`, H1–H5): ratio ours/NASA,
+  M_r, η_n, f′, ε_n, the resonance share s = N²/[(ω_n² − ω_r²)² + N²]. No criterion.
+- (b) H_M (the generalized mass): M_r of the pair's structural mode against NASA's printed generalized masses (App. C
+  pp. 213–216, `appC_merlin_structural_modes_checked.csv`: total, shell W, plate W; CR-172428 App. A item 1 names
+  GMASS(IR,1) and GMASS(IR,2), so PAIN carries more than one mass per mode). For each printed mass kind, Eq. (83) is
+  re-evaluated with that printed mass in place of M_r on the pairs whose mode is printed. H_M is **supported** for a mass
+  kind if the median ratio is in [0.8, 1.25] and at least 5 more pairs lie in [0.8, 1.25] than with this code's M_r.
+- (c) H_N (the cabin damping): with g < 1 in N alone, the ratio is about g off resonance and rises toward 1/g as s → 1;
+  with a pair-independent factor it does not depend on s. Spearman ρ of ratio against s over the 24 pairs: H_N
+  **supported** if ρ ≥ 0.5, a pair-independent factor if |ρ| < 0.3, otherwise undecided.
+- (d) Documented constant alternatives, each reported as the factor it puts on every pair: ρ_ext c_ext² for ρ_int c_int²;
+  A on L_c instead of L; V on L instead of L_c; card 20's A_t = 28.10 m² for A. Reported only; one is a candidate only if
+  CR-3813 or CR-172428 names it for Eq. (83).
+
+**Decision.** Nothing in `src/` changes unless the documents name the change (a reading of a printed equation or of
+App. A's program changes), not because it brings the ratio near 1. Any `src/` change must keep APPB_ETA_RPP at ≥ 16/19
+(held out: App. B's pairs are a different aircraft and program version) and is labelled post-hoc on run 10 (seen).
+Otherwise the item closes as "not explained by the documents" with the factor table on record.
+
+**Result (2026-11-02).** (a) The 24 printed pairs: ours/NASA median 0.65, geometric mean 0.67, 3 in [0.8, 1.25]. (b) H_M **not supported** for every printed mass kind: this code's M_r equals App. C's printed total at the pair modes (median 1.000, 0.961–1.002); shell W, plate W and their sum in its place give medians 1.69, 2.13, 0.75 with 8, 2, 5 pairs in [0.8, 1.25] (2 here). (c) Spearman ρ(ratio, s) = 0.00: a **pair-independent factor**, H_N not supported (s < 0.1: median 0.64; s ≥ 0.1: 0.66). (d) Every documented constant alternative moves the ratio the wrong way (0.868, 0.724, 0.851, 0.353). Read after (a)–(d) (post-hoc, no verdict, nothing adopted): CR-3813 p. F-1 names two areas A (cylinder surface, Eq. 4; interior surface used with f′), and Ref. [3] (CR-159363 Eqs. 23–25) defines f′ = (1/A′)∫_{A′} with A′ the transmitting area and treats only L ≤ L_c. Run 10 is the only print with L > L_c; dividing by the length over the cavity while A stays on L puts (L/L_c)² = 1.38 on Eqs. (8) and (83): η_r″ median 0.89, 16/24 in [0.8, 1.25]; pair levels median −0.69 dB (−2.08 as shipped); H2–H4 −0.66 / +0.32 / +1.28 dB (−1.99 / −0.62 / −0.03). Left as the author's decision (Q99). **Code fix found on the way (documented, no recorded value moves):** `axial_coupling` placed the cavity at [d, d+L_c] in the structure's frame, the opposite of Manual card 9 (d = start of the structure from the start of the cavity, + for L < L_c) and of Ref. [3] Eq. (25); fixed to [−d, −d+L_c] with cos(qπ(z+d)/L_c). Every case, run 10 included (its deck prints d = 0.00), uses d = 0. Tests: Eq. (25) as printed at four (q, M, L_c, d) (the old sign fails it: 0.1293 against −0.1702), the 38f-1 and unit quadrature tests restated in the Manual's sign; Card inputs 38f-1 30/30, unit pain_core 148/148, printed outputs 162/162 and 14/14, Phase 17 baselines 158/158, phases 41, 92, 104, 108 pass. Record: `validation_reports/phase117_run10_eta_rpp.md` (script `scripts/checks/diag_run10_eta_rpp.jl`).
