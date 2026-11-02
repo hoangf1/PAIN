@@ -241,7 +241,7 @@ or the other documents points there. When a phase is done, mark it done and move
 | Q | Item | Kind | Prerequisite | Output |
 |---|------|------|--------------|--------|
 | Q95 | **[AUTHOR] Eq. (43) past γ = 90°** — writing the walk-through (Phase 113) showed that 64 of the test article's 160 grid points have γ > 90°, where R1 applies the printed curve unclamped: F = 0.43 (−7.3 dB) at 100°, 0.0034 (−49.5 dB) at the grid's maximum 117.8°. R2's `max(1, 0.8F)` floor hides this; R1 has no floor. CR-3813 p. 31 presents Eq. (43) as a blocking (reflection) curve, so whether it is meant to attenuate behind the shadow line, or to be clamped at F = 1, is a reading of the source, not a code defect. **Nothing was changed.** Deciding it would move R1 results, so it needs the author and a criterion fixed before any run | question for the author | — | a decision, then (if it changes) a dated re-run of the R1 cases |
-| Q100 | **Phase 118 — input completeness, missing-input search, full-input misses, Q95, review checks** (§8bh; author 2026-11-02: "implement all four of these in my code") | validation rule, documents, code | Phase 117 | 15 cases off the map by the 118a rule, the 118b search record, the 118c table, R1 clamped past 90°, `CLAUDE.md` checks |
+| Q100 | **Phase 118 — input completeness, missing-input search, full-input misses, Q95, review checks** (§8bh; author 2026-11-02: "implement all four of these in my code") | validation rule, documents, code | Phase 117 | 14 cases off the map by the 118a rule, the 118b search record, the 118c table, R1 clamped past 90°, `CLAUDE.md` checks |
 | — | No other open item (2026-11-02); Phases 90–117 are done (112–116 merged from branch `heart`, numbered 100–104 there) | — | — | — |
 
 If a queue item is blocked on data, skip to the next unblocked item and say which data item blocks it.
@@ -289,12 +289,12 @@ a pass. The 51 cases with a verdict (2026-10-30 snapshot), read from their runne
 | T2_MEAS_EXT, T2_MEAS_EXT_BR | exterior at 1600 and 2000 Hz extrapolated from 1250 Hz with Fig. 14's slope (another rpm and figure) | moves |
 | T2_PRED_BB, PROP_BB_FIG14, PROP_BB_FIG17 | assumed blade (Report 996 planform scaled; the real blade is proprietary) | moves |
 | BBN_CIRC | assumed Aero Commander blade geometry | moves |
-| the other 36 | none: printed decks, App. B/C/D/E values, measured spectra of the same article, printed geometry | verdict kept |
+| the other 37 | none: printed decks, App. B/C/D/E values, measured spectra of the same article, printed geometry | verdict kept |
 
 Kept with a note: POLAR_FIDELITY (verdict on held-out 16-312 only; 16-506/509 chose N_crit and carry none); the
 R996_FIG cases (loads scaled to the measured T and Q of the same tests, an experimental input); NR_PROP_TP2444* and
 E22_BR (Sharp-bridge mapping is the model under test; its inputs are CR-172428's Phase III trim); E21_E22_NR (80–160 Hz,
-where the end-plate allowance is assumed, are outside its criterion).
+where the end-plate allowance is assumed, are outside its criterion). *Count corrected 2026-11-02 after registration (14 move, 37 keep, as the table lists; arithmetic only, no case changed).*
 
 **118b. Search for the missing inputs (criterion fixed 2026-11-02).** In the 18 reference PDFs in `rea-work/references`,
 look for: an off-line free or blocked field of the CR-3813 test article at 4000 rpm H1–H3; the field PAIN used for
@@ -306,6 +306,12 @@ unchanged; nothing is re-run here.
 **118c. The full-input not-met cases, fewest points first.** For each case still not met after 118a, list the
 documented causes and which phase tested each; a cause that the documents name and no phase has tested is run once
 against the case's unchanged criterion, the run's form fixed before it. No criterion changes.
+*Fixed 2026-11-02, before the run:* the one untested cause found is E14_LOSS's (§2.14: "Fig. A-2 is digitized at six
+frequencies only"). NASA's per-band PF-105 table (CR-172428 App. D deck, cards 22–33, 21 bands 50–5000 Hz; Phase 100,
+λ at 1600 Hz kept as printed) is a printed per-band input of the same material. Run once (diagnostic `E14_LOSS_DECK`,
+no verdict): E14_LOSS's computation with `material = pf105_deck_table()`, everything else unchanged, against E14_LOSS's
+criterion (±25 % of NASA's η_T = 0.5 curve at all 18 bands). The cause is supported if the count rises above 7/18 by at
+least 4 bands; no default changes in this phase (the deck is CR-172428's input, not CR-3813's).
 
 **118d. Q95 — Eq. (43) past γ = 90° (decided from the documents).** CR-3813 p. 31: the amplitudes "are increased" by
 the empirical curve; CR-172428 p. 68 reads Eq. (43) as 6 dB at γ = 0 falling "finally to zero at 90°", and its 0.8
