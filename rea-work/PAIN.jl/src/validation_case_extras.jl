@@ -2481,6 +2481,7 @@ function _finish_validation_registry!()
     append!(cases, _iso102_validation_cases()) # phase 102 flight run 10, H2–H4 (diagnostic)
     append!(cases, _iso105_validation_cases()) # phase 105 CYL2D grid rule vs printed cabin modes
     append!(cases, _iso106_validation_cases()) # phase 106 cabin-mode frequency vs printed lists
+    append!(cases, _iso119_validation_cases()) # phase 119 the T1 family on App. B's printed field
     append!(cases, _iso108_validation_cases()) # phase 108 run 10 floor-term sign (diagnostic)
     append!(cases, _iso90_validation_cases())  # phase 90 Report 996 Fig. 10 reflecting walls
 
@@ -2573,7 +2574,7 @@ function _finish_validation_registry!()
         "ISO_MODAL_DENSITY", "ISO_BB_BAND", "ISO_SIL", "LOUDEST_PT", "LOUDEST_PT_GRID", "NR_BAND_HAND", "HF_MASSLAW",
         "REPRO_18b", "E18_TONES",
         "T1", "T1_FROM_E12", "T2", "T2_EQ19", "E21_E22_NR", "UNC_COVER",
-        "T1_MEAS_DAMPING", "H3_ATTRIB", "NR_TP1964", "NR_TP1964_REF2", "NR_TP1964_XOVER", "NR_TP1964_XOVER_REF2",
+        "T1_MEAS_DAMPING", "T1_APPB", "T1_MEAS_DAMPING_APPB", "H3_ATTRIB", "NR_TP1964", "NR_TP1964_REF2", "NR_TP1964_XOVER", "NR_TP1964_XOVER_REF2",
         "NR_PROP_TP2444", "T2_MEAS_EXT", "BPM_RP1218", "PROP_BB_FIG14", "PROP_BB_FIG17", "T2_PRED_BB", "NR_PROP_TP2444_PF",
         "SHARP_PANEL_D", "SHARP_PANEL_D_SHAPE", "NR_PROP_TP2444_BR", "E22_BR", "T2_MEAS_EXT_BR",
         "REPRO_18b_PRE", "E21_PRE", "E22_HF_CODE", "E22_HF_DECK", "REPRO_18b_DECK", "T2_EQ19_DECK", "E21_PRE_DECK", "R172428_CODE_DECK", "R172428_EXP_DECK",

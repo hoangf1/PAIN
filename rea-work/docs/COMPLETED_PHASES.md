@@ -206,6 +206,7 @@ Not blockers (recorded so nobody stops on them): BBN tip geometry beyond 40 in. 
 | Q99 | **[AUTHOR] f′(n,r) when the structure is longer than the cavity (L > L_c)** | question for the author | Phase 117 | **decided 2026-11-02: keep as is.** The 38f-1 normalization by L stays (A·f′ is the overlap integral); the post-hoc "f′ over the cavity" reading ((L/L_c)² = 1.38 on run 10) is not adopted and run 10's 0.65× η_r″ stays a recorded difference |
 | Q95 | **[AUTHOR] Eq. (43) past γ = 90°** | question for the author | — | **decided 2026-11-02 from the documents (Phase 118d; author: "implement all four of these in my code")**: R1 held at F = 1 past 90° (CR-3813 p. 31, CR-172428 p. 68); no verdict moves; REPRO_18b re-recorded (+0.08 / +0.35 / +0.02 dB, no verdict) |
 | Q100 | **Phase 118 — input completeness, missing-input search, full-input misses, Q95, review checks** (§8bh) | validation rule, documents, code | Phase 117 | **done 2026-11-02**: 14 cases off the map (all not met); App. B field found for the T1 family (new phase); E14_LOSS deck table not supported; R1 clamped past 90°; `CLAUDE.md` checks restored |
+| Q101 | **Phase 119 — the T1 family on CR-172428 App. B's printed field** (§8bi; author 2026-11-02: "Yes, run Q101") | E test | Phase 118 | **done 2026-11-02**: T1_APPB met 3/3 (H2 by gate B only), T1_MEAS_DAMPING_APPB met 3/3 on the measured mean; H3 excess was the GEXT field; not held out in full (R172428_EXP) |
 | Q58 | **Phase 79 — CYL2D** (§8w; 2026-10-28) | `case_error_summary`, `cyl2d.jl`, CYL2D_WEYL | Q57 | **done 2026-10-28**: information rows leave the pass count; refinement fixed (79b); CYL2D_GRID_CONV (NY 10 within 4.9 % of NY 60); Weyl + surface term 4/5; production NY = 10 kept (decided 2026-10-28) |
 | Q57 | **Phase 78 — structural modes** (§8v; 2026-10-28) | `mrp_appd.jl`, MRP_APPD criterion, map | Q53 | **done 2026-10-28**: App. D solver fixes J1–J6; MRP_APPD not met 2/32 (class I, floor stiffener model undocumented); MRP_D1/MRP_RITZ off the map |
 | Q56 | **Phase 77 — POLAR_FIDELITY as an equivalent angle** (§8u; 2026-10-28) | `src/validation_case_iso67.jl`, figure | Q52 | **done 2026-10-28**: Δα shown next to Δc_l, display only |
@@ -2968,3 +2969,26 @@ fields as printed, so the CR-172428 cases do not apply Eq. (43) and must not mov
 running the affected checks, tests that fail when the behaviour is wrong, labels, `/code-review` before commit.
 
 **Result (2026-11-02).** (118a) 14 cases fail the input rule and carry no verdict, all of them not met; the other 37 verdicts are unchanged on the 2026-11-02 re-run, and the map holds 37 cases (14 met, 23 not met). (118b) Found: CR-172428 App. B's blocked field for the T1 family; not printed: CR-3813's own run field, the test-propeller blade, the full Aero Commander blade, the exterior above 1250 Hz (`phase118_input_search.md`). (118c) No named cause untested except E14_LOSS's; on NASA's per-band PF-105 table it gives 6/18 against 7/18, not supported (`phase118_full_input_misses.md`, `phase118_e14_deck.md`). (118d) R1 = max(1, F) past 90°; no verdict moves; REPRO_18b re-recorded 88.63 / 79.91 / 78.83 dB (was 88.55 / 79.56 / 78.81), the other R1 runs move ≤ 0.3 dB in their medians, BLK_GAIN_MAP holds 2/2. `case_error_summary` keeps an information case's recorded count (UNC_COVER 0/3, LOUDEST_PT 2/5, display only). (118e) `CLAUDE.md` review checks restored without Cursor. Follow-up (not run): the T1 family on App. B's field, a new phase.
+
+## 8bi. Phase 119 — the T1 family on CR-172428 App. B's printed field (Q101; done 2026-11-02; form and criterion fixed before any run, commit 84dbb27)
+
+*(Author 2026-11-02: "Yes, run Q101".)* Phase 118b found the one missing input that is printed: CR-172428 App. B's blocked
+field PAIN used for the same article, propeller and rpm (4000 rpm, H1–H3, all 16 × 19 points, `r172428_appb_field(4000)`).
+
+**Cases (new, with a verdict; block P_MEAS).**
+- `T1_APPB`: T1's inputs as T1 ships (`run_pain_pipeline(; source=:e11, n_harmonics=3, bpf_Hz=200.0, blocking=R2)`:
+  CR-3813's cabin, Phase III trim η_T = 0.5, Table D-1 modes) with the field swapped for App. B's: amplitudes, phases,
+  points and ΔA = (πa/18)² from App. B as printed (both quarters, 19 lines), no blocking applied (the field is printed
+  blocked). Nothing else changes.
+- `T1_MEAS_DAMPING_APPB`: the same swap on T1_MEAS_DAMPING's inputs (measured η_n from E-13, η_r′ from E-15).
+
+**Criterion (unchanged from T1, fixed 2026-10-20).** H1–H3: |computed − E-16 measured mean| ≤ 4 dB (gate A), or inside
+the measured envelope and |computed − NASA's E-16 prediction| ≤ 4 dB (gate B); met only if all three pass.
+
+**What is held out and what is not.** CR-172428's measured 4000 rpm levels (Table 10: 90.3 / 80.3 / 65.2 dB) are the
+E-16 means (90 / 80 / 65 dB), and R172428_EXP has already set App. B's field against them with CR-172428's cabin
+(seen). New here: CR-3813's own cabin description on that field; no run of it exists. No parameter is chosen in this
+phase. Not run: UNC_COVER (its Monte Carlo varies the E-11 + GEXT field it is built on) and T1_FROM_E12 (its point is the
+E-12 measured line, which App. B's field would replace); both stay information cases.
+
+**Result (2026-11-02).** Both met T1's unchanged gate. T1_APPB 3/3: 88.51 / 75.32 / 65.36 dB against E-16's 90 / 80 / 65 dB (H1, H3 by gate A; H2 by gate B only, −4.68 dB from the measured mean, −0.18 dB from NASA's prediction). T1_MEAS_DAMPING_APPB 3/3 on the measured mean: 90.06 / 78.74 / 65.80 dB. H3 falls from 77.0 / 78.6 dB on E-11 + GEXT to 65.4 / 65.8 dB: the T1 family's H3 excess was the GEXT field. Check: with its own inputs `interior_spl` reproduces the pipeline's T1 exactly, so the swap changes only the field. Record: `phase119_t1_appb.md`.

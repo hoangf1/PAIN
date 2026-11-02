@@ -56,7 +56,7 @@ flowchart LR
   subgraph G_VAL["Validation comparisons"]
     direction LR
     P_REPRO["vs NASA PAIN<br/>1 met · 3 not met"]
-    P_MEAS["vs measurement<br/>0 met · 9 not met"]
+    P_MEAS["vs measurement<br/>2 met · 9 not met"]
     A_CABIN["Aircraft cabin"]
   end
   A_GEO --> A_LOADS
@@ -91,8 +91,8 @@ flowchart LR
   classDef not_met fill:#f8d7da,stroke:#c62828
   classDef none fill:#eeeeee,stroke:#9e9e9e
   class A_AMP,P_EQ8 met
-  class A_FWD,P_BLK,P_MRP,P_CYL,P_TRIM,P_REPRO partial
-  class A_GEO,A_LOADS,A_PHASE,P_MEAS not_met
+  class A_FWD,P_BLK,P_MRP,P_CYL,P_TRIM,P_REPRO,P_MEAS partial
+  class A_GEO,A_LOADS,A_PHASE not_met
   class X_F1A,X_FF,A_SURF,P_FF,X_SRC,P_GRID,X_BLK_OUT,X_MRP_IN,X_MRP_OUT,X_CYL_IN,X_CYL_OUT,X_TRIM_IN,X_TRIM_OUT,X_PAIN_IN,X_OUT,A_CABIN none
 ```
 
@@ -105,7 +105,7 @@ flowchart LR
 | CYL2D | 4 | 3 | 1 | 291/403 |
 | Trim and loss | 5 | 2 | 3 | 42/102 |
 | PAIN main | 1 | 1 | 0 | 16/19 |
-| Validation comparisons | 13 | 1 | 12 | 57/163 |
+| Validation comparisons | 15 | 3 | 12 | 66/175 |
 
 ### Not met (fewest points within criterion first)
 
@@ -218,6 +218,8 @@ flowchart LR
 | vs NASA PAIN | `R172428_CODE` CR-172428 reproduction: NASA's inputs vs NASA's printed predictions (44d) | **not met** | 5/9 | 5/9 in tol · max \|err\| 13.0 dB · med 2.8 dB |
 | vs NASA PAIN | `R172428_ETAT2` CR-172428 η_T = 2.0 run: default form vs NASA's Table 12 (94a) | met | 9/9 | 9/9 in tol · max \|err\| 1.7 dB · med 0.55 dB |
 | vs measurement | `E21_E22_NR` Figs. E-21 / E-22 NR | **not met** | 5/35 | 5/35 in tol · max \|err\| 60.0 dB · med 18.0 dB |
+| vs measurement | `T1_APPB` T1 on CR-172428 App. B's printed field (119) | met | 4/6 | 4/6 in tol · max \|err\| 9.5 dB · med 2.1 dB |
+| vs measurement | `T1_MEAS_DAMPING_APPB` T1 with measured damping on App. B's printed field (119) | met | 5/6 | 5/6 in tol · max \|err\| 11.0 dB · med 1.7 dB |
 | vs measurement | `NR_TP1964` TP-1964 bare-cylinder NR vs measured (43d) | **not met** | 6/18 | 6/18 in tol · max \|err\| 17.0 dB · med 7.8 dB |
 | vs measurement | `NR_TP1964_REF2` TP-1964 bare-cylinder NR vs NASA pred. (43d) | **not met** | 6/18 | 6/18 in tol · max \|err\| 16.0 dB · med 4.5 dB |
 | vs measurement | `NR_TP1964_XOVER` TP-1964 bare-cylinder NR with PAIN's changeover to Eqs. (19)–(23) (45a) | **not met** | 9/18 | 9/18 in tol · max \|err\| 17.0 dB · med 5.2 dB |
@@ -2776,6 +2778,38 @@ Inputs: `e13_absorption_targets.csv`; `e15_structural_loss_measured_all.csv`; T1
 Equations: Eq. (8); η_n from p. E-21; measured η_r′ override.
 Outputs: H1–H3 [dB]; η at 200/400/600 Hz; verdict on T1 gate.
 
+### Case: T1_APPB
+**Title:** T1 on CR-172428 App. B's printed field (119)
+**Map / block:** total / P_MEAS
+**Category:** experiment
+**Kind:** runnable
+**Source:** CR-3813 Fig. E-16 (measured mean and envelope; NASA's prediction for gate B); CR-172428 App. B printed pp. 193–195 (blocked field, 4000 rpm, H1–H3); form and criterion fixed 2026-11-02 (plan §8bi, commit 84dbb27)
+**What it tests:** T1's cabin as it ships (CR-3813's cabin, Phase III trim η_T = 0.5, Table D-1 modes) driven by the blocked field PAIN used for the same article, propeller and rpm, printed at all 16 × 19 points, in place of E-11's line + GEXT.
+**Why it is here:** Phase 118a took T1 off the map because its off-line field is GEXT's assumption; App. B is the one printed field for this article and condition (Phase 118b).
+**A pass means:** T1's gate unchanged (2026-10-20): each of H1–H3 within ±4 dB of the E-16 measured mean (gate A), or inside the envelope and within ±4 dB of NASA's E-16 prediction (gate B).
+**Not covered:** Not held out in full: CR-172428's 4000 rpm measurements are E-16's means, and R172428_EXP has set App. B's field against them with CR-172428's cabin. Gate B compares with NASA's E-16 prediction, whose own field is not printed.
+**Recorded outcome:** **met** 3/3 (first run 2026-11-02): H1–H3 = 88.51, 75.32, 65.36 dB against 90.0, 80.0, 65.0 dB; H1 and H3 by gate A (−1.49, +0.36 dB); H2 by gate B only (−4.68 dB from the measured mean, −0.18 dB from NASA's 75.5 dB). On E-11 + GEXT (T1, no verdict) H3 is 77.0 dB.
+**Explanation:** `_run_t1_appb` in `validation_case_iso119.jl`: `t1_appb_inputs(inp)` swaps amplitudes, phases, points and ΔA for App. B's (`r172428_appb_field(4000)`, both quarters as printed, no blocking applied); everything else is T1's.
+Inputs: `data/cr172428/appB_4000rpm_H1–H3.csv`; `t1_interior_targets.csv`; T1's cabin and trim.
+Equations: Eq. (8), (42).
+Outputs: H1–H3 [dB]; verdict on T1's gate.
+
+### Case: T1_MEAS_DAMPING_APPB
+**Title:** T1 with measured damping on App. B's printed field (119)
+**Map / block:** total / P_MEAS
+**Category:** experiment
+**Kind:** runnable
+**Source:** as T1_APPB, with CR-3813 Figs. E-13 / E-15 (measured η_n, η_r′); form and criterion fixed 2026-11-02 (plan §8bi, commit 84dbb27)
+**What it tests:** T1_MEAS_DAMPING's inputs (measured η_n from E-13, measured η_r′ from E-15) on App. B's printed field.
+**Why it is here:** As T1_APPB, with the damping model replaced by the measurements.
+**A pass means:** T1's gate unchanged, as T1_APPB.
+**Not covered:** As T1_APPB.
+**Recorded outcome:** **met** 3/3 (first run 2026-11-02): H1–H3 = 90.06, 78.74, 65.80 dB, all three by gate A (+0.06, −1.26, +0.80 dB from the measured mean). On E-11 + GEXT (T1_MEAS_DAMPING, no verdict) H3 is 78.6 dB.
+**Explanation:** `_run_t1_meas_damping_appb` in `validation_case_iso119.jl`.
+Inputs: as T1_APPB plus `e13_absorption_targets.csv`, `e15_structural_loss_measured_all.csv`.
+Equations: Eq. (8); η_n from p. E-21; measured η_r′ override.
+Outputs: H1–H3 [dB]; verdict on T1's gate.
+
 ### Case: H3_ATTRIB
 **Title:** H3 attribution on REPRO_18b (43c diagnostic)
 **Map / block:** total / P_MEAS
@@ -3800,8 +3834,7 @@ All 14 were not met; no met case failed the rule, and the other 37 verdicts are 
 tables and recorded outcomes stay (`original_verdict`); none is a pass. The map now holds 37 cases: 14 met, 23 not met.
 
 **118b. The missing inputs** (`validation_reports/phase118_input_search.md`). Found: CR-172428 App. B's blocked field for
-the same article, propeller and rpm at all 16 × 19 points (H1–H3), a printed field for the T1 family, to be used in a new
-phase. Not printed: the field of CR-3813's own runs, the test-propeller blade, the full Aero Commander blade, and the
+the same article, propeller and rpm at all 16 × 19 points (H1–H3), a printed field for the T1 family, used in Phase 119 (§2.41). Not printed: the field of CR-3813's own runs, the test-propeller blade, the full Aero Commander blade, and the
 test article's exterior broadband above 1250 Hz.
 
 **118c. The 23 full-input misses** (`validation_reports/phase118_full_input_misses.md`). Every cause the documents name
@@ -3814,13 +3847,32 @@ R996_FIG10_FLAT see no γ > 90°, and the CR-172428 cases use App. B's blocked f
 by ≤ 0.3 dB in their medians (REPRO_18b, E18_TONES, Q0_REPRO_18b, Q0_E18, BAND_REPRO_18b, REPRO_18b_DECK);
 BLK_GAIN_MAP now holds on the grid (2/2).
 
+## 2.41 Phase 119: the T1 family on CR-172428 App. B's printed field (2026-11-02)
+
+Form and criterion fixed in `IMPLEMENTATION_PLAN.md` §8bi (commit 84dbb27) before any run. T1's cabin as it ships, with
+E-11's line + GEXT replaced by the blocked field PAIN used for the same article, propeller and rpm (App. B printed
+pp. 193–195, 4000 rpm, 16 × 19 points, no blocking applied); T1's gate unchanged (2026-10-20).
+
+| Case | H1 / H2 / H3 (dB) | Gates | Verdict |
+|---|---|---|---|
+| E-16 measured mean | 90.0 / 80.0 / 65.0 | — | — |
+| `T1_APPB` | 88.51 / 75.32 / 65.36 | A, B only, A | **met** 3/3 |
+| `T1_MEAS_DAMPING_APPB` | 90.06 / 78.74 / 65.80 | A, A, A | **met** 3/3 |
+| `T1` on E-11 + GEXT (no verdict since 118a) | 86.95 / 79.21 / 77.00 | A, A, fail | — |
+
+With the printed field the T1 family's H3 excess disappears (77–79 → 65.4–65.8 dB), as §2.14 attributed it to the GEXT
+field. T1_APPB's H2 is 4.7 dB under the measured mean and passes through gate B (0.2 dB from NASA's E-16 prediction),
+which is part of T1's registered criterion. Not held out in full: CR-172428's measured 4000 rpm levels are E-16's means,
+and R172428_EXP had set App. B's field against them with CR-172428's cabin. UNC_COVER and T1_FROM_E12 were not re-run
+(their designs rest on the E-11 field and the E-12 line). Record: `validation_reports/phase119_t1_appb.md`.
+
 ## 3. What “valid recreation” means for this project
 
 A recreation is **pipeline-valid** only if:
 
 1. **Blocking** matches Eq. (43) within **0.06 dB** (R1) and R2 scaling is explicit.  
 2. **CYL2D / MRP** match Table C-1 / D-1 within flowchart tolerances (**V-CODE**).  
-3. **PAIN core** with **measured / digitized free-field** (Fig. E-11 path) reproduces App. E tonal tests within the published scatter (**V-EXP**). *Since Phase 118a (2026-11-02) the E-11 path's tonal cases carry no verdict: their off-line field is GEXT's assumed extension, not a printed input (§2.40). This criterion can be judged only on a printed field (CR-172428 App. B), in a new phase.*  
+3. **PAIN core** with **measured / digitized free-field** (Fig. E-11 path) reproduces App. E tonal tests within the published scatter (**V-EXP**). *Since Phase 118a (2026-11-02) the E-11 path's tonal cases carry no verdict: their off-line field is GEXT's assumed extension, not a printed input (§2.40). This criterion can be judged only on a printed field (CR-172428 App. B): Phase 119 did so, and T1_APPB and T1_MEAS_DAMPING_APPB meet T1's gate (§2.41).*  
 4. **CCBlade + AcousticAnalogies** is treated as an **alternate free-field generator**; its outputs are **X-EXTRAP** for the aircraft application (phase 33 close-out 2026-10-21: BBN 24c, Report 996 23c and Pereira 23d did not meet frozen tolerances; Gutin/Hanson optional cross-check not run). See §2.3.3.
 
 Do **not** claim that replacing ANOPP with CCBlade/F1A inherits NASA’s exterior-noise validation. Claim inheritance only for the **transmission / cabin** model after the free-field grid interface.

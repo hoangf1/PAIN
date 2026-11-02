@@ -70,6 +70,7 @@ include("validation_case_iso102.jl")  # phase 102 flight run 10, H2–H4 (diagno
 include("validation_case_iso105.jl")  # phase 105 CYL2D grid rule vs printed cabin modes
 include("validation_case_iso106.jl")  # phase 106 cabin-mode frequency, 2-D part at 341 m/s
 include("validation_case_iso108.jl")  # phase 108 run 10 floor-term sign (diagnostic)
+include("validation_case_iso119.jl")  # phase 119 the T1 family on App. B's printed field
 include("validation_case_iso90.jl")   # phase 90 Eq. (43) blocking vs Report 996 Fig. 10 (measured)
 include("validation_case_extras.jl")
 include("validation_map.jl")

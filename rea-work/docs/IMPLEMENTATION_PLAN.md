@@ -240,8 +240,7 @@ or the other documents points there. When a phase is done, mark it done and move
 
 | Q | Item | Kind | Prerequisite | Output |
 |---|------|------|--------------|--------|
-| Q101 | **The T1 family on CR-172428 App. B's printed field** (found in Phase 118b) — T1, T1_MEAS_DAMPING, UNC_COVER (and T1_FROM_E12's off-line part) re-run with App. B's 4000 rpm blocked field in place of E-11 + GEXT, against E-16's unchanged criteria; criterion and form to be fixed before any run | E test (Phase 119, §8bi; author 2026-11-02: "Yes, run Q101") | Phase 118 | T1_APPB, T1_MEAS_DAMPING_APPB with verdicts |
-| — | No other open item (2026-11-02); Phases 90–118 are done (112–116 merged from branch `heart`, numbered 100–104 there) | — | — | — |
+| — | No other open item (2026-11-02); Phases 90–119 are done (112–116 merged from branch `heart`, numbered 100–104 there) | — | — | — |
 
 If a queue item is blocked on data, skip to the next unblocked item and say which data item blocks it.
 
@@ -260,27 +259,6 @@ The methodology website is built from the repository root, not from `PAIN.jl` (i
 cd C:\Users\FrancisHoang\git\PAIN
 julia --project=rea-work/PAIN.jl rea-work/site/build_site.jl
 ```
-
-## 8bi. Phase 119 — the T1 family on CR-172428 App. B's printed field (Q101; planned 2026-11-02; form and criterion fixed before any run)
-
-*(Author 2026-11-02: "Yes, run Q101".)* Phase 118b found the one missing input that is printed: CR-172428 App. B's blocked
-field PAIN used for the same article, propeller and rpm (4000 rpm, H1–H3, all 16 × 19 points, `r172428_appb_field(4000)`).
-
-**Cases (new, with a verdict; block P_MEAS).**
-- `T1_APPB`: T1's inputs as T1 ships (`run_pain_pipeline(; source=:e11, n_harmonics=3, bpf_Hz=200.0, blocking=R2)`:
-  CR-3813's cabin, Phase III trim η_T = 0.5, Table D-1 modes) with the field swapped for App. B's: amplitudes, phases,
-  points and ΔA = (πa/18)² from App. B as printed (both quarters, 19 lines), no blocking applied (the field is printed
-  blocked). Nothing else changes.
-- `T1_MEAS_DAMPING_APPB`: the same swap on T1_MEAS_DAMPING's inputs (measured η_n from E-13, η_r′ from E-15).
-
-**Criterion (unchanged from T1, fixed 2026-10-20).** H1–H3: |computed − E-16 measured mean| ≤ 4 dB (gate A), or inside
-the measured envelope and |computed − NASA's E-16 prediction| ≤ 4 dB (gate B); met only if all three pass.
-
-**What is held out and what is not.** CR-172428's measured 4000 rpm levels (Table 10: 90.3 / 80.3 / 65.2 dB) are the
-E-16 means (90 / 80 / 65 dB), and R172428_EXP has already set App. B's field against them with CR-172428's cabin
-(seen). New here: CR-3813's own cabin description on that field; no run of it exists. No parameter is chosen in this
-phase. Not run: UNC_COVER (its Monte Carlo varies the E-11 + GEXT field it is built on) and T1_FROM_E12 (its point is the
-E-12 measured line, which App. B's field would replace); both stay information cases.
 
 ---
 
