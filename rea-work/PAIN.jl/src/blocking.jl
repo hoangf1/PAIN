@@ -7,7 +7,9 @@ Flowchart / CR-3813:
 Blocked amplitude: A_bl = F · A_ff. Free-field phase is unchanged.
 
 Variants (`BlockingVariant`):
-- **R1** — full Eq. (43); max ≈ 6 dB (original programmed PAIN).
+- **R1** — full Eq. (43); max ≈ 6 dB (original programmed PAIN). Past γ = 90° the printed formula turns into an
+  attenuation (−49.5 dB at 117.8°); CR-3813 p. 31 describes the curve as an increase and CR-172428 p. 68 reads it as
+  falling "finally to zero at 90°", with no meaning past 90°, so R1 is held at F = 1 there (Q95, Phase 118d).
 - **R2** — CR-172428 §5.3.2: multiply Eq. (43) amplitude ratio by 0.8
   (max increase ≈ 4 dB). Floor at 1 so grazing angles do not go below free-field:
   F_R2 = max(1, 0.8 · F_R1).
@@ -22,7 +24,7 @@ narrative values (see `BLOCKING_P68_CHECKPOINTS`).
 function blocking_factor(γ_deg::Real; variant::BlockingVariant=R1)
     γ = float(γ_deg)
     F = 10.0^(0.3 - 0.000224 * exp(0.08 * γ))
-    variant === R1 && return F
+    variant === R1 && return max(1.0, F)
     return max(1.0, 0.8 * F)
 end
 

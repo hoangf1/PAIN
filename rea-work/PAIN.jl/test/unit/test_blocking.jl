@@ -5,6 +5,12 @@
     @test PAIN.blocking_factor(0.0; variant=PAIN.R2) ≈ 0.8 * 10^(0.3 - 0.000224) rtol = 1e-14
     @test PAIN.blocking_factor(90.0; variant=PAIN.R2) == 1.0          # R2 floor: never below free field
     @test PAIN.blocking_factor(30.0) > PAIN.blocking_factor(80.0)     # decreases toward grazing
+    # Q95 (Phase 118d): past 90° the printed formula falls below 1 (0.43 at 100°, 0.0034 at 117.8°); R1 holds F = 1 there
+    F_printed(γ) = 10^(0.3 - 0.000224 * exp(0.08γ))
+    @test F_printed(100.0) < 0.5 && F_printed(117.8) < 0.01           # what the unclamped formula would give
+    @test PAIN.blocking_factor(100.0) == 1.0 && PAIN.blocking_factor(117.8) == 1.0 && PAIN.blocking_factor(179.0) == 1.0
+    @test PAIN.blocking_factor(89.0) ≈ F_printed(89.0) rtol = 1e-14                    # unchanged below 90°
+    @test PAIN.blocking_factor(89.0) > 1.0
 end
 @testset "delta_L_blocking_dB" begin
     for (γ, dL) in PAIN.BLOCKING_P68_CHECKPOINTS

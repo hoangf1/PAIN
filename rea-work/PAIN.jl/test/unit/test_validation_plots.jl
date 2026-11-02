@@ -164,7 +164,9 @@ end
     @test occursin("## Diagnostic re-runs", nv2) && occursin("| `R172428_CODE_DECK` ", nv2) && !occursin("| `R172428_CODE` ", nv2)
     @test sort(PAIN._no_verdict_case_ids(; rec=rec2)) == sort([id for id in keys(PAIN.CASE_INFO) if !PAIN.on_validation_map(id; rec=rec2)])
     @test PAIN._no_verdict_kind("E21_PRE", nothing)[1] == "Diagnostic re-runs" && PAIN._no_verdict_kind("NO_SUCH", nothing)[1] == "Not in the snapshot"
-    @test PAIN._no_verdict_kind("T1", row("no_verdict", 0, 0, ""))[1] == "No criterion (displays and records)"
+    @test PAIN._no_verdict_kind("R172428_CODE", row("no_verdict", 0, 0, ""))[1] == "No criterion (displays and records)"
+    @test startswith(PAIN._no_verdict_kind("T1", nothing)[1], "Inputs not printed or measured")    # Phase 118a
+    @test PAIN._no_verdict_kind("CYL2D_WEYL", nothing)[1] == "Information and verification under the meaningfulness rule"
     @test endswith(PAIN.no_verdict_cases_path(), joinpath("docs", "NO_VERDICT_CASES.md"))
     pn = joinpath(UNIT_OUT, "no_verdict.md")
     PAIN.write_no_verdict_cases(pn; rec); sn = read(pn, String); rm(pn)

@@ -63,14 +63,25 @@ end
     r = PAIN._as_information_case(mk("CYL2D_WEYL", :not_met))
     @test r.verdict === :no_verdict && r.inputs_echo.original_verdict === :not_met && r.inputs_echo.n_ok == 0
     @test occursin("not a pass: not met, 0/1", r.reason) && r.table == [row]
-    @test PAIN._as_information_case(mk("T1", :not_met)).verdict === :not_met               # a validation case is untouched
+    @test PAIN._as_information_case(mk("R172428_CODE", :not_met)).verdict === :not_met     # a validation case is untouched
     @test PAIN._as_information_case(mk("CYL2D_WEYL", :no_verdict)).reason == "0/1"
     # underlying_verdict: the recorded outcome of an information case, else the verdict
-    @test PAIN.underlying_verdict(r) === :not_met && PAIN.underlying_verdict(mk("T1", :met)) === :met
+    @test PAIN.underlying_verdict(r) === :not_met && PAIN.underlying_verdict(mk("R172428_CODE", :met)) === :met
     # Phase 85: the met cases that keep a verdict compare with measurement (E) or reproduce a PAIN printout (P)
-    keep = ["T1_F1A_FILL", "R996_FIG14", "R996_FIG12", "R996_FIG13A", "PER_FIG7", "BLK_P68", "MRP_APPD", "CYL2D_C1"]
+    keep = ["R996_FIG14", "R996_FIG12", "R996_FIG13A", "PER_FIG7", "BLK_P68", "MRP_APPD", "CYL2D_C1"]
     @test !any(id -> haskey(PAIN.INFORMATION_ONLY_CASES, id), keep)
     @test all(id -> haskey(PAIN.INFORMATION_ONLY_CASES, id), ["UT_GRID", "MRP_INPUT_QA", "BPM_RP1218", "F1A_GUTIN", "ISO_SIL"])
+    # Phase 118a: the 14 cases whose compared quantity rests on an input that is not printed or measured carry no verdict,
+    # named by the rule; full-input cases on both sides of the map keep theirs
+    p118 = ["REPRO_18b", "E18_TONES", "T1", "T1_MEAS_DAMPING", "UNC_COVER", "T1_FROM_E12", "T1_F1A_FILL", "T2_EQ19",
+            "T2_MEAS_EXT", "T2_MEAS_EXT_BR", "T2_PRED_BB", "PROP_BB_FIG14", "PROP_BB_FIG17", "BBN_CIRC"]
+    @test all(PAIN.input_incomplete, p118) && !PAIN.input_incomplete("CYL2D_WEYL") && !PAIN.input_incomplete("R172428_CODE")
+    @test count(PAIN.input_incomplete, keys(PAIN.INFORMATION_ONLY_CASES)) == length(p118)
+    @test !any(id -> haskey(PAIN.INFORMATION_ONLY_CASES, id),
+               ["R172428_CODE", "R172428_EXP", "E21_E22_NR", "E22_HF_CODE", "NR_PROP_TP2444", "POLAR_FIDELITY", "E12_BLOCK"])
+    r118 = PAIN._as_information_case(mk("T1", :not_met))
+    @test r118.verdict === :no_verdict && occursin("the 2026-11-02 input rule (inputs incomplete", r118.reason)
+    @test occursin("the 2026-10-29 rule", PAIN._as_information_case(mk("CYL2D_WEYL", :not_met)).reason)
     # Phase 86: diagnostic re-runs carry no verdict; the case each re-runs keeps its verdict
     @test all(id -> haskey(PAIN.VALIDATION_CASES, id), keys(PAIN.DIAGNOSTIC_CASES))
     @test isempty(intersect(keys(PAIN.DIAGNOSTIC_CASES), keys(PAIN.INFORMATION_ONLY_CASES)))

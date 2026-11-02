@@ -204,6 +204,8 @@ Not blockers (recorded so nobody stops on them): BBN tip geometry beyond 40 in. 
 | Q97 | **Phase 116 — equations in LaTeX, readable claims, figure lightbox** (§8bf) | documentation | Phase 115 | **done 2026-10-30**: 4 Key equation blocks added to `METHODOLOGY.md`, each checked against its code; MathJax vendored; claims as collapsible callouts; stale grid sign in §10 Key formulas corrected |
 | Q98 | **Phase 117 — run 10's η_r″ at 0.6× NASA's away from resonance** (§8bg) | diagnostic | Phase 109 | **done 2026-11-02**: a pair-independent 0.65 (not M_r, not η_n); post-hoc candidate f′ over the cavity (L > L_c) not adopted (author, Q99); `axial_coupling` sign of d fixed to Manual card 9 (no recorded value moves) |
 | Q99 | **[AUTHOR] f′(n,r) when the structure is longer than the cavity (L > L_c)** | question for the author | Phase 117 | **decided 2026-11-02: keep as is.** The 38f-1 normalization by L stays (A·f′ is the overlap integral); the post-hoc "f′ over the cavity" reading ((L/L_c)² = 1.38 on run 10) is not adopted and run 10's 0.65× η_r″ stays a recorded difference |
+| Q95 | **[AUTHOR] Eq. (43) past γ = 90°** | question for the author | — | **decided 2026-11-02 from the documents (Phase 118d; author: "implement all four of these in my code")**: R1 held at F = 1 past 90° (CR-3813 p. 31, CR-172428 p. 68); no verdict moves; REPRO_18b re-recorded (+0.08 / +0.35 / +0.02 dB, no verdict) |
+| Q100 | **Phase 118 — input completeness, missing-input search, full-input misses, Q95, review checks** (§8bh) | validation rule, documents, code | Phase 117 | **done 2026-11-02**: 14 cases off the map (all not met); App. B field found for the T1 family (new phase); E14_LOSS deck table not supported; R1 clamped past 90°; `CLAUDE.md` checks restored |
 | Q58 | **Phase 79 — CYL2D** (§8w; 2026-10-28) | `case_error_summary`, `cyl2d.jl`, CYL2D_WEYL | Q57 | **done 2026-10-28**: information rows leave the pass count; refinement fixed (79b); CYL2D_GRID_CONV (NY 10 within 4.9 % of NY 60); Weyl + surface term 4/5; production NY = 10 kept (decided 2026-10-28) |
 | Q57 | **Phase 78 — structural modes** (§8v; 2026-10-28) | `mrp_appd.jl`, MRP_APPD criterion, map | Q53 | **done 2026-10-28**: App. D solver fixes J1–J6; MRP_APPD not met 2/32 (class I, floor stiffener model undocumented); MRP_D1/MRP_RITZ off the map |
 | Q56 | **Phase 77 — POLAR_FIDELITY as an equivalent angle** (§8u; 2026-10-28) | `src/validation_case_iso67.jl`, figure | Q52 | **done 2026-10-28**: Δα shown next to Δc_l, display only |
@@ -2902,3 +2904,67 @@ App. A's program changes), not because it brings the ratio near 1. Any `src/` ch
 Otherwise the item closes as "not explained by the documents" with the factor table on record.
 
 **Result (2026-11-02).** (a) The 24 printed pairs: ours/NASA median 0.65, geometric mean 0.67, 3 in [0.8, 1.25]. (b) H_M **not supported** for every printed mass kind: this code's M_r equals App. C's printed total at the pair modes (median 1.000, 0.961–1.002); shell W, plate W and their sum in its place give medians 1.69, 2.13, 0.75 with 8, 2, 5 pairs in [0.8, 1.25] (2 here). (c) Spearman ρ(ratio, s) = 0.00: a **pair-independent factor**, H_N not supported (s < 0.1: median 0.64; s ≥ 0.1: 0.66). (d) Every documented constant alternative moves the ratio the wrong way (0.868, 0.724, 0.851, 0.353). Read after (a)–(d) (post-hoc, no verdict, nothing adopted): CR-3813 p. F-1 names two areas A (cylinder surface, Eq. 4; interior surface used with f′), and Ref. [3] (CR-159363 Eqs. 23–25) defines f′ = (1/A′)∫_{A′} with A′ the transmitting area and treats only L ≤ L_c. Run 10 is the only print with L > L_c; dividing by the length over the cavity while A stays on L puts (L/L_c)² = 1.38 on Eqs. (8) and (83): η_r″ median 0.89, 16/24 in [0.8, 1.25]; pair levels median −0.69 dB (−2.08 as shipped); H2–H4 −0.66 / +0.32 / +1.28 dB (−1.99 / −0.62 / −0.03). Left as the author's decision (Q99); decided 2026-11-02: keep the 38f-1 normalization by L. **Code fix found on the way (documented, no recorded value moves):** `axial_coupling` placed the cavity at [d, d+L_c] in the structure's frame, the opposite of Manual card 9 (d = start of the structure from the start of the cavity, + for L < L_c) and of Ref. [3] Eq. (25); fixed to [−d, −d+L_c] with cos(qπ(z+d)/L_c). Every case, run 10 included (its deck prints d = 0.00), uses d = 0. Tests: Eq. (25) as printed at four (q, M, L_c, d) (the old sign fails it: 0.1293 against −0.1702), the 38f-1 and unit quadrature tests restated in the Manual's sign; Card inputs 38f-1 30/30, unit pain_core 148/148, printed outputs 162/162 and 14/14, Phase 17 baselines 158/158, phases 41, 92, 104, 108 pass. Record: `validation_reports/phase117_run10_eta_rpp.md` (script `scripts/checks/diag_run10_eta_rpp.jl`).
+
+## 8bh. Phase 118 — input completeness, missing-input search, the full-input misses, Q95, review checks (done 2026-11-02; rule and per-case table fixed before any case was moved or re-run, commits 1834084 and d673393)
+
+*(Planned 2026-11-02; author: "implement all four of these in my code", answering the recommendation that followed the
+end-to-end audit.)* The audit found that the CR-3813 printed runs miss because inputs NASA never printed are filled by
+this code (E-11's off-line field by GEXT, an assumed exterior), not because of tolerances or code structure. Five parts.
+
+**118a. Input-completeness rule (fixed 2026-11-02, applied by kind to every case with a verdict, met and not met).**
+A case keeps a verdict only if every input that enters its compared quantity is (i) printed or measured in the source
+it is compared with or in the reports that source cites for its data (a P case: the PAIN run's own inputs; an E case:
+the experiment's measured or stated configuration), or (ii) computed by this code from inputs of kind (i). An input
+fails if the case supplies it by an assumed extension or fill of a measured field (GEXT, the F1A-relative fill), an
+assumed geometry or spectrum shape, an extrapolation beyond the measured range, or a stand-in from another article or
+figure. A failing input counts unless a recorded check shows it moves no compared value by more than a tenth of the
+case's tolerance. A modelling choice of the method under test (an E case's model) is not an input. A case that fails
+moves to `INFORMATION_ONLY_CASES` with the failing input named; its run, table and recorded outcome stay, and are never
+a pass. The 51 cases with a verdict (2026-10-30 snapshot), read from their runners:
+
+| Case | Failing input | Outcome |
+|---|---|---|
+| REPRO_18b, E18_TONES | PAIN's 160-point field for CR-3813's runs is not printed; the code uses E-11's ℓ = 1 line and GEXT off the line | moves |
+| T1, T1_MEAS_DAMPING, UNC_COVER | E-11 + GEXT off-line field (GEXT_BOUND: its variants flip T1) | moves |
+| T1_FROM_E12 | off-line field GEXT of the E-12 line | moves |
+| T1_F1A_FILL | off-line field filled from an F1A pattern of the assumed test-propeller blade (proprietary, CR-172428 p. 56) | moves |
+| T2_EQ19 | exterior broadband continuum assumed (S_pbl ∝ f⁻², anchored on the H3 tone of the E-11 + GEXT field) | moves |
+| T2_MEAS_EXT, T2_MEAS_EXT_BR | exterior at 1600 and 2000 Hz extrapolated from 1250 Hz with Fig. 14's slope (another rpm and figure) | moves |
+| T2_PRED_BB, PROP_BB_FIG14, PROP_BB_FIG17 | assumed blade (Report 996 planform scaled; the real blade is proprietary) | moves |
+| BBN_CIRC | assumed Aero Commander blade geometry | moves |
+| the other 37 | none: printed decks, App. B/C/D/E values, measured spectra of the same article, printed geometry | verdict kept |
+
+Kept with a note: POLAR_FIDELITY (verdict on held-out 16-312 only; 16-506/509 chose N_crit and carry none); the
+R996_FIG cases (loads scaled to the measured T and Q of the same tests, an experimental input); NR_PROP_TP2444* and
+E22_BR (Sharp-bridge mapping is the model under test; its inputs are CR-172428's Phase III trim); E21_E22_NR (80–160 Hz,
+where the end-plate allowance is assumed, are outside its criterion). *Count corrected 2026-11-02 after registration (14 move, 37 keep, as the table lists; arithmetic only, no case changed).*
+
+**118b. Search for the missing inputs (criterion fixed 2026-11-02).** In the 18 reference PDFs in `rea-work/references`,
+look for: an off-line free or blocked field of the CR-3813 test article at 4000 rpm H1–H3; the field PAIN used for
+CR-3813's E-16/E-18 runs; the test propeller's blade geometry; the Aero Commander blade geometry; the test article's
+exterior broadband spectrum above 1250 Hz. An input counts as found only if it is printed (table or plot) for the same
+article, propeller, rpm and harmonic or band. A found input is used in a new dated phase with the case's criterion
+unchanged; nothing is re-run here.
+
+**118c. The full-input not-met cases, fewest points first.** For each case still not met after 118a, list the
+documented causes and which phase tested each; a cause that the documents name and no phase has tested is run once
+against the case's unchanged criterion, the run's form fixed before it. No criterion changes.
+*Fixed 2026-11-02, before the run:* the one untested cause found is E14_LOSS's (§2.14: "Fig. A-2 is digitized at six
+frequencies only"). NASA's per-band PF-105 table (CR-172428 App. D deck, cards 22–33, 21 bands 50–5000 Hz; Phase 100,
+λ at 1600 Hz kept as printed) is a printed per-band input of the same material. Run once (diagnostic `E14_LOSS_DECK`,
+no verdict): E14_LOSS's computation with `material = pf105_deck_table()`, everything else unchanged, against E14_LOSS's
+criterion (±25 % of NASA's η_T = 0.5 curve at all 18 bands). The cause is supported if the count rises above 7/18 by at
+least 4 bands; no default changes in this phase (the deck is CR-172428's input, not CR-3813's).
+
+**118d. Q95 — Eq. (43) past γ = 90° (decided from the documents).** CR-3813 p. 31: the amplitudes "are increased" by
+the empirical curve; CR-172428 p. 68 reads Eq. (43) as 6 dB at γ = 0 falling "finally to zero at 90°", and its 0.8
+change (p. 150) is described as a cap on the increase. Neither document gives the curve a meaning past 90°, where the
+printed formula turns into an attenuation (−49.5 dB at 117.8°). Decision: R1 = max(1, F(γ)), i.e. no change past 90°,
+as R2 already does. Below 90° nothing changes (F > 1 there; BLK_P68 must stay 6/6). Cases using R1 are re-run once
+after the change and their new outcomes recorded with this reason; the App. B and run 10 fields are PAIN's blocked
+fields as printed, so the CR-172428 cases do not apply Eq. (43) and must not move.
+
+**118e. Review checks restored to `CLAUDE.md`** without Cursor: diff review, unchanged criteria and data unless named,
+running the affected checks, tests that fail when the behaviour is wrong, labels, `/code-review` before commit.
+
+**Result (2026-11-02).** (118a) 14 cases fail the input rule and carry no verdict, all of them not met; the other 37 verdicts are unchanged on the 2026-11-02 re-run, and the map holds 37 cases (14 met, 23 not met). (118b) Found: CR-172428 App. B's blocked field for the T1 family; not printed: CR-3813's own run field, the test-propeller blade, the full Aero Commander blade, the exterior above 1250 Hz (`phase118_input_search.md`). (118c) No named cause untested except E14_LOSS's; on NASA's per-band PF-105 table it gives 6/18 against 7/18, not supported (`phase118_full_input_misses.md`, `phase118_e14_deck.md`). (118d) R1 = max(1, F) past 90°; no verdict moves; REPRO_18b re-recorded 88.63 / 79.91 / 78.83 dB (was 88.55 / 79.56 / 78.81), the other R1 runs move ≤ 0.3 dB in their medians, BLK_GAIN_MAP holds 2/2. `case_error_summary` keeps an information case's recorded count (UNC_COVER 0/3, LOUDEST_PT 2/5, display only). (118e) `CLAUDE.md` review checks restored without Cursor. Follow-up (not run): the T1 family on App. B's field, a new phase.

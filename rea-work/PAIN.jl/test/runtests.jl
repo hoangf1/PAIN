@@ -1643,7 +1643,7 @@ _run_if("HF broadband Eqs. (19)–(23) (38c)") do
         res = run_validation_case("T2_EQ19")
         @test !isempty(res.table)
         @test !isempty(res.series)
-        @test res.verdict in (:met, :not_met)
+        @test res.verdict === :no_verdict && PAIN.underlying_verdict(res) in (:met, :not_met)   # Phase 118a
         @test occursin("Eq. (19)", res.label) || occursin("printed", res.label)
         @test haskey(res.inputs_echo, :broadband_model)
         @test res.inputs_echo.broadband_model === :eq19
@@ -1678,7 +1678,7 @@ _run_if("E-18 tones η_T=1.0 (38d)") do
         nasa_rows = filter(r -> startswith(r.quantity, "vs NASA E-18"), res.table)
         @test length(nasa_rows) == 3
         @test !isempty(res.series)
-        @test res.verdict in (:met, :not_met)
+        @test res.verdict === :no_verdict && PAIN.underlying_verdict(res) in (:met, :not_met)   # Phase 118a
         @test res.inputs_echo.η_T == 1.0
         @test res.inputs_echo.η_r_cap == 0.15
         @test res.inputs_echo.tone_model === :eq8
@@ -2440,6 +2440,11 @@ _run_if("Validation map errors (V-UNIT)") do
     r_none_nv = ValidationCaseResult("SYN_NONE_NV", "2026-10-22", (;), rows_cover, PlotSeries[],
                                      :no_verdict, "informational", "", "")
     @test case_error_summary(r_none_nv, PlotSpec(; error_mode=:none)).text == "no criterion"
+    # an information case keeps its recorded count, labelled as carrying no verdict (Phase 118a: UNC_COVER)
+    r_none_info = ValidationCaseResult("SYN_NONE_INFO", "2026-10-22", (; original_verdict=:not_met), rows_cover, PlotSeries[],
+                                       :no_verdict, "information", "", "")
+    s_info = case_error_summary(r_none_info, PlotSpec(; error_mode=:none))
+    @test s_info.text == "no verdict · 1/3 within criterion" && s_info.n_rows == 3
 
     r_empty = ValidationCaseResult("SYN_EMPTY", "2026-10-22", (;), ValidationTableRow[],
                                    PlotSeries[], :met, "x", "", "")
@@ -2546,11 +2551,11 @@ _run_if("Validation map errors (V-UNIT)") do
 
     unc = run_validation_case("UNC_COVER")
     s_unc = case_error_summary(unc, VALIDATION_CASES["UNC_COVER"].plot_spec)
-    @test unc.verdict === :not_met
+    @test unc.verdict === :no_verdict && PAIN.underlying_verdict(unc) === :not_met   # Phase 118a
     @test VALIDATION_CASES["UNC_COVER"].plot_spec.error_mode === :none
     # 0/3 since 2026-10-28 (Phase 78d-4 App. D consistency fixes J1–J6: margins H1 −4.06, H2 −5.41, H3 −13.23 dB; post-hoc).
     # Before: 1/3 (78d-3: +0.52, −0.11, −18.36; 78d F1/F2: +0.19, −2.09, −18.47).
-    @test s_unc.text == "0/3 within criterion"
+    @test s_unc.text == "no verdict · 0/3 within criterion"   # recorded count kept, no verdict (Phase 118a)
     @test s_unc.n_within == 0
     @test s_unc.n_rows == 3
     @test s_unc.unit == ""
@@ -2753,7 +2758,7 @@ _run_if("Validation case registry (34d)") do
         @test a.reference == b.reference
     end
     rr = run_validation_case("REPRO_18b")
-    @test rr.verdict === :not_met
+    @test rr.verdict === :no_verdict && PAIN.underlying_verdict(rr) === :not_met   # Phase 118a
     # regression at L = 1.83 m (I-22, 2026-10-22, post-hoc; earlier 1.803 m: see length_sensitivity.md)
     # Expected from length_sensitivity @ 1.83: 85.90, 78.35, 79.82; re-recorded 2026-10-23 after the
     # Phase 44 code-on-code fix of Eq. (83) (η_r'' with the bare f'): 85.93, 78.32, 79.57; and after the
@@ -2762,10 +2767,12 @@ _run_if("Validation case registry (34d)") do
     # z_p = 0.662 m; not a fit): 88.20, 80.43, 78.21; and after the Phase 93 default form (CR-172428 program,
     # taken from CR-172428's printouts, not from E-16; 2026-10-29): 88.94, 79.35, 78.57; and after the Phase 96
     # band-centre η_n rule (2026-10-30, read from App. B, not from E-16): 88.55, 79.36, 78.36; and after Phase 106 (2-D cabin-mode
-    # part at CYL2D's 341 m/s, from CR-172428's printed cabin lists, not from E-16; 2026-10-30, post-hoc): 88.55, 79.56, 78.81
-    @test rr.table[1].computed ≈ 88.55 atol=0.01
-    @test rr.table[2].computed ≈ 79.56 atol=0.01
-    @test rr.table[3].computed ≈ 78.81 atol=0.01
+    # part at CYL2D's 341 m/s, from CR-172428's printed cabin lists, not from E-16; 2026-10-30, post-hoc): 88.55, 79.56, 78.81;
+    # and after Q95 (R1 held at F = 1 past γ = 90°, read from CR-3813 p. 31 / CR-172428 p. 68, not from E-16; 2026-11-02,
+    # Phase 118d; the case carries no verdict since 118a): 88.63, 79.91, 78.83
+    @test rr.table[1].computed ≈ 88.63 atol=0.01
+    @test rr.table[2].computed ≈ 79.91 atol=0.01
+    @test rr.table[3].computed ≈ 78.83 atol=0.01
     png = plot_case(r1, VALIDATION_CASES["CYL2D_C1"].plot_spec;
                     path=joinpath(TEST_OUT, "CYL2D_C1.png"))
     @test isfile(png)
@@ -3549,7 +3556,7 @@ _run_if("Sharp sound bridges and the App. D mode extension (phases 59, 60)") do
                         ("E22_BR", rr -> rr.inputs_echo.n_ok == 0),
                         ("T2_MEAS_EXT_BR", rr -> abs(rr.inputs_echo.interior_dB[1] - 30.13) < 0.01))   # 28.36 before Phase 93
         rr = run_validation_case(id)
-        @test rr.verdict === :not_met && check(rr)
+        @test PAIN.underlying_verdict(rr) === :not_met && check(rr)   # T2_MEAS_EXT_BR has no verdict since Phase 118a
         png = plot_case(rr, VALIDATION_CASES[id].plot_spec; path=joinpath(TEST_OUT, "$(id).png"))
         @test isfile(png) && filesize(png) > 0
     end
@@ -3661,7 +3668,7 @@ _run_if("Exterior broadband from RP-1218 (phase 48)") do
     # recorded results (first run 2026-10-23)
     for (id, n_ok) in (("PROP_BB_FIG14", 3), ("PROP_BB_FIG17", 2), ("T2_PRED_BB", 0))
         rr = run_validation_case(id)
-        @test rr.verdict === :not_met && rr.inputs_echo.n_ok == n_ok
+        @test rr.verdict === :no_verdict && PAIN.underlying_verdict(rr) === :not_met && rr.inputs_echo.n_ok == n_ok   # Phase 118a
         png = plot_case(rr, VALIDATION_CASES[id].plot_spec; path=joinpath(TEST_OUT, "$(id).png"))
         @test isfile(png) && filesize(png) > 0
     end
@@ -3742,7 +3749,7 @@ _run_if("T2 with the measured TP-2444 exterior (phase 47)") do
     @test r.inputs_echo.changeover_band_Hz ≈ 1000 * 2^(1 / 3)
     @test all(25 .< r.inputs_echo.NR_meas .< 40)
     r2 = run_validation_case("T2_MEAS_EXT")
-    @test r2.verdict === :not_met
+    @test r2.verdict === :no_verdict && PAIN.underlying_verdict(r2) === :not_met   # Phase 118a
     @test r2.inputs_echo.L_ext_1250_bb ≈ 85.42 atol = 0.01
     @test r2.inputs_echo.interior_dB[1] ≈ 26.88 atol = 0.01            # 21.25 before the Phase 49 Eq. (20) reading correction; 21.55 before Phase 93
     @test r2.inputs_echo.L_int_fig17_1250_bb ≈ 51.51 atol = 0.01

@@ -137,7 +137,7 @@ function _run_e11_freefield()
 end
 
 """Fig. E-14 acoustic loss: Eq. (78) via `acoustic_loss_average` vs NASA calculated CSV."""
-function _run_e14_loss()
+function _run_e14_loss(; material::InsulationTable=pf105_table())   # material: Phase 118c diagnostic (App. D deck table)
     cols = _read_csv_numeric(_data_path("cr3813", "e14_acoustic_loss_calculated.csv"))
     fc = Float64.(cols[:f_Hz])
     ref05 = Float64.(cols[:eta_calc_trim0p5])
@@ -149,7 +149,7 @@ function _run_e14_loss()
     S = 2a * (π - θ0) * L
     S_e = V / L
     c0, ρ0 = 340.0, 1.225
-    p3 = phase3_trim(; η_lining=0.5)
+    p3 = phase3_trim(; η_lining=0.5, material)
     got = Float64[]
     for f in fc
         ω = 2π * f

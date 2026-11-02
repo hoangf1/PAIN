@@ -538,6 +538,22 @@ const INFORMATION_ONLY_CASES = Dict(
     "F1A_GUTIN" => "Gutin's far-field formula is a different method, not a measurement",
     "F1A_INDEP" => "an independent F1A implementation is another code, not a measurement",
     "BBN_KIN" => "the phase step m·B·Δψ is kinematics, not a PAIN output or a measurement",
+    # Phase 118a (2026-11-02): input completeness. An input that enters the compared quantity is filled by an assumption,
+    # an extrapolation or a stand-in rather than printed or measured for that comparison, so the outcome cannot be judged.
+    "REPRO_18b" => "inputs incomplete: PAIN's grid field for CR-3813's run is not printed; E-11's line + GEXT stand in",
+    "E18_TONES" => "inputs incomplete: PAIN's grid field for CR-3813's run is not printed; E-11's line + GEXT stand in",
+    "T1" => "inputs incomplete: the off-line field is GEXT's assumed extension of E-11's line",
+    "T1_MEAS_DAMPING" => "inputs incomplete: the off-line field is GEXT's assumed extension of E-11's line",
+    "UNC_COVER" => "inputs incomplete: the off-line field is GEXT's assumed extension of E-11's line",
+    "T1_FROM_E12" => "inputs incomplete: the off-line field is GEXT's assumed extension of the E-12 line",
+    "T1_F1A_FILL" => "inputs incomplete: the off-line field is filled from F1A on an assumed blade (the real one is proprietary)",
+    "T2_EQ19" => "inputs incomplete: the exterior broadband continuum is an assumed f⁻² shape on the E-11 + GEXT field",
+    "T2_MEAS_EXT" => "inputs incomplete: the exterior at 1600 and 2000 Hz is extrapolated with Fig. 14's slope",
+    "T2_MEAS_EXT_BR" => "inputs incomplete: the exterior at 1600 and 2000 Hz is extrapolated with Fig. 14's slope",
+    "T2_PRED_BB" => "inputs incomplete: the BPM exterior runs on an assumed blade (the real one is proprietary)",
+    "PROP_BB_FIG14" => "inputs incomplete: BPM runs on an assumed blade (the real one is proprietary)",
+    "PROP_BB_FIG17" => "inputs incomplete: BPM runs on an assumed blade (the real one is proprietary)",
+    "BBN_CIRC" => "inputs incomplete: the Aero Commander blade geometry is assumed",
 )
 
 """
@@ -580,6 +596,9 @@ const DIAGNOSTIC_CASES = Dict(
     "FLIGHT10_FLOOR_SIGN" => "tests on the printed H1/H5 pairs whether run 10 used the pre-correction floor-term sign (Phase 108)",
 )
 
+"""True for an information case whose reason is the Phase 118a input-completeness rule (an unprinted input)."""
+input_incomplete(id::AbstractString) = startswith(get(INFORMATION_ONLY_CASES, id, ""), "inputs incomplete")
+
 """True for a case that carries no verdict by rule: an information case or a diagnostic run."""
 no_verdict_by_rule(id::AbstractString) = haskey(INFORMATION_ONLY_CASES, id) || haskey(DIAGNOSTIC_CASES, id)
 
@@ -591,7 +610,8 @@ function _as_information_case(r::ValidationCaseResult)
     info = get(INFORMATION_ONLY_CASES, r.id, nothing)
     diag = get(DIAGNOSTIC_CASES, r.id, nothing)
     (info === nothing && diag === nothing || r.verdict === :no_verdict) && return r
-    head = info !== nothing ? "information: not a validation case under the 2026-10-29 rule ($info)" :
+    rule = input_incomplete(r.id) ? "the 2026-11-02 input rule" : "the 2026-10-29 rule"
+    head = info !== nothing ? "information: not a validation case under $rule ($info)" :
            "diagnostic: $diag; the case it re-runs carries the verdict"
     reason = "$head; recorded outcome unchanged, not a pass: $(replace(String(r.verdict), "_" => " ")), $(r.reason)"
     return ValidationCaseResult(r.id, r.date, merge(r.inputs_echo, (; original_verdict=r.verdict)), r.table, r.series,

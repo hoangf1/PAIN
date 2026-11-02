@@ -147,12 +147,13 @@ chip agrees with the verdict; a table with only information rows is rolled up wh
 function case_error_summary(result::ValidationCaseResult, spec::PlotSpec)
     crit = filter(!_is_info_row, result.table)
     rows = isempty(crit) ? result.table : crit
-    # :none with a met/not_met verdict and a non-empty table → coverage-style count only.
+    # :none with a met/not_met outcome and a non-empty table → coverage-style count only (an information case keeps its
+    # recorded count, labelled as carrying no verdict).
     if spec.error_mode === :none
-        if !isempty(rows) && (result.verdict === :met || result.verdict === :not_met)
+        if !isempty(rows) && underlying_verdict(result) in (:met, :not_met)
             n_within = count(r -> r.within_tolerance, rows)
             n_rows = length(rows)
-            text = "$(n_within)/$(n_rows) within criterion"
+            text = (result.verdict === :no_verdict ? "no verdict · " : "") * "$(n_within)/$(n_rows) within criterion"
             chip_text = text
             return (; n_within, n_rows, max_abs=NaN, median_abs=NaN, unit="", text, chip_text)
         end
@@ -352,22 +353,24 @@ function _no_verdict_case_ids(map_id::AbstractString="total"; rec::AbstractDict=
 end
 
 const _NO_VERDICT_KIND_ORDER = ("Diagnostic re-runs", "Information and verification under the meaningfulness rule",
+                                "Inputs not printed or measured (input-completeness rule, Phase 118)",
                                 "No criterion (displays and records)", "Not in the snapshot")
 
 """Why a case is off the map, as (kind, reason): the diagnostic and information lists first, then the snapshot."""
 function _no_verdict_kind(id::AbstractString, r)
     haskey(DIAGNOSTIC_CASES, id) && return (_NO_VERDICT_KIND_ORDER[1], DIAGNOSTIC_CASES[id])
-    haskey(INFORMATION_ONLY_CASES, id) && return (_NO_VERDICT_KIND_ORDER[2], INFORMATION_ONLY_CASES[id])
-    r === nothing && return (_NO_VERDICT_KIND_ORDER[4], _scoreboard_unrun(id))
-    return (_NO_VERDICT_KIND_ORDER[3], "the case registers no pass criterion")
+    haskey(INFORMATION_ONLY_CASES, id) &&
+        return (_NO_VERDICT_KIND_ORDER[input_incomplete(id) ? 3 : 2], INFORMATION_ONLY_CASES[id])
+    r === nothing && return (_NO_VERDICT_KIND_ORDER[5], _scoreboard_unrun(id))
+    return (_NO_VERDICT_KIND_ORDER[4], "the case registers no pass criterion")
 end
 
 """
     no_verdict_cases_markdown(; map_id="total", rec=recorded_case_errors()) -> String
 
 `docs/NO_VERDICT_CASES.md`: every case kept off the validation map because it carries no verdict, grouped by why
-(diagnostic re-run, information under the meaningfulness rule, no criterion, not in the snapshot), with its block, the
-reason and the recorded result. Display only, from the same snapshot as §0.
+(diagnostic re-run, information under the meaningfulness rule, inputs not printed or measured, no criterion, not in
+the snapshot), with its block, the reason and the recorded result. Display only, from the same snapshot as §0.
 """
 function no_verdict_cases_markdown(; map_id::AbstractString="total", rec::AbstractDict=recorded_case_errors())
     block_title = Dict(b.id => b.title for b in _map_by_id(map_id).blocks)
