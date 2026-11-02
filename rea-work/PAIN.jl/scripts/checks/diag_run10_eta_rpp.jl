@@ -164,7 +164,7 @@ p("\nNASA's 15 printed H2–H4 pair levels, this code − NASA (dB): as shipped 
   "$(count(x -> abs(x) ≤ 3, d0))/15; f′ over the cavity median $(f2(median(d1))), within 3 dB $(count(x -> abs(x) ≤ 3, d1))/15.\n")
 p("All of (e) is post-hoc (run 10's levels, pairs and η_r″ were seen in Phases 102–109): it shows what the reading would ",
   "do, not that PAIN does it. The default stays the 38f-1 normalization, which is consistent: A and f′ use the same ",
-  "length L, so A·f′ is the overlap integral. Left to the author (`IMPLEMENTATION_PLAN.md` Q99).\n")
+  "length L, so A·f′ is the overlap integral. The author kept it (Q99, 2026-11-02; `COMPLETED_PHASES.md` §3).\n")
 
 out = joinpath(@__DIR__, "..", "..", "..", "docs", "validation_reports", "phase117_run10_eta_rpp.md")
 write(out, String(take!(io)))

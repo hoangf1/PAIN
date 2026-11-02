@@ -3796,7 +3796,8 @@ Tests fixed in `IMPLEMENTATION_PLAN.md` §8bg (commit 001b34f) before any factor
 script, `scripts/checks/diag_run10_eta_rpp.jl`). On the 24 printed pairs the ratio is a pair-independent 0.65 (Spearman ρ
 with the resonance share 0.00): not the generalized mass (this code's M_r equals App. C's printed total, median 1.000; no
 printed mass kind meets H_M) and not the cabin damping. The candidate read afterwards, f′ divided by the length over the
-cavity when L > L_c, is post-hoc and left to the author (Q99). On the way, `axial_coupling`'s sign of the cavity offset d
+cavity when L > L_c, is post-hoc; the author kept the 38f-1
+normalization by L (Q99, 2026-11-02), so run 10's 0.65 stays a recorded difference. On the way, `axial_coupling`'s sign of the cavity offset d
 was fixed to Manual card 9 and CR-159363 Eq. (25), with a unit test against Eq. (25) as printed; every recorded case has
 d = 0, so no recorded value moves. Record: `validation_reports/phase117_run10_eta_rpp.md`.
 

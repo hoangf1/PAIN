@@ -85,5 +85,5 @@ Run 10 H2–H4 (dB re 20 μPa; PAIN App. D p. 237 [96.59, 88.06, 83.92]):
 
 NASA's 15 printed H2–H4 pair levels, this code − NASA (dB): as shipped median -2.08, within 3 dB 12/15; f′ over the cavity median -0.69, within 3 dB 12/15.
 
-All of (e) is post-hoc (run 10's levels, pairs and η_r″ were seen in Phases 102–109): it shows what the reading would do, not that PAIN does it. The default stays the 38f-1 normalization, which is consistent: A and f′ use the same length L, so A·f′ is the overlap integral. Left to the author (`IMPLEMENTATION_PLAN.md` Q99).
+All of (e) is post-hoc (run 10's levels, pairs and η_r″ were seen in Phases 102–109): it shows what the reading would do, not that PAIN does it. The default stays the 38f-1 normalization, which is consistent: A and f′ use the same length L, so A·f′ is the overlap integral. The author kept it (Q99, 2026-11-02; `COMPLETED_PHASES.md` §3).
 
