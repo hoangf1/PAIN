@@ -241,7 +241,8 @@ or the other documents points there. When a phase is done, mark it done and move
 | Q | Item | Kind | Prerequisite | Output |
 |---|------|------|--------------|--------|
 | Q95 | **[AUTHOR] Eq. (43) past γ = 90°** — writing the walk-through (Phase 113) showed that 64 of the test article's 160 grid points have γ > 90°, where R1 applies the printed curve unclamped: F = 0.43 (−7.3 dB) at 100°, 0.0034 (−49.5 dB) at the grid's maximum 117.8°. R2's `max(1, 0.8F)` floor hides this; R1 has no floor. CR-3813 p. 31 presents Eq. (43) as a blocking (reflection) curve, so whether it is meant to attenuate behind the shadow line, or to be clamped at F = 1, is a reading of the source, not a code defect. **Nothing was changed.** Deciding it would move R1 results, so it needs the author and a criterion fixed before any run | question for the author | — | a decision, then (if it changes) a dated re-run of the R1 cases |
-| — | No other open item (2026-10-30); Phases 90–116 are done (112–116 merged from branch `heart`, numbered 100–104 there) | — | — | — |
+| Q98 | **Phase 117 — run 10's η_r″ at 0.6× NASA's away from resonance** (§8bg; author 2026-11-02: "yes you have full freedom/permissions" to the audit's question) | diagnostic | Phase 109 | which factor of Eq. (83) carries the 0.6, or "not explained by the documents" |
+| — | No other open item (2026-11-02); Phases 90–116 are done (112–116 merged from branch `heart`, numbered 100–104 there) | — | — | — |
 
 If a queue item is blocked on data, skip to the next unblocked item and say which data item blocks it.
 
@@ -260,6 +261,35 @@ The methodology website is built from the repository root, not from `PAIN.jl` (i
 cd C:\Users\FrancisHoang\git\PAIN
 julia --project=rea-work/PAIN.jl rea-work/site/build_site.jl
 ```
+
+## 8bg. Phase 117 — run 10's η_r″ at 0.6× NASA's away from resonance (planned 2026-11-02; tests fixed before any factor is computed)
+
+*(Planned 2026-11-02 from the audit of the PAIN end-to-end misses; author: "yes you have full freedom/permissions".)* After
+Phases 104–108, this code's η_r″ (Eq. 83) for run 10's printed pairs sits near 0.6× NASA's printed ETA R# away from
+resonance (Phase 109), while App. B's pairs agree within 10 % (APPB_ETA_RPP met 16/19). Eq. (83) as printed (CR-3813
+p. 43) is ρc₀²A²ε_n f′²/(ω_n²M_rV) · η_n/[(1 − ω_r²/ω_n²)² + η_n²]; the code's form with N = η_nω_n² is the same
+expression. The candidates are therefore its factors: M_r, η_n (through N), f′, ε_n, and the constants ρc₀², A, V.
+
+**Tests (fixed 2026-11-02, before any factor is computed).** Diagnostic, no verdict; every variant lives in the script's
+process (`scripts/checks/diag_run10_eta_rpp.jl`), run 10 as `r172428_flight10_inputs()` ships (floor sign −1).
+- (a) Factor table: for each of the 24 printed pairs with ETA R# > 0 (`appD_run10_pairs.csv`, H1–H5): ratio ours/NASA,
+  M_r, η_n, f′, ε_n, the resonance share s = N²/[(ω_n² − ω_r²)² + N²]. No criterion.
+- (b) H_M (the generalized mass): M_r of the pair's structural mode against NASA's printed generalized masses (App. C
+  pp. 213–216, `appC_merlin_structural_modes_checked.csv`: total, shell W, plate W; CR-172428 App. A item 1 names
+  GMASS(IR,1) and GMASS(IR,2), so PAIN carries more than one mass per mode). For each printed mass kind, Eq. (83) is
+  re-evaluated with that printed mass in place of M_r on the pairs whose mode is printed. H_M is **supported** for a mass
+  kind if the median ratio is in [0.8, 1.25] and at least 5 more pairs lie in [0.8, 1.25] than with this code's M_r.
+- (c) H_N (the cabin damping): with g < 1 in N alone, the ratio is about g off resonance and rises toward 1/g as s → 1;
+  with a pair-independent factor it does not depend on s. Spearman ρ of ratio against s over the 24 pairs: H_N
+  **supported** if ρ ≥ 0.5, a pair-independent factor if |ρ| < 0.3, otherwise undecided.
+- (d) Documented constant alternatives, each reported as the factor it puts on every pair: ρ_ext c_ext² for ρ_int c_int²;
+  A on L_c instead of L; V on L instead of L_c; card 20's A_t = 28.10 m² for A. Reported only; one is a candidate only if
+  CR-3813 or CR-172428 names it for Eq. (83).
+
+**Decision.** Nothing in `src/` changes unless the documents name the change (a reading of a printed equation or of
+App. A's program changes), not because it brings the ratio near 1. Any `src/` change must keep APPB_ETA_RPP at ≥ 16/19
+(held out: App. B's pairs are a different aircraft and program version) and is labelled post-hoc on run 10 (seen).
+Otherwise the item closes as "not explained by the documents" with the factor table on record.
 
 ---
 
