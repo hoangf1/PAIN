@@ -143,8 +143,8 @@ def run_experimental(meta) -> CaseResult:
     from .pipeline import run_case
 
     ref_meta, data = read_reference_csv(ref_path)
-    res = run_case(load_project(inp_path))
     q = meta.get("quantity")
+    res = None if q == "reverberant_nr" else run_case(load_project(inp_path))
     x, y = data[:, 0], data[:, 1]
     if q == "tl_band":
         code = np.interp(np.log(x), np.log(res.centers), res.tl_band)

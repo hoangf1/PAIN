@@ -41,7 +41,8 @@ python -m venv .venv
 ## Validation status (2026-11-02)
 
 - **Verification V0a, V0b, V0c, V1, V2, V3** (analytic checks): all pass. These checks never carry a validation verdict.
-- **Validation V4, V5, V5b, V6, V7** (NASA TM-85722 and CR-178004): **not run yet**. Each case needs two files in `cabin_noise/data/validation/`: the digitized curve (`<id>.csv`) and a project file built only from the report's stated inputs (`<id>_inputs.json`). The pass targets are fixed and dated in `cases.yaml`.
+- **Validation V4a** (TP-1964 bare-cylinder reverberant NR, data reused from PAIN_Program): **run 2026-11-02, not met**. The worst error is 16 dB in 250 Hz-2 kHz: the plane-wave TL misses resonant cylinder transmission and treats the thick end caps as mass-law panels. See projectPlan.md, "V4a result".
+- **Validation V4, V5, V5b, V6, V7** (NASA TM-85722 and CR-178004): **not run yet**. TM-85722 is not in the repo, and the CR-178004 PDF is in `PAIN_Program/references/` but not yet digitized. Each case needs two files in `cabin_noise/data/validation/`: the digitized curve (`<id>.csv`) and a project file built only from the report's stated inputs (`<id>_inputs.json`). The pass targets are fixed and dated in `cases.yaml`.
 - **V8** (cross-check against PAIN): information only.
 
-Until V4-V7 are run, absolute levels from this tool have **no demonstrated error band**.
+The only experimental comparison so far (V4a) misses by up to 16 dB on a bare lab cylinder. Treat absolute levels as **unvalidated**, especially for thin, lightly damped walls below the ring frequency. The repo's reusable data is inventoried in projectPlan.md.

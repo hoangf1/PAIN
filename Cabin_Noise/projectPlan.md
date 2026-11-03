@@ -401,7 +401,7 @@ Report tonal-only, broadband-only and total, for both average and max seat.
 | M3 Full pipeline | Done. `run_case`, JSON and CSV export work. V0c passes. |
 | M4 GUI v1 | Done. Six input tabs, eight plot views and the results bar. |
 | M5 Compare & sweep | Done. A/B overlay, IL, background sweeps, mission summary, 1-vs-5 patch check. |
-| M6 Validation | Framework done: Validation tab, figures, heatmap, HTML/PDF export. **V4-V7 not run.** NASA curves and stated inputs are not digitized yet. |
+| M6 Validation | Framework done: Validation tab, figures, heatmap, HTML/PDF export. **V4a run 2026-11-02: not met** (see below). V4-V7 are not run: TM-85722 is not in the repo and CR-178004 is not digitized yet. |
 | M7 Polish & package | Partly done: material library and PDF report. Still open: unit toggles, a separate material editor, PyInstaller build. |
 
 ### Where the code differs from the text above
@@ -419,3 +419,27 @@ Report tonal-only, broadband-only and total, for both average and max seat.
 - The default project is a *generic* twin turboprop with stated inputs; it represents no specific aircraft.
 - `materials.json` holds handbook-typical values. None of them is fitted to validation data.
 - The default project gives: cruise 84.9 dBA room average, 89.7 dBA max seat. The 1-vs-5 patch difference is 0.02 dB, so 1 patch is adequate for this case.
+### Experimental data already in the repo (inventory 2026-11-02)
+Everything below is digitized under `PAIN_Program/data` and can be copied without digitizing again. Record provenance in each reference CSV.
+
+| Data | What it measures | Cabin_Noise use | Status |
+|---|---|---|---|
+| TP-1964 Fig. 8 (`tp1964/`) | Bare unstiffened cylinder, reverberant-field NR, 50 Hz-5 kHz | **V4a** (sidewall TL / NR, lab) | Run: not met |
+| TP-1964 Fig. 17 (`tp1964/`) | Measured interior T60 and structural decay | V4a inputs (absorption, eta) | Used |
+| CR-3813 Figs. E-21/E-22 (`cr3813/`) | Stiffened, trimmed 1.83 m cylinder, reverberant NR (range and 95 % limits) | Candidate V4b | Blocked: blanket flow resistivity and septum material are not printed (input-completeness) |
+| CR-3813 Fig. E-13 (`cr3813/e13_absorption_targets.csv`) | Measured interior absorption of that cylinder | V4b / V7b inputs | Available |
+| CR-3813 Fig. E-16, T1/T2 targets (`cr3813/`) | Propeller-driven interior 1/3-octave levels, same cylinder | Candidate V7b (tonal interior) | Needs the measured exterior field (E-11) as a measured-source override; same trim inputs gap as V4b |
+| CR-3813 Fig. E-11 (`cr3813/e11_freefield_measured_*.csv`) | Measured free-field propeller levels | V5-style source check / V7b input | Available, not yet mapped |
+| TP-2444 Figs. 17, 19 (`tp2444/`) | Same 1.83 m model 2: exterior and interior spectra, rotation direction | Candidate V7c | Analysis bandwidth not stated (5 Hz assumed in PAIN); trim gap as above |
+| CR-172428 App. B (`cr172428/`) | Blocked pressure field and PAIN's predictions | V8 (vs PAIN) only, not experimental | Available |
+| CR-172490 Fig. 15 (`cr172490/`) | Sharp's double-panel *prediction* | Verification only (another method) | Not a validation reference |
+| `references/NASA_CR_178004.pdf` | Commander 695A flight: exterior and interior harmonics, untreated and treated | **V5, V5b, V7** as planned | PDF present, not digitized. PAIN rejected it (rectangular cabin), but the low-fi box cabin can represent it |
+| NASA TM-85722 | Lab TL and in-flight IL | V4, V6 as planned | Not in the repo |
+
+### V4a result (TP-1964 Fig. 8, run 2026-11-02, criterion fixed before the run)
+- **Not met.** max |dNR| = 16.1 dB over 250 Hz-2 kHz (target 3 dB); 1 of 21 bands lies within 3 dB over 50 Hz-5 kHz.
+- Post-hoc attribution, information only (wall-only re-run, no verdict):
+  1. The end caps, modelled as infinite mass-law panels with coincidence at 970 Hz, control the composite below 2 kHz. Without them, NR at 50-160 Hz is 44-54 dB against 40-46 dB measured. Small clamped thick plates are stiffness-controlled, which the plane-wave panel cannot represent.
+  2. With the wall alone, the model still predicts 12-24 dB too much NR at 250 Hz-2 kHz. A lightly damped (eta = 0.0018) thin cylinder transmits through resonant modes below the ring frequency (3.3 kHz). The plane-wave TL with an added ring-stiffness term has no resonant path. This is the plan's stated assumption 1, and V4a measures what it costs.
+  3. Near f_r the model's NR falls to about 0 dB; measured is 4.5-7 dB.
+- A fix (for example a statistical resonant-transmission term below f_r, or a finite-plate end-cap model) is a model change. It must be judged on a case it was not developed against; V4a's result stays recorded as is.

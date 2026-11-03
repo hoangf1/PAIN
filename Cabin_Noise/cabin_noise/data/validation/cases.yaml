@@ -84,6 +84,7 @@ cases:
     band_max: 2000
     quantity: reverberant_nr
     defined: 2026-11-02 (criterion, inputs and eta rule fixed before the first comparison)
+    recorded: "2026-11-02 not met, max |dNR| 16.1 dB (commit after cf978ab)"
   - id: V5
     stage: Source
     track: tonal
