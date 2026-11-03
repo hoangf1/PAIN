@@ -16,6 +16,7 @@ from .scattering import surface_factor
 from .source_tbl import boundary_layer, wall_band_pressure2
 from .source_tonal import rotor_harmonics
 from .blade import BladeGeometry, scaled_strip_loads, strip_harmonics
+from . import sea
 from .weighting import db, energetic_sum, p2_from_db, totals
 
 TWIN_MODES = ("energetic", "coherent", "worst")
@@ -91,6 +92,20 @@ class Options:
     n_tau: int = 2048
 
 
+CR132602_CAVITY_ALPHA = [0.22, 0.22, 0.37, 0.82, 0.99, 0.88, 0.63, 0.63]   # CR-132602 sec. 6.2, octaves 63-8000
+
+
+@dataclass
+class SidewallMethod:
+    """How the sidewall transmits: 'tmm' (plane-wave transfer matrix through the stack) or
+    'cr132602' (Wilby & Scharton non-resonant SEA double wall: skin and trim as mass-law walls,
+    absorbing cavity, eqs. 46 and 49-52). For 'cr132602' the first panel is the skin, the last
+    panel is the trim, and porous layer masses are added to the trim (CR-132602 sec. 6.2)."""
+    method: str = "tmm"
+    cavity_depth: float = 0.0                 # m; 0 = sum of the layers between skin and trim
+    cavity_alpha: list = field(default_factory=lambda: list(CR132602_CAVITY_ALPHA))
+
+
 @dataclass
 class Project:
     name: str = "Untitled"
@@ -101,6 +116,7 @@ class Project:
     openings: list = field(default_factory=list)
     cabin: CabinConfig = field(default_factory=CabinConfig)
     options: Options = field(default_factory=Options)
+    sidewall_method: SidewallMethod = field(default_factory=SidewallMethod)
 
 
 @dataclass
@@ -193,12 +209,49 @@ def _tau_openings(openings, f, theta, air, R) -> list:
     return out
 
 
+def _tau_cr132602(proj: Project, f, air) -> np.ndarray:
+    """Equivalent tau of a CR-132602 sidewall: the tau that makes the room equation give that
+    method's noise reduction, tau = A / (S 10^(NR/10)), with S5 alpha5 = A (cabin absorption)."""
+    sm = proj.sidewall_method
+    panels = [i for i, l in enumerate(proj.sidewall) if isinstance(l, Panel)]
+    if len(panels) < 2:
+        raise ValueError("CR-132602 sidewall needs a skin panel and a trim panel")
+    i0, i1 = panels[0], panels[-1]
+    skin, trim = proj.sidewall[i0], proj.sidewall[i1]
+    between = proj.sidewall[i0 + 1:i1]
+    m_blanket = sum(l.bulk_density * l.d for l in between if isinstance(l, (PorousLayer, PorousTable)))
+    L3 = sm.cavity_depth if sm.cavity_depth > 0 else sum(getattr(l, "d", 0.0) for l in between)
+    if L3 <= 0:
+        raise ValueError("CR-132602 sidewall needs a cavity depth")
+    f = np.atleast_1d(np.asarray(f, dtype=float))
+    from .materials import ALPHA_OCTAVES
+    a3 = np.clip(np.interp(np.log(f), np.log(ALPHA_OCTAVES), sm.cavity_alpha), 0.0, 1.0)
+    S = proj.fuselage.sidewall_area - sum(o.area for o in proj.openings)
+    A = proj.cabin.absorption(f)
+    nr = sea.nr_double_wall(f, m_skin=skin.mass, m_trim=trim.mass + m_blanket, L3=L3, alpha3=a3,
+                            alpha5=A / S, rho=air.rho, c=air.c)
+    return A / (S * 10 ** (nr / 10))
+
+
 def _composite_tau(proj: Project, f, theta, air, diffuse=False):
     R = proj.fuselage.radius
     S_open = sum(o.area for o in proj.openings)
     S_wall = proj.fuselage.sidewall_area - S_open
     if S_wall <= 0:
         raise ValueError("openings area exceeds the sidewall area")
+    if proj.sidewall_method.method == "cr132602":
+        if diffuse:
+            from .frequencies import log_subfrequencies
+            fs = log_subfrequencies(np.asarray(f, dtype=float), proj.options.n_sub)
+            t_wall = _tau_cr132602(proj, fs.ravel(), air).reshape(fs.shape).mean(axis=1)
+            t_open = [tmm.tau_band(op.layers, f, air, R, proj.options.n_theta, proj.options.n_sub)
+                      if op.mode == "layers" else op.tau_table(f) for op in proj.openings]
+        else:
+            t_wall = _tau_cr132602(proj, f, air)          # diffuse model: no angle dependence
+            t_open = _tau_openings(proj.openings, f, theta, air, R)
+        return tmm.composite([t_wall] + t_open, [S_wall] + [o.area for o in proj.openings]), t_wall
+    if proj.sidewall_method.method != "tmm":
+        raise ValueError("sidewall method must be 'tmm' or 'cr132602'")
     if diffuse:
         o = proj.options
         t_wall = tmm.tau_band(proj.sidewall, f, air, R, o.n_theta, o.n_sub)

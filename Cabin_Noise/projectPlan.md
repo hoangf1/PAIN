@@ -519,3 +519,12 @@ Everything below is digitized under `PAIN_Program/data` and can be copied withou
 ### End-to-end hand check (2026-11-02)
 - `tests/test_end_to_end.py` recomputes the default cruise case (BPF1 tone, 1 kHz band, totals) with independent code that imports none of the tool's physics. The tool agrees within 0.1-0.2 dB.
 - Seven deliberately planted wiring errors (source, shadow, tau, room equation, Waterhouse factor, A-weighting, band assignment) were each caught. See VERIFICATION.md sec. 1b.
+
+### Published-method check (2026-11-02): see METHOD.md
+- CR-132602 and TM-85722 were downloaded from NTRS into `Cabin_Noise/references/`.
+- CR-132602's recommended sidewall model is a non-resonant SEA double wall (eqs. 46-52), not the plane-wave transfer matrix the plan built. It is now available as `sidewall_method = "cr132602"`; `tmm` stays the default.
+- Checks:
+  - the closed form is proven against the report's own power balance, which also shows its eq. (53) 2/eps is a misprint of 4/eps;
+  - eq. (46) equals the 0-90 deg mass-law average;
+  - the pipeline's insertion loss is exactly TM-85722's dTL + dABS.
+- The Fig. 14 worked example cannot be a verdict, because its blanket mass and other inputs are not printed. An information run is recorded in METHOD.md.

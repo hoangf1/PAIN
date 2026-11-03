@@ -284,6 +284,14 @@ class SidewallTab(Tab):
         self.table = LayerTable()
         self.table.changed.connect(self.emit)
         self.v.addWidget(self.table)
+        self.method = DataclassForm([
+            F("method", "Sidewall method", kind="choice", choices=["tmm", "cr132602"],
+              tip="tmm: plane-wave transfer matrix through the stack. cr132602: Wilby & Scharton (NASA "
+                  "CR-132602) non-resonant SEA double wall (skin, absorbing cavity, trim + blanket mass)"),
+            F("cavity_depth", "CR-132602 cavity depth (0 = layers)", "mm", scale=1e3, lo=0, hi=1000),
+        ] + [F(f"cavity_alpha.{i}", f"CR-132602 cavity alpha {int(f)} Hz") for i, f in enumerate(ALPHA_OCTAVES)])
+        self.method.changed.connect(self.emit)
+        self.v.addWidget(self.method)
         self.schematic = QLabel()
         self.schematic.setStyleSheet("font-family: monospace")
         self.v.addWidget(self.schematic)
@@ -291,6 +299,7 @@ class SidewallTab(Tab):
     def load(self, p):
         self.project = p
         self.table.set_items(p.sidewall)
+        self.method.set_object(p.sidewall_method)
         self.update_readout()
 
     def update_readout(self):

@@ -18,9 +18,10 @@ python -m venv .venv
 ## Tests
 
 [VERIFICATION.md](VERIFICATION.md) maps every equation to its published source and to the independent test that checks it.
+[METHOD.md](METHOD.md) maps each pipeline stage to the published method it follows (NASA CR-132602 and TM-85722, in `references/`), including the optional `cr132602` sidewall method.
 
 ```bash
-.venv/Scripts/python -m pytest -q                  # 79 tests: source checks, end-to-end hand check (VERIFICATION.md), core, V0a-V3
+.venv/Scripts/python -m pytest -q                  # 85 tests: source checks, method checks, end-to-end hand check, core, V0a-V3
 .venv/Scripts/python scripts/smoke_gui.py          # offscreen GUI smoke (run, compare, mission, sweep, validation)
 ```
 

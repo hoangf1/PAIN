@@ -11,7 +11,7 @@ import numpy as np
 from .frequencies import nominal_label
 from .materials import AirGap, Opening, Panel, PorousLayer, Surface, layer_from_dict
 from .mission import Mission, Segment
-from .pipeline import CabinConfig, Fuselage, Options, Project, Propeller, Results
+from .pipeline import CabinConfig, Fuselage, Options, Project, Propeller, Results, SidewallMethod
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 FORMAT_VERSION = 1
@@ -95,7 +95,8 @@ def project_from_dict(d: dict) -> Project:
         fuselage=_build(Fuselage, d.get("fuselage", {})),
         sidewall=[layer_from_dict(l) for l in d.get("sidewall", [])],
         openings=openings, cabin=_build(CabinConfig, cabd),
-        options=_build(Options, d.get("options", {})))
+        options=_build(Options, d.get("options", {})),
+        sidewall_method=_build(SidewallMethod, d.get("sidewall_method", {})))
 
 
 def save_project(p: Project, path) -> None:
