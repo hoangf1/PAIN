@@ -14,45 +14,42 @@ from PySide6.QtWidgets import (QComboBox, QDialog, QDialogButtonBox, QDoubleSpin
                                QSplitter, QTabWidget, QWidget)
 
 from ..core.io import default_project, export_results_csv, load_project, save_project
-from ..core.materials import Panel, PorousLayer
-from ..core.pipeline import insertion_loss, patch_sensitivity, run_case, run_mission
+from ..core.pipeline import insertion_loss, run_case, run_mission
 from . import panels, plots
 from .validation_tab import ValidationTab
 from .worker import Task
 
 ASSUMPTIONS = """<b>Low-fidelity turboprop cabin noise tool</b><br><br>
 Stated assumptions and limitations (projectPlan.md section 7):<ul>
-<li>Plane-wave, infinite-layer TL; curvature via ring-frequency stiffness only.</li>
-<li>Point forces at a single effective radius; thickness noise not modelled.</li>
-<li>TBL treated as an equivalent diffuse field: conservative upper bound.</li>
-<li>Boundary-layer refraction K_refr is a stated input with a 0-5 dB band, not predicted.</li>
-<li>Cabin approximated as a rigid-wall box for the low-frequency seat shape.</li>
-<li>Structure-borne paths (engine / wing) and flanking are not modelled.</li>
-<li>No experimental validation has been run yet (V4-V7 need digitized NASA data);
-the analytic verification checks V0a-V3 pass.</li></ul>
-Nothing in the model is fitted to measured data."""
+<li>Tones: Gutin's static far-field formula (RP-1258 ch. 1) at the fuselage point nearest the propeller.</li>
+<li>Boundary layer: Goody wall spectrum as an equivalent diffuse field (wall / 2).</li>
+<li>Sidewall: NASA CR-132602 non-resonant model (mass-law walls, absorbing cavity); not valid well below half
+the ring frequency, where stiffness dominates.</li>
+<li>Cabin: interior = exterior - NR (CR-132602 sec. 7), Sabine absorption; openings and insertion loss as
+NASA TM-85722.</li>
+<li>Seat spread: 95th-percentile statistic only. Structure-borne paths and flanking are not modelled.</li></ul>
+Every block follows its paper exactly and is verified against it (METHOD.md, VERIFICATION.md);
+nothing is fitted to measured data. Validation results are in the Validation tab."""
 
 
 def _sweep_setters():
-    def porous(p, v):
-        for l in p.sidewall:
-            if isinstance(l, PorousLayer):
-                l.d = v / 1000
+    def blanket(p, v):
+        p.sidewall.blanket_mass = v
 
     def skin(p, v):
-        next(l for l in p.sidewall if isinstance(l, Panel)).h = v / 1000
+        p.sidewall.skin_thickness = v / 1000
 
     def seg(attr, scale=1.0):
         return lambda p, v: setattr(p.mission.active_segment(), attr, v * scale)
 
     return {
-        "Blanket thickness, all porous layers (mm)": (porous, 10, 150),
+        "Blanket surface mass (kg/m2)": (blanket, 0.1, 3.0),
+        "Trim surface mass (kg/m2)": (lambda p, v: setattr(p.sidewall, "trim_mass", v), 1.0, 8.0),
+        "Cavity depth (mm)": (lambda p, v: setattr(p.sidewall, "cavity_depth", v / 1000), 20, 200),
         "Skin thickness, first panel (mm)": (skin, 0.8, 3.0),
         "Tip clearance h_c (m)": (lambda p, v: setattr(p.propeller, "clearance", v), 0.2, 1.5),
-        "Synchrophase (deg)": (lambda p, v: setattr(p.propeller, "synchrophase_deg", v), 0, 90),
         "RPM, active segment": (seg("rpm"), 1200, 2000),
         "Shaft power, active segment (kW)": (seg("shaft_power", 1e3), 300, 1200),
-        "K_refr (dB)": (lambda p, v: setattr(p.propeller, "k_refr", v), 0, 5),
     }
 
 
@@ -132,16 +129,16 @@ class MainWindow(QMainWindow):
         self.inputs = QTabWidget()
         self.tabs = [panels.MissionTab(), panels.PropellerTab(), panels.FuselageTab(), panels.SidewallTab(),
                      panels.OpeningsTab(), panels.CabinTab()]
-        for t, name in zip(self.tabs, ["Mission", "Propeller", "Fuselage", "Sidewall Stack", "Openings", "Cabin"]):
+        for t, name in zip(self.tabs, ["Mission", "Propeller", "Fuselage", "Sidewall", "Openings", "Cabin"]):
             sc = QScrollArea()
             sc.setWidgetResizable(True)
             sc.setWidget(t)
             self.inputs.addTab(sc, name)
             t.changed.connect(self.schedule)
 
-        self.views = {"Exterior": plots.ExteriorView(), "TL": plots.TLView(), "Interior": plots.InteriorView(),
-                      "A-weighted": plots.AWeightView(), "Seat map": plots.SeatMapView(),
-                      "Compare": plots.CompareView(), "Mission": plots.MissionView(), "Sweep": plots.SweepView()}
+        self.views = {"Exterior": plots.ExteriorView(), "NR": plots.NRView(), "Interior": plots.InteriorView(),
+                      "A-weighted": plots.AWeightView(), "Compare": plots.CompareView(),
+                      "Mission": plots.MissionView(), "Sweep": plots.SweepView()}
         self.plot_tabs = QTabWidget()
         for k, w in self.views.items():
             self.plot_tabs.addTab(w, k)
@@ -192,7 +189,7 @@ class MainWindow(QMainWindow):
         self._act(f, "Quit", self.close, "Ctrl+Q")
         r = mb.addMenu("&Run")
         self._act(r, "Run now", self.run, "F5")
-        self._act(r, "Mission summary + patch sensitivity", self.mission_summary, "F6")
+        self._act(r, "Mission summary", self.mission_summary, "F6")
         self._act(r, "Parameter sweep...", self.sweep, "F7")
         c = mb.addMenu("&Compare")
         self._act(c, "Store current as A", self.store_a)
@@ -287,12 +284,9 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage("Done", 2000)
         v = self.views
         v["Exterior"].show(r)
-        v["TL"].show(r)
-        v["Interior"].show(r, self.project.propeller.k_refr)
+        v["NR"].show(r)
+        v["Interior"].show(r)
         v["A-weighted"].show(r)
-        cb = self.project.cabin
-        v["Seat map"].set_geometry(cb.seats or [[cb.Lx / 2, cb.Ly / 2, 1.1]], (cb.Lx, cb.Ly))
-        v["Seat map"].show(r)
         if self.compare_a is not None:
             try:
                 v["Compare"].show(self.compare_a, r, insertion_loss(self.compare_a, r))
@@ -301,7 +295,7 @@ class MainWindow(QMainWindow):
 
     def mission_summary(self):
         proj = copy.deepcopy(self.project)
-        task = Task(lambda p: (run_mission(p), patch_sensitivity(p)), proj)
+        task = Task(lambda p: (run_mission(p), None), proj)
         task.signals.done.connect(lambda out: (self.views["Mission"].show(*out),
                                                self.plot_tabs.setCurrentWidget(self.views["Mission"]),
                                                self.statusBar().showMessage("Mission summary done", 3000)))

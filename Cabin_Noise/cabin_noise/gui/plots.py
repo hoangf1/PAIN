@@ -50,60 +50,52 @@ class ExteriorView(QWidget):
     def __init__(self):
         super().__init__()
         v = QVBoxLayout(self)
-        self.p = _plot("Exterior: incident tones per patch + Goody wall-pressure bands")
+        self.p = _plot("Exterior: Gutin tones at the fuselage + Goody boundary layer")
         v.addWidget(self.p)
 
     def show(self, r):
         self.p.clear()
+        fin = r.L_wall[np.isfinite(r.L_wall)]
         self.p.plot(r.centers, r.L_wall, pen=pg.mkPen(C_BB, width=2), symbol="s", symbolSize=5,
-                    symbolBrush=C_BB, name="TBL wall pressure, 1/3 oct (Goody)")
-        cols = [C_TONE, C_TOTAL, C_SEAT, (148, 103, 189), (140, 86, 75)]
-        for i in range(r.L_inc.shape[0]):
-            _stems(self.p, r.f_m * (1 + 0.01 * i), r.L_inc[i], cols[i % 5], f"tones, patch {i + 1} (incident)",
-                   base=np.nanmin(r.L_wall) - 10)
+                    symbolBrush=C_BB, name="boundary layer, wall (Goody)")
+        self.p.plot(r.centers, r.L_ext_bb, pen=pg.mkPen(C_BB, width=1.5, style=Qt.DashLine),
+                    name="boundary layer, diffuse equivalent (wall - 3 dB)")
+        _stems(self.p, r.f_m, r.L_ext_tone, C_TONE, "tones, free field at the fuselage (Gutin)",
+               base=(np.min(fin) - 10) if fin.size else None)
 
 
-class TLView(QWidget):
+class NRView(QWidget):
     def __init__(self):
         super().__init__()
         v = QVBoxLayout(self)
-        self.p = _plot("Sidewall transmission loss", ylabel="TL (dB)")
+        self.p = _plot("Sidewall noise reduction (CR-132602) and wall mass-law TL (eq. 46)", ylabel="dB")
         v.addWidget(self.p)
 
     def show(self, r):
         self.p.clear()
-        self.p.plot(r.tl_curve_f, r.tl_curve, pen=pg.mkPen(C_TOTAL, width=2), name="stack, diffuse")
-        self.p.plot(r.centers, r.tl_band, pen=pg.mkPen(C_BB, width=2), symbol="o", symbolSize=5,
-                    symbolBrush=C_BB, name="composite with openings, band")
-        self.p.plot(r.tl_curve_f, r.mass_law, pen=pg.mkPen(C_REF, style=Qt.DashLine),
-                    name="field-incidence mass law 20log(mf)-47")
-        _stems(self.p, r.f_m, r.tl_tone[0], C_TONE, "tones at patch-1 angle", base=0)
-        mk = r.markers
-        _vline(self.p, mk.get("f0"), "f0")
-        _vline(self.p, mk.get("f_r"), "f_r")
-        _vline(self.p, mk.get("f_11"), "f_11")
-        for i, fc in enumerate(mk.get("f_c", [])):
-            _vline(self.p, fc, f"f_c{i + 1}")
+        self.p.plot(r.centers, r.NR_band, pen=pg.mkPen(C_TOTAL, width=2.5), symbol="o", symbolSize=5,
+                    symbolBrush=C_TOTAL, name="NR, boundary-layer exposure")
+        _stems(self.p, r.f_m, r.NR_tone, C_TONE, "NR at the tones (one side)", base=0)
+        self.p.plot(r.centers, r.tl_skin, pen=pg.mkPen(C_REF, style=Qt.DashLine), name="skin TL (eq. 46)")
+        if np.all(np.isfinite(r.tl_trim)):
+            self.p.plot(r.centers, r.tl_trim, pen=pg.mkPen(C_BB, style=Qt.DashLine), name="trim + blanket TL (eq. 46)")
 
 
 class InteriorView(QWidget):
     def __init__(self):
         super().__init__()
         v = QVBoxLayout(self)
-        self.p = _plot("Interior: room average, tones, max-seat envelope, K_refr band (tones 0-5 dB)")
+        self.p = _plot("Interior = exterior - NR: room average, tones, 95th-percentile seat")
         v.addWidget(self.p)
 
-    def show(self, r, k_used=0.0):
+    def show(self, r):
         self.p.clear()
         self.p.plot(r.centers, r.L_band_total, pen=pg.mkPen(C_TOTAL, width=2.5), name="total, average")
-        self.p.plot(r.centers, r.L_bb, pen=pg.mkPen(C_BB, width=2), name="broadband (TBL, upper bound)")
-        self.p.plot(r.centers, np.max(r.seat_band_total, axis=0), pen=pg.mkPen(C_SEAT, width=1.5, style=Qt.DashLine),
-                    name="max-seat envelope")
-        _stems(self.p, r.f_m, r.L_tone, C_TONE, "tones, average", base=np.nanmin(r.L_bb[np.isfinite(r.L_bb)]) - 10)
-        lo, hi = r.L_tone - k_used, r.L_tone - k_used + 5.0
-        err = pg.ErrorBarItem(x=np.log10(r.f_m), y=(lo + hi) / 2, height=hi - lo, beam=0.02,
-                              pen=pg.mkPen(C_TONE, width=1))
-        self.p.addItem(err)
+        self.p.plot(r.centers, r.L_bb, pen=pg.mkPen(C_BB, width=2), name="boundary layer")
+        self.p.plot(r.centers, r.L_band_total + 4.77, pen=pg.mkPen(C_SEAT, width=1.5, style=Qt.DashLine),
+                    name="95th-percentile seat (+4.8 dB)")
+        fin = r.L_bb[np.isfinite(r.L_bb)]
+        _stems(self.p, r.f_m, r.L_tone, C_TONE, "tones, average", base=(np.min(fin) - 10) if fin.size else None)
         _vline(self.p, r.f_s, "f_s")
 
 
@@ -131,52 +123,6 @@ class AWeightView(QWidget):
         from ..core.frequencies import nominal_label
         ax = self.p.getAxis("bottom")
         ax.setTicks([[(i, nominal_label(f)) for i, f in enumerate(r.centers) if i % 2 == 0]])
-
-
-class SeatMapView(QWidget):
-    def __init__(self):
-        super().__init__()
-        v = QVBoxLayout(self)
-        h = QHBoxLayout()
-        h.addWidget(QLabel("Harmonic"))
-        self.m = QSpinBox()
-        self.m.setRange(1, 40)
-        self.m.valueChanged.connect(lambda *_: self.show(self.r) if self.r else None)
-        h.addWidget(self.m)
-        self.info = QLabel()
-        h.addWidget(self.info)
-        h.addStretch()
-        v.addLayout(h)
-        self.p = _plot("Seat map (plan view)", xlabel="cabin x (m)", ylabel="cabin y (m)", logx=False)
-        self.p.setAspectLocked(True)
-        v.addWidget(self.p)
-        self.r, self.seats, self.box = None, None, None
-
-    def set_geometry(self, seats, box):
-        self.seats, self.box = np.atleast_2d(np.asarray(seats, dtype=float)), box
-
-    def show(self, r):
-        self.r = r
-        self.p.clear()
-        if self.seats is None:
-            return
-        m = min(self.m.value(), len(r.f_m)) - 1
-        L = r.seat_tone[:, m]
-        Lx, Ly = self.box
-        self.p.plot([0, Lx, Lx, 0, 0], [0, 0, Ly, Ly, 0], pen=pg.mkPen(C_REF))
-        lo, hi = float(np.min(L)), float(np.max(L))
-        cmap = pg.colormap.get("viridis")
-        t = (L - lo) / (hi - lo) if hi > lo else np.full_like(L, 0.5)
-        brushes = [pg.mkBrush(cmap.map(float(x), mode="qcolor")) for x in t]
-        self.p.addItem(pg.ScatterPlotItem(self.seats[:, 0], self.seats[:, 1], size=26, brush=brushes,
-                                          pen=pg.mkPen("k")))
-        for (x, y), l in zip(self.seats[:, :2], L):
-            ti = pg.TextItem(f"{l:.1f}", anchor=(0.5, -0.6), color="k")
-            ti.setPos(x, y)
-            self.p.addItem(ti)
-        regime = "box-mode shape (below f_s)" if r.f_m[m] < r.f_s else "+4.8 dB statistic (above f_s)"
-        self.info.setText(f"{r.f_m[m]:.1f} Hz, average {r.L_tone[m]:.1f} dB, seats {lo:.1f}-{hi:.1f} dB; {regime}; "
-                          f"prop side at y = 0")
 
 
 class CompareView(QWidget):

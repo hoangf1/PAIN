@@ -528,3 +528,11 @@ Everything below is digitized under `PAIN_Program/data` and can be copied withou
   - eq. (46) equals the 0-90 deg mass-law average;
   - the pipeline's insertion loss is exactly TM-85722's dTL + dABS.
 - The Fig. 14 worked example cannot be a verdict, because its blanket mass and other inputs are not printed. An information run is recorded in METHOD.md.
+
+---
+
+## Restructure to the low-fidelity paper pipeline (2026-11-02, by the author's decision)
+
+- **The rule now:** the tool follows low-fidelity papers exactly and is verified against them. Scope that crept toward PAIN was removed (see METHOD.md sec. 3).
+- **The pipeline:** Gutin tones -> Goody boundary layer -> CR-132602 non-resonant NR -> interior = exterior - NR, with TM-85722 openings and insertion loss. The plan's transfer-matrix wall (A.5), moving-force source (A.2), scattering (A.3) and box-mode seats (A.7) are retired.
+- **Records:** verification and validation were rebuilt for the paper pipeline (METHOD.md sec. 4). The sections above describe the retired pipeline and stay as history.

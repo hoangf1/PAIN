@@ -38,14 +38,14 @@ def main():
         if w.result is None or "dBA" not in w.bar.text():
             failures.append("default run produced no result bar")
         w.store_a()
-        w.project.sidewall[2].d = 0.10
+        w.project.sidewall.trim_mass *= 2
         w.run()
         settle(app)
         if "IL (overall dBA" not in w.views["Compare"].label.text():
             failures.append("compare view not filled")
         w.mission_summary()
         settle(app)
-        if "1-vs-5 patch" not in w.views["Mission"].label.text():
+        if "dBA" not in w.views["Mission"].label.text():
             failures.append("mission summary not filled")
         setter = _sweep_setters()["Tip clearance h_c (m)"][0]
         xs = np.linspace(0.3, 0.9, 3)
@@ -55,7 +55,7 @@ def main():
             failures.append("tonal dBA did not fall with tip clearance")
         w.validation.run_all()                     # threaded; wait for it
         settle(app)
-        if "Verification 6/6" not in w.validation.header.text():
+        if "Verification 4/4" not in w.validation.header.text():
             failures.append("verification checks not all ok: " + w.validation.header.text())
         if shots:
             shots.mkdir(parents=True, exist_ok=True)
@@ -72,7 +72,7 @@ def main():
             app.processEvents()
             w.grab().save(str(shots / "validation.png"))
         print("bar:", w.bar.text()[:160].replace("&nbsp;", " "))
-        print("mission:", w.views["Mission"].label.text().splitlines()[-1])
+        print("mission:", w.views["Mission"].label.text().splitlines()[0][:120])
         print("validation:", w.validation.header.text())
         app.quit()
 

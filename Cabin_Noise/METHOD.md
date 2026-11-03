@@ -1,57 +1,63 @@
-# Cabin_Noise: which published method each stage follows
+# Cabin_Noise: the paper pipeline
 
-**Date:** 2026-11-02. **Sources (in `references/`, from NASA NTRS):**
-- NASA CR-132602 (Wilby & Scharton 1975), the sidewall method the plan names. SHA-256 `153677205699f2a6…`.
-- NASA TM-85722 (Mixson, O'Neal & Grosveld 1984), the treatment insertion-loss method and its flight validation. SHA-256 `d4d6ac13ec6db822…`.
+**Restructured 2026-11-02.** Every block follows a published low-fidelity method exactly and is verified against that paper's own equations. Nothing beyond the papers is in the pipeline.
 
-VERIFICATION.md shows every *equation* is the published one. This file answers a different question: is the *assembled chain* a published method, and where does it differ?
+**Sources:** `references/` (NASA NTRS, hashes in `references/SOURCES.md`) and `../PAIN_Program/references/`.
 
-## 1. The chain, stage by stage
+## 1. The chain
 
-| Stage | Cabin_Noise | Published method | Status |
+```
+mission -> exterior level (tones, boundary layer) -> sidewall NR -> interior level -> bands, dBA, IL
+                                                   L_int = L_ext - NR   (CR-132602 sec. 7)
+```
+
+| Block | Method, exactly | Source | Verified by |
 |---|---|---|---|
-| Exterior tones | rotating point forces (Gutin / Lowson; Farassat compact strips in blade mode) | Gutin 1936; Lowson 1965; Farassat 1A. CR-132602 assumes the source field as a *diffuse* field (sec. 2.5) | Published source model. The per-patch plane wave is the plan's refinement of CR-132602's diffuse assumption |
-| Exterior broadband | Goody wall spectrum, wall -> diffuse field / 2 | Goody 2004; Waterhouse 1955 / CR-3813 p. 23 | Published |
-| Sidewall, `tmm` (default) | plane-wave transfer matrix through the whole stack, 0-78 deg field average | Allard & Atalla (TMM); Beranek field incidence; TM-85722 uses field-incidence mass law for the bare wall | Published TL method, **but not the method CR-132602 recommends for the double wall** |
-| Sidewall, `cr132602` (option) | non-resonant SEA double wall: skin and trim as mass-law walls (eq. 46, 0-90 deg), absorbing cavity (eqs. 27/51-52), blanket mass on the trim (sec. 6.2) | **CR-132602 sec. 5, eqs. 46-52**, the version its authors found to agree with measured fuselage NR (sec. 6.2, Fig. 14) | **Same as published** (closed form proven against the report's own power balance, `test_methods.py`) |
-| Openings | area-weighted composite tau | TM-85722 eq. (1) | Same |
-| Cabin level | p^2 = 4 rho c W / A; NR = 10 log10(A / S tau) | CR-132602 eqs. 37, 49 (single-wall form); Sabine | Same (CR-132602 writes 1 + alpha/tau; equal when A >> S tau) |
-| Insertion loss | IL = L_bare - L_treated | TM-85722 eqs. (1)-(3): IL = dTL + dABS, dABS = 10 log(alpha_e,t / alpha_e,u) | **Same: proven** (`test_insertion_loss_is_dTL_plus_dABS_as_in_tm85722`) |
-| Seats, weighting | room average plus statistics / box modes; IEC A/C | Schroeder; IEC 61672 | Plan additions on top of the published chain |
+| Atmosphere, airspeed | ISA; TAS = IAS sqrt(rho0 / rho) | US Std. Atm. 1976 | ISA table values |
+| Propeller tones | Gutin: p_m = (mB Omega / 2 sqrt2 pi c r) abs(T cos(theta) - Q c / (Omega R_e^2)) J_mB(...), R_e = 0.8 R_t, at the fuselage point nearest the propeller; one propeller per side, sides in energy | Gutin 1936; NASA RP-1258 vol. 1 ch. 1 | V0a: direct quadrature of the dipole integral (1e-12 dB); far field vs a time-domain moving-force solution (0.1 dB) |
+| Boundary layer | Goody wall spectrum on a 1/7-power flat-plate layer; diffuse equivalent <p^2> = <p_wall^2> / 2 | Goody 2004; Schlichting; Waterhouse 1955, CR-3813 p. 23 | Goody asymptotes; Monte Carlo of the wall factor |
+| Wall transmission | random-incidence mass law, eq. (46) | NASA CR-132602 sec. 5.1 | V1: eq. (46) = 0-90 deg integral of eq. (45) (1e-9) |
+| Sidewall NR | non-resonant double wall, eq. (52): NR = 10 log[(1 + 4 alpha3 / (eps tau31))(1 + alpha5 / tau35) + alpha5 / tau31]; blanket mass on the trim (sec. 6.2); single wall: 10 log(1 + alpha5 / tau) | NASA CR-132602 sec. 5.2 | V2: eq. (52) = numeric solution of the power balance eq. (47) (1e-14) |
+| Openings | area-weighted transmission; double window = one pane of the summed mass | NASA TM-85722 eq. (1), p. 17 | `test_openings_combine_by_area_as_tm85722_eq1` |
+| Cabin | alpha5 S = A = sum S alpha (Sabine), or 0.161 V / T60 from measured T60 | Sabine; CR-132602 eq. (37) | Sabine constant |
+| Insertion loss | L_bare - L_treated = dTL + dABS | NASA TM-85722 eqs. (1)-(3) | V3: within 0.33 dB (the "1 +" term of the single-wall form) |
+| Seat spread | 95th-percentile seat = room average + 10 log10(ln 20) | Schroeder 1962 | exponential-sample test |
+| Weighting | IEC A / C | IEC 61672-1 | table values |
 
-**Summary.**
-- With `sidewall_method = "cr132602"`, the exterior field -> sidewall -> cabin -> insertion-loss chain is the published CR-132602 / TM-85722 procedure.
-- With the default `tmm`, every block is published, but the double-wall block is the plan's choice rather than CR-132602's.
-- Both are low fidelity. The CR-132602 version needs fewer inputs (masses, cavity depth and absorption), not more.
+The end-to-end hand check (`tests/test_end_to_end.py`) recomputes a tone and a band of the default case from these formulas, written out independently; the tool agrees within 0.01-0.05 dB.
 
 ## 2. Things found in the sources
 
-1. **CR-132602 eq. (53) misprint.** Its first term shows 2/eps, while eq. (52) and the report's own power balance (eqs. 47, 49-51) give 4/eps. A numeric solution of eq. (47) matches 4/eps to 1e-9 (`test_closed_form_nr_equals_the_sea_power_balance`), so 4/eps is used.
-2. **Two diffuse conventions.**
-   - CR-132602 eq. (46) is the 0-90 deg random-incidence mass law (proven to equal that integral).
-   - TM-85722 and the `tmm` default use the 0-78 deg field-incidence average.
-   - At a given mass, random incidence transmits more; at TL0 = 30 dB the difference is about 3 dB.
-3. **CR-132602's own validation** (sec. 6.2, Fig. 14) is an order-of-magnitude comparison against an empirical NR band. The authors say so explicitly (p. 37).
+- **CR-132602 eq. (53) misprint.** It shows 2/eps; eq. (52) and the report's power balance give 4/eps. The numeric solution of eq. (47) confirms 4/eps, which is used.
+- **CR-132602's own limit.** Sec. 6.2 and 8(d) say the non-resonant model is invalid well below about half the ring frequency, where panel stiffness dominates. Propeller tones on small aircraft lie there.
+- **Gutin is a far-field formula.** Applying it at the fuselage, which is in the near field, is the classic low-fidelity practice and is its known limit.
 
-## 3. CR-132602 Fig. 14 worked example (information only)
+## 3. What was removed (2026-11-02)
 
-**Inputs fixed before computing:**
-- rho c = 1.21 x 343;
-- skin 0.18 cm aluminium (skin + doubler, spread as the report does for f_c);
-- trim 0.04 cm aluminium with **no** blanket mass (the report adds it but never gives it);
-- cavity 11.45 cm with the printed cavity absorption;
-- cabin alpha = mid-line of the Fig. 4 band read by eye (0.40, 0.53, 0.63, 0.55, 0.43, 0.37 at 125 Hz-4 kHz).
+These were removed because they are not in the papers. Their code and validation records are in git, up to commit 1c2c8fe:
+- the plane-wave transfer-matrix sidewall and its Delany-Bazley, limp and table blanket models;
+- the stiffened-bay stiffness;
+- the blade-geometry (BEMT) source and the moving-force near-field source;
+- cylinder scattering;
+- the patch grid and measured-level anchoring;
+- box-mode seat shapes and the twin coherent synchrophase sum.
 
-| Band (Hz) | 125 | 250 | 500 | 1000 | 2000 | 4000 |
-|---|---|---|---|---|---|---|
-| Single wall, ours - Fig. 14 (dB) | -2.5 | -3.1 | -2.7 | -3.4 | -3.6 | -3.2 |
-| Double wall, ours - Fig. 14 (dB) | -2.5 | -2.8 | -4.9 | -6.3 | -7.0 | -6.8 |
+Retired cases: V0b, V0c, V4c, V4d, V5d.
 
-- **Single wall:** a nearly constant 3 dB below the printed curve, which points to an unprinted convention rather than a frequency-dependent error.
-- **Double wall:** the extra shortfall grows with frequency, as the missing blanket mass on the trim would cause.
+## 4. Validation of the paper pipeline (2026-11-02)
 
-Neither input is printed, so this is **not** a reproduction verdict. Choosing them to match the figure would be calibration. The implementation itself is verified against the report's equations, not against this figure.
+Cases are defined in commit 93bbeb9, before the runs. The data were seen with the retired pipeline, so these runs are not blind; no parameter is chosen from the data. Criteria are unchanged (low-fi policy: at least 75 % of points within +-6 dB; V4a: max error 3 dB).
 
-## 4. Effect on the validation record (post-hoc, information only, verdicts unchanged)
+| Case | Data | Result |
+|---|---|---|
+| V5b | CR-178004 exterior boundary-layer bands | **met**, 82 % |
+| V6 | CR-178004 fiberglass insertion loss | not met, 72 % (mean +1.4 dB) |
+| V5 | CR-178004 exterior tones (Gutin + 6 dB flush doubling) | not met, 64 % (mean -3.3 dB) |
+| V4b | CR-3813 trimmed cylinder reverberant NR | not met, 26 % |
+| V5c | Report 996 static tones at d/D = 0.083 (Gutin) | not met, 29 %; Gutin's far-field form at the blade tip |
+| V4a | TP-1964 bare cylinder reverberant NR | not met, max 16.5 dB |
+| V7 | CR-178004 cabin tones from the measured exterior | not met, 1 %, +17.9 dB; mass-law wall far below 0.5 f_r (the paper's stated limit) |
 
-The default example gives 86.2 dBA with `tmm` and 97.1 dBA with `cr132602`. The `cr132602` sidewall transmits much more, which is the direction of the `tmm` overpredictions of noise reduction in V4b and V7. A held-out case with printed double-wall inputs (for example TM-85722's lab panels once digitized) is needed before it can carry a verdict.
+The misses are where the papers' own stated limits put them:
+- at low frequency, below about 0.5 f_r, for tones through a real fuselage;
+- in the near field for Gutin.

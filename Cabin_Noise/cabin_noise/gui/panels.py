@@ -1,17 +1,17 @@
-"""Input tabs (plan section 4): Mission, Propeller, Fuselage, Sidewall Stack, Openings, Cabin."""
+"""Input tabs for the paper pipeline: Mission, Propeller, Fuselage, Sidewall, Openings, Cabin."""
 from __future__ import annotations
 
 import numpy as np
 from PySide6.QtCore import Signal
-from PySide6.QtWidgets import (QComboBox, QFileDialog, QGroupBox, QHBoxLayout, QLabel, QLineEdit,
-                               QPushButton, QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (QComboBox, QFileDialog, QHBoxLayout, QLabel, QLineEdit, QPushButton, QVBoxLayout,
+                               QWidget)
 
 from ..core import cabin as cab
 from ..core.atmosphere import cabin_air, isa
 from ..core.io import load_library, load_measured_csv
-from ..core.materials import ALPHA_OCTAVES, AirGap, Opening, Panel, PorousLayer, PorousTable, Surface
+from ..core.materials import ALPHA_OCTAVES, Opening, Surface
 from ..core.mission import Segment
-from ..core.pipeline import TWIN_MODES
+from ..core.sea import tau_mass_law_diffuse
 from .widgets import DataclassForm, F, ListTable
 
 
@@ -31,13 +31,21 @@ class Tab(QWidget):
         pass
 
 
+def _ref(text: str) -> QLabel:
+    lab = QLabel(text)
+    lab.setWordWrap(True)
+    lab.setStyleSheet("color: #4a5763")
+    return lab
+
+
 # ---- Mission ------------------------------------------------------------------------
 class MissionTab(Tab):
     def __init__(self):
         super().__init__()
         cols = [F("name", "Name", kind="text"), F("altitude", "Altitude", "m"), F("mach", "Mach"),
                 F("rpm", "RPM"), F("shaft_power", "Shaft power", "kW", scale=1e-3), F("eta_p", "eta_p"),
-                F("thrust", "Thrust override", "N", tip="> 0 overrides eta_p P / V; required when static")]
+                F("thrust", "Thrust override", "N", tip="> 0 overrides eta_p P / V; required when static"),
+                F("oat", "OAT override", "K", tip="measured outside air temperature; 0 = ISA")]
         self.table = ListTable(cols, Segment)
         self.table.changed.connect(self._segments_changed)
         self.v.addWidget(QLabel("Mission segments (power per engine)"))
@@ -86,44 +94,34 @@ class MissionTab(Tab):
             self.readout.setText(str(e))
             return
         V = s.mach * a.c
-        q = 0.5 * a.rho * V * V
-        Re = V * self.project.fuselage.nose_to_station / a.nu
-        self.readout.setText(f"ISA at {s.altitude:.0f} m:  rho = {a.rho:.4f} kg/m3,  c = {a.c:.1f} m/s,  "
-                             f"V = {V:.1f} m/s,  q = {q / 1000:.2f} kPa,  Re_x(station) = {Re:.3g}")
+        self.readout.setText(f"ISA at {s.altitude:.0f} m: rho = {a.rho:.4f} kg/m3, c = {a.c:.1f} m/s, "
+                             f"V = {V:.1f} m/s, q = {0.5 * a.rho * V * V / 1000:.2f} kPa")
 
 
 # ---- Propeller ----------------------------------------------------------------------
 class PropellerTab(Tab):
     def __init__(self):
         super().__init__()
+        self.v.addWidget(_ref("Gutin's formula (Gutin 1936; NASA RP-1258 vol. 1 ch. 1): loading noise of B blades with "
+                              "the thrust and torque at an effective radius, evaluated at the fuselage point nearest "
+                              "the propeller. One propeller per side; two engines add 3 dB."))
         self.form = DataclassForm([
             F("blades", "Blade count B", kind="int", lo=1, hi=12),
             F("tip_radius", "Tip radius R_t", "m", lo=0.1, hi=5),
             F("clearance", "Tip clearance h_c", "m", lo=0.01, hi=5),
-            F("axial_offset", "Patch centre - prop plane (fwd +)", "m", lo=-10, hi=10),
+            F("axial_offset", "Fuselage point ahead of the prop plane", "m", lo=-10, hi=10),
             F("engines", "Engines", kind="choice", choices=[1, 2]),
-            F("rotation", "Rotation sense", kind="choice", choices=[1, -1]),
-            F("synchrophase_deg", "Synchrophase dphi", "deg", lo=-360, hi=360),
-            F("twin_combination", "Twin combination used", kind="choice", choices=list(TWIN_MODES)),
             F("n_harmonics", "Harmonics N", kind="int", lo=1, hi=40),
-            F("re_fraction", "R_e / R_t", lo=0.3, hi=1.0),
-            F("k_refr", "K_refr (BL refraction)", "dB", lo=0, hi=5,
-              tip="Stated input, not predicted; plots show the 0-5 dB band"),
-            F("patch_mode", "Patches", kind="choice", choices=[1, 5]),
-            F("source_mode", "Source", kind="choice", choices=["generated", "measured"]),
-            F("source_model", "Source model", kind="choice", choices=["point", "blade"],
-              tip="point: one effective radius (Gutin). blade: BEMT strips from blade geometry (CSV)"),
-            F("blade_scale", "Scale blade loads to thrust/torque", kind="bool"),
+            F("re_fraction", "Effective radius R_e / R_t", lo=0.3, hi=1.0),
+            F("source_mode", "Exterior level", kind="choice", choices=["generated", "measured"],
+              tip="generated: Gutin; measured: free-field exterior levels from a CSV"),
         ])
         self.form.changed.connect(self.emit)
         self.v.addWidget(self.form)
         h = QHBoxLayout()
-        b = QPushButton("Load measured incident levels (CSV: harmonic, dB)...")
+        b = QPushButton("Load measured exterior levels (CSV: harmonic, dB)...")
         b.clicked.connect(self._load_csv)
         h.addWidget(b)
-        bb = QPushButton("Load blade geometry (CSV: r/R, c/R, beta deg, cl_design)...")
-        bb.clicked.connect(self._load_blade)
-        h.addWidget(bb)
         self.meas = QLabel()
         h.addWidget(self.meas)
         h.addStretch()
@@ -143,43 +141,19 @@ class PropellerTab(Tab):
             self.project.propeller.measured = load_measured_csv(fn)
             self.emit()
 
-    def _load_blade(self):
-        import csv
-        fn, _ = QFileDialog.getOpenFileName(self, "Blade geometry", "", "CSV (*.csv)")
-        if not fn:
-            return
-        rows = []
-        with open(fn, encoding="utf-8") as fh:
-            for r in csv.reader(fh):
-                try:
-                    rows.append([float(v) for v in r[:4]])
-                except (ValueError, IndexError):
-                    continue
-        if len(rows) < 2:
-            return
-        a = np.array(rows)
-        pr = self.project.propeller
-        pr.blade = {**pr.blade, "r_over_R": list(a[:, 0]), "c_over_R": list(a[:, 1]), "beta_deg": list(a[:, 2]),
-                    "cl_design": list(a[:, 3]), "hub_r_over_R": float(a[0, 0])}
-        self.emit()
-
     def update_readout(self):
         if not self.project:
             return
         pr, s = self.project.propeller, self.project.mission.active_segment()
         n = len(pr.measured)
-        nb = len(pr.blade.get("r_over_R", []))
-        self.meas.setText((f"{n} measured harmonics loaded" if n else "no measured levels") +
-                          (f"; blade geometry: {nb} stations" if nb else "; no blade geometry"))
+        self.meas.setText(f"{n} measured harmonics loaded" if n else "none loaded")
         try:
             a = isa(s.altitude)
         except ValueError:
             return
         om = 2 * np.pi * s.rpm / 60
-        V = s.mach * a.c
-        self.readout.setText(
-            f"BPF = {pr.blades * s.rpm / 60:.1f} Hz,  Omega = {om:.1f} rad/s,  rotational tip Mach = "
-            f"{om * pr.tip_radius / a.c:.3f},  helical tip Mach = {np.hypot(V, om * pr.tip_radius) / a.c:.3f}")
+        self.readout.setText(f"BPF = {pr.blades * s.rpm / 60:.1f} Hz, rotational tip Mach = {om * pr.tip_radius / a.c:.3f}, "
+                             f"observer distance = {np.hypot(pr.axial_offset, pr.tip_radius + pr.clearance):.2f} m")
 
 
 # ---- Fuselage -----------------------------------------------------------------------
@@ -187,158 +161,84 @@ class FuselageTab(Tab):
     def __init__(self):
         super().__init__()
         self.form = DataclassForm([
-            F("radius", "Fuselage radius R", "m", lo=0.2, hi=5),
-            F("nose_to_station", "Nose to prop-plane station", "m", lo=0.1, hi=50),
-            F("sidewall_area", "Sidewall area S_w (incl. openings)", "m2", lo=0.1, hi=1000),
-            F("patch_width", "Prop-plane patch width (axial)", "m", lo=0.05, hi=10),
-            F("patch_height", "Prop-plane patch height (arc)", "m", lo=0.05, hi=5),
-            F("patch_x_cabin", "Patch centre, cabin x", "m", lo=0, hi=100),
-            F("patch_z_cabin", "Patch centre, cabin z", "m", lo=0, hi=10),
+            F("nose_to_station", "Nose to prop-plane station (boundary layer)", "m", lo=0.1, hi=50),
+            F("side_area", "Sidewall area, one side (tones)", "m2", lo=0.1, hi=1000),
+            F("tbl_area", "Sidewall area exposed to the boundary layer", "m2", lo=0.1, hi=2000),
         ])
         self.form.changed.connect(self.emit)
         self.v.addWidget(self.form)
-        self.v.addWidget(QLabel("The skin is the first panel of the Sidewall Stack (edit E, rho, nu, h, eta, "
-                                "stiffener mass there; tick 'curved')."))
+        self.v.addWidget(_ref("Boundary layer: Goody (2004) wall spectrum, 1/7-power flat-plate layer; the wall "
+                              "pressure is converted to the equivalent diffuse field, <p^2> = <p_wall^2> / 2 "
+                              "(Waterhouse 1955; CR-3813 p. 23)."))
+        self.v.addStretch()
+
+    def load(self, p):
+        self.project = p
+        self.form.set_object(p.fuselage)
+
+
+# ---- Sidewall -----------------------------------------------------------------------
+class SidewallTab(Tab):
+    def __init__(self):
+        super().__init__()
+        self.v.addWidget(_ref("NASA CR-132602 (Wilby & Scharton 1975) sec. 5, non-resonant model: skin and trim are "
+                              "mass-law walls (eq. 46), the cavity between them absorbs (eqs. 51-52), the blanket mass "
+                              "is added to the trim (sec. 6.2). NR by eq. (52); a single wall uses 10 log(1 + A / S tau). "
+                              "The report states the model is not valid well below half the ring frequency."))
+        self.form = DataclassForm([
+            F("skin_thickness", "Skin thickness", "mm", scale=1e3, lo=0.1, hi=20),
+            F("skin_density", "Skin density", "kg/m3", lo=100, hi=20000),
+            F("skin_added_mass", "Smeared stiffeners / doublers", "kg/m2", lo=0, hi=100),
+            F("double_wall", "Double wall (trim present)", kind="bool"),
+            F("trim_mass", "Trim surface mass", "kg/m2", lo=0, hi=100),
+            F("blanket_mass", "Blanket surface mass", "kg/m2", lo=0, hi=100),
+            F("cavity_depth", "Cavity depth (skin to trim)", "mm", scale=1e3, lo=1, hi=1000),
+        ] + [F(f"cavity_alpha.{i}", f"Cavity alpha {int(f)} Hz", lo=0, hi=1) for i, f in enumerate(ALPHA_OCTAVES)])
+        self.form.changed.connect(self.emit)
+        self.v.addWidget(self.form)
         self.readout = QLabel()
         self.v.addWidget(self.readout)
         self.v.addStretch()
 
     def load(self, p):
         self.project = p
-        self.form.set_object(p.fuselage)
+        self.form.set_object(p.sidewall)
         self.update_readout()
 
     def update_readout(self):
         p = self.project
         if not p:
             return
-        panels = [l for l in p.sidewall if isinstance(l, Panel)]
-        if not panels:
-            self.readout.setText("No skin panel in the stack")
-            return
-        c0 = cabin_air(p.cabin.cabin_altitude, p.cabin.temperature).c
-        s = panels[0]
-        self.readout.setText(f"Skin '{s.name}':  m = {s.mass:.2f} kg/m2,  ring f_r = "
-                             f"{s.ring_frequency(p.fuselage.radius):.0f} Hz,  coincidence f_c = "
-                             f"{s.coincidence(c0):.0f} Hz,  patch area S_p = "
-                             f"{p.fuselage.patch_width * p.fuselage.patch_height:.2f} m2")
-
-
-# ---- Layer table (sidewall and openings) -------------------------------------------
-LAYER_KINDS = ["panel", "porous", "gap", "porous_table"]
-LAYER_COLS = [
-    F("kind", "Kind", kind="choice", choices=LAYER_KINDS), F("name", "Name", kind="text"),
-    F("h", "h", "mm", scale=1e3), F("d", "d", "mm", scale=1e3), F("E", "E", "GPa", scale=1e-9),
-    F("rho", "rho", "kg/m3"), F("nu", "nu"), F("eta", "eta"), F("m_add", "Added mass", "kg/m2"),
-    F("curved", "Curved", kind="bool"), F("bay_a", "Bay a", "mm", scale=1e3), F("bay_b", "Bay b", "mm", scale=1e3),
-    F("sigma", "sigma", "Pa s/m2"), F("frame", "Frame", kind="choice", choices=["rigid", "limp"]),
-    F("bulk_density", "Bulk density", "kg/m3"),
-]
-
-
-class LayerTable(ListTable):
-    def __init__(self, parent=None):
-        super().__init__(LAYER_COLS, AirGap, parent,
-                         applicable=lambda item, f: f.attr == "kind" or hasattr(item, f.attr),
-                         extra_buttons=[])
-        self.lib = load_library()
-        h = self.layout().itemAt(1).layout()
-        self.libbox = QComboBox()
-        self.libbox.addItems([f"panel: {x['name']}" for x in self.lib["panels"]]
-                             + [f"porous: {x['name']}" for x in self.lib["porous"]] + ["gap: Air gap 20 mm"])
-        b = QPushButton("Insert from library")
-        b.clicked.connect(self._insert_lib)
-        h.insertWidget(h.count() - 1, self.libbox)
-        h.insertWidget(h.count() - 1, b)
-
-    def _insert_lib(self):
-        kind, name = self.libbox.currentText().split(": ", 1)
-        if kind == "panel":
-            item = Panel(**next(x for x in self.lib["panels"] if x["name"] == name))
-        elif kind == "porous":
-            item = PorousLayer(**next(x for x in self.lib["porous"] if x["name"] == name))
-        else:
-            item = AirGap(name="Air gap", d=0.02)
-        r = self.table.currentRow()
-        self.items.insert(r + 1 if r >= 0 else len(self.items), item)
-        self.refresh()
-        self.changed.emit()
-
-    def on_choice(self, r, f):
-        if f.attr != "kind":
-            return
-        old = self.items[r]
-        cls = {"panel": Panel, "porous": PorousLayer, "gap": AirGap, "porous_table": PorousTable}[old.kind]
-        if not isinstance(old, cls):
-            new = cls()
-            new.name = old.name
-            self.items[r] = new
-        self.refresh()
-
-
-class SidewallTab(Tab):
-    def __init__(self):
-        super().__init__()
-        self.v.addWidget(QLabel("Layers from exterior (skin) to cabin (trim). Panel: h, E, rho, nu, eta; "
-                                "porous: d, sigma (Delany-Bazley); gap: d."))
-        self.table = LayerTable()
-        self.table.changed.connect(self.emit)
-        self.v.addWidget(self.table)
-        self.method = DataclassForm([
-            F("method", "Sidewall method", kind="choice", choices=["tmm", "cr132602"],
-              tip="tmm: plane-wave transfer matrix through the stack. cr132602: Wilby & Scharton (NASA "
-                  "CR-132602) non-resonant SEA double wall (skin, absorbing cavity, trim + blanket mass)"),
-            F("cavity_depth", "CR-132602 cavity depth (0 = layers)", "mm", scale=1e3, lo=0, hi=1000),
-        ] + [F(f"cavity_alpha.{i}", f"CR-132602 cavity alpha {int(f)} Hz") for i, f in enumerate(ALPHA_OCTAVES)])
-        self.method.changed.connect(self.emit)
-        self.v.addWidget(self.method)
-        self.schematic = QLabel()
-        self.schematic.setStyleSheet("font-family: monospace")
-        self.v.addWidget(self.schematic)
-
-    def load(self, p):
-        self.project = p
-        self.table.set_items(p.sidewall)
-        self.method.set_object(p.sidewall_method)
-        self.update_readout()
-
-    def update_readout(self):
-        if not self.project:
-            return
-        sym = {"panel": "#", "porous": ":", "gap": " ", "porous_table": ":"}
-        parts = []
-        for l in self.project.sidewall:
-            t = l.h if l.kind == "panel" else l.d
-            parts.append(sym[l.kind] * max(1, min(30, int(round(t * 1000 / 4)))))
-        total = sum((l.h if l.kind == "panel" else l.d) for l in self.project.sidewall)
-        mass = sum(l.mass for l in self.project.sidewall if isinstance(l, Panel))
-        self.schematic.setText("exterior |" + "|".join(parts) + "| cabin" +
-                               f"     depth {total * 1000:.1f} mm, panel mass {mass:.2f} kg/m2")
+        sw = p.sidewall
+        air = cabin_air(p.cabin.cabin_altitude, p.cabin.temperature)
+        tl = lambda m: -10 * np.log10(tau_mass_law_diffuse(np.array([125.0, 500.0, 2000.0]), m, air.rho_c))  # noqa: E731
+        txt = f"Skin {sw.m_skin:.2f} kg/m2, TL(eq. 46) 125/500/2k = " + " / ".join(f"{x:.1f}" for x in tl(sw.m_skin))
+        if sw.double_wall:
+            txt += (f"   |   trim + blanket {sw.m_trim:.2f} kg/m2, TL = " + " / ".join(f"{x:.1f}" for x in tl(sw.m_trim))
+                    + f"   |   cavity cross-mode c/2L = {air.c / (2 * sw.cavity_depth):.0f} Hz")
+        self.readout.setText(txt + " dB")
 
 
 # ---- Openings -----------------------------------------------------------------------
 class OpeningsTab(Tab):
     def __init__(self):
         super().__init__()
+        self.v.addWidget(_ref("Windows / doors inside the exposed sidewall, combined by area-weighted transmission "
+                              "(TM-85722 eq. 1). Mode 'mass': one pane of the summed surface mass (TM-85722 p. 17), "
+                              "mass law eq. (46); mode 'tl': a TL table."))
         cols = [F("name", "Name", kind="text"), F("area", "Area", "m2"),
-                F("mode", "TL from", kind="choice", choices=["layers", "tl"])]
+                F("mode", "TL from", kind="choice", choices=["mass", "tl"]), F("mass", "Pane mass", "kg/m2")]
         self.table = ListTable(cols, Opening)
         self.table.changed.connect(self.emit)
         self.table.selection.connect(self._select)
-        self.v.addWidget(QLabel("Windows / doors (area-weighted composite with the sidewall)"))
         self.v.addWidget(self.table)
-        self.layers_box = QGroupBox("Layer stack of the selected opening")
-        lv = QVBoxLayout(self.layers_box)
-        self.layers = LayerTable()
-        self.layers.changed.connect(self.emit)
-        lv.addWidget(self.layers)
-        self.v.addWidget(self.layers_box)
-        tb = QGroupBox("Diffuse TL table of the selected opening (mode 'tl'):  f:TL; f:TL; ...")
-        th = QHBoxLayout(tb)
+        th = QHBoxLayout()
+        th.addWidget(QLabel("TL table of the selected opening (mode 'tl'): f:TL; f:TL; ..."))
         self.tl_edit = QLineEdit()
         self.tl_edit.editingFinished.connect(self._tl_edit)
         th.addWidget(self.tl_edit)
-        self.v.addWidget(tb)
+        self.v.addLayout(th)
+        self.v.addStretch()
         self.sel = -1
 
     def load(self, p):
@@ -348,10 +248,7 @@ class OpeningsTab(Tab):
 
     def _select(self, r):
         self.sel = r
-        ok = 0 <= r < len(self.project.openings)
-        self.layers.set_items(self.project.openings[r].layers if ok else [])
-        self.layers_box.setEnabled(ok)
-        if ok:
+        if 0 <= r < len(self.project.openings):
             o = self.project.openings[r]
             self.tl_edit.setText("; ".join(f"{f:g}:{t:g}" for f, t in zip(o.tl_freqs, o.tl_values)))
 
@@ -373,8 +270,8 @@ class CabinTab(Tab):
     def __init__(self):
         super().__init__()
         self.form = DataclassForm([
-            F("Lx", "Cabin box L_x (length)", "m", lo=0.5, hi=60), F("Ly", "L_y (width)", "m", lo=0.5, hi=10),
-            F("Lz", "L_z (height)", "m", lo=0.5, hi=5),
+            F("Lx", "Cabin length L_x", "m", lo=0.5, hi=60), F("Ly", "Width L_y", "m", lo=0.5, hi=10),
+            F("Lz", "Height L_z", "m", lo=0.5, hi=5),
             F("cabin_altitude", "Cabin pressure altitude", "m", lo=0, hi=5000),
             F("temperature", "Cabin temperature", "K", lo=250, hi=320),
             F("volume", "Volume override (0 = box)", "m3", lo=0, hi=1000),
@@ -387,27 +284,22 @@ class CabinTab(Tab):
         self.t60_edit.editingFinished.connect(self._t60_edit)
         th.addWidget(self.t60_edit)
         self.v.addLayout(th)
-        lib = load_library()
-        self.lib = lib
+        self.lib = load_library()
         scols = [F("name", "Surface", kind="text"), F("area", "Area", "m2")] + \
                 [F(f"alpha.{i}", f"a {int(f)}" if f < 1000 else f"a {int(f / 1000)}k") for i, f in enumerate(ALPHA_OCTAVES)]
         self.surfaces = ListTable(scols, Surface)
         self.surfaces.changed.connect(self.emit)
-        self.v.addWidget(QLabel("Absorbing surfaces (octave alpha, interpolated)"))
+        self.v.addWidget(QLabel("Absorbing surfaces (Sabine A = sum S alpha; octave alpha, interpolated)"))
         self.v.addWidget(self.surfaces)
         h = QHBoxLayout()
         self.libbox = QComboBox()
-        self.libbox.addItems([s["name"] for s in lib["surfaces"]])
+        self.libbox.addItems([s["name"] for s in self.lib["surfaces"]])
         b = QPushButton("Add from library")
         b.clicked.connect(self._add_lib)
         h.addWidget(self.libbox)
         h.addWidget(b)
         h.addStretch()
         self.v.addLayout(h)
-        self.seats = ListTable([F(0, "x", "m"), F(1, "y", "m"), F(2, "z", "m")], lambda: [1.0, 0.5, 1.1])
-        self.seats.changed.connect(self.emit)
-        self.v.addWidget(QLabel("Seat (head) positions: x from forward wall, y from prop-side wall, z from floor"))
-        self.v.addWidget(self.seats)
         self.readout = QLabel()
         self.v.addWidget(self.readout)
 
@@ -431,7 +323,6 @@ class CabinTab(Tab):
         self.form.set_object(p.cabin)
         self.t60_edit.setText("; ".join(f"{f:g}:{t:g}" for f, t in p.cabin.t60_measured))
         self.surfaces.set_items(p.cabin.surfaces)
-        self.seats.set_items(p.cabin.seats)
         self.update_readout()
 
     def update_readout(self):
@@ -442,6 +333,5 @@ class CabinTab(Tab):
         A = c.absorption([125.0, 500.0, 1000.0, 2000.0])
         T = cab.t60(V, A)
         fs = cab.schroeder_frequency(float(np.mean(T[1:3])), V)
-        self.readout.setText(f"V = {V:.1f} m3;  A(125/500/1k/2k) = " + " / ".join(f"{a:.1f}" for a in A)
-                             + " m2;  T60 = " + " / ".join(f"{t:.2f}" for t in T)
-                             + f" s;  Schroeder f_s = {fs:.0f} Hz")
+        self.readout.setText(f"V = {V:.1f} m3; A(125/500/1k/2k) = " + " / ".join(f"{a:.1f}" for a in A)
+                             + " m2; T60 = " + " / ".join(f"{t:.2f}" for t in T) + f" s; Schroeder f_s = {fs:.0f} Hz")

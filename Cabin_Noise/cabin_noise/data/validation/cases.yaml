@@ -76,6 +76,7 @@ cases:
     band_max: 2000
     quantity: reverberant_nr
     defined: "2026-11-02, paper pipeline; criterion unchanged from the original V4a"
+    recorded: "2026-11-02 paper pipeline (definition commit 93bbeb9): not met: max |dNR| 16.5 dB (250 Hz-2 kHz), mean -5.5 dB"
   - id: V4b
     stage: TL
     track: broadband
@@ -88,6 +89,7 @@ cases:
     quantity: reverberant_nr
     ref_file: CR3813_E22.csv
     defined: "2026-11-02, paper pipeline"
+    recorded: "2026-11-02 paper pipeline (definition commit 93bbeb9): not met: 5/19 within +-6 dB, mean +4.5 dB, max 22.4 dB"
   - id: V5
     stage: Source
     track: tonal
@@ -99,6 +101,7 @@ cases:
     min_fraction: 0.75
     quantity: surface_tones
     defined: "2026-11-02, paper pipeline"
+    recorded: "2026-11-02 paper pipeline (definition commit 93bbeb9): not met: 65/101 within +-6 dB, mean -3.3 dB, max 13.2 dB"
   - id: V5c
     stage: Source
     track: tonal
@@ -111,6 +114,7 @@ cases:
     quantity: static_nearfield
     ref_file: R996_nearfield.csv
     defined: "2026-11-02, paper pipeline"
+    recorded: "2026-11-02 paper pipeline (definition commit 93bbeb9): not met: 15/52 within +-6 dB, max 47.4 dB (Gutin far-field formula at d/D = 0.083)"
   - id: V5b
     stage: Source
     track: broadband
@@ -122,6 +126,7 @@ cases:
     min_fraction: 0.75
     quantity: tbl_bands
     defined: "2026-11-02; unchanged block (Goody)"
+    recorded: "2026-11-02 paper pipeline (definition commit 93bbeb9): met: 265/323 within +-6 dB, mean +2.7 dB"
   - id: V6
     stage: Cabin
     track: both
@@ -133,6 +138,7 @@ cases:
     min_fraction: 0.75
     quantity: il_bands
     defined: "2026-11-02, paper pipeline"
+    recorded: "2026-11-02 paper pipeline (definition commit 93bbeb9): not met: 372/519 within +-6 dB (72 %), mean +1.4 dB"
   - id: V7
     stage: Total
     track: tonal
@@ -144,6 +150,7 @@ cases:
     min_fraction: 0.75
     quantity: cabin_tones
     defined: "2026-11-02, paper pipeline"
+    recorded: "2026-11-02 paper pipeline (definition commit 93bbeb9): not met: 1/108 within +-6 dB, mean +17.9 dB (mass-law wall far below 0.5 f_r)"
   - id: V8
     stage: Total
     track: both
