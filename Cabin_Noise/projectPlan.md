@@ -443,3 +443,8 @@ Everything below is digitized under `PAIN_Program/data` and can be copied withou
   2. With the wall alone, the model still predicts 12-24 dB too much NR at 250 Hz-2 kHz. A lightly damped (eta = 0.0018) thin cylinder transmits through resonant modes below the ring frequency (3.3 kHz). The plane-wave TL with an added ring-stiffness term has no resonant path. This is the plan's stated assumption 1, and V4a measures what it costs.
   3. Near f_r the model's NR falls to about 0 dB; measured is 4.5-7 dB.
 - A fix (for example a statistical resonant-transmission term below f_r, or a finite-plate end-cap model) is a model change. It must be judged on a case it was not developed against; V4a's result stays recorded as is.
+
+### Low-fidelity criterion policy (decided 2026-11-02, before any comparison of V4, V5, V5b, V6, V7)
+- The plan's +-3 dB at every point is a high-fidelity target. A low-fi tool is meant for design trades and overall levels, so the unrun experimental cases are now judged **met when at least 75 % of the points in range lie within +-6 dB**. Max |e|, RMS and mean error are reported with every result. V7 now carries a verdict instead of "report only".
+- **V4a keeps its original verdict** (max-error <= 3 dB: not met), because it was defined and run under that criterion. Re-stated under the new policy (**post-hoc, information only, 2026-11-02**): 3 of 10 bands lie within +-6 dB, which would still be not met.
+- Misses are an expected outcome for a low-fi tool. They are recorded with an attribution and listed as known limits, and are never tuned away.

@@ -169,13 +169,23 @@ def run_experimental(meta) -> CaseResult:
     sel = (x >= lo / 2 ** (1 / 12)) & (x <= hi * 2 ** (1 / 12))
     if not np.any(sel):
         return CaseResult(cid, meta, "not run", note="no reference points inside the criterion range")
-    tgt = meta.get("target_db")
     worst = float(np.max(err[sel]))
+    stats = (f"max |e| {worst:.1f} dB, RMS {np.sqrt(np.mean(err[sel] ** 2)):.1f} dB, "
+             f"mean {np.mean((code - y)[sel]):+.1f} dB")
+    head = f"{ref_meta.get('report', '')} {ref_meta.get('figure', '')}".strip()
+    if "min_fraction" in meta:                     # low-fi policy: fraction within +-tol
+        tol, need = meta["tol_db"], meta["min_fraction"]
+        frac = float(np.mean(err[sel] <= tol))
+        status = "met" if frac >= need else "not met"
+        note = (f"{head}; {int(np.sum(err[sel] <= tol))}/{int(sel.sum())} points within +-{tol:g} dB "
+                f"(need {need:.0%}); {stats}")
+        return CaseResult(cid, meta, status, 100 * frac, 100 * need, unit="% within", x=x, code=code,
+                          ref=y, note=note)
+    tgt = meta.get("target_db")
     status = "info" if tgt is None else ("met" if worst <= tgt else "not met")
     within_all = float(np.mean(err <= tgt) * 100) if tgt else float("nan")
-    note = (f"{ref_meta.get('report', '')} {ref_meta.get('figure', '')}".strip()
-            + f"; verdict on {int(sel.sum())} points in {lo:g}-{hi:g}; all {len(x)} points: "
-            + f"{within_all:.0f}% within target (information)")
+    note = (f"{head}; verdict on {int(sel.sum())} points in {lo:g}-{hi:g}; all {len(x)} points: "
+            + f"{within_all:.0f}% within target (information); {stats}")
     return CaseResult(cid, meta, status, worst, tgt, x=x, code=code, ref=y, note=note)
 
 

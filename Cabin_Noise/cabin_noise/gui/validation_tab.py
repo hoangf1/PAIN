@@ -70,6 +70,8 @@ class ValidationTab(QWidget):
     def _row(self, r, meta, res):
         tgt = meta.get("target_db", meta.get("target_oct"))
         unit = "oct" if "target_oct" in meta else "dB"
+        if "min_fraction" in meta:
+            tgt, unit = 100 * meta["min_fraction"], f"% within +-{meta['tol_db']:g} dB"
         val = "" if res is None or res.value is None else f"{res.value:.3g} {res.unit}"
         status = "not run" if res is None else res.status
         cells = [meta["id"], meta["kind"], meta["stage"], meta["track"], meta["reference"], meta["metric"],
@@ -111,8 +113,8 @@ class ValidationTab(QWidget):
         self.overlay.plot(res.x, res.code, pen=pg.mkPen((31, 119, 180), width=2))
         if res.ref is not None:
             ok = np.isfinite(res.ref)
-            tgt = res.target or 0.0
-            if res.unit == "dB" and tgt:
+            tgt = m.get("tol_db", res.target if res.unit == "dB" else 0.0) or 0.0
+            if tgt:
                 up = pg.PlotDataItem(res.x[ok], res.ref[ok] + tgt)
                 dn = pg.PlotDataItem(res.x[ok], res.ref[ok] - tgt)
                 self.overlay.addItem(pg.FillBetweenItem(up, dn, brush=pg.mkBrush(150, 150, 150, 60)))
@@ -137,7 +139,8 @@ class ValidationTab(QWidget):
 
     def _heatmap(self):
         self.heat.clear()
-        rows = [r for r in self.results if r.meta["kind"] == "validation" and r.ref is not None and r.target]
+        rows = [r for r in self.results if r.meta["kind"] == "validation" and r.ref is not None
+                and (r.meta.get("tol_db") or r.meta.get("target_db"))]
         if not rows:
             self.heat.addItem(pg.TextItem("No experimental reference data digitized yet (V4-V7 not run)",
                                           color="k", anchor=(0.5, 0.5)))
@@ -145,7 +148,7 @@ class ValidationTab(QWidget):
         n = max(len(r.x) for r in rows)
         img = np.full((n, len(rows)), np.nan)
         for j, r in enumerate(rows):
-            img[:len(r.x), j] = np.abs(r.code - r.ref) / r.target
+            img[:len(r.x), j] = np.abs(r.code - r.ref) / (r.meta.get("tol_db") or r.meta["target_db"])
         item = pg.ImageItem(np.nan_to_num(img, nan=0.0))
         item.setLookupTable(pg.colormap.get("magma").getLookupTable())
         item.setLevels([0, 2])

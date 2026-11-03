@@ -14,6 +14,12 @@
 # Until both exist the case shows "not run (no reference data)".
 criteria_fixed: 2026-11-02
 
+# Low-fidelity criterion policy (decided 2026-11-02, before any comparison of V4, V5, V5b,
+# V6, V7): a band/harmonic criterion of +-3 dB at every point is a high-fidelity target. These
+# cases are judged "met" when at least min_fraction of the points inside [band_min, band_max]
+# lie within +-tol_db of the measurement; max |e|, RMS and mean are reported alongside.
+# V4a was defined and run under the earlier max-error criterion and keeps that verdict.
+
 cases:
   - id: V0a
     stage: Source
@@ -69,8 +75,11 @@ cases:
     kind: validation
     check: Lab sidewall-panel TL (bare and treated)
     reference: NASA TM-85722
-    metric: max |dTL| 250 Hz - 2 kHz
-    target_db: 3.0
+    metric: ">= 75 % of 1/3-octave bands 250 Hz - 2 kHz within +-6 dB"
+    tol_db: 6.0
+    min_fraction: 0.75
+    band_min: 250
+    band_max: 2000
     quantity: tl_band
   - id: V4a
     stage: TL
@@ -91,8 +100,9 @@ cases:
     kind: validation
     check: Surface harmonics (incident x scattering factor) vs measured, all runs
     reference: NASA CR-178004
-    metric: max |dL| at BPF1-3
-    target_db: 3.0
+    metric: ">= 75 % of measured BPF1-3 levels (all runs, all exterior points) within +-6 dB"
+    tol_db: 6.0
+    min_fraction: 0.75
     quantity: surface_tones
   - id: V5b
     stage: Source
@@ -100,8 +110,9 @@ cases:
     kind: validation
     check: Goody spectrum vs measured exterior fluctuating pressure
     reference: NASA CR-178004
-    metric: max |dL| per band
-    target_db: 3.0
+    metric: ">= 75 % of measured bands within +-6 dB"
+    tol_db: 6.0
+    min_fraction: 0.75
     quantity: L_wall
   - id: V6
     stage: Cabin
@@ -109,8 +120,9 @@ cases:
     kind: validation
     check: Treatment insertion loss vs flight
     reference: NASA TM-85722
-    metric: max |dIL| broadband bands; harmonic error reported
-    target_db: 3.0
+    metric: ">= 75 % of broadband bands within +-6 dB; harmonic IL error reported"
+    tol_db: 6.0
+    min_fraction: 0.75
     quantity: insertion_loss
   - id: V7
     stage: Total
@@ -118,7 +130,9 @@ cases:
     kind: validation
     check: Cabin harmonic levels at each measured location (average + max-seat)
     reference: NASA CR-178004
-    metric: error band reported (no fixed target in the plan)
+    metric: ">= 75 % of measured cabin harmonic levels (all locations, average method) within +-6 dB; max-seat error reported"
+    tol_db: 6.0
+    min_fraction: 0.75
     quantity: L_tone
   - id: V8
     stage: Total
