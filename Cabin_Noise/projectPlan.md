@@ -586,3 +586,9 @@ Everything below is digitized under `PAIN_Program/data` and can be copied withou
   - Before the first run the results bar says "Not run yet". An edit marks it "Not up to date" and greys the last run's numbers. A run that finishes after a later edit is marked the same way.
   - Smoke checks: the window opens with no run; an edit starts no run; an edit after a run marks the bar out of date.
 
+### Validation chart legends (2026-11-03, author's request)
+- All three Validation panels have a legend (top left). It names the code curve, the reference with its source, the +-target acceptance band, the target lines, the 1:1 line and any information curves. A case with no reference data lists its marker lines with their values.
+- The panel titles are shortened to "Code vs reference", "Error (code - reference)" and "Predicted vs reference (1:1)".
+- The docs/figures PNGs were regenerated. No result changed (same values as the record).
+- Smoke check: every case with a reference has the code and reference entries in its legend.
+

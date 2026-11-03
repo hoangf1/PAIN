@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import html
+import re
 
 import numpy as np
 import pyqtgraph as pg
@@ -53,11 +54,14 @@ class ValidationTab(QWidget):
         split.addWidget(self.views)
         right = QWidget()
         rv = QVBoxLayout(right)
-        self.overlay = pg.PlotWidget(title="Code (line) vs reference (markers), acceptance band shaded")
-        self.error = pg.PlotWidget(title="Error vs abscissa with +-target")
+        self.overlay = pg.PlotWidget(title="Code vs reference")
+        self.error = pg.PlotWidget(title="Error (code - reference)")
         self.scatter = pg.PlotWidget(title="Predicted vs reference (1:1)")
+        self.legends = {}
         for w in (self.overlay, self.error, self.scatter):
             w.showGrid(x=True, y=True, alpha=0.3)
+            self.legends[w] = w.addLegend(offset=(10, 10), labelTextColor="#111", brush=(255, 255, 255, 170),
+                                          pen=(180, 180, 180))     # top left: the curves here mostly rise
             rv.addWidget(w)
         self.caption = QLabel()
         self.caption.setWordWrap(True)
@@ -118,9 +122,15 @@ class ValidationTab(QWidget):
             self.table.setCurrentCell(self.ids.index(cid), 0)
             self.show_case(self.ids.index(cid))
 
+    @staticmethod
+    def _key(legend, name, **opts):
+        """Legend entry for an item that has no plot curve of its own (a shaded band or a constant line)."""
+        legend.addItem(pg.PlotDataItem([], [], **opts), name)
+
     def show_case(self, r):
         for w in (self.overlay, self.error, self.scatter):
             w.clear()
+            self.legends[w].clear()
         if not (0 <= r < len(self.results)):
             return
         res = self.results[r]
@@ -136,7 +146,8 @@ class ValidationTab(QWidget):
             w.setLogMode(x=logx, y=False)
             w.setLabel("bottom", res.xlabel)
         self.overlay.setLabel("left", res.ylabel)
-        self.overlay.plot(res.x, res.code, pen=pg.mkPen((31, 119, 180), width=2))
+        ref_name = re.sub(r"\s*\([^)]*\.(csv|json)[^)]*\)", "", m["reference"])   # drop the data file names
+        self.overlay.plot(res.x, res.code, pen=pg.mkPen((31, 119, 180), width=2), name="code")
         if res.ref is not None:
             ok = np.isfinite(res.ref)
             tgt = m.get("tol_db", res.target if res.unit == "dB" else 0.0) or 0.0
@@ -147,21 +158,26 @@ class ValidationTab(QWidget):
                     it.setLogMode(logx, False)
                 self.overlay.addItem(pg.FillBetweenItem(up, dn, brush=pg.mkBrush(150, 150, 150, 60)))
             self.overlay.plot(res.x[ok], res.ref[ok], pen=None, symbol="o", symbolSize=6,
-                              symbolBrush=(80, 80, 80))
+                              symbolBrush=(80, 80, 80), name=f"reference: {ref_name}")
+            if tgt:
+                self._key(self.legends[self.overlay], f"reference +-{tgt:g} dB (acceptance band)", pen=None,
+                          fillLevel=0, fillBrush=pg.mkBrush(150, 150, 150, 60))
             curves = {k: v for k, v in res.series.items() if isinstance(v, np.ndarray) and v.shape == res.x.shape}
-            self.overlay.addLegend(offset=(-10, 10)).setVisible(bool(curves))   # persists across cases
             if curves:                                       # information curves (no criterion)
                 for (k, val), sym in zip(curves.items(), ("t", "s", "d", "+")):
                     self.overlay.plot(res.x, val, pen=pg.mkPen((120, 120, 120), width=1, style=Qt.DashLine),
                                       symbol=sym, symbolSize=6, name=k)
             err = res.code[ok] - res.ref[ok]
-            self.error.plot(res.x[ok], err, pen=pg.mkPen((214, 39, 40), width=2), symbol="o", symbolSize=4)
+            self.error.plot(res.x[ok], err, pen=pg.mkPen((214, 39, 40), width=2), symbol="o", symbolSize=4,
+                            name="error = code - reference")
             if tgt:
                 for s in (-tgt, tgt):
                     self.error.addItem(pg.InfiniteLine(pos=s, angle=0, pen=pg.mkPen("k", style=Qt.DashLine)))
-            self.scatter.plot(res.ref[ok], res.code[ok], pen=None, symbol="o", symbolSize=6)
+                self._key(self.legends[self.error], f"+-{tgt:g} dB target", pen=pg.mkPen("k", style=Qt.DashLine))
+            self.scatter.plot(res.ref[ok], res.code[ok], pen=None, symbol="o", symbolSize=6,
+                              name="points (x = reference, y = code)")
             lo, hi = float(np.min(res.ref[ok])), float(np.max(res.ref[ok]))
-            self.scatter.plot([lo, hi], [lo, hi], pen=pg.mkPen("k", style=Qt.DashLine))
+            self.scatter.plot([lo, hi], [lo, hi], pen=pg.mkPen("k", style=Qt.DashLine), name="1:1 (perfect agreement)")
             e = err[criterion_range(m, res.x[ok])]               # the points the verdict counts
             if e.size:
                 within = f", {np.mean(np.abs(e) <= tgt) * 100:.0f}% within +-{tgt:g} dB" if tgt else ""
@@ -174,6 +190,7 @@ class ValidationTab(QWidget):
                 if isinstance(val, float):
                     self.overlay.addItem(pg.InfiniteLine(pos=np.log10(val) if logx else val, angle=90,
                                                          label=k, pen=pg.mkPen("k", style=Qt.DashLine)))
+                    self._key(self.legends[self.overlay], f"{k} = {val:.4g}", pen=pg.mkPen("k", style=Qt.DashLine))
 
     def report_html(self) -> str:
         if not self.results:

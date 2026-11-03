@@ -215,4 +215,4 @@ The script runs every case, which takes a few minutes, and saves one PNG per cas
 - the error, with ±target;
 - predicted against reference, on a 1:1 line.
 
-The caption below them gives the statistics over the points the verdict counts.
+Each panel has a legend naming its curves (code, the reference and its source, the acceptance band, the target lines, the 1:1 line, and any information curves). The caption below them gives the statistics over the points the verdict counts.

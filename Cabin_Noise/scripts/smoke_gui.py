@@ -87,6 +87,12 @@ def main():
                 w.validation.show_case(r)
                 if f"{res.value:.0f}% within" not in w.validation.caption.text():
                     failures.append(f"{res.id} caption disagrees with its verdict ({res.value:.0f}%)")
+        for r, res in enumerate(w.validation.results):     # every chart with a reference has a legend
+            if res.ref is not None and res.code is not None:
+                w.validation.show_case(r)
+                names = [lab.text for _, lab in w.validation.legends[w.validation.overlay].items]
+                if "code" not in names or not any(n.startswith("reference:") for n in names):
+                    failures.append(f"{res.id} chart legend missing code / reference: {names}")
         if shots:
             shots.mkdir(parents=True, exist_ok=True)
             for i in range(w.plot_tabs.count()):
