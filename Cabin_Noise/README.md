@@ -41,7 +41,13 @@ python -m venv .venv
 
 **Default example:** a generic twin turboprop with a 22.7 x 2.64 x 1.9 m cabin; cruise 97.6 dBA room average, 102.3 dBA at the 95th-percentile seat. Cabin air (8000 ft, 20 C) and the cavity absorption (CR-132602 sec. 6.2's table) are set to these defaults and can be changed in the Cabin and Sidewall tabs. Every value of the example is in `cabin_noise/data/default_project.json`, and every input has a field in the GUI (the Analysis tab holds the band range and the max-seat percentile). The equations' own constants are listed in METHOD.md sec. 5.
 
-**Running:** the model runs only when you press the green **Run (F5)** button at the top of the Model tab. It does not run on start-up, on opening a file or on an input edit. Before the first run the results bar says "Not run yet"; while the inputs differ from the last run it says "Not up to date" in orange and shows the last run's numbers greyed. Mission summary (F6) and Parameter sweep (F7) are in the Run menu, and the Validation tab has its own run button.
+**Running:** the model runs only when you press the green **Run (F5)** button at the top of the Model tab. It does not run on start-up, on opening a file or on an input edit. Before the first run the results bar says "Not run yet"; while the inputs differ from the last run it says "Not up to date" in orange and shows the last run's numbers greyed. The Validation tab has its own run button.
+
+**Result tabs:**
+- **A-weighted** gives the single answer at the top: overall dBA for the room average and for the max seat. Each band's level plus its A-weighting correction is summed on an energy basis. The bars below are that sum's breakdown by 1/3-octave band.
+- **Compare** is a design trade. Store a result as A, change inputs, press Run: B is the current inputs. It shows IL = L_A - L_B per band and in overall dBA.
+- **Mission** runs every segment of the Mission table (button, or F6).
+- **Sweep** varies one input over a range and plots cabin dBA against it (button, or F7).
 
 **LaTeX documents:** every `.md` here has a LaTeX copy in `docs/latex/`. After editing a document, run `.venv/Scripts/python scripts/md_to_latex.py`; add `--mmdc <path to mermaid-cli>` when a Mermaid diagram changed. `tests/test_latex_docs.py` fails while a copy or a diagram is out of date. Compile with XeLaTeX or LuaLaTeX, e.g. `tectonic docs/latex/METHOD.tex`.
 

@@ -140,6 +140,12 @@ class MainWindow(QMainWindow):
         self.views = {"Exterior": plots.ExteriorView(), "NR": plots.NRView(), "Interior": plots.InteriorView(),
                       "A-weighted": plots.AWeightView(), "Compare": plots.CompareView(),
                       "Mission": plots.MissionView(), "Sweep": plots.SweepView()}
+        cmp_ = self.views["Compare"]
+        cmp_.store_btn.clicked.connect(self.store_a)
+        cmp_.load_btn.clicked.connect(self.load_a)
+        cmp_.clear_btn.clicked.connect(self.clear_a)
+        self.views["Mission"].run_btn.clicked.connect(self.mission_summary)
+        self.views["Sweep"].sweep_btn.clicked.connect(self.sweep)
         self.plot_tabs = QTabWidget()
         for k, w in self.views.items():
             self.plot_tabs.addTab(w, k)
@@ -207,7 +213,7 @@ class MainWindow(QMainWindow):
         c = mb.addMenu("&Compare")
         self._act(c, "Store current as A", self.store_a)
         self._act(c, "Load A from project file...", self.load_a)
-        self._act(c, "Clear A", lambda: setattr(self, "compare_a", None))
+        self._act(c, "Clear A", self.clear_a)
         h = mb.addMenu("&Help")
         self._act(h, "Assumptions and limitations", lambda: QMessageBox.information(self, "About", ASSUMPTIONS))
         self._refresh_recent()
@@ -317,12 +323,12 @@ class MainWindow(QMainWindow):
 
     def mission_summary(self):
         proj = copy.deepcopy(self.project)
-        task = Task(lambda p: (run_mission(p), None), proj)
-        task.signals.done.connect(lambda out: (self.views["Mission"].show(*out),
+        task = Task(run_mission, proj)
+        task.signals.done.connect(lambda out: (self.views["Mission"].show(out),
                                                self.plot_tabs.setCurrentWidget(self.views["Mission"]),
                                                self.statusBar().showMessage("Mission summary done", 3000)))
         task.signals.failed.connect(self._failed)
-        self.statusBar().showMessage("Running all segments + 5-patch check...")
+        self.statusBar().showMessage("Running all segments...")
         self._start(task)
 
     def sweep(self):
@@ -341,16 +347,23 @@ class MainWindow(QMainWindow):
         self._start(task)
 
     def store_a(self):
-        if self.result is not None:
-            self.compare_a = self.result
-            self.statusBar().showMessage("Stored current result as A; edit inputs and press Run to compare (current = B)", 5000)
+        if self.result is None:
+            self.statusBar().showMessage("Nothing to store yet: press Run (F5) first", 5000)
+            return
+        self.compare_a = self.result
+        self.views["Compare"].clear(f"A stored ({self.result.segment}). Change inputs and press Run (F5): "
+                                    f"the current inputs are B.")
+
+    def clear_a(self):
+        self.compare_a = None
+        self.views["Compare"].clear()
 
     def load_a(self):
         fn, _ = QFileDialog.getOpenFileName(self, "Configuration A", "", "Project (*.json)")
         if fn:
             task = Task(lambda f: run_case(load_project(f)), fn)
-            task.signals.done.connect(lambda r: (setattr(self, "compare_a", r), self.statusBar().showMessage(
-                "Loaded A; press Run (F5) to compare the current inputs (B) with it", 5000)))
+            task.signals.done.connect(lambda r: (setattr(self, "compare_a", r), self.views["Compare"].clear(
+                f"A loaded from {Path(fn).name}. Press Run (F5) to compare the current inputs (B) with it.")))
             task.signals.failed.connect(self._failed)
             self._start(task)
 

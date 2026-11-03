@@ -5,7 +5,7 @@ from __future__ import annotations
 import numpy as np
 import pyqtgraph as pg
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QLabel, QVBoxLayout, QWidget
+from PySide6.QtWidgets import QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget
 
 from ..core.weighting import a_weight
 
@@ -16,6 +16,17 @@ C_BB = (255, 127, 14)
 C_TONE = (44, 160, 44)
 C_SEAT = (214, 39, 40)
 C_REF = (110, 110, 110)
+
+
+def _buttons(layout, *texts):
+    """A row of buttons above a view; returns them in order (main_window connects them)."""
+    row = QHBoxLayout()
+    out = [QPushButton(t) for t in texts]
+    for b in out:
+        row.addWidget(b)
+    row.addStretch()
+    layout.addLayout(row)
+    return out
 
 
 def _plot(title, xlabel="Frequency (Hz)", ylabel="Level (dB re 20 uPa)", logx=True):
@@ -103,11 +114,20 @@ class AWeightView(QWidget):
     def __init__(self):
         super().__init__()
         v = QVBoxLayout(self)
-        self.p = _plot("A-weighted contribution per band (average)", xlabel="1/3-octave band (Hz)",
-                       ylabel="dB(A)", logx=False)
+        self.total = QLabel()                                # the single-number answer, above its breakdown
+        self.total.setStyleSheet("font-size: 15px; padding: 4px;")
+        self.total.setWordWrap(True)
+        v.addWidget(self.total)
+        self.p = _plot("A-weighted level per 1/3-octave band (room average): the bars sum to the dBA above",
+                       xlabel="1/3-octave band (Hz)", ylabel="dB(A)", logx=False)
         v.addWidget(self.p)
 
     def show(self, r):
+        t = r.totals
+        self.total.setText(
+            f"<b>{t['average']['total']['dBA']:.1f} dBA</b> room average &nbsp;|&nbsp; "
+            f"<b>{t['max_seat']['total']['dBA']:.1f} dBA</b> at the {r.seat_percentile:g}th-percentile seat "
+            f"&nbsp;({r.segment}). Each band's level + the A-weighting correction, summed on an energy basis.")
         self.p.clear()
         x = np.arange(len(r.centers))
         A = a_weight(r.centers)
@@ -119,46 +139,59 @@ class AWeightView(QWidget):
                                        brush=pg.mkBrush(*C_TONE, 200), name="total (tones on top)"))
         self.p.addItem(pg.BarGraphItem(x=x, height=np.maximum(bb - base, 0), y0=base, width=0.8,
                                        brush=pg.mkBrush(*C_BB, 230), name="broadband"))
-        self.p.plot([], [], pen=None, symbol="s", symbolBrush=C_TONE, name="tonal share (total)")
-        self.p.plot([], [], pen=None, symbol="s", symbolBrush=C_BB, name="broadband")
         from ..core.frequencies import nominal_label
         ax = self.p.getAxis("bottom")
         ax.setTicks([[(i, nominal_label(f)) for i, f in enumerate(r.centers) if i % 2 == 0]])
 
 
 class CompareView(QWidget):
+    HELP = ("Design trade, A vs B: run, store the result as A, change inputs (e.g. heavier trim) and press Run. "
+            "The current inputs are B; IL = L_A - L_B is what the change buys.")
+
     def __init__(self):
         super().__init__()
         v = QVBoxLayout(self)
-        self.label = QLabel("Store a configuration as A (Compare menu), then edit: current = B")
+        self.store_btn, self.load_btn, self.clear_btn = _buttons(
+            v, "Store current result as A", "Load A from project file...", "Clear A")
+        self.label = QLabel(self.HELP)
+        self.label.setWordWrap(True)
         v.addWidget(self.label)
         self.p = _plot("Compare: A vs B (room average, total)")
         self.il = _plot("Insertion loss IL = L_A - L_B", ylabel="IL (dB)")
         v.addWidget(self.p)
         v.addWidget(self.il)
 
-    def show(self, a, b, il, name_a="A", name_b="B"):
+    def show(self, a, b, il):
         self.p.clear()
         self.il.clear()
-        self.p.plot(a.centers, a.L_band_total, pen=pg.mkPen(C_REF, width=2), name=f"{name_a}")
-        self.p.plot(b.centers, b.L_band_total, pen=pg.mkPen(C_TOTAL, width=2), name=f"{name_b}")
+        self.p.plot(a.centers, a.L_band_total, pen=pg.mkPen(C_REF, width=2), name="A (stored)")
+        self.p.plot(b.centers, b.L_band_total, pen=pg.mkPen(C_TOTAL, width=2), name="B (current inputs)")
         self.il.plot(il["centers"], il["band_total"], pen=pg.mkPen(C_TOTAL, width=2), name="IL total")
         self.il.plot(il["centers"], il["band_broadband"], pen=pg.mkPen(C_BB, width=2), name="IL broadband")
         if "tone" in il:
             _stems(self.il, il["f_m"], il["tone"], C_TONE, "IL tones", base=0)
-        self.label.setText(f"IL (overall dBA, average) = {il['dBA']:.2f} dB")
+        self.label.setText(f"A = stored result, B = current inputs:  IL (overall dBA, room average) = "
+                           f"{il['dBA']:.2f} dB (positive: B is quieter)")
+
+    def clear(self, text=None):
+        self.p.clear()
+        self.il.clear()
+        self.label.setText(text or self.HELP)
 
 
 class MissionView(QWidget):
     def __init__(self):
         super().__init__()
         v = QVBoxLayout(self)
+        (self.run_btn,) = _buttons(v, "Run all segments (F6)")
+        self.label = QLabel("Runs every segment of the Mission table (not only the active one) and compares "
+                            "them: overall level, dBA and the max seat per flight phase.")
+        self.label.setWordWrap(True)
+        v.addWidget(self.label)
         self.p = _plot("Mission summary (room average)", xlabel="segment", ylabel="dB", logx=False)
         v.addWidget(self.p)
-        self.label = QLabel("Run > Mission summary")
-        v.addWidget(self.label)
 
-    def show(self, results, sens=None):
+    def show(self, results):
         self.p.clear()
         x = np.arange(len(results))
         dba = [r.totals["average"]["total"]["dBA"] for r in results]
@@ -170,18 +203,19 @@ class MissionView(QWidget):
         self.p.getAxis("bottom").setTicks([[(i, r.segment) for i, r in enumerate(results)]])
         lo = min(dba) - 15
         self.p.setYRange(lo, max(oa) + 5)
-        txt = "  |  ".join(f"{r.segment}: {d:.1f} dBA / {o:.1f} dB" for r, d, o in zip(results, dba, oa))
-        if sens:
-            txt += (f"\n1-vs-5 patch (active segment): {sens['dBA_1']:.2f} vs {sens['dBA_5']:.2f} dBA, "
-                    f"delta {sens['delta']:+.2f} dB -> " + ("1 patch adequate (< 1 dB)" if sens["adequate"]
-                                                             else "use 5 patches (>= 1 dB)"))
-        self.label.setText(txt)
+        self.label.setText("  |  ".join(f"{r.segment}: {d:.1f} dBA / {o:.1f} dB"
+                                        for r, d, o in zip(results, dba, oa)))
 
 
 class SweepView(QWidget):
     def __init__(self):
         super().__init__()
         v = QVBoxLayout(self)
+        (self.sweep_btn,) = _buttons(v, "Sweep... (F7)")
+        self.label = QLabel("Varies one input over a range (active segment) and plots cabin dBA against it: "
+                            "how sensitive the noise is to that input.")
+        self.label.setWordWrap(True)
+        v.addWidget(self.label)
         self.p = _plot("Parameter sweep", xlabel="parameter", ylabel="dB", logx=False)
         v.addWidget(self.p)
 

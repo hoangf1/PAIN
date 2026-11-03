@@ -600,3 +600,12 @@ Everything below is digitized under `PAIN_Program/data` and can be copied withou
   - The seat-spread row gives the percentile formula.
 - **Gap closed:** the Sabine check tested only the 0.161 constant, never the code. New `test_cabin_absorption_is_sabine` checks the surface sum and the measured-T60 path. VERIFICATION.md is updated.
 
+### Result tabs: buttons, single dBA (2026-11-03, author's request)
+- **Buttons:** Compare, Mission and Sweep each have their own buttons (Store as A / Load A / Clear A; Run all segments; Sweep...) and a one-line explanation. Before, they were reachable only from the menus.
+- **A-weighted tab:** shows the overall dBA (room average and max seat) above the per-band bars. The duplicate legend entries are removed.
+- **Removed leftover:** the Mission run still said "+ 5-patch check" and the Mission view kept a 1-vs-5-patch branch. The patch grid was removed on 2026-11-02.
+- **Smoke checks:**
+  - each tab button does its job;
+  - Clear A clears the view;
+  - the A-weighted bars sum, on an energy basis, to the stated dBA within 0.05 dB.
+

@@ -15,6 +15,8 @@ from PySide6.QtCore import QThreadPool, QTimer  # noqa: E402
 from PySide6.QtWidgets import QApplication  # noqa: E402
 
 from cabin_noise.core.validation import load_cases  # noqa: E402
+from cabin_noise.core.weighting import a_weight  # noqa: E402
+from cabin_noise.gui import main_window  # noqa: E402
 from cabin_noise.gui.main_window import MainWindow, _sweep_setters, apply_light_style, run_sweep  # noqa: E402
 
 
@@ -50,16 +52,44 @@ def main():
         w.tabs[0].changed.emit()
         if "Not up to date" not in w.bar.text() or w.run_id != before + 1:
             failures.append("edit after a run did not mark the plots out of date, or started a run")
-        w.store_a()
+        r, aw = w.result, w.views["A-weighted"]          # the A-weighted bars sum to the single dBA shown
+        bars = r.L_band_total + a_weight(r.centers)
+        bar_sum = 10 * np.log10(np.sum(10 ** (bars[np.isfinite(bars)] / 10)))
+        dba = r.totals["average"]["total"]["dBA"]
+        if abs(bar_sum - dba) > 0.05 or f"{dba:.1f} dBA" not in aw.total.text():
+            failures.append(f"A-weighted tab: bars sum to {bar_sum:.2f}, total says {dba:.2f} / {aw.total.text()}")
+        cmp_ = w.views["Compare"]
+        cmp_.store_btn.click()                      # the buttons inside the Compare / Mission / Sweep tabs
+        if w.compare_a is not w.result or "A stored" not in cmp_.label.text():
+            failures.append("Compare tab 'Store current result as A' did not store A")
         w.project.sidewall.trim_mass *= 2
         w.run()
         settle(app)
-        if "IL (overall dBA" not in w.views["Compare"].label.text():
+        if "IL (overall dBA" not in cmp_.label.text():
             failures.append("compare view not filled")
-        w.mission_summary()
+        cmp_.clear_btn.click()
+        if w.compare_a is not None or "IL (overall dBA" in cmp_.label.text():
+            failures.append("Compare tab 'Clear A' did not clear A and the view")
+        w.compare_a = w.result
+        w.views["Mission"].run_btn.click()
         settle(app)
-        if "dBA" not in w.views["Mission"].label.text():
-            failures.append("mission summary not filled")
+        if "Cruise: " not in w.views["Mission"].label.text():
+            failures.append("Mission tab button did not fill the mission summary")
+        opened = []
+        real_dialog = main_window.SweepDialog
+
+        class NoDialog:                             # the Sweep tab button opens the sweep dialog (cancelled here)
+            def __init__(self, parent):
+                opened.append(parent)
+
+            def exec(self):
+                return 0
+
+        main_window.SweepDialog = NoDialog
+        w.views["Sweep"].sweep_btn.click()
+        main_window.SweepDialog = real_dialog
+        if opened != [w]:
+            failures.append("Sweep tab button did not open the sweep dialog")
         setter = _sweep_setters()["Tip clearance h_c (m)"][0]
         xs = np.linspace(0.3, 0.9, 3)
         rows = run_sweep(w.project, setter, xs)

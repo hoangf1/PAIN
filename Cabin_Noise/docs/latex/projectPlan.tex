@@ -835,4 +835,18 @@ NASA TM-85722 & Lab TL and in-flight IL & V4, V6 as planned & Not in the repo \\
 \item \textbf{Gap closed:} the Sabine check tested only the 0.161 constant, never the code. New \texttt{test\_\allowbreak{}cabin\_\allowbreak{}absorption\_\allowbreak{}is\_\allowbreak{}sabine} checks the surface sum and the measured-T60 path. VERIFICATION.md is updated.
 \end{itemize}
 
+\subsection*{Result tabs: buttons, single dBA (2026-11-03, author's request)}
+
+\begin{itemize}
+\item \textbf{Buttons:} Compare, Mission and Sweep each have their own buttons (Store as A / Load A / Clear A; Run all segments; Sweep...) and a one-line explanation. Before, they were reachable only from the menus.
+\item \textbf{A-weighted tab:} shows the overall dBA (room average and max seat) above the per-band bars. The duplicate legend entries are removed.
+\item \textbf{Removed leftover:} the Mission run still said "+ 5-patch check" and the Mission view kept a 1-vs-5-patch branch. The patch grid was removed on 2026-11-02.
+\item \textbf{Smoke checks:}
+\begin{itemize}
+\item each tab button does its job;
+\item Clear A clears the view;
+\item the A-weighted bars sum, on an energy basis, to the stated dBA within 0.05 dB.
+\end{itemize}
+\end{itemize}
+
 \end{document}
