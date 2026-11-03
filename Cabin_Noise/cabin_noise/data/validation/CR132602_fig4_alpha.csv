@@ -1,0 +1,13 @@
+# report: NASA CR-132602 (BBN Report 2742, 1975)
+# figure: Fig. 4, PDF p. 58, "Mean absorption coefficients for fuselage interior", predicted range for a furnished fuselage
+# condition: sec. 6.2 (PDF p. 41) uses "the mean values for the range shown in Figure 4": alpha_mean = (upper + lower) / 2
+# units: f_Hz, alpha_upper, alpha_lower, alpha_mean
+# digitization_uncertainty: 0.01
+# provenance: digitized 2026-11-02 from a 200 dpi render; boundary-curve centres on the row of each frequency
+f_Hz,alpha_upper,alpha_lower,alpha_mean
+125,0.516,0.334,0.425
+250,0.685,0.407,0.546
+500,0.758,0.482,0.620
+1000,0.681,0.456,0.569
+2000,0.484,0.373,0.429
+4000,0.407,0.357,0.382

@@ -50,8 +50,33 @@ cases:
     reference: NASA TM-85722 eqs. (1)-(3)
     metric: max |dIL| 100 Hz - 4 kHz (residual = CR-132602's '1 +' term, small when A >> S tau)
     target_db: 0.5
+  # Reproduction of the paper's own printed prediction (added 2026-11-02, criterion fixed
+  # before the comparison was run). Inputs are only what CR-132602 sec. 6.1-6.2 states:
+  # skin 0.09 cm + doubler 0.09 cm aluminium (sec. 6.1 spreads the doubler over the panel);
+  # cavity 11.45 cm with the sec. 6.2 cavity alpha table; cabin alpha = mid-range of Fig. 4;
+  # eq. (52) as printed (no area ratios). Not stated in the report, fixed here beforehand:
+  # aluminium 2700 kg/m3, sea-level ISA air. The trim's blanket mass is not stated, so the
+  # double-wall curve cannot be reproduced without choosing it: it is shown as information
+  # only (blanket 0, a lower bound). Disclosure: before this criterion was written, a hand
+  # estimate at 125 Hz and 1 kHz suggested the code lies about 3-4 dB below Fig. 14; no
+  # input above was changed after that estimate.
+  - id: V2p
+    stage: TL
+    track: broadband
+    kind: verification
+    check: Reproduce CR-132602 Fig. 14 (single wall) from the report's stated inputs
+    reference: NASA CR-132602 sec. 6.2, Fig. 14 and Fig. 4 (V2p.csv, CR132602_fig4_alpha.csv)
+    metric: max |dNR| over the six single-wall markers 125 Hz - 4 kHz
+    target_db: 1.5
+    inputs:
+      skin_mm: 0.9
+      doubler_mm: 0.9
+      trim_mm: 0.4
+      aluminium_density: 2700.0
+      cavity_depth: 0.1145
+      cavity_alpha: {125: 0.22, 250: 0.37, 500: 0.82, 1000: 0.99, 2000: 0.88, 4000: 0.63}
 
-  # ---- validation (experimental data) ---------------------------------------------------
+  # ---- validation (experimental data)---------------------------------------------------
   - id: V4
     stage: TL
     track: broadband
