@@ -1,0 +1,26 @@
+{
+  "_note": "Generic library values (handbook-typical), stated inputs only. Replace with measured data for a specific aircraft; nothing here is fitted to validation data.",
+  "panels": [
+    {"name": "Al 2024-T3 skin 1.0 mm", "E": 73.1e9, "rho": 2780.0, "nu": 0.33, "h": 0.0010, "eta": 0.01, "m_add": 0.0, "curved": true},
+    {"name": "Al 2024-T3 skin 1.6 mm", "E": 73.1e9, "rho": 2780.0, "nu": 0.33, "h": 0.0016, "eta": 0.01, "m_add": 0.0, "curved": true},
+    {"name": "Al 2024-T3 skin 2.0 mm", "E": 73.1e9, "rho": 2780.0, "nu": 0.33, "h": 0.0020, "eta": 0.01, "m_add": 0.0, "curved": true},
+    {"name": "Fiberglass trim 1.5 mm", "E": 20.0e9, "rho": 1800.0, "nu": 0.30, "h": 0.0015, "eta": 0.03, "m_add": 0.0, "curved": false},
+    {"name": "Nomex honeycomb trim (equiv. 0.9 kg/m2)", "E": 10.0e9, "rho": 900.0, "nu": 0.30, "h": 0.0010, "eta": 0.05, "m_add": 0.0, "curved": false},
+    {"name": "Acrylic window pane 6 mm", "E": 3.2e9, "rho": 1190.0, "nu": 0.37, "h": 0.006, "eta": 0.03, "m_add": 0.0, "curved": false},
+    {"name": "Acrylic window pane 4 mm", "E": 3.2e9, "rho": 1190.0, "nu": 0.37, "h": 0.004, "eta": 0.03, "m_add": 0.0, "curved": false},
+    {"name": "Limp septum 1 kg/m2", "E": 1.0e6, "rho": 1000.0, "nu": 0.30, "h": 0.001, "eta": 0.10, "m_add": 0.0, "curved": false}
+  ],
+  "porous": [
+    {"name": "Fiberglass 9.6 kg/m3 (0.6 pcf)", "sigma": 8000.0, "d": 0.05},
+    {"name": "Fiberglass 16 kg/m3 (1.0 pcf)", "sigma": 15000.0, "d": 0.05},
+    {"name": "Polyimide foam", "sigma": 10000.0, "d": 0.05}
+  ],
+  "surfaces": [
+    {"name": "Carpet on floor", "alpha": [0.02, 0.06, 0.14, 0.37, 0.60, 0.65, 0.65, 0.65]},
+    {"name": "Upholstered seats (per m2 floor)", "alpha": [0.30, 0.44, 0.60, 0.77, 0.89, 0.82, 0.70, 0.70]},
+    {"name": "Trim panels", "alpha": [0.10, 0.12, 0.10, 0.07, 0.05, 0.05, 0.05, 0.05]},
+    {"name": "Perforated headliner", "alpha": [0.10, 0.20, 0.45, 0.65, 0.70, 0.60, 0.50, 0.50]},
+    {"name": "Windows", "alpha": [0.18, 0.18, 0.06, 0.04, 0.03, 0.02, 0.02, 0.02]},
+    {"name": "Bulkhead (hard)", "alpha": [0.05, 0.05, 0.05, 0.04, 0.04, 0.04, 0.04, 0.04]}
+  ]
+}

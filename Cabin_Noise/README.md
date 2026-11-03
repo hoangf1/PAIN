@@ -1,0 +1,47 @@
+# Cabin Noise: low-fidelity turboprop cabin noise tool
+
+This is a PySide6 desktop tool that estimates propeller-aircraft cabin SPL, dBA and dBC. It works from mission, propeller and fuselage geometry, the sidewall layer stack, openings and cabin absorption. It does not use airfoil polars, structural-acoustic coupling or CFD. Use it as a fast companion to the PAIN recreation in `../PAIN_Program`: run design sweeps here, then check detailed low-frequency behaviour in PAIN.
+
+The method, the equations and the validation plan are in [projectPlan.md](projectPlan.md). Read its "Implementation notes" section to see what is built and where the code differs from the plan.
+
+**Nothing is fitted.** Every quantity comes from physics, from statistics or from an input you state. Experimental data is used only for blind comparison.
+
+## Install and run
+
+```bash
+python -m venv .venv
+.venv/Scripts/python -m pip install -r requirements.txt
+.venv/Scripts/python app.py                 # opens the generic twin-turboprop example
+.venv/Scripts/python app.py my_case.json    # opens a saved project
+```
+
+## Tests
+
+```bash
+.venv/Scripts/python -m pytest -q                  # core + verification cases V0a-V3
+.venv/Scripts/python scripts/smoke_gui.py          # offscreen GUI smoke (run, compare, mission, sweep, validation)
+```
+
+## Layout
+
+| Path | Contents |
+|---|---|
+| `cabin_noise/core/` | Pure NumPy/SciPy code with no Qt. `pipeline.run_case(project)` computes everything for one segment. |
+| `frequencies`, `atmosphere`, `mission` | 1/3-octave grid, ISA, segments and the operating point |
+| `source_tonal` | Rotating point forces in forward flight, solved in the frequency domain. Includes Gutin's formula. |
+| `scattering` | Rigid-cylinder surface factor, used for far-side propeller shadowing |
+| `source_tbl` | Goody TBL wall-pressure spectrum |
+| `porous`, `tmm`, `materials` | Delany-Bazley model, transfer matrices, diffuse and band averaging, composites |
+| `cabin`, `seats`, `weighting` | Room equation, T60, Schroeder split, box-mode seat shape, A/C weighting |
+| `io`, `validation` | JSON projects, CSV export, default example, case runner |
+| `cabin_noise/gui/` | Main window, input tabs (`panels.py`), plots, Validation tab, worker thread |
+| `cabin_noise/data/` | `materials.json` (generic library values) and `validation/cases.yaml` |
+| `tests/` | pytest suite |
+
+## Validation status (2026-11-02)
+
+- **Verification V0a, V0b, V0c, V1, V2, V3** (analytic checks): all pass. These checks never carry a validation verdict.
+- **Validation V4, V5, V5b, V6, V7** (NASA TM-85722 and CR-178004): **not run yet**. Each case needs two files in `cabin_noise/data/validation/`: the digitized curve (`<id>.csv`) and a project file built only from the report's stated inputs (`<id>_inputs.json`). The pass targets are fixed and dated in `cases.yaml`.
+- **V8** (cross-check against PAIN): information only.
+
+Until V4-V7 are run, absolute levels from this tool have **no demonstrated error band**.

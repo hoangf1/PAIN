@@ -1,0 +1,116 @@
+# Case definitions shared by the GUI Validation tab and pytest.
+#
+# kind:
+#   verification - analytic limit / law / internal consistency. Shown with "check ok /
+#                  check failed", never a met / not-met verdict (repo rule 2026-10-29).
+#   validation   - comparison with experimental data. Carries a verdict. Criteria are
+#                  fixed below (dated) BEFORE any comparison; nothing is fitted to the data.
+#   information  - no verdict (e.g. cross-check against the PAIN recreation).
+#
+# Experimental cases need two files in this folder before they can run:
+#   <id>.csv          digitized reference, '# key: value' header (report, figure, aircraft,
+#                     condition, units, digitization_uncertainty_dB), then x,y rows
+#   <id>_inputs.json  project file built ONLY from the report's stated inputs
+# Until both exist the case shows "not run (no reference data)".
+criteria_fixed: 2026-11-02
+
+cases:
+  - id: V0a
+    stage: Source
+    track: tonal
+    kind: verification
+    check: Rotating-force model, static far field, vs Gutin
+    reference: analytic (plan A.2)
+    metric: max |dL| over harmonics 1-3 and angles 45-135 deg
+    target_db: 0.5
+  - id: V0b
+    stage: Source
+    track: "-"
+    kind: verification
+    check: "Cylinder scattering limits: ka->0 -> 0 dB; ka=50 lit point -> +6 dB"
+    reference: analytic (plan A.3)
+    metric: max |dL|
+    target_db: 0.5
+  - id: V0c
+    stage: Seats
+    track: "-"
+    kind: verification
+    check: Box-mode spatial mean of G(x)/<G> = 1
+    reference: analytic
+    metric: "|10 log10 mean(G/<G>)|"
+    target_db: 0.1
+  - id: V1
+    stage: TL
+    track: "-"
+    kind: verification
+    check: Single panel, theta = 0, vs normal mass law
+    reference: analytic (plan A.5)
+    metric: max |dTL| 50 Hz - 2 kHz
+    target_db: 0.1
+  - id: V2
+    stage: TL
+    track: "-"
+    kind: verification
+    check: Field incidence vs 20 log10(m f) - 47 below f_c
+    reference: analytic (plan A.5), sea-level air rho c = 415
+    metric: max |dTL|, TL0 > 20 dB and f < f_c/4
+    target_db: 1.0
+  - id: V3
+    stage: TL
+    track: "-"
+    kind: verification
+    check: Double-wall f0 dip location
+    reference: analytic (plan A.5)
+    metric: "|log2(f_dip / f0)| (octaves)"
+    target_oct: 0.333
+  - id: V4
+    stage: TL
+    track: broadband
+    kind: validation
+    check: Lab sidewall-panel TL (bare and treated)
+    reference: NASA TM-85722
+    metric: max |dTL| 250 Hz - 2 kHz
+    target_db: 3.0
+    quantity: tl_band
+  - id: V5
+    stage: Source
+    track: tonal
+    kind: validation
+    check: Surface harmonics (incident x scattering factor) vs measured, all runs
+    reference: NASA CR-178004
+    metric: max |dL| at BPF1-3
+    target_db: 3.0
+    quantity: surface_tones
+  - id: V5b
+    stage: Source
+    track: broadband
+    kind: validation
+    check: Goody spectrum vs measured exterior fluctuating pressure
+    reference: NASA CR-178004
+    metric: max |dL| per band
+    target_db: 3.0
+    quantity: L_wall
+  - id: V6
+    stage: Cabin
+    track: both
+    kind: validation
+    check: Treatment insertion loss vs flight
+    reference: NASA TM-85722
+    metric: max |dIL| broadband bands; harmonic error reported
+    target_db: 3.0
+    quantity: insertion_loss
+  - id: V7
+    stage: Total
+    track: tonal
+    kind: validation
+    check: Cabin harmonic levels at each measured location (average + max-seat)
+    reference: NASA CR-178004
+    metric: error band reported (no fixed target in the plan)
+    quantity: L_tone
+  - id: V8
+    stage: Total
+    track: both
+    kind: information
+    check: Cross-check vs PAIN recreation
+    reference: same cases run in PAIN_Program
+    metric: divergence documented
