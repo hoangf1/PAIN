@@ -609,3 +609,8 @@ Everything below is digitized under `PAIN_Program/data` and can be copied withou
   - Clear A clears the view;
   - the A-weighted bars sum, on an energy basis, to the stated dBA within 0.05 dB.
 
+### Default mission: Cruise only (2026-11-03, author's request)
+- Climb and Descent are removed from `default_project.json`; Cruise is the only segment. Its results are unchanged (97.6 / 102.3 dBA).
+- More segments can still be added in the Mission tab.
+- `test_mission_and_static_segment` now adds a second segment itself, so the one-result-per-segment check still has two segments to count.
+

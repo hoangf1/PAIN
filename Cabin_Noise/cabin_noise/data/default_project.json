@@ -3,16 +3,6 @@
   "mission": {
     "segments": [
       {
-        "name": "Climb",
-        "altitude": 3000.0,
-        "mach": 0.3,
-        "rpm": 1700.0,
-        "shaft_power": 900000.0,
-        "eta_p": 0.8,
-        "thrust": 0.0,
-        "oat": 0.0
-      },
-      {
         "name": "Cruise",
         "altitude": 6096.0,
         "mach": 0.45,
@@ -21,19 +11,9 @@
         "eta_p": 0.85,
         "thrust": 0.0,
         "oat": 0.0
-      },
-      {
-        "name": "Descent",
-        "altitude": 3000.0,
-        "mach": 0.4,
-        "rpm": 1500.0,
-        "shaft_power": 300000.0,
-        "eta_p": 0.8,
-        "thrust": 0.0,
-        "oat": 0.0
       }
     ],
-    "active": 1
+    "active": 0
   },
   "propeller": {
     "blades": 4,

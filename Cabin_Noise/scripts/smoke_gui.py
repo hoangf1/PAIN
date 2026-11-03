@@ -105,7 +105,7 @@ def main():
         if "dBA" not in w.bar.text():
             failures.append("static segment did not produce a result bar")
         seg.mach, seg.thrust = old
-        w.project.mission.active = 1
+        w.project.mission.active = 0
         w.validation.run_all()                     # threaded; wait for it
         settle(app)
         ver = [c for c in load_cases()["cases"] if c["kind"] == "verification"]

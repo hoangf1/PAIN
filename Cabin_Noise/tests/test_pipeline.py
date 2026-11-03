@@ -72,8 +72,11 @@ def test_windows_lower_the_noise_reduction(proj, res):
 
 
 def test_mission_and_static_segment(proj):
-    assert len(run_mission(proj)) == len(proj.mission.segments)
     p2 = copy.deepcopy(proj)
+    p2.mission.segments.append(copy.deepcopy(p2.mission.segments[0]))
+    p2.mission.segments[-1].altitude = 3000.0                  # a second segment: one result per segment
+    out = run_mission(p2)
+    assert len(out) == 2 and out[0].totals["average"]["total"]["dBA"] != out[1].totals["average"]["total"]["dBA"]
     seg = p2.mission.segments[0]
     seg.mach, seg.thrust = 0.0, 0.0
     with pytest.raises(ValueError):

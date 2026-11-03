@@ -849,4 +849,12 @@ NASA TM-85722 & Lab TL and in-flight IL & V4, V6 as planned & Not in the repo \\
 \end{itemize}
 \end{itemize}
 
+\subsection*{Default mission: Cruise only (2026-11-03, author's request)}
+
+\begin{itemize}
+\item Climb and Descent are removed from \texttt{default\_\allowbreak{}project.\allowbreak{}json}; Cruise is the only segment. Its results are unchanged (97.6 / 102.3 dBA).
+\item More segments can still be added in the Mission tab.
+\item \texttt{test\_\allowbreak{}mission\_\allowbreak{}and\_\allowbreak{}static\_\allowbreak{}segment} now adds a second segment itself, so the one-result-per-segment check still has two segments to count.
+\end{itemize}
+
 \end{document}
