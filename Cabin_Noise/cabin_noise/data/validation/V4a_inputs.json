@@ -1,0 +1,100 @@
+{
+  "name": "V4a TP-1964 bare cylinder, reverberant NR",
+  "_inputs_source": {
+    "skin": "TP-1964 (README of PAIN_Program/data/tp1964): t=0.00163 m, E=6.89e10, nu=0.3, rho=2710, R_interior=0.252 m, L_interior=1.193 m",
+    "eta": "mean of the four measured structural loss factors, TP-1964 Fig. 17 (rule fixed 2026-11-02 before the run)",
+    "end_caps": "CR-159363 (TP-1964 ref. 2) p. 74: end caps 0.0127 m thick; material taken as the cylinder's aluminium (stated assumption: not printed)",
+    "absorption": "TP-1964 Fig. 17 measured acoustic T60 (5 points), A = 0.161 V / T60, log-log interpolation, end values held",
+    "areas": "wall 2 pi R_mid L, end caps 2 pi R_interior^2; volume pi R_interior^2 L",
+    "air": "20 C, 101325 Pa (report uses c = 343 m/s)"
+  },
+  "mission": {
+    "segments": [
+      {
+        "name": "none (reverberant test)",
+        "altitude": 0.0,
+        "mach": 0.0,
+        "rpm": 1000.0,
+        "shaft_power": 0.0,
+        "eta_p": 0.8,
+        "thrust": 1.0
+      }
+    ],
+    "active": 0
+  },
+  "propeller": {},
+  "fuselage": {
+    "radius": 0.252815,
+    "nose_to_station": 1.0,
+    "sidewall_area": 2.294068207414619
+  },
+  "sidewall": [
+    {
+      "E": 68900000000.0,
+      "rho": 2710.0,
+      "nu": 0.3,
+      "eta": 0.0017875,
+      "m_add": 0.0,
+      "kind": "panel",
+      "name": "Al wall 1.63 mm",
+      "h": 0.00163,
+      "curved": true
+    }
+  ],
+  "openings": [
+    {
+      "name": "End caps (2)",
+      "area": 0.39900739974713245,
+      "mode": "layers",
+      "layers": [
+        {
+          "E": 68900000000.0,
+          "rho": 2710.0,
+          "nu": 0.3,
+          "eta": 0.0017875,
+          "m_add": 0.0,
+          "kind": "panel",
+          "name": "Al end cap 12.7 mm",
+          "h": 0.0127,
+          "curved": false
+        }
+      ]
+    }
+  ],
+  "cabin": {
+    "Lx": 1.193,
+    "Ly": 0.504,
+    "Lz": 0.504,
+    "cabin_altitude": 0.0,
+    "temperature": 293.15,
+    "surfaces": [],
+    "seats": [],
+    "volume": 0.2380079139491645,
+    "t60_measured": [
+      [
+        496,
+        1.4
+      ],
+      [
+        998,
+        0.9
+      ],
+      [
+        2000,
+        0.59
+      ],
+      [
+        3970,
+        0.41
+      ],
+      [
+        8000,
+        0.28
+      ]
+    ]
+  },
+  "options": {
+    "f_min": 50.0,
+    "f_max": 5000.0
+  }
+}

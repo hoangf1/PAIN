@@ -72,6 +72,18 @@ cases:
     metric: max |dTL| 250 Hz - 2 kHz
     target_db: 3.0
     quantity: tl_band
+  - id: V4a
+    stage: TL
+    track: broadband
+    kind: validation
+    check: Bare unstiffened cylinder, reverberant-field noise reduction (lab)
+    reference: NASA TP-1964 Fig. 8 (measured)
+    metric: max |dNR| over 1/3-octave bands 250 Hz - 2 kHz
+    target_db: 3.0
+    band_min: 250
+    band_max: 2000
+    quantity: reverberant_nr
+    defined: 2026-11-02 (criterion, inputs and eta rule fixed before the first comparison)
   - id: V5
     stage: Source
     track: tonal

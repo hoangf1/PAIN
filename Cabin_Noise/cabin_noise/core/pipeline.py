@@ -58,6 +58,20 @@ class CabinConfig:
     temperature: float = 293.15      # K
     surfaces: list = field(default_factory=list)
     seats: list = field(default_factory=list)       # [[x, y, z], ...]
+    volume: float = 0.0              # m^3; 0 = box volume Lx*Ly*Lz
+    t60_measured: list = field(default_factory=list)  # [[f, T60], ...]; if set, A = 0.161 V / T60
+
+    def cabin_volume(self) -> float:
+        return self.volume if self.volume > 0 else self.Lx * self.Ly * self.Lz
+
+    def absorption(self, f) -> np.ndarray:
+        """A(f): from measured T60 (log-log interpolation, end values held) or from the surfaces."""
+        f = np.atleast_1d(np.asarray(f, dtype=float))
+        if self.t60_measured:
+            tf, tt = np.array(sorted(self.t60_measured), dtype=float).T
+            T60 = np.exp(np.interp(np.log(f), np.log(tf), np.log(tt)))
+            return 0.161 * self.cabin_volume() / T60
+        return cab.absorption_area(self.surfaces, f)
 
 
 @dataclass
@@ -263,11 +277,12 @@ def run_case(proj: Project, segment: int | None = None, patch_mode: int | None =
 
     # ---- [3] cabin absorption -----------------------------------------------------
     box = st.Box(cb.Lx, cb.Ly, cb.Lz)
-    A_band = cab.absorption_area(cb.surfaces, centers)
-    A_tone = cab.absorption_area(cb.surfaces, f_m)
-    T60_band = cab.t60(box.volume, A_band)
-    T60_mid = float(np.mean(cab.t60(box.volume, cab.absorption_area(cb.surfaces, [500.0, 1000.0]))))
-    f_s = cab.schroeder_frequency(T60_mid, box.volume)
+    vol = cb.cabin_volume()
+    A_band = cb.absorption(centers)
+    A_tone = cb.absorption(f_m)
+    T60_band = cab.t60(vol, A_band)
+    T60_mid = float(np.mean(cab.t60(vol, cb.absorption([500.0, 1000.0]))))
+    f_s = cab.schroeder_frequency(T60_mid, vol)
 
     # ---- [4] interior level -------------------------------------------------------
     p_inc2 = p2_from_db(L_used)                                     # (patches, m)
@@ -300,7 +315,7 @@ def run_case(proj: Project, segment: int | None = None, patch_mode: int | None =
     # ---- seats ------------------------------------------------------------------
     seats = np.atleast_2d(np.asarray(cb.seats if cb.seats else [[cb.Lx / 2, cb.Ly / 2, 1.1]], dtype=float))
     patch = st.SidewallPatch(fu.patch_x_cabin, fu.patch_width, fu.patch_z_cabin, fu.patch_height)
-    T60f = lambda f: cab.t60(box.volume, cab.absorption_area(cb.surfaces, [f]))[0]  # noqa: E731
+    T60f = lambda f: cab.t60(vol, cb.absorption([f]))[0]  # noqa: E731
     off_tone = st.seat_offsets(f_m, f_s, seats, box, air.c, T60f, patch)
     lo, hi = band_edges(centers)
     off_band = st.seat_offsets(centers, f_s, seats, box, air.c, T60f, patch, n_band=5, band_lo=lo, band_hi=hi)
@@ -331,6 +346,23 @@ def run_case(proj: Project, segment: int | None = None, patch_mode: int | None =
         L_band_tonal=L_band_tonal, L_band_total=L_band_total, seat_tone=seat_tone,
         seat_band_total=seat_band_total, seat_band_tonal=seat_band_tonal, seat_band_bb=seat_band_bb,
         totals={"average": tot_avg, "max_seat": tot_max}, max_seat=k, warnings=warn)
+
+
+def reverberant_noise_reduction(proj: Project) -> dict:
+    """Space-average NR of the cabin in a diffuse exterior field (no propeller, no TBL).
+
+    Exterior incident intensity p_e^2/(4 rho c) on every transmitting surface, room equation
+    inside: p_i^2 = 4 rho c W / A with W = sum S_i tau_i p_e^2 / (4 rho c), so
+    NR = 10 log10(A / sum S_i tau_i). The exterior is the same air as the cabin.
+    """
+    cb, opt = proj.cabin, proj.options
+    air = cabin_air(cb.cabin_altitude, cb.temperature)
+    centers = third_octave_centers(opt.f_min, opt.f_max)
+    tau_c, tau_wall = _composite_tau(proj, centers, None, air, diffuse=True)
+    S = proj.fuselage.sidewall_area
+    A = cb.absorption(centers)
+    return {"centers": centers, "NR": 10.0 * np.log10(A / (S * tau_c)), "A": A,
+            "tl_composite": tmm.tl(tau_c), "tl_wall": tmm.tl(tau_wall)}
 
 
 def run_mission(proj: Project) -> list[Results]:
@@ -364,5 +396,6 @@ def tonal_refraction_band(res: Results, k_lo: float = 0.0, k_hi: float = 5.0, k_
 
 
 __all__ = ["Project", "Propeller", "Fuselage", "CabinConfig", "Options", "Results", "run_case",
+           "reverberant_noise_reduction",
            "run_mission", "patch_sensitivity", "insertion_loss", "tonal_refraction_band",
            "Panel", "PorousLayer", "AirGap", "Surface", "Opening", "Mission", "Segment", "energetic_sum"]

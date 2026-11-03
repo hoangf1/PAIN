@@ -338,9 +338,16 @@ class CabinTab(Tab):
             F("Lz", "L_z (height)", "m", lo=0.5, hi=5),
             F("cabin_altitude", "Cabin pressure altitude", "m", lo=0, hi=5000),
             F("temperature", "Cabin temperature", "K", lo=250, hi=320),
+            F("volume", "Volume override (0 = box)", "m3", lo=0, hi=1000),
         ])
         self.form.changed.connect(self.emit)
         self.v.addWidget(self.form)
+        th = QHBoxLayout()
+        th.addWidget(QLabel("Measured T60 (replaces the surfaces), f:T60; ..."))
+        self.t60_edit = QLineEdit()
+        self.t60_edit.editingFinished.connect(self._t60_edit)
+        th.addWidget(self.t60_edit)
+        self.v.addLayout(th)
         lib = load_library()
         self.lib = lib
         scols = [F("name", "Surface", kind="text"), F("area", "Area", "m2")] + \
@@ -371,19 +378,29 @@ class CabinTab(Tab):
         self.surfaces.refresh()
         self.emit()
 
+    def _t60_edit(self):
+        try:
+            pairs = [x.split(":") for x in self.t60_edit.text().split(";") if x.strip()]
+            rows = [[float(a), float(b)] for a, b in pairs]
+        except ValueError:
+            return
+        self.project.cabin.t60_measured = rows
+        self.emit()
+
     def load(self, p):
         self.project = p
         self.form.set_object(p.cabin)
+        self.t60_edit.setText("; ".join(f"{f:g}:{t:g}" for f, t in p.cabin.t60_measured))
         self.surfaces.set_items(p.cabin.surfaces)
         self.seats.set_items(p.cabin.seats)
         self.update_readout()
 
     def update_readout(self):
         c = self.project.cabin if self.project else None
-        if not c or not c.surfaces:
+        if not c or not (c.surfaces or c.t60_measured):
             return
-        V = c.Lx * c.Ly * c.Lz
-        A = cab.absorption_area(c.surfaces, [125.0, 500.0, 1000.0, 2000.0])
+        V = c.cabin_volume()
+        A = c.absorption([125.0, 500.0, 1000.0, 2000.0])
         T = cab.t60(V, A)
         fs = cab.schroeder_frequency(float(np.mean(T[1:3])), V)
         self.readout.setText(f"V = {V:.1f} m3;  A(125/500/1k/2k) = " + " / ".join(f"{a:.1f}" for a in A)

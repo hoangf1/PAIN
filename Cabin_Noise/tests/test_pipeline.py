@@ -88,3 +88,31 @@ def test_static_segment_needs_thrust(proj):
     seg.thrust = 12000.0
     r = run_case(p2, segment=0)
     assert np.all(np.isinf(r.L_bb) | (r.L_bb < 0))   # no TBL when static
+
+
+def test_measured_t60_sets_absorption(proj):
+    p2 = copy.deepcopy(proj)
+    p2.cabin.t60_measured = [[500.0, 0.5], [2000.0, 0.25]]
+    V = p2.cabin.cabin_volume()
+    A = p2.cabin.absorption([250.0, 500.0, 1000.0, 2000.0, 4000.0])
+    assert A == pytest.approx(0.161 * V / np.array([0.5, 0.5, np.sqrt(0.5 * 0.25), 0.25, 0.25]))
+
+
+def test_reverberant_nr_tracks_absorption_and_wall_mass(proj):
+    from cabin_noise.core.materials import Panel
+    from cabin_noise.core.pipeline import reverberant_noise_reduction
+
+    p2 = copy.deepcopy(proj)
+    p2.cabin.t60_measured = [[100.0, 1.0], [5000.0, 0.5]]
+    base = reverberant_noise_reduction(p2)
+    p3 = copy.deepcopy(p2)
+    p3.cabin.t60_measured = [[f, 2 * t] for f, t in p2.cabin.t60_measured]
+    assert np.allclose(base["NR"] - reverberant_noise_reduction(p3)["NR"], 10 * np.log10(2))
+    p4 = copy.deepcopy(p2)
+    p4.openings = []
+    p4.sidewall = [Panel(h=1.6e-3)]
+    p5 = copy.deepcopy(p4)
+    p5.sidewall = [Panel(h=3.2e-3)]
+    mid = (base["centers"] > 300) & (base["centers"] < 1800)   # well below f_c of the 3.2 mm panel (~3.7 kHz)
+    gain = reverberant_noise_reduction(p5)["NR"] - reverberant_noise_reduction(p4)["NR"]
+    assert np.all(gain[mid] > 4.0)     # mass law: ~6 dB per doubling of mass

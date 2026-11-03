@@ -150,6 +150,10 @@ def run_experimental(meta) -> CaseResult:
         code = np.interp(np.log(x), np.log(res.centers), res.tl_band)
     elif q == "L_wall":
         code = np.interp(np.log(x), np.log(res.centers), res.L_wall)
+    elif q == "reverberant_nr":
+        from .pipeline import reverberant_noise_reduction
+        nr = reverberant_noise_reduction(load_project(inp_path))
+        code = np.interp(np.log(x), np.log(nr["centers"]), nr["NR"])
     elif q == "L_tone":
         code = res.L_tone[x.astype(int) - 1]
     elif q == "surface_tones":
@@ -158,11 +162,21 @@ def run_experimental(meta) -> CaseResult:
         code = surf[x.astype(int) - 1]
     else:
         return CaseResult(cid, meta, "not run", note=f"quantity '{q}' needs a two-configuration runner")
+    ok = np.isfinite(y)
+    x, y, code = x[ok], y[ok], code[ok]
     err = np.abs(code - y)
+    lo, hi = meta.get("band_min", -np.inf), meta.get("band_max", np.inf)
+    sel = (x >= lo / 2 ** (1 / 12)) & (x <= hi * 2 ** (1 / 12))
+    if not np.any(sel):
+        return CaseResult(cid, meta, "not run", note="no reference points inside the criterion range")
     tgt = meta.get("target_db")
-    status = "info" if tgt is None else ("met" if np.max(err) <= tgt else "not met")
-    return CaseResult(cid, meta, status, float(np.max(err)), tgt, x=x, code=code, ref=y,
-                      note=f"{ref_meta.get('report', '')} {ref_meta.get('figure', '')}".strip())
+    worst = float(np.max(err[sel]))
+    status = "info" if tgt is None else ("met" if worst <= tgt else "not met")
+    within_all = float(np.mean(err <= tgt) * 100) if tgt else float("nan")
+    note = (f"{ref_meta.get('report', '')} {ref_meta.get('figure', '')}".strip()
+            + f"; verdict on {int(sel.sum())} points in {lo:g}-{hi:g}; all {len(x)} points: "
+            + f"{within_all:.0f}% within target (information)")
+    return CaseResult(cid, meta, status, worst, tgt, x=x, code=code, ref=y, note=note)
 
 
 def run_case_id(meta) -> CaseResult:
