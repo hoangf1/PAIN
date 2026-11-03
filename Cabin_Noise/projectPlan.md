@@ -623,3 +623,10 @@ Everything below is digitized under `PAIN_Program/data` and can be copied withou
 - The flight-test runners keep their own `tas_from_ias` (IAS = EAS, defined before those runs) unchanged.
 - **eta_p:** 0.85 -> 0.80, the usual cruise value of conceptual-design texts (Raymer; Anderson). The helical tip Mach here is 0.91, so a value below the 0.85-0.88 peak fits. The result does not change: with the default axial offset 0 the tones are evaluated in the propeller plane (theta = 90 deg), where Gutin's thrust term T cos(theta) is zero. eta_p only sets that thrust. The Mission table's eta_p tooltip says so.
 
+### Six-blade 11.5 ft propeller; supersonic-tip warning (2026-11-03, author's request)
+- **Default propeller:** 6 blades, tip radius 1.7526 m (11.5 ft diameter). BPF is now 155 Hz.
+- **Result:** 106.2 dBA room average, 110.9 dBA at the max seat. Tonal 106.2 dBA, broadband 79.2 dBA (unchanged).
+- **New warning:** `run_case` warns when the helical tip Mach sqrt((omega R)^2 + V^2) / c reaches 1. With these inputs it is 1.10 (rotational 0.92), so the tones are outside Gutin's subsonic loading-noise range. Thickness and shock noise are not modelled. For reference, 1200 RPM gives 0.93.
+- `test_supersonic_helical_tip_is_flagged` writes the tip Mach out and checks both sides of the threshold (1550 and 1020 RPM).
+- No validation or verification result changed.
+

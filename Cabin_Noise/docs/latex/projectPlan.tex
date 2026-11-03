@@ -869,4 +869,14 @@ NASA TM-85722 & Lab TL and in-flight IL & V4, V6 as planned & Not in the repo \\
 \item \textbf{eta\_p:} 0.85 -> 0.80, the usual cruise value of conceptual-design texts (Raymer; Anderson). The helical tip Mach here is 0.91, so a value below the 0.85-0.88 peak fits. The result does not change: with the default axial offset 0 the tones are evaluated in the propeller plane (theta = 90 deg), where Gutin's thrust term T cos(theta) is zero. eta\_p only sets that thrust. The Mission table's eta\_p tooltip says so.
 \end{itemize}
 
+\subsection*{Six-blade 11.5 ft propeller; supersonic-tip warning (2026-11-03, author's request)}
+
+\begin{itemize}
+\item \textbf{Default propeller:} 6 blades, tip radius 1.7526 m (11.5 ft diameter). BPF is now 155 Hz.
+\item \textbf{Result:} 106.2 dBA room average, 110.9 dBA at the max seat. Tonal 106.2 dBA, broadband 79.2 dBA (unchanged).
+\item \textbf{New warning:} \texttt{run\_\allowbreak{}case} warns when the helical tip Mach sqrt((omega R)\textasciicircum{}2 + V\textasciicircum{}2) / c reaches 1. With these inputs it is 1.10 (rotational 0.92), so the tones are outside Gutin's subsonic loading-noise range. Thickness and shock noise are not modelled. For reference, 1200 RPM gives 0.93.
+\item \texttt{test\_\allowbreak{}supersonic\_\allowbreak{}helical\_\allowbreak{}tip\_\allowbreak{}is\_\allowbreak{}flagged} writes the tip Mach out and checks both sides of the threshold (1550 and 1020 RPM).
+\item No validation or verification result changed.
+\end{itemize}
+
 \end{document}

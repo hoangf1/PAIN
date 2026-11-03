@@ -190,6 +190,10 @@ def run_case(proj: Project, segment: int | None = None) -> Results:
             raise ValueError(f"measured exterior levels missing for harmonics {missing}")
         L_ext_tone = np.array([meas[m] for m in m_idx])
     elif pr.source_mode == "generated":
+        M_h = np.hypot(op.omega * pr.tip_radius, op.V) / ext.c
+        if M_h >= 1.0:
+            warn.append(f"helical tip Mach {M_h:.2f} >= 1: supersonic tips; Gutin's loading-noise formula "
+                        "does not cover the thickness and shock noise that then dominate")
         r, theta = observer(pr.axial_offset, pr.tip_radius + pr.clearance)
         p = gutin_rms(m_idx, blades=pr.blades, R_e=pr.re_fraction * pr.tip_radius, omega=op.omega, c=ext.c,
                       thrust=op.thrust, torque=op.torque, r=r, theta=theta)

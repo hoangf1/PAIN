@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 
 from cabin_noise.core.io import default_project, export_results_csv, load_project, save_project
+from cabin_noise.core.mission import operating_point
 from cabin_noise.core.pipeline import insertion_loss, run_case, run_mission
 
 
@@ -117,3 +118,18 @@ def test_undefined_inputs_are_rejected(proj):
         change(q)
         with pytest.raises(ValueError):
             run_case(q)
+
+
+def test_supersonic_helical_tip_is_flagged(proj):
+    """Helical tip Mach = sqrt((omega R)^2 + V^2) / c, written out here: the run warns at >= 1 only."""
+    p = copy.deepcopy(proj)
+    seg, R = p.mission.active_segment(), p.propeller.tip_radius
+    op = operating_point(seg)
+    seen = set()
+    for rpm in (1550.0, 1020.0):
+        seg.rpm = rpm
+        M_h = np.sqrt((2 * np.pi * rpm / 60 * R) ** 2 + op.V ** 2) / op.atm.c
+        flagged = any("helical tip Mach" in w for w in run_case(p).warnings)
+        assert flagged == (M_h >= 1.0), (rpm, M_h)
+        seen.add(flagged)
+    assert seen == {True, False}                              # both sides of the threshold were tested
