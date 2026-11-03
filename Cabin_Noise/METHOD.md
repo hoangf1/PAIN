@@ -56,6 +56,7 @@ Cases are defined in commit 93bbeb9, before the runs. The data were seen with th
 | V5b | CR-178004 exterior boundary-layer bands | **met**, 82 % |
 | V6 | CR-178004 fiberglass insertion loss | not met, 72 % (mean +1.4 dB) |
 | V5 | CR-178004 exterior tones (Gutin + 6 dB flush doubling) | not met, 64 % (mean -3.3 dB) |
+| V4 | TM-85722 Fig. 18, lab TL of the prop-plane treated panel (run 2026-11-03) | not met, 5/11 bands; within 3 dB to 250 Hz, 6-13 dB low above 315 Hz (a single limp wall has no double-wall rise) |
 | V4b | CR-3813 trimmed cylinder reverberant NR | not met, 26 % |
 | V5c | Report 996 static tones at d/D = 0.083 (Gutin) | not met, 29 %; Gutin's far-field form at the blade tip |
 | V4a | TP-1964 bare cylinder reverberant NR | not met, max 16.5 dB |

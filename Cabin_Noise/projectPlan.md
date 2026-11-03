@@ -401,7 +401,7 @@ Report tonal-only, broadband-only and total, for both average and max seat.
 | M3 Full pipeline | Done. `run_case`, JSON and CSV export work. V0c passes. |
 | M4 GUI v1 | Done. Six input tabs, eight plot views and the results bar. |
 | M5 Compare & sweep | Done. A/B overlay, IL, background sweeps, mission summary, 1-vs-5 patch check. |
-| M6 Validation | Framework done: Validation tab, figures, heatmap, HTML/PDF export (the run is threaded: about 1-2 min). All runnable cases ran 2026-11-02: **met V5b, V5c, V5d; not met V4a, V5, V6, V7** (see below). Only V4 is still not run: TM-85722 is not in the repo. |
+| M6 Validation | Framework done: Validation tab, figures, heatmap, HTML/PDF export (the run is threaded: about 1-2 min). All runnable cases ran 2026-11-02: **met V5b, V5c, V5d; not met V4a, V5, V6, V7** (see below). V4 ran 2026-11-03 (not met, see the V2p/V4 notes). |
 | M7 Polish & package | Partly done: material library and PDF report. Still open: unit toggles, a separate material editor, PyInstaller build. |
 
 ### Where the code differs from the text above
@@ -547,4 +547,9 @@ Everything below is digitized under `PAIN_Program/data` and can be copied withou
 - **New verification case V2p.** It runs the pipeline's `noise_reduction` on CR-132602's stated inputs and compares with the report's Fig. 14. Fig. 14 and the Fig. 4 absorption range were digitized for it.
 - **Order:** the criterion (1.5 dB) and the inputs were committed before the run (c91dbbc).
 - **Result:** check failed. The single wall is 2.1-3.3 dB low; the cause is the area ratio, which the report does not state. Post-hoc diagnostics are in cases.yaml. The test is a strict xfail, and the GUI smoke test expects "Verification 4/5".
+- **V4 run (2026-11-03).** TM-85722 Fig. 18 was digitized: three treated layups, measured. The bare curve in the figure is a calculation and is left out.
+  - **Redefinition:** V4 was redefined before its first run (commit 730a559). The old range, bare and treated panels from 250 Hz to 2 kHz, could not be run from this figure. The verdict is now on the prop-plane 695A layup, 100 Hz - 1 kHz, low-fi policy criterion.
+  - **Method:** the `wall_tl` runner applies the eq. (46) mass law to skin plus treatment mass.
+  - **Result:** not met, 5/11 bands.
+  - **Roof and aft layups:** not compared, because their septa cannot be read from Fig. 17.
 - **GUI:** the validation overlay's acceptance band was drawn at linear x on a log axis, which broke every frequency case's axis range. Fixed. Information series, such as V2p's double-wall curves, are now drawn.

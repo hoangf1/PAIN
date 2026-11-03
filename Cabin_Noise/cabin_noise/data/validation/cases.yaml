@@ -14,7 +14,7 @@
 # retired transfer-matrix pipeline (records in git, last commit 1c2c8fe), so these runs are not
 # blind. No parameter of the paper pipeline is chosen from those data: the methods and inputs
 # are fixed by the papers and the inputs files, written before these runs.
-criteria_fixed: 2026-11-02
+criteria_fixed: "2026-11-02 (V2p 2026-11-02, V4 2026-11-03, each before its run)"
 
 cases:
   # ---- verification: each block against its paper ----------------------------------------
@@ -111,7 +111,11 @@ cases:
     band_min: 100
     band_max: 1000
     quantity: wall_tl
-    defined: "2026-11-03, before the run"
+    defined: "2026-11-03, before the run (commit 730a559)"
+    recorded: "2026-11-03: not met, 5/11 bands within +-6 dB; code - lab = +2.4 to -2.6 dB at 100-250 Hz, -6.5 to -13.0 dB at 315 Hz - 1 kHz (mean -5.9 dB)"
+    # Interpretation (after the run, no change made): above about 300 Hz the septa and the
+    # barrier, decoupled from the skin by fiberglass, act as a second wall; a single limp wall
+    # (the low-fi mass law) cannot show that rise. This is the model's stated limit, not tuned.
   - id: V4a
     stage: TL
     track: broadband

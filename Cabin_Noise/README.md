@@ -48,7 +48,9 @@ python -m venv .venv
 - **Validation:** 1 of 8 met (V5b, the boundary-layer source). V6, the insertion loss, is close at 72 % (75 % needed). The other misses fall where the papers' own stated limits put them:
   - CR-132602's mass-law wall well below half the ring frequency (V7, V4a, V4b);
   - Gutin's far-field formula in the near field (V5c; V5 at 64 %).
-- V4 (TM-85722 lab TL) is not run; Fig. 18 is not digitized yet.
+- **V4 (TM-85722 Fig. 18, lab TL of the prop-plane treated panel), run 2026-11-03:** not met, 5 of 11 bands within ±6 dB.
+  - The mass-law wall (skin plus treatment mass) tracks the lab TL within 3 dB up to 250 Hz.
+  - Above 315 Hz it is 6–13 dB low: the septa and barrier on fiberglass act as a second wall, which a single limp wall cannot show.
 - The details are in METHOD.md sec. 4. Retired cases and the earlier pipeline's records are in git (up to commit 1c2c8fe).
 
 **Use:** relative trades (treatments, masses, absorption) at mid and high frequencies. Absolute tone levels at the blade passage frequency are outside the papers' stated range.

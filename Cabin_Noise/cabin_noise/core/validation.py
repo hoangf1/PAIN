@@ -201,9 +201,23 @@ def run_experimental(meta) -> CaseResult:
         from .pipeline import reverberant_noise_reduction
         nr = reverberant_noise_reduction(load_project(inp_path))
         x, y = data[:, 0], data[:, 1]
-        return _verdict(meta, ref_meta, x, np.interp(np.log(x), np.log(nr["centers"]), nr["NR"]), y,
-                        "Frequency (Hz)")
+        res = _verdict(meta, ref_meta, x, np.interp(np.log(x), np.log(nr["centers"]), nr["NR"]), y,
+                       "Frequency (Hz)")
+        res.ylabel = "NR (dB)"
+        return res
     inp = json.loads(inp_path.read_text(encoding="utf-8"))
+    if q == "wall_tl":                           # rows: f, TL (first TL column is the compared layup)
+        from .atmosphere import air, isa
+        from .materials import Sidewall
+        lb_ft2 = 4.882428                        # kg/m2 per lb/ft2
+        sw = Sidewall(skin_thickness=1.0, skin_density=inp["skin_lb_ft2"] * lb_ft2,   # 1 m: density = areal mass
+                      skin_added_mass=inp["treatment_lb_ft2"] * lb_ft2, double_wall=False, blanket_mass=0.0)
+        a = air(inp["lab_temperature_K"], isa(inp["lab_altitude_m"]).p)
+        x, y = data[:, 0], data[:, 1]
+        res = _verdict(meta, ref_meta, x, -10 * np.log10(sea.tau_mass_law_diffuse(x, sw.m_skin, a.rho_c)), y,
+                       "Frequency (Hz)")
+        res.ylabel = "TL (dB)"
+        return res
     if q == "surface_tones":                     # rows: cond, side (0 port / 1 stbd), harmonic, L
         pred = flight.surface_tones(inp)
         sides = ("port", "starboard")
