@@ -80,3 +80,24 @@ def test_mission_and_static_segment(proj):
         run_case(p2, segment=0)
     seg.thrust = 12000.0
     assert np.all(np.isinf(run_case(p2, segment=0).L_bb))
+
+
+def test_v6_runner_counts_the_boundary_layer_once():
+    """Two engines run separately must not double the boundary layer: with identical bare and treated
+    configurations the IL is 0, and with the tones removed it equals the broadband IL of one run."""
+    import json
+
+    from cabin_noise.core import flight
+    from cabin_noise.core.validation import VAL_DIR
+    inp = json.loads((VAL_DIR / "V6_inputs.json").read_text(encoding="utf-8"))
+    same = dict(inp, treated=inp["base"])
+    f, il = flight.insertion_loss_bands(same, [1])[1]
+    assert np.allclose(il, 0.0)
+    no_tones = json.loads(json.dumps(inp))
+    for k in ("base", "treated"):
+        no_tones[k]["propeller"]["n_harmonics"] = 1
+    f, il = flight.insertion_loss_bands(no_tones, [1])[1]
+    p0, p1 = flight._project(no_tones, 1, "port", "base"), flight._project(no_tones, 1, "port", "treated")
+    r0, r1 = run_case(p0), run_case(p1)
+    hi = f > 1000                                    # bands far above the tones: broadband only
+    assert np.allclose(il[hi], (r0.L_bb - r1.L_bb)[hi], atol=1e-9)

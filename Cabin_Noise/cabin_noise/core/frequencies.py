@@ -45,10 +45,3 @@ def band_index(f: np.ndarray, centers: np.ndarray) -> np.ndarray:
     for i, (a, b) in enumerate(zip(lo, hi)):
         idx[(f >= a) & (f < b)] = i
     return idx
-
-
-def log_subfrequencies(centers: np.ndarray, n_sub: int) -> np.ndarray:
-    """n_sub log-spaced frequencies inside each band, shape (bands, n_sub)."""
-    lo, hi = band_edges(centers)
-    u = (np.arange(n_sub) + 0.5) / n_sub
-    return lo[:, None] * (hi / lo)[:, None] ** u[None, :]

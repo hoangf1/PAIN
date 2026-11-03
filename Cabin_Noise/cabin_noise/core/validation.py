@@ -158,7 +158,6 @@ def run_experimental(meta) -> CaseResult:
         return _verdict(meta, ref_meta, x, np.interp(np.log(x), np.log(nr["centers"]), nr["NR"]), y,
                         "Frequency (Hz)")
     inp = json.loads(inp_path.read_text(encoding="utf-8"))
-    idx = None
     if q == "surface_tones":                     # rows: cond, side (0 port / 1 stbd), harmonic, L
         pred = flight.surface_tones(inp)
         sides = ("port", "starboard")

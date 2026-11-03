@@ -5,7 +5,7 @@ from __future__ import annotations
 import numpy as np
 import pyqtgraph as pg
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QHBoxLayout, QLabel, QSpinBox, QVBoxLayout, QWidget
+from PySide6.QtWidgets import QLabel, QVBoxLayout, QWidget
 
 from ..core.weighting import a_weight
 
@@ -93,7 +93,7 @@ class InteriorView(QWidget):
         self.p.plot(r.centers, r.L_band_total, pen=pg.mkPen(C_TOTAL, width=2.5), name="total, average")
         self.p.plot(r.centers, r.L_bb, pen=pg.mkPen(C_BB, width=2), name="boundary layer")
         self.p.plot(r.centers, r.L_band_total + 4.77, pen=pg.mkPen(C_SEAT, width=1.5, style=Qt.DashLine),
-                    name="95th-percentile seat (+4.8 dB)")
+                    name="95th-percentile seat (+4.8 dB; statistic holds above f_s)")
         fin = r.L_bb[np.isfinite(r.L_bb)]
         _stems(self.p, r.f_m, r.L_tone, C_TONE, "tones, average", base=(np.min(fin) - 10) if fin.size else None)
         _vline(self.p, r.f_s, "f_s")

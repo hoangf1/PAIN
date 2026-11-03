@@ -42,8 +42,9 @@ def _nr(proj, f, S):
     a3, a5 = _alpha(sw.cavity_alpha, f), A / S
     nr = 10 * np.log10((1 + 4 / eps * a3 / tau(m2)) * (1 + a5 / tau(m4)) + a5 / tau(m2))     # eq. (52)
     t_wall = a5 / (10 ** (nr / 10) - 1)
-    So = sum(o.area for o in proj.openings)
-    t = ((S - So) * t_wall + sum(o.area * tau(o.mass) for o in proj.openings)) / S              # TM-85722 eq. (1)
+    k = S / proj.fuselage.side_area                                       # openings are given per side
+    So = k * sum(o.area for o in proj.openings)
+    t = ((S - So) * t_wall + k * sum(o.area * tau(o.mass) for o in proj.openings)) / S          # TM-85722 eq. (1)
     return 10 * np.log10(1 + A / (S * t))
 
 

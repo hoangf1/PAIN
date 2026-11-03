@@ -119,8 +119,9 @@ def cabin_tones(inp: dict) -> dict:
 
 
 def insertion_loss_bands(inp: dict, conds) -> dict:
-    """V6: band IL = total level untreated - treated (TM-85722), each engine run on its own
-    (one rpm per run) and added in energy. {cond: (centers, IL)}."""
+    """V6: band IL = total level untreated - treated (TM-85722). Each engine is run on its own
+    (one rpm per run); their tones are added in energy and the boundary layer, which every run
+    contains, is counted once. {cond: (centers, IL)}."""
     from .pipeline import run_case
 
     out = {}
@@ -128,7 +129,9 @@ def insertion_loss_bands(inp: dict, conds) -> dict:
         tot = {}
         for key in ("base", "treated"):
             p = _project(inp, cond, base_key=key)
-            pp = sum(10 ** (run_case(p, segment=i).L_band_total / 10) for i in range(len(p.mission.segments)))
-            tot[key] = 10 * np.log10(pp)
-        out[cond] = (run_case(_project(inp, cond)).centers, tot["base"] - tot["treated"])
+            runs = [run_case(p, segment=i) for i in range(len(p.mission.segments))]
+            tones = sum(10 ** (r.L_band_tonal / 10) for r in runs)
+            tot[key] = 10 * np.log10(tones + 10 ** (runs[0].L_bb / 10))
+            centers = runs[0].centers
+        out[cond] = (centers, tot["base"] - tot["treated"])
     return out

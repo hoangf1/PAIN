@@ -76,3 +76,19 @@ def test_double_wall_limits():
     assert np.all(sea.nr_double_wall(f, m_trim=3.0, **kw) > sea.nr_double_wall(f, m_trim=1.0, **kw))
     nr = sea.nr_double_wall(f, m_trim=1.0, **kw)
     assert np.allclose(10 * np.log10(1 + 0.4 / sea.tau_equivalent(nr, 0.4)), nr)
+
+
+def test_openings_scale_with_the_exposed_area():
+    """Openings are given per side: exposing two sides (boundary layer) doubles the window area,
+    so the window share of the wall, and with it the composite tau, is the same per unit area.
+    (Single wall: its tau does not depend on S. A CR-132602 double wall's equivalent tau does,
+    through the cavity-to-cabin coupling term, so it cannot test the scaling.)"""
+    p = default_project()
+    p.sidewall.double_wall = False
+    air = cabin_air(p.cabin.cabin_altitude, p.cabin.temperature)
+    f = np.array([500.0, 2000.0])
+    S1 = p.fuselage.side_area
+    A = p.cabin.absorption(f)
+    t1 = sea.tau_equivalent(noise_reduction(p, f, S1, air), A / S1)
+    t2 = sea.tau_equivalent(noise_reduction(p, f, 2 * S1, air), A / (2 * S1))
+    assert np.allclose(t1, t2, rtol=1e-12)

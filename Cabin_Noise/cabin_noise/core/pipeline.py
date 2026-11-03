@@ -128,11 +128,13 @@ def noise_reduction(proj: Project, f, S: float, air: Air) -> np.ndarray:
     """NR of the sidewall (exposed area S) into the cabin, dB.
 
     Wall: CR-132602 eq. (52) (double wall) or the single-wall form 10 log10(1 + A / (S tau)).
-    Openings (inside S): area-weighted transmission with the wall's equivalent tau (TM-85722 eq. 1)."""
+    Openings: areas are given per side (inside fuselage.side_area) and scale with the exposure,
+    S / side_area; area-weighted transmission with the wall's equivalent tau (TM-85722 eq. 1)."""
     sw = proj.sidewall
     f = np.atleast_1d(np.asarray(f, dtype=float))
     A = proj.cabin.absorption(f)
-    S_open = sum(o.area for o in proj.openings)
+    k_open = S / proj.fuselage.side_area
+    S_open = k_open * sum(o.area for o in proj.openings)
     if S_open >= S:
         raise ValueError("openings area exceeds the exposed sidewall area")
     if sw.double_wall:
@@ -143,7 +145,7 @@ def noise_reduction(proj: Project, f, S: float, air: Air) -> np.ndarray:
     if not proj.openings:
         return nr_wall
     t_wall = sea.tau_equivalent(nr_wall, A / S)
-    t = ((S - S_open) * t_wall + sum(o.area * o.tau(f, air.rho_c) for o in proj.openings)) / S
+    t = ((S - S_open) * t_wall + k_open * sum(o.area * o.tau(f, air.rho_c) for o in proj.openings)) / S
     return 10.0 * np.log10(1.0 + A / (S * t))
 
 

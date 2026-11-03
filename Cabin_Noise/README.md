@@ -7,7 +7,7 @@ Gutin tones + Goody boundary layer  ->  CR-132602 sidewall noise reduction  ->  
                                         (openings, insertion loss: TM-85722)
 ```
 
-[METHOD.md](METHOD.md) maps each block to its paper. [VERIFICATION.md](VERIFICATION.md) lists the checks against the papers. The reports are in `references/`.
+[METHOD.md](METHOD.md) maps each block to its paper. [AUDIT.md](AUDIT.md) records the code audit. [VERIFICATION.md](VERIFICATION.md) lists the checks against the papers. The reports are in `references/`.
 
 It is the fast companion to the PAIN recreation in `../PAIN_Program`. PAIN models structural and acoustic modes with airfoil-based sources; this tool does not.
 
@@ -23,7 +23,7 @@ python -m venv .venv
 ## Tests
 
 ```bash
-.venv/Scripts/python -m pytest -q                  # 45 tests: paper checks, end-to-end hand check, pipeline
+.venv/Scripts/python -m pytest -q                  # 47 tests: paper checks, end-to-end hand check, pipeline
 .venv/Scripts/python scripts/smoke_gui.py          # offscreen GUI smoke
 ```
 

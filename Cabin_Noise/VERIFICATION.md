@@ -1,6 +1,6 @@
 # Cabin_Noise: verification of the paper pipeline
 
-**Date:** 2026-11-02. **Tests:** `pytest` runs 45 tests.
+**Date:** 2026-11-02. **Tests:** `pytest` runs 47 tests.
 
 Every block is checked against something outside its own code path:
 - its paper's own equations, solved another way;

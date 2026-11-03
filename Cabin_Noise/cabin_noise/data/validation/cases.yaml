@@ -63,7 +63,7 @@ cases:
     min_fraction: 0.75
     band_min: 250
     band_max: 2000
-    quantity: reverberant_nr
+    quantity: wall_tl (no runner until Fig. 18 is digitized)
   - id: V4a
     stage: TL
     track: broadband

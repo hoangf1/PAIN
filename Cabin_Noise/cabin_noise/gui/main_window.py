@@ -46,7 +46,7 @@ def _sweep_setters():
         "Blanket surface mass (kg/m2)": (blanket, 0.1, 3.0),
         "Trim surface mass (kg/m2)": (lambda p, v: setattr(p.sidewall, "trim_mass", v), 1.0, 8.0),
         "Cavity depth (mm)": (lambda p, v: setattr(p.sidewall, "cavity_depth", v / 1000), 20, 200),
-        "Skin thickness, first panel (mm)": (skin, 0.8, 3.0),
+        "Skin thickness (mm)": (skin, 0.8, 3.0),
         "Tip clearance h_c (m)": (lambda p, v: setattr(p.propeller, "clearance", v), 0.2, 1.5),
         "RPM, active segment": (seg("rpm"), 1200, 2000),
         "Shaft power, active segment (kW)": (seg("shaft_power", 1e3), 300, 1200),

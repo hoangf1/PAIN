@@ -29,7 +29,8 @@ def p2_from_db(L) -> np.ndarray:
 
 def energetic_sum(levels, axis=None) -> np.ndarray:
     L = np.asarray(levels, dtype=float)
-    return 10.0 * np.log10(np.sum(10.0 ** (L / 10.0), axis=axis))
+    with np.errstate(divide="ignore"):                  # an empty spectrum (all -inf) sums to -inf
+        return 10.0 * np.log10(np.sum(10.0 ** (L / 10.0), axis=axis))
 
 
 def totals(band_levels, centers) -> dict:
