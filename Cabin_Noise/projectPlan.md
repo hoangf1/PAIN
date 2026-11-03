@@ -638,3 +638,9 @@ Everything below is digitized under `PAIN_Program/data` and can be copied withou
   - **Axial offset (0, the propeller plane):** 0.5 m behind the plane gives 106.5 / 111.2, the loudest point checked. 0.5 m ahead gives 103.0 / 107.8; 1 m ahead gives 97.6 / 102.4.
   - **Harmonics (8):** 4 to 32 give the same result to 0.1 dB. Gutin's higher harmonics are negligible.
 
+### Automatic harmonic count (2026-11-03, author's request)
+- **New behaviour:** `Propeller.n_harmonics = 0` means automatic, and it is now the default. The run takes every harmonic below the top 1/3-octave band's upper edge (`frequencies.harmonics_in_range`). In measured-source mode, automatic means the harmonics given. A value > 0 is used as before.
+- **Default case:** 36 harmonics (155-5580 Hz), and none is left outside the band range. The result is unchanged (106.2 / 110.9 dBA).
+- No validation or verification result changed; the runs gave identical values.
+- **Tests:** `test_auto_harmonic_count_reaches_the_top_band` checks the count against the band edge written out, the absence of the out-of-range warning, and equality with entering the same count. The measured-source test covers automatic and an explicit count.
+

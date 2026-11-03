@@ -56,8 +56,10 @@ def test_json_round_trip_reproduces_results(proj, res, tmp_path):
 def test_measured_exterior_used_verbatim(proj):
     p2 = copy.deepcopy(proj)
     p2.propeller.source_mode = "measured"
-    p2.propeller.measured = [[m, 120.0 - 5 * m] for m in range(1, p2.propeller.n_harmonics + 1)]
-    assert np.allclose(run_case(p2).L_ext_tone, [120.0 - 5 * m for m in range(1, p2.propeller.n_harmonics + 1)])
+    p2.propeller.measured = [[m, 120.0 - 5 * m] for m in range(1, 9)]
+    for n in (0, 8):                                   # auto (the harmonics given) and an explicit count
+        p2.propeller.n_harmonics = n
+        assert np.allclose(run_case(p2).L_ext_tone, [120.0 - 5 * m for m in range(1, 9)])
 
 
 def test_two_engines_add_three_db(proj, res):
@@ -133,3 +135,19 @@ def test_supersonic_helical_tip_is_flagged(proj):
         assert flagged == (M_h >= 1.0), (rpm, M_h)
         seen.add(flagged)
     assert seen == {True, False}                              # both sides of the threshold were tested
+
+
+def test_auto_harmonic_count_reaches_the_top_band(proj):
+    """n_harmonics = 0: every harmonic below the top 1/3-octave band's upper edge, the same result as
+    entering that count, and nothing left outside the band range."""
+    p = copy.deepcopy(proj)
+    seg, pr = p.mission.active_segment(), p.propeller
+    pr.n_harmonics = 0
+    auto = run_case(p)
+    top_edge = auto.centers[-1] * 2 ** (1 / 6)
+    bpf = pr.blades * seg.rpm / 60
+    assert len(auto.f_m) == int(top_edge // bpf)
+    assert auto.f_m[-1] < top_edge <= auto.f_m[-1] + bpf
+    assert not any("left out of the band totals" in w for w in auto.warnings)
+    pr.n_harmonics = len(auto.f_m)
+    assert np.allclose(run_case(p).L_tone, auto.L_tone)

@@ -22,7 +22,7 @@
     "clearance": 0.5,
     "axial_offset": 0.0,
     "engines": 2,
-    "n_harmonics": 8,
+    "n_harmonics": 0,
     "re_fraction": 0.8,
     "source_mode": "generated",
     "measured": []

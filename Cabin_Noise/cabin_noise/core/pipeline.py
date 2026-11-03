@@ -22,7 +22,7 @@ import numpy as np
 from . import cabin as cab
 from . import sea
 from .atmosphere import Air, cabin_air
-from .frequencies import band_index, harmonic_frequencies, third_octave_centers
+from .frequencies import band_index, harmonic_frequencies, harmonics_in_range, third_octave_centers
 from .materials import Opening, Sidewall, Surface, octave_interp
 from .mission import Mission, Segment, operating_point
 from .source_tbl import boundary_layer, wall_band_pressure2
@@ -39,7 +39,7 @@ class Propeller:
     clearance: float = 0.5           # tip to fuselage, m
     axial_offset: float = 0.0        # observer (fuselage point) ahead of the propeller plane, m
     engines: int = 2                 # 1 or 2 (one propeller per side)
-    n_harmonics: int = 8
+    n_harmonics: int = 0             # 0 = every harmonic up to the top analysis band (auto)
     re_fraction: float = 0.8         # Gutin effective radius / tip radius
     source_mode: str = "generated"   # "generated" (Gutin) | "measured" (exterior levels given)
     measured: list = field(default_factory=list)   # [[m, L_ext dB (free-field incident)], ...]
@@ -176,9 +176,15 @@ def run_case(proj: Project, segment: int | None = None) -> Results:
     op = operating_point(seg)
     ext = op.atm
     air = cabin_air(cb.cabin_altitude, cb.temperature)
-    f_m = harmonic_frequencies(pr.blades, seg.rpm, pr.n_harmonics)
-    m_idx = np.arange(1, pr.n_harmonics + 1)
     centers = third_octave_centers(opt.f_min, opt.f_max)
+    if pr.n_harmonics > 0:
+        n_harm = pr.n_harmonics
+    elif pr.source_mode == "measured" and pr.measured:          # auto, measured: the harmonics given
+        n_harm = int(max(r[0] for r in pr.measured))
+    else:                                                       # auto: up to the top analysis band
+        n_harm = harmonics_in_range(pr.blades, seg.rpm, centers)
+    f_m = harmonic_frequencies(pr.blades, seg.rpm, n_harm)
+    m_idx = np.arange(1, n_harm + 1)
     if pr.engines not in (1, 2):
         raise ValueError("engine count must be 1 or 2")
 

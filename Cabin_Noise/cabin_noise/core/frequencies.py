@@ -37,6 +37,12 @@ def harmonic_frequencies(blades: int, rpm: float, n_harmonics: int) -> np.ndarra
     return np.arange(1, n_harmonics + 1) * blades * rpm / 60.0
 
 
+def harmonics_in_range(blades: int, rpm: float, centers: np.ndarray) -> int:
+    """Number of harmonics m*BPF below the top band's upper edge (at least 1)."""
+    bpf = blades * rpm / 60.0
+    return max(1, int(np.floor(band_edges(centers)[1][-1] / bpf)))
+
+
 def band_index(f: np.ndarray, centers: np.ndarray) -> np.ndarray:
     """Index of the band that contains each frequency, -1 if outside the grid."""
     lo, hi = band_edges(centers)

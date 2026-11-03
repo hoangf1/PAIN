@@ -892,4 +892,13 @@ NASA TM-85722 & Lab TL and in-flight IL & V4, V6 as planned & Not in the repo \\
 \end{itemize}
 \end{itemize}
 
+\subsection*{Automatic harmonic count (2026-11-03, author's request)}
+
+\begin{itemize}
+\item \textbf{New behaviour:} \texttt{Propeller.\allowbreak{}n\_\allowbreak{}harmonics = 0} means automatic, and it is now the default. The run takes every harmonic below the top 1/3-octave band's upper edge (\texttt{frequencies.\allowbreak{}harmonics\_\allowbreak{}in\_\allowbreak{}range}). In measured-source mode, automatic means the harmonics given. A value > 0 is used as before.
+\item \textbf{Default case:} 36 harmonics (155-5580 Hz), and none is left outside the band range. The result is unchanged (106.2 / 110.9 dBA).
+\item No validation or verification result changed; the runs gave identical values.
+\item \textbf{Tests:} \texttt{test\_\allowbreak{}auto\_\allowbreak{}harmonic\_\allowbreak{}count\_\allowbreak{}reaches\_\allowbreak{}the\_\allowbreak{}top\_\allowbreak{}band} checks the count against the band edge written out, the absence of the out-of-range warning, and equality with entering the same count. The measured-source test covers automatic and an explicit count.
+\end{itemize}
+
 \end{document}
