@@ -42,7 +42,9 @@ python -m venv .venv
 
 - **Verification V0a, V0b, V0c, V1, V2, V3** (analytic checks): all pass. These checks never carry a validation verdict.
 - **Validation V4a** (TP-1964 bare-cylinder reverberant NR, data reused from PAIN_Program): **run 2026-11-02, not met**. The worst error is 16 dB in 250 Hz-2 kHz: the plane-wave TL misses resonant cylinder transmission and treats the thick end caps as mass-law panels. See projectPlan.md, "V4a result".
-- **Validation V4, V5, V5b, V6, V7** (NASA TM-85722 and CR-178004): **not run yet**. TM-85722 is not in the repo, and the CR-178004 PDF is in `PAIN_Program/references/` but not yet digitized. Each case needs two files in `cabin_noise/data/validation/`: the digitized curve (`<id>.csv`) and a project file built only from the report's stated inputs (`<id>_inputs.json`). The pass targets are fixed and dated in `cases.yaml`.
+- **Validation V5** (CR-178004 flight exterior harmonics, flight 3, 101 points): **run 2026-11-02, not met**. 43 % of points are within +-6 dB and the model overpredicts by +6 dB on average. The cause is the single-radius point force in the near field; see projectPlan.md, "V5 result".
+- **Validation V4, V5b, V6, V7**: **not run yet**. V4 and V6 need TM-85722 (not in the repo). V5b and V7 can be transcribed from CR-178004's appendix tables.
+- Experimental cases are judged with the low-fi policy: met when at least 75 % of the points are within +-6 dB. V4a keeps its original +-3 dB criterion. Each case needs two files in `cabin_noise/data/validation/`: the digitized curve (`<id>.csv`) and a project file built only from the report's stated inputs (`<id>_inputs.json`). The pass targets are fixed and dated in `cases.yaml`.
 - **V8** (cross-check against PAIN): information only.
 
-The only experimental comparison so far (V4a) misses by up to 16 dB on a bare lab cylinder. Treat absolute levels as **unvalidated**, especially for thin, lightly damped walls below the ring frequency. The repo's reusable data is inventoried in projectPlan.md.
+The two experimental comparisons so far both miss: V4a (bare lab cylinder) by up to 16 dB and V5 (flight exterior tones) by +6 dB on average. Treat absolute levels as **unvalidated**, especially for thin, lightly damped walls below the ring frequency. The repo's reusable data is inventoried in projectPlan.md.

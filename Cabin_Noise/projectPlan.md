@@ -401,7 +401,7 @@ Report tonal-only, broadband-only and total, for both average and max seat.
 | M3 Full pipeline | Done. `run_case`, JSON and CSV export work. V0c passes. |
 | M4 GUI v1 | Done. Six input tabs, eight plot views and the results bar. |
 | M5 Compare & sweep | Done. A/B overlay, IL, background sweeps, mission summary, 1-vs-5 patch check. |
-| M6 Validation | Framework done: Validation tab, figures, heatmap, HTML/PDF export. **V4a run 2026-11-02: not met** (see below). V4-V7 are not run: TM-85722 is not in the repo and CR-178004 is not digitized yet. |
+| M6 Validation | Framework done: Validation tab, figures, heatmap, HTML/PDF export. **V4a and V5 run 2026-11-02: both not met** (see below). V4 and V6 need TM-85722, which is not in the repo. V5b and V7 can be built from CR-178004 (App. D, B), which is already in the repo. |
 | M7 Polish & package | Partly done: material library and PDF report. Still open: unit toggles, a separate material editor, PyInstaller build. |
 
 ### Where the code differs from the text above
@@ -433,7 +433,7 @@ Everything below is digitized under `PAIN_Program/data` and can be copied withou
 | TP-2444 Figs. 17, 19 (`tp2444/`) | Same 1.83 m model 2: exterior and interior spectra, rotation direction | Candidate V7c | Analysis bandwidth not stated (5 Hz assumed in PAIN); trim gap as above |
 | CR-172428 App. B (`cr172428/`) | Blocked pressure field and PAIN's predictions | V8 (vs PAIN) only, not experimental | Available |
 | CR-172490 Fig. 15 (`cr172490/`) | Sharp's double-panel *prediction* | Verification only (another method) | Not a validation reference |
-| `references/NASA_CR_178004.pdf` | Commander 695A flight: exterior and interior harmonics, untreated and treated | **V5, V5b, V7** as planned | PDF present, not digitized. PAIN rejected it (rectangular cabin), but the low-fi box cabin can represent it |
+| `references/NASA_CR_178004.pdf` | Commander 695A flight: exterior and interior harmonics, untreated and treated | **V5** (run), V5b, V7 | The appendices are printed tables with a text layer, so they can be transcribed (not digitized from plots). App. A drives V5; App. D (1/3-octave exterior) drives V5b; App. B and E (untreated cabin) and App. C, F, J (treated cabin, insertion loss) drive V7 and a V6-like case. Inputs are in sec. 2 and Tables 1-8 |
 | NASA TM-85722 | Lab TL and in-flight IL | V4, V6 as planned | Not in the repo |
 
 ### V4a result (TP-1964 Fig. 8, run 2026-11-02, criterion fixed before the run)
@@ -448,3 +448,8 @@ Everything below is digitized under `PAIN_Program/data` and can be copied withou
 - The plan's +-3 dB at every point is a high-fidelity target. A low-fi tool is meant for design trades and overall levels, so the unrun experimental cases are now judged **met when at least 75 % of the points in range lie within +-6 dB**. Max |e|, RMS and mean error are reported with every result. V7 now carries a verdict instead of "report only".
 - **V4a keeps its original verdict** (max-error <= 3 dB: not met), because it was defined and run under that criterion. Re-stated under the new policy (**post-hoc, information only, 2026-11-02**): 3 of 10 bands lie within +-6 dB, which would still be not met.
 - Misses are an expected outcome for a low-fi tool. They are recorded with an attribution and listed as known limits, and are never tuned away.
+
+### V5 result (CR-178004 App. A, flight 3, run 2026-11-02; definition committed first in 4eadb02)
+- **Not met:** 43 of 101 surface harmonic levels lie within +-6 dB (75 % needed). Mean error +6.1 dB, RMS 6.4 dB, max |e| 10.1 dB. The model overpredicts systematically, most at BPF1 (+7.7 dB average) and least at BPF3 (+4.7 dB). The error is similar at all three altitudes (+5.1, +6.4 and +6.5 dB). For context, the report's own simplified methods overpredicted the same data by 7 dB and 11 dB on average (CR-178004 Table 9).
+- Sensitivity, post-hoc, information only (no input was changed for the verdict): eta_p 0.7 / 0.9 moves the mean error by about +-0.4 dB; fuselage radius 0.6 / 0.9 m by 0.2 dB or less. **The effective loading radius dominates:** R_e = 0.7 / 0.9 R_t gives mean +2.8 / +8.7 dB. Collapsing the blade loading onto one radius 0.36 m from the tips is the main near-field error (plan assumption 2).
+- Possible model change: spread the forces over several radial stations with a stated (not fitted) loading shape. Flights 1, 2 and 4 of App. A are repeat flights of the same conditions, so they are *not* an independent check for a change motivated by flight 3. Such a change would need a different aircraft or test to earn a verdict.
