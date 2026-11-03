@@ -418,7 +418,7 @@ Report tonal-only, broadband-only and total, for both average and max seat.
 ### Defaults and library
 - The default project is a *generic* twin turboprop with stated inputs; it represents no specific aircraft.
 - `materials.json` holds handbook-typical values. None of them is fitted to validation data.
-- The default project gives: cruise 86.1 dBA room average, 90.9 dBA max seat (after the boundary-layer factor correction of 2026-11-02; it was 85.1 / 89.8 before). The 1-vs-5 patch difference is 0.02 dB, so 1 patch is adequate for this case.
+- The default project gives: cruise 86.2 dBA room average, 90.9 dBA max seat (after the boundary-layer factor correction and the limp default blanket of 2026-11-02; it was 85.1 / 89.8 before). The 1-vs-5 patch difference is 0.02 dB, so 1 patch is adequate for this case.
 ### Experimental data already in the repo (inventory 2026-11-02)
 Everything below is digitized under `PAIN_Program/data` and can be copied without digitizing again. Record provenance in each reference CSV.
 
@@ -507,3 +507,11 @@ Everything below is digitized under `PAIN_Program/data` and can be copied withou
   - **Scattering series:** truncation extended.
   - **Delany-Bazley:** use outside its range now warns.
 - Recorded validation verdicts are unchanged. Post-hoc re-run (information only): V6 249/519 (was 251), V4c unchanged.
+
+### Limp-frame blanket option and V4d (added and run 2026-11-02; definition committed first in 662544f)
+- **Model:** `frame = "limp"` with `bulk_density` on PorousLayer / PorousTable turns the rigid-frame equivalent fluid (Delany-Bazley or a measured table) into the limp-frame fluid of Panneton (2007, JASA 122, EL217): rho_limp = (rho_t rho_eq - rho0^2) / (rho_t + rho_eq - 2 rho0), with an unchanged bulk modulus.
+  - Verified (VERIFICATION.md row 13b): a heavy frame gives the rigid model back; a massless frame gives air density; at low frequency the density is the total mass rho_t; the bulk modulus is unchanged; the layer is passive within Delany-Bazley's range.
+  - Delany-Bazley is itself non-physical below its range (negative real density at X = 0.002), which the existing warning flags.
+- **Default example:** its 9.6 kg/m3 blanket is now limp; light fiberglass behaves that way.
+- **V4d (CR-3813 cylinder, V4b with limp blankets of the printed 9.61 kg/m3): not met.** 4 of 19 within +-6 dB, mean +12.6 dB (V4b +13.1 dB). On this case the trim model is not the error; the over-prediction comes from the wall transmission above 160 Hz (sec. 3 of VERIFICATION.md).
+- **V6 re-run with a limp blanket (post-hoc, information only, verdict unchanged):** 282 of 519 within +-6 dB (rigid: 249). The low-frequency IL overprediction falls from about +11 to +4 dB at 25 Hz, as intended. The rest is the negative measured IL at low frequency (the report cites structure-borne components) and the report's recorder floor above 2 kHz.

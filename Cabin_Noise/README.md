@@ -20,7 +20,7 @@ python -m venv .venv
 [VERIFICATION.md](VERIFICATION.md) maps every equation to its published source and to the independent test that checks it.
 
 ```bash
-.venv/Scripts/python -m pytest -q                  # 74 tests: source checks (VERIFICATION.md), core, V0a-V3
+.venv/Scripts/python -m pytest -q                  # 76 tests: source checks (VERIFICATION.md), core, V0a-V3
 .venv/Scripts/python scripts/smoke_gui.py          # offscreen GUI smoke (run, compare, mission, sweep, validation)
 ```
 
@@ -53,8 +53,9 @@ python -m venv .venv
 - **Validation V6** (fiberglass insertion loss, CR-178004 App. J): **not met**, 48 %. Mid frequencies (400 Hz-1.6 kHz) agree; low and high bands do not.
 - **Validation V7** (untreated cabin tones from the measured exterior, CR-178004 App. B): **not met**, 11 %, +12.8 dB on average. The infinite-panel skin transmits too much at the blade passage frequency.
 - **Validation V4b / V4c** (CR-3813 stiffened, trimmed test cylinder, reverberant NR; inputs all printed): **not met**, 21 %, +13 dB. The trimmed curved wall is far too good above 160 Hz; PAIN over-predicted this case too. V4c (optional bay-stiffness skin) equals V4b, because curvature dominates on this cylinder.
+- **Validation V4d** (V4b with limp-frame blankets): **not met**, unchanged from V4b; the trim model is not that case's error. The limp option cuts V6's low-frequency overprediction (post-hoc re-run 282/519, information only).
 - **Validation V4** (TM-85722 lab TL): **not run**. The report is not in the repo.
 - Experimental cases are judged with the low-fi policy: met when at least 75 % of the points are within +-6 dB. V4a keeps its original +-3 dB criterion. Each case needs two files in `cabin_noise/data/validation/`: the digitized curve (`<id>.csv`) and a project file built only from the report's stated inputs (`<id>_inputs.json`). The pass targets are fixed and dated in `cases.yaml`.
 - **V8** (cross-check against PAIN): information only.
 
-Of nine experimental comparisons, three are met: V5b (boundary-layer pressure) and V5c / V5d (propeller near field, lab). Most misses trace to one plan assumption: sidewall transmission is plane-wave and infinite-panel, which cannot represent a finite fuselage's modal response (V4a, V4b/c, V7, part of V6). The others are the single-radius source (V5) and the rigid-frame blanket at low frequency (V6). Use the tool for relative trades at mid frequencies, where V6 agrees; treat absolute cabin levels as unvalidated (13 dB off at BPF on the one aircraft tested, and +13 dB in NR on the trimmed lab cylinder). Treat absolute levels as **unvalidated**, especially for thin, lightly damped walls below the ring frequency. The repo's reusable data is inventoried in projectPlan.md.
+Of ten experimental comparisons, three are met: V5b (boundary-layer pressure) and V5c / V5d (propeller near field, lab). Most misses trace to one plan assumption: sidewall transmission is plane-wave and infinite-panel, which cannot represent a finite fuselage's modal response (V4a, V4b/c, V7, part of V6). The others are the single-radius source (V5) and the rigid-frame blanket at low frequency (V6). Use the tool for relative trades at mid frequencies, where V6 agrees; treat absolute cabin levels as unvalidated (13 dB off at BPF on the one aircraft tested, and +13 dB in NR on the trimmed lab cylinder). Treat absolute levels as **unvalidated**, especially for thin, lightly damped walls below the ring frequency. The repo's reusable data is inventoried in projectPlan.md.

@@ -28,6 +28,7 @@ A test that only re-evaluates the formula it checks does not count.
 | 11 | source_tbl | Goody spectrum Phi U_e / (tau_w^2 delta) = 3 w~^2 / [(w~^0.75 + 0.5)^3.7 + (1.1 R_T^-0.57 w~)^7], R_T = (delta/U_e) / (nu/u_tau^2) | Goody 2004, AIAA J. 42(9) | Asymptotic slopes w^2 (low), about w^-0.7 (overlap), w^-5 (high) as stated in the source | identity | pass |
 | 12 | source_tbl | delta = 0.37 x Re_x^-0.2, C_f = 0.0592 Re_x^-0.2 | Schlichting, *Boundary-Layer Theory* ch. 21 (1/7-power law) | Formula check | published formula | pass |
 | 13 | porous | Delany-Bazley Z_c, k_c (e^{+jwt}), valid 0.01 <= rho f / sigma <= 1 | Delany & Bazley 1970; Allard & Atalla, *Propagation of Sound in Porous Media* sec. 2.5 | Passive and causal in range (Re Z_c > 0, Im Z_c < 0, Im k_c < 0, slower than air); tends to air as X -> infinity. **Use outside the range now raises a result warning** | identity | pass |
+| 13b | porous | Limp-frame equivalent fluid: rho_limp = (rho_t rho_eq - rho0^2) / (rho_t + rho_eq - 2 rho0), rho_eq = Z_c k_c / w, K = w Z_c / k_c unchanged | Panneton 2007, JASA 122, EL217 | Heavy frame -> rigid model (1e-4); massless frame -> air density (1e-6); 20 Hz density -> rho_t within 5 %; bulk modulus unchanged (1e-9); passive in range; at low frequency the limp TL is below the rigid TL (blanket acts as mass, not resistance) | identity | pass |
 | 14 | materials | Measured-table porous layer: k_c = 2 pi / lambda - j alpha_dB / 8.686, Z_c = abs(W) e^{-j phi} | CR-3813 Fig. A-2 quantities | Fed Delany-Bazley's own values, it reproduces the Delany-Bazley layer exactly | independent derivation | pass |
 | 15 | tmm | Layer matrices (panel [[1, Z_p], [0, 1]]; fluid [[cos kd, j Z sin kd], [j sin kd / Z, cos kd]]); tau = abs(2 / (T11 + T12 cos(theta)/Z0 + T21 Z0/cos(theta) + T22))^2 | Allard & Atalla ch. 11 (transfer matrix method) | (a) Normal-incidence single panel = mass law exactly (V1). (b) **Mass-air-mass double wall equals the hand-derived closed form** (London 1950) to 1e-6 (`test_tmm_double_wall_matches_closed_form`). (c) Reciprocity: tau(stack) = tau(reversed stack) to 1e-9 | published / derivation / identity | pass |
 | 16 | tmm | Panel Z_p = jwm [1 - (f/f_c)^2 sin^4(theta) (1 + j eta)] | Cremer, Heckl & Petersson, *Structure-Borne Sound* | At the coincidence angle sin^2(theta) = f_c/f, tau = 1 / (1 + wm eta cos(theta) / 2 rho c)^2 exactly (`test_coincidence_at_oblique_incidence`); diffuse TL dips below the mass law at f_c | independent derivation | pass |
@@ -56,11 +57,13 @@ A test that only re-evaluates the formula it checks does not count.
 3. **Scattering series truncation:** N = ceil(ka) + 10 left a 2e-6 truncation error. N is now ceil(ka) + 20 (row 10).
 4. **Delany-Bazley validity:** use outside 0.01 <= rho f / sigma <= 1 now adds a result warning. The default blanket triggers it below about 100 Hz.
 
+5. **Limp-frame option added (2026-11-02, row 13b),** used by the default example's light blanket. A rigid frame stays available.
+
 ## 3. Correct as implemented, but approximations (low fidelity by design)
 
 These are not errors in the math. They are the plan's stated simplifications, and the validation cases measure their cost:
 - **Infinite-panel, plane-wave transmission.** Finite-structure modes are absent. The ring-frequency term models only the breathing (n = 0) stiffness, applied at every angle. This is the main cause of the V4a, V4b/c and V7 misses.
-- **Rigid-frame blanket.** A real limp blanket moves with the air at low frequency. V6 overpredicts insertion loss below 250 Hz.
+- **Blanket frame.** Rigid or limp (Panneton) is chosen by the user. Neither is the full Biot elastic-frame theory.
 - **Single effective radius** for the default source. The blade-geometry mode removes the bias (V5c vs V5d).
 - **Boundary layer as an equivalent diffuse field.** This overstates the coupling of a convected boundary layer, so the level is an upper bound, as the plan states.
 - **Sabine room equation for tones below the Schroeder frequency.** The seat model supplies only the spatial shape.
@@ -69,5 +72,5 @@ These are not errors in the math. They are the plan's stated simplifications, an
 ## 4. How to re-run
 
 ```bash
-.venv/Scripts/python -m pytest -q          # 74 tests, about 15 s
+.venv/Scripts/python -m pytest -q          # 76 tests, about 15 s
 ```

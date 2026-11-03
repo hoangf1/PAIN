@@ -132,6 +132,7 @@ cases:
     quantity: reverberant_nr
     ref_file: CR3813_E22.csv
     defined: "2026-11-02 before the run: V4b inputs with limp blankets (printed density 9.61 kg/m3). Not the motivating case (V6), but V4b residuals were already known, so not fully blind"
+    recorded: "2026-11-02 not met: 4/19 within +-6 dB, mean +12.6 dB (V4b +13.1); the trim model is not this case's error (definition commit 662544f)"
   - id: V5
     stage: Source
     track: tonal

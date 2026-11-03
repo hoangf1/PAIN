@@ -50,7 +50,7 @@ def default_project() -> Project:
     sidewall = [
         _lib_panel(lib, "Al 2024-T3 skin 1.6 mm", m_add=1.5),
         AirGap(name="Gap", d=0.02),
-        PorousLayer(name="Fiberglass 9.6 kg/m3 (0.6 pcf)", d=0.05, sigma=8000.0),
+        PorousLayer(name="Fiberglass 9.6 kg/m3 (0.6 pcf)", d=0.05, sigma=8000.0, frame="limp", bulk_density=9.6),
         AirGap(name="Gap", d=0.02),
         _lib_panel(lib, "Fiberglass trim 1.5 mm"),
     ]
