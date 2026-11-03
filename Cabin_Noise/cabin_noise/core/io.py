@@ -22,38 +22,10 @@ def load_library() -> dict:
         return json.load(fh)
 
 
-def _lib_surface(lib, name, area) -> Surface:
-    d = next(s for s in lib["surfaces"] if s["name"] == name)
-    return Surface(name=name, area=area, alpha=list(d["alpha"]))
-
-
 def default_project() -> Project:
-    """Generic twin-turboprop example (stated inputs, not any particular aircraft)."""
-    lib = load_library()
-    cab = CabinConfig()
-    floor = cab.Lx * cab.Ly
-    n_win = round(0.75 * cab.Lx)                   # windows per side, one per 1.33 m of cabin
-    walls = 2 * cab.Lx * cab.Lz * 0.75
-    cab.surfaces = [
-        _lib_surface(lib, "Carpet on floor", floor * 0.4),
-        _lib_surface(lib, "Upholstered seats (per m2 floor)", floor * 0.6),
-        _lib_surface(lib, "Trim panels", walls),
-        _lib_surface(lib, "Perforated headliner", cab.Lx * cab.Ly),
-        _lib_surface(lib, "Windows", 2 * n_win * 0.08),
-        _lib_surface(lib, "Bulkhead (hard)", 2 * cab.Ly * cab.Lz),
-    ]
-    sidewall = Sidewall(skin_thickness=1.6e-3, skin_density=2780.0, skin_added_mass=1.5, double_wall=True,
-                        trim_mass=2.7, blanket_mass=9.6 * 0.05, cavity_depth=0.09)
-    windows = Opening(name=f"Windows ({n_win} per side, 6 + 4 mm acrylic as one pane)", area=n_win * 0.08, mode="mass",
-                      mass=1190.0 * 0.010)
-    mission = Mission(segments=[
-        Segment(name="Climb", altitude=3000.0, mach=0.30, rpm=1700.0, shaft_power=900e3, eta_p=0.80),
-        Segment(name="Cruise", altitude=6096.0, mach=0.45, rpm=1600.0, shaft_power=750e3, eta_p=0.85),
-        Segment(name="Descent", altitude=3000.0, mach=0.40, rpm=1500.0, shaft_power=300e3, eta_p=0.80),
-    ], active=1)
-    return Project(name="Generic twin turboprop", mission=mission, propeller=Propeller(),
-                   fuselage=Fuselage(side_area=cab.Lx * cab.Lz, tbl_area=2 * cab.Lx * cab.Lz),
-                   sidewall=sidewall, openings=[windows], cabin=cab, options=Options())
+    """Generic twin-turboprop example (stated inputs, not any particular aircraft). Every value is
+    in data/default_project.json, which the GUI shows field by field; none is set in code."""
+    return load_project(DATA_DIR / "default_project.json")
 
 
 # ---- JSON -------------------------------------------------------------------------
@@ -126,7 +98,7 @@ def export_results_csv(res: Results, path) -> None:
             w.writerow([i + 1, f"{f:.2f}", f"{res.L_ext_tone[i]:.2f}", f"{res.NR_tone[i]:.2f}",
                         f"{res.L_tone[i]:.2f}"])
         w.writerow([])
-        w.writerow(["metric", "track", "average", "max_seat_95"])
+        w.writerow(["metric", "track", "average", f"max_seat_p{res.seat_percentile:g}"])
         for track in ("tonal", "broadband", "total"):
             for k in ("OASPL", "dBA", "dBC"):
                 w.writerow([k, track, f"{res.totals['average'][track][k]:.2f}",

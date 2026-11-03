@@ -1,4 +1,4 @@
-"""Input tabs for the paper pipeline: Mission, Propeller, Fuselage, Sidewall, Openings, Cabin."""
+"""Input tabs for the paper pipeline: Mission, Propeller, Fuselage, Sidewall, Openings, Cabin, Analysis."""
 from __future__ import annotations
 
 import numpy as np
@@ -342,3 +342,36 @@ class CabinTab(Tab):
         fs = cab.schroeder_frequency(float(np.mean(T[1:3])), V)
         self.readout.setText(f"V = {V:.1f} m3; A(125/500/1k/2k) = " + " / ".join(f"{a:.1f}" for a in A)
                              + " m2; T60 = " + " / ".join(f"{t:.2f}" for t in T) + f" s; Schroeder f_s = {fs:.0f} Hz")
+
+
+# ---- Analysis -----------------------------------------------------------------------
+class AnalysisTab(Tab):
+    def __init__(self):
+        super().__init__()
+        self.form = DataclassForm([
+            F("f_min", "Lowest band centre", "Hz", lo=10, hi=20000, tip="1/3-octave analysis range"),
+            F("f_max", "Highest band centre", "Hz", lo=20, hi=20000),
+            F("seat_percentile", "Max-seat percentile", "%", lo=50, hi=99.9, decimals=1,
+              tip="'max seat' = this percentile of the seats (Schroeder statistic); default 95"),
+        ])
+        self.form.changed.connect(self.emit)
+        self.v.addWidget(self.form)
+        self.v.addWidget(_ref("The equations' own constants (Goody's coefficients, the 1/7-power boundary layer, "
+                              "the Waterhouse factor 2, Sabine's 0.161, ISA, IEC A / C weighting) are fixed by the "
+                              "papers and listed in METHOD.md sec. 5; they are not inputs."))
+        self.readout = QLabel()
+        self.v.addWidget(self.readout)
+        self.v.addStretch()
+
+    def load(self, p):
+        self.project = p
+        self.form.set_object(p.options)
+        self.update_readout()
+
+    def update_readout(self):
+        if self.project:
+            o = self.project.options
+            try:
+                self.readout.setText(f"Max seat = room average + {cab.seat_stat_db(o.seat_percentile):.2f} dB")
+            except ValueError as e:
+                self.readout.setText(str(e))

@@ -38,7 +38,7 @@ python -m venv .venv
 | `docs/figures/` | Per-case figures and the stage map linked from VALIDATION.md (`scripts/make_doc_figures.py`) |
 | `tests/` | pytest suite (`independent.py` holds the independent re-implementations) |
 
-**Default example:** a generic twin turboprop with a 22.7 x 2.64 x 1.9 m cabin; cruise 97.6 dBA room average, 102.3 dBA at the 95th-percentile seat. Cabin air (8000 ft, 20 C) and the cavity absorption (CR-132602 sec. 6.2's table) are set to these defaults and can be changed in the Cabin and Sidewall tabs.
+**Default example:** a generic twin turboprop with a 22.7 x 2.64 x 1.9 m cabin; cruise 97.6 dBA room average, 102.3 dBA at the 95th-percentile seat. Cabin air (8000 ft, 20 C) and the cavity absorption (CR-132602 sec. 6.2's table) are set to these defaults and can be changed in the Cabin and Sidewall tabs. Every value of the example is in `cabin_noise/data/default_project.json`, and every input has a field in the GUI (the Analysis tab holds the band range and the max-seat percentile). The equations' own constants are listed in METHOD.md sec. 5.
 
 ## Validation status (paper pipeline, 2026-11-02)
 

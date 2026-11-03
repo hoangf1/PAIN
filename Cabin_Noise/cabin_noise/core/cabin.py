@@ -3,9 +3,15 @@ from __future__ import annotations
 
 import numpy as np
 
-# reverberant p^2 is exponentially distributed (Schroeder 1962): the 95th-percentile seat is
-# 10 log10(ln 20) = 4.8 dB above the room average
-STAT_95 = 10.0 * np.log10(np.log(20.0))
+def seat_stat_db(percentile: float) -> float:
+    """Reverberant p^2 is exponentially distributed (Schroeder 1962): the seat at the given
+    percentile is 10 log10(ln(1 / (1 - P))) above the room average (95 %: ln 20, 4.8 dB)."""
+    if not 50.0 <= percentile < 100.0:
+        raise ValueError("seat percentile must be in [50, 100)")
+    return float(10.0 * np.log10(np.log(1.0 / (1.0 - percentile / 100.0))))
+
+
+STAT_95 = seat_stat_db(95.0)
 
 
 def absorption_area(surfaces, f) -> np.ndarray:

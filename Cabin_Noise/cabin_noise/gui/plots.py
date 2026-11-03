@@ -85,15 +85,15 @@ class InteriorView(QWidget):
     def __init__(self):
         super().__init__()
         v = QVBoxLayout(self)
-        self.p = _plot("Interior = exterior - NR: room average, tones, 95th-percentile seat")
+        self.p = _plot("Interior = exterior - NR: room average, tones, max seat (percentile)")
         v.addWidget(self.p)
 
     def show(self, r):
         self.p.clear()
         self.p.plot(r.centers, r.L_band_total, pen=pg.mkPen(C_TOTAL, width=2.5), name="total, average")
         self.p.plot(r.centers, r.L_bb, pen=pg.mkPen(C_BB, width=2), name="boundary layer")
-        self.p.plot(r.centers, r.L_band_total + 4.77, pen=pg.mkPen(C_SEAT, width=1.5, style=Qt.DashLine),
-                    name="95th-percentile seat (+4.8 dB; statistic holds above f_s)")
+        self.p.plot(r.centers, r.L_band_total + r.seat_db, pen=pg.mkPen(C_SEAT, width=1.5, style=Qt.DashLine),
+                    name=f"{r.seat_percentile:g}th-percentile seat (+{r.seat_db:.1f} dB; statistic holds above f_s)")
         fin = r.L_bb[np.isfinite(r.L_bb)]
         _stems(self.p, r.f_m, r.L_tone, C_TONE, "tones, average", base=(np.min(fin) - 10) if fin.size else None)
         _vline(self.p, r.f_s, "f_s")

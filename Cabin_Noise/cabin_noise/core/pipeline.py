@@ -78,8 +78,9 @@ class CabinConfig:
 
 @dataclass
 class Options:
-    f_min: float = 50.0
+    f_min: float = 50.0              # analysis range (1/3-octave bands), Hz
     f_max: float = 5000.0
+    seat_percentile: float = 95.0    # "max seat" = this percentile of the seats (Schroeder statistic)
 
 
 @dataclass
@@ -122,6 +123,8 @@ class Results:
     L_band_total: np.ndarray
     totals: dict                 # "average" / "max_seat" -> "tonal" / "broadband" / "total"
     warnings: list
+    seat_percentile: float = 95.0  # options.seat_percentile used for "max_seat"
+    seat_db: float = 0.0         # max seat above the room average, dB
 
 
 # ---- noise reduction --------------------------------------------------------------------
@@ -224,7 +227,8 @@ def run_case(proj: Project, segment: int | None = None) -> Results:
     L_band_total = db(p_tone_band + p2_from_db(L_bb))
     avg = {"tonal": totals(L_band_tonal, centers), "broadband": totals(L_bb, centers),
            "total": totals(L_band_total, centers)}
-    mx = {k: totals(v + cab.STAT_95, centers) for k, v in
+    seat_db = cab.seat_stat_db(opt.seat_percentile)
+    mx = {k: totals(v + seat_db, centers) for k, v in
           (("tonal", L_band_tonal), ("broadband", L_bb), ("total", L_band_total))}
 
     return Results(
@@ -235,7 +239,7 @@ def run_case(proj: Project, segment: int | None = None) -> Results:
         tl_trim=(-10 * np.log10(sea.tau_mass_law_diffuse(centers, sw.m_trim, air.rho_c)) if sw.double_wall
                  else np.full_like(centers, np.nan)),
         A_band=A_band, T60_band=T60_band, f_s=f_s, L_tone=L_tone, L_bb=L_bb, L_band_tonal=L_band_tonal,
-        L_band_total=L_band_total, totals={"average": avg, "max_seat": mx}, warnings=warn)
+        L_band_total=L_band_total, totals={"average": avg, "max_seat": mx}, seat_percentile=opt.seat_percentile, seat_db=seat_db, warnings=warn)
 
 
 def run_mission(proj: Project) -> list[Results]:

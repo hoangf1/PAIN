@@ -1,0 +1,184 @@
+{
+  "name": "Generic twin turboprop",
+  "mission": {
+    "segments": [
+      {
+        "name": "Climb",
+        "altitude": 3000.0,
+        "mach": 0.3,
+        "rpm": 1700.0,
+        "shaft_power": 900000.0,
+        "eta_p": 0.8,
+        "thrust": 0.0,
+        "oat": 0.0
+      },
+      {
+        "name": "Cruise",
+        "altitude": 6096.0,
+        "mach": 0.45,
+        "rpm": 1600.0,
+        "shaft_power": 750000.0,
+        "eta_p": 0.85,
+        "thrust": 0.0,
+        "oat": 0.0
+      },
+      {
+        "name": "Descent",
+        "altitude": 3000.0,
+        "mach": 0.4,
+        "rpm": 1500.0,
+        "shaft_power": 300000.0,
+        "eta_p": 0.8,
+        "thrust": 0.0,
+        "oat": 0.0
+      }
+    ],
+    "active": 1
+  },
+  "propeller": {
+    "blades": 4,
+    "tip_radius": 1.3,
+    "clearance": 0.5,
+    "axial_offset": 0.0,
+    "engines": 2,
+    "n_harmonics": 8,
+    "re_fraction": 0.8,
+    "source_mode": "generated",
+    "measured": []
+  },
+  "fuselage": {
+    "nose_to_station": 4.0,
+    "side_area": 43.13,
+    "tbl_area": 86.26
+  },
+  "sidewall": {
+    "skin_thickness": 0.0016,
+    "skin_density": 2780.0,
+    "skin_added_mass": 1.5,
+    "double_wall": true,
+    "trim_mass": 2.7,
+    "blanket_mass": 0.48,
+    "cavity_depth": 0.09,
+    "cavity_alpha": [
+      0.22,
+      0.22,
+      0.37,
+      0.82,
+      0.99,
+      0.88,
+      0.63,
+      0.63
+    ]
+  },
+  "openings": [
+    {
+      "name": "Windows (17 per side, 6 + 4 mm acrylic as one pane)",
+      "area": 1.36,
+      "mode": "mass",
+      "mass": 11.9,
+      "tl_freqs": [],
+      "tl_values": []
+    }
+  ],
+  "cabin": {
+    "Lx": 22.7,
+    "Ly": 2.64,
+    "Lz": 1.9,
+    "cabin_altitude": 2438.4,
+    "temperature": 293.15,
+    "surfaces": [
+      {
+        "name": "Carpet on floor",
+        "area": 23.9712,
+        "alpha": [
+          0.02,
+          0.06,
+          0.14,
+          0.37,
+          0.6,
+          0.65,
+          0.65,
+          0.65
+        ]
+      },
+      {
+        "name": "Upholstered seats (per m2 floor)",
+        "area": 35.9568,
+        "alpha": [
+          0.3,
+          0.44,
+          0.6,
+          0.77,
+          0.89,
+          0.82,
+          0.7,
+          0.7
+        ]
+      },
+      {
+        "name": "Trim panels",
+        "area": 64.695,
+        "alpha": [
+          0.1,
+          0.12,
+          0.1,
+          0.07,
+          0.05,
+          0.05,
+          0.05,
+          0.05
+        ]
+      },
+      {
+        "name": "Perforated headliner",
+        "area": 59.928,
+        "alpha": [
+          0.1,
+          0.2,
+          0.45,
+          0.65,
+          0.7,
+          0.6,
+          0.5,
+          0.5
+        ]
+      },
+      {
+        "name": "Windows",
+        "area": 2.72,
+        "alpha": [
+          0.18,
+          0.18,
+          0.06,
+          0.04,
+          0.03,
+          0.02,
+          0.02,
+          0.02
+        ]
+      },
+      {
+        "name": "Bulkhead (hard)",
+        "area": 10.032,
+        "alpha": [
+          0.05,
+          0.05,
+          0.05,
+          0.04,
+          0.04,
+          0.04,
+          0.04,
+          0.04
+        ]
+      }
+    ],
+    "volume": 0.0,
+    "t60_measured": []
+  },
+  "options": {
+    "f_min": 50.0,
+    "f_max": 5000.0,
+    "seat_percentile": 95.0
+  },
+  "format_version": 2
+}

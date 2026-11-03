@@ -27,7 +27,7 @@ Stated assumptions and limitations (projectPlan.md section 7):<ul>
 the ring frequency, where stiffness dominates.</li>
 <li>Cabin: interior = exterior - NR (CR-132602 sec. 7), Sabine absorption; openings and insertion loss as
 NASA TM-85722.</li>
-<li>Seat spread: 95th-percentile statistic only. Structure-borne paths and flanking are not modelled.</li></ul>
+<li>Seat spread: percentile statistic only (Analysis tab, default 95th). Structure-borne paths and flanking are not modelled.</li></ul>
 Every block follows its paper exactly and is verified against it (METHOD.md, VERIFICATION.md);
 nothing is fitted to measured data. Validation results are in the Validation tab."""
 
@@ -128,8 +128,9 @@ class MainWindow(QMainWindow):
 
         self.inputs = QTabWidget()
         self.tabs = [panels.MissionTab(), panels.PropellerTab(), panels.FuselageTab(), panels.SidewallTab(),
-                     panels.OpeningsTab(), panels.CabinTab()]
-        for t, name in zip(self.tabs, ["Mission", "Propeller", "Fuselage", "Sidewall", "Openings", "Cabin"]):
+                     panels.OpeningsTab(), panels.CabinTab(), panels.AnalysisTab()]
+        for t, name in zip(self.tabs, ["Mission", "Propeller", "Fuselage", "Sidewall", "Openings", "Cabin",
+                                       "Analysis"]):
             sc = QScrollArea()
             sc.setWidgetResizable(True)
             sc.setWidget(t)

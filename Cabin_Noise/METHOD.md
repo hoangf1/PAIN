@@ -65,3 +65,30 @@ Cases are defined in commit 93bbeb9, before the runs. The data were seen with th
 The misses are where the papers' own stated limits put them:
 - at low frequency, below about 0.5 f_r, for tones through a real fuselage;
 - in the near field for Gutin.
+
+## 5. Inputs and fixed constants (2026-11-03)
+
+**Inputs.** Every input is a field of the project, and all of them can be edited in the GUI:
+- Mission, Propeller, Fuselage, Sidewall, Openings and Cabin tabs;
+- the Analysis tab: band range and the max-seat percentile.
+
+The default example's values are all in `cabin_noise/data/default_project.json`; none is set in code. Two tests enforce this (`tests/test_inputs.py`):
+- every field must appear in that file;
+- every field must have a GUI editor.
+
+**Fixed constants.** These belong to the published equations. They are not inputs, so they cannot be changed by accident:
+
+| Constant | Value | Where | Source |
+|---|---|---|---|
+| Diffuse-field wall factor | wall p^2 = 2 x diffuse p^2 (3.0 dB) | `pipeline.WATERHOUSE_DB` | Waterhouse 1955; CR-3813 p. 23 |
+| Flat-plate turbulent boundary layer | delta = 0.37 x Re^-0.2, Cf = 0.0592 Re^-0.2 | `source_tbl.boundary_layer` | 1/7-power law, Schlichting |
+| Goody spectrum | 3.0, 0.75, 0.5, 3.7, 1.1, -0.57, 7 | `source_tbl.goody_phi` | Goody 2004 |
+| Gutin | 2 sqrt2 pi, Bessel J_mB | `source_tonal.gutin_rms` | RP-1258 ch. 1 |
+| Mass law | random incidence 0-90 deg, eq. (46) | `sea.tau_mass_law_diffuse` | CR-132602 |
+| Cavity epsilon | pi below c / 2L, 4 above | `sea` | CR-132602 eqs. (51)-(52) |
+| Sabine | 0.161 V / A | `cabin.t60` | Sabine |
+| Schroeder frequency | 2000 sqrt(T60 / V) | `cabin.schroeder_frequency` | Schroeder 1962 |
+| Seat statistic | 10 log10(ln(1 / (1 - P))) | `cabin.seat_stat_db` | Schroeder 1962 (P is an input) |
+| ISA, Sutherland | US Std. Atm. 1976 | `atmosphere` | |
+| A / C weighting | IEC 61672-1 | `weighting` | |
+| Reference pressure | 20 uPa | `weighting.P_REF` | |

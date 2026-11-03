@@ -567,3 +567,15 @@ Everything below is digitized under `PAIN_Program/data` and can be copied withou
   - The cavity absorption table is no longer an input. It is fixed to CR-132602 sec. 6.2's table, shown in the Sidewall tab's readout.
   - The model fields remain, so the validation cases still use each report's stated values (lab at sea level, measured flight cabin pressure), and saved projects keep loading. No recorded result changed.
 - **Reverted the same day (author's decision):** the three inputs are back in the GUI. They default to the paper values (8000 ft, 20 C; CR-132602 sec. 6.2 cavity table), and each field's tooltip states its default, so the user can fill them in later. Results are unchanged.
+
+### All inputs visible (2026-11-03, author's request)
+- **Default project file:** the default example now loads from `cabin_noise/data/default_project.json`, written from the old code values, so its results are unchanged (cruise 97.6 / 102.3 dBA). `io.default_project` no longer builds it in code.
+- **Analysis tab:** new. It holds the 1/3-octave range (`f_min`, `f_max`), which had no GUI field, and the max-seat percentile.
+  - The percentile was hardcoded at 95 % (`cabin.STAT_95`). It is now `options.seat_percentile`, default 95, using `cabin.seat_stat_db`.
+  - The Interior plot legend and the CSV header now name the percentile in use.
+- **Tests (`tests/test_inputs.py`):**
+  - every input field must be set in the default file and have a GUI editor; checked against the previous commit, the GUI test flags the three Analysis fields;
+  - the percentile formula is checked against an exponential sample at 80-99 %;
+  - the pipeline is checked to use the percentile.
+- **Fixed equation constants:** listed in METHOD.md sec. 5. They are deliberately not inputs.
+
