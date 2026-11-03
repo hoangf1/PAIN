@@ -118,7 +118,6 @@ def run_V3(meta):
 
     from .atmosphere import cabin_air
     from .io import default_project
-    from .pipeline import noise_reduction
 
     p = default_project()
     p.openings, p.sidewall.double_wall = [], False
@@ -139,8 +138,8 @@ def run_V3(meta):
 
 def run_V2p(meta):
     """CR-132602 Fig. 14 from the report's stated inputs, through the pipeline's noise_reduction:
-    no openings, cabin alpha5 = mid-range of Fig. 4 on an area equal to the wall (eq. 52 as printed
-    has no area ratios), sea-level air. Single wall carries the check; the double wall is shown
+    no openings, cabin alpha5 = mid-range of Fig. 4 on an area equal to the wall (S5/S2 = 1, the
+    case's assumption: the report used eq. 53, whose S5/S2 it does not state), sea-level air. Single wall carries the check; the double wall is shown
     with blanket 0 (the report does not state the blanket mass), information only."""
     import copy
 

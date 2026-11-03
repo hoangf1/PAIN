@@ -14,6 +14,7 @@ import numpy as np  # noqa: E402
 from PySide6.QtCore import QThreadPool, QTimer  # noqa: E402
 from PySide6.QtWidgets import QApplication  # noqa: E402
 
+from cabin_noise.core.validation import load_cases  # noqa: E402
 from cabin_noise.gui.main_window import MainWindow, _sweep_setters, apply_light_style, run_sweep  # noqa: E402
 
 
@@ -65,7 +66,9 @@ def main():
         w.project.mission.active = 1
         w.validation.run_all()                     # threaded; wait for it
         settle(app)
-        if "Verification 4/5" not in w.validation.header.text():   # V2p is a recorded failure (cases.yaml)
+        ver = [c for c in load_cases()["cases"] if c["kind"] == "verification"]
+        n_ok = sum(c.get("recorded_status") != "check failed" for c in ver)     # recorded failures (cases.yaml)
+        if f"Verification {n_ok}/{len(ver)}" not in w.validation.header.text():
             failures.append("verification checks not as recorded: " + w.validation.header.text())
         if shots:
             shots.mkdir(parents=True, exist_ok=True)

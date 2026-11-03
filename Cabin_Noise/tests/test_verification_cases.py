@@ -3,12 +3,12 @@ import pytest
 
 from cabin_noise.core.validation import VERIFIERS, load_cases, run_case_id
 
-# Recorded failures, kept visible: strict, so a change that makes one pass is noticed.
-KNOWN_FAILED = {"V2p": "CR-132602 Fig. 14 not reproduced from the stated inputs (S5/S2 unstated; cases.yaml)"}
 CASES = [c for c in load_cases()["cases"] if c["kind"] == "verification"]
+# Recorded failures (cases.yaml recorded_status), kept visible: strict, so a change that makes one
+# pass is noticed.
 PARAMS = [pytest.param(c, id=c["id"], marks=pytest.mark.xfail(strict=True, raises=AssertionError,
-                                                         reason=KNOWN_FAILED[c["id"]]))
-          if c["id"] in KNOWN_FAILED else pytest.param(c, id=c["id"]) for c in CASES]
+                                                         reason=c.get("recorded", "recorded failure")))
+          if c.get("recorded_status") == "check failed" else pytest.param(c, id=c["id"]) for c in CASES]
 
 
 @pytest.mark.parametrize("meta", PARAMS)

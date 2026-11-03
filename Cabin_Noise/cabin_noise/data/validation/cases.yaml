@@ -76,6 +76,7 @@ cases:
       cavity_depth: 0.1145
       cavity_alpha: {125: 0.22, 250: 0.37, 500: 0.82, 1000: 0.99, 2000: 0.88, 4000: 0.63}
     defined: "2026-11-02, commit c91dbbc, before the run"
+    recorded_status: check failed      # tests and the GUI smoke expect this until the case changes
     recorded: "2026-11-02: check failed, max 3.3 dB; code - Fig. 14 = -2.1, -2.6, -2.6, -3.0, -3.3, -2.7 dB (125 Hz-4 kHz), a near-constant offset"
     # POST-HOC diagnostics (2026-11-02, after seeing the result; no verdict, nothing changed in
     # the case or the code). Sec. 6.2 says Fig. 14 used eq. (53), the form that keeps the area
@@ -87,7 +88,7 @@ cases:
     # curve within 0.8 dB with either 4/eps (0.72 kg/m2) or 2/eps (1.67 kg/m2), so Fig. 14
     # cannot tell which factor the authors used.
 
-  # ---- validation (experimental data)---------------------------------------------------
+  # ---- validation (experimental data) ---------------------------------------------------
   - id: V4
     stage: TL
     track: broadband

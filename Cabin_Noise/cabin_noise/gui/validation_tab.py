@@ -153,8 +153,8 @@ class ValidationTab(QWidget):
             self.overlay.plot(res.x[ok], res.ref[ok], pen=None, symbol="o", symbolSize=6,
                               symbolBrush=(80, 80, 80))
             curves = {k: v for k, v in res.series.items() if isinstance(v, np.ndarray) and v.shape == res.x.shape}
+            self.overlay.addLegend(offset=(-10, 10)).setVisible(bool(curves))   # persists across cases
             if curves:                                       # information curves (no criterion)
-                self.overlay.addLegend(offset=(-10, 10))
                 for (k, val), sym in zip(curves.items(), ("t", "s", "d", "+")):
                     self.overlay.plot(res.x, val, pen=pg.mkPen((120, 120, 120), width=1, style=Qt.DashLine),
                                       symbol=sym, symbolSize=6, name=k)
