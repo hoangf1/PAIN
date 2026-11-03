@@ -40,7 +40,7 @@ python -m venv .venv
 
 **Default example:** a generic twin turboprop with a 22.7 x 2.64 x 1.9 m cabin; cruise 97.6 dBA room average, 102.3 dBA at the 95th-percentile seat. Cabin air (8000 ft, 20 C) and the cavity absorption (CR-132602 sec. 6.2's table) are set to these defaults and can be changed in the Cabin and Sidewall tabs. Every value of the example is in `cabin_noise/data/default_project.json`, and every input has a field in the GUI (the Analysis tab holds the band range and the max-seat percentile). The equations' own constants are listed in METHOD.md sec. 5.
 
-**Running:** the model runs on start-up, on opening a file and 0.4 s after any input edit. The green **Run (F5)** button in the toolbar re-runs it on demand. Mission summary (F6) and Parameter sweep (F7) are in the Run menu, and the Validation tab has its own run button.
+**Running:** the model runs only when you press the green **Run (F5)** button at the top of the Model tab. It does not run on start-up, on opening a file or on an input edit. Before the first run the results bar says "Not run yet"; while the inputs differ from the last run it says "Not up to date" in orange and shows the last run's numbers greyed. Mission summary (F6) and Parameter sweep (F7) are in the Run menu, and the Validation tab has its own run button.
 
 ## Validation status (paper pipeline, 2026-11-02)
 

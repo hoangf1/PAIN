@@ -7,7 +7,7 @@ from pathlib import Path
 import numpy as np
 import pyqtgraph as pg
 import pyqtgraph.exporters  # noqa: F401  (registers exporters)
-from PySide6.QtCore import QSettings, QThreadPool, QTimer
+from PySide6.QtCore import QSettings, QThreadPool
 from PySide6.QtGui import QAction, QKeySequence
 from PySide6.QtWidgets import (QComboBox, QDialog, QDialogButtonBox, QDoubleSpinBox, QFileDialog,
                                QFormLayout, QLabel, QMainWindow, QMessageBox, QPushButton, QScrollArea, QSpinBox,
@@ -123,8 +123,8 @@ class MainWindow(QMainWindow):
         self.result = None
         self.compare_a = None
         self.run_id = 0
-        self.timer = QTimer(self, singleShot=True, interval=400)
-        self.timer.timeout.connect(self.run)
+        self.edits = 0        # input edits so far; a result is up to date only if none came after its run
+        self.last_bar = ""
 
         self.inputs = QTabWidget()
         self.tabs = [panels.MissionTab(), panels.PropellerTab(), panels.FuselageTab(), panels.SidewallTab(),
@@ -135,7 +135,7 @@ class MainWindow(QMainWindow):
             sc.setWidgetResizable(True)
             sc.setWidget(t)
             self.inputs.addTab(sc, name)
-            t.changed.connect(self.schedule)
+            t.changed.connect(self.mark_stale)
 
         self.views = {"Exterior": plots.ExteriorView(), "NR": plots.NRView(), "Interior": plots.InteriorView(),
                       "A-weighted": plots.AWeightView(), "Compare": plots.CompareView(),
@@ -195,17 +195,14 @@ class MainWindow(QMainWindow):
         tb = self.addToolBar("Run")
         tb.setMovable(False)
         self.run_button = QPushButton("▶  Run  (F5)")
-        self.run_button.setToolTip("Run the active segment now. The model also re-runs by itself 0.4 s after any "
-                                   "input edit, and on start-up / file open.")
+        self.run_button.setToolTip("Run the active segment. The model runs only when this is pressed; "
+                                   "the results bar says when the plots are older than the inputs.")
         self.run_button.setStyleSheet(
             "QPushButton { background: #2e9e44; color: white; font-weight: bold; padding: 5px 18px; "
             "border: 1px solid #217a33; border-radius: 4px; } QPushButton:hover { background: #36b04e; } "
             "QPushButton:pressed { background: #217a33; }")
         self.run_button.clicked.connect(self.run)
         tb.addWidget(self.run_button)
-        note = QLabel("  results also update automatically after each edit")
-        note.setStyleSheet("color: #555;")
-        tb.addWidget(note)
         self.top.currentChanged.connect(lambda i: tb.setVisible(i == 0))   # Model tab only; Validation has its own
         c = mb.addMenu("&Compare")
         self._act(c, "Store current as A", self.store_a)
@@ -231,7 +228,7 @@ class MainWindow(QMainWindow):
         for t in self.tabs:
             t.load(p)
         self.setWindowTitle(f"Cabin Noise (low-fi) - {p.name}" + (f" - {self.path}" if self.path else ""))
-        self.run()
+        self.mark_stale()
 
     def open(self):
         fn, _ = QFileDialog.getOpenFileName(self, "Open project", "", "Project (*.json)")
@@ -269,15 +266,21 @@ class MainWindow(QMainWindow):
         task.setAutoDelete(False)
         self.pool.start(task)
 
-    def schedule(self):
-        self.timer.start()
+    def mark_stale(self):
+        """Inputs changed: the plots no longer match them until Run is pressed."""
+        self.edits += 1
+        msg = ("<span style='color:#b45f00'><b>Not up to date:</b> inputs changed since the last run. "
+               "Press Run (F5) to update the plots.</span>" if self.last_bar else
+               "<span style='color:#b45f00'><b>Not run yet:</b> press Run (F5) to compute the plots.</span>")
+        self.bar.setText(msg + (f" &nbsp;|&nbsp; <span style='color:#888'>last run: {self.last_bar}</span>"
+                                if self.last_bar else ""))
 
     def run(self):
         self.run_id += 1
-        rid = self.run_id
+        rid, edits = self.run_id, self.edits
         self.statusBar().showMessage("Running...")
         task = Task(run_case, copy.deepcopy(self.project))
-        task.signals.done.connect(lambda r, rid=rid: self._done(r, rid))
+        task.signals.done.connect(lambda r, rid=rid, edits=edits: self._done(r, rid, edits))
         task.signals.failed.connect(self._failed)
         self._start(task)
 
@@ -285,7 +288,7 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage(msg.splitlines()[0], 10000)
         self.bar.setText(f"<span style='color:#b00'>Input error: {msg.splitlines()[0]}</span>")
 
-    def _done(self, r, rid):
+    def _done(self, r, rid, edits):
         if rid != self.run_id:
             return
         self.result = r
@@ -294,9 +297,12 @@ class MainWindow(QMainWindow):
             a, m = t["average"][k], t["max_seat"][k]
             return (f"<b>{k}</b> {a['OASPL']:.1f} dB / {a['dBA']:.1f} dBA / {a['dBC']:.1f} dBC "
                     f"(max seat {m['dBA']:.1f} dBA)")
-        self.bar.setText(f"<b>{r.segment}</b> &nbsp; BPF {r.bpf:.1f} Hz &nbsp; | &nbsp; " + " &nbsp;|&nbsp; ".join(
+        self.last_bar = (f"<b>{r.segment}</b> &nbsp; BPF {r.bpf:.1f} Hz &nbsp; | &nbsp; " + " &nbsp;|&nbsp; ".join(
             fmt(k) for k in ("total", "tonal", "broadband")) + f" &nbsp;| f_s {r.f_s:.0f} Hz"
             + ("" if not r.warnings else f" &nbsp;| <span style='color:#a60'>{'; '.join(r.warnings)}</span>"))
+        self.bar.setText(self.last_bar)
+        if edits != self.edits:                    # edited while this run was going
+            self.mark_stale()
         self.statusBar().showMessage("Done", 2000)
         v = self.views
         v["Exterior"].show(r)
@@ -337,13 +343,14 @@ class MainWindow(QMainWindow):
     def store_a(self):
         if self.result is not None:
             self.compare_a = self.result
-            self.statusBar().showMessage("Stored current result as A; edit inputs to compare (current = B)", 5000)
+            self.statusBar().showMessage("Stored current result as A; edit inputs and press Run to compare (current = B)", 5000)
 
     def load_a(self):
         fn, _ = QFileDialog.getOpenFileName(self, "Configuration A", "", "Project (*.json)")
         if fn:
             task = Task(lambda f: run_case(load_project(f)), fn)
-            task.signals.done.connect(lambda r: (setattr(self, "compare_a", r), self.run()))
+            task.signals.done.connect(lambda r: (setattr(self, "compare_a", r), self.statusBar().showMessage(
+                "Loaded A; press Run (F5) to compare the current inputs (B) with it", 5000)))
             task.signals.failed.connect(self._failed)
             self._start(task)
 

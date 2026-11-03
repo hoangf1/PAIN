@@ -36,13 +36,20 @@ def main():
 
     def check():
         settle(app)
-        if w.result is None or "dBA" not in w.bar.text():
-            failures.append("default run produced no result bar")
+        if w.run_id != 0 or w.result is not None or "Not run yet" not in w.bar.text():
+            failures.append("the model ran without Run being pressed, or the bar does not say so")
+        w.tabs[0].changed.emit()                    # an input edit must not start a run
+        settle(app)
+        if w.run_id != 0:
+            failures.append("an input edit started a run")
         before = w.run_id
         w.run_button.click()                        # the green toolbar Run button starts a run
         settle(app)
         if w.run_id != before + 1 or "dBA" not in w.bar.text():
             failures.append("Run toolbar button did not run the model")
+        w.tabs[0].changed.emit()
+        if "Not up to date" not in w.bar.text() or w.run_id != before + 1:
+            failures.append("edit after a run did not mark the plots out of date, or started a run")
         w.store_a()
         w.project.sidewall.trim_mass *= 2
         w.run()

@@ -580,5 +580,9 @@ Everything below is digitized under `PAIN_Program/data` and can be copied withou
 - **Fixed equation constants:** listed in METHOD.md sec. 5. They are deliberately not inputs.
 
 ### Run button (2026-11-03, author's request)
-- A green **Run (F5)** button sits in a toolbar above the inputs, shown on the Model tab only (the Validation tab keeps its own run button). It calls the same `run()` as the Run menu. The automatic run (start-up, file open, 0.4 s after an edit) is kept. Smoke check: clicking the button starts a run and fills the results bar.
+- A green **Run (F5)** button sits in a toolbar above the inputs, shown on the Model tab only (the Validation tab keeps its own run button). It calls the same `run()` as the Run menu. Smoke check: clicking the button starts a run and fills the results bar.
+- **Automatic run removed (same day, author's decision):**
+  - The model no longer runs on start-up, on file open, on Load A or 0.4 s after an edit (the debounce timer is gone). It runs only on Run (F5).
+  - Before the first run the results bar says "Not run yet". An edit marks it "Not up to date" and greys the last run's numbers. A run that finishes after a later edit is marked the same way.
+  - Smoke checks: the window opens with no run; an edit starts no run; an edit after a run marks the bar out of date.
 
