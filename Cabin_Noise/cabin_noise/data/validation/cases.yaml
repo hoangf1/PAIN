@@ -89,18 +89,29 @@ cases:
     # cannot tell which factor the authors used.
 
   # ---- validation (experimental data) ---------------------------------------------------
+  # V4 redefined 2026-11-03, before its first run. Fig. 18 holds measured TL only for the
+  # treated panels (its bare curve is a calculation) and stops at 1 kHz, so the old range
+  # (bare and treated, 250 Hz - 2 kHz) could not be run. The verdict is on the prop-plane
+  # layup, the one Table I and Fig. 17c fix unambiguously (695A, 2.174 lb/ft2). Roof and aft
+  # sidewall are digitized but not compared: Fig. 17a/b cannot be read for which septa they
+  # carry. Range 100 Hz - 1 kHz: the report puts lab-mounting effects below 100 Hz (p. 16).
+  # Method: the tool's wall transmission (CR-132602 eq. 46, single limp wall of skin +
+  # treatment mass, as TM-85722 p. 13 describes for the taped panel). Disclosure: while
+  # digitizing, the markers were seen, and a hand estimate (mass law about 32 dB at 1 kHz vs
+  # about 45 dB measured) was made before this criterion; the policy criterion is unchanged.
   - id: V4
     stage: TL
     track: broadband
     kind: validation
-    check: Lab sidewall-panel TL (bare and treated)
-    reference: NASA TM-85722 Fig. 18 (not digitized yet)
-    metric: ">= 75 % of 1/3-octave bands 250 Hz - 2 kHz within +-6 dB"
+    check: Lab TL of the prop-plane treated panel (695A) vs the tool's mass-law wall
+    reference: NASA TM-85722 Fig. 18 and Table I (V4.csv, V4_inputs.json)
+    metric: ">= 75 % of 1/3-octave bands 100 Hz - 1 kHz within +-6 dB"
     tol_db: 6.0
     min_fraction: 0.75
-    band_min: 250
-    band_max: 2000
-    quantity: wall_tl (no runner until Fig. 18 is digitized)
+    band_min: 100
+    band_max: 1000
+    quantity: wall_tl
+    defined: "2026-11-03, before the run"
   - id: V4a
     stage: TL
     track: broadband

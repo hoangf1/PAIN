@@ -1,0 +1,13 @@
+{
+ "configuration": "prop-plane sidewall, 695A heavy treatment (TM-85722 Fig. 17c)",
+ "skin_lb_ft2": 0.95,
+ "treatment_lb_ft2": 2.174,
+ "lab_temperature_K": 293.15,
+ "lab_altitude_m": 0.0,
+ "_sources": {
+  "skin": "TM-85722 Table I: skin 0.063 in, 0.95 lb/ft2; p. 13: the bare TL is the mass law of the skin, and with damping tape the TL followed the mass law of skin plus tape",
+  "treatment": "TM-85722 Table I: heavy treatment (695A) 2.174 lb/ft2 = damping tape + 4 fiberglass + septum 1 + septum 2 + noise barrier (Fig. 16, 17c)",
+  "method": "the tool's wall transmission: CR-132602 eq. (46) random-incidence mass law, single limp wall of skin + treatment mass; TL = -10 log10(tau)",
+  "air": "lab air, not stated in the report: 20 C, sea-level pressure (fixed before the run)"
+ }
+}
