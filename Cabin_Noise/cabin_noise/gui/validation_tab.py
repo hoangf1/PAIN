@@ -8,9 +8,10 @@ import pyqtgraph as pg
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor, QPageSize, QPdfWriter, QTextDocument
 from PySide6.QtWidgets import (QFileDialog, QHBoxLayout, QHeaderView, QLabel, QPushButton, QSplitter,
-                               QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget)
+                               QTableWidget, QTableWidgetItem, QTabWidget, QVBoxLayout, QWidget)
 
 from ..core.validation import coverage, load_cases, run_all
+from .validation_map import MapPanel
 from .worker import Task
 
 COLS = ["Case", "Kind", "Stage", "Track", "Reference", "Metric", "Target", "Result", "Status"]
@@ -42,7 +43,14 @@ class ValidationTab(QWidget):
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
         self.table.setSelectionBehavior(QTableWidget.SelectRows)
         self.table.currentCellChanged.connect(lambda r, *_: self.show_case(r))
-        split.addWidget(self.table)
+        cases = load_cases()["cases"]
+        self.ids = [c["id"] for c in cases]
+        self.map = MapPanel({c["id"]: c["kind"] for c in cases})
+        self.map.caseClicked.connect(self.select_case)
+        self.views = QTabWidget()
+        self.views.addTab(self.map, "Map")
+        self.views.addTab(self.table, "Table")
+        split.addWidget(self.views)
         right = QWidget()
         rv = QVBoxLayout(right)
         self.overlay = pg.PlotWidget(title="Code (line) vs reference (markers), acceptance band shaded")
@@ -105,7 +113,14 @@ class ValidationTab(QWidget):
         self.header.setText(f"{coverage(self.results)}   |   run {self.stamp['date']}, commit "
                             f"{self.stamp['commit']}, criteria fixed {self.stamp['criteria_fixed']}")
         self._heatmap()
+        self.map.view.set_statuses(self.results)
         self.show_case(max(self.table.currentRow(), 0))
+
+    def select_case(self, cid):
+        """Map chip click: select that case's table row, which shows its figures."""
+        if cid in self.ids:
+            self.table.setCurrentCell(self.ids.index(cid), 0)
+            self.show_case(self.ids.index(cid))
 
     def show_case(self, r):
         for w in (self.overlay, self.error, self.scatter):

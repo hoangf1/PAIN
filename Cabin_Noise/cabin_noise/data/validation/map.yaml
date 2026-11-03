@@ -1,0 +1,92 @@
+# Validation map layout: pipeline stages as blocks (col, row on a grid), grouped into frames,
+# with arrows for what feeds what. Every case in cases.yaml appears under exactly one block
+# (checked by tests/test_validation_map.py).
+title: "Cabin_Noise pipeline: validation and verification by stage"
+
+groups:
+  - id: inputs
+    title: "Operating point"
+  - id: exterior
+    title: "Exterior field"
+  - id: transmission
+    title: "Sidewall transmission"
+  - id: cabin
+    title: "Cabin"
+  - id: outputs
+    title: "Outputs"
+
+blocks:
+  - id: mission
+    title: "Mission & atmosphere"
+    note: "ISA, IAS -> TAS, thrust & torque"
+    group: inputs
+    col: 0
+    row: 0
+    cases: []
+  - id: tones
+    title: "Propeller tones"
+    note: "rotating point forces (Gutin / Lowson)"
+    group: exterior
+    col: 1
+    row: 0
+    cases: [V0a, V5, V5c, V5d]
+  - id: tbl
+    title: "Boundary layer"
+    note: "Goody wall spectrum"
+    group: exterior
+    col: 1
+    row: 1
+    cases: [V5b]
+  - id: scattering
+    title: "Fuselage scattering"
+    note: "rigid cylinder, shadow of far prop"
+    group: exterior
+    col: 2
+    row: 0
+    cases: [V0b]
+  - id: sidewall
+    title: "Sidewall TL / NR"
+    note: "mass law, transfer matrix or CR-132602"
+    group: transmission
+    col: 3
+    row: 0
+    cases: [V1, V2, V3, V4, V4a, V4b, V4c, V4d]
+  - id: room
+    title: "Cabin absorption & room"
+    note: "Sabine, room equation"
+    group: cabin
+    col: 4
+    row: 0
+    cases: [V7, V8]
+  - id: seats
+    title: "Seat spread"
+    note: "Schroeder statistics, box modes"
+    group: cabin
+    col: 4
+    row: 1
+    cases: [V0c]
+  - id: il
+    title: "Insertion loss"
+    note: "IL = dTL + dABS (TM-85722)"
+    group: outputs
+    col: 5
+    row: 0
+    cases: [V6]
+  - id: totals
+    title: "Bands & weighting"
+    note: "1/3 octaves, A / C weighting"
+    group: outputs
+    col: 5
+    row: 1
+    cases: []
+
+edges:
+  - [mission, tones]
+  - [mission, tbl]
+  - [tones, scattering]
+  - [scattering, sidewall]
+  - [tbl, sidewall]
+  - [sidewall, room]
+  - [room, seats]
+  - [room, il]
+  - [room, totals]
