@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
-from .atmosphere import Air, isa
+from .atmosphere import Air, air, isa
 
 
 @dataclass
@@ -17,6 +17,7 @@ class Segment:
     shaft_power: float = 800e3    # W per engine
     eta_p: float = 0.85
     thrust: float = 0.0           # N per propeller; used if > 0 (required when static)
+    oat: float = 0.0              # measured outside air temperature, K; 0 = ISA at this altitude
 
 
 @dataclass
@@ -41,6 +42,8 @@ class OperatingPoint:
 
 def operating_point(seg: Segment) -> OperatingPoint:
     atm = isa(seg.altitude)
+    if seg.oat > 0:                                   # pressure altitude + measured temperature
+        atm = air(seg.oat, atm.p)
     V = seg.mach * atm.c
     omega = 2.0 * np.pi * seg.rpm / 60.0
     if omega <= 0:
@@ -53,3 +56,14 @@ def operating_point(seg: Segment) -> OperatingPoint:
     else:
         raise ValueError(f"segment '{seg.name}' is static: enter thrust directly")
     return OperatingPoint(atm=atm, V=V, omega=omega, thrust=thrust, torque=torque)
+
+
+KT = 0.514444
+RHO_SL = 1.225
+
+
+def tas_from_ias(ias_kt: float, pressure_altitude: float, oat_K: float) -> float:
+    """True airspeed (m/s) from indicated airspeed, taking IAS = EAS (low-fi: no
+    compressibility or position-error correction), density from pressure altitude and OAT."""
+    rho = air(oat_K, isa(pressure_altitude).p).rho
+    return ias_kt * KT * np.sqrt(RHO_SL / rho)

@@ -110,3 +110,16 @@ def test_surface_alpha_interpolation():
     s = Surface(alpha=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8])
     assert s.alpha_at(500.0) == pytest.approx(0.4)
     assert s.alpha_at(20.0) == pytest.approx(0.1)
+
+
+def test_tas_from_ias():
+    from cabin_noise.core.mission import tas_from_ias
+    assert tas_from_ias(100.0, 0.0, 288.15) == pytest.approx(51.4444, rel=1e-3)
+    assert tas_from_ias(200.0, 4267.0, 276.5) > 1.2 * 200 * 0.514444    # thinner air -> TAS > IAS
+
+
+def test_oat_override_changes_sound_speed():
+    from cabin_noise.core.mission import Segment, operating_point
+    a = operating_point(Segment(altitude=3000.0, mach=0.3)).atm
+    b = operating_point(Segment(altitude=3000.0, mach=0.3, oat=a.T + 20.0)).atm
+    assert b.p == pytest.approx(a.p) and b.c > a.c

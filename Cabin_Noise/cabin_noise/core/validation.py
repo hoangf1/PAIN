@@ -144,6 +144,18 @@ def run_experimental(meta) -> CaseResult:
 
     ref_meta, data = read_reference_csv(ref_path)
     q = meta.get("quantity")
+    xlabel = "Frequency (Hz)"
+    if q == "surface_tones":                       # flight runs: cond, side (0 port / 1 stbd), harmonic, L
+        import json
+
+        from .flight import surface_tones
+        inp = json.loads(inp_path.read_text(encoding="utf-8"))
+        pred = {(r["cond"], r["side"], r["harmonic"]): r["L_surf"] for r in surface_tones(inp)}
+        sides = ("port", "starboard")
+        code = np.array([pred[(int(c), sides[int(sd)], int(h))] for c, sd, h, _ in data])
+        y = data[:, 3]
+        x = np.arange(1, len(y) + 1, dtype=float)
+        return _verdict(meta, ref_meta, x, code, y, "point (condition, side, harmonic)")
     res = None if q == "reverberant_nr" else run_case(load_project(inp_path))
     x, y = data[:, 0], data[:, 1]
     if q == "tl_band":
@@ -162,6 +174,11 @@ def run_experimental(meta) -> CaseResult:
         code = surf[x.astype(int) - 1]
     else:
         return CaseResult(cid, meta, "not run", note=f"quantity '{q}' needs a two-configuration runner")
+    return _verdict(meta, ref_meta, x, code, y, xlabel)
+
+
+def _verdict(meta, ref_meta, x, code, y, xlabel) -> CaseResult:
+    cid = meta["id"]
     ok = np.isfinite(y)
     x, y, code = x[ok], y[ok], code[ok]
     err = np.abs(code - y)
@@ -180,13 +197,13 @@ def run_experimental(meta) -> CaseResult:
         note = (f"{head}; {int(np.sum(err[sel] <= tol))}/{int(sel.sum())} points within +-{tol:g} dB "
                 f"(need {need:.0%}); {stats}")
         return CaseResult(cid, meta, status, 100 * frac, 100 * need, unit="% within", x=x, code=code,
-                          ref=y, note=note)
+                          ref=y, note=note, xlabel=xlabel)
     tgt = meta.get("target_db")
     status = "info" if tgt is None else ("met" if worst <= tgt else "not met")
     within_all = float(np.mean(err <= tgt) * 100) if tgt else float("nan")
     note = (f"{head}; verdict on {int(sel.sum())} points in {lo:g}-{hi:g}; all {len(x)} points: "
             + f"{within_all:.0f}% within target (information); {stats}")
-    return CaseResult(cid, meta, status, worst, tgt, x=x, code=code, ref=y, note=note)
+    return CaseResult(cid, meta, status, worst, tgt, x=x, code=code, ref=y, note=note, xlabel=xlabel)
 
 
 def run_case_id(meta) -> CaseResult:

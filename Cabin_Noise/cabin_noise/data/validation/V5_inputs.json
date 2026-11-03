@@ -1,0 +1,500 @@
+{
+ "_sources": {
+  "propeller": "CR-178004 sec. 2.1: Dowty Rotol 3 blades, D = 2.69 m, min tip clearance 0.36 m, counter-clockwise from the rear",
+  "conditions": "CR-178004 Table 4 (flight 3): pressure altitude (ft column), IAS, OAT, rpm, power computed by BBN from rpm and torque",
+  "mic": "CR-178004 Table 8 and p. 16: flush microphone 7.5 cm forward of the propeller plane, about 5 cm below the spinner centre, at the tip clearance",
+  "re_fraction": "plan A.2 default 0.8",
+  "eta_p": "ASSUMED 0.80 (not printed); thrust = eta_p P / V. Fixed 2026-11-02 before the run.",
+  "fuselage_radius": "ASSUMED 0.725 m = half the 1.45 m cabin height of TM-85722 (as quoted in PAIN_Program/docs/IMPLEMENTATION_PLAN.md); used only in |S(ka,0)|. Fixed before the run.",
+  "airspeed": "TAS from IAS taking IAS = EAS (no compressibility or position error); density from pressure altitude and OAT",
+  "axes": "x forward, y starboard, z down, near hub at the origin with the fuselage on the -y side: the starboard propeller as built (CCW from the rear = rotation -1), the port one its mirror image"
+ },
+ "blades": 3,
+ "tip_radius": 1.345,
+ "re_fraction": 0.8,
+ "eta_p": 0.8,
+ "fuselage_radius": 0.725,
+ "rotation_starboard": -1,
+ "mic": [
+  0.075,
+  -1.705,
+  0.05
+ ],
+ "runs": [
+  {
+   "cond": 1,
+   "side": "port",
+   "alt_ft": 10000,
+   "ias_kt": 233,
+   "oat_F": 53,
+   "rpm": 1573,
+   "power_kW": 482,
+   "harmonics": [
+    1,
+    2,
+    3
+   ]
+  },
+  {
+   "cond": 2,
+   "side": "port",
+   "alt_ft": 10000,
+   "ias_kt": 233,
+   "oat_F": 53,
+   "rpm": 1525,
+   "power_kW": 468,
+   "harmonics": [
+    1,
+    2,
+    3
+   ]
+  },
+  {
+   "cond": 3,
+   "side": "port",
+   "alt_ft": 10000,
+   "ias_kt": 230,
+   "oat_F": 53,
+   "rpm": 1525,
+   "power_kW": 456,
+   "harmonics": [
+    1,
+    2,
+    3
+   ]
+  },
+  {
+   "cond": 4,
+   "side": "port",
+   "alt_ft": 10000,
+   "ias_kt": 230,
+   "oat_F": 53,
+   "rpm": 1573,
+   "power_kW": 482,
+   "harmonics": [
+    1,
+    2,
+    3
+   ]
+  },
+  {
+   "cond": 5,
+   "side": "port",
+   "alt_ft": 14000,
+   "ias_kt": 220,
+   "oat_F": 38,
+   "rpm": 1530,
+   "power_kW": 475,
+   "harmonics": [
+    1,
+    2,
+    3
+   ]
+  },
+  {
+   "cond": 6,
+   "side": "port",
+   "alt_ft": 14000,
+   "ias_kt": 227,
+   "oat_F": 38,
+   "rpm": 1533,
+   "power_kW": 482,
+   "harmonics": [
+    1,
+    2,
+    3
+   ]
+  },
+  {
+   "cond": 7,
+   "side": "port",
+   "alt_ft": 14000,
+   "ias_kt": 230,
+   "oat_F": 38,
+   "rpm": 1530,
+   "power_kW": 481,
+   "harmonics": [
+    1,
+    2,
+    3
+   ]
+  },
+  {
+   "cond": 8,
+   "side": "port",
+   "alt_ft": 14000,
+   "ias_kt": 230,
+   "oat_F": 38,
+   "rpm": 1530,
+   "power_kW": 481,
+   "harmonics": [
+    1,
+    2,
+    3
+   ]
+  },
+  {
+   "cond": 9,
+   "side": "port",
+   "alt_ft": 14000,
+   "ias_kt": 233,
+   "oat_F": 39,
+   "rpm": 1573,
+   "power_kW": 482,
+   "harmonics": [
+    1,
+    2,
+    3
+   ]
+  },
+  {
+   "cond": 10,
+   "side": "port",
+   "alt_ft": 14000,
+   "ias_kt": 230,
+   "oat_F": 39,
+   "rpm": 1525,
+   "power_kW": 468,
+   "harmonics": [
+    1,
+    2,
+    3
+   ]
+  },
+  {
+   "cond": 12,
+   "side": "port",
+   "alt_ft": 14000,
+   "ias_kt": 173,
+   "oat_F": 38,
+   "rpm": 1520,
+   "power_kW": 460,
+   "harmonics": [
+    1,
+    2,
+    3
+   ]
+  },
+  {
+   "cond": 13,
+   "side": "port",
+   "alt_ft": 28000,
+   "ias_kt": 170,
+   "oat_F": -19,
+   "rpm": 1525,
+   "power_kW": 310,
+   "harmonics": [
+    1,
+    2,
+    3
+   ]
+  },
+  {
+   "cond": 14,
+   "side": "port",
+   "alt_ft": 28000,
+   "ias_kt": 174,
+   "oat_F": -19,
+   "rpm": 1528,
+   "power_kW": 310,
+   "harmonics": [
+    1,
+    2,
+    3
+   ]
+  },
+  {
+   "cond": 15,
+   "side": "port",
+   "alt_ft": 28000,
+   "ias_kt": 173,
+   "oat_F": -19,
+   "rpm": 1528,
+   "power_kW": 310,
+   "harmonics": [
+    2,
+    3
+   ]
+  },
+  {
+   "cond": 16,
+   "side": "port",
+   "alt_ft": 28000,
+   "ias_kt": 173,
+   "oat_F": -19,
+   "rpm": 1528,
+   "power_kW": 310,
+   "harmonics": [
+    1,
+    2,
+    3
+   ]
+  },
+  {
+   "cond": 17,
+   "side": "port",
+   "alt_ft": 28000,
+   "ias_kt": 175,
+   "oat_F": -19,
+   "rpm": 1570,
+   "power_kW": 319,
+   "harmonics": [
+    1,
+    2,
+    3
+   ]
+  },
+  {
+   "cond": 18,
+   "side": "port",
+   "alt_ft": 28000,
+   "ias_kt": 174,
+   "oat_F": -19,
+   "rpm": 1520,
+   "power_kW": 297,
+   "harmonics": [
+    1,
+    2,
+    3
+   ]
+  },
+  {
+   "cond": 1,
+   "side": "starboard",
+   "alt_ft": 10000,
+   "ias_kt": 233,
+   "oat_F": 53,
+   "rpm": 1520,
+   "power_kW": 466,
+   "harmonics": [
+    1,
+    2,
+    3
+   ]
+  },
+  {
+   "cond": 2,
+   "side": "starboard",
+   "alt_ft": 10000,
+   "ias_kt": 233,
+   "oat_F": 53,
+   "rpm": 1573,
+   "power_kW": 488,
+   "harmonics": [
+    1,
+    2,
+    3
+   ]
+  },
+  {
+   "cond": 3,
+   "side": "starboard",
+   "alt_ft": 10000,
+   "ias_kt": 230,
+   "oat_F": 53,
+   "rpm": 1570,
+   "power_kW": 445,
+   "harmonics": [
+    1,
+    2,
+    3
+   ]
+  },
+  {
+   "cond": 4,
+   "side": "starboard",
+   "alt_ft": 10000,
+   "ias_kt": 230,
+   "oat_F": 53,
+   "rpm": 1518,
+   "power_kW": 471,
+   "harmonics": [
+    1,
+    2,
+    3
+   ]
+  },
+  {
+   "cond": 5,
+   "side": "starboard",
+   "alt_ft": 14000,
+   "ias_kt": 220,
+   "oat_F": 38,
+   "rpm": 1530,
+   "power_kW": 481,
+   "harmonics": [
+    1,
+    2,
+    3
+   ]
+  },
+  {
+   "cond": 6,
+   "side": "starboard",
+   "alt_ft": 14000,
+   "ias_kt": 227,
+   "oat_F": 38,
+   "rpm": 1533,
+   "power_kW": 488,
+   "harmonics": [
+    1,
+    2,
+    3
+   ]
+  },
+  {
+   "cond": 7,
+   "side": "starboard",
+   "alt_ft": 14000,
+   "ias_kt": 230,
+   "oat_F": 38,
+   "rpm": 1530,
+   "power_kW": 487,
+   "harmonics": [
+    1,
+    2,
+    3
+   ]
+  },
+  {
+   "cond": 8,
+   "side": "starboard",
+   "alt_ft": 14000,
+   "ias_kt": 230,
+   "oat_F": 38,
+   "rpm": 1530,
+   "power_kW": 487,
+   "harmonics": [
+    1,
+    2,
+    3
+   ]
+  },
+  {
+   "cond": 9,
+   "side": "starboard",
+   "alt_ft": 14000,
+   "ias_kt": 233,
+   "oat_F": 39,
+   "rpm": 1520,
+   "power_kW": 466,
+   "harmonics": [
+    1,
+    2,
+    3
+   ]
+  },
+  {
+   "cond": 10,
+   "side": "starboard",
+   "alt_ft": 14000,
+   "ias_kt": 230,
+   "oat_F": 39,
+   "rpm": 1573,
+   "power_kW": 482,
+   "harmonics": [
+    1,
+    2,
+    3
+   ]
+  },
+  {
+   "cond": 11,
+   "side": "starboard",
+   "alt_ft": 14000,
+   "ias_kt": 183,
+   "oat_F": 38,
+   "rpm": 1515,
+   "power_kW": 447,
+   "harmonics": [
+    1,
+    2,
+    3
+   ]
+  },
+  {
+   "cond": 13,
+   "side": "starboard",
+   "alt_ft": 28000,
+   "ias_kt": 170,
+   "oat_F": -19,
+   "rpm": 1525,
+   "power_kW": 310,
+   "harmonics": [
+    1,
+    2,
+    3
+   ]
+  },
+  {
+   "cond": 14,
+   "side": "starboard",
+   "alt_ft": 28000,
+   "ias_kt": 174,
+   "oat_F": -19,
+   "rpm": 1528,
+   "power_kW": 310,
+   "harmonics": [
+    1,
+    2,
+    3
+   ]
+  },
+  {
+   "cond": 15,
+   "side": "starboard",
+   "alt_ft": 28000,
+   "ias_kt": 173,
+   "oat_F": -19,
+   "rpm": 1528,
+   "power_kW": 310,
+   "harmonics": [
+    1,
+    2,
+    3
+   ]
+  },
+  {
+   "cond": 16,
+   "side": "starboard",
+   "alt_ft": 28000,
+   "ias_kt": 173,
+   "oat_F": -19,
+   "rpm": 1528,
+   "power_kW": 310,
+   "harmonics": [
+    1,
+    2,
+    3
+   ]
+  },
+  {
+   "cond": 17,
+   "side": "starboard",
+   "alt_ft": 28000,
+   "ias_kt": 175,
+   "oat_F": -19,
+   "rpm": 1518,
+   "power_kW": 308,
+   "harmonics": [
+    1,
+    2,
+    3
+   ]
+  },
+  {
+   "cond": 18,
+   "side": "starboard",
+   "alt_ft": 28000,
+   "ias_kt": 174,
+   "oat_F": -19,
+   "rpm": 1570,
+   "power_kW": 313,
+   "harmonics": [
+    1,
+    2,
+    3
+   ]
+  }
+ ]
+}
