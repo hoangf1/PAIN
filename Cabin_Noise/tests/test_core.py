@@ -135,14 +135,13 @@ def test_bay_fundamental_matches_simply_supported_plate():
 
 def test_bay_panel_is_stiffness_controlled_below_f11_and_mass_law_above():
     p = Panel(h=1.0e-3, bay_a=0.15, bay_b=0.12)
-    f11 = p.bay_frequency()
-    s = p.rho * p.h * (2 * np.pi * f11) ** 2
+    f11, s_bay = p.bay_frequency(), p.bay_stiffness()
     f = np.array([f11 / 8])
-    stiff = 20 * np.log10(s / (2 * np.pi * f * 2 * SL.rho_c))            # TL of a spring, s >> w m
+    stiff = 20 * np.log10(s_bay / (2 * np.pi * f * 2 * SL.rho_c))       # TL of a spring, s >> w m
     assert tmm.tl(tmm.tau([p], f, 0.0, SL))[0] == pytest.approx(stiff[0], abs=0.5)
     hi = np.array([6 * f11])
     flat = tmm.tl(tmm.tau([Panel(h=1.0e-3)], hi, 0.0, SL))[0]
-    assert tmm.tl(tmm.tau([p], hi, 0.0, SL))[0] == pytest.approx(flat, abs=0.3)
+    assert tmm.tl(tmm.tau([p], hi, 0.0, SL))[0] == pytest.approx(flat, abs=0.5)
 
 
 def test_porous_table_reproduces_delany_bazley_input():

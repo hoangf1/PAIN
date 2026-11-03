@@ -335,10 +335,18 @@ def run_case(proj: Project, segment: int | None = None, patch_mode: int | None =
         p_wall2 = np.zeros_like(centers)
     else:
         p_wall2 = wall_band_pressure2(centers, bl)
-    W_bb = fu.sidewall_area * tau_bb * (p_wall2 / 4.0) / (4.0 * air.rho_c)
+    # Wall (blocked) mean square of a diffuse field is twice the field mean square (Waterhouse 1955;
+    # CR-3813 p. 23: <p_e^2> = <p_bl^2>/2); incident intensity of that field is <p_e^2>/(4 rho c).
+    W_bb = fu.sidewall_area * tau_bb * (p_wall2 / 2.0) / (4.0 * air.rho_c)
     p_bb2 = cab.interior_p2(W_bb, A_band, air)
     L_bb = db(p_bb2)
 
+    for lay in list(proj.sidewall) + [l for o in proj.openings for l in o.layers]:
+        if isinstance(lay, PorousLayer):
+            X = air.rho * np.array([centers[0], centers[-1]]) / lay.sigma
+            if X[0] < 0.01 or X[1] > 1.0:
+                warn.append(f"Delany-Bazley layer '{lay.name}' used outside 0.01 <= rho f / sigma <= 1 "
+                            f"({X[0]:.3g}-{X[1]:.3g})")
     bi = band_index(f_m, centers)
     if np.any(bi < 0):
         warn.append(f"harmonics outside {opt.f_min:g}-{opt.f_max:g} Hz are left out of the band totals: "

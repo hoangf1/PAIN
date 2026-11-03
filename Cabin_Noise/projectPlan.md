@@ -418,7 +418,7 @@ Report tonal-only, broadband-only and total, for both average and max seat.
 ### Defaults and library
 - The default project is a *generic* twin turboprop with stated inputs; it represents no specific aircraft.
 - `materials.json` holds handbook-typical values. None of them is fitted to validation data.
-- The default project gives: cruise 84.9 dBA room average, 89.7 dBA max seat. The 1-vs-5 patch difference is 0.02 dB, so 1 patch is adequate for this case.
+- The default project gives: cruise 86.1 dBA room average, 90.9 dBA max seat (after the boundary-layer factor correction of 2026-11-02; it was 85.1 / 89.8 before). The 1-vs-5 patch difference is 0.02 dB, so 1 patch is adequate for this case.
 ### Experimental data already in the repo (inventory 2026-11-02)
 Everything below is digitized under `PAIN_Program/data` and can be copied without digitizing again. Record provenance in each reference CSV.
 
@@ -498,3 +498,12 @@ Everything below is digitized under `PAIN_Program/data` and can be copied withou
   - The Commander's frame spacing (18.66 in = 0.474 m, CR-178004 Fig. 3 station list) and longeron spacing (0.69-0.97 m, Fig. 3 water lines) give bays with f11 of about 26 Hz, below BPF (78 Hz). Bay stiffness therefore cannot be V7's missing physics: adding it moves V7's mean from +12.8 to +13.2 dB. The earlier "stiffness-controlled bays" attribution was wrong.
   - Treating the Commander skin as curved (R = 0.725 m) swings the mean error to -23.7 dB. The real sidewall's low-frequency response lies between the infinite flat and the infinite curved idealisations: a finite structure's modal response, which is PAIN's domain rather than a one-term low-fi fix.
 - **Status of the bay option:** physically verified, kept as an option (default off), **not validated**. Neither experimental case in the repo can test it: V4c is curvature-dominated, and the Commander's bays are below BPF. A flat stiffened lab panel with small bays (for example TM-85722's lab panels) would be the right test.
+
+### Math verification (2026-11-02): see VERIFICATION.md
+- Every equation is now checked against its published source, through a test independent of its own code path (27 rows; 74 tests).
+- Corrections:
+  - **A.6 boundary-layer conversion:** the plan's p_inc^2 = p_wall^2 / 4 is the single-plane-wave doubling. A diffuse field has a wall mean square of twice the field mean square (Waterhouse 1955; CR-3813 p. 23), so it is now / 2. Broadband cabin level +3 dB; default cruise 85.1 -> 86.1 dBA.
+  - **Bay stiffness:** now the exact static Navier stiffness (checked against Timoshenko's tabulated plate deflection).
+  - **Scattering series:** truncation extended.
+  - **Delany-Bazley:** use outside its range now warns.
+- Recorded validation verdicts are unchanged. Post-hoc re-run (information only): V6 249/519 (was 251), V4c unchanged.

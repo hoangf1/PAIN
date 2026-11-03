@@ -33,10 +33,10 @@ def panel_impedance(p: Panel, f, theta, radius: float | None, c0: float):
     if p.curved and radius:
         bracket = bracket - (p.ring_frequency(radius) / f) ** 2
     Z = 1j * w * m * bracket
-    f11 = p.bay_frequency()
-    if f11 > 0:
-        # bay below its fundamental acts as a spring: single-mode stiffness s = rho h w11^2
-        Z = Z - 1j * p.rho * p.h * (2 * np.pi * f11) ** 2 / w
+    s_bay = p.bay_stiffness()
+    if s_bay > 0:
+        # bay below its fundamental acts as a spring of its static (Navier) stiffness per area
+        Z = Z - 1j * s_bay / w
     floor = w * m * p.eta
     mag = np.abs(Z)
     small = mag < floor

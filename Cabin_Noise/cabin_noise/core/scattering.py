@@ -18,7 +18,7 @@ def surface_factor(ka, phi) -> np.ndarray:
     ka_b = np.broadcast_to(ka, out.shape)
     for idx in np.ndindex(out.shape):
         z, ph = ka_b[idx], phi_b[idx]
-        N = int(np.ceil(z)) + 10
+        N = int(np.ceil(z)) + 20
         n = np.arange(N + 1)
         eps = np.where(n == 0, 1.0, 2.0)
         dH = 0.5 * (hankel1(n - 1, z) - hankel1(n + 1, z))

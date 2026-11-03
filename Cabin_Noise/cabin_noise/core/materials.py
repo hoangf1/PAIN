@@ -42,6 +42,18 @@ class Panel:
             return 0.0
         return 0.5 * np.pi * np.sqrt(self.D / (self.rho * self.h)) * (1 / self.bay_a ** 2 + 1 / self.bay_b ** 2)
 
+    def bay_stiffness(self, n_terms: int = 25) -> float:
+        """Static stiffness per unit area s = p / w_avg of a simply supported bay under uniform
+        pressure, from the Navier series (Timoshenko & Woinowsky-Krieger, Theory of Plates, sec. 30):
+        w_avg = sum_{m,n odd} 64 p / (pi^8 D m^2 n^2 (m^2/a^2 + n^2/b^2)^2). 0 when no bay is given.
+        The (1,1) term alone is (pi^4/64) rho h w11^2."""
+        if self.bay_a <= 0 or self.bay_b <= 0:
+            return 0.0
+        m = np.arange(1, 2 * n_terms, 2)[:, None]
+        n = np.arange(1, 2 * n_terms, 2)[None, :]
+        c = 64.0 / (np.pi ** 8 * self.D * m ** 2 * n ** 2 * (m ** 2 / self.bay_a ** 2 + n ** 2 / self.bay_b ** 2) ** 2)
+        return float(1.0 / c.sum())
+
     def ring_frequency(self, radius: float) -> float:
         cL = np.sqrt(self.E / (self.rho * (1.0 - self.nu ** 2)))
         return cL / (2.0 * np.pi * radius)
