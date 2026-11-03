@@ -30,6 +30,9 @@ The end-to-end hand check (`tests/test_end_to_end.py`) recomputes a tone and a b
 
 - **CR-132602 eq. (53) misprint.** It shows 2/eps; eq. (52) and the report's power balance give 4/eps. The numeric solution of eq. (47) confirms 4/eps, which is used.
 - **CR-132602's own limit.** Sec. 6.2 and 8(d) say the non-resonant model is invalid well below about half the ring frequency, where panel stiffness dominates. Propeller tones on small aircraft lie there.
+- **CR-132602 Fig. 14 (case V2p, 2026-11-02).** This is the paper's own printed NR prediction. Built from the inputs the report states, the code's single wall comes out 2.1-3.3 dB low, with the right shape.
+  - The report says it used eq. (53), whose area ratio S5/S2 it does not give. A post-hoc S5/S2 = 2 matches within 0.3 dB. The pipeline itself carries the ratio through A / S.
+  - The double-wall curve also needs the unstated blanket mass, so it cannot settle 2/eps against 4/eps.
 - **Gutin is a far-field formula.** Applying it at the fuselage, which is in the near field, is the classic low-fidelity practice and is its known limit.
 
 ## 3. What was removed (2026-11-02)

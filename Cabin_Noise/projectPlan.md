@@ -542,3 +542,9 @@ Everything below is digitized under `PAIN_Program/data` and can be copied withou
 - **V6 runner:** the boundary layer is counted once when the engines are run separately. The V6 result is unchanged.
 - **Input checks:** zero skin, trim or pane mass, or zero cabin absorption, now stop the run with a message. Before, the mass law or the room equation gave NaN.
 - **GUI:** readouts use the measured OAT like the case does; the A-weighted view handles a static segment.
+
+### V2p: reproducing the paper's printed prediction (2026-11-02)
+- **New verification case V2p.** It runs the pipeline's `noise_reduction` on CR-132602's stated inputs and compares with the report's Fig. 14. Fig. 14 and the Fig. 4 absorption range were digitized for it.
+- **Order:** the criterion (1.5 dB) and the inputs were committed before the run (c91dbbc).
+- **Result:** check failed. The single wall is 2.1-3.3 dB low; the cause is the area ratio, which the report does not state. Post-hoc diagnostics are in cases.yaml. The test is a strict xfail, and the GUI smoke test expects "Verification 4/5".
+- **GUI:** the validation overlay's acceptance band was drawn at linear x on a log axis, which broke every frequency case's axis range. Fixed. Information series, such as V2p's double-wall curves, are now drawn.

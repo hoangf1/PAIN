@@ -147,9 +147,17 @@ class ValidationTab(QWidget):
             if tgt:
                 up = pg.PlotDataItem(res.x[ok], res.ref[ok] + tgt)
                 dn = pg.PlotDataItem(res.x[ok], res.ref[ok] - tgt)
+                for it in (up, dn):                  # not added to the plot, so set its log mode here
+                    it.setLogMode(logx, False)
                 self.overlay.addItem(pg.FillBetweenItem(up, dn, brush=pg.mkBrush(150, 150, 150, 60)))
             self.overlay.plot(res.x[ok], res.ref[ok], pen=None, symbol="o", symbolSize=6,
                               symbolBrush=(80, 80, 80))
+            curves = {k: v for k, v in res.series.items() if isinstance(v, np.ndarray) and v.shape == res.x.shape}
+            if curves:                                       # information curves (no criterion)
+                self.overlay.addLegend(offset=(-10, 10))
+                for (k, val), sym in zip(curves.items(), ("t", "s", "d", "+")):
+                    self.overlay.plot(res.x, val, pen=pg.mkPen((120, 120, 120), width=1, style=Qt.DashLine),
+                                      symbol=sym, symbolSize=6, name=k)
             err = res.code[ok] - res.ref[ok]
             self.error.plot(res.x[ok], err, pen=pg.mkPen((214, 39, 40), width=2), symbol="o", symbolSize=4)
             if tgt:

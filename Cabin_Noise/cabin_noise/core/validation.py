@@ -18,6 +18,7 @@ from scipy.integrate import quad
 
 from . import sea
 from .io import DATA_DIR, load_project, read_reference_csv
+from .pipeline import noise_reduction
 from .source_tonal import gutin_rms
 
 VAL_DIR = DATA_DIR / "validation"
@@ -136,7 +137,53 @@ def run_V3(meta):
                 ylabel="IL (dB)", note="markers = dTL + dABS (TM-85722); equal when A >> S tau")
 
 
-VERIFIERS = {"V0a": run_V0a, "V1": run_V1, "V2": run_V2, "V3": run_V3}
+def run_V2p(meta):
+    """CR-132602 Fig. 14 from the report's stated inputs, through the pipeline's noise_reduction:
+    no openings, cabin alpha5 = mid-range of Fig. 4 on an area equal to the wall (eq. 52 as printed
+    has no area ratios), sea-level air. Single wall carries the check; the double wall is shown
+    with blanket 0 (the report does not state the blanket mass), information only."""
+    import copy
+
+    from .atmosphere import isa
+    from .io import default_project
+    from .materials import ALPHA_OCTAVES, Surface
+
+    inp = meta["inputs"]
+    _, ref = read_reference_csv(VAL_DIR / "V2p.csv")
+    _, fig4 = read_reference_csv(VAL_DIR / "CR132602_fig4_alpha.csv")
+    f = ref[:, 0]
+
+    def octaves(table):                             # report values at 125-4 kHz, end values held
+        return [float(np.interp(np.log(o), np.log(table[:, 0]), table[:, 1])) for o in ALPHA_OCTAVES]
+
+    p = default_project()
+    p.openings = []
+    S = p.fuselage.side_area
+    p.cabin.t60_measured = None
+    p.cabin.surfaces = [Surface("Fig. 4 mid-range", S, octaves(fig4[:, [0, 3]]))]
+    sw = p.sidewall
+    sw.skin_thickness = (inp["skin_mm"] + inp["doubler_mm"]) * 1e-3
+    sw.skin_density, sw.skin_added_mass = inp["aluminium_density"], 0.0
+    sw.trim_mass, sw.blanket_mass = inp["trim_mm"] * 1e-3 * inp["aluminium_density"], 0.0
+    sw.cavity_depth = inp["cavity_depth"]
+    cav = np.array(sorted(inp["cavity_alpha"].items()), dtype=float)
+    sw.cavity_alpha = octaves(cav)
+    air = isa(0.0)
+    sw.double_wall = False
+    single = noise_reduction(p, f, S, air)
+    q = copy.deepcopy(p)
+    q.sidewall.double_wall = True
+    double = noise_reduction(q, f, S, air)
+    err = single - ref[:, 1]
+    note = ("markers = CR-132602 Fig. 14 single wall (the report's own prediction); code - report = "
+            + ", ".join(f"{e:+.1f}" for e in err) + " dB at 125-4000 Hz. Double wall, information only "
+            "(blanket mass not stated; code with blanket 0): code - report = "
+            + ", ".join(f"{e:+.1f}" for e in double - ref[:, 2]) + " dB")
+    return _ver(meta, np.max(np.abs(err)), meta["target_db"], x=f, code=single, ref=ref[:, 1], ylabel="NR (dB)",
+                note=note, series={"double wall, code (blanket 0)": double, "double wall, Fig. 14": ref[:, 2]})
+
+
+VERIFIERS = {"V0a": run_V0a, "V1": run_V1, "V2": run_V2, "V3": run_V3, "V2p": run_V2p}
 
 
 # ---- experimental cases ------------------------------------------------------------------

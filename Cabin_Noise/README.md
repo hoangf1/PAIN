@@ -39,7 +39,12 @@ python -m venv .venv
 
 ## Validation status (paper pipeline, 2026-11-02)
 
-- **Verification:** V0a, V1, V2, V3 all pass (no verdict).
+- **Verification:** V0a, V1, V2, V3 pass (no verdict).
+- **V2p, a reproduction of the paper's own printed prediction (CR-132602 Fig. 14):** check failed.
+  - From the report's stated inputs, the single-wall NR is 2.1-3.3 dB below Fig. 14, a near-constant offset. The curve's shape matches.
+  - The report computed Fig. 14 with eq. (53), which keeps the cabin-to-wall area ratio S5/S2, but it does not state the ratio. A post-hoc S5/S2 = 2 reproduces the curve within 0.3 dB.
+  - The double wall needs the blanket mass, which the report does not state. Fig. 14 therefore cannot show whether the authors used 2/eps or 4/eps.
+  - Details are in `cases.yaml`.
 - **Validation:** 1 of 8 met (V5b, the boundary-layer source). V6, the insertion loss, is close at 72 % (75 % needed). The other misses fall where the papers' own stated limits put them:
   - CR-132602's mass-law wall well below half the ring frequency (V7, V4a, V4b);
   - Gutin's far-field formula in the near field (V5c; V5 at 64 %).

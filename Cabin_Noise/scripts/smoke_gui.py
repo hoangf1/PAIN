@@ -65,8 +65,8 @@ def main():
         w.project.mission.active = 1
         w.validation.run_all()                     # threaded; wait for it
         settle(app)
-        if "Verification 4/4" not in w.validation.header.text():
-            failures.append("verification checks not all ok: " + w.validation.header.text())
+        if "Verification 4/5" not in w.validation.header.text():   # V2p is a recorded failure (cases.yaml)
+            failures.append("verification checks not as recorded: " + w.validation.header.text())
         if shots:
             shots.mkdir(parents=True, exist_ok=True)
             for i in range(w.plot_tabs.count()):

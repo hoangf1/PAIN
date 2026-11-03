@@ -43,7 +43,7 @@ blocks:
     group: transmission
     col: 2
     row: 0
-    cases: [V1, V2, V4, V4a, V4b]
+    cases: [V1, V2, V2p, V4, V4a, V4b]
   - id: room
     title: "Cabin level"
     note: "interior = exterior - NR; Sabine"
