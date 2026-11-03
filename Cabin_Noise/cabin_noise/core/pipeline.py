@@ -34,12 +34,14 @@ class Propeller:
     n_harmonics: int = 8
     re_fraction: float = 0.8         # R_e / R_t
     k_refr: float = 0.0              # boundary-layer refraction, dB (stated input 0..5)
-    patch_mode: int = 1              # 1 or 5 patches
+    patch_mode: int = 1              # 1, 5 or 0 (= grid of grid_nx x grid_nz patches)
     source_mode: str = "generated"   # "generated" | "measured"
     measured: list = field(default_factory=list)   # [[m, L_inc dB], ...]
     source_model: str = "point"      # "point": one radius R_e (Gutin); "blade": BEMT strips (needs blade)
     blade: dict = field(default_factory=dict)     # BladeGeometry fields (r_over_R, c_over_R, beta_deg, ...)
     blade_scale: bool = True         # scale strip loads to the operating point's thrust and torque
+    measured_ref: list = field(default_factory=list)  # [x, y, z] hub-relative point the measured levels
+                                                       # belong to; then the source model gives the spatial shape
 
 
 @dataclass
@@ -51,6 +53,8 @@ class Fuselage:
     patch_height: float = 1.0        # prop-plane patch circumferential extent, m
     patch_x_cabin: float = 3.0       # patch centre, cabin x (from forward cabin wall), m
     patch_z_cabin: float = 1.1       # patch centre, cabin z (from floor), m
+    grid_nx: int = 30                # patch grid (patch mode 0): axial count; 30 x 15 is within
+    grid_nz: int = 15                # ~1 dB of 48 x 24 on the default case (tau(theta) is sharp)
 
 
 @dataclass
@@ -160,8 +164,12 @@ def _patches(pr: Propeller, fu: Fuselage) -> list[Patch]:
     elif pr.patch_mode == 5:
         a, s = fu.patch_width / 3.0, fu.patch_height / 3.0
         offs = [(0.0, 0.0), (a, 0.0), (-a, 0.0), (0.0, s), (0.0, -s)]
+    elif pr.patch_mode == 0:
+        ax = (np.arange(fu.grid_nx) + 0.5) / fu.grid_nx * fu.patch_width - fu.patch_width / 2
+        arc = (np.arange(fu.grid_nz) + 0.5) / fu.grid_nz * fu.patch_height - fu.patch_height / 2
+        offs = [(a, s) for a in ax for s in arc]
     else:
-        raise ValueError("patch mode must be 1 or 5")
+        raise ValueError("patch mode must be 1, 5 or 0 (grid)")
     out = []
     for ax, arc in offs:
         al = arc / Rf
@@ -237,7 +245,7 @@ def run_case(proj: Project, segment: int | None = None, patch_mode: int | None =
 
     # ---- [1] exterior tonal source ------------------------------------------------
     nP = len(patches)
-    if pr.source_mode == "measured":
+    if pr.source_mode == "measured" and not pr.measured_ref:
         meas = {int(r[0]): float(r[1]) for r in pr.measured}
         missing = [m for m in m_idx if m not in meas]
         if missing:
@@ -265,6 +273,14 @@ def run_case(proj: Project, segment: int | None = None, patch_mode: int | None =
         else:
             raise ValueError("source model must be 'point' or 'blade'")
         gain = 10.0 ** (pr.k_refr / 20.0)
+        if pr.source_mode == "measured":
+            # measured incident levels at measured_ref; the source model only supplies the shape
+            meas = {int(r[0]): float(r[1]) for r in pr.measured}
+            missing = [m for m in m_idx if m not in meas]
+            if missing:
+                raise ValueError(f"measured source levels missing for harmonics {missing}")
+            L_ref = db(np.abs(source(np.asarray(pr.measured_ref, dtype=float))) ** 2)
+            gain = 10.0 ** ((np.array([meas[m] for m in m_idx]) - L_ref) / 20.0)
         P_near = np.array([source(p.pos) for p in patches]) * gain
         if pr.engines == 2:
             ka = 2.0 * np.pi * f_m / ext.c * fu.radius

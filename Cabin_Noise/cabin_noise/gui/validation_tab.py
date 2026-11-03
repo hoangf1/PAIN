@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (QFileDialog, QHBoxLayout, QHeaderView, QLabel, QP
                                QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget)
 
 from ..core.validation import coverage, load_cases, run_all
+from .worker import Task
 
 COLS = ["Case", "Kind", "Stage", "Track", "Reference", "Metric", "Target", "Result", "Status"]
 STATUS_COLOR = {"check ok": "#d8f0d8", "met": "#bfe8bf", "check failed": "#f6c6c6", "not met": "#f2b0b0",
@@ -84,7 +85,21 @@ class ValidationTab(QWidget):
             self.table.setItem(r, c, it)
 
     def run_all(self):
-        self.results, self.stamp = run_all()
+        """Runs every case on a worker thread (the flight cases take minutes)."""
+        if getattr(self, "_task", None) is not None:
+            return
+        self.header.setText("Running all cases (the CR-178004 cases take a few minutes)...")
+        self._task = Task(run_all)
+        self._task.setAutoDelete(False)
+        self._task.signals.done.connect(lambda out: self._show_all(*out))
+        self._task.signals.failed.connect(lambda msg: (setattr(self, "_task", None),
+                                                       self.header.setText("Run failed: " + msg.splitlines()[0])))
+        from PySide6.QtCore import QThreadPool
+        QThreadPool.globalInstance().start(self._task)
+
+    def _show_all(self, results, stamp):
+        self._task = None
+        self.results, self.stamp = results, stamp
         for r, res in enumerate(self.results):
             self._row(r, res.meta, res)
         self.header.setText(f"{coverage(self.results)}   |   run {self.stamp['date']}, commit "
@@ -157,7 +172,7 @@ class ValidationTab(QWidget):
 
     def report_html(self) -> str:
         if not self.results:
-            self.run_all()
+            self._show_all(*run_all())
         rows = "".join(
             "<tr>" + "".join(f"<td>{html.escape(self.table.item(r, c).text())}</td>" for c in range(len(COLS)))
             + "</tr>" for r in range(self.table.rowCount()))

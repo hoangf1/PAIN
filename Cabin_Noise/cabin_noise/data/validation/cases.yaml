@@ -138,30 +138,33 @@ cases:
     kind: validation
     check: Goody spectrum vs measured exterior fluctuating pressure
     reference: NASA CR-178004
-    metric: ">= 75 % of measured bands within +-6 dB"
+    metric: ">= 75 % of measured bands 800-5000 Hz (flight 3, both sides, conditions 1-18) within +-6 dB"
     tol_db: 6.0
     min_fraction: 0.75
-    quantity: L_wall
+    quantity: tbl_bands
+    defined: "2026-11-02 before the run: 323 points; bands >= 800 Hz because sec. 3.7 says lower bands are tone-dominated; nose-to-station 2.91 m assumed"
   - id: V6
     stage: Cabin
     track: both
     kind: validation
-    check: Treatment insertion loss vs flight
-    reference: NASA TM-85722
-    metric: ">= 75 % of broadband bands within +-6 dB; harmonic IL error reported"
+    check: Treatment insertion loss vs flight (fiberglass batts, CR-178004 flights 3 vs 4)
+    reference: NASA CR-178004 App. J (TM-85722 not in the repo)
+    metric: ">= 75 % of printed 1/3-octave IL values (mics 3 and 6, all printed bands 25-5000 Hz and conditions) within +-6 dB"
     tol_db: 6.0
     min_fraction: 0.75
-    quantity: insertion_loss
+    quantity: il_bands
+    defined: "2026-11-02 before the run: 519 points, no band or condition selection; blanket flow resistivity, bare alpha and cabin box assumed (V6_inputs.json)"
   - id: V7
     stage: Total
     track: tonal
     kind: validation
     check: Cabin harmonic levels at each measured location (average + max-seat)
     reference: NASA CR-178004
-    metric: ">= 75 % of measured cabin harmonic levels (all locations, average method) within +-6 dB; max-seat error reported"
+    metric: ">= 75 % of measured cabin harmonic levels (mics 3 and 6, harmonics 1-3, each engine's component) within +-6 dB of the room-average prediction"
     tol_db: 6.0
     min_fraction: 0.75
-    quantity: L_tone
+    quantity: cabin_tones
+    defined: "2026-11-02 before the run: 108 points; driven by the measured exterior (App. A) so the source bias of V5 is excluded; cabin box, bare alpha and patch grid assumed (V7_inputs.json)"
   - id: V8
     stage: Total
     track: both

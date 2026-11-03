@@ -17,7 +17,8 @@ def test_every_verification_case_has_a_runner():
 
 
 def test_experimental_cases_without_data_are_not_run():
+    from cabin_noise.core.validation import VAL_DIR
     for c in load_cases()["cases"]:
-        if c["kind"] == "validation":
-            r = run_case_id(c)
-            assert r.status in ("not run", "met", "not met", "info")
+        has = (VAL_DIR / c.get("ref_file", f"{c['id']}.csv")).exists() and (VAL_DIR / f"{c['id']}_inputs.json").exists()
+        if c["kind"] == "validation" and not has:        # data-backed cases run in the Validation tab
+            assert run_case_id(c).status == "not run"

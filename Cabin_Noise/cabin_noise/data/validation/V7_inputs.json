@@ -1,0 +1,447 @@
+{
+ "_assumptions": {
+  "cabin_box": "ASSUMED 5.33 m long x 1.45 m high (TM-85722 via PAIN_Program/docs/IMPLEMENTATION_PLAN.md) x 1.45 m wide (width not printed: square section assumed); cabin from station 60.5, prop plane (station 117) 1.435 m aft of its front",
+  "fuselage_radius": "ASSUMED 0.725 m (as V5): scattering factor and patch curvature only",
+  "patch_grid": "the whole near sidewall (5.33 m x 1.45 m) as a 30 x 15 grid; axial_offset puts the cabin from +1.435 m to -3.895 m about the prop plane",
+  "sidewall": "1.6 mm aluminium skin (CR-178004 sec. 2.1); stiffener mass, windows and frames not modelled (not printed); flat (curved = false): rectangular section",
+  "skin_eta": "0.01 library default (not printed)",
+  "bare_absorption": "alpha = 0.075 on all bare surfaces: midpoint of the 0.05 and 0.1 the report itself assumed (sec. 6.3)",
+  "treated_absorption": "CR-178004 Table 11: sidewall treatment alpha, cockpit curtain alpha (used for the barrier's foam face), seat with occupant sabins (4 seats); 63 and 8000 Hz octaves hold the end values",
+  "blanket": "5 cm Insul-Shield, 48 kg/m3 (sec. 2.4), directly on the skin with no trim; flow resistivity ASSUMED 25 000 Pa s/m2 (not printed)",
+  "tbl_station": "ASSUMED nose-to-microphone distance 2.91 m = station 114.5 in (Table 8), taking station 0 at the nose",
+  "airspeed": "TAS from IAS taking IAS = EAS; density from pressure altitude and OAT",
+  "cabin_air": "cabin pressure altitude from Table 4; 293.15 K assumed",
+  "two_rpm": "the pipeline holds one rpm per run, so each engine is run on its own (engines = 2, energetic = its near-side and shadow-side paths) and the components are added in energy",
+  "n_tau": "1024 samples per revolution (harmonics up to 10 x 3 blades)"
+ },
+ "_conditions": "CR-178004 Table 4 (flight 3): pressure altitude, IAS, OAT, rpm, power, cabin pressure altitude (ft columns)",
+ "T4": {
+  "1": [
+   10000,
+   233,
+   53,
+   1573,
+   482,
+   1520,
+   466,
+   10000
+  ],
+  "2": [
+   10000,
+   233,
+   53,
+   1525,
+   468,
+   1573,
+   488,
+   10000
+  ],
+  "3": [
+   10000,
+   230,
+   53,
+   1525,
+   456,
+   1570,
+   445,
+   1700
+  ],
+  "4": [
+   10000,
+   230,
+   53,
+   1573,
+   482,
+   1518,
+   471,
+   1700
+  ],
+  "5": [
+   14000,
+   220,
+   38,
+   1530,
+   475,
+   1530,
+   481,
+   2100
+  ],
+  "6": [
+   14000,
+   227,
+   38,
+   1533,
+   482,
+   1533,
+   488,
+   2100
+  ],
+  "7": [
+   14000,
+   230,
+   38,
+   1530,
+   481,
+   1530,
+   487,
+   2100
+  ],
+  "8": [
+   14000,
+   230,
+   38,
+   1530,
+   481,
+   1530,
+   487,
+   2100
+  ],
+  "9": [
+   14000,
+   233,
+   39,
+   1573,
+   482,
+   1520,
+   466,
+   2100
+  ],
+  "10": [
+   14000,
+   230,
+   39,
+   1525,
+   468,
+   1573,
+   482,
+   2100
+  ],
+  "11": [
+   14000,
+   183,
+   38,
+   0,
+   0,
+   1515,
+   447,
+   2100
+  ],
+  "12": [
+   14000,
+   173,
+   38,
+   1520,
+   460,
+   0,
+   0,
+   2100
+  ],
+  "13": [
+   28000,
+   170,
+   -19,
+   1525,
+   310,
+   1525,
+   310,
+   7400
+  ],
+  "14": [
+   28000,
+   174,
+   -19,
+   1528,
+   310,
+   1528,
+   310,
+   7400
+  ],
+  "15": [
+   28000,
+   173,
+   -19,
+   1528,
+   310,
+   1528,
+   310,
+   7400
+  ],
+  "16": [
+   28000,
+   173,
+   -19,
+   1528,
+   310,
+   1528,
+   310,
+   7400
+  ],
+  "17": [
+   28000,
+   175,
+   -19,
+   1570,
+   319,
+   1518,
+   308,
+   7400
+  ],
+  "18": [
+   28000,
+   174,
+   -19,
+   1520,
+   297,
+   1570,
+   313,
+   7400
+  ]
+ },
+ "mic": [
+  0.075,
+  -1.705,
+  0.05
+ ],
+ "rotation_starboard": -1,
+ "base": {
+  "name": "Commander 695A (CR-178004), untreated",
+  "propeller": {
+   "blades": 3,
+   "tip_radius": 1.345,
+   "clearance": 0.36,
+   "re_fraction": 0.8,
+   "engines": 2,
+   "twin_combination": "energetic",
+   "n_harmonics": 10,
+   "patch_mode": 0,
+   "k_refr": 0.0
+  },
+  "fuselage": {
+   "radius": 0.725,
+   "nose_to_station": 2.91,
+   "sidewall_area": 15.456999999999999,
+   "patch_width": 5.33,
+   "patch_height": 1.45,
+   "patch_x_cabin": 1.435,
+   "patch_z_cabin": 0.725,
+   "grid_nx": 30,
+   "grid_nz": 15
+  },
+  "sidewall": [
+   {
+    "kind": "panel",
+    "name": "Al skin 1.6 mm",
+    "E": 73100000000.0,
+    "rho": 2780.0,
+    "nu": 0.33,
+    "h": 0.0016,
+    "eta": 0.01,
+    "m_add": 0.0,
+    "curved": false
+   }
+  ],
+  "openings": [],
+  "cabin": {
+   "Lx": 5.33,
+   "Ly": 1.45,
+   "Lz": 1.45,
+   "temperature": 293.15,
+   "surfaces": [
+    {
+     "name": "Bare structure (all box surfaces)",
+     "area": 35.119,
+     "alpha": [
+      0.075,
+      0.075,
+      0.075,
+      0.075,
+      0.075,
+      0.075,
+      0.075,
+      0.075
+     ]
+    },
+    {
+     "name": "Seat 0 with occupant (sabins)",
+     "area": 1.0,
+     "alpha": [
+      0.31,
+      0.31,
+      0.33,
+      0.41,
+      0.45,
+      0.42,
+      0.41,
+      0.41
+     ]
+    },
+    {
+     "name": "Seat 1 with occupant (sabins)",
+     "area": 1.0,
+     "alpha": [
+      0.31,
+      0.31,
+      0.33,
+      0.41,
+      0.45,
+      0.42,
+      0.41,
+      0.41
+     ]
+    },
+    {
+     "name": "Seat 2 with occupant (sabins)",
+     "area": 1.0,
+     "alpha": [
+      0.31,
+      0.31,
+      0.33,
+      0.41,
+      0.45,
+      0.42,
+      0.41,
+      0.41
+     ]
+    },
+    {
+     "name": "Seat 3 with occupant (sabins)",
+     "area": 1.0,
+     "alpha": [
+      0.31,
+      0.31,
+      0.33,
+      0.41,
+      0.45,
+      0.42,
+      0.41,
+      0.41
+     ]
+    }
+   ],
+   "seats": [
+    [
+     0.6,
+     0.4,
+     1.0
+    ],
+    [
+     0.6,
+     1.05,
+     1.0
+    ],
+    [
+     1.435,
+     1.05,
+     1.0
+    ],
+    [
+     3.4,
+     1.05,
+     1.0
+    ]
+   ]
+  },
+  "options": {
+   "f_min": 25.0,
+   "f_max": 5000.0,
+   "n_tau": 1024
+  }
+ },
+ "exterior_surface_levels": {
+  "port": {
+   "1": [
+    130.0,
+    129.4,
+    127.0
+   ],
+   "2": [
+    130.0,
+    128.5,
+    125.2
+   ],
+   "3": [
+    129.0,
+    127.0,
+    123.6
+   ],
+   "4": [
+    129.3,
+    129.0,
+    125.6
+   ],
+   "9": [
+    128.7,
+    128.0,
+    125.7
+   ],
+   "10": [
+    128.6,
+    127.0,
+    123.7
+   ],
+   "12": [
+    127.1,
+    124.8,
+    120.1
+   ],
+   "17": [
+    123.4,
+    123.4,
+    121.5
+   ],
+   "18": [
+    123.9,
+    122.3,
+    120.0
+   ]
+  },
+  "starboard": {
+   "1": [
+    129.5,
+    126.5,
+    120.7
+   ],
+   "2": [
+    128.5,
+    126.2,
+    120.9
+   ],
+   "3": [
+    127.6,
+    126.3,
+    120.5
+   ],
+   "4": [
+    128.5,
+    125.9,
+    120.1
+   ],
+   "9": [
+    128.0,
+    125.9,
+    120.8
+   ],
+   "10": [
+    127.8,
+    126.7,
+    122.0
+   ],
+   "11": [
+    128.5,
+    125.2,
+    121.2
+   ],
+   "17": [
+    125.3,
+    123.4,
+    120.4
+   ],
+   "18": [
+    125.3,
+    125.6,
+    122.2
+   ]
+  }
+ },
+ "_exterior": "App. A flight 3 surface levels at the near flush microphone; converted to incident with |S(ka,0)| (a = 0.725 m) and anchored at the microphone (measured_ref)"
+}

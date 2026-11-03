@@ -130,3 +130,26 @@ def test_blade_source_model_runs_and_differs_from_point(proj, res):
     p2.propeller.blade = {}
     with pytest.raises(ValueError):
         run_case(p2)
+
+
+def test_grid_patches_converge_to_area_integral(proj):
+    p = copy.deepcopy(proj)
+    p.propeller.patch_mode = 0
+    p.propeller.engines = 1
+    a = run_case(p).L_tone                    # default 30 x 15
+    p.fuselage.grid_nx, p.fuselage.grid_nz = 48, 24
+    b = run_case(p).L_tone
+    assert np.max(np.abs(a - b)) < 1.0        # area quadrature converged to ~1 dB
+
+
+def test_measured_ref_anchors_level_at_reference(proj):
+    p = copy.deepcopy(proj)
+    p.propeller.engines = 1
+    gen = run_case(p)
+    ref = [0.0, -(p.propeller.tip_radius + p.propeller.clearance), 0.0]     # = the single patch centre
+    p.propeller.source_mode = "measured"
+    p.propeller.measured_ref = ref
+    p.propeller.measured = [[m, L + 3.0] for m, L in enumerate(gen.L_inc[0], 1)]
+    r = run_case(p)
+    assert np.allclose(r.L_inc[0], gen.L_inc[0] + 3.0)      # anchored exactly at the reference point
+    assert np.allclose(r.L_tone, gen.L_tone + 3.0)

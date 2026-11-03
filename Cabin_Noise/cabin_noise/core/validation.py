@@ -155,6 +155,25 @@ def run_experimental(meta) -> CaseResult:
         y = data[:, 3]
         x = np.arange(1, len(y) + 1, dtype=float)
         return _verdict(meta, ref_meta, x, code, y, "point (M_t, x/D, harmonic)")
+    if q in ("cabin_tones", "il_bands", "tbl_bands"):
+        import json
+
+        from . import flight
+        inp = json.loads(inp_path.read_text(encoding="utf-8"))
+        if q == "cabin_tones":                     # rows: cond, mic, engine, harmonic, L
+            pred = flight.cabin_tones(inp)
+            eng = ("port", "starboard")
+            code = np.array([pred[(int(c), eng[int(e)], int(h))] for c, _, e, h, _ in data])
+            y, xl = data[:, 4], "point (condition, mic, engine, harmonic)"
+        elif q == "il_bands":                      # rows: cond, mic, band, IL
+            pred = flight.insertion_loss_bands(inp, sorted({int(c) for c in data[:, 0]}))
+            code = np.array([np.interp(np.log(f), np.log(pred[int(c)][0]), pred[int(c)][1]) for c, _, f, _ in data])
+            y, xl = data[:, 3], "point (condition, mic, band)"
+        else:                                      # rows: cond, side, band, L
+            pred = flight.tbl_bands(inp, sorted({int(c) for c in data[:, 0]}), sorted({float(f) for f in data[:, 2]}))
+            code = np.array([np.interp(np.log(f), np.log(pred[int(c)][0]), pred[int(c)][1]) for c, _, f, _ in data])
+            y, xl = data[:, 3], "point (condition, side, band)"
+        return _verdict(meta, ref_meta, np.arange(1, len(y) + 1, dtype=float), code, y, xl)
     if q == "surface_tones":                       # flight runs: cond, side (0 port / 1 stbd), harmonic, L
         import json
 
