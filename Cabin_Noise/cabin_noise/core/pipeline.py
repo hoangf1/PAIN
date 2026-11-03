@@ -133,6 +133,12 @@ def noise_reduction(proj: Project, f, S: float, air: Air) -> np.ndarray:
     sw = proj.sidewall
     f = np.atleast_1d(np.asarray(f, dtype=float))
     A = proj.cabin.absorption(f)
+    if np.any(A <= 0):
+        raise ValueError("cabin absorption must be > 0 at every frequency (room equation)")
+    if sw.m_skin <= 0 or (sw.double_wall and sw.m_trim <= 0):
+        raise ValueError("skin and trim (+ blanket) surface masses must be > 0 (mass law, CR-132602 eq. 46)")
+    if any(o.mode == "mass" and o.mass <= 0 for o in proj.openings):
+        raise ValueError("opening pane masses must be > 0 (mass law)")
     k_open = S / proj.fuselage.side_area
     S_open = k_open * sum(o.area for o in proj.openings)
     if S_open >= S:

@@ -53,6 +53,16 @@ def main():
         w.views["Sweep"].show(xs, rows, "Tip clearance h_c (m)")
         if not (rows[0][2] > rows[-1][2]):
             failures.append("tonal dBA did not fall with tip clearance")
+        seg = w.project.mission.segments[0]            # static segment: no boundary layer, views must cope
+        old = (seg.mach, seg.thrust)
+        seg.mach, seg.thrust = 0.0, 12000.0
+        w.project.mission.active = 0
+        w.run()
+        settle(app)
+        if "dBA" not in w.bar.text():
+            failures.append("static segment did not produce a result bar")
+        seg.mach, seg.thrust = old
+        w.project.mission.active = 1
         w.validation.run_all()                     # threaded; wait for it
         settle(app)
         if "Verification 4/4" not in w.validation.header.text():

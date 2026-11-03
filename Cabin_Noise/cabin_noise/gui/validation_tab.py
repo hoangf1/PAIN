@@ -135,7 +135,7 @@ class ValidationTab(QWidget):
         self.caption.setText(cap)
         if res.x is None or res.code is None:
             return
-        logx = res.xlabel.startswith("Frequency") or res.xlabel == "ka"
+        logx = res.xlabel.startswith("Frequency")
         for w in (self.overlay, self.error):
             w.setLogMode(x=logx, y=False)
             w.setLabel("bottom", res.xlabel)

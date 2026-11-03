@@ -7,6 +7,7 @@ import copy
 
 import numpy as np
 
+from .atmosphere import air, isa
 from .mission import Segment, operating_point, tas_from_ias
 from .source_tonal import gutin_rms, observer
 from .weighting import db
@@ -14,6 +15,11 @@ from .weighting import db
 
 def f_to_K(f: float) -> float:
     return (f - 32.0) * 5.0 / 9.0 + 273.15
+
+
+def _atm(alt: float, T: float):
+    """Air at a pressure altitude with a measured temperature."""
+    return air(T, isa(alt).p)
 
 
 def _t4(inp, cond):
@@ -31,7 +37,7 @@ def surface_tones(inp: dict) -> dict:
         alt = run["alt_ft"] * 0.3048
         T = f_to_K(run["oat_F"])
         V = tas_from_ias(run["ias_kt"], alt, T)
-        c = operating_point(Segment(altitude=alt, oat=T, rpm=1.0, thrust=1.0)).atm.c
+        c = _atm(alt, T).c
         op = operating_point(Segment(altitude=alt, mach=V / c, rpm=run["rpm"], shaft_power=run["power_kW"] * 1e3,
                                      eta_p=inp["eta_p"], oat=T))
         m = np.arange(1, max(run["harmonics"]) + 1)
@@ -75,7 +81,7 @@ def tbl_bands(inp: dict, conds, bands) -> dict:
     out = {}
     for cond in conds:
         alt, T, V, _, _ = _t4(inp, cond)
-        atm = operating_point(Segment(altitude=alt, oat=T, rpm=1.0, thrust=1.0)).atm
+        atm = _atm(alt, T)
         out[cond] = (fc, db(wall_band_pressure2(fc, boundary_layer(atm, V, inp["nose_to_station"]))))
     return out
 
@@ -88,7 +94,7 @@ def _project(inp, cond, side=None, base_key="base"):
     d = copy.deepcopy(inp[base_key])
     d["cabin"]["cabin_altitude"] = cab_alt
     p = project_from_dict(d)
-    c = operating_point(Segment(altitude=alt, oat=T, rpm=1.0, thrust=1.0)).atm.c
+    c = _atm(alt, T).c
     segs = []
     for s in ([side] if side else ["port", "starboard"]):
         rpm, kw = eng[s]

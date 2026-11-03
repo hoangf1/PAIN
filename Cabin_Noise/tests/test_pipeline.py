@@ -101,3 +101,16 @@ def test_v6_runner_counts_the_boundary_layer_once():
     r0, r1 = run_case(p0), run_case(p1)
     hi = f > 1000                                    # bands far above the tones: broadband only
     assert np.allclose(il[hi], (r0.L_bb - r1.L_bb)[hi], atol=1e-9)
+
+
+def test_undefined_inputs_are_rejected(proj):
+    """Zero masses or zero absorption would make the mass law / room equation 0/0 (NaN):
+    the pipeline must stop with a message instead."""
+    for change in (lambda q: setattr(q.sidewall, "trim_mass", 0.0) or setattr(q.sidewall, "blanket_mass", 0.0),
+                   lambda q: setattr(q.sidewall, "skin_thickness", 0.0) or setattr(q.sidewall, "skin_added_mass", 0.0),
+                   lambda q: setattr(q.openings[0], "mass", 0.0),
+                   lambda q: [setattr(s, "alpha", [0.0] * 8) for s in q.cabin.surfaces]):
+        q = copy.deepcopy(proj)
+        change(q)
+        with pytest.raises(ValueError):
+            run_case(q)

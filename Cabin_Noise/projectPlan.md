@@ -536,3 +536,9 @@ Everything below is digitized under `PAIN_Program/data` and can be copied withou
 - **The rule now:** the tool follows low-fidelity papers exactly and is verified against them. Scope that crept toward PAIN was removed (see METHOD.md sec. 3).
 - **The pipeline:** Gutin tones -> Goody boundary layer -> CR-132602 non-resonant NR -> interior = exterior - NR, with TM-85722 openings and insertion loss. The plan's transfer-matrix wall (A.5), moving-force source (A.2), scattering (A.3) and box-mode seats (A.7) are retired.
 - **Records:** verification and validation were rebuilt for the paper pipeline (METHOD.md sec. 4). The sections above describe the retired pipeline and stay as history.
+
+### Audit and review changes (2026-11-02, AUDIT.md)
+- **Openings:** window and door areas are defined per side and scale with the exposed area. The boundary-layer path, which exposes both sides, therefore carries both sides' windows.
+- **V6 runner:** the boundary layer is counted once when the engines are run separately. The V6 result is unchanged.
+- **Input checks:** zero skin, trim or pane mass, or zero cabin absorption, now stop the run with a message. Before, the mass law or the room equation gave NaN.
+- **GUI:** readouts use the measured OAT like the case does; the A-weighted view handles a static segment.

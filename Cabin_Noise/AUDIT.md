@@ -43,9 +43,23 @@ The audit found **no error in any paper equation**. It found and fixed two wirin
 - The validation misses (V4a, V4b, V5, V5c, V6, V7) are where the papers' stated limits put them; METHOD.md sec. 4 explains each. Fixing them would mean moving past these papers to higher fidelity, which is out of scope by the author's decision of 2026-11-02.
 - PAIN_Program is not touched. The Goody-in-PAIN idea is parked at the author's request.
 
-## State after the audit
+## Second review (2026-11-02, /code-review)
 
-- **Tests:** 47 pass (`pytest`); `pyflakes` is clean; the GUI smoke test passes.
+| # | Finding | Decision |
+|---|---|---|
+| R1 | The A-weighted view crashed on a static segment, because there is no boundary layer to set the axis base. | **Fixed.** The base falls back to the total spectrum. The GUI smoke test now runs a static segment. |
+| R2 | A zero skin, trim or pane mass made the mass law (eq. 46) 0/0, so NR was NaN. | **Fixed.** The pipeline raises a clear error. Test: `test_undefined_inputs_are_rejected`. |
+| R3 | Zero cabin absorption made the room equation and `tau_equivalent` 0/0. | **Fixed**, by the same check and test. |
+| R4 | projectPlan.md had no implementation notes for the audit changes. | **Fixed.** Notes added. |
+| R5 | The Mission and Propeller readouts ignored the measured OAT that the case itself uses. | **Fixed.** They use the same atmosphere as `operating_point`. |
+| R6 | The case runners built a dummy `Segment` just to get the atmosphere. | **Fixed.** They now call `air(T, isa(alt).p)` directly. Results are unchanged. |
+| R7 | The validation tab had a dead `"ka"` axis branch. | **Removed.** |
+
+No result changed: verification is still 4/4, and the validation results are as recorded.
+
+## State after the audit and review
+
+- **Tests:** 48 pass (`pytest`); `pyflakes` is clean; the GUI smoke test passes, including the static segment.
 - **Verification:** 4/4 checks ok.
 - **Validation:** 1 of 8 met (V5b); V6 at 72 % (75 % needed); the others as recorded in cases.yaml.
 - **Default cruise case:** 98.2 dBA room average, 103.0 dBA at the 95th-percentile seat.

@@ -7,7 +7,7 @@ from PySide6.QtWidgets import (QComboBox, QFileDialog, QHBoxLayout, QLabel, QLin
                                QWidget)
 
 from ..core import cabin as cab
-from ..core.atmosphere import cabin_air, isa
+from ..core.atmosphere import air, cabin_air, isa
 from ..core.io import load_library, load_measured_csv
 from ..core.materials import ALPHA_OCTAVES, Opening, Surface
 from ..core.mission import Segment
@@ -93,8 +93,10 @@ class MissionTab(Tab):
         except ValueError as e:
             self.readout.setText(str(e))
             return
+        if s.oat > 0:                                   # same atmosphere as operating_point
+            a = air(s.oat, a.p)
         V = s.mach * a.c
-        self.readout.setText(f"ISA at {s.altitude:.0f} m: rho = {a.rho:.4f} kg/m3, c = {a.c:.1f} m/s, "
+        self.readout.setText(f"At {s.altitude:.0f} m: rho = {a.rho:.4f} kg/m3, c = {a.c:.1f} m/s, "
                              f"V = {V:.1f} m/s, q = {0.5 * a.rho * V * V / 1000:.2f} kPa")
 
 
@@ -151,6 +153,8 @@ class PropellerTab(Tab):
             a = isa(s.altitude)
         except ValueError:
             return
+        if s.oat > 0:
+            a = air(s.oat, a.p)
         om = 2 * np.pi * s.rpm / 60
         self.readout.setText(f"BPF = {pr.blades * s.rpm / 60:.1f} Hz, rotational tip Mach = {om * pr.tip_radius / a.c:.3f}, "
                              f"observer distance = {np.hypot(pr.axial_offset, pr.tip_radius + pr.clearance):.2f} m")

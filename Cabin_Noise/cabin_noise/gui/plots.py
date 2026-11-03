@@ -113,7 +113,8 @@ class AWeightView(QWidget):
         A = a_weight(r.centers)
         tot = r.L_band_total + A
         bb = r.L_bb + A
-        base = max(0.0, np.floor(np.nanmin(bb[np.isfinite(bb)]) / 10) * 10 - 10)
+        fin = bb[np.isfinite(bb)] if np.any(np.isfinite(bb)) else tot[np.isfinite(tot)]
+        base = max(0.0, np.floor(np.min(fin) / 10) * 10 - 10) if fin.size else 0.0
         self.p.addItem(pg.BarGraphItem(x=x, height=np.maximum(tot - base, 0), y0=base, width=0.8,
                                        brush=pg.mkBrush(*C_TONE, 200), name="total (tones on top)"))
         self.p.addItem(pg.BarGraphItem(x=x, height=np.maximum(bb - base, 0), y0=base, width=0.8,
