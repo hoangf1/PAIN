@@ -7,7 +7,7 @@ Gutin tones + Goody boundary layer  ->  CR-132602 sidewall noise reduction  ->  
                                         (openings, insertion loss: TM-85722)
 ```
 
-[METHOD.md](METHOD.md) maps each block to its paper. [AUDIT.md](AUDIT.md) records the code audit. [VERIFICATION.md](VERIFICATION.md) lists the checks against the papers. The reports are in `references/`.
+[METHOD.md](METHOD.md) maps each block to its paper. [AUDIT.md](AUDIT.md) records the code audit. [VERIFICATION.md](VERIFICATION.md) lists the checks against the papers. [VALIDATION.md](VALIDATION.md) explains each verification and validation case, why its data were chosen, and links its figure. The reports are in `references/`.
 
 It is the fast companion to the PAIN recreation in `../PAIN_Program`. PAIN models structural and acoustic modes with airfoil-based sources; this tool does not.
 
@@ -23,7 +23,7 @@ python -m venv .venv
 ## Tests
 
 ```bash
-.venv/Scripts/python -m pytest -q                  # 47 tests: paper checks, end-to-end hand check, pipeline
+.venv/Scripts/python -m pytest -q                  # paper checks, end-to-end hand check, pipeline
 .venv/Scripts/python scripts/smoke_gui.py          # offscreen GUI smoke
 ```
 
@@ -35,6 +35,7 @@ python -m venv .venv
 | `cabin_noise/gui/` | Main window, input tabs, plots, Validation tab with a draggable stage map |
 | `cabin_noise/data/` | Surface absorption library; `validation/` (cases, map layout, references, inputs) |
 | `references/` | NASA CR-132602 and TM-85722 (from NTRS) |
+| `docs/figures/` | Per-case figures and the stage map linked from VALIDATION.md (`scripts/make_doc_figures.py`) |
 | `tests/` | pytest suite (`independent.py` holds the independent re-implementations) |
 
 ## Validation status (paper pipeline, 2026-11-02)

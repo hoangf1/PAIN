@@ -245,13 +245,18 @@ def run_experimental(meta) -> CaseResult:
     return _verdict(meta, ref_meta, np.arange(1, len(y) + 1, dtype=float), code, y, xl)
 
 
+def criterion_range(meta, x) -> np.ndarray:
+    """Points inside the case's criterion range (band_min / band_max, with 1/12-octave slack)."""
+    lo, hi = meta.get("band_min", -np.inf), meta.get("band_max", np.inf)
+    return (x >= lo / 2 ** (1 / 12)) & (x <= hi * 2 ** (1 / 12))
+
+
 def _verdict(meta, ref_meta, x, code, y, xlabel) -> CaseResult:
     cid = meta["id"]
     ok = np.isfinite(y)
     x, y, code = x[ok], y[ok], code[ok]
     err = np.abs(code - y)
-    lo, hi = meta.get("band_min", -np.inf), meta.get("band_max", np.inf)
-    sel = (x >= lo / 2 ** (1 / 12)) & (x <= hi * 2 ** (1 / 12))
+    sel = criterion_range(meta, x)
     if not np.any(sel):
         return CaseResult(cid, meta, "not run", note="no reference points inside the criterion range")
     worst = float(np.max(err[sel]))

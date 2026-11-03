@@ -70,6 +70,11 @@ def main():
         n_ok = sum(c.get("recorded_status") != "check failed" for c in ver)     # recorded failures (cases.yaml)
         if f"Verification {n_ok}/{len(ver)}" not in w.validation.header.text():
             failures.append("verification checks not as recorded: " + w.validation.header.text())
+        for r, res in enumerate(w.validation.results):     # caption counts the same points as the verdict
+            if "min_fraction" in res.meta and res.status in ("met", "not met"):
+                w.validation.show_case(r)
+                if f"{res.value:.0f}% within" not in w.validation.caption.text():
+                    failures.append(f"{res.id} caption disagrees with its verdict ({res.value:.0f}%)")
         if shots:
             shots.mkdir(parents=True, exist_ok=True)
             for i in range(w.plot_tabs.count()):

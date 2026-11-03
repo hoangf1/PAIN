@@ -1,4 +1,4 @@
-"""Validation tab: case map, code-vs-reference figures, error heatmap, report export."""
+"""Validation tab: case map, code-vs-reference figures, report export."""
 from __future__ import annotations
 
 import html
@@ -10,7 +10,7 @@ from PySide6.QtGui import QColor, QPageSize, QPdfWriter, QTextDocument
 from PySide6.QtWidgets import (QFileDialog, QHBoxLayout, QHeaderView, QLabel, QPushButton, QSplitter,
                                QTableWidget, QTableWidgetItem, QTabWidget, QVBoxLayout, QWidget)
 
-from ..core.validation import coverage, load_cases, run_all
+from ..core.validation import coverage, criterion_range, load_cases, run_all
 from .validation_map import MapPanel
 from .worker import Task
 
@@ -65,9 +65,6 @@ class ValidationTab(QWidget):
         split.addWidget(right)
         split.setSizes([700, 600])
         v.addWidget(split, 1)
-        self.heat = pg.PlotWidget(title="|error| / target per case and point (cases with reference data)")
-        self.heat.setMaximumHeight(170)
-        v.addWidget(self.heat)
         self._fill_static()
 
     def _fill_static(self):
@@ -112,7 +109,6 @@ class ValidationTab(QWidget):
             self._row(r, res.meta, res)
         self.header.setText(f"{coverage(self.results)}   |   run {self.stamp['date']}, commit "
                             f"{self.stamp['commit']}, criteria fixed {self.stamp['criteria_fixed']}")
-        self._heatmap()
         self.map.view.set_statuses(self.results)
         self.show_case(max(self.table.currentRow(), 0))
 
@@ -166,32 +162,18 @@ class ValidationTab(QWidget):
             self.scatter.plot(res.ref[ok], res.code[ok], pen=None, symbol="o", symbolSize=6)
             lo, hi = float(np.min(res.ref[ok])), float(np.max(res.ref[ok]))
             self.scatter.plot([lo, hi], [lo, hi], pen=pg.mkPen("k", style=Qt.DashLine))
-            within = np.mean(np.abs(err) <= tgt) * 100 if tgt else float("nan")
-            self.caption.setText(cap + f"  mean {np.mean(err):+.3g}, RMS {np.sqrt(np.mean(err ** 2)):.3g}, "
-                                       f"max |e| {np.max(np.abs(err)):.3g}, {within:.0f}% within target.")
+            e = err[criterion_range(m, res.x[ok])]               # the points the verdict counts
+            if e.size:
+                within = f", {np.mean(np.abs(e) <= tgt) * 100:.0f}% within +-{tgt:g} dB" if tgt else ""
+                where = "In the criterion range" if "band_min" in m or "band_max" in m else "Over all"
+                self.caption.setText(cap + f"  {where} ({e.size} points): mean {np.mean(e):+.3g} dB, "
+                                           f"RMS {np.sqrt(np.mean(e ** 2)):.3g} dB, max |e| "
+                                           f"{np.max(np.abs(e)):.3g} dB{within}.")
         else:
             for k, val in res.series.items():
                 if isinstance(val, float):
                     self.overlay.addItem(pg.InfiniteLine(pos=np.log10(val) if logx else val, angle=90,
                                                          label=k, pen=pg.mkPen("k", style=Qt.DashLine)))
-
-    def _heatmap(self):
-        self.heat.clear()
-        rows = [r for r in self.results if r.meta["kind"] == "validation" and r.ref is not None
-                and (r.meta.get("tol_db") or r.meta.get("target_db"))]
-        if not rows:
-            self.heat.addItem(pg.TextItem("No experimental reference data digitized yet (V4-V7 not run)",
-                                          color="k", anchor=(0.5, 0.5)))
-            return
-        n = max(len(r.x) for r in rows)
-        img = np.full((n, len(rows)), np.nan)
-        for j, r in enumerate(rows):
-            img[:len(r.x), j] = np.abs(r.code - r.ref) / (r.meta.get("tol_db") or r.meta["target_db"])
-        item = pg.ImageItem(np.nan_to_num(img, nan=0.0))
-        item.setLookupTable(pg.colormap.get("magma").getLookupTable())
-        item.setLevels([0, 2])
-        self.heat.addItem(item)
-        self.heat.getAxis("left").setTicks([[(j + 0.5, r.id) for j, r in enumerate(rows)]])
 
     def report_html(self) -> str:
         if not self.results:

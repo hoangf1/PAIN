@@ -401,7 +401,7 @@ Report tonal-only, broadband-only and total, for both average and max seat.
 | M3 Full pipeline | Done. `run_case`, JSON and CSV export work. V0c passes. |
 | M4 GUI v1 | Done. Six input tabs, eight plot views and the results bar. |
 | M5 Compare & sweep | Done. A/B overlay, IL, background sweeps, mission summary, 1-vs-5 patch check. |
-| M6 Validation | Framework done: Validation tab, figures, heatmap, HTML/PDF export (the run is threaded: about 1-2 min). All runnable cases ran 2026-11-02: **met V5b, V5c, V5d; not met V4a, V5, V6, V7** (see below). V4 ran 2026-11-03 (not met, see the V2p/V4 notes). |
+| M6 Validation | Framework done: Validation tab, figures, HTML/PDF export (the heatmap was removed 2026-11-03) (the run is threaded: about 1-2 min). All runnable cases ran 2026-11-02: **met V5b, V5c, V5d; not met V4a, V5, V6, V7** (see below). V4 ran 2026-11-03 (not met, see the V2p/V4 notes). |
 | M7 Polish & package | Partly done: material library and PDF report. Still open: unit toggles, a separate material editor, PyInstaller build. |
 
 ### Where the code differs from the text above
@@ -553,3 +553,8 @@ Everything below is digitized under `PAIN_Program/data` and can be copied withou
   - **Result:** not met, 5/11 bands.
   - **Roof and aft layups:** not compared, because their septa cannot be read from Fig. 17.
 - **GUI:** the validation overlay's acceptance band was drawn at linear x on a log axis, which broke every frequency case's axis range. Fixed. Information series, such as V2p's double-wall curves, are now drawn.
+
+### Validation document and figures (2026-11-03)
+- **VALIDATION.md:** what each case checks, which block it tests, why its data were chosen, the data considered and not used, and Mermaid diagrams of the pipeline and the case process. It links one PNG per case and the stage map in `docs/figures/`, made by `scripts/make_doc_figures.py` from the Validation tab's own plots.
+- **Caption fix:** the Validation tab's caption computed its mean, RMS and "% within" over every plotted point, including points outside the criterion range. For V4 it showed 54 % against the verdict's 45 %. It now uses the same points as the verdict (`criterion_range`) and says so. The GUI smoke test checks that every caption's percentage equals its verdict's. No recorded result changed.
+- **Deviation from sec. 4 (Heatmap):** the |error| / target heatmap under the Validation tab was removed at the author's request (2026-11-03). Per-case error plots remain.
