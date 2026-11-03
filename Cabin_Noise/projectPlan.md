@@ -621,4 +621,5 @@ Everything below is digitized under `PAIN_Program/data` and can be copied withou
 - **Result:** 104.6 dBA room average and 109.3 dBA at the max seat, up from 97.6 / 102.3 (the power doubled). Tonal 104.6 dBA, broadband 79.2 dBA. No validation or verification result changed; V3 does not use the mission.
 - **Tests:** `test_calibrated_airspeed_to_mach` (sea level CAS = TAS; 250 KCAS at 25000 ft = 363 KTAS +-1.5 kt; KCAS overrides Mach). The end-to-end hand check now computes the speed from KCAS independently. The static-segment tests also zero the KCAS.
 - The flight-test runners keep their own `tas_from_ias` (IAS = EAS, defined before those runs) unchanged.
+- **eta_p:** 0.85 -> 0.80, the usual cruise value of conceptual-design texts (Raymer; Anderson). The helical tip Mach here is 0.91, so a value below the 0.85-0.88 peak fits. The result does not change: with the default axial offset 0 the tones are evaluated in the propeller plane (theta = 90 deg), where Gutin's thrust term T cos(theta) is zero. eta_p only sets that thrust. The Mission table's eta_p tooltip says so.
 

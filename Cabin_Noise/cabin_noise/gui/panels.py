@@ -44,7 +44,7 @@ class MissionTab(Tab):
         super().__init__()
         cols = [F("name", "Name", kind="text"), F("altitude", "Altitude", "m"), F("mach", "Mach"),
                 F("kcas", "CAS override", "kt", tip="calibrated airspeed; > 0 sets the Mach (compressible, ISA)"),
-                F("rpm", "RPM"), F("shaft_power", "Shaft power", "kW", scale=1e-3), F("eta_p", "eta_p"),
+                F("rpm", "RPM"), F("shaft_power", "Shaft power", "kW", scale=1e-3), F("eta_p", "eta_p", tip="propeller efficiency, thrust = eta_p P / V; typical cruise value 0.80 (Raymer, Aircraft Design; Anderson, Aircraft Performance and Design). Thrust enters the tones only off the propeller plane (axial offset)"),
                 F("thrust", "Thrust override", "N", tip="> 0 overrides eta_p P / V; required when static"),
                 F("oat", "OAT override", "K", tip="measured outside air temperature; 0 = ISA")]
         self.table = ListTable(cols, Segment)
