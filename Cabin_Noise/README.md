@@ -20,7 +20,7 @@ python -m venv .venv
 [VERIFICATION.md](VERIFICATION.md) maps every equation to its published source and to the independent test that checks it.
 
 ```bash
-.venv/Scripts/python -m pytest -q                  # 76 tests: source checks (VERIFICATION.md), core, V0a-V3
+.venv/Scripts/python -m pytest -q                  # 79 tests: source checks, end-to-end hand check (VERIFICATION.md), core, V0a-V3
 .venv/Scripts/python scripts/smoke_gui.py          # offscreen GUI smoke (run, compare, mission, sweep, validation)
 ```
 

@@ -44,6 +44,26 @@ A test that only re-evaluates the formula it checks does not count.
 | 26 | pipeline | Twin combination (energetic, coherent with m Delta phi, worst case); measured anchoring; K_refr | definitions (plan A.2) | Worst >= energetic; anchored level reproduced exactly; K_refr shifts tones 1:1 | identity | pass |
 | 27 | pipeline | Patch grid quadrature | numerical integration of plan A.6 | 30 x 15 within about 1 dB of 48 x 24 | convergence | pass |
 
+## 1b. End-to-end hand check (`tests/test_end_to_end.py`)
+
+The equations being right does not prove they are wired together right. So the default cruise case is recomputed from its inputs by independent code (`tests/independent.py` plus formulas written out in the test). Neither imports any of the tool's physics.
+- **One tone (BPF1).** ISA; thrust and torque; near and far propeller fields from the direct time-domain moving-force solver; cylinder shadow factor; energetic twin sum; hand-written transfer matrix through skin, gap, limp blanket, gap, trim and the window composite; transmitted power over the patch; room equation with the hand-interpolated absorption. Agrees with `run_case` within 0.1 dB in incident and interior level.
+- **One band (1 kHz).** Flat-plate boundary layer; Goody integrated by adaptive quadrature; diffuse tau by adaptive quadrature over 0-78 deg at the model's 10 band points; Waterhouse factor; room equation. Agrees within 0.2 dB (wall level within 0.05 dB).
+- **Totals.** Band assembly with an independent IEC 61260 band assignment and the IEC 61672 A-weighting formula reproduces the band totals, OASPL and dBA to 1e-6 dB.
+
+**Mutation check (2026-11-02):** each of these errors, planted one at a time in the pipeline, makes the hand check fail:
+- source +0.8 dB;
+- far-propeller shadow x2;
+- tau +0.8 dB;
+- room equation +0.5 dB;
+- the Waterhouse factor reverted to / 4;
+- A-weighting +0.5 dB;
+- tones moved one band up.
+
+The test can therefore detect sub-dB wiring errors in every stage it covers.
+
+**Not covered end to end:** the seat model (V0c covers it), the 5-patch and grid modes (convergence test), measured anchoring and the blade source (unit tests), and the reverberant-NR path (algebraic test).
+
 ## 2. Corrections made by this review (2026-11-02)
 
 1. **Boundary-layer to diffuse conversion (row 21).**
@@ -72,5 +92,5 @@ These are not errors in the math. They are the plan's stated simplifications, an
 ## 4. How to re-run
 
 ```bash
-.venv/Scripts/python -m pytest -q          # 76 tests, about 15 s
+.venv/Scripts/python -m pytest -q          # 79 tests, about 15 s
 ```

@@ -515,3 +515,7 @@ Everything below is digitized under `PAIN_Program/data` and can be copied withou
 - **Default example:** its 9.6 kg/m3 blanket is now limp; light fiberglass behaves that way.
 - **V4d (CR-3813 cylinder, V4b with limp blankets of the printed 9.61 kg/m3): not met.** 4 of 19 within +-6 dB, mean +12.6 dB (V4b +13.1 dB). On this case the trim model is not the error; the over-prediction comes from the wall transmission above 160 Hz (sec. 3 of VERIFICATION.md).
 - **V6 re-run with a limp blanket (post-hoc, information only, verdict unchanged):** 282 of 519 within +-6 dB (rigid: 249). The low-frequency IL overprediction falls from about +11 to +4 dB at 25 Hz, as intended. The rest is the negative measured IL at low frequency (the report cites structure-borne components) and the report's recorder floor above 2 kHz.
+
+### End-to-end hand check (2026-11-02)
+- `tests/test_end_to_end.py` recomputes the default cruise case (BPF1 tone, 1 kHz band, totals) with independent code that imports none of the tool's physics. The tool agrees within 0.1-0.2 dB.
+- Seven deliberately planted wiring errors (source, shadow, tau, room equation, Waterhouse factor, A-weighting, band assignment) were each caught. See VERIFICATION.md sec. 1b.
