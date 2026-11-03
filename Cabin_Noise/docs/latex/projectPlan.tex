@@ -879,4 +879,17 @@ NASA TM-85722 & Lab TL and in-flight IL & V4, V6 as planned & Not in the repo \\
 \item No validation or verification result changed.
 \end{itemize}
 
+\subsection*{Cruise 290 KTAS; unknown propeller inputs (2026-11-03, author's request)}
+
+\begin{itemize}
+\item \textbf{Cruise speed:} 290 KTAS, entered as Mach 0.4818 at 25000 ft ISA (149.2 m/s). The CAS override is set to 0.
+\item \textbf{Result:} unchanged at 106.2 / 110.9 dBA, because the tones dominate. The helical tip Mach drops to 1.04, so the warning stays.
+\item \textbf{Unknown inputs:} the author does not know these, so they stay at placeholder values. Their effect on the room average and max seat (dBA):
+\begin{itemize}
+\item \textbf{Tip clearance (0.5 m):} 0.3 m gives 107.0 / 111.7, 0.8 m gives 105.1 / 109.9, 1.0 m gives 104.4 / 109.2. This is the largest unknown.
+\item \textbf{Axial offset (0, the propeller plane):} 0.5 m behind the plane gives 106.5 / 111.2, the loudest point checked. 0.5 m ahead gives 103.0 / 107.8; 1 m ahead gives 97.6 / 102.4.
+\item \textbf{Harmonics (8):} 4 to 32 give the same result to 0.1 dB. Gutin's higher harmonics are negligible.
+\end{itemize}
+\end{itemize}
+
 \end{document}

@@ -630,3 +630,11 @@ Everything below is digitized under `PAIN_Program/data` and can be copied withou
 - `test_supersonic_helical_tip_is_flagged` writes the tip Mach out and checks both sides of the threshold (1550 and 1020 RPM).
 - No validation or verification result changed.
 
+### Cruise 290 KTAS; unknown propeller inputs (2026-11-03, author's request)
+- **Cruise speed:** 290 KTAS, entered as Mach 0.4818 at 25000 ft ISA (149.2 m/s). The CAS override is set to 0.
+- **Result:** unchanged at 106.2 / 110.9 dBA, because the tones dominate. The helical tip Mach drops to 1.04, so the warning stays.
+- **Unknown inputs:** the author does not know these, so they stay at placeholder values. Their effect on the room average and max seat (dBA):
+  - **Tip clearance (0.5 m):** 0.3 m gives 107.0 / 111.7, 0.8 m gives 105.1 / 109.9, 1.0 m gives 104.4 / 109.2. This is the largest unknown.
+  - **Axial offset (0, the propeller plane):** 0.5 m behind the plane gives 106.5 / 111.2, the loudest point checked. 0.5 m ahead gives 103.0 / 107.8; 1 m ahead gives 97.6 / 102.4.
+  - **Harmonics (8):** 4 to 32 give the same result to 0.1 dB. Gutin's higher harmonics are negligible.
+

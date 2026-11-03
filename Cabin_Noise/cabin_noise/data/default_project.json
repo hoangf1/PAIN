@@ -5,8 +5,8 @@
       {
         "name": "Cruise",
         "altitude": 7620.0,
-        "mach": 0.6037,
-        "kcas": 250.0,
+        "mach": 0.4818,
+        "kcas": 0.0,
         "rpm": 1550.0,
         "shaft_power": 1640539.7,
         "eta_p": 0.8,
