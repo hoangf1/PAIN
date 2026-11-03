@@ -397,11 +397,11 @@ Report tonal-only, broadband-only and total, for both average and max seat.
 | # | Status |
 |---|---|
 | M1 Core TL engine | Done. V1, V2 and V3 pass. |
-| M2 Source models | Done. V0a and V0b pass. Time-domain and Gutin results agree within 0.04 dB. |
+| M2 Source models | Done. V0a and V0b pass. Time-domain and Gutin results agree within 0.04 dB. Optional blade-geometry source added 2026-11-02 (see below). |
 | M3 Full pipeline | Done. `run_case`, JSON and CSV export work. V0c passes. |
 | M4 GUI v1 | Done. Six input tabs, eight plot views and the results bar. |
 | M5 Compare & sweep | Done. A/B overlay, IL, background sweeps, mission summary, 1-vs-5 patch check. |
-| M6 Validation | Framework done: Validation tab, figures, heatmap, HTML/PDF export. **V4a and V5 run 2026-11-02: both not met** (see below). V4 and V6 need TM-85722, which is not in the repo. V5b and V7 can be built from CR-178004 (App. D, B), which is already in the repo. |
+| M6 Validation | Framework done: Validation tab, figures, heatmap, HTML/PDF export. Run 2026-11-02: **V4a not met, V5 not met, V5c met, V5d met** (see below). V4 and V6 need TM-85722, which is not in the repo. V5b and V7 can be built from CR-178004 (App. D, B), which is already in the repo. |
 | M7 Polish & package | Partly done: material library and PDF report. Still open: unit toggles, a separate material editor, PyInstaller build. |
 
 ### Where the code differs from the text above
@@ -453,3 +453,25 @@ Everything below is digitized under `PAIN_Program/data` and can be copied withou
 - **Not met:** 43 of 101 surface harmonic levels lie within +-6 dB (75 % needed). Mean error +6.1 dB, RMS 6.4 dB, max |e| 10.1 dB. The model overpredicts systematically, most at BPF1 (+7.7 dB average) and least at BPF3 (+4.7 dB). The error is similar at all three altitudes (+5.1, +6.4 and +6.5 dB). For context, the report's own simplified methods overpredicted the same data by 7 dB and 11 dB on average (CR-178004 Table 9).
 - Sensitivity, post-hoc, information only (no input was changed for the verdict): eta_p 0.7 / 0.9 moves the mean error by about +-0.4 dB; fuselage radius 0.6 / 0.9 m by 0.2 dB or less. **The effective loading radius dominates:** R_e = 0.7 / 0.9 R_t gives mean +2.8 / +8.7 dB. Collapsing the blade loading onto one radius 0.36 m from the tips is the main near-field error (plan assumption 2).
 - Possible model change: spread the forces over several radial stations with a stated (not fitted) loading shape. Flights 1, 2 and 4 of App. A are repeat flights of the same conditions, so they are *not* an independent check for a change motivated by flight 3. Such a change would need a different aircraft or test to earn a verdict.
+
+### Optional blade-geometry source (added 2026-11-02)
+- **Why:** V5 showed that the single effective radius dominates the near-field error. The user asked for a radial distribution built on a known pipeline rather than an invented loading shape.
+- **Method:** the chain PAIN_Program uses (CCBlade BEMT feeding AcousticAnalogies Farassat 1A, as in CR-3813 App. B / ANOPP), reduced to textbook low-fi pieces:
+  - thin-airfoil section lift with the Prandtl-Glauert correction, alpha0 = -cl_design / 2 pi (NACA a = 1.0 mean line, Abbott & von Doenhoff);
+  - constant cd0 and a +-clmax limit;
+  - Glauert blade-element momentum with Prandtl tip loss (axial induction, swirl neglected);
+  - each radial strip as a compact rotating force through the existing source (Farassat compact loading), with phasors summed.
+- **Loads:** when a thrust and torque are known (the mission's eta_p P / V and P / Omega, or measured performance), the strip loads are scaled to them, so only the radial shape comes from BEMT.
+- **Inputs:** blade r/R, c/R, pitch and design cl (CSV in the Propeller tab). The **default stays `point`**: the blade mode needs blade geometry, which the plan deliberately does not require.
+- **Verification (unit tests, no verdict):**
+  - the far-field strip sum equals Gutin's formula integrated strip by strip (within 0.2 dB);
+  - one strip reproduces the point source exactly;
+  - scaling keeps the shape;
+  - hover figure of merit is physical, and more pitch gives more thrust.
+- **BEMT performance on the Report 996 blade (information only, nothing tuned):** C_T 0.078-0.085 against the printed 0.070-0.080; C_Q 0.0034-0.0039 against 0.0037-0.0051. The thrust centroid sits at 0.67-0.69 R, inboard of the point model's 0.8 R.
+
+### V5c / V5d results (NACA Report 996 static near field, run 2026-11-02; definitions committed first in 18b3f9c)
+- **Data:** 52 rms harmonic levels at the tip clearance d/D = 0.083 (Figs. 12 and 14, beta 10 deg, M_t 0.45-0.90, harmonics 1-4). They were digitized for PAIN and copied unchanged. Both cases take thrust and torque from the C_T and C_Q printed in Fig. 14, so only the radial distribution differs. This data is independent of CR-178004: different propeller, static, lab.
+- **V5c, point source (default):** **met.** 49 of 52 within +-6 dB; mean +2.2 dB, RMS 3.5 dB, max 7.4 dB. The largest errors are BPF3 at M_t 0.60-0.90.
+- **V5d, blade source:** **met.** 51 of 52 within +-6 dB; mean -0.1 dB, RMS 2.6 dB, max 6.2 dB.
+- **Reading:** on held-out data the radial distribution removes the point source's +2 dB near-field bias, as V5's sensitivity suggested. V5 (CR-178004 flight) cannot use the blade mode, because the Dowty blade geometry is not published; it stays not met with the point source. Thickness noise is still not modelled in either mode.

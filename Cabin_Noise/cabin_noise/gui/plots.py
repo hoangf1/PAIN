@@ -31,7 +31,8 @@ def _plot(title, xlabel="Frequency (Hz)", ylabel="Level (dB re 20 uPa)", logx=Tr
 
 def _stems(plot, f, L, color, name, base=None):
     f, L = np.asarray(f), np.asarray(L)
-    lo = np.nanmin(L[np.isfinite(L)]) - 10 if base is None else base
+    fin = L[np.isfinite(L)]
+    lo = np.nanmin(fin) - 10 if base is None else min(base, np.nanmin(fin) - 3)
     x = np.repeat(f, 2)
     y = np.column_stack([np.full_like(L, lo), L]).ravel()
     plot.plot(x, y, connect="pairs", pen=pg.mkPen(color, width=2))

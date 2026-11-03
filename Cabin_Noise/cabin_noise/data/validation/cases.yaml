@@ -118,6 +118,7 @@ cases:
     quantity: static_nearfield
     ref_file: R996_nearfield.csv
     defined: "2026-11-02, before the run: loads from the printed C_T/C_Q; ISA sea-level air assumed"
+    recorded: "2026-11-02 met: 49/52 within +-6 dB, mean +2.2 dB, RMS 3.5 dB, max |e| 7.4 dB (definition commit 18b3f9c)"
   - id: V5d
     stage: Source
     track: tonal
@@ -130,6 +131,7 @@ cases:
     quantity: static_nearfield
     ref_file: R996_nearfield.csv
     defined: "2026-11-02, before the run: same loads and air as V5c; radial shape from BEMT on the published blade form; clmax/cd0 defaults"
+    recorded: "2026-11-02 met: 51/52 within +-6 dB, mean -0.1 dB, RMS 2.6 dB, max |e| 6.2 dB (definition commit 18b3f9c)"
   - id: V5b
     stage: Source
     track: broadband

@@ -29,6 +29,8 @@ python -m venv .venv
 | `cabin_noise/core/` | Pure NumPy/SciPy code with no Qt. `pipeline.run_case(project)` computes everything for one segment. |
 | `frequencies`, `atmosphere`, `mission` | 1/3-octave grid, ISA, segments and the operating point |
 | `source_tonal` | Rotating point forces in forward flight, solved in the frequency domain. Includes Gutin's formula. |
+| `blade` | Optional blade-geometry source: BEMT strip loads (thin-airfoil sections, Prandtl tip loss), each strip a compact rotating force |
+| `flight` | Flight and lab runners for the source cases (flush microphones, static near field) |
 | `scattering` | Rigid-cylinder surface factor, used for far-side propeller shadowing |
 | `source_tbl` | Goody TBL wall-pressure spectrum |
 | `porous`, `tmm`, `materials` | Delany-Bazley model, transfer matrices, diffuse and band averaging, composites |
@@ -43,8 +45,9 @@ python -m venv .venv
 - **Verification V0a, V0b, V0c, V1, V2, V3** (analytic checks): all pass. These checks never carry a validation verdict.
 - **Validation V4a** (TP-1964 bare-cylinder reverberant NR, data reused from PAIN_Program): **run 2026-11-02, not met**. The worst error is 16 dB in 250 Hz-2 kHz: the plane-wave TL misses resonant cylinder transmission and treats the thick end caps as mass-law panels. See projectPlan.md, "V4a result".
 - **Validation V5** (CR-178004 flight exterior harmonics, flight 3, 101 points): **run 2026-11-02, not met**. 43 % of points are within +-6 dB and the model overpredicts by +6 dB on average. The cause is the single-radius point force in the near field; see projectPlan.md, "V5 result".
+- **Validation V5c / V5d** (NACA Report 996 static near-field harmonics, 52 points, data reused from PAIN_Program): **both met**. The default point source has 94 % within +-6 dB (mean +2.2 dB); the optional blade-geometry source has 98 % (mean -0.1 dB).
 - **Validation V4, V5b, V6, V7**: **not run yet**. V4 and V6 need TM-85722 (not in the repo). V5b and V7 can be transcribed from CR-178004's appendix tables.
 - Experimental cases are judged with the low-fi policy: met when at least 75 % of the points are within +-6 dB. V4a keeps its original +-3 dB criterion. Each case needs two files in `cabin_noise/data/validation/`: the digitized curve (`<id>.csv`) and a project file built only from the report's stated inputs (`<id>_inputs.json`). The pass targets are fixed and dated in `cases.yaml`.
 - **V8** (cross-check against PAIN): information only.
 
-The two experimental comparisons so far both miss: V4a (bare lab cylinder) by up to 16 dB and V5 (flight exterior tones) by +6 dB on average. Treat absolute levels as **unvalidated**, especially for thin, lightly damped walls below the ring frequency. The repo's reusable data is inventoried in projectPlan.md.
+Of four experimental comparisons, the two propeller-source checks on lab data pass (V5c, V5d). The two misses are V4a (bare lab cylinder, sidewall model, up to 16 dB) and V5 (flight exterior tones, +6 dB average with the point source). Treat absolute levels as **unvalidated**, especially for thin, lightly damped walls below the ring frequency. The repo's reusable data is inventoried in projectPlan.md.
