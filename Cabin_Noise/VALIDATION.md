@@ -119,7 +119,7 @@ flowchart LR
 | V0a | Gutin's closed form against direct quadrature of the rotating-dipole integral it is derived from | The closed form (Bessel function) is where an implementation slip would hide | check ok, 2e-12 dB | [V0a](docs/figures/V0a.png) |
 | V1 | CR-132602 eq. 46 against the 0-90 deg integral of eq. 45 | Eq. 46 is the closed form of that integral; every wall in the tool uses it | check ok, 9e-10 dB | [V1](docs/figures/V1.png) |
 | V2 | CR-132602 eq. 52 against a numeric solution of the power balance eq. 47 | Eq. 52 is derived from eq. 47. This check also settles the eq. 53 misprint (2/eps against 4/eps) | check ok, 7e-15 dB | [V2](docs/figures/V2.png) |
-| V3 | The pipeline's insertion loss against TM-85722's IL = dTL + dABS | It checks that openings and absorption are wired the way TM-85722 splits them | check ok, 0.33 dB (the "1 +" term) | [V3](docs/figures/V3.png) |
+| V3 | The pipeline's insertion loss against TM-85722's IL = dTL + dABS | It checks that openings and absorption are wired the way TM-85722 splits them | check ok, 0.28 dB (the "1 +" term) | [V3](docs/figures/V3.png) |
 | V2p | CR-132602 Fig. 14 reproduced from the report's stated inputs | It is the paper's only printed worked example of the NR method: the whole NR block, end to end | **check failed**, 3.3 dB | [V2p](docs/figures/V2p.png) |
 
 **V2p in more detail.** The single wall comes out 2.1-3.3 dB below Fig. 14, but with the right shape.

@@ -558,3 +558,11 @@ Everything below is digitized under `PAIN_Program/data` and can be copied withou
 - **VALIDATION.md:** what each case checks, which block it tests, why its data were chosen, the data considered and not used, and Mermaid diagrams of the pipeline and the case process. It links one PNG per case and the stage map in `docs/figures/`, made by `scripts/make_doc_figures.py` from the Validation tab's own plots.
 - **Caption fix:** the Validation tab's caption computed its mean, RMS and "% within" over every plotted point, including points outside the criterion range. For V4 it showed 54 % against the verdict's 45 %. It now uses the same points as the verdict (`criterion_range`) and says so. The GUI smoke test checks that every caption's percentage equals its verdict's. No recorded result changed.
 - **Deviation from sec. 4 (Heatmap):** the |error| / target heatmap under the Validation tab was removed at the author's request (2026-11-03). Per-case error plots remain.
+
+### Default cabin and fewer inputs (2026-11-03, author's request)
+- **Default example cabin:** 22.7 m long, 2.64 m wide, 1.9 m floor to ceiling. The box is the cabin air above the floor; the underfloor bay is not part of the cabin. The height is an assumption (typical regional turboprop headroom), editable in the Cabin tab. Windows scale with the length: 17 per side (one per 1.33 m, the old 6 per 8 m), as both the opening and the absorbing surface (before: 6 openings but 12 absorbing windows per side).
+- **Result:** default cruise 97.6 dBA room average, 102.3 dBA at the 95th-percentile seat (was 98.2 / 103.0). V3's residual is 0.28 dB (was 0.33; check ok). V2p is unchanged, because it replaces the surfaces with its own, sized to the wall. No validation case uses the default cabin.
+- **Deviation (GUI inputs removed as too detailed for a low-fi tool):**
+  - Cabin pressure altitude and cabin temperature are no longer inputs. The model holds them fixed at 2438 m (8000 ft) and 20 C, shown in the Cabin tab's readout.
+  - The cavity absorption table is no longer an input. It is fixed to CR-132602 sec. 6.2's table, shown in the Sidewall tab's readout.
+  - The model fields remain, so the validation cases still use each report's stated values (lab at sea level, measured flight cabin pressure), and saved projects keep loading. No recorded result changed.

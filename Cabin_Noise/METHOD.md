@@ -20,7 +20,7 @@ mission -> exterior level (tones, boundary layer) -> sidewall NR -> interior lev
 | Sidewall NR | non-resonant double wall, eq. (52): NR = 10 log[(1 + 4 alpha3 / (eps tau31))(1 + alpha5 / tau35) + alpha5 / tau31]; blanket mass on the trim (sec. 6.2); single wall: 10 log(1 + alpha5 / tau) | NASA CR-132602 sec. 5.2 | V2: eq. (52) = numeric solution of the power balance eq. (47) (1e-14) |
 | Openings | area-weighted transmission; double window = one pane of the summed mass; areas given per side, scaled with the exposed area | NASA TM-85722 eq. (1), p. 17 | `test_openings_combine_by_area_as_tm85722_eq1` |
 | Cabin | alpha5 S = A = sum S alpha (Sabine), or 0.161 V / T60 from measured T60 | Sabine; CR-132602 eq. (37) | Sabine constant |
-| Insertion loss | L_bare - L_treated = dTL + dABS | NASA TM-85722 eqs. (1)-(3) | V3: within 0.33 dB (the "1 +" term of the single-wall form) |
+| Insertion loss | L_bare - L_treated = dTL + dABS | NASA TM-85722 eqs. (1)-(3) | V3: within 0.28 dB (the "1 +" term of the single-wall form) |
 | Seat spread | 95th-percentile seat = room average + 10 log10(ln 20) | Schroeder 1962 | exponential-sample test |
 | Weighting | IEC A / C | IEC 61672-1 | table values |
 

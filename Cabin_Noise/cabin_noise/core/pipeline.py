@@ -54,9 +54,10 @@ class Fuselage:
 
 @dataclass
 class CabinConfig:
-    Lx: float = 8.0
-    Ly: float = 1.9
-    Lz: float = 1.8
+    # Box of the cabin air above the floor (the underfloor bay is not part of the cabin).
+    Lx: float = 22.7                 # cabin length, m
+    Ly: float = 2.64                 # cabin width, m
+    Lz: float = 1.9                  # floor to ceiling, m (assumed, typical regional turboprop)
     cabin_altitude: float = 2438.4   # m (cabin pressure altitude)
     temperature: float = 293.15      # K
     surfaces: list = field(default_factory=list)

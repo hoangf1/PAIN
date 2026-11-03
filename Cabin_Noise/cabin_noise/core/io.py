@@ -32,18 +32,19 @@ def default_project() -> Project:
     lib = load_library()
     cab = CabinConfig()
     floor = cab.Lx * cab.Ly
+    n_win = round(0.75 * cab.Lx)                   # windows per side, one per 1.33 m of cabin
     walls = 2 * cab.Lx * cab.Lz * 0.75
     cab.surfaces = [
         _lib_surface(lib, "Carpet on floor", floor * 0.4),
         _lib_surface(lib, "Upholstered seats (per m2 floor)", floor * 0.6),
         _lib_surface(lib, "Trim panels", walls),
         _lib_surface(lib, "Perforated headliner", cab.Lx * cab.Ly),
-        _lib_surface(lib, "Windows", 2 * 12 * 0.08),
+        _lib_surface(lib, "Windows", 2 * n_win * 0.08),
         _lib_surface(lib, "Bulkhead (hard)", 2 * cab.Ly * cab.Lz),
     ]
     sidewall = Sidewall(skin_thickness=1.6e-3, skin_density=2780.0, skin_added_mass=1.5, double_wall=True,
                         trim_mass=2.7, blanket_mass=9.6 * 0.05, cavity_depth=0.09)
-    windows = Opening(name="Windows (6 per side, 6 + 4 mm acrylic as one pane)", area=6 * 0.08, mode="mass",
+    windows = Opening(name=f"Windows ({n_win} per side, 6 + 4 mm acrylic as one pane)", area=n_win * 0.08, mode="mass",
                       mass=1190.0 * 0.010)
     mission = Mission(segments=[
         Segment(name="Climb", altitude=3000.0, mach=0.30, rpm=1700.0, shaft_power=900e3, eta_p=0.80),

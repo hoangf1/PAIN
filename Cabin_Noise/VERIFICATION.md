@@ -17,7 +17,7 @@ METHOD.md lists the methods and sources.
 | V2: CR-132602 eq. (52) | numeric solution of the report's power balance, eq. (47) | 1e-14 dB (also shows the 2/eps of eq. (53) is a misprint) |
 | Pipeline NR | eq. (52) / single-wall form written out | 1e-12 dB |
 | Openings | TM-85722 eq. (1) written out | 1e-12 dB |
-| V3: insertion loss | TM-85722 IL = dTL + dABS | 0.33 dB (the "1 +" term) |
+| V3: insertion loss | TM-85722 IL = dTL + dABS | 0.28 dB (the "1 +" term) |
 | V2p: reproduce CR-132602 Fig. 14 | the report's own printed NR prediction, from its stated inputs (criterion 1.5 dB, fixed before the run) | **failed**: single wall 2.1-3.3 dB low, flat offset. Post-hoc: the unstated area ratio S5/S2 = 2 closes it within 0.3 dB (cases.yaml) |
 | Goody | the source's asymptotic slopes (w^2, about w^-0.7, w^-5) | pass |
 | Diffuse wall factor | Monte Carlo of random plane waves at a rigid wall (Waterhouse) | 2.0 within 10 % |
