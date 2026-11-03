@@ -588,3 +588,15 @@ Everything below is digitized under `PAIN_Program/data` and can be copied withou
 - Sec. 8 no longer plans a shared case format, Export / Import to PAIN or a sweep-then-verify-in-PAIN workflow; none of these was built.
 - The CR-172428 data row is marked not used. The repo CLAUDE.md line about V8 is removed. No other case or criterion changed.
 
+### LaTeX copies of the documents; METHOD verification column (2026-11-03, author's request)
+- **LaTeX:** `scripts/md_to_latex.py` writes `docs/latex/<name>.tex` for each of the seven Markdown documents. It has no new dependency.
+  - The output is for XeLaTeX / LuaLaTeX with DejaVu fonts, so the Unicode text prints as written.
+  - Mermaid blocks become PNGs, rendered with mermaid-cli and named by a hash of their source.
+  - All seven compiled with Tectonic 0.15, with no missing glyphs.
+  - `tests/test_latex_docs.py` checks that every .md is converted, each copy and diagram is current, and the converter's escaping, tables and lists are right. Its list case caught a bug: a numbered list after a bullet list at the same indent was merged into it.
+- **METHOD.md:**
+  - The ASCII chain is now a Mermaid flowchart.
+  - The "Verified by" column names the V case or the unit test for every block, and says when a block has no V case and why.
+  - The seat-spread row gives the percentile formula.
+- **Gap closed:** the Sabine check tested only the 0.161 constant, never the code. New `test_cabin_absorption_is_sabine` checks the surface sum and the measured-T60 path. VERIFICATION.md is updated.
+

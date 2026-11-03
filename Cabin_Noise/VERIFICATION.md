@@ -9,7 +9,7 @@ Every block is checked against something outside its own code path:
 
 METHOD.md lists the methods and sources.
 
-| Check | Against | Result |
+| Check (V = case on the Validation tab; others are unit tests in `tests/`) | Against | Result |
 |---|---|---|
 | V0a: Gutin closed form | direct quadrature of the rotating-dipole integral it is derived from | 1e-12 dB |
 | Gutin far field | independent time-domain moving-force solution (Lowson 1965), `tests/independent.py` | 0.1 dB |
@@ -21,8 +21,9 @@ METHOD.md lists the methods and sources.
 | V2p: reproduce CR-132602 Fig. 14 | the report's own printed NR prediction, from its stated inputs (criterion 1.5 dB, fixed before the run) | **failed**: single wall 2.1-3.3 dB low, flat offset. Post-hoc: the unstated area ratio S5/S2 = 2 closes it within 0.3 dB (cases.yaml) |
 | Goody | the source's asymptotic slopes (w^2, about w^-0.7, w^-5) | pass |
 | Diffuse wall factor | Monte Carlo of random plane waves at a rigid wall (Waterhouse) | 2.0 within 10 % |
-| Seat statistic | 95th percentile of an exponential sample | 0.05 dB |
-| ISA, Sutherland, IEC 61672 A / C, Sabine | published tables / constants | pass |
+| Seat statistic | 80-99th percentiles of an exponential sample | 0.05 dB |
+| ISA, Sutherland, IEC 61672 A / C | published tables | pass |
+| Cabin absorption (Sabine) | sum S alpha by hand; measured-T60 path against 24 ln10 V / (c T60) (added 2026-11-03: the earlier check covered only the constant, not the code) | 1e-3 |
 | End to end | default case recomputed independently (tone, 1 kHz band, totals) | 0.01-0.05 dB |
 | Validation map | every case under exactly one block; consistent edges | pass |
 

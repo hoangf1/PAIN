@@ -36,11 +36,14 @@ python -m venv .venv
 | `cabin_noise/data/` | Surface absorption library; `validation/` (cases, map layout, references, inputs) |
 | `references/` | NASA CR-132602 and TM-85722 (from NTRS) |
 | `docs/figures/` | Per-case figures and the stage map linked from VALIDATION.md (`scripts/make_doc_figures.py`) |
+| `docs/latex/` | A LaTeX copy of every Markdown document (`scripts/md_to_latex.py`); Mermaid diagrams as PNGs in `docs/figures/mermaid/` |
 | `tests/` | pytest suite (`independent.py` holds the independent re-implementations) |
 
 **Default example:** a generic twin turboprop with a 22.7 x 2.64 x 1.9 m cabin; cruise 97.6 dBA room average, 102.3 dBA at the 95th-percentile seat. Cabin air (8000 ft, 20 C) and the cavity absorption (CR-132602 sec. 6.2's table) are set to these defaults and can be changed in the Cabin and Sidewall tabs. Every value of the example is in `cabin_noise/data/default_project.json`, and every input has a field in the GUI (the Analysis tab holds the band range and the max-seat percentile). The equations' own constants are listed in METHOD.md sec. 5.
 
 **Running:** the model runs only when you press the green **Run (F5)** button at the top of the Model tab. It does not run on start-up, on opening a file or on an input edit. Before the first run the results bar says "Not run yet"; while the inputs differ from the last run it says "Not up to date" in orange and shows the last run's numbers greyed. Mission summary (F6) and Parameter sweep (F7) are in the Run menu, and the Validation tab has its own run button.
+
+**LaTeX documents:** every `.md` here has a LaTeX copy in `docs/latex/`. After editing a document, run `.venv/Scripts/python scripts/md_to_latex.py`; add `--mmdc <path to mermaid-cli>` when a Mermaid diagram changed. `tests/test_latex_docs.py` fails while a copy or a diagram is out of date. Compile with XeLaTeX or LuaLaTeX, e.g. `tectonic docs/latex/METHOD.tex`.
 
 ## Validation status (paper pipeline, 2026-11-02)
 

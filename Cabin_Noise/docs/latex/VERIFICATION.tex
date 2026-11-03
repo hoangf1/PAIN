@@ -1,0 +1,58 @@
+%% Generated from VERIFICATION.md by scripts/md_to_latex.py - edit the Markdown, then re-run the script.
+%% Compile with XeLaTeX or LuaLaTeX (e.g. tectonic VERIFICATION.tex).
+\documentclass[10pt,a4paper]{article}
+\usepackage[margin=2cm]{geometry}
+\usepackage{fontspec}
+\setmainfont{DejaVuSerif.ttf}[BoldFont=DejaVuSerif-Bold.ttf, ItalicFont=DejaVuSerif-Italic.ttf,
+  BoldItalicFont=DejaVuSerif-BoldItalic.ttf, Scale=0.92]
+\setmonofont{DejaVuSansMono.ttf}[BoldFont=DejaVuSansMono-Bold.ttf, Scale=0.85]
+\usepackage{graphicx,longtable,array,enumitem,fvextra,xcolor}
+\usepackage[hidelinks]{hyperref}
+\usepackage{xurl}
+\setlist{nosep,leftmargin=1.4em}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5em}
+\renewcommand{\arraystretch}{1.2}
+\begin{document}
+
+{\LARGE\bfseries Cabin\_Noise: verification of the paper pipeline\par}\bigskip
+
+\textbf{Date:} 2026-11-02. \textbf{Tests:} \texttt{pytest} runs 47 tests.
+
+Every block is checked against something outside its own code path:
+
+\begin{itemize}
+\item its paper's own equations, solved another way;
+\item a published table;
+\item a physical identity.
+\end{itemize}
+
+METHOD.md lists the methods and sources.
+
+{\small
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.303\linewidth}>{\raggedright\arraybackslash}p{0.303\linewidth}>{\raggedright\arraybackslash}p{0.303\linewidth}}
+\hline
+\textbf{Check (V = case on the Validation tab; others are unit tests in \texttt{tests/\allowbreak{}})} & \textbf{Against} & \textbf{Result} \\
+\hline
+\endhead
+V0a: Gutin closed form & direct quadrature of the rotating-dipole integral it is derived from & 1e-12 dB \\
+Gutin far field & independent time-domain moving-force solution (Lowson 1965), \texttt{tests/\allowbreak{}independent.\allowbreak{}py} & 0.1 dB \\
+V1: CR-132602 eq. (46) & 0-90 deg integral of eq. (45) & 1e-9 dB \\
+V2: CR-132602 eq. (52) & numeric solution of the report's power balance, eq. (47) & 1e-14 dB (also shows the 2/eps of eq. (53) is a misprint) \\
+Pipeline NR & eq. (52) / single-wall form written out & 1e-12 dB \\
+Openings & TM-85722 eq. (1) written out & 1e-12 dB \\
+V3: insertion loss & TM-85722 IL = dTL + dABS & 0.28 dB (the "1 +" term) \\
+V2p: reproduce CR-132602 Fig. 14 & the report's own printed NR prediction, from its stated inputs (criterion 1.5 dB, fixed before the run) & \textbf{failed}: single wall 2.1-3.3 dB low, flat offset. Post-hoc: the unstated area ratio S5/S2 = 2 closes it within 0.3 dB (cases.yaml) \\
+Goody & the source's asymptotic slopes (w\textasciicircum{}2, about w\textasciicircum{}-0.7, w\textasciicircum{}-5) & pass \\
+Diffuse wall factor & Monte Carlo of random plane waves at a rigid wall (Waterhouse) & 2.0 within 10 \% \\
+Seat statistic & 80-99th percentiles of an exponential sample & 0.05 dB \\
+ISA, Sutherland, IEC 61672 A / C & published tables & pass \\
+Cabin absorption (Sabine) & sum S alpha by hand; measured-T60 path against 24 ln10 V / (c T60) (added 2026-11-03: the earlier check covered only the constant, not the code) & 1e-3 \\
+End to end & default case recomputed independently (tone, 1 kHz band, totals) & 0.01-0.05 dB \\
+Validation map & every case under exactly one block; consistent edges & pass \\
+\hline
+\end{longtable}}
+
+Run: \texttt{.\allowbreak{}venv/\allowbreak{}Scripts/\allowbreak{}python -m pytest -q} (all) and \texttt{.\allowbreak{}venv/\allowbreak{}Scripts/\allowbreak{}python scripts/\allowbreak{}smoke\_\allowbreak{}gui.\allowbreak{}py} (GUI).
+
+\end{document}

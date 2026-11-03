@@ -1,0 +1,97 @@
+%% Generated from README.md by scripts/md_to_latex.py - edit the Markdown, then re-run the script.
+%% Compile with XeLaTeX or LuaLaTeX (e.g. tectonic README.tex).
+\documentclass[10pt,a4paper]{article}
+\usepackage[margin=2cm]{geometry}
+\usepackage{fontspec}
+\setmainfont{DejaVuSerif.ttf}[BoldFont=DejaVuSerif-Bold.ttf, ItalicFont=DejaVuSerif-Italic.ttf,
+  BoldItalicFont=DejaVuSerif-BoldItalic.ttf, Scale=0.92]
+\setmonofont{DejaVuSansMono.ttf}[BoldFont=DejaVuSansMono-Bold.ttf, Scale=0.85]
+\usepackage{graphicx,longtable,array,enumitem,fvextra,xcolor}
+\usepackage[hidelinks]{hyperref}
+\usepackage{xurl}
+\setlist{nosep,leftmargin=1.4em}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5em}
+\renewcommand{\arraystretch}{1.2}
+\begin{document}
+
+{\LARGE\bfseries Cabin Noise: low-fidelity turboprop cabin noise tool\par}\bigskip
+
+This is a PySide6 desktop tool that estimates propeller-aircraft cabin SPL, dBA and dBC with a \textbf{low-fidelity paper pipeline}. Every block follows a published method exactly and is verified against it:
+
+\begin{Verbatim}[breaklines,fontsize=\small,frame=single,rulecolor=\color{gray}]
+Gutin tones + Goody boundary layer  ->  CR-132602 sidewall noise reduction  ->  interior = exterior - NR
+                                        (openings, insertion loss: TM-85722)
+\end{Verbatim}
+
+\href{METHOD.pdf}{METHOD.md} maps each block to its paper. \href{AUDIT.pdf}{AUDIT.md} records the code audit. \href{VERIFICATION.pdf}{VERIFICATION.md} lists the checks against the papers. \href{VALIDATION.pdf}{VALIDATION.md} explains each verification and validation case, why its data were chosen, and links its figure. The reports are in \texttt{references/\allowbreak{}}.
+
+It is a stand-alone tool: no case compares it with another program, and it does not use PAIN\_Program's code or results.
+
+\section*{Install and run}
+
+\begin{Verbatim}[breaklines,fontsize=\small,frame=single,rulecolor=\color{gray}]
+python -m venv .venv
+.venv/Scripts/python -m pip install -r requirements.txt
+.venv/Scripts/python app.py                 # opens the generic twin-turboprop example
+.venv/Scripts/python app.py my_case.json    # opens a saved project
+\end{Verbatim}
+
+\section*{Tests}
+
+\begin{Verbatim}[breaklines,fontsize=\small,frame=single,rulecolor=\color{gray}]
+.venv/Scripts/python -m pytest -q                  # paper checks, end-to-end hand check, pipeline
+.venv/Scripts/python scripts/smoke_gui.py          # offscreen GUI smoke
+\end{Verbatim}
+
+\section*{Layout}
+
+{\small
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.232\linewidth}>{\raggedright\arraybackslash}p{0.708\linewidth}}
+\hline
+\textbf{Path} & \textbf{Contents} \\
+\hline
+\endhead
+\texttt{cabin\_\allowbreak{}noise/\allowbreak{}core/\allowbreak{}} & \texttt{source\_\allowbreak{}tonal} (Gutin), \texttt{source\_\allowbreak{}tbl} (Goody), \texttt{sea} (CR-132602 eqs. 46, 52), \texttt{materials} (sidewall, openings, surfaces), \texttt{pipeline} (\texttt{run\_\allowbreak{}case}), \texttt{cabin}, \texttt{weighting}, \texttt{atmosphere}, \texttt{mission}, \texttt{io}, \texttt{validation}, \texttt{flight} (case runners) \\
+\texttt{cabin\_\allowbreak{}noise/\allowbreak{}gui/\allowbreak{}} & Main window, input tabs, plots, Validation tab with a draggable stage map \\
+\texttt{cabin\_\allowbreak{}noise/\allowbreak{}data/\allowbreak{}} & Surface absorption library; \texttt{validation/\allowbreak{}} (cases, map layout, references, inputs) \\
+\texttt{references/\allowbreak{}} & NASA CR-132602 and TM-85722 (from NTRS) \\
+\texttt{docs/\allowbreak{}figures/\allowbreak{}} & Per-case figures and the stage map linked from VALIDATION.md (\texttt{scripts/\allowbreak{}make\_\allowbreak{}doc\_\allowbreak{}figures.\allowbreak{}py}) \\
+\texttt{docs/\allowbreak{}latex/\allowbreak{}} & A LaTeX copy of every Markdown document (\texttt{scripts/\allowbreak{}md\_\allowbreak{}to\_\allowbreak{}latex.\allowbreak{}py}); Mermaid diagrams as PNGs in \texttt{docs/\allowbreak{}figures/\allowbreak{}mermaid/\allowbreak{}} \\
+\texttt{tests/\allowbreak{}} & pytest suite (\texttt{independent.\allowbreak{}py} holds the independent re-implementations) \\
+\hline
+\end{longtable}}
+
+\textbf{Default example:} a generic twin turboprop with a 22.7 x 2.64 x 1.9 m cabin; cruise 97.6 dBA room average, 102.3 dBA at the 95th-percentile seat. Cabin air (8000 ft, 20 C) and the cavity absorption (CR-132602 sec. 6.2's table) are set to these defaults and can be changed in the Cabin and Sidewall tabs. Every value of the example is in \texttt{cabin\_\allowbreak{}noise/\allowbreak{}data/\allowbreak{}default\_\allowbreak{}project.\allowbreak{}json}, and every input has a field in the GUI (the Analysis tab holds the band range and the max-seat percentile). The equations' own constants are listed in METHOD.md sec. 5.
+
+\textbf{Running:} the model runs only when you press the green \textbf{Run (F5)} button at the top of the Model tab. It does not run on start-up, on opening a file or on an input edit. Before the first run the results bar says "Not run yet"; while the inputs differ from the last run it says "Not up to date" in orange and shows the last run's numbers greyed. Mission summary (F6) and Parameter sweep (F7) are in the Run menu, and the Validation tab has its own run button.
+
+\textbf{LaTeX documents:} every \texttt{.\allowbreak{}md} here has a LaTeX copy in \texttt{docs/\allowbreak{}latex/\allowbreak{}}. After editing a document, run \texttt{.\allowbreak{}venv/\allowbreak{}Scripts/\allowbreak{}python scripts/\allowbreak{}md\_\allowbreak{}to\_\allowbreak{}latex.\allowbreak{}py}; add \texttt{--mmdc <path to mermaid-cli>} when a Mermaid diagram changed. \texttt{tests/\allowbreak{}test\_\allowbreak{}latex\_\allowbreak{}docs.\allowbreak{}py} fails while a copy or a diagram is out of date. Compile with XeLaTeX or LuaLaTeX, e.g. \texttt{tectonic docs/\allowbreak{}latex/\allowbreak{}METHOD.\allowbreak{}tex}.
+
+\section*{Validation status (paper pipeline, 2026-11-02)}
+
+\begin{itemize}
+\item \textbf{Verification:} V0a, V1, V2, V3 pass (no verdict).
+\item \textbf{V2p, a reproduction of the paper's own printed prediction (CR-132602 Fig. 14):} check failed.
+\begin{itemize}
+\item From the report's stated inputs, the single-wall NR is 2.1-3.3 dB below Fig. 14, a near-constant offset. The curve's shape matches.
+\item The report computed Fig. 14 with eq. (53), which keeps the cabin-to-wall area ratio S5/S2, but it does not state the ratio. A post-hoc S5/S2 = 2 reproduces the curve within 0.3 dB.
+\item The double wall needs the blanket mass, which the report does not state. Fig. 14 therefore cannot show whether the authors used 2/eps or 4/eps.
+\item Details are in \texttt{cases.\allowbreak{}yaml}.
+\end{itemize}
+\item \textbf{Validation:} 1 of 8 met (V5b, the boundary-layer source). V6, the insertion loss, is close at 72 \% (75 \% needed). The other misses fall where the papers' own stated limits put them:
+\begin{itemize}
+\item CR-132602's mass-law wall well below half the ring frequency (V7, V4a, V4b);
+\item Gutin's far-field formula in the near field (V5c; V5 at 64 \%).
+\end{itemize}
+\item \textbf{V4 (TM-85722 Fig. 18, lab TL of the prop-plane treated panel), run 2026-11-03:} not met, 5 of 11 bands within ±6 dB.
+\begin{itemize}
+\item The mass-law wall (skin plus treatment mass) tracks the lab TL within 3 dB up to 250 Hz.
+\item Above 315 Hz it is 6–13 dB low: the septa and barrier on fiberglass act as a second wall, which a single limp wall cannot show.
+\end{itemize}
+\item The details are in METHOD.md sec. 4. Retired cases and the earlier pipeline's records are in git (up to commit 1c2c8fe).
+\end{itemize}
+
+\textbf{Use:} relative trades (treatments, masses, absorption) at mid and high frequencies. Absolute tone levels at the blade passage frequency are outside the papers' stated range.
+
+\end{document}

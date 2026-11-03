@@ -4,7 +4,9 @@ import numpy as np
 import pytest
 
 from cabin_noise.core.atmosphere import air, isa
-from cabin_noise.core.cabin import STAT_95
+from cabin_noise.core.cabin import STAT_95, t60
+from cabin_noise.core.io import default_project
+from cabin_noise.core.materials import ALPHA_OCTAVES
 from cabin_noise.core.mission import Segment, operating_point, tas_from_ias
 from cabin_noise.core.source_tbl import boundary_layer, goody_phi
 from cabin_noise.core.source_tonal import gutin_rms
@@ -44,6 +46,19 @@ def test_weighting_against_iec_61672_table(f, A, C):
 
 def test_sabine_constant():
     assert 24 * np.log(10) / 343.0 == pytest.approx(0.161, abs=5e-4)
+
+
+def test_cabin_absorption_is_sabine():
+    """The pipeline's cabin absorption: A = sum S alpha from the surfaces, or A = 24 ln10 V / (c T60)
+    from a measured T60, and back through cabin.t60 (Sabine)."""
+    c = default_project().cabin
+    hand = sum(s.area * s.alpha[ALPHA_OCTAVES.index(1000.0)] for s in c.surfaces)
+    assert c.absorption(1000.0)[0] == pytest.approx(hand, rel=1e-12)
+    c.volume, c.t60_measured = 0.0, [[500.0, 0.4], [1000.0, 0.3]]
+    V = c.Lx * c.Ly * c.Lz
+    A = c.absorption(1000.0)[0]
+    assert A == pytest.approx(24 * np.log(10) / 343.0 * V / 0.3, rel=1e-3)
+    assert t60(V, A) == pytest.approx(0.3, rel=1e-12)
 
 
 def test_waterhouse_wall_factor_and_diffuse_intensity():

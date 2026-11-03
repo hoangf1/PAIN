@@ -1,0 +1,838 @@
+%% Generated from projectPlan.md by scripts/md_to_latex.py - edit the Markdown, then re-run the script.
+%% Compile with XeLaTeX or LuaLaTeX (e.g. tectonic projectPlan.tex).
+\documentclass[10pt,a4paper]{article}
+\usepackage[margin=2cm]{geometry}
+\usepackage{fontspec}
+\setmainfont{DejaVuSerif.ttf}[BoldFont=DejaVuSerif-Bold.ttf, ItalicFont=DejaVuSerif-Italic.ttf,
+  BoldItalicFont=DejaVuSerif-BoldItalic.ttf, Scale=0.92]
+\setmonofont{DejaVuSansMono.ttf}[BoldFont=DejaVuSansMono-Bold.ttf, Scale=0.85]
+\usepackage{graphicx,longtable,array,enumitem,fvextra,xcolor}
+\usepackage[hidelinks]{hyperref}
+\usepackage{xurl}
+\setlist{nosep,leftmargin=1.4em}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5em}
+\renewcommand{\arraystretch}{1.2}
+\begin{document}
+
+{\LARGE\bfseries Low-Fidelity Turboprop Cabin Noise Tool — Implementation Plan\par}\bigskip
+
+A PySide6 desktop tool that estimates propeller-aircraft cabin SPL / dBA from mission, propeller and fuselage geometry, sidewall layers, insulation, trim and cabin absorption — without airfoil polars, structural/acoustic mode coupling, phase-resolved pressure grids or CFD. A fast companion to the PAIN recreation: low-fi for design sweeps, PAIN for detailed low-frequency checks.
+
+\textbf{Design principle: no fitted parameters.} Every quantity is computed from physics, statistics or a stated input. Flight/lab data are used only for \emph{blind} validation, so the reported error band is a real uncertainty that carries to a new aircraft.
+
+\noindent\rule{\linewidth}{0.4pt}
+
+\section*{1. Reference basis}
+
+Only three references are required. All other equations are written out in Appendix A.
+
+{\small
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.327\linewidth}>{\raggedright\arraybackslash}p{0.246\linewidth}>{\raggedright\arraybackslash}p{0.337\linewidth}}
+\hline
+\textbf{Role} & \textbf{Document} & \textbf{Link} \\
+\hline
+\endhead
+Method (sidewall TL → noise reduction → interior level) & Wilby \& Scharton, NASA CR-132602 & \url{https://ntrs.nasa.gov/api/citations/19750010899/downloads/19750010899.pdf} \\
+Real-turboprop validation (lab TL + absorption → in-flight IL) & Mixson, O'Neal \& Grosveld, NASA TM-85722 (1984) & \url{https://ntrs.nasa.gov/citations/19840008879} \\
+Exterior + cabin flight data (blind source and cabin validation) & Wilby, McDaniel \& Wilby, NASA CR-178004 & \url{https://ntrs.nasa.gov/api/citations/19860010618/downloads/19860010618.pdf} \\
+\hline
+\end{longtable}}
+
+\begin{quote}
+Before coding Stage 2/4, cross-check symbols against CR-132602 directly.
+\end{quote}
+
+\noindent\rule{\linewidth}{0.4pt}
+
+\section*{2. Calculation pipeline (what goes in, what comes out)}
+
+\begin{Verbatim}[breaklines,fontsize=\small,frame=single,rulecolor=\color{gray}]
+Mission + geometry ─► [1] Exterior source   ─► p_inc (tones, per patch), Φ_wall (TBL bands)
+Sidewall stack     ─► [2] Sidewall TL       ─► τ(f, θ), TL_d(f)
+Cabin surfaces     ─► [3] Cabin absorption  ─► A(f), T60(f)
+                      [4] Interior level    ─► L_int(f) average; L(x) per seat; max seat
+                      [5] Weighting/totals  ─► OASPL, dBA, dBC (tonal / broadband / total)
+                      [6] Insertion loss    ─► IL(f)  (config A vs B)
+\end{Verbatim}
+
+\textbf{Two parallel tracks through every stage}
+
+{\small
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.105\linewidth}>{\raggedright\arraybackslash}p{0.458\linewidth}>{\raggedright\arraybackslash}p{0.347\linewidth}}
+\hline
+\textbf{Stage} & \textbf{Tonal (prop harmonics)} & \textbf{Broadband (TBL)} \\
+\hline
+\endhead
+Frequencies & discrete \texttt{f\_\allowbreak{}m = m·B·RPM/\allowbreak{}60}, m = 1…N & 1/3-octave centers 50 Hz – 5 kHz \\
+Source & rotating point forces → free-field \textbf{incident} pressure at patch(es) & Goody wall-pressure spectrum (algebraic, no grid) \\
+Transmission & τ(f\_m, θᵢ) at each patch's incidence angle & diffuse-field TL, band-averaged \\
+Area & prop-plane patch area(s) & full sidewall \\
+Interior & transmitted power → room equation & transmitted power → room equation \\
+Max seat & statistics above f\_s; box-mode shape below f\_s & statistics \\
+\hline
+\end{longtable}}
+
+Combined per band, then weighted and summed. Both tracks are kept as separate outputs.
+
+\subsection*{Stage 1 — Exterior source (generated from mission + geometry)}
+
+\begin{itemize}
+\item \textbf{Mission inputs (per segment):} altitude, Mach, RPM, shaft power, propeller efficiency η\_p (or thrust directly).
+\item \textbf{Geometry inputs:} tip radius R\_t, blade count B, tip clearance h\_c, prop axial station, engine count, synchrophase angle Δφ.
+\item \textbf{Tones:} each blade = one point force (thrust + torque components) rotating at R\_e = 0.8·R\_t. Pressure at the fuselage computed in the time domain (retarded time, forward flight included), then FFT → harmonics. Captures near field and flight effects with no fitting. Must reproduce Gutin in the static far field (unit test V0a).
+\item \textbf{Incident vs surface pressure:} the source gives free-field \textbf{incident} pressure. No +6 dB is applied — the transfer matrix already contains the skin reflection.
+\item \textbf{Far-side propeller (twins):} shadowing by the fuselage from the rigid-cylinder scattering solution (A.3).
+\item \textbf{Twin combination:} coherent sum with synchrophase angle Δφ; report both energetic average and worst-case coherent level.
+\item \textbf{Boundary-layer refraction (cruise):} no closed form → required visible input K\_refr (0–5 dB) with a sensitivity band on plots. Not fitted.
+\item \textbf{Patches:} default \textbf{1 patch} (nearest fuselage point in the prop plane) with user area S\_p; optional \textbf{5-patch} sensitivity check (magnitudes + angles only, no phase). If 1 vs 5 patches differ by < 1 dB in dBA, 1 patch is adequate.
+\item \textbf{TBL:} Goody model from flight condition — one algebraic evaluation per band.
+\item \textbf{Override:} measured exterior levels via CSV (for validation runs only).
+\end{itemize}
+
+\subsection*{Stage 2 — Sidewall TL (transfer matrix)}
+
+Layered skin / gap / blanket / gap / trim; Delany–Bazley blanket; plane-wave τ(f, θ); diffuse average; band averaging; composite with windows/doors (A.4).
+
+\subsection*{Stage 3 — Cabin absorption}
+
+\texttt{A(f) = Σ Sᵢαᵢ(f)}, \texttt{T60 = 0.\allowbreak{}161·V/\allowbreak{}A}; surface library (seats, carpet, trim, headliner).
+
+\subsection*{Stage 4 — Interior level (power bookkeeping, no correction factor)}
+
+\begin{itemize}
+\item Tones: transmitted power from each patch, \texttt{p\_\allowbreak{}int² = 4ρ₀c₀W\_\allowbreak{}t/\allowbreak{}A}.
+\item TBL: wall pressure treated as blocked pressure of an equivalent diffuse field (−6 dB) → diffuse TL. \textbf{Conservative (upper bound)}, labeled in GUI.
+\item Max seat: above Schroeder frequency f\_s → diffuse-field statistics (+4.8 dB for 95th percentile); below f\_s → rigid-box cabin-mode spatial shape, energy from room equation (A.5).
+\end{itemize}
+
+\subsection*{Stage 5 — Totals}
+
+A/C weighting, energetic sums, tonal / broadband / total outputs (A.6–A.7).
+
+\subsection*{Stage 6 — Insertion loss}
+
+\texttt{IL = L\_\allowbreak{}int,bare − L\_\allowbreak{}int,treated} from two saved configurations.
+
+\noindent\rule{\linewidth}{0.4pt}
+
+\section*{3. Software architecture}
+
+\begin{Verbatim}[breaklines,fontsize=\small,frame=single,rulecolor=\color{gray}]
+cabin_noise/
+├── core/                    # pure NumPy/SciPy, no Qt imports — fully unit-testable
+│   ├── frequencies.py       # 1/3-octave grid, harmonic list
+│   ├── atmosphere.py        # ISA, viscosity
+│   ├── mission.py           # segment dataclasses, active-segment selection
+│   ├── materials.py         # dataclasses: Panel, PorousLayer, AirGap, Surface
+│   ├── source_tonal.py      # rotating point forces, retarded time, FFT, Gutin check
+│   ├── scattering.py        # rigid-cylinder surface factor, shadowing
+│   ├── source_tbl.py        # Goody spectrum, BL thickness, wall shear
+│   ├── porous.py            # Delany–Bazley
+│   ├── tmm.py               # matrices, τ(θ), diffuse average, band average, composite
+│   ├── cabin.py             # absorption, T60, room equation, patch power sum
+│   ├── seats.py             # Schroeder split, statistics, box-mode spatial shape
+│   ├── weighting.py         # A/C weighting, energetic sums
+│   ├── pipeline.py          # run_case(config) -> Results
+│   ├── validation.py        # blind case runner, metrics, pass/fail status
+│   └── io.py                # JSON project files, CSV import/export
+├── gui/
+│   ├── main_window.py
+│   ├── panels/              # input forms (see §4)
+│   ├── plots.py             # pyqtgraph or matplotlib canvases
+│   ├── validation_tab.py    # validation map, code-vs-reference figures, report export
+│   ├── models.py            # Qt table models for layers/surfaces
+│   └── worker.py            # QThread/QRunnable for sweeps
+├── data/
+│   ├── materials.json       # default skins, blankets (σ), trims, α tables
+│   └── validation/          # digitized reference curves + cases.yaml
+├── tests/
+└── app.py
+\end{Verbatim}
+
+\textbf{Key design rules}
+
+\begin{itemize}
+\item \texttt{core} never imports Qt; GUI calls \texttt{pipeline.\allowbreak{}run\_\allowbreak{}case()} only.
+\item One serializable config dataclass tree → JSON project files.
+\item SI internally; GUI handles unit display.
+\item Results carry every intermediate (p\_inc per patch, Φ\_wall, τ, TL, A, T60, L\_int, seat map) for plotting/export.
+\end{itemize}
+
+\textbf{Dependencies:} Python ≥3.10, PySide6, NumPy, SciPy (\texttt{special.\allowbreak{}jv}, \texttt{special.\allowbreak{}hankel1}, integration), pyqtgraph or matplotlib, pytest. Package with PyInstaller.
+
+\noindent\rule{\linewidth}{0.4pt}
+
+\section*{4. GUI layout}
+
+\textbf{Main window:} left = input tabs, right = plots, bottom = results bar (OASPL / dBA / dBC — average and max seat; tonal vs broadband split).
+
+{\small
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.192\linewidth}>{\raggedright\arraybackslash}p{0.748\linewidth}}
+\hline
+\textbf{Tab} & \textbf{Contents} \\
+\hline
+\endhead
+Mission & Segment table (name, altitude, Mach, RPM, shaft power or thrust, η\_p); active segment; ISA readout (ρ, c, q, Re) \\
+Propeller & B, R\_t, h\_c, axial station, engine count, rotation, synchrophase Δφ → BPF, Ω, tip Mach; K\_refr input; patch mode (1 / 5); source mode (generated / measured override) \\
+Fuselage & R, skin (E, ρ, ν, h, η), smeared stiffener mass, nose-to-cabin distance; live f\_r, f\_c \\
+Sidewall Stack & Ordered layer table (panel / gap / blanket); material library; schematic preview \\
+Openings & Windows/doors: area + TL or layer stack \\
+Cabin & Surface table (area, material, α(f)); cabin box dimensions L\_x, L\_y, L\_z; seat positions; computed A, T60, f\_s \\
+\hline
+\end{longtable}}
+
+\textbf{Plot views}
+
+\begin{enumerate}
+\item Exterior: incident tone levels per patch + Goody wall spectrum
+\item TL vs frequency with f₀, f\_r, f\_c markers and mass-law line
+\item Interior: average level (line), tones (stems), max-seat envelope, K\_refr sensitivity band
+\item A-weighted contribution per band, stacked tonal vs broadband
+\item Seat map: level at each seat for selected harmonic
+\item Compare: two configs + IL
+\item Mission summary: dBA / OASPL per segment; 1-vs-5 patch sensitivity
+\end{enumerate}
+
+\subsection*{Validation tab}
+
+\textbf{Left — Validation map:} rows = cases (§5); columns = stage, track, reference, metric, target, result, status (pass / marginal / fail / not run). Header shows coverage. "Run all" stamps date + git commit. All validation is \textbf{blind} (no parameters tuned to the data).
+
+\textbf{Right — Figure viewer per case:}
+
+\begin{itemize}
+\item Overlay: code (line) vs reference (markers) with shaded acceptance band
+\item Error vs frequency with ±target lines
+\item Predicted-vs-measured scatter with 1:1 line; mean, RMS, max |error|, \% within target
+\item Caption: report number, figure/table, inputs, criteria
+\end{itemize}
+
+\textbf{Heatmap:} cases × frequency band colored by |error|/target — shows where in frequency the model is trustworthy.
+
+\textbf{Export:} PDF/HTML validation report.
+
+\textbf{Extras:} parameter sweeps in a worker thread; CSV/PNG/SVG/PDF export; recent-files menu.
+
+\noindent\rule{\linewidth}{0.4pt}
+
+\section*{5. Validation plan (blind — nothing fitted)}
+
+{\small
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.041\linewidth}>{\raggedright\arraybackslash}p{0.051\linewidth}>{\raggedright\arraybackslash}p{0.066\linewidth}>{\raggedright\arraybackslash}p{0.357\linewidth}>{\raggedright\arraybackslash}p{0.092\linewidth}>{\raggedright\arraybackslash}p{0.214\linewidth}}
+\hline
+\textbf{Case} & \textbf{Stage} & \textbf{Track} & \textbf{Check} & \textbf{Reference} & \textbf{Pass target} \\
+\hline
+\endhead
+V0a & Source & tonal & Rotating-force model, static far field → Gutin & analytic (A.2) & < 0.5 dB per harmonic \\
+V0b & Source & — & Cylinder scattering limits: ka→0 → 0 dB; large ka front → +6 dB & analytic (A.3) & < 0.5 dB \\
+V0c & Seats & — & Box-mode spatial mean of G(x)/⟨G⟩ = 1 & analytic & < 0.1 dB \\
+V1 & TL & — & Single panel θ=0 → normal mass law & analytic & < 0.1 dB \\
+V2 & TL & — & Field incidence ≈ 20log(mf) − 47 below f\_c & analytic & < 1 dB \\
+V3 & TL & — & Double-wall f₀ dip location & analytic & within 1/3 octave \\
+V4 & TL & broadband & Lab sidewall-panel TL (bare and treated) & TM-85722 & ±3 dB mid-freq \\
+V5 & Source & tonal & Predicted surface harmonics (incident × scattering factor) vs measured, all altitudes/RPMs/single- and twin-engine runs & CR-178004 & ±3 dB at BPF1–3 \\
+V5b & Source & broadband & Goody spectrum vs measured exterior fluctuating pressure & CR-178004 & ±3 dB per band \\
+V6 & Cabin & both & Treatment IL vs flight & TM-85722 & ±3 dB broadband; report harmonic error \\
+V7 & Total & tonal & Cabin harmonic levels at each measured location (average + max-seat method) & CR-178004 & report error band \\
+\hline
+\end{longtable}}
+
+\textbf{Data format:} digitized curves in \texttt{data/\allowbreak{}validation/\allowbreak{}<case>.\allowbreak{}csv} with YAML header (report, figure/table, aircraft, condition, units, digitization uncertainty). Case definitions in \texttt{cases.\allowbreak{}yaml}, shared by GUI and \texttt{pytest}. V0–V3 run in CI.
+
+\noindent\rule{\linewidth}{0.4pt}
+
+\section*{6. Milestones}
+
+{\small
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.057\linewidth}>{\raggedright\arraybackslash}p{0.190\linewidth}>{\raggedright\arraybackslash}p{0.664\linewidth}}
+\hline
+\textbf{\#} & \textbf{Deliverable} & \textbf{Scope} \\
+\hline
+\endhead
+M1 & Core TL engine & materials, porous, tmm; V1–V3 passing (CLI) \\
+M2 & Source models & rotating-force tones, Goody TBL, cylinder scattering; V0a, V0b passing \\
+M3 & Full pipeline & cabin, seats, weighting, run\_case(), JSON, CSV export; V0c passing \\
+M4 & GUI v1 & main window, input tabs, plots, results bar \\
+M5 & Compare \& sweep & two-config overlay, IL, sweeps, patch sensitivity \\
+M6 & Validation & digitized NASA data, V4–V7 blind, Validation tab + report export \\
+M7 & Polish \& package & unit toggles, material editor, PDF report, PyInstaller \\
+\hline
+\end{longtable}}
+
+\noindent\rule{\linewidth}{0.4pt}
+
+\section*{7. Stated assumptions and limitations (shown in Help/About)}
+
+\begin{itemize}
+\item Plane-wave, infinite-layer TL; curvature via ring-frequency correction only.
+\item Point forces at a single effective radius; thickness noise not modeled (error quantified by V5).
+\item TBL treated as equivalent diffuse field → conservative upper bound.
+\item Boundary-layer refraction is a user input with sensitivity band, not predicted.
+\item Cabin approximated as a rigid-wall box for the low-frequency seat shape.
+\item Structure-borne paths (engine/wing) and flanking not modeled.
+\item Error bands come from blind validation on one turboprop (CR-178004 / TM-85722); stated as such.
+\end{itemize}
+
+\section*{8. Relationship to PAIN}
+
+None. Cabin\_Noise is a stand-alone tool: no case compares it with PAIN\_Program, and it shares no code, input format or results with it (author's decision 2026-11-03; see Implementation notes).
+
+\noindent\rule{\linewidth}{0.4pt}
+
+\section*{Appendix A — Equations}
+
+All SI. \texttt{p\_\allowbreak{}ref = 20 µPa}. \texttt{j = √−1}. Time convention \texttt{e\textasciicircum{}\{−jωt\}} for A.3; check signs against the stated limits.
+
+\subsection*{A.1 Atmosphere (ISA)}
+
+\begin{Verbatim}[breaklines,fontsize=\small,frame=single,rulecolor=\color{gray}]
+Troposphere (h ≤ 11 000 m):   T = 288.15 − 0.0065·h ;  p = 101325·(T/288.15)^5.2559
+Stratosphere (11–20 km):      T = 216.65 ;             p = 22632·exp(−9.80665·(h−11000)/(287.05·216.65))
+ρ = p/(287.05·T)    c = √(1.4·287.05·T)    V = M·c
+μ = 1.458e-6·T^1.5/(T + 110.4)            ν = μ/ρ
+\end{Verbatim}
+
+Ambient properties for the source and TBL; cabin air for gaps and cabin.
+
+\subsection*{A.2 Tonal source — rotating point forces}
+
+\textbf{Forces} (per blade, applied at R\_e = 0.8·R\_t):
+
+\begin{Verbatim}[breaklines,fontsize=\small,frame=single,rulecolor=\color{gray}]
+Ω   = 2π·RPM/60
+Q   = P_shaft/Ω                    T = η_p·P_shaft/V  (V>0; static: user T)
+F_ax  = −T/B   (axial, force on fluid)
+F_tan = −Q/(B·R_e)  (tangential, opposing rotation, force on fluid)
+\end{Verbatim}
+
+\textbf{Blade source trajectory} (ground frame, flight along +x at speed V; blade k):
+
+\begin{Verbatim}[breaklines,fontsize=\small,frame=single,rulecolor=\color{gray}]
+ψ_k(τ) = Ω·τ + 2πk/B
+y(τ)   = [x_p + V·τ,  R_e·cos ψ_k,  R_e·sin ψ_k]
+Observer (fuselage patch, moves with aircraft): x_o(t) = x_o0 + [V·t, 0, 0]
+\end{Verbatim}
+
+\textbf{Pressure of a moving point force} (exact dipole form):
+
+\begin{Verbatim}[breaklines,fontsize=\small,frame=single,rulecolor=\color{gray}]
+p_k(x, t) = −∂/∂x_i [ F_i(τ*) / (4π · r · |1 − M_r|) ]
+  r   = |x − y(τ*)|,   M_r = (dy/dτ · (x − y)) / (c·r)
+  τ*  = emission time solving  t − τ* = r(τ*)/c
+\end{Verbatim}
+
+\textbf{Numerical recipe} (subsonic tip helical Mach):
+
+\begin{enumerate}
+\item March emission time τ uniformly over several revolutions; compute reception time t = τ + r/c and the bracketed potential at x\_o ± δ·ê\_i (δ ≈ λ/100).
+\item Interpolate each onto a uniform t grid; take central differences for ∂/∂x\_i; sum blades.
+\item FFT over an integer number of BPF periods → p\_inc,m per harmonic.
+\end{enumerate}
+
+\textbf{Gutin check (V0a)} — static (V = 0), far field, observer at distance r and angle θ from forward axis:
+
+\begin{Verbatim}[breaklines,fontsize=\small,frame=single,rulecolor=\color{gray}]
+p_m,rms = [m·B·Ω / (2√2·π·c·r)] · | T·cosθ − Q·c/(Ω·R_e²) | · J_mB(m·B·Ω·R_e·sinθ / c)
+\end{Verbatim}
+
+The time-domain model must match this within 0.5 dB; this also verifies force sign conventions.
+
+\textbf{Twin propellers} (per harmonic, per patch):
+
+\begin{Verbatim}[breaklines,fontsize=\small,frame=single,rulecolor=\color{gray}]
+p_near : direct from near-side prop
+p_far  : far-side prop × shadow factor |S(φ_far)|/2  (A.3, blocked→incident equivalence)
+Coherent:   p_inc,m = | p_near + p_far · e^{j·m·Δφ} |
+Energetic:  p_inc,m² = p_near² + p_far²
+Worst case: p_inc,m = |p_near| + |p_far|
+L_inc,m = 20·log10(p_inc,m / p_ref) + K_refr
+\end{Verbatim}
+
+\subsection*{A.3 Rigid-cylinder scattering (surface factor)}
+
+Plane wave of amplitude p\_inc incident on an infinite rigid cylinder of radius a, surface angle φ from the incidence direction:
+
+\begin{Verbatim}[breaklines,fontsize=\small,frame=single,rulecolor=\color{gray}]
+S(φ) = p_surface/p_inc = (2j/(π·k·a)) · Σ_{n=0}^{N} ε_n · jⁿ · cos(nφ) / H_n^(1)'(k·a)
+ε₀ = 1, ε_n = 2 (n ≥ 1);   N ≈ k·a + 10
+H_n^(1)' (z) = ½·[H_{n−1}^(1)(z) − H_{n+1}^(1)(z)]
+\end{Verbatim}
+
+Checks (V0b): |S| → 1 as ka → 0; |S| → 2 at φ = 0 (facing side) as ka → ∞. Used for (i) far-side prop shadowing and (ii) converting predicted incident to surface pressure for comparison with CR-178004 flush-mounted data.
+
+\subsection*{A.4 Broadband source — Goody wall-pressure model}
+
+\begin{Verbatim}[breaklines,fontsize=\small,frame=single,rulecolor=\color{gray}]
+q    = ½·ρ·V²
+Re_x = V·x_n/ν                         (x_n = nose-to-station distance)
+δ    = 0.37·x_n·Re_x^(−0.2)
+C_f  = 0.0592·Re_x^(−0.2)
+τ_w  = C_f·q          u_τ = √(τ_w/ρ)       U_e ≈ V
+R_T  = (δ/U_e) / (ν/u_τ²)
+
+Φ(ω)·U_e/(τ_w²·δ) = 3·ω̃² / [ (ω̃^0.75 + 0.5)^3.7 + (1.1·R_T^(−0.57)·ω̃)^7 ],   ω̃ = ω·δ/U_e
+
+Band:  p_band² = ∫_{f_l}^{f_u} Φ(ω)·2π df   (Φ per unit ω, one-sided)
+L_wall,band = 10·log10(p_band² / p_ref²)
+\end{Verbatim}
+
+\subsection*{A.5 Sidewall transmission loss — transfer matrix}
+
+\textbf{Panel properties:}
+
+\begin{Verbatim}[breaklines,fontsize=\small,frame=single,rulecolor=\color{gray}]
+m   = ρ_s·h (+ m_stiff)          D = E·h³/(12·(1−ν_p²))
+f_c = (c₀²/(2π))·√(m/D)          c_L = √(E/(ρ_s·(1−ν_p²)))      f_r = c_L/(2π·R)
+\end{Verbatim}
+
+\textbf{Panel impedance} (ω = 2πf):
+
+\begin{Verbatim}[breaklines,fontsize=\small,frame=single,rulecolor=\color{gray}]
+Z_p = j·ω·m·[1 − (f/f_c)²·sin⁴θ·(1 + j·η)]·K_curv
+K_curv = 1 − (f_r/f)² (skin), 1 (trim);  clip |Z_p| ≥ ω·m·η near f_r
+\end{Verbatim}
+
+\textbf{Delany–Bazley blanket} (X = ρ₀f/σ, valid ≈ 0.01–1):
+
+\begin{Verbatim}[breaklines,fontsize=\small,frame=single,rulecolor=\color{gray}]
+Z_c = ρ₀c₀·[1 + 0.0571·X^(−0.754) − j·0.087·X^(−0.732)]
+k_c = (ω/c₀)·[1 + 0.0978·X^(−0.700) − j·0.189·X^(−0.595)]
+Air gap: Z_c = ρ₀c₀, k_c = ω/c₀
+\end{Verbatim}
+
+\textbf{Transfer matrices:}
+
+\begin{Verbatim}[breaklines,fontsize=\small,frame=single,rulecolor=\color{gray}]
+Panel:  T_p = [[1, Z_p], [0, 1]]
+Layer:  k_z = √(k_c² − k₀²·sin²θ)
+        T_f = [[cos(k_z·d),                     j·(Z_c·k_c/k_z)·sin(k_z·d)],
+               [j·(k_z/(Z_c·k_c))·sin(k_z·d),   cos(k_z·d)               ]]
+Total:  T = T_skin · T_gap · T_blanket · T_gap · T_trim
+\end{Verbatim}
+
+\textbf{Transmission:}
+
+\begin{Verbatim}[breaklines,fontsize=\small,frame=single,rulecolor=\color{gray}]
+τ(f,θ) = | 2 / (T₁₁ + T₁₂·cosθ/Z₀ + T₂₁·Z₀/cosθ + T₂₂) |²
+τ_d    = ∫₀^78° τ·sinθ·cosθ dθ / ∫₀^78° sinθ·cosθ dθ      (Gauss–Legendre ~60 pts)
+TL_d   = −10·log10(τ_d)
+Band:  average τ_d over ~10 log-spaced frequencies in the band, then TL
+Composite: τ_comp = Σ Sᵢ·τᵢ / Σ Sᵢ
+\end{Verbatim}
+
+\textbf{Unit checks:}
+
+\begin{Verbatim}[breaklines,fontsize=\small,frame=single,rulecolor=\color{gray}]
+TL₀ = 10·log10(1 + (ω·m/(2ρ₀c₀))²)              normal incidence single panel
+TL ≈ 20·log10(m·f) − 47                         field incidence, f << f_c
+f₀ = (1/2π)·√(ρ₀c₀²·(m₁+m₂)/(d·m₁·m₂))          double-wall resonance
+\end{Verbatim}
+
+\subsection*{A.6 Cabin level — power bookkeeping}
+
+\begin{Verbatim}[breaklines,fontsize=\small,frame=single,rulecolor=\color{gray}]
+A(f) = Σ Sᵢ·αᵢ(f)          T60 = 0.161·V_cab/A          f_s = 2000·√(T60/V_cab)
+
+Tones (patch i, area S_i, incidence angle θ_i from prop–patch geometry):
+  W_t,m = Σ_i S_i · τ(f_m, θ_i) · p_inc,m,i² · cosθ_i / (ρ₀c₀)
+  p_int,m² = 4·ρ₀c₀·W_t,m / A(f_m)
+
+TBL (full sidewall S_w, wall pressure → equivalent diffuse incident, −6 dB):
+  p_inc,band² = p_wall,band² / 4
+  W_t,band    = S_w · τ_d,band · p_inc,band² / (4·ρ₀c₀)
+  p_int,band² = 4·ρ₀c₀·W_t,band / A            [conservative upper bound]
+
+L_int = 10·log10(p_int² / p_ref²)
+\end{Verbatim}
+
+1-patch default: θ₁ from the nearest point, S₁ = user prop-plane area (e.g. frame bays × window-belt height). 5-patch option: patches spaced axially/circumferentially across that area, each with own p\_inc and θ.
+
+\subsection*{A.7 Max seat}
+
+\textbf{Above f\_s} (diffuse statistics; p² exponentially distributed):
+
+\begin{Verbatim}[breaklines,fontsize=\small,frame=single,rulecolor=\color{gray}]
+L_95 = L_int + 10·log10(ln 20)  = L_int + 4.8 dB
+L_99 = L_int + 10·log10(ln 100) = L_int + 6.6 dB
+\end{Verbatim}
+
+\textbf{Below f\_s} (rigid-box modes give spatial shape; energy from A.6):
+
+\begin{Verbatim}[breaklines,fontsize=\small,frame=single,rulecolor=\color{gray}]
+f_n    = (c₀/2)·√((n_x/L_x)² + (n_y/L_y)² + (n_z/L_z)²)
+ψ_n(x) = cos(n_xπx/L_x)·cos(n_yπy/L_y)·cos(n_zπz/L_z)
+η(f)   = 2.2/(f·T60)
+ψ̄_n    = mean of ψ_n over the prop-plane sidewall patch
+G(x)   = | Σ_n ψ_n(x)·ψ̄_n / (f_n² − f² + j·η·f·f_n) |²       modes up to ~2·f
+L(x)   = L_int + 10·log10( G(x) / ⟨G⟩_cabin )                ⟨G⟩ = volume average (V0c)
+Max seat = max over seat positions of L(x)
+\end{Verbatim}
+
+\subsection*{A.8 Weighting and totals}
+
+\begin{Verbatim}[breaklines,fontsize=\small,frame=single,rulecolor=\color{gray}]
+R_A = 12194²·f⁴ / [(f²+20.6²)·√((f²+107.7²)(f²+737.9²))·(f²+12194²)]    A = 20·log10(R_A) + 2.00
+R_C = 12194²·f² / [(f²+20.6²)·(f²+12194²)]                              C = 20·log10(R_C) + 0.06
+
+Band b (f_l = f_c·2^(−1/6), f_u = f_c·2^(1/6)):
+  L_b = 10·log10( 10^(L_bb,b/10) + Σ_{f_m∈b} 10^(L_m/10) )
+OASPL = 10·log10 Σ_b 10^(L_b/10)
+dBA   = 10·log10 Σ_b 10^((L_b + A(f_b))/10)
+dBC   = 10·log10 Σ_b 10^((L_b + C(f_b))/10)
+\end{Verbatim}
+
+Report tonal-only, broadband-only and total, for both average and max seat.
+
+\subsection*{A.9 Inputs that are stated, not fitted}
+
+{\small
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.225\linewidth}>{\raggedright\arraybackslash}p{0.301\linewidth}>{\raggedright\arraybackslash}p{0.384\linewidth}}
+\hline
+\textbf{Input} & \textbf{Why it is an input} & \textbf{How handled} \\
+\hline
+\endhead
+K\_refr (0–5 dB) & no closed form for BL refraction & sensitivity band on plots \\
+Δφ synchrophase & operating setting & energetic / coherent / worst-case reported \\
+Patch area S₁ & geometry definition & 1-vs-5 patch sensitivity check \\
+Cabin box L\_x, L\_y, L\_z & geometry simplification & stated assumption \\
+\hline
+\end{longtable}}
+
+\noindent\rule{\linewidth}{0.4pt}
+
+\section*{Implementation notes (2026-11-02)}
+
+\subsection*{Milestone status}
+
+{\small
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.232\linewidth}>{\raggedright\arraybackslash}p{0.708\linewidth}}
+\hline
+\textbf{\#} & \textbf{Status} \\
+\hline
+\endhead
+M1 Core TL engine & Done. V1, V2 and V3 pass. \\
+M2 Source models & Done. V0a and V0b pass. Time-domain and Gutin results agree within 0.04 dB. Optional blade-geometry source added 2026-11-02 (see below). \\
+M3 Full pipeline & Done. \texttt{run\_\allowbreak{}case}, JSON and CSV export work. V0c passes. \\
+M4 GUI v1 & Done. Six input tabs, eight plot views and the results bar. \\
+M5 Compare \& sweep & Done. A/B overlay, IL, background sweeps, mission summary, 1-vs-5 patch check. \\
+M6 Validation & Framework done: Validation tab, figures, HTML/PDF export (the heatmap was removed 2026-11-03) (the run is threaded: about 1-2 min). All runnable cases ran 2026-11-02: \textbf{met V5b, V5c, V5d; not met V4a, V5, V6, V7} (see below). V4 ran 2026-11-03 (not met, see the V2p/V4 notes). \\
+M7 Polish \& package & Partly done: material library and PDF report. Still open: unit toggles, a separate material editor, PyInstaller build. \\
+\hline
+\end{longtable}}
+
+\subsection*{Where the code differs from the text above}
+
+\begin{enumerate}
+\item \textbf{Sign of the tangential force (A.2).} The force \emph{on the fluid} points \textbf{along} the blade motion, not against it. Only that sign reproduces Gutin's \texttt{T cosθ − Q c/\allowbreak{}(ΩR\_\allowbreak{}e²)}, so V0a confirms it. The plan's "opposing rotation" is the force on the blade.
+\item \textbf{Time domain → frequency domain (A.2).} The model, the retarded time and the ±δ finite difference are the same. The harmonics are computed as a Fourier integral over emission time, \texttt{φ\_\allowbreak{}n = (1/\allowbreak{}T)∫φ e\textasciicircum{}\{jω t(τ)\} (dt/\allowbreak{}dτ) dτ}, instead of interpolating onto a t grid and taking an FFT. This form is exact and needs no re-gridding. The delay \texttt{s = t − τ} has a closed form because the observer moves with the aircraft.
+\item \textbf{Curvature term (A.5).} The ring-frequency stiffness is \emph{added} to the bracket: \texttt{Z\_\allowbreak{}p = jωm[1 − (f\_\allowbreak{}r/\allowbreak{}f)² − (f/\allowbreak{}f\_\allowbreak{}c)² sin⁴θ (1+jη)]}. Multiplying the whole bracket by \texttt{K\_\allowbreak{}curv} would flip the sign of the bending term below f\_r.
+\item \textbf{ρ₀c₀ in the TMM and in A.6.} Both use cabin air. For a mass-controlled wall, the transmitted power depends on the blocked pressure: τ(ρc\_cab) × p\_inc²/(ρc)\_cab gives the right W\_t.
+\item \textbf{Schroeder frequency} uses the mean of T60 at 500 Hz and 1 kHz. Below f\_s, broadband seat shapes average G over 5 frequencies inside each band.
+\item \textbf{Max seat.} Each seat gets its own band spectrum: the box-mode shape below f\_s and +4.8 dB above. The reported "max seat" is the seat with the highest total dBA, not a per-band envelope. The envelope appears only in the Interior plot.
+\item \textbf{Far-side shadow angle} for the 5-patch option is \texttt{π − |α|}, where α is the patch's circumferential angle.
+\item \textbf{Verdict rule.} V0-V3 compare against analytic limits, so under the repo rule (2026-10-29) they are \emph{verification}: they show "check ok / failed" and never a met / not-met verdict. Only V4-V7 can carry a verdict.
+\item \texttt{gui/\allowbreak{}panels.\allowbreak{}py} is one module instead of a \texttt{panels/\allowbreak{}} package.
+\end{enumerate}
+
+\subsection*{Defaults and library}
+
+\begin{itemize}
+\item The default project is a \emph{generic} twin turboprop with stated inputs; it represents no specific aircraft.
+\item \texttt{materials.\allowbreak{}json} holds handbook-typical values. None of them is fitted to validation data.
+\item The default project gives: cruise 86.2 dBA room average, 90.9 dBA max seat (after the boundary-layer factor correction and the limp default blanket of 2026-11-02; it was 85.1 / 89.8 before). The 1-vs-5 patch difference is 0.02 dB, so 1 patch is adequate for this case.
+\end{itemize}
+
+\subsection*{Experimental data already in the repo (inventory 2026-11-02)}
+
+Everything below is digitized under \texttt{PAIN\_\allowbreak{}Program/\allowbreak{}data} and can be copied without digitizing again. Record provenance in each reference CSV.
+
+{\small
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.220\linewidth}>{\raggedright\arraybackslash}p{0.252\linewidth}>{\raggedright\arraybackslash}p{0.155\linewidth}>{\raggedright\arraybackslash}p{0.252\linewidth}}
+\hline
+\textbf{Data} & \textbf{What it measures} & \textbf{Cabin\_Noise use} & \textbf{Status} \\
+\hline
+\endhead
+TP-1964 Fig. 8 (\texttt{tp1964/\allowbreak{}}) & Bare unstiffened cylinder, reverberant-field NR, 50 Hz-5 kHz & \textbf{V4a} (sidewall TL / NR, lab) & Run: not met \\
+TP-1964 Fig. 17 (\texttt{tp1964/\allowbreak{}}) & Measured interior T60 and structural decay & V4a inputs (absorption, eta) & Used \\
+CR-3813 Figs. E-21/E-22 (\texttt{cr3813/\allowbreak{}}) & Stiffened, trimmed 1.83 m cylinder, reverberant NR (range and 95 \% limits) & Candidate V4b & Blocked: blanket flow resistivity and septum material are not printed (input-completeness) \\
+CR-3813 Fig. E-13 (\texttt{cr3813/\allowbreak{}e13\_\allowbreak{}absorption\_\allowbreak{}targets.\allowbreak{}csv}) & Measured interior absorption of that cylinder & V4b / V7b inputs & Available \\
+CR-3813 Fig. E-16, T1/T2 targets (\texttt{cr3813/\allowbreak{}}) & Propeller-driven interior 1/3-octave levels, same cylinder & Candidate V7b (tonal interior) & Needs the measured exterior field (E-11) as a measured-source override; same trim inputs gap as V4b \\
+CR-3813 Fig. E-11 (\texttt{cr3813/\allowbreak{}e11\_\allowbreak{}freefield\_\allowbreak{}measured\_\allowbreak{}*.\allowbreak{}csv}) & Measured free-field propeller levels & V5-style source check / V7b input & Available, not yet mapped \\
+TP-2444 Figs. 17, 19 (\texttt{tp2444/\allowbreak{}}) & Same 1.83 m model 2: exterior and interior spectra, rotation direction & Candidate V7c & Analysis bandwidth not stated (5 Hz assumed in PAIN); trim gap as above \\
+CR-172428 App. B (\texttt{cr172428/\allowbreak{}}) & Blocked pressure field and PAIN's predictions & Not used: predictions, not experimental & Available \\
+CR-172490 Fig. 15 (\texttt{cr172490/\allowbreak{}}) & Sharp's double-panel \emph{prediction} & Verification only (another method) & Not a validation reference \\
+\texttt{references/\allowbreak{}NASA\_\allowbreak{}CR\_\allowbreak{}178004.\allowbreak{}pdf} & Commander 695A flight: exterior and interior harmonics, untreated and treated & \textbf{V5} (run), V5b, V7 & The appendices are printed tables with a text layer, so they can be transcribed (not digitized from plots). App. A drives V5; App. D (1/3-octave exterior) drives V5b; App. B and E (untreated cabin) and App. C, F, J (treated cabin, insertion loss) drive V7 and a V6-like case. Inputs are in sec. 2 and Tables 1-8 \\
+NASA TM-85722 & Lab TL and in-flight IL & V4, V6 as planned & Not in the repo \\
+\hline
+\end{longtable}}
+
+\subsection*{V4a result (TP-1964 Fig. 8, run 2026-11-02, criterion fixed before the run)}
+
+\begin{itemize}
+\item \textbf{Not met.} max |dNR| = 16.1 dB over 250 Hz-2 kHz (target 3 dB); 1 of 21 bands lies within 3 dB over 50 Hz-5 kHz.
+\item Post-hoc attribution, information only (wall-only re-run, no verdict):
+\begin{enumerate}
+\item The end caps, modelled as infinite mass-law panels with coincidence at 970 Hz, control the composite below 2 kHz. Without them, NR at 50-160 Hz is 44-54 dB against 40-46 dB measured. Small clamped thick plates are stiffness-controlled, which the plane-wave panel cannot represent.
+\item With the wall alone, the model still predicts 12-24 dB too much NR at 250 Hz-2 kHz. A lightly damped (eta = 0.0018) thin cylinder transmits through resonant modes below the ring frequency (3.3 kHz). The plane-wave TL with an added ring-stiffness term has no resonant path. This is the plan's stated assumption 1, and V4a measures what it costs.
+\item Near f\_r the model's NR falls to about 0 dB; measured is 4.5-7 dB.
+\end{enumerate}
+\item A fix (for example a statistical resonant-transmission term below f\_r, or a finite-plate end-cap model) is a model change. It must be judged on a case it was not developed against; V4a's result stays recorded as is.
+\end{itemize}
+
+\subsection*{Low-fidelity criterion policy (decided 2026-11-02, before any comparison of V4, V5, V5b, V6, V7)}
+
+\begin{itemize}
+\item The plan's +-3 dB at every point is a high-fidelity target. A low-fi tool is meant for design trades and overall levels, so the unrun experimental cases are now judged \textbf{met when at least 75 \% of the points in range lie within +-6 dB}. Max |e|, RMS and mean error are reported with every result. V7 now carries a verdict instead of "report only".
+\item \textbf{V4a keeps its original verdict} (max-error <= 3 dB: not met), because it was defined and run under that criterion. Re-stated under the new policy (\textbf{post-hoc, information only, 2026-11-02}): 3 of 10 bands lie within +-6 dB, which would still be not met.
+\item Misses are an expected outcome for a low-fi tool. They are recorded with an attribution and listed as known limits, and are never tuned away.
+\end{itemize}
+
+\subsection*{V5 result (CR-178004 App. A, flight 3, run 2026-11-02; definition committed first in 4eadb02)}
+
+\begin{itemize}
+\item \textbf{Not met:} 43 of 101 surface harmonic levels lie within +-6 dB (75 \% needed). Mean error +6.1 dB, RMS 6.4 dB, max |e| 10.1 dB. The model overpredicts systematically, most at BPF1 (+7.7 dB average) and least at BPF3 (+4.7 dB). The error is similar at all three altitudes (+5.1, +6.4 and +6.5 dB). For context, the report's own simplified methods overpredicted the same data by 7 dB and 11 dB on average (CR-178004 Table 9).
+\item Sensitivity, post-hoc, information only (no input was changed for the verdict): eta\_p 0.7 / 0.9 moves the mean error by about +-0.4 dB; fuselage radius 0.6 / 0.9 m by 0.2 dB or less. \textbf{The effective loading radius dominates:} R\_e = 0.7 / 0.9 R\_t gives mean +2.8 / +8.7 dB. Collapsing the blade loading onto one radius 0.36 m from the tips is the main near-field error (plan assumption 2).
+\item Possible model change: spread the forces over several radial stations with a stated (not fitted) loading shape. Flights 1, 2 and 4 of App. A are repeat flights of the same conditions, so they are \emph{not} an independent check for a change motivated by flight 3. Such a change would need a different aircraft or test to earn a verdict.
+\end{itemize}
+
+\subsection*{Optional blade-geometry source (added 2026-11-02)}
+
+\begin{itemize}
+\item \textbf{Why:} V5 showed that the single effective radius dominates the near-field error. The user asked for a radial distribution built on a known pipeline rather than an invented loading shape.
+\item \textbf{Method:} the chain PAIN\_Program uses (CCBlade BEMT feeding AcousticAnalogies Farassat 1A, as in CR-3813 App. B / ANOPP), reduced to textbook low-fi pieces:
+\begin{itemize}
+\item thin-airfoil section lift with the Prandtl-Glauert correction, alpha0 = -cl\_design / 2 pi (NACA a = 1.0 mean line, Abbott \& von Doenhoff);
+\item constant cd0 and a +-clmax limit;
+\item Glauert blade-element momentum with Prandtl tip loss (axial induction, swirl neglected);
+\item each radial strip as a compact rotating force through the existing source (Farassat compact loading), with phasors summed.
+\end{itemize}
+\item \textbf{Loads:} when a thrust and torque are known (the mission's eta\_p P / V and P / Omega, or measured performance), the strip loads are scaled to them, so only the radial shape comes from BEMT.
+\item \textbf{Inputs:} blade r/R, c/R, pitch and design cl (CSV in the Propeller tab). The \textbf{default stays \texttt{point}}: the blade mode needs blade geometry, which the plan deliberately does not require.
+\item \textbf{Verification (unit tests, no verdict):}
+\begin{itemize}
+\item the far-field strip sum equals Gutin's formula integrated strip by strip (within 0.2 dB);
+\item one strip reproduces the point source exactly;
+\item scaling keeps the shape;
+\item hover figure of merit is physical, and more pitch gives more thrust.
+\end{itemize}
+\item \textbf{BEMT performance on the Report 996 blade (information only, nothing tuned):} C\_T 0.078-0.085 against the printed 0.070-0.080; C\_Q 0.0034-0.0039 against 0.0037-0.0051. The thrust centroid sits at 0.67-0.69 R, inboard of the point model's 0.8 R.
+\end{itemize}
+
+\subsection*{V5c / V5d results (NACA Report 996 static near field, run 2026-11-02; definitions committed first in 18b3f9c)}
+
+\begin{itemize}
+\item \textbf{Data:} 52 rms harmonic levels at the tip clearance d/D = 0.083 (Figs. 12 and 14, beta 10 deg, M\_t 0.45-0.90, harmonics 1-4). They were digitized for PAIN and copied unchanged. Both cases take thrust and torque from the C\_T and C\_Q printed in Fig. 14, so only the radial distribution differs. This data is independent of CR-178004: different propeller, static, lab.
+\item \textbf{V5c, point source (default):} \textbf{met.} 49 of 52 within +-6 dB; mean +2.2 dB, RMS 3.5 dB, max 7.4 dB. The largest errors are BPF3 at M\_t 0.60-0.90.
+\item \textbf{V5d, blade source:} \textbf{met.} 51 of 52 within +-6 dB; mean -0.1 dB, RMS 2.6 dB, max 6.2 dB.
+\item \textbf{Reading:} on held-out data the radial distribution removes the point source's +2 dB near-field bias, as V5's sensitivity suggested. V5 (CR-178004 flight) cannot use the blade mode, because the Dowty blade geometry is not published; it stays not met with the point source. Thickness noise is still not modelled in either mode.
+\end{itemize}
+
+\subsection*{CR-178004 cabin and boundary-layer cases (run 2026-11-02; definitions committed first in ac0fcb8)}
+
+\begin{itemize}
+\item \textbf{Data.} Appendices A, B, D and J (flight 3, plus flight 4 for J) were transcribed from the PDF text layer. Illegible OCR cells are left out, not guessed. The tables were seen during transcription; the point-selection rules come from the report's text (V5b) or are "everything printed" (V6), and are recorded in cases.yaml.
+\item \textbf{Shared assumptions} (V6\_inputs.json / V7\_inputs.json): cabin box 5.33 x 1.45 x 1.45 m (width not printed); bare-structure alpha 0.075 (midpoint of the report's own 0.05 / 0.1); a bare 1.6 mm flat skin with no stiffeners or windows; blanket flow resistivity 25 000 Pa s/m2. The prop-plane patch is the whole near sidewall (30 x 15 grid).
+\item \textbf{New pipeline options:} patch mode 0 (a grid of patches over the sidewall), and \texttt{measured\_\allowbreak{}ref}. With \texttt{measured\_\allowbreak{}ref}, measured exterior levels are anchored at the microphone and the source model gives only the spatial shape. The pipeline holds one rpm per run, so each engine is run separately and the components are added in energy.
+\item \textbf{V5b, Goody vs exterior 1/3-octave bands >= 800 Hz: met.} 265 of 323 within +-6 dB, mean +2.7 dB. The error rises with frequency (-1.6 dB at 800 Hz, +7 dB at 5 kHz); the report links the measured high-frequency fall-off to microphone diaphragm size.
+\item \textbf{V7, untreated cabin harmonics driven by the measured exterior: not met.} 12 of 108 within +-6 dB, mean +12.8 dB. Errors: +14 to +19 dB at BPF1, +12 dB at BPF2, +6 to +15 dB at BPF3. Attribution (information only): at 78 Hz the infinite mass-law skin transmits far more than a stiffened bay, whose first panel modes lie above BPF (stiffness-controlled). This is plan assumption 1, the same limit V4a showed. Bay dimensions (frame and stringer spacing) are not printed in CR-178004.
+\item \textbf{V6, fiberglass insertion loss: not met.} 251 of 519 within +-6 dB, mean +8.0 dB. 400 Hz-1.6 kHz agrees within about +-5 dB. Below 250 Hz the model gives 4-11 dB, but the measurement is about 0 or negative. The rigid-frame Delany-Bazley blanket acts as a flow resistance, while a real limp blanket moves with the air; the report also cites structure-borne shaft tones there. Above 2 kHz the model keeps rising while the measured IL falls; the report attributes that fall to the tape recorder's dynamic range in the treated cabin.
+\item \textbf{What would fix them} (each a model change to be judged on other data, not on these cases):
+\begin{itemize}
+\item a stiffness-controlled panel TL below the bay fundamental (needs bay dimensions as inputs);
+\item a limp-frame porous model for blankets.
+\end{itemize}
+\end{itemize}
+
+\subsection*{Stiffened-bay panel option and V4b / V4c (added and run 2026-11-02; definitions committed first in e1a94ba)}
+
+\begin{itemize}
+\item \textbf{Model (optional, default off):} \texttt{Panel.\allowbreak{}bay\_\allowbreak{}a} / \texttt{bay\_\allowbreak{}b} (frame x stringer spacing) add the single-mode bay stiffness s = rho h w11\textasciicircum{}2 to the panel impedance, with w11 the simply supported plate fundamental (Leissa, Vibration of Plates). Below f11 the bay is spring-controlled; above it the mass law returns.
+\begin{itemize}
+\item Verified (unit tests): f11 equals Leissa's formula; TL at f11/8 equals the spring law 20 log10(s / 2 rho c w) within 0.5 dB; TL at 6 f11 equals the infinite panel within 0.3 dB.
+\end{itemize}
+\item \textbf{Measured-table porous layer:} \texttt{PorousTable} (kind \texttt{porous\_\allowbreak{}table}) takes a blanket's measured wavelength, attenuation and characteristic impedance (as CR-3813 Fig. A-2 prints them). A unit test confirms it reproduces the Delany-Bazley layer exactly when fed Delany-Bazley's own values.
+\item \textbf{V4b (infinite skin, default) and V4c (bay skin):} CR-3813 Phase III stiffened, trimmed cylinder against the Fig. E-22 measured reverberant NR. Every input is printed in CR-3813: geometry, stiffeners, end caps, PF-105 measured properties, trim masses, measured absorption (Fig. E-13), and eta = mean of Fig. E-15.
+\begin{itemize}
+\item \textbf{Both not met:} 4 of 19 bands within +-6 dB, mean +13.1 dB. The model agrees at 63-125 Hz (end-cap mass law) but overpredicts from 160 Hz upwards (+8 to +33 dB): the trimmed curved wall is far too good. CR-3813 itself (p. E-30/E-33) reports that NASA's PAIN over-predicted this case as well, suspecting flanking paths or overestimated trim influence.
+\item \textbf{V4c equals V4b to 0.1 dB, so this case cannot test the bay term.} On a 0.508 m cylinder the ring (membrane) stiffness is about 300x the bay stiffness below f\_r = 1.7 kHz, and the 13 mm end caps carry most of the transmitted power at low frequency.
+\end{itemize}
+\item \textbf{V7 attribution revised (post-hoc sensitivity, information only, verdict unchanged):}
+\begin{itemize}
+\item The Commander's frame spacing (18.66 in = 0.474 m, CR-178004 Fig. 3 station list) and longeron spacing (0.69-0.97 m, Fig. 3 water lines) give bays with f11 of about 26 Hz, below BPF (78 Hz). Bay stiffness therefore cannot be V7's missing physics: adding it moves V7's mean from +12.8 to +13.2 dB. The earlier "stiffness-controlled bays" attribution was wrong.
+\item Treating the Commander skin as curved (R = 0.725 m) swings the mean error to -23.7 dB. The real sidewall's low-frequency response lies between the infinite flat and the infinite curved idealisations: a finite structure's modal response, which is PAIN's domain rather than a one-term low-fi fix.
+\end{itemize}
+\item \textbf{Status of the bay option:} physically verified, kept as an option (default off), \textbf{not validated}. Neither experimental case in the repo can test it: V4c is curvature-dominated, and the Commander's bays are below BPF. A flat stiffened lab panel with small bays (for example TM-85722's lab panels) would be the right test.
+\end{itemize}
+
+\subsection*{Math verification (2026-11-02): see VERIFICATION.md}
+
+\begin{itemize}
+\item Every equation is now checked against its published source, through a test independent of its own code path (27 rows; 74 tests).
+\item Corrections:
+\begin{itemize}
+\item \textbf{A.6 boundary-layer conversion:} the plan's p\_inc\textasciicircum{}2 = p\_wall\textasciicircum{}2 / 4 is the single-plane-wave doubling. A diffuse field has a wall mean square of twice the field mean square (Waterhouse 1955; CR-3813 p. 23), so it is now / 2. Broadband cabin level +3 dB; default cruise 85.1 -> 86.1 dBA.
+\item \textbf{Bay stiffness:} now the exact static Navier stiffness (checked against Timoshenko's tabulated plate deflection).
+\item \textbf{Scattering series:} truncation extended.
+\item \textbf{Delany-Bazley:} use outside its range now warns.
+\end{itemize}
+\item Recorded validation verdicts are unchanged. Post-hoc re-run (information only): V6 249/519 (was 251), V4c unchanged.
+\end{itemize}
+
+\subsection*{Limp-frame blanket option and V4d (added and run 2026-11-02; definition committed first in 662544f)}
+
+\begin{itemize}
+\item \textbf{Model:} \texttt{frame = "limp"} with \texttt{bulk\_\allowbreak{}density} on PorousLayer / PorousTable turns the rigid-frame equivalent fluid (Delany-Bazley or a measured table) into the limp-frame fluid of Panneton (2007, JASA 122, EL217): rho\_limp = (rho\_t rho\_eq - rho0\textasciicircum{}2) / (rho\_t + rho\_eq - 2 rho0), with an unchanged bulk modulus.
+\begin{itemize}
+\item Verified (VERIFICATION.md row 13b): a heavy frame gives the rigid model back; a massless frame gives air density; at low frequency the density is the total mass rho\_t; the bulk modulus is unchanged; the layer is passive within Delany-Bazley's range.
+\item Delany-Bazley is itself non-physical below its range (negative real density at X = 0.002), which the existing warning flags.
+\end{itemize}
+\item \textbf{Default example:} its 9.6 kg/m3 blanket is now limp; light fiberglass behaves that way.
+\item \textbf{V4d (CR-3813 cylinder, V4b with limp blankets of the printed 9.61 kg/m3): not met.} 4 of 19 within +-6 dB, mean +12.6 dB (V4b +13.1 dB). On this case the trim model is not the error; the over-prediction comes from the wall transmission above 160 Hz (sec. 3 of VERIFICATION.md).
+\item \textbf{V6 re-run with a limp blanket (post-hoc, information only, verdict unchanged):} 282 of 519 within +-6 dB (rigid: 249). The low-frequency IL overprediction falls from about +11 to +4 dB at 25 Hz, as intended. The rest is the negative measured IL at low frequency (the report cites structure-borne components) and the report's recorder floor above 2 kHz.
+\end{itemize}
+
+\subsection*{End-to-end hand check (2026-11-02)}
+
+\begin{itemize}
+\item \texttt{tests/\allowbreak{}test\_\allowbreak{}end\_\allowbreak{}to\_\allowbreak{}end.\allowbreak{}py} recomputes the default cruise case (BPF1 tone, 1 kHz band, totals) with independent code that imports none of the tool's physics. The tool agrees within 0.1-0.2 dB.
+\item Seven deliberately planted wiring errors (source, shadow, tau, room equation, Waterhouse factor, A-weighting, band assignment) were each caught. See VERIFICATION.md sec. 1b.
+\end{itemize}
+
+\subsection*{Published-method check (2026-11-02): see METHOD.md}
+
+\begin{itemize}
+\item CR-132602 and TM-85722 were downloaded from NTRS into \texttt{Cabin\_\allowbreak{}Noise/\allowbreak{}references/\allowbreak{}}.
+\item CR-132602's recommended sidewall model is a non-resonant SEA double wall (eqs. 46-52), not the plane-wave transfer matrix the plan built. It is now available as \texttt{sidewall\_\allowbreak{}method = "cr132602"}; \texttt{tmm} stays the default.
+\item Checks:
+\begin{itemize}
+\item the closed form is proven against the report's own power balance, which also shows its eq. (53) 2/eps is a misprint of 4/eps;
+\item eq. (46) equals the 0-90 deg mass-law average;
+\item the pipeline's insertion loss is exactly TM-85722's dTL + dABS.
+\end{itemize}
+\item The Fig. 14 worked example cannot be a verdict, because its blanket mass and other inputs are not printed. An information run is recorded in METHOD.md.
+\end{itemize}
+
+\noindent\rule{\linewidth}{0.4pt}
+
+\section*{Restructure to the low-fidelity paper pipeline (2026-11-02, by the author's decision)}
+
+\begin{itemize}
+\item \textbf{The rule now:} the tool follows low-fidelity papers exactly and is verified against them. Scope that crept toward PAIN was removed (see METHOD.md sec. 3).
+\item \textbf{The pipeline:} Gutin tones -> Goody boundary layer -> CR-132602 non-resonant NR -> interior = exterior - NR, with TM-85722 openings and insertion loss. The plan's transfer-matrix wall (A.5), moving-force source (A.2), scattering (A.3) and box-mode seats (A.7) are retired.
+\item \textbf{Records:} verification and validation were rebuilt for the paper pipeline (METHOD.md sec. 4). The sections above describe the retired pipeline and stay as history.
+\end{itemize}
+
+\subsection*{Audit and review changes (2026-11-02, AUDIT.md)}
+
+\begin{itemize}
+\item \textbf{Openings:} window and door areas are defined per side and scale with the exposed area. The boundary-layer path, which exposes both sides, therefore carries both sides' windows.
+\item \textbf{V6 runner:} the boundary layer is counted once when the engines are run separately. The V6 result is unchanged.
+\item \textbf{Input checks:} zero skin, trim or pane mass, or zero cabin absorption, now stop the run with a message. Before, the mass law or the room equation gave NaN.
+\item \textbf{GUI:} readouts use the measured OAT like the case does; the A-weighted view handles a static segment.
+\end{itemize}
+
+\subsection*{V2p: reproducing the paper's printed prediction (2026-11-02)}
+
+\begin{itemize}
+\item \textbf{New verification case V2p.} It runs the pipeline's \texttt{noise\_\allowbreak{}reduction} on CR-132602's stated inputs and compares with the report's Fig. 14. Fig. 14 and the Fig. 4 absorption range were digitized for it.
+\item \textbf{Order:} the criterion (1.5 dB) and the inputs were committed before the run (c91dbbc).
+\item \textbf{Result:} check failed. The single wall is 2.1-3.3 dB low; the cause is the area ratio, which the report does not state. Post-hoc diagnostics are in cases.yaml. The test is a strict xfail, and the GUI smoke test expects "Verification 4/5".
+\item \textbf{V4 run (2026-11-03).} TM-85722 Fig. 18 was digitized: three treated layups, measured. The bare curve in the figure is a calculation and is left out.
+\begin{itemize}
+\item \textbf{Redefinition:} V4 was redefined before its first run (commit 730a559). The old range, bare and treated panels from 250 Hz to 2 kHz, could not be run from this figure. The verdict is now on the prop-plane 695A layup, 100 Hz - 1 kHz, low-fi policy criterion.
+\item \textbf{Method:} the \texttt{wall\_\allowbreak{}tl} runner applies the eq. (46) mass law to skin plus treatment mass.
+\item \textbf{Result:} not met, 5/11 bands.
+\item \textbf{Roof and aft layups:} not compared, because their septa cannot be read from Fig. 17.
+\end{itemize}
+\item \textbf{GUI:} the validation overlay's acceptance band was drawn at linear x on a log axis, which broke every frequency case's axis range. Fixed. Information series, such as V2p's double-wall curves, are now drawn.
+\end{itemize}
+
+\subsection*{Validation document and figures (2026-11-03)}
+
+\begin{itemize}
+\item \textbf{VALIDATION.md:} what each case checks, which block it tests, why its data were chosen, the data considered and not used, and Mermaid diagrams of the pipeline and the case process. It links one PNG per case and the stage map in \texttt{docs/\allowbreak{}figures/\allowbreak{}}, made by \texttt{scripts/\allowbreak{}make\_\allowbreak{}doc\_\allowbreak{}figures.\allowbreak{}py} from the Validation tab's own plots.
+\item \textbf{Caption fix:} the Validation tab's caption computed its mean, RMS and "\% within" over every plotted point, including points outside the criterion range. For V4 it showed 54 \% against the verdict's 45 \%. It now uses the same points as the verdict (\texttt{criterion\_\allowbreak{}range}) and says so. The GUI smoke test checks that every caption's percentage equals its verdict's. No recorded result changed.
+\item \textbf{Deviation from sec. 4 (Heatmap):} the |error| / target heatmap under the Validation tab was removed at the author's request (2026-11-03). Per-case error plots remain.
+\end{itemize}
+
+\subsection*{Default cabin and fewer inputs (2026-11-03, author's request)}
+
+\begin{itemize}
+\item \textbf{Default example cabin:} 22.7 m long, 2.64 m wide, 1.9 m floor to ceiling. The box is the cabin air above the floor; the underfloor bay is not part of the cabin. The height is an assumption (typical regional turboprop headroom), editable in the Cabin tab. Windows scale with the length: 17 per side (one per 1.33 m, the old 6 per 8 m), as both the opening and the absorbing surface (before: 6 openings but 12 absorbing windows per side).
+\item \textbf{Result:} default cruise 97.6 dBA room average, 102.3 dBA at the 95th-percentile seat (was 98.2 / 103.0). V3's residual is 0.28 dB (was 0.33; check ok). V2p is unchanged, because it replaces the surfaces with its own, sized to the wall. No validation case uses the default cabin.
+\item \textbf{Deviation (GUI inputs removed as too detailed for a low-fi tool):}
+\begin{itemize}
+\item Cabin pressure altitude and cabin temperature are no longer inputs. The model holds them fixed at 2438 m (8000 ft) and 20 C, shown in the Cabin tab's readout.
+\item The cavity absorption table is no longer an input. It is fixed to CR-132602 sec. 6.2's table, shown in the Sidewall tab's readout.
+\item The model fields remain, so the validation cases still use each report's stated values (lab at sea level, measured flight cabin pressure), and saved projects keep loading. No recorded result changed.
+\end{itemize}
+\item \textbf{Reverted the same day (author's decision):} the three inputs are back in the GUI. They default to the paper values (8000 ft, 20 C; CR-132602 sec. 6.2 cavity table), and each field's tooltip states its default, so the user can fill them in later. Results are unchanged.
+\end{itemize}
+
+\subsection*{All inputs visible (2026-11-03, author's request)}
+
+\begin{itemize}
+\item \textbf{Default project file:} the default example now loads from \texttt{cabin\_\allowbreak{}noise/\allowbreak{}data/\allowbreak{}default\_\allowbreak{}project.\allowbreak{}json}, written from the old code values, so its results are unchanged (cruise 97.6 / 102.3 dBA). \texttt{io.\allowbreak{}default\_\allowbreak{}project} no longer builds it in code.
+\item \textbf{Analysis tab:} new. It holds the 1/3-octave range (\texttt{f\_\allowbreak{}min}, \texttt{f\_\allowbreak{}max}), which had no GUI field, and the max-seat percentile.
+\begin{itemize}
+\item The percentile was hardcoded at 95 \% (\texttt{cabin.\allowbreak{}STAT\_\allowbreak{}95}). It is now \texttt{options.\allowbreak{}seat\_\allowbreak{}percentile}, default 95, using \texttt{cabin.\allowbreak{}seat\_\allowbreak{}stat\_\allowbreak{}db}.
+\item The Interior plot legend and the CSV header now name the percentile in use.
+\end{itemize}
+\item \textbf{Tests (\texttt{tests/\allowbreak{}test\_\allowbreak{}inputs.\allowbreak{}py}):}
+\begin{itemize}
+\item every input field must be set in the default file and have a GUI editor; checked against the previous commit, the GUI test flags the three Analysis fields;
+\item the percentile formula is checked against an exponential sample at 80-99 \%;
+\item the pipeline is checked to use the percentile.
+\end{itemize}
+\item \textbf{Fixed equation constants:} listed in METHOD.md sec. 5. They are deliberately not inputs.
+\end{itemize}
+
+\subsection*{Run button (2026-11-03, author's request)}
+
+\begin{itemize}
+\item A green \textbf{Run (F5)} button sits in a toolbar above the inputs, shown on the Model tab only (the Validation tab keeps its own run button). It calls the same \texttt{run()} as the Run menu. Smoke check: clicking the button starts a run and fills the results bar.
+\item \textbf{Automatic run removed (same day, author's decision):}
+\begin{itemize}
+\item The model no longer runs on start-up, on file open, on Load A or 0.4 s after an edit (the debounce timer is gone). It runs only on Run (F5).
+\item Before the first run the results bar says "Not run yet". An edit marks it "Not up to date" and greys the last run's numbers. A run that finishes after a later edit is marked the same way.
+\item Smoke checks: the window opens with no run; an edit starts no run; an edit after a run marks the bar out of date.
+\end{itemize}
+\end{itemize}
+
+\subsection*{Validation chart legends (2026-11-03, author's request)}
+
+\begin{itemize}
+\item All three Validation panels have a legend (top left). It names the code curve, the reference with its source, the +-target acceptance band, the target lines, the 1:1 line and any information curves. A case with no reference data lists its marker lines with their values.
+\item The panel titles are shortened to "Code vs reference", "Error (code - reference)" and "Predicted vs reference (1:1)".
+\item The docs/figures PNGs were regenerated. No result changed (same values as the record).
+\item Smoke check: every case with a reference has the code and reference entries in its legend.
+\end{itemize}
+
+\subsection*{V8 removed (2026-11-03, author's decision)}
+
+\begin{itemize}
+\item \textbf{Deviation:} V8 (cross-check against the PAIN recreation, information only, never run) is removed from \texttt{cases.\allowbreak{}yaml}, the stage map, VALIDATION.md and the case table above. PAIN is a separate program, and another code's predictions cannot validate this one.
+\item Sec. 8 no longer plans a shared case format, Export / Import to PAIN or a sweep-then-verify-in-PAIN workflow; none of these was built.
+\item The CR-172428 data row is marked not used. The repo CLAUDE.md line about V8 is removed. No other case or criterion changed.
+\end{itemize}
+
+\subsection*{LaTeX copies of the documents; METHOD verification column (2026-11-03, author's request)}
+
+\begin{itemize}
+\item \textbf{LaTeX:} \texttt{scripts/\allowbreak{}md\_\allowbreak{}to\_\allowbreak{}latex.\allowbreak{}py} writes \texttt{docs/\allowbreak{}latex/\allowbreak{}<name>.\allowbreak{}tex} for each of the seven Markdown documents. It has no new dependency.
+\begin{itemize}
+\item The output is for XeLaTeX / LuaLaTeX with DejaVu fonts, so the Unicode text prints as written.
+\item Mermaid blocks become PNGs, rendered with mermaid-cli and named by a hash of their source.
+\item All seven compiled with Tectonic 0.15, with no missing glyphs.
+\item \texttt{tests/\allowbreak{}test\_\allowbreak{}latex\_\allowbreak{}docs.\allowbreak{}py} checks that every .md is converted, each copy and diagram is current, and the converter's escaping, tables and lists are right. Its list case caught a bug: a numbered list after a bullet list at the same indent was merged into it.
+\end{itemize}
+\item \textbf{METHOD.md:}
+\begin{itemize}
+\item The ASCII chain is now a Mermaid flowchart.
+\item The "Verified by" column names the V case or the unit test for every block, and says when a block has no V case and why.
+\item The seat-spread row gives the percentile formula.
+\end{itemize}
+\item \textbf{Gap closed:} the Sabine check tested only the 0.161 constant, never the code. New \texttt{test\_\allowbreak{}cabin\_\allowbreak{}absorption\_\allowbreak{}is\_\allowbreak{}sabine} checks the surface sum and the measured-T60 path. VERIFICATION.md is updated.
+\end{itemize}
+
+\end{document}
