@@ -5,16 +5,13 @@
   "mic": "CR-178004 Table 8 and p. 16: flush microphone 7.5 cm forward of the propeller plane, about 5 cm below the spinner centre, at the tip clearance",
   "re_fraction": "plan A.2 default 0.8",
   "eta_p": "ASSUMED 0.80 (not printed); thrust = eta_p P / V. Fixed 2026-11-02 before the run.",
-  "fuselage_radius": "ASSUMED 0.725 m = half the 1.45 m cabin height of TM-85722 (as quoted in PAIN_Program/docs/IMPLEMENTATION_PLAN.md); used only in |S(ka,0)|. Fixed before the run.",
   "airspeed": "TAS from IAS taking IAS = EAS (no compressibility or position error); density from pressure altitude and OAT",
-  "axes": "x forward, y starboard, z down, near hub at the origin with the fuselage on the -y side: the starboard propeller as built (CCW from the rear = rotation -1), the port one its mirror image"
+  "method": "Gutin (RP-1258 ch. 1) at the microphone; flush microphone = incident + 6.02 dB (rigid-wall doubling, CR-132602 p. 36)"
  },
  "blades": 3,
  "tip_radius": 1.345,
  "re_fraction": 0.8,
  "eta_p": 0.8,
- "fuselage_radius": 0.725,
- "rotation_starboard": -1,
  "mic": [
   0.075,
   -1.705,
@@ -496,5 +493,6 @@
     3
    ]
   }
- ]
+ ],
+ "surface_db": 6.020599913279624
 }

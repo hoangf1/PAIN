@@ -1,18 +1,15 @@
 {
  "_assumptions": {
   "cabin_box": "ASSUMED 5.33 m long x 1.45 m high (TM-85722 via PAIN_Program/docs/IMPLEMENTATION_PLAN.md) x 1.45 m wide (width not printed: square section assumed); cabin from station 60.5, prop plane (station 117) 1.435 m aft of its front",
-  "fuselage_radius": "ASSUMED 0.725 m (as V5): scattering factor and patch curvature only",
-  "patch_grid": "the whole near sidewall (5.33 m x 1.45 m) as a 30 x 15 grid; axial_offset puts the cabin from +1.435 m to -3.895 m about the prop plane",
-  "sidewall": "1.6 mm aluminium skin (CR-178004 sec. 2.1); stiffener mass, windows and frames not modelled (not printed); flat (curved = false): rectangular section",
-  "skin_eta": "0.01 library default (not printed)",
+  "sidewall": "1.6 mm aluminium skin, single wall (bare cabin, no trim); stiffeners, windows not printed, not modelled",
   "bare_absorption": "alpha = 0.075 on all bare surfaces: midpoint of the 0.05 and 0.1 the report itself assumed (sec. 6.3)",
   "treated_absorption": "CR-178004 Table 11: sidewall treatment alpha, cockpit curtain alpha (used for the barrier's foam face), seat with occupant sabins (4 seats); 63 and 8000 Hz octaves hold the end values",
-  "blanket": "5 cm Insul-Shield, 48 kg/m3 (sec. 2.4), directly on the skin with no trim; flow resistivity ASSUMED 25 000 Pa s/m2 (not printed)",
   "tbl_station": "ASSUMED nose-to-microphone distance 2.91 m = station 114.5 in (Table 8), taking station 0 at the nose",
   "airspeed": "TAS from IAS taking IAS = EAS; density from pressure altitude and OAT",
   "cabin_air": "cabin pressure altitude from Table 4; 293.15 K assumed",
   "two_rpm": "the pipeline holds one rpm per run, so each engine is run on its own (engines = 2, energetic = its near-side and shadow-side paths) and the components are added in energy",
-  "n_tau": "1024 samples per revolution (harmonics up to 10 x 3 blades)"
+  "method": "CR-132602 sec. 7: interior = exterior - NR, single wall NR = 10 log10(1 + A / (S tau)), eq. (46) tau; S = one side 5.33 x 1.45 m",
+  "treatment": "2 in Insul-Shield 48 kg/m3 (CR-178004 sec. 2.4): mass added to the wall (CR-132602 sec. 6.2 rule), Table 11 absorption"
  },
  "_conditions": "CR-178004 Table 4 (flight 3): pressure altitude, IAS, OAT, rpm, power, cabin pressure altitude (ft columns)",
  "T4": {
@@ -197,49 +194,44 @@
    7400
   ]
  },
- "mic": [
-  0.075,
-  -1.705,
-  0.05
- ],
- "rotation_starboard": -1,
+ "eta_p": 0.8,
+ "surface_db": 6.020599913279624,
  "base": {
+  "format_version": 2,
   "name": "Commander 695A (CR-178004), untreated",
   "propeller": {
    "blades": 3,
    "tip_radius": 1.345,
    "clearance": 0.36,
-   "re_fraction": 0.8,
-   "engines": 2,
-   "twin_combination": "energetic",
+   "axial_offset": 0.075,
+   "engines": 1,
    "n_harmonics": 10,
-   "patch_mode": 0,
-   "k_refr": 0.0
+   "re_fraction": 0.8
   },
   "fuselage": {
-   "radius": 0.725,
    "nose_to_station": 2.91,
-   "sidewall_area": 15.456999999999999,
-   "patch_width": 5.33,
-   "patch_height": 1.45,
-   "patch_x_cabin": 1.435,
-   "patch_z_cabin": 0.725,
-   "grid_nx": 30,
-   "grid_nz": 15
+   "side_area": 7.7284999999999995,
+   "tbl_area": 15.456999999999999
   },
-  "sidewall": [
-   {
-    "kind": "panel",
-    "name": "Al skin 1.6 mm",
-    "E": 73100000000.0,
-    "rho": 2780.0,
-    "nu": 0.33,
-    "h": 0.0016,
-    "eta": 0.01,
-    "m_add": 0.0,
-    "curved": false
-   }
-  ],
+  "sidewall": {
+   "skin_thickness": 0.0016,
+   "skin_density": 2780.0,
+   "skin_added_mass": 0.0,
+   "double_wall": false,
+   "trim_mass": 0.0,
+   "blanket_mass": 0.0,
+   "cavity_depth": 0.05,
+   "cavity_alpha": [
+    0.22,
+    0.22,
+    0.37,
+    0.82,
+    0.99,
+    0.88,
+    0.63,
+    0.63
+   ]
+  },
   "openings": [],
   "cabin": {
    "Lx": 5.33,
@@ -317,34 +309,11 @@
       0.41
      ]
     }
-   ],
-   "seats": [
-    [
-     0.6,
-     0.4,
-     1.0
-    ],
-    [
-     0.6,
-     1.05,
-     1.0
-    ],
-    [
-     1.435,
-     1.05,
-     1.0
-    ],
-    [
-     3.4,
-     1.05,
-     1.0
-    ]
    ]
   },
   "options": {
    "f_min": 25.0,
-   "f_max": 5000.0,
-   "n_tau": 1024
+   "f_max": 5000.0
   }
  },
  "exterior_surface_levels": {
@@ -442,6 +411,5 @@
     122.2
    ]
   }
- },
- "_exterior": "App. A flight 3 surface levels at the near flush microphone; converted to incident with |S(ka,0)| (a = 0.725 m) and anchored at the microphone (measured_ref)"
+ }
 }

@@ -1,115 +1,49 @@
-"""Material and surface dataclasses for the sidewall stack and the cabin."""
+"""Inputs of the paper pipeline: the CR-132602 sidewall, openings (TM-85722 eq. 1) and the
+cabin's absorbing surfaces."""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Union
 
 import numpy as np
 
 # Octave centres used for absorption tables.
 ALPHA_OCTAVES = [63.0, 125.0, 250.0, 500.0, 1000.0, 2000.0, 4000.0, 8000.0]
 
+# CR-132602 sec. 6.2: mean absorption of a cavity filled with glass-fibre blankets in thin bags
+# (125-4000 Hz as printed; 63 and 8000 Hz hold the end values).
+CR132602_CAVITY_ALPHA = [0.22, 0.22, 0.37, 0.82, 0.99, 0.88, 0.63, 0.63]
+
+
+def octave_interp(values, f) -> np.ndarray:
+    """Interpolate an 8-octave table in log-frequency, end values held, clipped to 0..1."""
+    v = np.asarray(values, dtype=float)
+    if v.size != len(ALPHA_OCTAVES):
+        raise ValueError(f"octave table needs {len(ALPHA_OCTAVES)} values")
+    return np.clip(np.interp(np.log(np.asarray(f, dtype=float)), np.log(ALPHA_OCTAVES), v), 0.0, 1.0)
+
 
 @dataclass
-class Panel:
-    name: str = "Al skin 1.6 mm"
-    E: float = 73.1e9       # Pa
-    rho: float = 2780.0     # kg/m^3
-    nu: float = 0.33
-    h: float = 1.6e-3       # m
-    eta: float = 0.01       # loss factor
-    m_add: float = 0.0      # smeared stiffener / added mass, kg/m^2
-    curved: bool = False    # True: ring-frequency (membrane) stiffness of the fuselage
-    bay_a: float = 0.0      # stiffened-bay size (frame spacing), m; 0 = infinite panel
-    bay_b: float = 0.0      # stiffened-bay size (stringer spacing), m
-    kind: str = "panel"
+class Sidewall:
+    """CR-132602 non-resonant sidewall (sec. 5): skin and trim are mass-law walls, the cavity
+    between them absorbs, and the insulation blanket's mass is added to the trim (sec. 6.2).
+    double_wall = False is the skin alone (bare fuselage); the blanket mass then goes on the skin."""
+    skin_thickness: float = 1.6e-3      # m
+    skin_density: float = 2780.0        # kg/m^3
+    skin_added_mass: float = 0.0        # smeared stiffeners / doublers, kg/m^2
+    double_wall: bool = True
+    trim_mass: float = 2.7              # kg/m^2
+    blanket_mass: float = 0.48          # kg/m^2
+    cavity_depth: float = 0.09          # m, skin to trim
+    cavity_alpha: list = field(default_factory=lambda: list(CR132602_CAVITY_ALPHA))
 
     @property
-    def mass(self) -> float:
-        return self.rho * self.h + self.m_add
+    def m_skin(self) -> float:
+        base = self.skin_density * self.skin_thickness + self.skin_added_mass
+        return base if self.double_wall else base + self.blanket_mass
 
     @property
-    def D(self) -> float:
-        return self.E * self.h ** 3 / (12.0 * (1.0 - self.nu ** 2))
-
-    def coincidence(self, c0: float) -> float:
-        return c0 ** 2 / (2.0 * np.pi) * np.sqrt(self.mass / self.D)
-
-    def bay_frequency(self) -> float:
-        """Fundamental of one simply supported bay, f11 = (pi/2) sqrt(D / rho h) (1/a^2 + 1/b^2)
-        (Leissa, Vibration of Plates); 0 when no bay is given."""
-        if self.bay_a <= 0 or self.bay_b <= 0:
-            return 0.0
-        return 0.5 * np.pi * np.sqrt(self.D / (self.rho * self.h)) * (1 / self.bay_a ** 2 + 1 / self.bay_b ** 2)
-
-    def bay_stiffness(self, n_terms: int = 25) -> float:
-        """Static stiffness per unit area s = p / w_avg of a simply supported bay under uniform
-        pressure, from the Navier series (Timoshenko & Woinowsky-Krieger, Theory of Plates, sec. 30):
-        w_avg = sum_{m,n odd} 64 p / (pi^8 D m^2 n^2 (m^2/a^2 + n^2/b^2)^2). 0 when no bay is given.
-        The (1,1) term alone is (pi^4/64) rho h w11^2."""
-        if self.bay_a <= 0 or self.bay_b <= 0:
-            return 0.0
-        m = np.arange(1, 2 * n_terms, 2)[:, None]
-        n = np.arange(1, 2 * n_terms, 2)[None, :]
-        c = 64.0 / (np.pi ** 8 * self.D * m ** 2 * n ** 2 * (m ** 2 / self.bay_a ** 2 + n ** 2 / self.bay_b ** 2) ** 2)
-        return float(1.0 / c.sum())
-
-    def ring_frequency(self, radius: float) -> float:
-        cL = np.sqrt(self.E / (self.rho * (1.0 - self.nu ** 2)))
-        return cL / (2.0 * np.pi * radius)
-
-
-@dataclass
-class PorousLayer:
-    name: str = "Fiberglass blanket"
-    d: float = 0.05         # thickness, m
-    sigma: float = 10000.0  # flow resistivity, Pa s/m^2
-    frame: str = "rigid"    # "rigid" (Delany-Bazley as is) or "limp" (Panneton 2007)
-    bulk_density: float = 0.0   # frame bulk density, kg/m^3 (needed for "limp")
-    kind: str = "porous"
-
-
-@dataclass
-class AirGap:
-    name: str = "Air gap"
-    d: float = 0.025
-    kind: str = "gap"
-
-
-@dataclass
-class PorousTable:
-    """Porous layer from measured acoustical properties: wavelength in the material, attenuation
-    (dB/m) and characteristic impedance |W| with phase phi (as CR-3813 Fig. A-2 gives them)."""
-    name: str = "Measured blanket"
-    d: float = 0.013
-    f: list = field(default_factory=list)
-    wavelength: list = field(default_factory=list)      # m
-    atten_db_per_m: list = field(default_factory=list)
-    W: list = field(default_factory=list)               # rayl
-    phi_deg: list = field(default_factory=list)
-    frame: str = "rigid"
-    bulk_density: float = 0.0
-    kind: str = "porous_table"
-
-    def properties(self, f):
-        """Zc and kc (e^{+j w t}: Im kc < 0, Im Zc < 0), log-f interpolation, end values held."""
-        if len(self.f) < 2:
-            raise ValueError(f"porous table '{self.name}' needs at least two frequencies")
-        lf = np.log(np.asarray(f, dtype=float))
-        g = lambda v: np.interp(lf, np.log(self.f), v)  # noqa: E731
-        kc = 2 * np.pi / g(self.wavelength) - 1j * g(self.atten_db_per_m) / (20 * np.log10(np.e))
-        Zc = g(self.W) * np.exp(-1j * np.radians(g(self.phi_deg)))
-        return Zc, kc
-
-
-Layer = Union[Panel, PorousLayer, AirGap, PorousTable]
-
-
-def layer_from_dict(d: dict) -> Layer:
-    kind = d.get("kind", "panel")
-    cls = {"panel": Panel, "porous": PorousLayer, "gap": AirGap, "porous_table": PorousTable}[kind]
-    names = cls.__dataclass_fields__.keys()
-    return cls(**{k: v for k, v in d.items() if k in names})
+    def m_trim(self) -> float:
+        return self.trim_mass + self.blanket_mass
 
 
 @dataclass
@@ -119,25 +53,28 @@ class Surface:
     alpha: list[float] = field(default_factory=lambda: [0.05] * len(ALPHA_OCTAVES))
 
     def alpha_at(self, f) -> np.ndarray:
-        """Absorption coefficient interpolated in log-frequency, held constant outside."""
-        a = np.asarray(self.alpha, dtype=float)
-        if a.size != len(ALPHA_OCTAVES):
-            raise ValueError(f"surface '{self.name}' needs {len(ALPHA_OCTAVES)} octave alphas")
-        return np.clip(np.interp(np.log(np.asarray(f, dtype=float)), np.log(ALPHA_OCTAVES), a), 0.0, 1.0)
+        return octave_interp(self.alpha, f)
 
 
 @dataclass
 class Opening:
-    """Window or door: either its own layer stack or a diffuse TL table."""
+    """Window or door. mode 'mass': one pane of the given surface mass (TM-85722 p. 17: a double
+    window approximated as one pane of the summed thickness), CR-132602 eq. (46) mass law;
+    mode 'tl': a diffuse TL table."""
     name: str = "Windows"
-    area: float = 2.0
-    mode: str = "layers"                # "layers" | "tl"
-    layers: list = field(default_factory=list)
+    area: float = 1.0
+    mode: str = "mass"
+    mass: float = 11.9                  # kg/m^2
     tl_freqs: list[float] = field(default_factory=list)
     tl_values: list[float] = field(default_factory=list)
 
-    def tau_table(self, f) -> np.ndarray:
+    def tau(self, f, rho_c: float) -> np.ndarray:
+        from .sea import tau_mass_law_diffuse
+        f = np.asarray(f, dtype=float)
+        if self.mode == "mass":
+            return tau_mass_law_diffuse(f, self.mass, rho_c)
+        if self.mode != "tl":
+            raise ValueError(f"opening '{self.name}': mode must be 'mass' or 'tl'")
         if len(self.tl_freqs) < 1 or len(self.tl_freqs) != len(self.tl_values):
             raise ValueError(f"opening '{self.name}': TL table is empty or ragged")
-        tl = np.interp(np.log(np.asarray(f, dtype=float)), np.log(self.tl_freqs), self.tl_values)
-        return 10.0 ** (-tl / 10.0)
+        return 10.0 ** (-np.interp(np.log(f), np.log(self.tl_freqs), self.tl_values) / 10.0)

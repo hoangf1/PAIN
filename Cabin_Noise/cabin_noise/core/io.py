@@ -1,4 +1,4 @@
-"""JSON project files, CSV import/export, the default project and the material library."""
+"""JSON project files, CSV import/export, the default project and the surface library."""
 from __future__ import annotations
 
 import csv
@@ -9,22 +9,17 @@ from pathlib import Path
 import numpy as np
 
 from .frequencies import nominal_label
-from .materials import AirGap, Opening, Panel, PorousLayer, Surface, layer_from_dict
+from .materials import Opening, Sidewall, Surface
 from .mission import Mission, Segment
-from .pipeline import CabinConfig, Fuselage, Options, Project, Propeller, Results, SidewallMethod
+from .pipeline import CabinConfig, Fuselage, Options, Project, Propeller, Results
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
-FORMAT_VERSION = 1
+FORMAT_VERSION = 2
 
 
 def load_library() -> dict:
     with open(DATA_DIR / "materials.json", encoding="utf-8") as fh:
         return json.load(fh)
-
-
-def _lib_panel(lib, name, **over) -> Panel:
-    d = next(p for p in lib["panels"] if p["name"] == name)
-    return Panel(**{**d, **over})
 
 
 def _lib_surface(lib, name, area) -> Surface:
@@ -46,24 +41,18 @@ def default_project() -> Project:
         _lib_surface(lib, "Windows", 2 * 12 * 0.08),
         _lib_surface(lib, "Bulkhead (hard)", 2 * cab.Ly * cab.Lz),
     ]
-    cab.seats = [[x, y, 1.1] for x in (1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0) for y in (0.45, 1.45)]
-    sidewall = [
-        _lib_panel(lib, "Al 2024-T3 skin 1.6 mm", m_add=1.5),
-        AirGap(name="Gap", d=0.02),
-        PorousLayer(name="Fiberglass 9.6 kg/m3 (0.6 pcf)", d=0.05, sigma=8000.0, frame="limp", bulk_density=9.6),
-        AirGap(name="Gap", d=0.02),
-        _lib_panel(lib, "Fiberglass trim 1.5 mm"),
-    ]
-    windows = Opening(name="Windows (12 x dual pane)", area=12 * 0.08, mode="layers", layers=[
-        _lib_panel(lib, "Acrylic window pane 6 mm"), AirGap(name="Pane gap", d=0.01),
-        _lib_panel(lib, "Acrylic window pane 4 mm")])
+    sidewall = Sidewall(skin_thickness=1.6e-3, skin_density=2780.0, skin_added_mass=1.5, double_wall=True,
+                        trim_mass=2.7, blanket_mass=9.6 * 0.05, cavity_depth=0.09)
+    windows = Opening(name="Windows (6 per side, 6 + 4 mm acrylic as one pane)", area=6 * 0.08, mode="mass",
+                      mass=1190.0 * 0.010)
     mission = Mission(segments=[
         Segment(name="Climb", altitude=3000.0, mach=0.30, rpm=1700.0, shaft_power=900e3, eta_p=0.80),
         Segment(name="Cruise", altitude=6096.0, mach=0.45, rpm=1600.0, shaft_power=750e3, eta_p=0.85),
         Segment(name="Descent", altitude=3000.0, mach=0.40, rpm=1500.0, shaft_power=300e3, eta_p=0.80),
     ], active=1)
     return Project(name="Generic twin turboprop", mission=mission, propeller=Propeller(),
-                   fuselage=Fuselage(), sidewall=sidewall, openings=[windows], cabin=cab, options=Options())
+                   fuselage=Fuselage(side_area=cab.Lx * cab.Lz, tbl_area=2 * cab.Lx * cab.Lz),
+                   sidewall=sidewall, openings=[windows], cabin=cab, options=Options())
 
 
 # ---- JSON -------------------------------------------------------------------------
@@ -79,24 +68,20 @@ def _build(cls, d: dict):
 
 
 def project_from_dict(d: dict) -> Project:
+    if d.get("format_version", 1) < 2:
+        raise ValueError("project file is from the retired pipeline (format 1); re-enter it in this version")
     m = d.get("mission", {})
     mission = Mission(segments=[_build(Segment, s) for s in m.get("segments", [])] or [Segment()],
                       active=int(m.get("active", 0)))
     cabd = dict(d.get("cabin", {}))
     cabd["surfaces"] = [_build(Surface, s) for s in cabd.get("surfaces", [])]
-    openings = []
-    for o in d.get("openings", []):
-        o = dict(o)
-        o["layers"] = [layer_from_dict(l) for l in o.get("layers", [])]
-        openings.append(_build(Opening, o))
     return Project(
         name=d.get("name", "Untitled"), mission=mission,
         propeller=_build(Propeller, d.get("propeller", {})),
         fuselage=_build(Fuselage, d.get("fuselage", {})),
-        sidewall=[layer_from_dict(l) for l in d.get("sidewall", [])],
-        openings=openings, cabin=_build(CabinConfig, cabd),
-        options=_build(Options, d.get("options", {})),
-        sidewall_method=_build(SidewallMethod, d.get("sidewall_method", {})))
+        sidewall=_build(Sidewall, d.get("sidewall", {})),
+        openings=[_build(Opening, o) for o in d.get("openings", [])],
+        cabin=_build(CabinConfig, cabd), options=_build(Options, d.get("options", {})))
 
 
 def save_project(p: Project, path) -> None:
@@ -109,7 +94,7 @@ def load_project(path) -> Project:
 
 # ---- CSV --------------------------------------------------------------------------
 def load_measured_csv(path) -> list:
-    """Measured incident harmonic levels: columns harmonic, level_dB (header optional)."""
+    """Measured exterior (free-field incident) harmonic levels: columns harmonic, level_dB."""
     rows = []
     with open(path, newline="", encoding="utf-8") as fh:
         for r in csv.reader(fh):
@@ -128,20 +113,19 @@ def export_results_csv(res: Results, path) -> None:
     with open(path, "w", newline="", encoding="utf-8") as fh:
         w = csv.writer(fh)
         w.writerow(["# segment", res.segment])
-        w.writerow(["band_Hz", "nominal", "L_wall_dB", "TL_band_dB", "A_m2", "T60_s",
-                    "L_int_broadband_dB", "L_int_tonal_dB", "L_int_total_dB", "max_seat_total_dB"])
+        w.writerow(["band_Hz", "nominal", "L_wall_dB", "L_ext_bb_dB", "NR_dB", "A_m2", "T60_s",
+                    "L_int_broadband_dB", "L_int_tonal_dB", "L_int_total_dB"])
         for i, f in enumerate(res.centers):
-            w.writerow([f"{f:.1f}", nominal_label(f), f"{res.L_wall[i]:.2f}", f"{res.tl_band[i]:.2f}",
-                        f"{res.A_band[i]:.3f}", f"{res.T60_band[i]:.3f}", f"{res.L_bb[i]:.2f}",
-                        f"{res.L_band_tonal[i]:.2f}", f"{res.L_band_total[i]:.2f}",
-                        f"{res.seat_band_total[res.max_seat, i]:.2f}"])
+            w.writerow([f"{f:.1f}", nominal_label(f), f"{res.L_wall[i]:.2f}", f"{res.L_ext_bb[i]:.2f}",
+                        f"{res.NR_band[i]:.2f}", f"{res.A_band[i]:.3f}", f"{res.T60_band[i]:.3f}",
+                        f"{res.L_bb[i]:.2f}", f"{res.L_band_tonal[i]:.2f}", f"{res.L_band_total[i]:.2f}"])
         w.writerow([])
-        w.writerow(["harmonic", "f_Hz", "L_inc_patch1_dB", "TL_patch1_dB", "L_int_avg_dB", "L_int_max_seat_dB"])
+        w.writerow(["harmonic", "f_Hz", "L_ext_dB", "NR_dB", "L_int_avg_dB"])
         for i, f in enumerate(res.f_m):
-            w.writerow([i + 1, f"{f:.2f}", f"{res.L_inc[0, i]:.2f}", f"{res.tl_tone[0, i]:.2f}",
-                        f"{res.L_tone[i]:.2f}", f"{np.max(res.seat_tone[:, i]):.2f}"])
+            w.writerow([i + 1, f"{f:.2f}", f"{res.L_ext_tone[i]:.2f}", f"{res.NR_tone[i]:.2f}",
+                        f"{res.L_tone[i]:.2f}"])
         w.writerow([])
-        w.writerow(["metric", "track", "average", "max_seat"])
+        w.writerow(["metric", "track", "average", "max_seat_95"])
         for track in ("tonal", "broadband", "total"):
             for k in ("OASPL", "dBA", "dBC"):
                 w.writerow([k, track, f"{res.totals['average'][track][k]:.2f}",
@@ -149,7 +133,7 @@ def export_results_csv(res: Results, path) -> None:
 
 
 def read_reference_csv(path) -> tuple[dict, np.ndarray]:
-    """Digitized reference: '# key: value' YAML-style header lines, then x,y[,...] rows."""
+    """Digitized reference: '# key: value' header lines, then x,y[,...] rows."""
     meta, rows = {}, []
     for line in Path(path).read_text(encoding="utf-8").splitlines():
         s = line.strip()

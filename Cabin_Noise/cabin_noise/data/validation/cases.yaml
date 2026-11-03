@@ -1,212 +1,149 @@
-# Case definitions shared by the GUI Validation tab and pytest.
+# Case definitions shared by the GUI Validation tab and pytest. Paper pipeline (METHOD.md),
+# restructured 2026-11-02: every block follows a low-fidelity paper exactly.
 #
 # kind:
-#   verification - analytic limit / law / internal consistency. Shown with "check ok /
-#                  check failed", never a met / not-met verdict (repo rule 2026-10-29).
-#   validation   - comparison with experimental data. Carries a verdict. Criteria are
-#                  fixed below (dated) BEFORE any comparison; nothing is fitted to the data.
-#   information  - no verdict (e.g. cross-check against the PAIN recreation).
+#   verification - the block against its paper's own equations (no verdict).
+#   validation   - comparison with experimental data; carries a verdict against the
+#                  criterion below, fixed before the run; nothing is fitted to the data.
+#   information  - no verdict.
 #
-# Experimental cases need two files in this folder before they can run:
-#   <id>.csv          digitized reference, '# key: value' header (report, figure, aircraft,
-#                     condition, units, digitization_uncertainty_dB), then x,y rows
-#   <id>_inputs.json  project file built ONLY from the report's stated inputs
-# Until both exist the case shows "not run (no reference data)".
+# Low-fi criterion policy (2026-11-02): met when at least min_fraction of the points in range
+# lie within +-tol_db of the measurement. V4a keeps its original max-error criterion.
+#
+# Disclosure (2026-11-02): the experimental data below were all compared earlier with the
+# retired transfer-matrix pipeline (records in git, last commit 1c2c8fe), so these runs are not
+# blind. No parameter of the paper pipeline is chosen from those data: the methods and inputs
+# are fixed by the papers and the inputs files, written before these runs.
 criteria_fixed: 2026-11-02
 
-# Low-fidelity criterion policy (decided 2026-11-02, before any comparison of V4, V5, V5b,
-# V6, V7): a band/harmonic criterion of +-3 dB at every point is a high-fidelity target. These
-# cases are judged "met" when at least min_fraction of the points inside [band_min, band_max]
-# lie within +-tol_db of the measurement; max |e|, RMS and mean are reported alongside.
-# V4a was defined and run under the earlier max-error criterion and keeps that verdict.
-
 cases:
+  # ---- verification: each block against its paper ----------------------------------------
   - id: V0a
     stage: Source
     track: tonal
     kind: verification
-    check: Rotating-force model, static far field, vs Gutin
-    reference: analytic (plan A.2)
+    check: Gutin closed form vs direct quadrature of the rotating-dipole integral
+    reference: Gutin 1936 / NASA RP-1258 ch. 1
     metric: max |dL| over harmonics 1-3 and angles 45-135 deg
-    target_db: 0.5
-  - id: V0b
-    stage: Source
-    track: "-"
-    kind: verification
-    check: "Cylinder scattering limits: ka->0 -> 0 dB; ka=50 lit point -> +6 dB"
-    reference: analytic (plan A.3)
-    metric: max |dL|
-    target_db: 0.5
-  - id: V0c
-    stage: Seats
-    track: "-"
-    kind: verification
-    check: Box-mode spatial mean of G(x)/<G> = 1
-    reference: analytic
-    metric: "|10 log10 mean(G/<G>)|"
     target_db: 0.1
   - id: V1
     stage: TL
     track: "-"
     kind: verification
-    check: Single panel, theta = 0, vs normal mass law
-    reference: analytic (plan A.5)
-    metric: max |dTL| 50 Hz - 2 kHz
+    check: CR-132602 eq. (46) vs the 0-90 deg integral of eq. (45)
+    reference: NASA CR-132602 sec. 5.1
+    metric: max |dTL| 63 Hz - 5 kHz
     target_db: 0.1
   - id: V2
     stage: TL
     track: "-"
     kind: verification
-    check: Field incidence vs 20 log10(m f) - 47 below f_c
-    reference: analytic (plan A.5), sea-level air rho c = 415
-    metric: max |dTL|, TL0 > 20 dB and f < f_c/4
-    target_db: 1.0
+    check: CR-132602 eq. (52) vs a numeric solution of the power balance eq. (47)
+    reference: NASA CR-132602 sec. 5.2
+    metric: max |dNR| 63 Hz - 5 kHz
+    target_db: 0.1
   - id: V3
-    stage: TL
+    stage: Cabin
     track: "-"
     kind: verification
-    check: Double-wall f0 dip location
-    reference: analytic (plan A.5)
-    metric: "|log2(f_dip / f0)| (octaves)"
-    target_oct: 0.333
+    check: Pipeline insertion loss vs TM-85722 IL = dTL + dABS
+    reference: NASA TM-85722 eqs. (1)-(3)
+    metric: max |dIL| 100 Hz - 4 kHz (residual = CR-132602's '1 +' term, small when A >> S tau)
+    target_db: 0.5
+
+  # ---- validation (experimental data) ---------------------------------------------------
   - id: V4
     stage: TL
     track: broadband
     kind: validation
     check: Lab sidewall-panel TL (bare and treated)
-    reference: NASA TM-85722
+    reference: NASA TM-85722 Fig. 18 (not digitized yet)
     metric: ">= 75 % of 1/3-octave bands 250 Hz - 2 kHz within +-6 dB"
     tol_db: 6.0
     min_fraction: 0.75
     band_min: 250
     band_max: 2000
-    quantity: tl_band
+    quantity: reverberant_nr
   - id: V4a
     stage: TL
     track: broadband
     kind: validation
-    check: Bare unstiffened cylinder, reverberant-field noise reduction (lab)
+    check: Bare cylinder, reverberant NR (CR-132602 single wall + mass-law end caps)
     reference: NASA TP-1964 Fig. 8 (measured)
     metric: max |dNR| over 1/3-octave bands 250 Hz - 2 kHz
     target_db: 3.0
     band_min: 250
     band_max: 2000
     quantity: reverberant_nr
-    defined: 2026-11-02 (criterion, inputs and eta rule fixed before the first comparison)
-    recorded: "2026-11-02 not met, max |dNR| 16.1 dB (commit after cf978ab)"
+    defined: "2026-11-02, paper pipeline; criterion unchanged from the original V4a"
   - id: V4b
     stage: TL
     track: broadband
     kind: validation
-    check: Stiffened trimmed cylinder, reverberant NR, infinite-panel skin (default model)
+    check: Stiffened trimmed cylinder, reverberant NR (CR-132602 double wall)
     reference: NASA CR-3813 Fig. E-22 (measured)
     metric: ">= 75 % of the 19 measured bands 63-4000 Hz within +-6 dB"
     tol_db: 6.0
     min_fraction: 0.75
     quantity: reverberant_nr
     ref_file: CR3813_E22.csv
-    defined: "2026-11-02 before the run: inputs printed in CR-3813 (V4b_inputs.json); skin eta = mean of measured loss factors"
-    recorded: "2026-11-02 not met: 4/19 within +-6 dB, mean +13.1 dB, max 33.3 dB (definition commit e1a94ba; metric label corrected 18 -> 19 bands after the definition commit, criterion unchanged)"
-  - id: V4c
-    stage: TL
-    track: broadband
-    kind: validation
-    check: Stiffened trimmed cylinder, reverberant NR, bay-stiffness skin (frame x stringer bay)
-    reference: NASA CR-3813 Fig. E-22 (measured)
-    metric: ">= 75 % of the 19 measured bands 63-4000 Hz within +-6 dB"
-    tol_db: 6.0
-    min_fraction: 0.75
-    quantity: reverberant_nr
-    ref_file: CR3813_E22.csv
-    defined: "2026-11-02 before the run: as V4b plus the printed bay 0.2 x 0.177 m; held out (the bay model was motivated by V7 and V4a, not this case)"
-    recorded: "2026-11-02 not met, identical to V4b to 0.1 dB: on this curved shell the ring stiffness (f_r 1.7 kHz) is ~300x the bay stiffness and the end caps dominate, so the case cannot test the bay term"
-  - id: V4d
-    stage: TL
-    track: broadband
-    kind: validation
-    check: Stiffened trimmed cylinder, reverberant NR, limp-frame blankets (Panneton 2007)
-    reference: NASA CR-3813 Fig. E-22 (measured)
-    metric: ">= 75 % of the 19 measured bands 63-4000 Hz within +-6 dB"
-    tol_db: 6.0
-    min_fraction: 0.75
-    quantity: reverberant_nr
-    ref_file: CR3813_E22.csv
-    defined: "2026-11-02 before the run: V4b inputs with limp blankets (printed density 9.61 kg/m3). Not the motivating case (V6), but V4b residuals were already known, so not fully blind"
-    recorded: "2026-11-02 not met: 4/19 within +-6 dB, mean +12.6 dB (V4b +13.1); the trim model is not this case's error (definition commit 662544f)"
+    defined: "2026-11-02, paper pipeline"
   - id: V5
     stage: Source
     track: tonal
     kind: validation
-    check: Surface harmonics (incident x scattering factor) vs measured, all runs
-    reference: NASA CR-178004
-    metric: ">= 75 % of measured BPF1-3 levels (all runs, all exterior points) within +-6 dB"
+    check: Flight exterior harmonics at the flush microphones (Gutin + wall doubling)
+    reference: NASA CR-178004 App. A (flight 3)
+    metric: ">= 75 % of measured BPF1-3 levels (both sides) within +-6 dB"
     tol_db: 6.0
     min_fraction: 0.75
     quantity: surface_tones
-    defined: "2026-11-02: flight 3, both flush microphones, harmonics 1-3, 101 points; eta_p and fuselage radius assumed (V5_inputs.json) before the run"
-    recorded: "2026-11-02 not met: 43/101 within +-6 dB (need 75 %), mean +6.1 dB, max |e| 10.1 dB (definition commit 4eadb02)"
+    defined: "2026-11-02, paper pipeline"
   - id: V5c
     stage: Source
     track: tonal
     kind: validation
-    check: Static near-field harmonics at the tip, single-radius point source (default model)
+    check: Static near-field harmonics at the tip (Gutin with the printed C_T, C_Q)
     reference: NACA Report 996 Figs. 12, 14 (measured)
     metric: ">= 75 % of 52 harmonic levels within +-6 dB"
     tol_db: 6.0
     min_fraction: 0.75
     quantity: static_nearfield
     ref_file: R996_nearfield.csv
-    defined: "2026-11-02, before the run: loads from the printed C_T/C_Q; ISA sea-level air assumed"
-    recorded: "2026-11-02 met: 49/52 within +-6 dB, mean +2.2 dB, RMS 3.5 dB, max |e| 7.4 dB (definition commit 18b3f9c)"
-  - id: V5d
-    stage: Source
-    track: tonal
-    kind: validation
-    check: Static near-field harmonics at the tip, blade-geometry source (BEMT strips)
-    reference: NACA Report 996 Figs. 12, 14 (measured)
-    metric: ">= 75 % of 52 harmonic levels within +-6 dB"
-    tol_db: 6.0
-    min_fraction: 0.75
-    quantity: static_nearfield
-    ref_file: R996_nearfield.csv
-    defined: "2026-11-02, before the run: same loads and air as V5c; radial shape from BEMT on the published blade form; clmax/cd0 defaults"
-    recorded: "2026-11-02 met: 51/52 within +-6 dB, mean -0.1 dB, RMS 2.6 dB, max |e| 6.2 dB (definition commit 18b3f9c)"
+    defined: "2026-11-02, paper pipeline"
   - id: V5b
     stage: Source
     track: broadband
     kind: validation
-    check: Goody spectrum vs measured exterior fluctuating pressure
-    reference: NASA CR-178004
-    metric: ">= 75 % of measured bands 800-5000 Hz (flight 3, both sides, conditions 1-18) within +-6 dB"
+    check: Goody spectrum vs measured exterior bands (>= 800 Hz)
+    reference: NASA CR-178004 App. D (flight 3)
+    metric: ">= 75 % of measured bands 800-5000 Hz within +-6 dB"
     tol_db: 6.0
     min_fraction: 0.75
     quantity: tbl_bands
-    defined: "2026-11-02 before the run: 323 points; bands >= 800 Hz because sec. 3.7 says lower bands are tone-dominated; nose-to-station 2.91 m assumed"
-    recorded: "2026-11-02 met: 265/323 within +-6 dB, mean +2.7 dB, RMS 4.2 dB (definition commit ac0fcb8)"
+    defined: "2026-11-02; unchanged block (Goody)"
   - id: V6
     stage: Cabin
     track: both
     kind: validation
-    check: Treatment insertion loss vs flight (fiberglass batts, CR-178004 flights 3 vs 4)
-    reference: NASA CR-178004 App. J (TM-85722 not in the repo)
-    metric: ">= 75 % of printed 1/3-octave IL values (mics 3 and 6, all printed bands 25-5000 Hz and conditions) within +-6 dB"
+    check: Fiberglass-treatment insertion loss in flight (TM-85722 method)
+    reference: NASA CR-178004 App. J (flights 3 vs 4)
+    metric: ">= 75 % of printed 1/3-octave IL values (mics 3, 6, 25-5000 Hz) within +-6 dB"
     tol_db: 6.0
     min_fraction: 0.75
     quantity: il_bands
-    defined: "2026-11-02 before the run: 519 points, no band or condition selection; blanket flow resistivity, bare alpha and cabin box assumed (V6_inputs.json)"
-    recorded: "2026-11-02 not met: 251/519 within +-6 dB, mean +8.0 dB, RMS 10.9 dB (definition commit ac0fcb8)"
+    defined: "2026-11-02, paper pipeline"
   - id: V7
     stage: Total
     track: tonal
     kind: validation
-    check: Cabin harmonic levels at each measured location (average + max-seat)
-    reference: NASA CR-178004
-    metric: ">= 75 % of measured cabin harmonic levels (mics 3 and 6, harmonics 1-3, each engine's component) within +-6 dB of the room-average prediction"
+    check: Cabin harmonics from the measured exterior (interior = exterior - NR)
+    reference: NASA CR-178004 App. B (flight 3)
+    metric: ">= 75 % of cabin harmonic levels (mics 3, 6, harmonics 1-3, each engine) within +-6 dB"
     tol_db: 6.0
     min_fraction: 0.75
     quantity: cabin_tones
-    defined: "2026-11-02 before the run: 108 points; driven by the measured exterior (App. A) so the source bias of V5 is excluded; cabin box, bare alpha and patch grid assumed (V7_inputs.json)"
-    recorded: "2026-11-02 not met: 12/108 within +-6 dB, mean +12.8 dB, RMS 14.1 dB (definition commit ac0fcb8)"
+    defined: "2026-11-02, paper pipeline"
   - id: V8
     stage: Total
     track: both

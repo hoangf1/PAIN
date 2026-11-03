@@ -4,7 +4,7 @@
   "geometry": "D = 1.2192 m, B = 2; d/D = 0.083 (Fig. 12/14 setup as recorded in PAIN_Program/data/report996/f1a_results.csv)",
   "atmosphere": "ASSUMED ISA sea level (288.15 K, 101325 Pa): static test-day conditions are not in the digitized set; fixed 2026-11-02 before the run",
   "thickness_noise": "not modelled (plan assumption 2); expected to matter at high M_t in the plane of rotation",
-  "source": "single effective radius R_e = 0.8 R (plan A.2 default)"
+  "source": "Gutin (RP-1258 ch. 1), effective radius 0.8 R"
  },
  "diameter": 1.2192,
  "blades": 2,

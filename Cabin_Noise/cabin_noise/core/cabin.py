@@ -1,9 +1,11 @@
-"""Cabin absorption, reverberation and the room equation (plan A.6)."""
+"""Cabin absorption and reverberation (Sabine), seat statistic (Schroeder)."""
 from __future__ import annotations
 
 import numpy as np
 
-from .atmosphere import Air
+# reverberant p^2 is exponentially distributed (Schroeder 1962): the 95th-percentile seat is
+# 10 log10(ln 20) = 4.8 dB above the room average
+STAT_95 = 10.0 * np.log10(np.log(20.0))
 
 
 def absorption_area(surfaces, f) -> np.ndarray:
@@ -15,13 +17,9 @@ def absorption_area(surfaces, f) -> np.ndarray:
 
 
 def t60(volume: float, A) -> np.ndarray:
+    """Sabine: T60 = 0.161 V / A."""
     return 0.161 * volume / np.maximum(np.asarray(A, dtype=float), 1e-9)
 
 
 def schroeder_frequency(T60: float, volume: float) -> float:
     return 2000.0 * np.sqrt(T60 / volume)
-
-
-def interior_p2(W, A, air: Air) -> np.ndarray:
-    """Reverberant mean-square pressure p^2 = 4 rho c W / A."""
-    return 4.0 * air.rho_c * np.asarray(W) / np.maximum(np.asarray(A, dtype=float), 1e-9)

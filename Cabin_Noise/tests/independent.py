@@ -1,7 +1,6 @@
 """Independent re-implementations used by the verification tests. Nothing here imports the
 tool's physics: only NumPy/SciPy and the published formulas cited in VERIFICATION.md."""
 import numpy as np
-from scipy.special import hankel1
 
 
 def isa(h):
@@ -48,11 +47,3 @@ def moving_force_harmonics(obs, B, R, om, V, c, T, Q, n_harm, rot=1, nt=512):
         e[i] = d
         p -= (potential(obs + e)[:, i] - potential(obs - e)[:, i]) / (2 * d)
     return np.sqrt(2) * np.abs((np.fft.fft(p) / nt)[1:n_harm + 1])
-
-
-def cylinder_surface_factor(ka, phi_from_lit):
-    """Total surface pressure / incident on a rigid cylinder (Morse & Ingard sec. 8.1), e^{-jwt}."""
-    n = np.arange(int(np.ceil(ka)) + 30)
-    eps = np.where(n == 0, 1, 2)
-    dH = 0.5 * (hankel1(n - 1, ka) - hankel1(n + 1, ka))
-    return 2j / (np.pi * ka) * np.sum(eps * 1j ** n * np.cos(n * (np.pi - phi_from_lit)) / dH)

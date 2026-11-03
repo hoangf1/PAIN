@@ -1,30 +1,27 @@
 """Case runner for the Validation tab and pytest.
 
-Verification cases (V0a-V3) are analytic checks: they report "check ok" / "check failed"
-and never a verdict. Experimental cases (V4-V7) carry met / not met only when a digitized
-reference and an inputs-only project file exist; the criteria are the dated ones in
-cases.yaml. Nothing here adjusts a model input to the reference data.
+Verification cases check that each block works exactly as its paper's equations say (no
+verdict). Experimental cases carry met / not met against the dated criteria in cases.yaml.
+Nothing here adjusts a model input to the reference data.
 """
 from __future__ import annotations
 
 import datetime as _dt
+import json
 import subprocess
 from dataclasses import dataclass, field
 from pathlib import Path
 
 import numpy as np
 import yaml
+from scipy.integrate import quad
 
-from . import seats as st
-from . import tmm
-from .atmosphere import air
+from . import sea
 from .io import DATA_DIR, load_project, read_reference_csv
-from .materials import AirGap, Panel
-from .scattering import surface_factor
-from .source_tonal import gutin_rms, rotor_harmonics
+from .source_tonal import gutin_rms
 
 VAL_DIR = DATA_DIR / "validation"
-SEA_LEVEL = air(293.15, 101325.0)       # rho c ~ 413, matching the 20 log(mf) - 47 law
+RHO, C = 1.21, 343.0
 
 
 @dataclass
@@ -36,7 +33,7 @@ class CaseResult:
     target: float | None = None
     unit: str = "dB"
     note: str = ""
-    x: np.ndarray | None = None          # figure: frequency / abscissa
+    x: np.ndarray | None = None
     code: np.ndarray | None = None
     ref: np.ndarray | None = None
     xlabel: str = "Frequency (Hz)"
@@ -54,86 +51,95 @@ def _ver(meta, err, target, unit="dB", **kw) -> CaseResult:
                       float(err), float(target), unit, **kw)
 
 
-# ---- verification cases -------------------------------------------------------------
+# ---- verification: each block against its paper ------------------------------------------
 def run_V0a(meta):
+    """Gutin's closed form vs a direct quadrature of the rotating-dipole far-field integral it
+    comes from (p_n = (w / 4 pi c r) |(1/2pi) int x.F(psi) e^{j n (psi - z cos psi)} dpsi|, B blades)."""
     B, R, c, T, Q, r = 2, 1.0, 340.0, 2000.0, 600.0, 200.0
     om = 0.5 * c / R
     th = np.radians([45.0, 60.0, 75.0, 90.0, 105.0, 120.0, 135.0])
-    m = np.arange(1, 4)
+    psi = np.linspace(0, 2 * np.pi, 4096, endpoint=False)
     code, ref = [], []
     for t in th:
-        P = rotor_harmonics([r * np.cos(t), r * np.sin(t), 0.0], blades=B, R_e=R, omega=om, V=0.0,
-                            c=c, thrust=T, torque=Q, n_harmonics=3)
-        code.append(20 * np.log10(np.abs(P) / 20e-6))
-        ref.append(20 * np.log10(gutin_rms(m, blades=B, R_e=R, omega=om, c=c, thrust=T, torque=Q,
-                                           r=r, theta=t) / 20e-6))
+        g = gutin_rms(np.arange(1, 4), blades=B, R_e=R, omega=om, c=c, thrust=T, torque=Q, r=r, theta=t)
+        q = []
+        for m in (1, 2, 3):
+            n = m * B
+            z = n * om * R * np.sin(t) / c
+            xF = -(T / B) * np.cos(t) - (Q / (B * R)) * np.sin(t) * np.sin(psi)
+            I = np.mean(xF * np.exp(1j * n * psi - 1j * z * np.cos(psi)))
+            q.append(np.sqrt(2) * B * n * om / (4 * np.pi * c * r) * abs(I))
+        code.append(20 * np.log10(g / 20e-6))
+        ref.append(20 * np.log10(np.array(q) / 20e-6))
     code, ref = np.array(code), np.array(ref)
     return _ver(meta, np.max(np.abs(code - ref)), meta["target_db"], x=np.degrees(th), code=code[:, 0],
                 ref=ref[:, 0], xlabel="Angle from forward axis (deg)", ylabel="BPF1 level (dB)",
-                note="B=2, M_tip=0.5, r=200 m; markers = Gutin")
-
-
-def run_V0b(meta):
-    ka = np.geomspace(0.01, 50.0, 40)
-    lit = 20 * np.log10(np.abs(surface_factor(ka, 0.0)))
-    err = max(abs(lit[0] - 0.0), abs(lit[-1] - 20 * np.log10(2.0)))
-    return _ver(meta, err, meta["target_db"], x=ka, code=lit,
-                ref=np.where(ka < 0.1, 0.0, np.where(ka > 20, 6.02, np.nan)),
-                xlabel="ka", ylabel="Lit-point |S| (dB)",
-                series={"shadow": 20 * np.log10(np.abs(surface_factor(ka, np.pi)))})
-
-
-def run_V0c(meta):
-    box = st.Box(8.0, 1.9, 1.8)
-    patch = st.SidewallPatch(3.0, 1.5, 1.1, 1.0)
-    g = [np.linspace(0, L, n, endpoint=False) + L / (2 * n) for L, n in ((8.0, 80), (1.9, 20), (1.8, 20))]
-    pts = np.stack([a.ravel() for a in np.meshgrid(*g, indexing="ij")], axis=1)
-    freqs = np.array([40.0, 80.0, 120.0, 160.0])
-    dev = []
-    for f in freqs:
-        rel = st.relative_level(f, pts, box, 343.0, 0.4, patch)
-        dev.append(10 * np.log10(np.mean(10 ** (rel / 10))))
-    dev = np.array(dev)
-    return _ver(meta, np.max(np.abs(dev)), meta["target_db"], x=freqs, code=dev, ref=0 * dev,
-                ylabel="10 log10 mean(G/<G>) (dB)", note="midpoint grid 80x20x20")
+                note="markers = direct quadrature of the dipole integral")
 
 
 def run_V1(meta):
-    p = Panel(h=1.6e-3)
-    f = np.geomspace(50, 2000, 60)
-    code = tmm.tl(tmm.tau([p], f, 0.0, SEA_LEVEL))
-    ref = 10 * np.log10(1 + (2 * np.pi * f * p.mass / (2 * SEA_LEVEL.rho_c)) ** 2)
-    return _ver(meta, np.max(np.abs(code - ref)), meta["target_db"], x=f, code=code, ref=ref,
-                ylabel="TL (dB)")
+    """CR-132602 eq. (46) vs the 0-90 deg random-incidence integral of eq. (45)."""
+    f = np.geomspace(63, 5000, 30)
+    m = 4.0
+    code = -10 * np.log10(sea.tau_mass_law_diffuse(f, m, RHO * C))
+    ref = []
+    for fi in f:
+        x = np.pi * fi * m / (RHO * C)
+        ref.append(-10 * np.log10(quad(lambda p: np.sin(2 * p) / (1 + (x * np.cos(p)) ** 2), 0, np.pi / 2)[0]))
+    ref = np.array(ref)
+    return _ver(meta, np.max(np.abs(code - ref)), meta["target_db"], x=f, code=code, ref=ref, ylabel="TL (dB)")
 
 
 def run_V2(meta):
-    p = Panel(h=1.6e-3)
-    f = np.geomspace(50, 10000, 80)
-    code = tmm.tl(tmm.tau_diffuse([p], f, SEA_LEVEL))
-    ref = 20 * np.log10(p.mass * f) - 47.0
-    tl0 = 10 * np.log10(1 + (2 * np.pi * f * p.mass / (2 * SEA_LEVEL.rho_c)) ** 2)
-    sel = (tl0 > 20.0) & (f < p.coincidence(SEA_LEVEL.c) / 4)
-    return _ver(meta, np.max(np.abs(code[sel] - ref[sel])), meta["target_db"], x=f[sel], code=code[sel],
-                ref=ref[sel], ylabel="TL (dB)")
+    """CR-132602 eq. (52) vs a numeric solution of the report's power balance, eq. (47)."""
+    f = np.geomspace(63, 5000, 25)
+    S2, S3, S4, S5, V3, V5, L3, m2, m4, a3, a5 = 2.0, 2.6, 1.7, 9.0, 0.2, 30.0, 0.1, 4.0, 1.5, 0.6, 0.35
+    code = sea.nr_double_wall(f, m_skin=m2, m_trim=m4, L3=L3, alpha3=a3, alpha5=a5, rho=RHO, c=C,
+                              S2=S2, S3=S3, S4=S4, S5=S5)
+    ref = []
+    for fi in f:
+        t31, t35 = sea.tau_mass_law_diffuse(fi, m2, RHO * C), sea.tau_mass_law_diffuse(fi, m4, RHO * C)
+        eps = np.pi if fi < C / (2 * L3) else 4.0
+        e31, e35 = C * S2 * t31 / (8 * np.pi * fi * V3), C * S4 * t35 / (8 * np.pi * fi * V3)
+        e53, e3 = e35 * V3 / V5, S3 * C * a3 / (2 * eps * np.pi * fi * V3)
+        e5 = C * S5 * a5 / (8 * np.pi * fi * V5)
+        _, u5 = np.linalg.solve([[e3 + e31 + e35, -e35], [-e53, e5 + e53]], [e31, 0.0])
+        ref.append(10 * np.log10(1 / u5))
+    ref = np.array(ref)
+    return _ver(meta, np.max(np.abs(code - ref)), meta["target_db"], x=f, code=code, ref=ref, ylabel="NR (dB)",
+                note="markers = numeric solution of eq. (47)")
 
 
 def run_V3(meta):
-    p1, p2 = Panel(h=1.0e-3), Panel(h=2.0e-3)
-    d = 0.05
-    f0 = tmm.mass_air_mass_f0(p1.mass, p2.mass, d, SEA_LEVEL)
-    f = np.geomspace(f0 / 4, f0 * 4, 2000)
-    t = tmm.tl(tmm.tau([p1, AirGap(d=d), p2], f, 0.0, SEA_LEVEL))
-    f_dip = f[np.argmin(t)]
-    return _ver(meta, abs(np.log2(f_dip / f0)), meta["target_oct"], unit="oct", x=f, code=t,
-                ref=None, ylabel="TL normal incidence (dB)",
-                note=f"f0 = {f0:.1f} Hz, dip at {f_dip:.1f} Hz", series={"f0": f0, "f_dip": f_dip})
+    """TM-85722 eqs. (1)-(3): IL = dTL + dABS. A treatment that raises the wall mass and the cabin
+    absorption; the pipeline IL vs dTL (eq. 46) + 10 log10(alpha_treated / alpha_bare)."""
+    import copy
+
+    from .atmosphere import cabin_air
+    from .io import default_project
+    from .pipeline import noise_reduction
+
+    p = default_project()
+    p.openings, p.sidewall.double_wall = [], False
+    q = copy.deepcopy(p)
+    q.sidewall.skin_added_mass += 3.0
+    for s in q.cabin.surfaces:
+        s.alpha = [min(1.0, 1.5 * a) for a in s.alpha]
+    air = cabin_air(p.cabin.cabin_altitude, p.cabin.temperature)
+    f = np.geomspace(100, 4000, 20)
+    S = p.fuselage.side_area
+    il = noise_reduction(q, f, S, air) - noise_reduction(p, f, S, air)
+    dTL = 10 * np.log10(sea.tau_mass_law_diffuse(f, p.sidewall.m_skin, air.rho_c)
+                        / sea.tau_mass_law_diffuse(f, q.sidewall.m_skin, air.rho_c))
+    dABS = 10 * np.log10(q.cabin.absorption(f) / p.cabin.absorption(f))
+    return _ver(meta, np.max(np.abs(il - (dTL + dABS))), meta["target_db"], x=f, code=il, ref=dTL + dABS,
+                ylabel="IL (dB)", note="markers = dTL + dABS (TM-85722); equal when A >> S tau")
 
 
-VERIFIERS = {"V0a": run_V0a, "V0b": run_V0b, "V0c": run_V0c, "V1": run_V1, "V2": run_V2, "V3": run_V3}
+VERIFIERS = {"V0a": run_V0a, "V1": run_V1, "V2": run_V2, "V3": run_V3}
 
 
-# ---- experimental cases ---------------------------------------------------------------
+# ---- experimental cases ------------------------------------------------------------------
 def run_experimental(meta) -> CaseResult:
     cid = meta["id"]
     ref_path = VAL_DIR / meta.get("ref_file", f"{cid}.csv")
@@ -141,69 +147,43 @@ def run_experimental(meta) -> CaseResult:
     if not (ref_path.exists() and inp_path.exists()):
         return CaseResult(cid, meta, "not run", target=meta.get("target_db"),
                           note="no reference data: digitize the report curve and its stated inputs")
-    from .pipeline import run_case
+    from . import flight
 
     ref_meta, data = read_reference_csv(ref_path)
     q = meta.get("quantity")
-    xlabel = "Frequency (Hz)"
-    if q == "static_nearfield":                    # rows: M_t, x_over_D, harmonic m, L_dB
-        import json
-
-        from .flight import static_nearfield_harmonics
-        pred = static_nearfield_harmonics(json.loads(inp_path.read_text(encoding="utf-8")))
-        code = np.array([pred[(mt, round(xd, 3), int(m))] for mt, xd, m, _ in data])
-        y = data[:, 3]
-        x = np.arange(1, len(y) + 1, dtype=float)
-        return _verdict(meta, ref_meta, x, code, y, "point (M_t, x/D, harmonic)")
-    if q in ("cabin_tones", "il_bands", "tbl_bands"):
-        import json
-
-        from . import flight
-        inp = json.loads(inp_path.read_text(encoding="utf-8"))
-        if q == "cabin_tones":                     # rows: cond, mic, engine, harmonic, L
-            pred = flight.cabin_tones(inp)
-            eng = ("port", "starboard")
-            code = np.array([pred[(int(c), eng[int(e)], int(h))] for c, _, e, h, _ in data])
-            y, xl = data[:, 4], "point (condition, mic, engine, harmonic)"
-        elif q == "il_bands":                      # rows: cond, mic, band, IL
-            pred = flight.insertion_loss_bands(inp, sorted({int(c) for c in data[:, 0]}))
-            code = np.array([np.interp(np.log(f), np.log(pred[int(c)][0]), pred[int(c)][1]) for c, _, f, _ in data])
-            y, xl = data[:, 3], "point (condition, mic, band)"
-        else:                                      # rows: cond, side, band, L
-            pred = flight.tbl_bands(inp, sorted({int(c) for c in data[:, 0]}), sorted({float(f) for f in data[:, 2]}))
-            code = np.array([np.interp(np.log(f), np.log(pred[int(c)][0]), pred[int(c)][1]) for c, _, f, _ in data])
-            y, xl = data[:, 3], "point (condition, side, band)"
-        return _verdict(meta, ref_meta, np.arange(1, len(y) + 1, dtype=float), code, y, xl)
-    if q == "surface_tones":                       # flight runs: cond, side (0 port / 1 stbd), harmonic, L
-        import json
-
-        from .flight import surface_tones
-        inp = json.loads(inp_path.read_text(encoding="utf-8"))
-        pred = {(r["cond"], r["side"], r["harmonic"]): r["L_surf"] for r in surface_tones(inp)}
-        sides = ("port", "starboard")
-        code = np.array([pred[(int(c), sides[int(sd)], int(h))] for c, sd, h, _ in data])
-        y = data[:, 3]
-        x = np.arange(1, len(y) + 1, dtype=float)
-        return _verdict(meta, ref_meta, x, code, y, "point (condition, side, harmonic)")
-    res = None if q == "reverberant_nr" else run_case(load_project(inp_path))
-    x, y = data[:, 0], data[:, 1]
-    if q == "tl_band":
-        code = np.interp(np.log(x), np.log(res.centers), res.tl_band)
-    elif q == "L_wall":
-        code = np.interp(np.log(x), np.log(res.centers), res.L_wall)
-    elif q == "reverberant_nr":
+    if q == "reverberant_nr":
         from .pipeline import reverberant_noise_reduction
         nr = reverberant_noise_reduction(load_project(inp_path))
-        code = np.interp(np.log(x), np.log(nr["centers"]), nr["NR"])
-    elif q == "L_tone":
-        code = res.L_tone[x.astype(int) - 1]
-    elif q == "surface_tones":
-        ka = 2 * np.pi * res.f_m / res.atm.c * load_project(inp_path).fuselage.radius
-        surf = res.L_inc[0] + 20 * np.log10(np.abs(surface_factor(ka, 0.0)))
-        code = surf[x.astype(int) - 1]
+        x, y = data[:, 0], data[:, 1]
+        return _verdict(meta, ref_meta, x, np.interp(np.log(x), np.log(nr["centers"]), nr["NR"]), y,
+                        "Frequency (Hz)")
+    inp = json.loads(inp_path.read_text(encoding="utf-8"))
+    idx = None
+    if q == "surface_tones":                     # rows: cond, side (0 port / 1 stbd), harmonic, L
+        pred = flight.surface_tones(inp)
+        sides = ("port", "starboard")
+        code = np.array([pred[(int(c), sides[int(s)], int(h))] for c, s, h, _ in data])
+        y, xl = data[:, 3], "point (condition, side, harmonic)"
+    elif q == "static_nearfield":                # rows: M_t, x/D, m, L
+        pred = flight.static_nearfield_harmonics(inp)
+        code = np.array([pred[(mt, round(xd, 3), int(m))] for mt, xd, m, _ in data])
+        y, xl = data[:, 3], "point (M_t, x/D, harmonic)"
+    elif q == "tbl_bands":                       # rows: cond, side, band, L
+        pred = flight.tbl_bands(inp, sorted({int(c) for c in data[:, 0]}), sorted({float(f) for f in data[:, 2]}))
+        code = np.array([np.interp(np.log(f), np.log(pred[int(c)][0]), pred[int(c)][1]) for c, _, f, _ in data])
+        y, xl = data[:, 3], "point (condition, side, band)"
+    elif q == "cabin_tones":                     # rows: cond, mic, engine, harmonic, L
+        pred = flight.cabin_tones(inp)
+        eng = ("port", "starboard")
+        code = np.array([pred[(int(c), eng[int(e)], int(h))] for c, _, e, h, _ in data])
+        y, xl = data[:, 4], "point (condition, mic, engine, harmonic)"
+    elif q == "il_bands":                        # rows: cond, mic, band, IL
+        pred = flight.insertion_loss_bands(inp, sorted({int(c) for c in data[:, 0]}))
+        code = np.array([np.interp(np.log(f), np.log(pred[int(c)][0]), pred[int(c)][1]) for c, _, f, _ in data])
+        y, xl = data[:, 3], "point (condition, mic, band)"
     else:
-        return CaseResult(cid, meta, "not run", note=f"quantity '{q}' needs a two-configuration runner")
-    return _verdict(meta, ref_meta, x, code, y, xlabel)
+        return CaseResult(cid, meta, "not run", note=f"unknown quantity '{q}'")
+    return _verdict(meta, ref_meta, np.arange(1, len(y) + 1, dtype=float), code, y, xl)
 
 
 def _verdict(meta, ref_meta, x, code, y, xlabel) -> CaseResult:
@@ -219,27 +199,23 @@ def _verdict(meta, ref_meta, x, code, y, xlabel) -> CaseResult:
     stats = (f"max |e| {worst:.1f} dB, RMS {np.sqrt(np.mean(err[sel] ** 2)):.1f} dB, "
              f"mean {np.mean((code - y)[sel]):+.1f} dB")
     head = f"{ref_meta.get('report', '')} {ref_meta.get('figure', '')}".strip()
-    if "min_fraction" in meta:                     # low-fi policy: fraction within +-tol
+    if "min_fraction" in meta:
         tol, need = meta["tol_db"], meta["min_fraction"]
         frac = float(np.mean(err[sel] <= tol))
-        status = "met" if frac >= need else "not met"
         note = (f"{head}; {int(np.sum(err[sel] <= tol))}/{int(sel.sum())} points within +-{tol:g} dB "
                 f"(need {need:.0%}); {stats}")
-        return CaseResult(cid, meta, status, 100 * frac, 100 * need, unit="% within", x=x, code=code,
-                          ref=y, note=note, xlabel=xlabel)
+        return CaseResult(cid, meta, "met" if frac >= need else "not met", 100 * frac, 100 * need,
+                          unit="% within", x=x, code=code, ref=y, note=note, xlabel=xlabel)
     tgt = meta.get("target_db")
     status = "info" if tgt is None else ("met" if worst <= tgt else "not met")
-    within_all = float(np.mean(err <= tgt) * 100) if tgt else float("nan")
-    note = (f"{head}; verdict on {int(sel.sum())} points in {lo:g}-{hi:g}; all {len(x)} points: "
-            + f"{within_all:.0f}% within target (information); {stats}")
-    return CaseResult(cid, meta, status, worst, tgt, x=x, code=code, ref=y, note=note, xlabel=xlabel)
+    return CaseResult(cid, meta, status, worst, tgt, x=x, code=code, ref=y, note=f"{head}; {stats}", xlabel=xlabel)
 
 
 def run_case_id(meta) -> CaseResult:
     if meta["kind"] == "verification":
         return VERIFIERS[meta["id"]](meta)
     if meta["kind"] == "information":
-        return CaseResult(meta["id"], meta, "info", note="run both tools on the same JSON case")
+        return CaseResult(meta["id"], meta, "info", note="run both tools on the same case")
     return run_experimental(meta)
 
 
@@ -251,16 +227,14 @@ def run_all() -> tuple[list[CaseResult], dict]:
                                 cwd=Path(__file__).parent, timeout=5).stdout.strip() or "unknown"
     except (OSError, subprocess.SubprocessError):
         commit = "unknown"
-    stamp = {"date": _dt.datetime.now().isoformat(timespec="seconds"), "commit": commit,
-             "criteria_fixed": str(cfg.get("criteria_fixed", ""))}
-    return out, stamp
+    return out, {"date": _dt.datetime.now().isoformat(timespec="seconds"), "commit": commit,
+                 "criteria_fixed": str(cfg.get("criteria_fixed", ""))}
 
 
 def coverage(results: list[CaseResult]) -> str:
     ver = [r for r in results if r.meta["kind"] == "verification"]
     val = [r for r in results if r.meta["kind"] == "validation"]
     ran = [r for r in val if r.status in ("met", "not met")]
-    met = [r for r in ran if r.status == "met"]
     ok = [r for r in ver if r.status == "check ok"]
     return (f"Verification {len(ok)}/{len(ver)} checks ok  |  Validation {len(ran)}/{len(val)} run, "
-            f"{len(met)} met")
+            f"{sum(r.status == 'met' for r in ran)} met")

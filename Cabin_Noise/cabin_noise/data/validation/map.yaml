@@ -1,15 +1,15 @@
-# Validation map layout: pipeline stages as blocks (col, row on a grid), grouped into frames,
-# with arrows for what feeds what. Every case in cases.yaml appears under exactly one block
-# (checked by tests/test_validation_map.py).
-title: "Cabin_Noise pipeline: validation and verification by stage"
+# Validation map layout: the paper pipeline's stages as blocks (col, row on a grid), grouped
+# into frames, with arrows for what feeds what. Every case in cases.yaml appears under exactly
+# one block (tests/test_validation_map.py).
+title: "Cabin_Noise paper pipeline: verification and validation by stage"
 
 groups:
   - id: inputs
     title: "Operating point"
   - id: exterior
-    title: "Exterior field"
+    title: "Exterior level"
   - id: transmission
-    title: "Sidewall transmission"
+    title: "Noise reduction (CR-132602)"
   - id: cabin
     title: "Cabin"
   - id: outputs
@@ -25,66 +25,58 @@ blocks:
     cases: []
   - id: tones
     title: "Propeller tones"
-    note: "rotating point forces (Gutin / Lowson)"
+    note: "Gutin (RP-1258 ch. 1)"
     group: exterior
     col: 1
     row: 0
-    cases: [V0a, V5, V5c, V5d]
+    cases: [V0a, V5, V5c]
   - id: tbl
     title: "Boundary layer"
-    note: "Goody wall spectrum"
+    note: "Goody; diffuse = wall / 2"
     group: exterior
     col: 1
     row: 1
     cases: [V5b]
-  - id: scattering
-    title: "Fuselage scattering"
-    note: "rigid cylinder, shadow of far prop"
-    group: exterior
+  - id: sidewall
+    title: "Sidewall NR"
+    note: "eqs. 46, 52; openings TM-85722 eq. 1"
+    group: transmission
     col: 2
     row: 0
-    cases: [V0b]
-  - id: sidewall
-    title: "Sidewall TL / NR"
-    note: "mass law, transfer matrix or CR-132602"
-    group: transmission
-    col: 3
-    row: 0
-    cases: [V1, V2, V3, V4, V4a, V4b, V4c, V4d]
+    cases: [V1, V2, V4, V4a, V4b]
   - id: room
-    title: "Cabin absorption & room"
-    note: "Sabine, room equation"
+    title: "Cabin level"
+    note: "interior = exterior - NR; Sabine"
     group: cabin
-    col: 4
+    col: 3
     row: 0
     cases: [V7, V8]
   - id: seats
     title: "Seat spread"
-    note: "Schroeder statistics, box modes"
+    note: "95th percentile, Schroeder"
     group: cabin
-    col: 4
+    col: 3
     row: 1
-    cases: [V0c]
+    cases: []
   - id: il
     title: "Insertion loss"
     note: "IL = dTL + dABS (TM-85722)"
     group: outputs
-    col: 5
+    col: 4
     row: 0
-    cases: [V6]
+    cases: [V3, V6]
   - id: totals
     title: "Bands & weighting"
     note: "1/3 octaves, A / C weighting"
     group: outputs
-    col: 5
+    col: 4
     row: 1
     cases: []
 
 edges:
   - [mission, tones]
   - [mission, tbl]
-  - [tones, scattering]
-  - [scattering, sidewall]
+  - [tones, sidewall]
   - [tbl, sidewall]
   - [sidewall, room]
   - [room, seats]
