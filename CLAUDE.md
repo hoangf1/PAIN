@@ -7,7 +7,7 @@ Cabin_Noise\README.md
 Cabin_Noise\projectPlan.md (the "Implementation notes" section: milestone status and every deviation from the plan text)
 Cabin_Noise\cabin_noise\data\validation\cases.yaml when a case, quantity or criterion is added (criteria are dated and fixed before any comparison)
 
-A Cabin_Noise validation case may carry a met / not-met verdict only if it compares with experimental data (V4-V7: NASA TM-85722, CR-178004), run from a project file built only from the report's stated inputs. Analytic limits, laws and internal consistency (V0a-V3) are verification: "check ok / failed", never a verdict. The cross-check against PAIN (V8) is information only.
+A Cabin_Noise validation case may carry a met / not-met verdict only if it compares with experimental data (V4-V7: NASA TM-85722, CR-178004), run from a project file built only from the report's stated inputs. Analytic limits, laws and internal consistency (V0a-V3) are verification: "check ok / failed", never a verdict.
 
 Checks for Cabin_Noise (step 3 below), from Cabin_Noise\ with its .venv:
 - Core or tests: `.venv/Scripts/python -m pytest -q`

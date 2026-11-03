@@ -55,7 +55,6 @@ flowchart TD
     Q{"What is the code<br/>compared against?"}
     Q -- "the paper's own equations,<br/>a printed prediction, an identity" --> V["Verification<br/>check ok / check failed<br/>never a verdict"]
     Q -- "measured data<br/>from a test" --> X["Validation<br/>met / not met"]
-    Q -- "another code (PAIN)" --> I["Information<br/>no verdict"]
 ```
 
 **Verification** asks whether the code does exactly what the paper says. It is checked against:
@@ -107,7 +106,6 @@ flowchart LR
         V3["V3 ver"]
         V6["V6 val"]
         V7["V7 val"]
-        V8["V8 info"]
     end
     Source --> Wall_and_NR --> Cabin_and_outputs
 ```
@@ -143,7 +141,7 @@ flowchart LR
 
 **V4b: stiffened, trimmed cylinder, reverberant NR.** Not met, 5/19 bands. [Figure](docs/figures/V4b.png)
 - **Data:** NASA CR-3813 Fig. E-22.
-- **Why chosen:** it tests the double wall (eq. 52) with trim, and every input is printed in CR-3813. PAIN predicted the same case, so the two tools can be compared.
+- **Why chosen:** it tests the double wall (eq. 52) with trim, and every input is printed in CR-3813.
 - **Result:** 9-17 dB low at 63-160 Hz (the same stiffness-controlled shell as V4a), within ±6 dB at 200-630 Hz, and 14-22 dB high above 800 Hz, where the double wall rises faster than the measurement. CR-3813 reports that PAIN also overpredicted this case at high frequency.
 
 ### Source
@@ -175,13 +173,6 @@ flowchart LR
 - **Why chosen:** the exterior is measured, not predicted, so the case tests NR and cabin in flight without the source error.
 - **Result:** mean +17.9 dB. The blade passage frequency (78 Hz) lies far below half the fuselage's ring frequency, where CR-132602 itself says its mass-law wall is not valid.
 
-### Information
-
-**V8: cross-check against PAIN on the same cases.** No verdict.
-- **Data:** PAIN_Program.
-- **Why chosen:** to document where the low-fi tool and PAIN diverge.
-- **Status:** not run yet (Goody-to-PAIN is parked).
-
 **Summary:** 1 of 8 validation cases met. Every miss lies where its paper's own stated limit puts it:
 - below about half the ring frequency for the mass-law wall (V4a, V4b, V7);
 - the double-wall rise, missing from a single limp wall (V4) and too strong in eq. 52 at high frequency (V4b);
@@ -199,7 +190,7 @@ The tool's use is therefore relative trades at mid and high frequency, not absol
 | CR-178004 flights 1, 2 and 4 (App. A) | Repeat flights of flight 3's conditions, so not an independent check. Flight 4 is used only as V6's treated case. |
 | CR-3813 Fig. E-16 (T1/T2 interior levels) | It needs the measured exterior field as a source override, and the trim inputs are incomplete. |
 | TP-2444 Figs. 17, 19 | The analysis bandwidth is not stated, and the trim inputs are incomplete. |
-| CR-172428 App. B | It holds PAIN's predictions, not measurements, so it can only serve V8. |
+| CR-172428 App. B | It holds a program's predictions (PAIN's), not measurements. |
 | CR-172490 Fig. 15 | Sharp's double-panel prediction: another method, so verification at most. |
 
 **Retired cases.** V0b, V0c, V4c, V4d and V5d tested models removed in the 2026-11-02 restructure (scattering, box-mode seats, stiffened bays, limp blankets, blade-geometry source). Their records are in git up to commit 1c2c8fe; see METHOD.md sec. 3.
@@ -210,7 +201,7 @@ The tool's use is therefore relative trades at mid and high frequency, not absol
 .venv/Scripts/python scripts/make_doc_figures.py
 ```
 
-The script runs every case, which takes a few minutes, and saves one PNG per case that has a curve (all but V8) plus the map to `docs/figures/`. Each case figure has three panels:
+The script runs every case, which takes a few minutes, and saves one PNG per case that has a curve (every case) plus the map to `docs/figures/`. Each case figure has three panels:
 - code (line) against reference (markers), with the acceptance band shaded;
 - the error, with ±target;
 - predicted against reference, on a 1:1 line.

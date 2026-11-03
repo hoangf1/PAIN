@@ -50,7 +50,7 @@ blocks:
     group: cabin
     col: 3
     row: 0
-    cases: [V7, V8]
+    cases: [V7]
   - id: seats
     title: "Seat spread"
     note: "95th percentile, Schroeder"

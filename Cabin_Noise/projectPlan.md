@@ -173,7 +173,6 @@ cabin_noise/
 | V5b | Source | broadband | Goody spectrum vs measured exterior fluctuating pressure | CR-178004 | ±3 dB per band |
 | V6 | Cabin | both | Treatment IL vs flight | TM-85722 | ±3 dB broadband; report harmonic error |
 | V7 | Total | tonal | Cabin harmonic levels at each measured location (average + max-seat method) | CR-178004 | report error band |
-| V8 | Total | both | Cross-check vs PAIN recreation | same cases | document divergence |
 
 **Data format:** digitized curves in `data/validation/<case>.csv` with YAML header (report, figure/table, aircraft, condition, units, digitization uncertainty). Case definitions in `cases.yaml`, shared by GUI and `pytest`. V0–V3 run in CI.
 
@@ -188,7 +187,7 @@ cabin_noise/
 | M3 | Full pipeline | cabin, seats, weighting, run_case(), JSON, CSV export; V0c passing |
 | M4 | GUI v1 | main window, input tabs, plots, results bar |
 | M5 | Compare & sweep | two-config overlay, IL, sweeps, patch sensitivity |
-| M6 | Validation | digitized NASA data, V4–V8 blind, Validation tab + report export |
+| M6 | Validation | digitized NASA data, V4–V7 blind, Validation tab + report export |
 | M7 | Polish & package | unit toggles, material editor, PDF report, PyInstaller |
 
 ---
@@ -204,15 +203,7 @@ cabin_noise/
 
 ## 8. Relationship to PAIN
 
-| Need | Use |
-|---|---|
-| Design sweeps, treatment trades, IL, mission-segment dBA | Low-fi tool |
-| Coupled structural–acoustic detail, stiffener/frame effects, detailed low-frequency tones | PAIN recreation |
-| Confidence check | Run both on the same case (V8) |
-
-- Shared JSON case format feeds both tools; "Export to PAIN" / "Import PAIN results".
-- The low-fi rotating-force source can also supply PAIN's exterior input as a cheap stand-in.
-- Workflow: sweep with low-fi → shortlist → verify in PAIN.
+None. Cabin_Noise is a stand-alone tool: no case compares it with PAIN_Program, and it shares no code, input format or results with it (author's decision 2026-11-03; see Implementation notes).
 
 ---
 
@@ -412,7 +403,7 @@ Report tonal-only, broadband-only and total, for both average and max seat.
 5. **Schroeder frequency** uses the mean of T60 at 500 Hz and 1 kHz. Below f_s, broadband seat shapes average G over 5 frequencies inside each band.
 6. **Max seat.** Each seat gets its own band spectrum: the box-mode shape below f_s and +4.8 dB above. The reported "max seat" is the seat with the highest total dBA, not a per-band envelope. The envelope appears only in the Interior plot.
 7. **Far-side shadow angle** for the 5-patch option is `π − |α|`, where α is the patch's circumferential angle.
-8. **Verdict rule.** V0-V3 compare against analytic limits, so under the repo rule (2026-10-29) they are *verification*: they show "check ok / failed" and never a met / not-met verdict. Only V4-V7 can carry a verdict. V8 is information only.
+8. **Verdict rule.** V0-V3 compare against analytic limits, so under the repo rule (2026-10-29) they are *verification*: they show "check ok / failed" and never a met / not-met verdict. Only V4-V7 can carry a verdict.
 9. `gui/panels.py` is one module instead of a `panels/` package.
 
 ### Defaults and library
@@ -431,7 +422,7 @@ Everything below is digitized under `PAIN_Program/data` and can be copied withou
 | CR-3813 Fig. E-16, T1/T2 targets (`cr3813/`) | Propeller-driven interior 1/3-octave levels, same cylinder | Candidate V7b (tonal interior) | Needs the measured exterior field (E-11) as a measured-source override; same trim inputs gap as V4b |
 | CR-3813 Fig. E-11 (`cr3813/e11_freefield_measured_*.csv`) | Measured free-field propeller levels | V5-style source check / V7b input | Available, not yet mapped |
 | TP-2444 Figs. 17, 19 (`tp2444/`) | Same 1.83 m model 2: exterior and interior spectra, rotation direction | Candidate V7c | Analysis bandwidth not stated (5 Hz assumed in PAIN); trim gap as above |
-| CR-172428 App. B (`cr172428/`) | Blocked pressure field and PAIN's predictions | V8 (vs PAIN) only, not experimental | Available |
+| CR-172428 App. B (`cr172428/`) | Blocked pressure field and PAIN's predictions | Not used: predictions, not experimental | Available |
 | CR-172490 Fig. 15 (`cr172490/`) | Sharp's double-panel *prediction* | Verification only (another method) | Not a validation reference |
 | `references/NASA_CR_178004.pdf` | Commander 695A flight: exterior and interior harmonics, untreated and treated | **V5** (run), V5b, V7 | The appendices are printed tables with a text layer, so they can be transcribed (not digitized from plots). App. A drives V5; App. D (1/3-octave exterior) drives V5b; App. B and E (untreated cabin) and App. C, F, J (treated cabin, insertion loss) drive V7 and a V6-like case. Inputs are in sec. 2 and Tables 1-8 |
 | NASA TM-85722 | Lab TL and in-flight IL | V4, V6 as planned | Not in the repo |
@@ -591,4 +582,9 @@ Everything below is digitized under `PAIN_Program/data` and can be copied withou
 - The panel titles are shortened to "Code vs reference", "Error (code - reference)" and "Predicted vs reference (1:1)".
 - The docs/figures PNGs were regenerated. No result changed (same values as the record).
 - Smoke check: every case with a reference has the code and reference entries in its legend.
+
+### V8 removed (2026-11-03, author's decision)
+- **Deviation:** V8 (cross-check against the PAIN recreation, information only, never run) is removed from `cases.yaml`, the stage map, VALIDATION.md and the case table above. PAIN is a separate program, and another code's predictions cannot validate this one.
+- Sec. 8 no longer plans a shared case format, Export / Import to PAIN or a sweep-then-verify-in-PAIN workflow; none of these was built.
+- The CR-172428 data row is marked not used. The repo CLAUDE.md line about V8 is removed. No other case or criterion changed.
 

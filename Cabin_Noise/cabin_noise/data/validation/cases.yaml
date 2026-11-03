@@ -203,10 +203,3 @@ cases:
     quantity: cabin_tones
     defined: "2026-11-02, paper pipeline"
     recorded: "2026-11-02 paper pipeline (definition commit 93bbeb9): not met: 1/108 within +-6 dB, mean +17.9 dB (mass-law wall far below 0.5 f_r)"
-  - id: V8
-    stage: Total
-    track: both
-    kind: information
-    check: Cross-check vs PAIN recreation
-    reference: same cases run in PAIN_Program
-    metric: divergence documented

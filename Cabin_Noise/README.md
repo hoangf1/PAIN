@@ -9,7 +9,7 @@ Gutin tones + Goody boundary layer  ->  CR-132602 sidewall noise reduction  ->  
 
 [METHOD.md](METHOD.md) maps each block to its paper. [AUDIT.md](AUDIT.md) records the code audit. [VERIFICATION.md](VERIFICATION.md) lists the checks against the papers. [VALIDATION.md](VALIDATION.md) explains each verification and validation case, why its data were chosen, and links its figure. The reports are in `references/`.
 
-It is the fast companion to the PAIN recreation in `../PAIN_Program`. PAIN models structural and acoustic modes with airfoil-based sources; this tool does not.
+It is a stand-alone tool: no case compares it with another program, and it does not use PAIN_Program's code or results.
 
 ## Install and run
 
