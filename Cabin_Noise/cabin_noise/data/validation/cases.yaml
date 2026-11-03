@@ -143,6 +143,7 @@ cases:
     min_fraction: 0.75
     quantity: tbl_bands
     defined: "2026-11-02 before the run: 323 points; bands >= 800 Hz because sec. 3.7 says lower bands are tone-dominated; nose-to-station 2.91 m assumed"
+    recorded: "2026-11-02 met: 265/323 within +-6 dB, mean +2.7 dB, RMS 4.2 dB (definition commit ac0fcb8)"
   - id: V6
     stage: Cabin
     track: both
@@ -154,6 +155,7 @@ cases:
     min_fraction: 0.75
     quantity: il_bands
     defined: "2026-11-02 before the run: 519 points, no band or condition selection; blanket flow resistivity, bare alpha and cabin box assumed (V6_inputs.json)"
+    recorded: "2026-11-02 not met: 251/519 within +-6 dB, mean +8.0 dB, RMS 10.9 dB (definition commit ac0fcb8)"
   - id: V7
     stage: Total
     track: tonal
@@ -165,6 +167,7 @@ cases:
     min_fraction: 0.75
     quantity: cabin_tones
     defined: "2026-11-02 before the run: 108 points; driven by the measured exterior (App. A) so the source bias of V5 is excluded; cabin box, bare alpha and patch grid assumed (V7_inputs.json)"
+    recorded: "2026-11-02 not met: 12/108 within +-6 dB, mean +12.8 dB, RMS 14.1 dB (definition commit ac0fcb8)"
   - id: V8
     stage: Total
     track: both

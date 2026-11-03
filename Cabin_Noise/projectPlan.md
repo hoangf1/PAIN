@@ -401,7 +401,7 @@ Report tonal-only, broadband-only and total, for both average and max seat.
 | M3 Full pipeline | Done. `run_case`, JSON and CSV export work. V0c passes. |
 | M4 GUI v1 | Done. Six input tabs, eight plot views and the results bar. |
 | M5 Compare & sweep | Done. A/B overlay, IL, background sweeps, mission summary, 1-vs-5 patch check. |
-| M6 Validation | Framework done: Validation tab, figures, heatmap, HTML/PDF export. Run 2026-11-02: **V4a not met, V5 not met, V5c met, V5d met** (see below). V4 and V6 need TM-85722, which is not in the repo. V5b and V7 can be built from CR-178004 (App. D, B), which is already in the repo. |
+| M6 Validation | Framework done: Validation tab, figures, heatmap, HTML/PDF export (the run is threaded: about 1-2 min). All runnable cases ran 2026-11-02: **met V5b, V5c, V5d; not met V4a, V5, V6, V7** (see below). Only V4 is still not run: TM-85722 is not in the repo. |
 | M7 Polish & package | Partly done: material library and PDF report. Still open: unit toggles, a separate material editor, PyInstaller build. |
 
 ### Where the code differs from the text above
@@ -475,3 +475,14 @@ Everything below is digitized under `PAIN_Program/data` and can be copied withou
 - **V5c, point source (default):** **met.** 49 of 52 within +-6 dB; mean +2.2 dB, RMS 3.5 dB, max 7.4 dB. The largest errors are BPF3 at M_t 0.60-0.90.
 - **V5d, blade source:** **met.** 51 of 52 within +-6 dB; mean -0.1 dB, RMS 2.6 dB, max 6.2 dB.
 - **Reading:** on held-out data the radial distribution removes the point source's +2 dB near-field bias, as V5's sensitivity suggested. V5 (CR-178004 flight) cannot use the blade mode, because the Dowty blade geometry is not published; it stays not met with the point source. Thickness noise is still not modelled in either mode.
+
+### CR-178004 cabin and boundary-layer cases (run 2026-11-02; definitions committed first in ac0fcb8)
+- **Data.** Appendices A, B, D and J (flight 3, plus flight 4 for J) were transcribed from the PDF text layer. Illegible OCR cells are left out, not guessed. The tables were seen during transcription; the point-selection rules come from the report's text (V5b) or are "everything printed" (V6), and are recorded in cases.yaml.
+- **Shared assumptions** (V6_inputs.json / V7_inputs.json): cabin box 5.33 x 1.45 x 1.45 m (width not printed); bare-structure alpha 0.075 (midpoint of the report's own 0.05 / 0.1); a bare 1.6 mm flat skin with no stiffeners or windows; blanket flow resistivity 25 000 Pa s/m2. The prop-plane patch is the whole near sidewall (30 x 15 grid).
+- **New pipeline options:** patch mode 0 (a grid of patches over the sidewall), and `measured_ref`. With `measured_ref`, measured exterior levels are anchored at the microphone and the source model gives only the spatial shape. The pipeline holds one rpm per run, so each engine is run separately and the components are added in energy.
+- **V5b, Goody vs exterior 1/3-octave bands >= 800 Hz: met.** 265 of 323 within +-6 dB, mean +2.7 dB. The error rises with frequency (-1.6 dB at 800 Hz, +7 dB at 5 kHz); the report links the measured high-frequency fall-off to microphone diaphragm size.
+- **V7, untreated cabin harmonics driven by the measured exterior: not met.** 12 of 108 within +-6 dB, mean +12.8 dB. Errors: +14 to +19 dB at BPF1, +12 dB at BPF2, +6 to +15 dB at BPF3. Attribution (information only): at 78 Hz the infinite mass-law skin transmits far more than a stiffened bay, whose first panel modes lie above BPF (stiffness-controlled). This is plan assumption 1, the same limit V4a showed. Bay dimensions (frame and stringer spacing) are not printed in CR-178004.
+- **V6, fiberglass insertion loss: not met.** 251 of 519 within +-6 dB, mean +8.0 dB. 400 Hz-1.6 kHz agrees within about +-5 dB. Below 250 Hz the model gives 4-11 dB, but the measurement is about 0 or negative. The rigid-frame Delany-Bazley blanket acts as a flow resistance, while a real limp blanket moves with the air; the report also cites structure-borne shaft tones there. Above 2 kHz the model keeps rising while the measured IL falls; the report attributes that fall to the tape recorder's dynamic range in the treated cabin.
+- **What would fix them** (each a model change to be judged on other data, not on these cases):
+  - a stiffness-controlled panel TL below the bay fundamental (needs bay dimensions as inputs);
+  - a limp-frame porous model for blankets.

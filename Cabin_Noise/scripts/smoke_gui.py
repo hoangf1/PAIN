@@ -53,7 +53,8 @@ def main():
         w.views["Sweep"].show(xs, rows, "Tip clearance h_c (m)")
         if not (rows[0][2] > rows[-1][2]):
             failures.append("tonal dBA did not fall with tip clearance")
-        w.validation.run_all()
+        w.validation.run_all()                     # threaded; wait for it
+        settle(app)
         if "Verification 6/6" not in w.validation.header.text():
             failures.append("verification checks not all ok: " + w.validation.header.text())
         if shots:
