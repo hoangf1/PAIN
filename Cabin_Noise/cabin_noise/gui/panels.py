@@ -197,7 +197,9 @@ class SidewallTab(Tab):
             F("trim_mass", "Trim surface mass", "kg/m2", lo=0, hi=100),
             F("blanket_mass", "Blanket surface mass", "kg/m2", lo=0, hi=100),
             F("cavity_depth", "Cavity depth (skin to trim)", "mm", scale=1e3, lo=1, hi=1000),
-        ])
+        ] + [F(f"cavity_alpha.{i}", f"Cavity alpha {int(f)} Hz", lo=0, hi=1,
+               tip="default: CR-132602 sec. 6.2 table (fiberglass-filled cavity)")
+             for i, f in enumerate(ALPHA_OCTAVES)])
         self.form.changed.connect(self.emit)
         self.v.addWidget(self.form)
         self.readout = QLabel()
@@ -220,8 +222,7 @@ class SidewallTab(Tab):
         if sw.double_wall:
             txt += (f"   |   trim + blanket {sw.m_trim:.2f} kg/m2, TL = " + " / ".join(f"{x:.1f}" for x in tl(sw.m_trim))
                     + f"   |   cavity cross-mode c/2L = {air.c / (2 * sw.cavity_depth):.0f} Hz")
-        self.readout.setText(txt + " dB\nCavity absorption (not an input; default CR-132602 sec. 6.2 table), octaves 63 Hz-8 kHz: "
-                             + " / ".join(f"{a:.2f}" for a in sw.cavity_alpha))
+        self.readout.setText(txt + " dB")
 
 
 # ---- Openings -----------------------------------------------------------------------
@@ -277,6 +278,9 @@ class CabinTab(Tab):
         self.form = DataclassForm([
             F("Lx", "Cabin length L_x", "m", lo=0.5, hi=60), F("Ly", "Width L_y", "m", lo=0.5, hi=10),
             F("Lz", "Height L_z", "m", lo=0.5, hi=5),
+            F("cabin_altitude", "Cabin pressure altitude", "m", lo=0, hi=5000,
+              tip="default 2438 m (8000 ft), the usual cruise cabin altitude"),
+            F("temperature", "Cabin temperature", "K", lo=250, hi=320, tip="default 293.15 K (20 C)"),
             F("volume", "Volume override (0 = box)", "m3", lo=0, hi=1000),
         ])
         self.form.changed.connect(self.emit)
@@ -337,6 +341,4 @@ class CabinTab(Tab):
         T = cab.t60(V, A)
         fs = cab.schroeder_frequency(float(np.mean(T[1:3])), V)
         self.readout.setText(f"V = {V:.1f} m3; A(125/500/1k/2k) = " + " / ".join(f"{a:.1f}" for a in A)
-                             + " m2; T60 = " + " / ".join(f"{t:.2f}" for t in T) + f" s; Schroeder f_s = {fs:.0f} Hz"
-                             + f"\nCabin air (not an input): pressure altitude {c.cabin_altitude:.0f} m, "
-                             f"{c.temperature - 273.15:.0f} C")
+                             + " m2; T60 = " + " / ".join(f"{t:.2f}" for t in T) + f" s; Schroeder f_s = {fs:.0f} Hz")

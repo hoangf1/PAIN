@@ -566,3 +566,4 @@ Everything below is digitized under `PAIN_Program/data` and can be copied withou
   - Cabin pressure altitude and cabin temperature are no longer inputs. The model holds them fixed at 2438 m (8000 ft) and 20 C, shown in the Cabin tab's readout.
   - The cavity absorption table is no longer an input. It is fixed to CR-132602 sec. 6.2's table, shown in the Sidewall tab's readout.
   - The model fields remain, so the validation cases still use each report's stated values (lab at sea level, measured flight cabin pressure), and saved projects keep loading. No recorded result changed.
+- **Reverted the same day (author's decision):** the three inputs are back in the GUI. They default to the paper values (8000 ft, 20 C; CR-132602 sec. 6.2 cavity table), and each field's tooltip states its default, so the user can fill them in later. Results are unchanged.
