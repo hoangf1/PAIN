@@ -116,3 +116,17 @@ def test_reverberant_nr_tracks_absorption_and_wall_mass(proj):
     mid = (base["centers"] > 300) & (base["centers"] < 1800)   # well below f_c of the 3.2 mm panel (~3.7 kHz)
     gain = reverberant_noise_reduction(p5)["NR"] - reverberant_noise_reduction(p4)["NR"]
     assert np.all(gain[mid] > 4.0)     # mass law: ~6 dB per doubling of mass
+
+
+def test_blade_source_model_runs_and_differs_from_point(proj, res):
+    p2 = copy.deepcopy(proj)
+    p2.propeller.source_model = "blade"
+    p2.propeller.blade = dict(r_over_R=[0.25, 0.5, 0.75, 1.0], c_over_R=[0.15, 0.14, 0.11, 0.06],
+                              beta_deg=[68.0, 56.0, 48.0, 43.0], cl_design=[0.3, 0.4, 0.4, 0.3],
+                              hub_r_over_R=0.25, n_strips=10)
+    r2 = run_case(p2)
+    assert np.all(np.isfinite(r2.L_tone))
+    assert np.max(np.abs(r2.L_inc[0] - res.L_inc[0])) > 0.5    # radial spread changes the near field
+    p2.propeller.blade = {}
+    with pytest.raises(ValueError):
+        run_case(p2)

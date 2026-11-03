@@ -136,7 +136,8 @@ VERIFIERS = {"V0a": run_V0a, "V0b": run_V0b, "V0c": run_V0c, "V1": run_V1, "V2":
 # ---- experimental cases ---------------------------------------------------------------
 def run_experimental(meta) -> CaseResult:
     cid = meta["id"]
-    ref_path, inp_path = VAL_DIR / f"{cid}.csv", VAL_DIR / f"{cid}_inputs.json"
+    ref_path = VAL_DIR / meta.get("ref_file", f"{cid}.csv")
+    inp_path = VAL_DIR / f"{cid}_inputs.json"
     if not (ref_path.exists() and inp_path.exists()):
         return CaseResult(cid, meta, "not run", target=meta.get("target_db"),
                           note="no reference data: digitize the report curve and its stated inputs")
@@ -145,6 +146,15 @@ def run_experimental(meta) -> CaseResult:
     ref_meta, data = read_reference_csv(ref_path)
     q = meta.get("quantity")
     xlabel = "Frequency (Hz)"
+    if q == "static_nearfield":                    # rows: M_t, x_over_D, harmonic m, L_dB
+        import json
+
+        from .flight import static_nearfield_harmonics
+        pred = static_nearfield_harmonics(json.loads(inp_path.read_text(encoding="utf-8")))
+        code = np.array([pred[(mt, round(xd, 3), int(m))] for mt, xd, m, _ in data])
+        y = data[:, 3]
+        x = np.arange(1, len(y) + 1, dtype=float)
+        return _verdict(meta, ref_meta, x, code, y, "point (M_t, x/D, harmonic)")
     if q == "surface_tones":                       # flight runs: cond, side (0 port / 1 stbd), harmonic, L
         import json
 

@@ -49,3 +49,36 @@ def surface_tones(inp: dict) -> list[dict]:
                         "L_surf": float(L_surf[h - 1]), "L_flat": float(L_inc[h - 1] + 20 * np.log10(2.0)),
                         "V": op.V, "M_hel": float(np.hypot(op.V, op.omega * inp["tip_radius"]) / op.atm.c)})
     return out
+
+
+def static_nearfield_harmonics(inp: dict) -> dict:
+    """Predicted rms harmonic SPL at static near-field microphones (NACA Report 996 layout):
+    observer at radius R + d from the axis, x/D positive ahead of the propeller plane.
+    Thrust and torque from the given C_T, C_Q (rho n^2 D^4, rho n^2 D^5). Returns
+    {(M_t, x_over_D, m): L_dB}."""
+    from .atmosphere import air
+    from .blade import BladeGeometry, scaled_strip_loads, strip_harmonics
+
+    D, B = inp["diameter"], inp["blades"]
+    R = D / 2
+    atm = air(inp["T"], inp["p"])
+    out = {}
+    for cond in inp["conditions"]:
+        omega = cond["M_t"] * atm.c / R
+        n = omega / (2 * np.pi)
+        T = cond["C_T"] * atm.rho * n ** 2 * D ** 4
+        Q = cond["C_Q"] * atm.rho * n ** 2 * D ** 5
+        nh = max(cond["harmonics"])
+        if inp["source_model"] == "blade":
+            strips = scaled_strip_loads(BladeGeometry(**inp["blade"]), thrust=T, torque=Q, blades=B, R=R,
+                                        omega=omega, V=0.0, rho=atm.rho, c=atm.c)
+        for xd in cond["x_over_D"]:
+            obs = [xd * D, -(R + inp["d_over_D"] * D), 0.0]
+            if inp["source_model"] == "blade":
+                P = strip_harmonics(obs, *strips, blades=B, omega=omega, V=0.0, c=atm.c, n_harmonics=nh)
+            else:
+                P = rotor_harmonics(obs, blades=B, R_e=inp["re_fraction"] * R, omega=omega, V=0.0, c=atm.c,
+                                    thrust=T, torque=Q, n_harmonics=nh)
+            for m in cond["harmonics"]:
+                out[(cond["M_t"], round(xd, 3), m)] = float(db(np.abs(P[m - 1]) ** 2))
+    return out

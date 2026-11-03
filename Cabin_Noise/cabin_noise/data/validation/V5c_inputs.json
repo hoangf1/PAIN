@@ -1,0 +1,98 @@
+{
+ "_sources": {
+  "loads": "C_T, C_Q from the table printed in Report 996 Fig. 14 (B = 2, beta 10; used by the report's Eq. (2) points); both cases use them",
+  "geometry": "D = 1.2192 m, B = 2; d/D = 0.083 (Fig. 12/14 setup as recorded in PAIN_Program/data/report996/f1a_results.csv)",
+  "atmosphere": "ASSUMED ISA sea level (288.15 K, 101325 Pa): static test-day conditions are not in the digitized set; fixed 2026-11-02 before the run",
+  "thickness_noise": "not modelled (plan assumption 2); expected to matter at high M_t in the plane of rotation",
+  "source": "single effective radius R_e = 0.8 R (plan A.2 default)"
+ },
+ "diameter": 1.2192,
+ "blades": 2,
+ "d_over_D": 0.083,
+ "T": 288.15,
+ "p": 101325.0,
+ "conditions": [
+  {
+   "M_t": 0.45,
+   "C_T": 0.07,
+   "C_Q": 0.0037,
+   "x_over_D": [
+    -0.125
+   ],
+   "harmonics": [
+    1,
+    2,
+    3
+   ]
+  },
+  {
+   "M_t": 0.6,
+   "C_T": 0.072,
+   "C_Q": 0.0042,
+   "x_over_D": [
+    -0.125
+   ],
+   "harmonics": [
+    1,
+    2,
+    3
+   ]
+  },
+  {
+   "M_t": 0.75,
+   "C_T": 0.075,
+   "C_Q": 0.0044,
+   "x_over_D": [
+    -0.251,
+    -0.25,
+    -0.125,
+    -0.124,
+    -0.0,
+    0.001,
+    0.124,
+    0.125,
+    0.126,
+    0.25,
+    0.251
+   ],
+   "harmonics": [
+    1,
+    2,
+    3,
+    4
+   ]
+  },
+  {
+   "M_t": 0.9,
+   "C_T": 0.08,
+   "C_Q": 0.0051,
+   "x_over_D": [
+    -0.255,
+    -0.254,
+    -0.251,
+    -0.13,
+    -0.126,
+    -0.125,
+    -0.121,
+    -0.002,
+    -0.001,
+    0.123,
+    0.127,
+    0.128,
+    0.13,
+    0.248,
+    0.25,
+    0.251,
+    0.253
+   ],
+   "harmonics": [
+    1,
+    2,
+    3,
+    4
+   ]
+  }
+ ],
+ "source_model": "point",
+ "re_fraction": 0.8
+}

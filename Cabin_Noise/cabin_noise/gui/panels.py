@@ -111,6 +111,9 @@ class PropellerTab(Tab):
               tip="Stated input, not predicted; plots show the 0-5 dB band"),
             F("patch_mode", "Patches", kind="choice", choices=[1, 5]),
             F("source_mode", "Source", kind="choice", choices=["generated", "measured"]),
+            F("source_model", "Source model", kind="choice", choices=["point", "blade"],
+              tip="point: one effective radius (Gutin). blade: BEMT strips from blade geometry (CSV)"),
+            F("blade_scale", "Scale blade loads to thrust/torque", kind="bool"),
         ])
         self.form.changed.connect(self.emit)
         self.v.addWidget(self.form)
@@ -118,6 +121,9 @@ class PropellerTab(Tab):
         b = QPushButton("Load measured incident levels (CSV: harmonic, dB)...")
         b.clicked.connect(self._load_csv)
         h.addWidget(b)
+        bb = QPushButton("Load blade geometry (CSV: r/R, c/R, beta deg, cl_design)...")
+        bb.clicked.connect(self._load_blade)
+        h.addWidget(bb)
         self.meas = QLabel()
         h.addWidget(self.meas)
         h.addStretch()
@@ -137,12 +143,34 @@ class PropellerTab(Tab):
             self.project.propeller.measured = load_measured_csv(fn)
             self.emit()
 
+    def _load_blade(self):
+        import csv
+        fn, _ = QFileDialog.getOpenFileName(self, "Blade geometry", "", "CSV (*.csv)")
+        if not fn:
+            return
+        rows = []
+        with open(fn, encoding="utf-8") as fh:
+            for r in csv.reader(fh):
+                try:
+                    rows.append([float(v) for v in r[:4]])
+                except (ValueError, IndexError):
+                    continue
+        if len(rows) < 2:
+            return
+        a = np.array(rows)
+        pr = self.project.propeller
+        pr.blade = {**pr.blade, "r_over_R": list(a[:, 0]), "c_over_R": list(a[:, 1]), "beta_deg": list(a[:, 2]),
+                    "cl_design": list(a[:, 3]), "hub_r_over_R": float(a[0, 0])}
+        self.emit()
+
     def update_readout(self):
         if not self.project:
             return
         pr, s = self.project.propeller, self.project.mission.active_segment()
         n = len(pr.measured)
-        self.meas.setText(f"{n} measured harmonics loaded" if n else "none loaded")
+        nb = len(pr.blade.get("r_over_R", []))
+        self.meas.setText((f"{n} measured harmonics loaded" if n else "no measured levels") +
+                          (f"; blade geometry: {nb} stations" if nb else "; no blade geometry"))
         try:
             a = isa(s.altitude)
         except ValueError:

@@ -15,6 +15,7 @@ from .mission import Mission, Segment, operating_point
 from .scattering import surface_factor
 from .source_tbl import boundary_layer, wall_band_pressure2
 from .source_tonal import rotor_harmonics
+from .blade import BladeGeometry, scaled_strip_loads, strip_harmonics
 from .weighting import db, energetic_sum, p2_from_db, totals
 
 TWIN_MODES = ("energetic", "coherent", "worst")
@@ -36,6 +37,9 @@ class Propeller:
     patch_mode: int = 1              # 1 or 5 patches
     source_mode: str = "generated"   # "generated" | "measured"
     measured: list = field(default_factory=list)   # [[m, L_inc dB], ...]
+    source_model: str = "point"      # "point": one radius R_e (Gutin); "blade": BEMT strips (needs blade)
+    blade: dict = field(default_factory=dict)     # BladeGeometry fields (r_over_R, c_over_R, beta_deg, ...)
+    blade_scale: bool = True         # scale strip loads to the operating point's thrust and torque
 
 
 @dataclass
@@ -243,13 +247,28 @@ def run_case(proj: Project, segment: int | None = None, patch_mode: int | None =
         modes = {k: L_used for k in TWIN_MODES}
         L_near, L_far = L_used, np.full_like(L_used, -np.inf)
     else:
-        kw = dict(blades=pr.blades, R_e=R_e, omega=op.omega, V=op.V, c=ext.c, thrust=op.thrust,
-                  torque=op.torque, n_harmonics=pr.n_harmonics, rotation=pr.rotation, n_tau=opt.n_tau)
+        if pr.source_model == "blade":
+            if not pr.blade:
+                raise ValueError("blade source model selected but no blade geometry is loaded")
+            lk = dict(blades=pr.blades, R=pr.tip_radius, omega=op.omega, V=op.V, rho=ext.rho, c=ext.c)
+            if pr.blade_scale:
+                strips = scaled_strip_loads(BladeGeometry(**pr.blade), thrust=op.thrust, torque=op.torque, **lk)
+            else:
+                strips = scaled_strip_loads(BladeGeometry(**pr.blade), **lk)
+            hk = dict(blades=pr.blades, omega=op.omega, V=op.V, c=ext.c, n_harmonics=pr.n_harmonics,
+                      rotation=pr.rotation, n_tau=opt.n_tau)
+            source = lambda obs: strip_harmonics(obs, *strips, **hk)  # noqa: E731
+        elif pr.source_model == "point":
+            kw = dict(blades=pr.blades, R_e=R_e, omega=op.omega, V=op.V, c=ext.c, thrust=op.thrust,
+                      torque=op.torque, n_harmonics=pr.n_harmonics, rotation=pr.rotation, n_tau=opt.n_tau)
+            source = lambda obs: rotor_harmonics(obs, **kw)  # noqa: E731
+        else:
+            raise ValueError("source model must be 'point' or 'blade'")
         gain = 10.0 ** (pr.k_refr / 20.0)
-        P_near = np.array([rotor_harmonics(p.pos, **kw) for p in patches]) * gain
+        P_near = np.array([source(p.pos) for p in patches]) * gain
         if pr.engines == 2:
             ka = 2.0 * np.pi * f_m / ext.c * fu.radius
-            P_far = np.array([rotor_harmonics(p.far_pos, **kw) * surface_factor(ka, p.phi_far) / 2.0
+            P_far = np.array([source(p.far_pos) * surface_factor(ka, p.phi_far) / 2.0
                               for p in patches]) * gain
         elif pr.engines == 1:
             P_far = np.zeros_like(P_near)
