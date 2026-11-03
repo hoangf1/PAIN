@@ -10,7 +10,7 @@ import pyqtgraph.exporters  # noqa: F401  (registers exporters)
 from PySide6.QtCore import QSettings, QThreadPool, QTimer
 from PySide6.QtGui import QAction, QKeySequence
 from PySide6.QtWidgets import (QComboBox, QDialog, QDialogButtonBox, QDoubleSpinBox, QFileDialog,
-                               QFormLayout, QLabel, QMainWindow, QMessageBox, QScrollArea, QSpinBox,
+                               QFormLayout, QLabel, QMainWindow, QMessageBox, QPushButton, QScrollArea, QSpinBox,
                                QSplitter, QTabWidget, QWidget)
 
 from ..core.io import default_project, export_results_csv, load_project, save_project
@@ -192,6 +192,21 @@ class MainWindow(QMainWindow):
         self._act(r, "Run now", self.run, "F5")
         self._act(r, "Mission summary", self.mission_summary, "F6")
         self._act(r, "Parameter sweep...", self.sweep, "F7")
+        tb = self.addToolBar("Run")
+        tb.setMovable(False)
+        self.run_button = QPushButton("▶  Run  (F5)")
+        self.run_button.setToolTip("Run the active segment now. The model also re-runs by itself 0.4 s after any "
+                                   "input edit, and on start-up / file open.")
+        self.run_button.setStyleSheet(
+            "QPushButton { background: #2e9e44; color: white; font-weight: bold; padding: 5px 18px; "
+            "border: 1px solid #217a33; border-radius: 4px; } QPushButton:hover { background: #36b04e; } "
+            "QPushButton:pressed { background: #217a33; }")
+        self.run_button.clicked.connect(self.run)
+        tb.addWidget(self.run_button)
+        note = QLabel("  results also update automatically after each edit")
+        note.setStyleSheet("color: #555;")
+        tb.addWidget(note)
+        self.top.currentChanged.connect(lambda i: tb.setVisible(i == 0))   # Model tab only; Validation has its own
         c = mb.addMenu("&Compare")
         self._act(c, "Store current as A", self.store_a)
         self._act(c, "Load A from project file...", self.load_a)

@@ -579,3 +579,6 @@ Everything below is digitized under `PAIN_Program/data` and can be copied withou
   - the pipeline is checked to use the percentile.
 - **Fixed equation constants:** listed in METHOD.md sec. 5. They are deliberately not inputs.
 
+### Run button (2026-11-03, author's request)
+- A green **Run (F5)** button sits in a toolbar above the inputs, shown on the Model tab only (the Validation tab keeps its own run button). It calls the same `run()` as the Run menu. The automatic run (start-up, file open, 0.4 s after an edit) is kept. Smoke check: clicking the button starts a run and fills the results bar.
+

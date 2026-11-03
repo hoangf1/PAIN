@@ -38,6 +38,11 @@ def main():
         settle(app)
         if w.result is None or "dBA" not in w.bar.text():
             failures.append("default run produced no result bar")
+        before = w.run_id
+        w.run_button.click()                        # the green toolbar Run button starts a run
+        settle(app)
+        if w.run_id != before + 1 or "dBA" not in w.bar.text():
+            failures.append("Run toolbar button did not run the model")
         w.store_a()
         w.project.sidewall.trim_mass *= 2
         w.run()
