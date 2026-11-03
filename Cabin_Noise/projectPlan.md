@@ -644,3 +644,11 @@ Everything below is digitized under `PAIN_Program/data` and can be copied withou
 - No validation or verification result changed; the runs gave identical values.
 - **Tests:** `test_auto_harmonic_count_reaches_the_top_band` checks the count against the band edge written out, the absence of the out-of-range warning, and equality with entering the same count. The measured-source test covers automatic and an explicit count.
 
+### RPM for a helical tip Mach of 0.85 (2026-11-03, author's request)
+- **RPM:** 1550 -> 1181. It is set so that sqrt((omega R)^2 + V^2) = 0.85 c at 25000 ft and 290 KTAS (exact 1181.5, rounded down). This keeps the tips inside Gutin's subsonic range: helical tip Mach 0.850, rotational 0.700. Shaft power stays 2200 hp, so the torque rises.
+- **Result:**
+  - room average 97.7 dBA, max seat 102.5 dBA, BPF 118.1 Hz, 47 harmonics, no warning;
+  - tonal 97.7 dBA;
+  - broadband 77.3 dBA. Broadband does not depend on RPM; 77.3 is the 290 KTAS value, and the 79.2 in the six-blade note was at 363 KTAS.
+- No validation or verification result changed. The supersonic-tip test keeps its own 1550 / 1020 RPM.
+
