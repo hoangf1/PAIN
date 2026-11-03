@@ -4,10 +4,11 @@
     "segments": [
       {
         "name": "Cruise",
-        "altitude": 6096.0,
-        "mach": 0.45,
-        "rpm": 1600.0,
-        "shaft_power": 750000.0,
+        "altitude": 7620.0,
+        "mach": 0.6037,
+        "kcas": 250.0,
+        "rpm": 1550.0,
+        "shaft_power": 1640539.7,
         "eta_p": 0.85,
         "thrust": 0.0,
         "oat": 0.0

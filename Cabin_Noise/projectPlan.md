@@ -614,3 +614,11 @@ Everything below is digitized under `PAIN_Program/data` and can be copied withou
 - More segments can still be added in the Mission tab.
 - `test_mission_and_static_segment` now adds a second segment itself, so the one-result-per-segment check still has two segments to count.
 
+### Cruise at 25000 ft, 250 KCAS, 2200 hp, 1550 RPM; CAS input (2026-11-03, author's request)
+- **New input `Segment.kcas`** ("CAS override", kt) in the Mission table. When it is > 0 it sets the Mach through the subsonic compressible pitot relations, with ISA sea level as the reference (`mission.mach_from_cas`). At 0 the Mach input is used, so the validation inputs are unaffected.
+- The Mission readout shows the altitude in ft, the Mach, the KTAS and q.
+- **Default Cruise:** 7620 m (25000 ft), 250 KCAS, which is Mach 0.604 and 363 KTAS. The Mach field is set to 0.6037 to match. Shaft power is 2200 hp (1640.5 kW) per engine at 1550 RPM.
+- **Result:** 104.6 dBA room average and 109.3 dBA at the max seat, up from 97.6 / 102.3 (the power doubled). Tonal 104.6 dBA, broadband 79.2 dBA. No validation or verification result changed; V3 does not use the mission.
+- **Tests:** `test_calibrated_airspeed_to_mach` (sea level CAS = TAS; 250 KCAS at 25000 ft = 363 KTAS +-1.5 kt; KCAS overrides Mach). The end-to-end hand check now computes the speed from KCAS independently. The static-segment tests also zero the KCAS.
+- The flight-test runners keep their own `tas_from_ias` (IAS = EAS, defined before those runs) unchanged.
+

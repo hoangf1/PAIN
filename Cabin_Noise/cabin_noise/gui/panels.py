@@ -10,7 +10,7 @@ from ..core import cabin as cab
 from ..core.atmosphere import air, cabin_air, isa
 from ..core.io import load_library, load_measured_csv
 from ..core.materials import ALPHA_OCTAVES, Opening, Surface
-from ..core.mission import Segment
+from ..core.mission import KT, Segment, flight_mach
 from ..core.sea import tau_mass_law_diffuse
 from .widgets import DataclassForm, F, ListTable
 
@@ -43,6 +43,7 @@ class MissionTab(Tab):
     def __init__(self):
         super().__init__()
         cols = [F("name", "Name", kind="text"), F("altitude", "Altitude", "m"), F("mach", "Mach"),
+                F("kcas", "CAS override", "kt", tip="calibrated airspeed; > 0 sets the Mach (compressible, ISA)"),
                 F("rpm", "RPM"), F("shaft_power", "Shaft power", "kW", scale=1e-3), F("eta_p", "eta_p"),
                 F("thrust", "Thrust override", "N", tip="> 0 overrides eta_p P / V; required when static"),
                 F("oat", "OAT override", "K", tip="measured outside air temperature; 0 = ISA")]
@@ -58,6 +59,7 @@ class MissionTab(Tab):
         h.addStretch()
         self.v.addLayout(h)
         self.readout = QLabel()
+        self.readout.setWordWrap(True)
         self.v.addWidget(self.readout)
         self.v.addStretch()
 
@@ -95,9 +97,11 @@ class MissionTab(Tab):
             return
         if s.oat > 0:                                   # same atmosphere as operating_point
             a = air(s.oat, a.p)
-        V = s.mach * a.c
-        self.readout.setText(f"At {s.altitude:.0f} m: rho = {a.rho:.4f} kg/m3, c = {a.c:.1f} m/s, "
-                             f"V = {V:.1f} m/s, q = {0.5 * a.rho * V * V / 1000:.2f} kPa")
+        M = flight_mach(s, a)
+        V = M * a.c
+        self.readout.setText(f"At {s.altitude:.0f} m ({s.altitude / 0.3048:.0f} ft): rho = {a.rho:.4f} kg/m3, "
+                             f"c = {a.c:.1f} m/s, Mach {M:.3f}" + (f" (from {s.kcas:g} KCAS)" if s.kcas > 0 else "")
+                             + f", V = {V:.1f} m/s ({V / KT:.0f} KTAS), q = {0.5 * a.rho * V * V / 1000:.2f} kPa")
 
 
 # ---- Propeller ----------------------------------------------------------------------

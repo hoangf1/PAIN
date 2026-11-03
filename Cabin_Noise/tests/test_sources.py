@@ -7,7 +7,7 @@ from cabin_noise.core.atmosphere import air, isa
 from cabin_noise.core.cabin import STAT_95, t60
 from cabin_noise.core.io import default_project
 from cabin_noise.core.materials import ALPHA_OCTAVES
-from cabin_noise.core.mission import Segment, operating_point, tas_from_ias
+from cabin_noise.core.mission import KT, Segment, mach_from_cas, operating_point, tas_from_ias
 from cabin_noise.core.source_tbl import boundary_layer, goody_phi
 from cabin_noise.core.source_tonal import gutin_rms
 from cabin_noise.core.weighting import a_weight, c_weight, energetic_sum
@@ -33,6 +33,18 @@ def test_tas_and_measured_temperature():
     a = operating_point(Segment(altitude=3000.0, mach=0.3)).atm
     b = operating_point(Segment(altitude=3000.0, mach=0.3, oat=a.T + 20.0)).atm
     assert b.p == pytest.approx(a.p) and b.c > a.c
+
+
+def test_calibrated_airspeed_to_mach():
+    """Sea level ISA: CAS = TAS. 250 KCAS at 25000 ft ISA is 363 KTAS / Mach 0.604 (flight-computer
+    tables). A KCAS input overrides the Mach input in the operating point."""
+    assert mach_from_cas(100.0, isa(0).p) * isa(0).c == pytest.approx(100.0, rel=1e-9)
+    a = isa(25000 * 0.3048)
+    assert mach_from_cas(250 * KT, a.p) * a.c / KT == pytest.approx(363.0, abs=1.5)
+    seg = Segment(altitude=25000 * 0.3048, mach=0.3, kcas=250.0)
+    assert operating_point(seg).V / KT == pytest.approx(363.0, abs=1.5)
+    seg.kcas = 0.0
+    assert operating_point(seg).V == pytest.approx(0.3 * a.c)
 
 
 @pytest.mark.parametrize("f,A,C", [(31.5, -39.4, -3.0), (63, -26.2, -0.8), (125, -16.1, -0.2), (250, -8.6, 0.0),

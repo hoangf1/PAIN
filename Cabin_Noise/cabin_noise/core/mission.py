@@ -13,6 +13,7 @@ class Segment:
     name: str = "Cruise"
     altitude: float = 6096.0      # m
     mach: float = 0.45
+    kcas: float = 0.0             # calibrated airspeed, kt; if > 0 it sets the flight Mach instead of `mach`
     rpm: float = 1700.0
     shaft_power: float = 800e3    # W per engine
     eta_p: float = 0.85
@@ -40,11 +41,25 @@ class OperatingPoint:
     torque: float  # N m per propeller
 
 
+def mach_from_cas(cas: float, p: float) -> float:
+    """Flight Mach from calibrated airspeed (m/s) and static pressure (Pa): subsonic compressible
+    pitot relations, ISA sea level as the CAS reference. Impact pressure
+    q_c = p0 [(1 + 0.2 (V_c / a0)^2)^3.5 - 1], then M = sqrt(5 [(q_c / p + 1)^(2/7) - 1])."""
+    sl = isa(0.0)
+    qc = sl.p * ((1.0 + 0.2 * (cas / sl.c) ** 2) ** 3.5 - 1.0)
+    return float(np.sqrt(5.0 * ((qc / p + 1.0) ** (2.0 / 7.0) - 1.0)))
+
+
+def flight_mach(seg: Segment, atm: Air) -> float:
+    """The segment's Mach: from KCAS when it is given, else the Mach input."""
+    return mach_from_cas(seg.kcas * KT, atm.p) if seg.kcas > 0 else seg.mach
+
+
 def operating_point(seg: Segment) -> OperatingPoint:
     atm = isa(seg.altitude)
     if seg.oat > 0:                                   # pressure altitude + measured temperature
         atm = air(seg.oat, atm.p)
-    V = seg.mach * atm.c
+    V = flight_mach(seg, atm) * atm.c
     omega = 2.0 * np.pi * seg.rpm / 60.0
     if omega <= 0:
         raise ValueError(f"segment '{seg.name}': RPM must be positive")

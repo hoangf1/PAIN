@@ -78,7 +78,7 @@ def test_mission_and_static_segment(proj):
     out = run_mission(p2)
     assert len(out) == 2 and out[0].totals["average"]["total"]["dBA"] != out[1].totals["average"]["total"]["dBA"]
     seg = p2.mission.segments[0]
-    seg.mach, seg.thrust = 0.0, 0.0
+    seg.mach, seg.kcas, seg.thrust = 0.0, 0.0, 0.0
     with pytest.raises(ValueError):
         run_case(p2, segment=0)
     seg.thrust = 12000.0

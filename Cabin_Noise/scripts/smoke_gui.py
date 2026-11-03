@@ -97,14 +97,14 @@ def main():
         if not (rows[0][2] > rows[-1][2]):
             failures.append("tonal dBA did not fall with tip clearance")
         seg = w.project.mission.segments[0]            # static segment: no boundary layer, views must cope
-        old = (seg.mach, seg.thrust)
-        seg.mach, seg.thrust = 0.0, 12000.0
+        old = (seg.mach, seg.kcas, seg.thrust)
+        seg.mach, seg.kcas, seg.thrust = 0.0, 0.0, 12000.0
         w.project.mission.active = 0
         w.run()
         settle(app)
         if "dBA" not in w.bar.text():
             failures.append("static segment did not produce a result bar")
-        seg.mach, seg.thrust = old
+        seg.mach, seg.kcas, seg.thrust = old
         w.project.mission.active = 0
         w.validation.run_all()                     # threaded; wait for it
         settle(app)
