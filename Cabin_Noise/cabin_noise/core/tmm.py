@@ -11,7 +11,7 @@ import numpy as np
 
 from .atmosphere import Air
 from .frequencies import log_subfrequencies
-from .materials import AirGap, Panel, PorousLayer
+from .materials import AirGap, Panel, PorousLayer, PorousTable
 from .porous import delany_bazley
 
 THETA_MAX_DEG = 78.0
@@ -33,6 +33,10 @@ def panel_impedance(p: Panel, f, theta, radius: float | None, c0: float):
     if p.curved and radius:
         bracket = bracket - (p.ring_frequency(radius) / f) ** 2
     Z = 1j * w * m * bracket
+    f11 = p.bay_frequency()
+    if f11 > 0:
+        # bay below its fundamental acts as a spring: single-mode stiffness s = rho h w11^2
+        Z = Z - 1j * p.rho * p.h * (2 * np.pi * f11) ** 2 / w
     floor = w * m * p.eta
     mag = np.abs(Z)
     small = mag < floor
@@ -52,6 +56,8 @@ def layer_matrix(layer, f, theta, air: Air, radius: float | None):
     k0 = w / air.c
     if isinstance(layer, PorousLayer):
         Zc, kc, _ = delany_bazley(f, layer.sigma, air.rho, air.c)
+    elif isinstance(layer, PorousTable):
+        Zc, kc = layer.properties(f)
     elif isinstance(layer, AirGap):
         Zc, kc = air.rho_c + 0j, k0 + 0j
     else:

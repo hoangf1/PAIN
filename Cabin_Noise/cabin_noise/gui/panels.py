@@ -9,7 +9,7 @@ from PySide6.QtWidgets import (QComboBox, QFileDialog, QGroupBox, QHBoxLayout, Q
 from ..core import cabin as cab
 from ..core.atmosphere import cabin_air, isa
 from ..core.io import load_library, load_measured_csv
-from ..core.materials import ALPHA_OCTAVES, AirGap, Opening, Panel, PorousLayer, Surface
+from ..core.materials import ALPHA_OCTAVES, AirGap, Opening, Panel, PorousLayer, PorousTable, Surface
 from ..core.mission import Segment
 from ..core.pipeline import TWIN_MODES
 from .widgets import DataclassForm, F, ListTable
@@ -225,12 +225,13 @@ class FuselageTab(Tab):
 
 
 # ---- Layer table (sidewall and openings) -------------------------------------------
-LAYER_KINDS = ["panel", "porous", "gap"]
+LAYER_KINDS = ["panel", "porous", "gap", "porous_table"]
 LAYER_COLS = [
     F("kind", "Kind", kind="choice", choices=LAYER_KINDS), F("name", "Name", kind="text"),
     F("h", "h", "mm", scale=1e3), F("d", "d", "mm", scale=1e3), F("E", "E", "GPa", scale=1e-9),
     F("rho", "rho", "kg/m3"), F("nu", "nu"), F("eta", "eta"), F("m_add", "Added mass", "kg/m2"),
-    F("curved", "Curved", kind="bool"), F("sigma", "sigma", "Pa s/m2"),
+    F("curved", "Curved", kind="bool"), F("bay_a", "Bay a", "mm", scale=1e3), F("bay_b", "Bay b", "mm", scale=1e3),
+    F("sigma", "sigma", "Pa s/m2"),
 ]
 
 
@@ -266,7 +267,7 @@ class LayerTable(ListTable):
         if f.attr != "kind":
             return
         old = self.items[r]
-        cls = {"panel": Panel, "porous": PorousLayer, "gap": AirGap}[old.kind]
+        cls = {"panel": Panel, "porous": PorousLayer, "gap": AirGap, "porous_table": PorousTable}[old.kind]
         if not isinstance(old, cls):
             new = cls()
             new.name = old.name
@@ -294,7 +295,7 @@ class SidewallTab(Tab):
     def update_readout(self):
         if not self.project:
             return
-        sym = {"panel": "#", "porous": ":", "gap": " "}
+        sym = {"panel": "#", "porous": ":", "gap": " ", "porous_table": ":"}
         parts = []
         for l in self.project.sidewall:
             t = l.h if l.kind == "panel" else l.d

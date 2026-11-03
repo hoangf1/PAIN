@@ -1,0 +1,432 @@
+{
+ "name": "CR-3813 Phase III cylinder, reverberant NR",
+ "_sources": {
+  "geometry": "CR-3813 App. E (PAIN_Program/data/cr3813/appE_article_inputs.csv): a 0.508 m, L 1.83 m, floor 0.85 m wide (angle 56.6 deg), end caps 13 mm 2024-T3 (p. E-8)",
+  "skin": "0.81 mm 2024-T3; stringer (9.53 + 11.2) x 0.51 mm angles every 20 deg and frame (2 x 17 + 38) x 0.81 mm channels every 0.2 m, smeared as added mass",
+  "eta": "mean of the 8 measured total structural loss factors, Fig. E-15 (0.0497); rule fixed 2026-11-02 before the run (same rule as V4a)",
+  "trim": "p. E-9: four 13 mm PF-105 layers each with a vinyl facing (layer + facing 0.22 kg/m2), G-10 septum 0.79 mm floor to floor + vinyl over the upper 120 deg, 6.58 kg in total (as PAIN_Program phase3_trim); one layer + facing on each end cap",
+  "blanket": "measured PF-105 properties, CR-3813 Fig. A-2 (wavelength, attenuation, |W|, phase), PAIN_Program/data/cr3813/fig_a2_pf105.csv; held outside 100-6300 Hz",
+  "absorption": "measured interior absorption coefficients, Fig. E-13, applied to the whole interior surface (curved wall + floor + ends)",
+  "simplifications": "transmitting areas: curved wall above the floor and the two end caps; the floor path and the space below it are neglected; septum and facings limp; trim hard-mounted mechanical path not modelled",
+  "air": "20 C, 101325 Pa",
+  "bay": "bay 0.2 m (frame spacing) x 0.177 m (stringer spacing 20 deg on a 0.508 m radius), CR-3813 p. E-1"
+ },
+ "mission": {
+  "segments": [
+   {
+    "name": "none (reverberant test)",
+    "altitude": 0.0,
+    "mach": 0.0,
+    "rpm": 1000.0,
+    "shaft_power": 0.0,
+    "eta_p": 0.8,
+    "thrust": 1.0
+   }
+  ],
+  "active": 0
+ },
+ "propeller": {},
+ "fuselage": {
+  "radius": 0.508,
+  "nose_to_station": 1.0,
+  "sidewall_area": 5.353198171881105
+ },
+ "sidewall": [
+  {
+   "kind": "panel",
+   "name": "2024-T3 skin 0.81 mm + smeared stringers/frames",
+   "E": 73100000000.0,
+   "rho": 2780.0,
+   "nu": 0.33,
+   "h": 0.00081,
+   "eta": 0.0496625,
+   "m_add": 0.9763940543203077,
+   "curved": true,
+   "bay_a": 0.2,
+   "bay_b": 0.17732545200262387
+  },
+  {
+   "kind": "porous_table",
+   "name": "PF-105 9.6 kg/m3, 13 mm (CR-3813 Fig. A-2)",
+   "d": 0.013,
+   "f": [
+    100.0,
+    315.0,
+    630.0,
+    1000.0,
+    2500.0,
+    6300.0
+   ],
+   "wavelength": [
+    1.163,
+    0.376,
+    0.208,
+    0.142,
+    0.067,
+    0.046
+   ],
+   "atten_db_per_m": [
+    4.6,
+    28.2,
+    82.0,
+    163.0,
+    360.0,
+    487.0
+   ],
+   "phi_deg": [
+    3.4,
+    8.9,
+    18.4,
+    24.0,
+    26.9,
+    22.2
+   ],
+   "W": [
+    1178.0,
+    1114.0,
+    981.0,
+    870.0,
+    622.0,
+    523.0
+   ]
+  },
+  {
+   "kind": "panel",
+   "name": "vinyl facing 0.095 kg/m2 (0.22 - 9.61 x 0.013)",
+   "E": 1.0,
+   "rho": 95.07000000000001,
+   "nu": 0.3,
+   "h": 0.001,
+   "eta": 0.0,
+   "m_add": 0.0,
+   "curved": false
+  },
+  {
+   "kind": "porous_table",
+   "name": "PF-105 9.6 kg/m3, 13 mm (CR-3813 Fig. A-2)",
+   "d": 0.013,
+   "f": [
+    100.0,
+    315.0,
+    630.0,
+    1000.0,
+    2500.0,
+    6300.0
+   ],
+   "wavelength": [
+    1.163,
+    0.376,
+    0.208,
+    0.142,
+    0.067,
+    0.046
+   ],
+   "atten_db_per_m": [
+    4.6,
+    28.2,
+    82.0,
+    163.0,
+    360.0,
+    487.0
+   ],
+   "phi_deg": [
+    3.4,
+    8.9,
+    18.4,
+    24.0,
+    26.9,
+    22.2
+   ],
+   "W": [
+    1178.0,
+    1114.0,
+    981.0,
+    870.0,
+    622.0,
+    523.0
+   ]
+  },
+  {
+   "kind": "panel",
+   "name": "vinyl facing 0.095 kg/m2 (0.22 - 9.61 x 0.013)",
+   "E": 1.0,
+   "rho": 95.07000000000001,
+   "nu": 0.3,
+   "h": 0.001,
+   "eta": 0.0,
+   "m_add": 0.0,
+   "curved": false
+  },
+  {
+   "kind": "porous_table",
+   "name": "PF-105 9.6 kg/m3, 13 mm (CR-3813 Fig. A-2)",
+   "d": 0.013,
+   "f": [
+    100.0,
+    315.0,
+    630.0,
+    1000.0,
+    2500.0,
+    6300.0
+   ],
+   "wavelength": [
+    1.163,
+    0.376,
+    0.208,
+    0.142,
+    0.067,
+    0.046
+   ],
+   "atten_db_per_m": [
+    4.6,
+    28.2,
+    82.0,
+    163.0,
+    360.0,
+    487.0
+   ],
+   "phi_deg": [
+    3.4,
+    8.9,
+    18.4,
+    24.0,
+    26.9,
+    22.2
+   ],
+   "W": [
+    1178.0,
+    1114.0,
+    981.0,
+    870.0,
+    622.0,
+    523.0
+   ]
+  },
+  {
+   "kind": "panel",
+   "name": "vinyl facing 0.095 kg/m2 (0.22 - 9.61 x 0.013)",
+   "E": 1.0,
+   "rho": 95.07000000000001,
+   "nu": 0.3,
+   "h": 0.001,
+   "eta": 0.0,
+   "m_add": 0.0,
+   "curved": false
+  },
+  {
+   "kind": "porous_table",
+   "name": "PF-105 9.6 kg/m3, 13 mm (CR-3813 Fig. A-2)",
+   "d": 0.013,
+   "f": [
+    100.0,
+    315.0,
+    630.0,
+    1000.0,
+    2500.0,
+    6300.0
+   ],
+   "wavelength": [
+    1.163,
+    0.376,
+    0.208,
+    0.142,
+    0.067,
+    0.046
+   ],
+   "atten_db_per_m": [
+    4.6,
+    28.2,
+    82.0,
+    163.0,
+    360.0,
+    487.0
+   ],
+   "phi_deg": [
+    3.4,
+    8.9,
+    18.4,
+    24.0,
+    26.9,
+    22.2
+   ],
+   "W": [
+    1178.0,
+    1114.0,
+    981.0,
+    870.0,
+    622.0,
+    523.0
+   ]
+  },
+  {
+   "kind": "panel",
+   "name": "vinyl facing 0.095 kg/m2 (0.22 - 9.61 x 0.013)",
+   "E": 1.0,
+   "rho": 95.07000000000001,
+   "nu": 0.3,
+   "h": 0.001,
+   "eta": 0.0,
+   "m_add": 0.0,
+   "curved": false
+  },
+  {
+   "kind": "panel",
+   "name": "G-10 / vinyl septum 1.643 kg/m2 (6.58 kg over the curved wall)",
+   "E": 1.0,
+   "rho": 1643.1929715638414,
+   "nu": 0.3,
+   "h": 0.001,
+   "eta": 0.0,
+   "m_add": 0.0,
+   "curved": false
+  }
+ ],
+ "openings": [
+  {
+   "name": "End caps (2) with one trim layer",
+   "area": 1.3487993496674513,
+   "mode": "layers",
+   "layers": [
+    {
+     "kind": "panel",
+     "name": "2024-T3 end cap 13 mm",
+     "E": 73100000000.0,
+     "rho": 2780.0,
+     "nu": 0.33,
+     "h": 0.013,
+     "eta": 0.0496625,
+     "m_add": 0.0,
+     "curved": false
+    },
+    {
+     "kind": "porous_table",
+     "name": "PF-105 9.6 kg/m3, 13 mm (CR-3813 Fig. A-2)",
+     "d": 0.013,
+     "f": [
+      100.0,
+      315.0,
+      630.0,
+      1000.0,
+      2500.0,
+      6300.0
+     ],
+     "wavelength": [
+      1.163,
+      0.376,
+      0.208,
+      0.142,
+      0.067,
+      0.046
+     ],
+     "atten_db_per_m": [
+      4.6,
+      28.2,
+      82.0,
+      163.0,
+      360.0,
+      487.0
+     ],
+     "phi_deg": [
+      3.4,
+      8.9,
+      18.4,
+      24.0,
+      26.9,
+      22.2
+     ],
+     "W": [
+      1178.0,
+      1114.0,
+      981.0,
+      870.0,
+      622.0,
+      523.0
+     ]
+    },
+    {
+     "kind": "panel",
+     "name": "vinyl facing 0.095 kg/m2 (0.22 - 9.61 x 0.013)",
+     "E": 1.0,
+     "rho": 95.07000000000001,
+     "nu": 0.3,
+     "h": 0.001,
+     "eta": 0.0,
+     "m_add": 0.0,
+     "curved": false
+    }
+   ]
+  }
+ ],
+ "cabin": {
+  "Lx": 1.83,
+  "Ly": 1.016,
+  "Lz": 1.016,
+  "cabin_altitude": 0.0,
+  "temperature": 293.15,
+  "surfaces": [],
+  "seats": [],
+  "volume": 1.234151404945718,
+  "t60_measured": [
+   [
+    100.0,
+    0.9586870119032324
+   ],
+   [
+    125.0,
+    0.4793435059516162
+   ],
+   [
+    160.0,
+    0.35950762946371206
+   ],
+   [
+    200.0,
+    0.21147507615512476
+   ],
+   [
+    315.0,
+    0.2396717529758081
+   ],
+   [
+    400.0,
+    0.4229501523102495
+   ],
+   [
+    500.0,
+    0.2054329311221212
+   ],
+   [
+    630.0,
+    0.19432844835876328
+   ],
+   [
+    800.0,
+    0.040737408437814406
+   ],
+   [
+    1000.0,
+    0.08264543206062347
+   ],
+   [
+    1250.0,
+    0.08078823134016003
+   ],
+   [
+    1600.0,
+    0.04993161520329335
+   ],
+   [
+    2000.0,
+    0.02876061035709697
+   ],
+   [
+    5000.0,
+    0.04761690456473008
+   ]
+  ]
+ },
+ "options": {
+  "f_min": 63.0,
+  "f_max": 4000.0
+ }
+}

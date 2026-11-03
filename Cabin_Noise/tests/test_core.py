@@ -123,3 +123,35 @@ def test_oat_override_changes_sound_speed():
     a = operating_point(Segment(altitude=3000.0, mach=0.3)).atm
     b = operating_point(Segment(altitude=3000.0, mach=0.3, oat=a.T + 20.0)).atm
     assert b.p == pytest.approx(a.p) and b.c > a.c
+
+
+def test_bay_fundamental_matches_simply_supported_plate():
+    # Leissa: w11 = pi^2 sqrt(D / rho h) (1/a^2 + 1/b^2)
+    p = Panel(h=1.0e-3, bay_a=0.3, bay_b=0.2)
+    w11 = np.pi ** 2 * np.sqrt(p.D / (p.rho * p.h)) * (1 / 0.3 ** 2 + 1 / 0.2 ** 2)
+    assert p.bay_frequency() == pytest.approx(w11 / (2 * np.pi))
+    assert Panel(h=1.0e-3).bay_frequency() == 0.0
+
+
+def test_bay_panel_is_stiffness_controlled_below_f11_and_mass_law_above():
+    p = Panel(h=1.0e-3, bay_a=0.15, bay_b=0.12)
+    f11 = p.bay_frequency()
+    s = p.rho * p.h * (2 * np.pi * f11) ** 2
+    f = np.array([f11 / 8])
+    stiff = 20 * np.log10(s / (2 * np.pi * f * 2 * SL.rho_c))            # TL of a spring, s >> w m
+    assert tmm.tl(tmm.tau([p], f, 0.0, SL))[0] == pytest.approx(stiff[0], abs=0.5)
+    hi = np.array([6 * f11])
+    flat = tmm.tl(tmm.tau([Panel(h=1.0e-3)], hi, 0.0, SL))[0]
+    assert tmm.tl(tmm.tau([p], hi, 0.0, SL))[0] == pytest.approx(flat, abs=0.3)
+
+
+def test_porous_table_reproduces_delany_bazley_input():
+    from cabin_noise.core.materials import PorousTable
+    from cabin_noise.core.porous import delany_bazley
+    f = np.array([200.0, 500.0, 1000.0, 2000.0, 4000.0])
+    Zc, kc, _ = delany_bazley(f, 15000.0, SL.rho, SL.c)
+    t = PorousTable(d=0.05, f=list(f), wavelength=list(2 * np.pi / kc.real), atten_db_per_m=list(-kc.imag * 20 * np.log10(np.e)),
+                    W=list(np.abs(Zc)), phi_deg=list(-np.degrees(np.angle(Zc))))
+    a = tmm.tl(tmm.tau([Panel(h=1e-3), t, Panel(h=1e-3)], f, 0.0, SL))
+    b = tmm.tl(tmm.tau([Panel(h=1e-3), PorousLayer(d=0.05, sigma=15000.0), Panel(h=1e-3)], f, 0.0, SL))
+    assert np.allclose(a, b, atol=1e-6)

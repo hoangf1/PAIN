@@ -20,6 +20,8 @@ class Panel:
     eta: float = 0.01       # loss factor
     m_add: float = 0.0      # smeared stiffener / added mass, kg/m^2
     curved: bool = False    # True: ring-frequency (membrane) stiffness of the fuselage
+    bay_a: float = 0.0      # stiffened-bay size (frame spacing), m; 0 = infinite panel
+    bay_b: float = 0.0      # stiffened-bay size (stringer spacing), m
     kind: str = "panel"
 
     @property
@@ -32,6 +34,13 @@ class Panel:
 
     def coincidence(self, c0: float) -> float:
         return c0 ** 2 / (2.0 * np.pi) * np.sqrt(self.mass / self.D)
+
+    def bay_frequency(self) -> float:
+        """Fundamental of one simply supported bay, f11 = (pi/2) sqrt(D / rho h) (1/a^2 + 1/b^2)
+        (Leissa, Vibration of Plates); 0 when no bay is given."""
+        if self.bay_a <= 0 or self.bay_b <= 0:
+            return 0.0
+        return 0.5 * np.pi * np.sqrt(self.D / (self.rho * self.h)) * (1 / self.bay_a ** 2 + 1 / self.bay_b ** 2)
 
     def ring_frequency(self, radius: float) -> float:
         cL = np.sqrt(self.E / (self.rho * (1.0 - self.nu ** 2)))
@@ -53,12 +62,36 @@ class AirGap:
     kind: str = "gap"
 
 
-Layer = Union[Panel, PorousLayer, AirGap]
+@dataclass
+class PorousTable:
+    """Porous layer from measured acoustical properties: wavelength in the material, attenuation
+    (dB/m) and characteristic impedance |W| with phase phi (as CR-3813 Fig. A-2 gives them)."""
+    name: str = "Measured blanket"
+    d: float = 0.013
+    f: list = field(default_factory=list)
+    wavelength: list = field(default_factory=list)      # m
+    atten_db_per_m: list = field(default_factory=list)
+    W: list = field(default_factory=list)               # rayl
+    phi_deg: list = field(default_factory=list)
+    kind: str = "porous_table"
+
+    def properties(self, f):
+        """Zc and kc (e^{+j w t}: Im kc < 0, Im Zc < 0), log-f interpolation, end values held."""
+        if len(self.f) < 2:
+            raise ValueError(f"porous table '{self.name}' needs at least two frequencies")
+        lf = np.log(np.asarray(f, dtype=float))
+        g = lambda v: np.interp(lf, np.log(self.f), v)  # noqa: E731
+        kc = 2 * np.pi / g(self.wavelength) - 1j * g(self.atten_db_per_m) / (20 * np.log10(np.e))
+        Zc = g(self.W) * np.exp(-1j * np.radians(g(self.phi_deg)))
+        return Zc, kc
+
+
+Layer = Union[Panel, PorousLayer, AirGap, PorousTable]
 
 
 def layer_from_dict(d: dict) -> Layer:
     kind = d.get("kind", "panel")
-    cls = {"panel": Panel, "porous": PorousLayer, "gap": AirGap}[kind]
+    cls = {"panel": Panel, "porous": PorousLayer, "gap": AirGap, "porous_table": PorousTable}[kind]
     names = cls.__dataclass_fields__.keys()
     return cls(**{k: v for k, v in d.items() if k in names})
 

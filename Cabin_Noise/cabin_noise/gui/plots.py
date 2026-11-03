@@ -81,6 +81,7 @@ class TLView(QWidget):
         mk = r.markers
         _vline(self.p, mk.get("f0"), "f0")
         _vline(self.p, mk.get("f_r"), "f_r")
+        _vline(self.p, mk.get("f_11"), "f_11")
         for i, fc in enumerate(mk.get("f_c", [])):
             _vline(self.p, fc, f"f_c{i + 1}")
 

@@ -94,6 +94,30 @@ cases:
     quantity: reverberant_nr
     defined: 2026-11-02 (criterion, inputs and eta rule fixed before the first comparison)
     recorded: "2026-11-02 not met, max |dNR| 16.1 dB (commit after cf978ab)"
+  - id: V4b
+    stage: TL
+    track: broadband
+    kind: validation
+    check: Stiffened trimmed cylinder, reverberant NR, infinite-panel skin (default model)
+    reference: NASA CR-3813 Fig. E-22 (measured)
+    metric: ">= 75 % of the 18 measured bands 63-4000 Hz within +-6 dB"
+    tol_db: 6.0
+    min_fraction: 0.75
+    quantity: reverberant_nr
+    ref_file: CR3813_E22.csv
+    defined: "2026-11-02 before the run: inputs printed in CR-3813 (V4b_inputs.json); skin eta = mean of measured loss factors"
+  - id: V4c
+    stage: TL
+    track: broadband
+    kind: validation
+    check: Stiffened trimmed cylinder, reverberant NR, bay-stiffness skin (frame x stringer bay)
+    reference: NASA CR-3813 Fig. E-22 (measured)
+    metric: ">= 75 % of the 18 measured bands 63-4000 Hz within +-6 dB"
+    tol_db: 6.0
+    min_fraction: 0.75
+    quantity: reverberant_nr
+    ref_file: CR3813_E22.csv
+    defined: "2026-11-02 before the run: as V4b plus the printed bay 0.2 x 0.177 m; held out (the bay model was motivated by V7 and V4a, not this case)"
   - id: V5
     stage: Source
     track: tonal

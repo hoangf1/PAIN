@@ -10,7 +10,7 @@ from . import seats as st
 from . import tmm
 from .atmosphere import Air, cabin_air
 from .frequencies import band_edges, band_index, harmonic_frequencies, third_octave_centers
-from .materials import AirGap, Opening, Panel, PorousLayer, Surface
+from .materials import AirGap, Opening, Panel, PorousLayer, PorousTable, Surface
 from .mission import Mission, Segment, operating_point
 from .scattering import surface_factor
 from .source_tbl import boundary_layer, wall_band_pressure2
@@ -220,10 +220,13 @@ def _markers(proj: Project, air: Air) -> dict:
     curved = [p for p in panels if p.curved]
     if curved:
         mk["f_r"] = curved[0].ring_frequency(proj.fuselage.radius)
+    bays = [p.bay_frequency() for p in panels if p.bay_frequency() > 0]
+    if bays:
+        mk["f_11"] = bays[0]
     if len(panels) >= 2:
         i0 = proj.sidewall.index(panels[0])
         i1 = proj.sidewall.index(panels[-1])
-        d = sum(l.d for l in proj.sidewall[i0 + 1:i1] if isinstance(l, (AirGap, PorousLayer)))
+        d = sum(l.d for l in proj.sidewall[i0 + 1:i1] if isinstance(l, (AirGap, PorousLayer, PorousTable)))
         if d > 0:
             mk["f0"] = tmm.mass_air_mass_f0(panels[0].mass, panels[-1].mass, d, air)
     return mk
