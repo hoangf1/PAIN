@@ -31,6 +31,7 @@ python -m venv .venv
 | `source_tonal` | Rotating point forces in forward flight, solved in the frequency domain. Includes Gutin's formula. |
 | `blade` | Optional blade-geometry source: BEMT strip loads (thin-airfoil sections, Prandtl tip loss), each strip a compact rotating force |
 | `flight` | Flight and lab runners for the source cases (flush microphones, static near field) |
+| `materials` (bay, table) | `Panel.bay_a/bay_b`: optional stiffened-bay stiffness (verified, not validated); `PorousTable`: blanket from measured properties |
 | `scattering` | Rigid-cylinder surface factor, used for far-side propeller shadowing |
 | `source_tbl` | Goody TBL wall-pressure spectrum |
 | `porous`, `tmm`, `materials` | Delany-Bazley model, transfer matrices, diffuse and band averaging, composites |
@@ -49,8 +50,9 @@ python -m venv .venv
 - **Validation V5b** (CR-178004 exterior boundary-layer bands): **met**, 82 % within +-6 dB.
 - **Validation V6** (fiberglass insertion loss, CR-178004 App. J): **not met**, 48 %. Mid frequencies (400 Hz-1.6 kHz) agree; low and high bands do not.
 - **Validation V7** (untreated cabin tones from the measured exterior, CR-178004 App. B): **not met**, 11 %, +12.8 dB on average. The infinite-panel skin transmits too much at the blade passage frequency.
+- **Validation V4b / V4c** (CR-3813 stiffened, trimmed test cylinder, reverberant NR; inputs all printed): **not met**, 21 %, +13 dB. The trimmed curved wall is far too good above 160 Hz; PAIN over-predicted this case too. V4c (optional bay-stiffness skin) equals V4b, because curvature dominates on this cylinder.
 - **Validation V4** (TM-85722 lab TL): **not run**. The report is not in the repo.
 - Experimental cases are judged with the low-fi policy: met when at least 75 % of the points are within +-6 dB. V4a keeps its original +-3 dB criterion. Each case needs two files in `cabin_noise/data/validation/`: the digitized curve (`<id>.csv`) and a project file built only from the report's stated inputs (`<id>_inputs.json`). The pass targets are fixed and dated in `cases.yaml`.
 - **V8** (cross-check against PAIN): information only.
 
-Of seven experimental comparisons, three are met: V5b (boundary-layer pressure) and V5c / V5d (propeller near field, lab). The four misses all trace to two plan assumptions. Sidewall transmission is plane-wave, infinite-panel, which misses stiffness-controlled bays and resonant cylinders (V4a, V7, part of V6). The source uses a single effective radius (V5). Use the tool for relative trades at mid frequencies, where V6 agrees; treat absolute cabin tone levels as unvalidated (overpredicted by about 13 dB at BPF on the one aircraft tested). Treat absolute levels as **unvalidated**, especially for thin, lightly damped walls below the ring frequency. The repo's reusable data is inventoried in projectPlan.md.
+Of nine experimental comparisons, three are met: V5b (boundary-layer pressure) and V5c / V5d (propeller near field, lab). Most misses trace to one plan assumption: sidewall transmission is plane-wave and infinite-panel, which cannot represent a finite fuselage's modal response (V4a, V4b/c, V7, part of V6). The others are the single-radius source (V5) and the rigid-frame blanket at low frequency (V6). Use the tool for relative trades at mid frequencies, where V6 agrees; treat absolute cabin levels as unvalidated (13 dB off at BPF on the one aircraft tested, and +13 dB in NR on the trimmed lab cylinder). Treat absolute levels as **unvalidated**, especially for thin, lightly damped walls below the ring frequency. The repo's reusable data is inventoried in projectPlan.md.
