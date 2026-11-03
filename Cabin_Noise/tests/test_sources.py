@@ -253,3 +253,33 @@ def test_prandtl_tip_loss_limits():
     dr = r[1] - r[0]
     loading = dT / dr
     assert np.all(np.diff(loading[-10:]) < 0) and loading[-1] < 0.5 * loading.max()
+
+
+def test_limp_frame_limits_and_passivity():
+    """Panneton (2007, JASA 122, EL217) limp-frame density: a heavy frame recovers the rigid model,
+    a massless frame gives air density, low frequency gives the total mass rho_t (the frame moves
+    with the air); the bulk modulus is that of the rigid model; the layer stays passive."""
+    from cabin_noise.core.porous import delany_bazley, effective_density, limp_frame
+    f = np.geomspace(20, 5000, 25)
+    Zc, kc, _ = delany_bazley(f, 15000.0, SL.rho, SL.c)
+    Zh, kh = limp_frame(Zc, kc, f, SL.rho, 1e7)
+    assert np.allclose(Zh, Zc, rtol=1e-4) and np.allclose(kh, kc, rtol=1e-4)
+    Z0, k0 = limp_frame(Zc, kc, f, SL.rho, 1e-12)
+    assert np.allclose(effective_density(Z0, k0, f), SL.rho, rtol=1e-6)
+    Zl, kl = limp_frame(Zc, kc, f, SL.rho, 9.6)
+    rho_l = effective_density(Zl, kl, f)
+    assert abs(rho_l[0] - (9.6 + SL.rho)) / (9.6 + SL.rho) < 0.05          # 20 Hz: moves as one mass
+    w = 2 * np.pi * f
+    assert np.allclose(w * Zl / kl, w * Zc / kc, rtol=1e-9)              # same bulk modulus
+    ok = (SL.rho * f / 15000.0 >= 0.01)          # Delany-Bazley is itself non-physical below its range
+    assert np.all(Zl.real[ok] > 0) and np.all(kl.imag[ok] <= 0) and np.all(kl.real > 0)
+
+
+def test_limp_blanket_reduces_low_frequency_tl_toward_mass_law():
+    """A thin limp blanket between two panels behaves at low frequency like its own mass added to the
+    wall (mass law of the total), not like a flow resistance: limp TL is lower than rigid TL there."""
+    from cabin_noise.core.materials import PorousLayer
+    f = np.array([40.0, 63.0, 100.0])
+    rigid = [Panel(h=1.6e-3), PorousLayer(d=0.05, sigma=15000.0), Panel(h=1.0e-3)]
+    limp = [Panel(h=1.6e-3), PorousLayer(d=0.05, sigma=15000.0, frame="limp", bulk_density=9.6), Panel(h=1.0e-3)]
+    assert np.all(tmm.tl(tmm.tau(limp, f, 0.0, SL)) < tmm.tl(tmm.tau(rigid, f, 0.0, SL)))

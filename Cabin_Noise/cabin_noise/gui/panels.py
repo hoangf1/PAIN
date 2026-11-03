@@ -231,7 +231,8 @@ LAYER_COLS = [
     F("h", "h", "mm", scale=1e3), F("d", "d", "mm", scale=1e3), F("E", "E", "GPa", scale=1e-9),
     F("rho", "rho", "kg/m3"), F("nu", "nu"), F("eta", "eta"), F("m_add", "Added mass", "kg/m2"),
     F("curved", "Curved", kind="bool"), F("bay_a", "Bay a", "mm", scale=1e3), F("bay_b", "Bay b", "mm", scale=1e3),
-    F("sigma", "sigma", "Pa s/m2"),
+    F("sigma", "sigma", "Pa s/m2"), F("frame", "Frame", kind="choice", choices=["rigid", "limp"]),
+    F("bulk_density", "Bulk density", "kg/m3"),
 ]
 
 

@@ -12,7 +12,7 @@ import numpy as np
 from .atmosphere import Air
 from .frequencies import log_subfrequencies
 from .materials import AirGap, Panel, PorousLayer, PorousTable
-from .porous import delany_bazley
+from .porous import delany_bazley, limp_frame
 
 THETA_MAX_DEG = 78.0
 
@@ -54,10 +54,17 @@ def layer_matrix(layer, f, theta, air: Air, radius: float | None):
         return one, Z, 0.0 * one, one
     w = 2.0 * np.pi * f
     k0 = w / air.c
-    if isinstance(layer, PorousLayer):
-        Zc, kc, _ = delany_bazley(f, layer.sigma, air.rho, air.c)
-    elif isinstance(layer, PorousTable):
-        Zc, kc = layer.properties(f)
+    if isinstance(layer, (PorousLayer, PorousTable)):
+        if isinstance(layer, PorousLayer):
+            Zc, kc, _ = delany_bazley(f, layer.sigma, air.rho, air.c)
+        else:
+            Zc, kc = layer.properties(f)
+        if layer.frame == "limp":
+            if layer.bulk_density <= 0:
+                raise ValueError(f"limp layer '{layer.name}' needs a bulk density")
+            Zc, kc = limp_frame(Zc, kc, f, air.rho, layer.bulk_density)
+        elif layer.frame != "rigid":
+            raise ValueError(f"layer '{layer.name}': frame must be 'rigid' or 'limp'")
     elif isinstance(layer, AirGap):
         Zc, kc = air.rho_c + 0j, k0 + 0j
     else:

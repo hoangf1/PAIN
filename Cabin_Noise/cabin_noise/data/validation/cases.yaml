@@ -120,6 +120,18 @@ cases:
     ref_file: CR3813_E22.csv
     defined: "2026-11-02 before the run: as V4b plus the printed bay 0.2 x 0.177 m; held out (the bay model was motivated by V7 and V4a, not this case)"
     recorded: "2026-11-02 not met, identical to V4b to 0.1 dB: on this curved shell the ring stiffness (f_r 1.7 kHz) is ~300x the bay stiffness and the end caps dominate, so the case cannot test the bay term"
+  - id: V4d
+    stage: TL
+    track: broadband
+    kind: validation
+    check: Stiffened trimmed cylinder, reverberant NR, limp-frame blankets (Panneton 2007)
+    reference: NASA CR-3813 Fig. E-22 (measured)
+    metric: ">= 75 % of the 19 measured bands 63-4000 Hz within +-6 dB"
+    tol_db: 6.0
+    min_fraction: 0.75
+    quantity: reverberant_nr
+    ref_file: CR3813_E22.csv
+    defined: "2026-11-02 before the run: V4b inputs with limp blankets (printed density 9.61 kg/m3). Not the motivating case (V6), but V4b residuals were already known, so not fully blind"
   - id: V5
     stage: Source
     track: tonal

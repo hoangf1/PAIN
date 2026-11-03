@@ -64,6 +64,8 @@ class PorousLayer:
     name: str = "Fiberglass blanket"
     d: float = 0.05         # thickness, m
     sigma: float = 10000.0  # flow resistivity, Pa s/m^2
+    frame: str = "rigid"    # "rigid" (Delany-Bazley as is) or "limp" (Panneton 2007)
+    bulk_density: float = 0.0   # frame bulk density, kg/m^3 (needed for "limp")
     kind: str = "porous"
 
 
@@ -85,6 +87,8 @@ class PorousTable:
     atten_db_per_m: list = field(default_factory=list)
     W: list = field(default_factory=list)               # rayl
     phi_deg: list = field(default_factory=list)
+    frame: str = "rigid"
+    bulk_density: float = 0.0
     kind: str = "porous_table"
 
     def properties(self, f):
