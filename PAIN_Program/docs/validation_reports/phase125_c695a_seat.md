@@ -114,6 +114,26 @@ H3 (cond 1) has no single carrier: port 93.0 dB, of which 32 % is mode r = 123 (
 9 dB larger at mic 6 than at mic 3 for both engines, a left–right difference that PAIN's symmetric point field
 cannot show; at mic 3 PAIN's port H3 NR is within 0.6 dB.
 
+## Does PAIN predict a loud speed near 1550 rpm? (post-hoc diagnostic, 2026-11-04)
+
+The H2 of 1554 rpm (155.4 Hz) sits on the shell mode above. Condition 1's power and flight state, rpm 1500–1600 (pitch
+set for the power), H2 in dB:
+
+| rpm (H2 Hz) | Port space avg | Port seat | Starboard space avg | Starboard seat |
+|---|---|---|---|---|
+| 1500 (150) | 102.1 | 98.4 | 104.5 | 106.0 |
+| 1520 (152) | 101.4 | 99.2 | 106.5 | 108.7 |
+| 1550 (155) | 101.2 | 102.3 | 110.4 | 113.4 |
+| 1570 (157) | 101.8 | 103.7 | 112.2 | 115.2 |
+| 1600 (160) | 102.8 | 104.2 | 113.8 | 115.7 |
+
+There is no peak at 1550. The H2 rises steadily with rpm: by +0.4 dB (port, space average) to +5.7 dB (starboard) from
+1520 to 1570 rpm. The 155.4 Hz mode acts together with the cabin mode at 160.8 Hz, and a mode with η_r′ ≈ 0.02 has a
+±1 % half-power band. The measured H2 (App. B, mics 3 and 6) does not follow this: the mean at 1515–1525 rpm is 94.1 dB
+(20 values) and at 1570–1573 rpm 94.6 dB (16 values), with a ±4 dB spread between conditions at the same rpm. The
+flight data have no engine between 1533 and 1570 rpm. PAIN's rpm trend at H2 comes from one mode built on assumed inputs
+and is not supported by the data; it is not a prediction to quote.
+
 ## Not changed
 
 No input, criterion or production default changed after the run.
