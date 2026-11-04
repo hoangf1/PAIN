@@ -14,13 +14,9 @@ using PAIN
 using JSON3
 
 obs = make_gui_observables()
-# phase 33g: GUI default is aircraft; smoke uses a short aircraft JSON path
-json = joinpath(@__DIR__, "..", "..", "examples", "aircraft_scale_hartzell.json")
-@assert isfile(json)
-obs["source"][] = "aircraft"
-obs["aircraft_json"][] = abspath(json)
-obs["n_harmonics"][] = 3.0
-obs["bpf_Hz"][] = 150.0
+# Phase 127: inputs are GUI fields (the default project is the scale Hartzell example); 3 harmonics for speed
+@assert obs["bpf_text"][] == "BPF = 200.0 Hz"
+gui_set_input!(obs, "n_harmonics", "3")
 ok = run_pain_gui!(obs)
 println("ok=", ok)
 println("status=", obs["status"][])
@@ -114,8 +110,6 @@ let
 end
 # Phase 38h — Printed outputs Observables for the example (Run-tab) case
 @assert haskey(obs, "po_status") && haskey(obs, "po_text") && haskey(obs, "po_json")
-obs["n_harmonics"][] = 3.0
-obs["bpf_Hz"][] = 150.0
 po = run_printed_outputs_gui!(obs)
 @assert po !== nothing "printed outputs run failed: $(obs["po_status"][])"
 @assert startswith(String(obs["po_status"][]), "Done")

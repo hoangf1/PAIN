@@ -98,11 +98,12 @@ function propeller_freefield_grid(aircraft_json_path::AbstractString,
                                   prop::PropellerPlacement,
                                   spec::GridSpec=GridSpec();
                                   n_harmonics::Int=10,
-                                  num_src_times::Int=64)
+                                  num_src_times::Int=pain_settings().num_src_times)
     cfg = _load_aircraft_json(aircraft_json_path)
     # Observer velocity matches the static-guard substitution inside evaluate_propeller_source
+    st = pain_settings()
     Vinf_use = Float64(_get(cfg.operating_point, :forward_speed_mps, 20.0))
-    Vinf_use < 1.0 && (Vinf_use = 20.0)
+    Vinf_use < st.static_v_min_mps && (Vinf_use = st.static_v_sub_mps)
     observers, pts = grid_observers(fuse, prop, spec; Vinf=Vinf_use)
     src = evaluate_propeller_source(cfg, observers; n_harmonics, num_src_times, loads=:ccblade)
     amps = zeros(spec.k_max, spec.ell_max, n_harmonics)
@@ -218,9 +219,10 @@ pereira_observers(φs; r::Real=1.0, V::Real=16.0) =
 Default clamped linear polar (CCBlade interface: α in radians).
 """
 function _default_af(α, Re, M)
-    αc = clamp(α, -0.35, 0.35)
-    cl = 2π * αc
-    cd = 0.01 + 0.15 * αc^2
+    s = pain_settings()   # Phase 127: slope, clamp, c_d0, c_d2 (defaults 2π, 0.35 rad, 0.01, 0.15)
+    αc = clamp(α, -s.polar_alpha_max_rad, s.polar_alpha_max_rad)
+    cl = s.polar_cl_slope * αc
+    cd = s.polar_cd0 + s.polar_cd2 * αc^2
     return cl, cd
 end
 
@@ -262,8 +264,8 @@ The CCBlade rotor, sections, operating points and solved section loads for a pro
 `evaluate_propeller_source`, `ccblade_section_operating_points` and the Phase 66 checks; factored out 2026-10-24,
 behaviour unchanged). Vinf < 1 m/s is replaced by 20 m/s unless `allow_static` (plan 25a).
 """
-function _ccblade_setup(cfg; af=nothing, allow_static::Bool=false, use_tip_correction::Bool=true,
-                        warn_static::Bool=false)
+function _ccblade_setup(cfg; af=nothing, allow_static::Bool=false,
+                        use_tip_correction::Bool=pain_settings().tip_correction, warn_static::Bool=false)
     p = cfg.propeller
     op = cfg.operating_point
     B = Int(p.num_blades)
@@ -273,9 +275,10 @@ function _ccblade_setup(cfg; af=nothing, allow_static::Bool=false, use_tip_corre
     Ω = rpm * 2π / 60
     Vinf = Float64(_get(op, :forward_speed_mps, 20.0))
     vinf_substituted = false
-    if Vinf < 1.0 && !allow_static
-        warn_static && @warn "Vinf < 1 m/s replaced by 20 m/s (static guard; plan 25a)" maxlog=1
-        Vinf = 20.0
+    st = pain_settings()   # Phase 127: static guard (defaults 1 and 20 m/s)
+    if Vinf < st.static_v_min_mps && !allow_static
+        warn_static && @warn "Vinf < $(st.static_v_min_mps) m/s replaced by $(st.static_v_sub_mps) m/s (static guard; plan 25a)" maxlog=1
+        Vinf = st.static_v_sub_mps
         vinf_substituted = true
     end
     ρ = Float64(_get(op, :rho_kg_m3, 1.225))
@@ -417,10 +420,10 @@ Source span is `n_rev_src` revolutions (default 2, plan I-01); reception window 
 Phase is referenced to absolute observer time (I-02). `force_short_source` is test-only.
 """
 function evaluate_propeller_source(cfg, observers::Vector{Observer};
-                                   n_harmonics::Int=10, num_src_times::Int=64,
+                                   n_harmonics::Int=10, num_src_times::Int=pain_settings().num_src_times,
                                    loads=:ccblade, af=nothing, allow_static::Bool=false,
-                                   n_rev_src::Int=2, force_short_source::Bool=false,
-                                   use_tip_correction::Bool=true)
+                                   n_rev_src::Int=pain_settings().n_rev_src, force_short_source::Bool=false,
+                                   use_tip_correction::Bool=pain_settings().tip_correction)
     loads === :ccblade || loads isa ScaledLoads ||
         error("loads=$loads not supported; use :ccblade or ScaledLoads(T,Q)")
     n_rev_src >= 1 || error("n_rev_src must be ≥ 1")
@@ -533,7 +536,7 @@ without F1A. Returns per-section `r_m`, `r_over_R`, `alpha_deg`, `Mach`, `Re`
 and the station polars `afs`.
 """
 function ccblade_section_operating_points(cfg; af=nothing, allow_static::Bool=false,
-                                          use_tip_correction::Bool=true)
+                                          use_tip_correction::Bool=pain_settings().tip_correction)
     su = _ccblade_setup(cfg; af, allow_static, use_tip_correction)
     (; rotor, sections, ops, outs, B, Rtip, Rhub, rpm, Vinf, ρ, c0, μ) = su
     r, chord = su.r, su.chord

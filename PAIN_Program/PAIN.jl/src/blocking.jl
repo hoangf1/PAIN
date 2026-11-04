@@ -20,12 +20,14 @@ narrative values (see `BLOCKING_P68_CHECKPOINTS`).
 
 @enum BlockingVariant R1 R2
 
-"""Amplitude ratio F(γ). γ in degrees."""
+"""Amplitude ratio F(γ). γ in degrees. The constants of Eq. (43), the R2 factor and the floor are `pain_settings()`
+fields (Phase 127; defaults 0.3, 0.000224, 0.08, 0.8, 1)."""
 function blocking_factor(γ_deg::Real; variant::BlockingVariant=R1)
     γ = float(γ_deg)
-    F = 10.0^(0.3 - 0.000224 * exp(0.08 * γ))
-    variant === R1 && return max(1.0, F)
-    return max(1.0, 0.8 * F)
+    s = pain_settings()
+    F = 10.0^(s.block_c1 - s.block_c2 * exp(s.block_c3 * γ))
+    variant === R1 && return max(s.block_floor, F)
+    return max(s.block_floor, s.block_r2_scale * F)
 end
 
 """SPL increase ΔL = 20 log₁₀ F [dB]."""

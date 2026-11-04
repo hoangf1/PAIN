@@ -269,7 +269,7 @@ function noise_reduction_band_circular(fc::Real,
                                        η_n::Real, η_r::Real,
                                        ρ_ext::Real=1.225, c_ext::Real=343.0,
                                        ρ_int::Real=1.225, c_int::Real=343.0,
-                                       c_ω::Real=C_OMEGA_THIRD_OCTAVE,
+                                       c_ω::Real=c_omega(),
                                        η_r_cap::Union{Nothing,Float64}=nothing)
     R = float(R); L = float(L)
     ω = 2π * float(fc)

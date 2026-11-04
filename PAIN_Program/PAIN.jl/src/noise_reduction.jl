@@ -108,7 +108,7 @@ mass_law_factor(ρ0::Real, c0::Real, A::Real, ω::Real) = (ρ0 * c0 * A / (2 * �
 Count of 3-D acoustic modes (q, i) with resonance inside
 [ω(1−c_ω/2), ω(1+c_ω/2)], q = 0…q_max for the band's upper edge (CYL2D × axial).
 """
-function acoustic_modes_in_band(inp::PainInputs, fc::Real; c_ω::Real=C_OMEGA_THIRD_OCTAVE)
+function acoustic_modes_in_band(inp::PainInputs, fc::Real; c_ω::Real=c_omega())
     ω = 2π * fc
     lo = ω * (1 - c_ω / 2)
     hi = ω * (1 + c_ω / 2)
@@ -144,7 +144,7 @@ acoustic-mode count in that band (informational).
 function volume_crossover_band(inp::PainInputs;
                                bands::Union{Nothing,AbstractVector{<:Real}}=nothing,
                                c0::Union{Nothing,Real}=nothing,
-                               c_ω::Real=C_OMEGA_THIRD_OCTAVE)
+                               c_ω::Real=c_omega())
     bs = bands === nothing ? resolve_bands(inp) : collect(float.(bands))
     f = volume_crossover_frequency_Hz(inp; c0)
     fc = containing_third_octave(f, bs; c_ω)
@@ -165,7 +165,7 @@ Low/high-frequency changeover band (Manual card 10 / phase 43a):
 """
 function acoustic_crossover_band(inp::PainInputs;
                                  bands::Union{Nothing,AbstractVector{<:Real}}=nothing,
-                                 c_ω::Real=C_OMEGA_THIRD_OCTAVE, n_min::Int=10,
+                                 c_ω::Real=c_omega(), n_min::Int=10,
                                  rule::Symbol=:volume)
     rule in (:volume, :ten_modes) ||
         error("acoustic_crossover_band: rule must be :volume or :ten_modes (got $rule)")
@@ -194,7 +194,7 @@ is the reverberant j_r²(ω) of §3.6 (diffuse sin(kξ)/(kξ), checked in 16b).
 function w_in_reverberant(inp::PainInputs, fc::Real;
                           p_bl2::Real=1.0,
                           η_r_cap::Union{Nothing,Float64}=nothing,
-                          c_ω::Real=C_OMEGA_THIRD_OCTAVE,
+                          c_ω::Real=c_omega(),
                           q_max::Union{Nothing,Int}=nothing)
     fuse = inp.fuse
     a, L = fuse.a, fuse.L
@@ -266,7 +266,7 @@ NR(band) = 10 log10(⟨p_e²⟩/⟨p_i²⟩) = −10 log10(Eq. 18).
 """
 function noise_reduction_band(inp::PainInputs, fc::Real;
                               η_r_cap::Union{Nothing,Float64}=nothing,
-                              c_ω::Real=C_OMEGA_THIRD_OCTAVE,
+                              c_ω::Real=c_omega(),
                               q_max::Union{Nothing,Int}=nothing,
                               crossover_fc::Union{Nothing,Float64}=nothing,
                               hf_model::Symbol=:none,
@@ -354,7 +354,7 @@ at/above crossover use printed Eqs. (19)–(23) instead (38c).
 function noise_reduction_spectrum(inp::PainInputs;
                                   bands::Union{Nothing,AbstractVector{<:Real}}=nothing,
                                   η_r_cap::Union{Nothing,Float64}=nothing,
-                                  c_ω::Real=C_OMEGA_THIRD_OCTAVE,
+                                  c_ω::Real=c_omega(),
                                   hf_model::Symbol=:none)
     bs = bands === nothing ? resolve_bands(inp) : float.(collect(bands))
     xover = acoustic_crossover_band(inp; bands=bs, c_ω, rule=:ten_modes)

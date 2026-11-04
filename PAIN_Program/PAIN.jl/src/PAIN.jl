@@ -18,6 +18,7 @@ using QML
 using Dates
 using CairoMakie
 
+include("pain_settings.jl")          # phase 127 run-path constants as settings
 include("geometry.jl")
 include("blocking.jl")
 include("grid_extension.jl")
@@ -76,6 +77,7 @@ include("validation_case_iso90.jl")   # phase 90 Eq. (43) blocking vs Report 996
 include("validation_case_extras.jl")
 include("validation_map.jl")
 include("validation_plots.jl")
+include("gui_inputs.jl")            # phase 127 every input as a GUI field
 include("gui_model.jl")
 include("gui_main.jl")
 
@@ -159,6 +161,10 @@ export
     oat_sweep, monte_carlo_band, coverage_check, e16_measured_means,
     phase_bounding_cases, bbn_h1_residual_gradient_ratio, bbn_printed_pair_phase,
     uncertainty_report_md, UNC_REQUIRED_STATEMENTS, UNC_MC_N, UNC_MC_SEED,
+    PainSettings, PAIN_SETTINGS, PAIN_SETTING_SPECS, pain_settings, with_pain_settings, c_omega,
+    pain_settings_from_dict, pain_settings_diff,
+    gui_input_specs, gui_field_values, gui_build_project, gui_run_args, gui_default_project_path,
+    gui_set_input!, gui_open_project!, gui_save_project!, gui_reset_project!,
     main, make_gui_observables, run_pain_gui!,
     PlotSeries, PlotSpec, FigureRef, ValidationTableRow, ValidationCase, ValidationCaseResult,
     VALIDATION_CASES, VALIDATION_CASE_ORDER, list_validation_cases,
@@ -203,8 +209,21 @@ X-EXTRAP with phase-31 epistemic band, not a prediction of accuracy), `structura
 (App. D modes from user geometry / skin / stringer / frame / floor), and no η_r cap / no
 absorption curve / no `bb_j2_scale` unless the JSON asks for them. `:surrogate` keeps the
 current Table D-1 + absorption/`bb_j2_scale` path.
+
+**settings (Phase 127):** the run-path constants (`PainSettings`). `settings` given → used; otherwise the aircraft
+JSON's `"settings"` object (fields that differ from the defaults) over `PainSettings()`; otherwise the settings in scope.
 """
-function run_pain_pipeline(;
+function run_pain_pipeline(; settings::Union{Nothing,PainSettings}=nothing, kw...)
+    s = settings
+    if s === nothing
+        js = get(kw, :aircraft_json, nothing)
+        cfg_s = js === nothing ? nothing : _get(_load_aircraft_json(js), :settings, nothing)
+        s = cfg_s === nothing ? pain_settings() : pain_settings_from_dict(cfg_s)
+    end
+    return with_pain_settings(() -> _run_pain_pipeline(; kw...), s)
+end
+
+function _run_pain_pipeline(;
         L::Float64=test_article_length(),
         a::Float64=0.508,
         theta0_deg::Float64=56.6,
@@ -252,9 +271,10 @@ function run_pain_pipeline(;
         grid_fill::Symbol=:gext,
         f1a_pattern_amps::Union{Nothing,Array{Float64,3}}=nothing,
         f1a_pattern_phases::Union{Nothing,Array{Float64,3}}=nothing,
-        tone_model::Symbol=:eq8,
-        η_r_band_is_prime::Bool=false,
-        η_r_trimmed_area::Bool=true)
+        tone_model::Symbol=pain_settings().tone_model,
+        η_r_band_is_prime::Bool=pain_settings().eta_r_band_is_prime,
+        η_r_trimmed_area::Bool=pain_settings().eta_r_trimmed_area)
+    st = pain_settings()
     trim in (:auto, :bare, :phase3, :custom) ||
         error("trim must be :auto, :bare, :phase3 or :custom")
 
@@ -341,7 +361,7 @@ function run_pain_pipeline(;
 
     # CYL2D: aircraft/user c0 and θ0 (no hard-coded path constants beyond the NY default); the next solvable grid
     # when NY has no App. C solution for this floor angle (Q60)
-    acoustic = cyl2d_modes_solvable(theta0_deg; n_modes=20, NY=NY, c0=c0)
+    acoustic = cyl2d_modes_solvable(theta0_deg; n_modes=st.cyl2d_n_modes, NY=NY, c0=c0)
     # Default structural path unchanged for :surrogate: Table D-1 when use_table_d1.
     # :parametric / structural_solver=:appd → App. D with aircraft geometry (30c).
     solver = structural_solver
@@ -352,11 +372,12 @@ function run_pain_pipeline(;
     # Phase 123 (2026-11-03): computed App. D modes are kept up to twice the highest tone of the run (series converged
     # there; at least 32); the 32 lowest alone ended at 105 Hz on a 5.33 m cabin. Table D-1 / Ritz unchanged. The cutoff
     # is rounded up to the next 100 Hz (only adds modes), so runs at nearby rpm share one cached mode set.
-    f_cut = solver === :appd ? 100 * ceil(2 * min(n_harmonics, size(bl.amplitudes, 3)) * bl.bpf_Hz / 100) : nothing
-    structural = build_structural_modes(fuse; structural_solver=solver, n_keep=32,
+    f_cut = solver === :appd ? st.appd_cut_round_Hz *
+            ceil(st.appd_cut_factor * min(n_harmonics, size(bl.amplitudes, 3)) * bl.bpf_Hz / st.appd_cut_round_Hz) : nothing
+    structural = build_structural_modes(fuse; structural_solver=solver, n_keep=st.n_struct_modes,
                                         appd_geometry=appd_g, f_cut_Hz=f_cut)
 
-    ΔA = (π * a / 18)^2  # User Manual grid spacing scale (from fuse.a)
+    ΔA = (π * a / grid_divisor(spec))^2  # User Manual grid spacing scale (πa/18)² for the 10° grid
     trim_used = trim === :auto ? (src === :e11 ? :phase3 : :bare) : trim
     sidewall = end_stack = mech_used = nothing
     m_wall_eff = m_wall
@@ -382,13 +403,18 @@ function run_pain_pipeline(;
                      allow_extrapolation=allow_extrapolation,
                      ρ0=ρ0, c0=c0, ρ_ext=ρ_ext, c_ext=c_ext, ρ_int=ρ_int, c_int=c_int,
                      L_c=L_c, d=d, bands=bands, η_r_band=η_r_band, η_n_band=η_n_band,
-                     η_r_band_is_prime=η_r_band_is_prime, η_r_trimmed_area=η_r_trimmed_area)
+                     η_r_band_is_prime=η_r_band_is_prime, η_r_trimmed_area=η_r_trimmed_area,
+                     floor_sign=st.floor_sign, q0_coupled=st.q0_coupled, η_n_per_mode=st.eta_n_per_mode,
+                     η_n_band_omega=st.eta_n_band_omega, trim_band_centre=st.trim_band_centre,
+                     crossover_band_Hz=st.crossover_band_Hz > 0 ? st.crossover_band_Hz : nothing,
+                     c_cyl2d=st.c_cyl2d_mps)
     # Parametric HF path: Eqs. 19–23 (I-21 open readings → X-EXTRAP); η_r_cap=nothing
     spec_out = interior_spl(inp; bpf_Hz=bl.bpf_Hz,
                             n_harmonics=min(n_harmonics, size(bl.amplitudes, 3)),
                             bb_j2_scale=bb_j2_scale, bb_α=bb_α,
                             spbl_anchor_H=spbl_anchor_H, broadband_model=broadband_model,
-                            η_r_cap=nothing, tone_model=tone_model)
+                            η_r_cap=st.eta_r_cap > 0 ? st.eta_r_cap : nothing, tone_model=tone_model,
+                            broadband=st.broadband)
 
     provenance = empty_provenance()
     if src === :aircraft

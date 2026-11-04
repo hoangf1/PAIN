@@ -4055,6 +4055,14 @@ PAIN H1 (0.34 dB on the held-out η_T = 2.0 run, R172428_ETAT2), and NASA's PAIN
 consistent with this, not proved (NASA never ran PAIN on the 695A). I-18 closed: the lower-quarter grid breaks the
 match with both NASA runs, so the 160-point grid stays. Record: `validation_reports/phase126_h1_method_and_i18.md`.
 
+## 2.49 Phase 127: inputs and run-path constants as GUI fields (2026-11-04)
+
+No case, criterion, reference or recorded result changed. The run-path constants are `PainSettings` fields whose
+defaults are the literals they replaced; validation cases run with the defaults, so every case is computed as before (the
+default Hartzell, e11 and 695A runs are bit-identical). A GUI setting changed from its default makes that run a
+user variant, not a case: the Validation tab never takes GUI settings. Choosing a setting by its effect on a compared
+case would be calibration (CLAUDE.md) and is not offered. Inventory: `INPUTS_AND_SETTINGS.md`.
+
 ## 3. What “valid recreation” means for this project
 
 A recreation is **pipeline-valid** only if:

@@ -214,6 +214,7 @@ Not blockers (recorded so nobody stops on them): BBN tip geometry beyond 40 in. 
 | Q106 | **Phase 124 — interior dB and dB(A) against NASA PAIN and the measurement** (§8bn; author 2026-11-04) | V-CODE / V-EXP cases (P_REPRO, P_MEAS) | Phase 123 | **done 2026-11-04**: R172428_DBA_CODE 0/3, R172428_DB_CODE 0/3 (CR-3813 tone sum, 4000 rpm +12–13 dB); R172428_DBA_EXP 1/3, R172428_DB_EXP 1/3, as NASA's own printout (1/3). Post-hoc: the default form is within 0.9 dB(A) / 0.7 dB of NASA's sums (not independent, Phase 93) |
 | Q107 | **Phase 125 — the 695A tones at the mic seats** (§8bo; author 2026-11-04: "Yes, add it") | information case (A_CABIN) | Phase 123 | **done 2026-11-04**: 43/108 within ±4 dB (space average: 32/108); PAIN − measured mean −0.2 / +9.3 / +7.3 dB at H1 / H2 / H3 (port +4.1 dB H2, starboard +14.4 dB H2); the seat is +5.3 / +1.1 / +3.8 dB above the space average; I-18 lower-quarter diagnostic raises H2 (not the cause) |
 | Q108 | **Phase 126 — H1: PAIN's method or the recreation; I-18 closed** (§8bp; author 2026-11-04: "have you proved that h1 is a pain limitation rather than my code yes you have full control to close out any open items") | diagnostics + decision | Phases 94, 125 | **done 2026-11-04**: test article H1 code − NASA +0.1 / +0.1 / +0.2 dB (held-out Table 12: +0.24 / +0.34 / +0.27), NASA − measured −17.7 / +1.4 / −13.8 dB: the method's; 695A consistent, not provable (no NASA run); I-18 closed, 160 points kept (lower quarter: 1–6/9 against NASA, 10 lines 9/9) |
+| Q109 | **Phase 127 — every input and run-path constant in the GUI** (§8bq; author 2026-11-04: "if there are any constants then make it available for change in the gui") | GUI, settings, documents | — | **done 2026-11-04**: 59 constants as `PainSettings` (old values as defaults), every input a Run-tab field in tabs; project file optional; default runs bit-identical; printed outputs use the run's BPF |
 | Q58 | **Phase 79 — CYL2D** (§8w; 2026-10-28) | `case_error_summary`, `cyl2d.jl`, CYL2D_WEYL | Q57 | **done 2026-10-28**: information rows leave the pass count; refinement fixed (79b); CYL2D_GRID_CONV (NY 10 within 4.9 % of NY 60); Weyl + surface term 4/5; production NY = 10 kept (decided 2026-10-28) |
 | Q57 | **Phase 78 — structural modes** (§8v; 2026-10-28) | `mrp_appd.jl`, MRP_APPD criterion, map | Q53 | **done 2026-10-28**: App. D solver fixes J1–J6; MRP_APPD not met 2/32 (class I, floor stiffener model undocumented); MRP_D1/MRP_RITZ off the map |
 | Q56 | **Phase 77 — POLAR_FIDELITY as an equivalent angle** (§8u; 2026-10-28) | `src/validation_case_iso67.jl`, figure | Q52 | **done 2026-10-28**: Δα shown next to Δc_l, display only |
@@ -3139,3 +3140,40 @@ converged at NASA's series limits, so the shortfall is consistent with the metho
 copied 1/9 and 2/9 within ±3 dB (+5 to +7 dB), conjugated 4/9 and 6/9; the 160-point grid 9/9 and 9/9 (largest 1.73 dB).
 NASA's printed levels exclude the lower quarter from Eq. (8); the 160 points stay (decision 19d, 2026-10-20, now
 supported by NASA's output). Record: `validation_reports/phase126_h1_method_and_i18.md`.
+
+## 8bq. Phase 127 — every input and run-path constant in the GUI (done 2026-11-04)
+
+*(Author 2026-11-04: "are all inputs exsposed in the PAIN_Program gui i dont like there being any constants hidden inside
+pain ... if there are any constants then make it available for change in the gui", "instead of a json id like the user
+inputs in the gui", "i dont want the two programs to connect yet".)*
+
+- **Settings.** `src/pain_settings.jl`: `PainSettings`, 59 fields, one per literal that was on the aircraft run path.
+  - Grid: 16 × 10 points, k_p 8, 10° step.
+  - F1A source: 64 source times, 2 revolutions, static guard 1 → 20 m/s, tip loss, default polar 2π / 0.35 / 0.01 / 0.15.
+  - Eq. (43): 0.3, 0.000224, 0.08; R2 0.8; floor 1.
+  - CYL2D: 20 modes, node tolerance 0.4, NY + 10, 341 m/s.
+  - App. D: 32 modes; cutoff 2 × the highest tone rounded to 100 Hz; series 10 / 12 / 5; 1 % or 2 modes; 640 terms;
+    term budgets 5 / 3; no floor cross terms.
+  - Coupling options: q0_coupled, η_n per mode, band centre, the 100 Hz floor, trimmed area, η_r′ bands, floor sign,
+    trim band centre, crossover, η_r cap, c_ω 0.232.
+  - Broadband: tone model, on / off, 1000 Hz, 1.15, the 2.5e-4 fallback, 1e-6, and the surrogate constants.
+
+  Each default is the old literal. `run_pain_pipeline(; settings)` or a project's `"settings"` object scopes them over
+  one run (`Base.ScopedValue`); the App. D cutoff cache key includes the settings it reads.
+- **Fields.** `src/gui_inputs.jl`: one field per input.
+  - Physical inputs: run, propeller, flight, placement, cabin, structure (13 section inputs and 8 MRP card values),
+    damping and trim (a trim stack as element lines), broadband and bands.
+  - Every setting, as seven Numerics tabs.
+
+  The QML Run tab builds its tabs from these fields. A field is written to the project only when it changed from what
+  was loaded (tags kept), and never when it equals the code default. Run writes a temporary project and runs it. Open,
+  Save and Defaults handle the optional project file. Keys a file carries that the code does not read are named on Open.
+- **Fixes on the way.**
+  - The printed-outputs tab passed the 150 Hz BPF field to `printed_outputs`; it now uses the run's B·rpm/60 and the
+    run's settings.
+  - The BPF field (unused on the aircraft path) became a readout.
+- **Check.** H1–H5 and every band bit-identical before and after on the default Hartzell run, the e11 test-article run
+  and the 695A condition-1 run. The default GUI project builds to the file as loaded and runs bit-identically.
+  R2 factor 1.0 against 0.8 raises the Hartzell H1 by 2.26 dB, showing the setting reaches the run. No criterion,
+  reference or recorded result changed. Unit tests: `test/unit/test_pain_settings.jl`. Smoke: an offscreen shot of
+  the Propeller and Numerics: Blocking tabs (`smoke_qml_load.jl`). Inventory: `INPUTS_AND_SETTINGS.md`.

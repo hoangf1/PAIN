@@ -72,7 +72,7 @@ function tone_Q_H(ρ0::Real, c0::Real, A::Real, V::Real, ωH::Real, τ_t::Real)
 end
 
 """Collect acoustic / structural modes whose resonance lies in the Δω band about ω_H."""
-function modes_in_tone_band(inp::PainInputs, ωH::Real; c_ω::Real=C_OMEGA_THIRD_OCTAVE,
+function modes_in_tone_band(inp::PainInputs, ωH::Real; c_ω::Real=c_omega(),
                             q_max::Union{Nothing,Int}=nothing)
     lo = ωH * (1 - c_ω / 2)
     hi = ωH * (1 + c_ω / 2)
@@ -130,7 +130,7 @@ Returns ⟨p²⟩ from Eq. (16), mode counts, η̄, E[g], and the Eq. (15) form 
 still carries ⟨ε_n f̄′²⟩ (barred, no extra τ_t — reading §4).
 """
 function tone_expected_value(inp::PainInputs, H::Int, ωH::Float64;
-                             c_ω::Real=C_OMEGA_THIRD_OCTAVE,
+                             c_ω::Real=c_omega(),
                              q_max::Union{Nothing,Int}=nothing,
                              η_r_cap::Union{Nothing,Float64}=nothing,
                              use_pi_limit::Bool=true)
@@ -211,7 +211,7 @@ sums over modes in the band. Used for the Monte-Carlo V-UNIT check.
 """
 function tone_eq13_sample(inp::PainInputs, H::Int, ωH::Float64,
                           ωn_draw::AbstractVector{<:Real}, ωr_draw::AbstractVector{<:Real};
-                          c_ω::Real=C_OMEGA_THIRD_OCTAVE,
+                          c_ω::Real=c_omega(),
                           q_max::Union{Nothing,Int}=nothing,
                           η_r_cap::Union{Nothing,Float64}=nothing)
     fuse = inp.fuse
@@ -251,7 +251,7 @@ with `rule` (default `:volume` = card 10 option a; `:ten_modes` = phase 38b opti
 """
 function resolve_crossover_Hz(inp::PainInputs;
                               bands::Union{Nothing,AbstractVector{<:Real}}=nothing,
-                              c_ω::Real=C_OMEGA_THIRD_OCTAVE,
+                              c_ω::Real=c_omega(),
                               rule::Symbol=:volume)
     inp.crossover_band_Hz !== nothing && return float(inp.crossover_band_Hz)
     return acoustic_crossover_band(inp; bands, c_ω, rule).fc_Hz
@@ -268,7 +268,7 @@ function tone_mean_square_pressure_pair(inp::PainInputs, H::Int, ωH::Float64;
                                         q_max::Union{Nothing,Int}=nothing,
                                         η_r_cap::Union{Nothing,Float64}=nothing,
                                         tone_model::Symbol=:eq8,
-                                        c_ω::Real=C_OMEGA_THIRD_OCTAVE,
+                                        c_ω::Real=c_omega(),
                                         crossover_Hz::Union{Nothing,Float64}=nothing)
     tone_model in (:eq8, :eq15_16, :auto) ||
         error("tone_model must be :eq8, :eq15_16, or :auto; got $tone_model")

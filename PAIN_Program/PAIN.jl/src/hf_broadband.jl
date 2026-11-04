@@ -83,7 +83,7 @@ end
 Structural modes resonant in the 1/3-octave about `fc`, plus band averages for
 Eqs. (19)–(20) (readings §1–§2).
 """
-function hf_structural_band(inp::PainInputs, fc::Real; c_ω::Real=C_OMEGA_THIRD_OCTAVE, sparse_guard::Bool=false)
+function hf_structural_band(inp::PainInputs, fc::Real; c_ω::Real=c_omega(), sparse_guard::Bool=false)
     ω = 2π * fc
     Δω = c_ω * ω
     lo = ω * (1 - c_ω / 2)
@@ -123,7 +123,7 @@ function hf_structural_band(inp::PainInputs, fc::Real; c_ω::Real=C_OMEGA_THIRD_
     n_r = structural_modal_density(inp.structural, float(fc))
     all_j2 = Float64[structural_joint_acceptance(st, ω; a, L, c0=c_ext) for st in inp.structural.modes]
     if isempty(all_j2)
-        j2_mean = 2.5e-4
+        j2_mean = pain_settings().j2_fallback   # 2.5e-4 by default (Phase 127)
         j2sq_mean = j2_mean^2
     else
         j2_mean = sum(all_j2) / length(all_j2)
@@ -182,7 +182,7 @@ end
 τ_f (Eq. 20), τ_R (p. 24), τ = τ_f + τ_R, plus the band averages used.
 """
 function hf_transmission_coeffs(inp::PainInputs, fc::Real;
-                                c_ω::Real=C_OMEGA_THIRD_OCTAVE,
+                                c_ω::Real=c_omega(),
                                 η_r_cap::Union{Nothing,Float64}=nothing,
                                 sparse_guard::Bool=false)
     band = hf_structural_band(inp, fc; c_ω, sparse_guard)
@@ -211,7 +211,7 @@ Eq. (23): ⟨p_e²⟩/⟨p_i²⟩ = (ᾱ S + [τ_f + τ_R (η̄_r/η_rad^ext)] A
 with τ = τ_f + τ_R. NR_dB = 10 log10(ratio).
 """
 function hf_pressure_ratio(inp::PainInputs, fc::Real;
-                           c_ω::Real=C_OMEGA_THIRD_OCTAVE,
+                           c_ω::Real=c_omega(),
                            η_r_cap::Union{Nothing,Float64}=nothing,
                            sparse_guard::Bool=false,
                            bridges::Bool=false)
@@ -240,7 +240,7 @@ Interior band ⟨p_i²⟩ from blocked ⟨p_bl²⟩ via Eqs. (19)–(23):
 ⟨p_e²⟩ = ⟨p_bl²⟩/2, ⟨p_i²⟩ = ⟨p_e²⟩ / (Eq. 23 ratio).
 """
 function hf_broadband_band_p2(inp::PainInputs, fc::Real, p2_bl::Real;
-                              c_ω::Real=C_OMEGA_THIRD_OCTAVE,
+                              c_ω::Real=c_omega(),
                               η_r_cap::Union{Nothing,Float64}=nothing,
                               bridges::Bool=false)
     p2_bl ≤ 0 && return 0.0

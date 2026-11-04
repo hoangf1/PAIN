@@ -282,7 +282,7 @@ intervals from floor to crown (Fig. C-3 uses 10). `c0` converts eigenvalues to H
 (use `TABLE_C1_C0` = 341 m/s to compare with Table C-1).
 """
 function cyl2d_modes(theta0_deg::Real; n_modes::Int=20, NY::Int=10, c0::Float64=340.0,
-                     node_tol::Float64=0.4)
+                     node_tol::Float64=pain_settings().cyl2d_node_tol)
     θ0 = deg2rad(float(theta0_deg))
     g = _build_grid(θ0, NY; node_tol=node_tol)
     h = g.h
@@ -395,7 +395,7 @@ Production grid for any floor angle (Q60, 2026-10-29): App. C on the requested `
 is solvable, otherwise on the next larger NY that is (B_E non-singular, kept modes real), with a warning. The grid
 used is `result.NY`. For θ0 = 56.6° this is NY = 10 unchanged; NY = 10 has no solution at e.g. θ0 = 40° or 45.3°.
 """
-function cyl2d_modes_solvable(theta0_deg::Real; NY::Int=10, NY_max::Int=NY + 10, kw...)
+function cyl2d_modes_solvable(theta0_deg::Real; NY::Int=10, NY_max::Int=NY + pain_settings().cyl2d_ny_extra, kw...)
     for ny in NY:NY_max
         try
             r = cyl2d_modes(theta0_deg; NY=ny, kw...)

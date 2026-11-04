@@ -8,9 +8,6 @@ const _GUI_LAST_VERDICTS = Dict{String,Symbol}()
 """Last case_error_summary by case id (session only; never written by Run / Pkg.test)."""
 const _GUI_LAST_ERRORS = Dict{String,NamedTuple}()
 
-"""The Run tab runs the aircraft pipeline only (phase 33g): E-11 and synthetic sources verify PAIN (Validation tab)."""
-const _GUI_SOURCE_MSG = "the Run tab runs the aircraft pipeline only; e11 / synthetic are PAIN verification inputs (Validation tab cases)"
-
 validity_for_source(source::Symbol) =
     source === :e11 ? "V-EXP" : "X-EXTRAP"
 
@@ -112,54 +109,24 @@ function _format_third(spectrum::InteriorSpectrum)
     join(["fc=$(round(fc; digits=1)) Hz  SPL=$(round(spl; digits=2)) dB" for (fc, spl) in pairs], "\n")
 end
 
-"""Parse optional card 3–6 / 11–18 Observables (JSON text; empty → defaults)."""
-function _parse_band_card_observables(obs::AbstractDict)
-    function _parse_opt(key)
-        s = strip(String(obs[key][]))
-        isempty(s) && return nothing
-        return JSON3.read(s)
-    end
-    return _parse_opt("bands_Hz"), _parse_opt("eta_r_band"), _parse_opt("eta_n_band")
-end
-
 """
-    make_gui_observables(; default_aircraft_json) -> Dict{String,Observable}
+    make_gui_observables(; default_project) -> Dict{String,Observable}
 
-Input/output Observables. Wrap with `JuliaPropertyMap` in `launch_gui`.
+Input/output Observables. Wrap with `JuliaPropertyMap` in `launch_gui`. The Run tab's inputs are the fields of
+`gui_input_specs`, filled from `default_project` (Phase 127); the run is the aircraft pipeline only (phase 33g).
 """
-function make_gui_observables(;
-        default_aircraft_json::AbstractString=joinpath(@__DIR__, "..", "examples", "aircraft_scale_hartzell.json"))
+function make_gui_observables(; default_project::AbstractString=gui_default_project_path())
+    base = _load_project_dict(default_project)
+    vals = gui_field_values(base)
     obs = Dict{String,Observable}(
-        "source" => Observable("aircraft"),  # phase 33g: only user source; e11/synthetic are validation-only
-        "blocking" => Observable("R2"),
-        "L" => Observable(test_article_length()),
-        "a" => Observable(0.508),
-        "theta0_deg" => Observable(0.0),     # 0 = auto: the printed aircraft nearest in radius (auto_floor_angle)
-        "theta0_auto" => Observable(""),     # the auto value and its source, shown in the θ₀ field
-        "r_p" => Observable(0.965),
-        "phi_p_deg" => Observable(90.0),
-        "z_p" => Observable(0.662),
-        "n_harmonics" => Observable(5.0),
-        "bpf_Hz" => Observable(150.0),
-        "aircraft_json" => Observable(abspath(default_aircraft_json)),
-        "C_struc" => Observable(3.0),        # C of Eq. (80), CR-3813 range 2-4
-        "eta_n_bare" => Observable(0.05),    # η_n of a bare cabin (input, register g)
-        "trim" => Observable("auto"),        # auto | bare | phase3
-        # Manual cards 2, 9, 36 (38f-1); defaults = single-air / L_c=L / +1
-        "rho0" => Observable(1.225),
-        "c0" => Observable(340.0),
-        "rho_ext" => Observable(1.225),
-        "rho_int" => Observable(1.225),
-        "c_ext" => Observable(340.0),
-        "c_int" => Observable(340.0),
-        "L_c" => Observable(test_article_length()),
-        "d_cavity" => Observable(0.0),
-        "rotation_direction" => Observable(1.0),
-        # Manual cards 3–6 / 11–18 (38f-2); empty string = defaults (compute / full band list)
-        "bands_Hz" => Observable(""),
-        "eta_r_band" => Observable(""),
-        "eta_n_band" => Observable(""),
-        "status" => Observable("Ready. Choose aircraft JSON and press Run."),
+        # Phase 127: every input is a GUI field (gui_inputs.jl); the project file is only an optional Open / Save
+        "project_path" => Observable(""),            # file last opened or saved ("" = the built-in default project)
+        "project_base_json" => Observable(JSON3.write(base)),
+        "input_values_json" => Observable(JSON3.write(vals)),
+        "inputs_json" => Observable(gui_inputs_json(vals)),
+        "bpf_text" => Observable(gui_bpf_text(vals)),
+        "project_note" => Observable(_gui_project_note(default_project, base)),
+        "status" => Observable("Ready. Set the inputs and press Run."),
         "busy" => Observable(false),
         # Phase 114 — run-status boxes. `*_state` drives the pill a panel shows (ready / snapshot / running /
         # done / error); `*_log` is the verbose line-by-line record of the run the box can expand.
@@ -202,6 +169,7 @@ function make_gui_observables(;
         "map_view_width" => Observable(0.0),
         "smoke_map_png" => Observable(""),
         "smoke_runbox_png" => Observable(""),   # Phase 114: offscreen shot of the Validation tab run-status box
+        "smoke_inputs_png" => Observable(""),   # Phase 127: offscreen shots of the Run tab's input tabs
         # Phase 38h — Manual §5.4.3 printed outputs (read-only)
         "po_status" => Observable("Ready. Press Run / Refresh for the current Run-tab case."),
         "po_text" => Observable(""),
@@ -233,19 +201,62 @@ function make_gui_observables(;
         "cm_f_prime" => Observable(""),
         "cm_note" => Observable("display only — interpolated for drawing; no criterion"),
     )
-    _update_theta0_auto!(obs)
-    on(_ -> _update_theta0_auto!(obs), obs["a"])
     return obs
 end
 
-function _update_theta0_auto!(obs::AbstractDict)
-    r = auto_floor_angle(Float64(obs["a"][]))
-    obs["theta0_auto"][] = "auto ($(r.theta0_deg)°, $(r.source), a = $(r.a_source) m)"
+function _gui_project_note(path::AbstractString, proj::AbstractDict)
+    note = "Project: " * (normpath(path) == gui_default_project_path() ? "built-in default ($(basename(path)))" : path)
+    unread = gui_unread_keys(proj)
+    isempty(unread) || (note *= ". Keys in the file that the code does not read: " * join(unread, ", "))
+    return note
+end
+
+gui_values(obs::AbstractDict) = JSON3.read(obs["input_values_json"][], Dict{String,String})
+gui_base(obs::AbstractDict) = JSON3.read(obs["project_base_json"][], Dict{String,Any})
+
+"""One field edited in the GUI (text as typed)."""
+function gui_set_input!(obs::AbstractDict, key::AbstractString, text::AbstractString)
+    vals = gui_values(obs)
+    any(s -> s.key == key, gui_input_specs()) || error("unknown GUI input \"$key\"")
+    vals[String(key)] = String(text)
+    obs["input_values_json"][] = JSON3.write(vals)
+    obs["bpf_text"][] = gui_bpf_text(vals)
     return nothing
 end
 
-"""θ₀ the run uses: the field's value, or the auto floor angle when the field is 0."""
-_gui_theta0(obs::AbstractDict) = (θ = Float64(obs["theta0_deg"][]); θ > 0 ? θ : auto_floor_angle(Float64(obs["a"][])).theta0_deg)
+"""Open a project file: its values fill the fields; values it does not give show the code defaults."""
+function gui_open_project!(obs::AbstractDict, path::AbstractString)
+    p = String(strip(path))
+    isfile(p) || error("project file not found: $p")
+    base = _load_project_dict(p)
+    vals = gui_field_values(base)
+    obs["project_base_json"][] = JSON3.write(base)
+    obs["input_values_json"][] = JSON3.write(vals)
+    obs["inputs_json"][] = gui_inputs_json(vals)
+    obs["bpf_text"][] = gui_bpf_text(vals)
+    obs["project_path"][] = p
+    obs["project_note"][] = _gui_project_note(p, base)
+    return nothing
+end
+
+"""Back to the built-in default project."""
+function gui_reset_project!(obs::AbstractDict)
+    gui_open_project!(obs, gui_default_project_path())
+    obs["project_path"][] = ""
+    return nothing
+end
+
+"""Save the fields as a project file (the aircraft JSON format, with `run` and `settings`)."""
+function gui_save_project!(obs::AbstractDict, path::AbstractString)
+    p = String(strip(path))
+    isempty(p) && error("give a file name to save the project to")
+    proj = gui_build_project(gui_base(obs), gui_values(obs))
+    open(io -> JSON3.pretty(io, JSON3.write(proj)), p, "w")
+    obs["project_base_json"][] = JSON3.write(proj)
+    obs["project_path"][] = p
+    obs["project_note"][] = _gui_project_note(p, proj)
+    return nothing
+end
 
 function _format_val_case_list()
     # Map → block order, then the cases on no block; last column says where the case is listed (caseIdFromRow uses col 0).
@@ -346,49 +357,19 @@ function run_printed_outputs_gui!(obs::AbstractDict)
     obs["po_status"][] = "Running printed outputs…"
     t0 = gui_run_begin!(obs, "po", "Building the Manual §5.4.3 printed outputs for the current Run-tab case")
     try
-        src = Symbol(String(obs["source"][]))
-        src === :aircraft || error(_GUI_SOURCE_MSG)
-        blk = uppercase(String(obs["blocking"][])) == "R1" ? R1 : R2
-        L = Float64(obs["L"][])
-        a = Float64(obs["a"][])
-        theta0 = _gui_theta0(obs)
-        r_p = Float64(obs["r_p"][])
-        phi_p = Float64(obs["phi_p_deg"][])
-        z_p = Float64(obs["z_p"][])
-        nH = Int(round(Float64(obs["n_harmonics"][])))
-        bpf = Float64(obs["bpf_Hz"][])
-        Cs = Float64(obs["C_struc"][])
-        ηn = Float64(obs["eta_n_bare"][])
-        trim = Symbol(String(obs["trim"][]))
-        json_path = String(obs["aircraft_json"][])
-        ρ0 = Float64(obs["rho0"][])
-        c0 = Float64(obs["c0"][])
-        ρ_ext = Float64(obs["rho_ext"][])
-        ρ_int = Float64(obs["rho_int"][])
-        c_ext = Float64(obs["c_ext"][])
-        c_int = Float64(obs["c_int"][])
-        L_c = Float64(obs["L_c"][])
-        d_cav = Float64(obs["d_cavity"][])
-        rot = Int(round(Float64(obs["rotation_direction"][])))
-        bands_kw, ηr_kw, ηn_kw = _parse_band_card_observables(obs)
-
-        common = (
-            L=L, a=a, theta0_deg=theta0,
-            r_p=r_p, phi_p_deg=phi_p, z_p=z_p,
-            rotation_direction=rot,
-            source=src, blocking=blk,
-            n_harmonics=nH, bpf_Hz=bpf,
-            C_struc=Cs, η_n_bare=ηn, trim=trim,
-            ρ0=ρ0, c0=c0, ρ_ext=ρ_ext, ρ_int=ρ_int, c_ext=c_ext, c_int=c_int,
-            L_c=L_c, d=d_cav,
-            bands=bands_kw, η_r_band=ηr_kw, η_n_band=ηn_kw,
-        )
-        isfile(json_path) || error("aircraft JSON not found: $json_path")
-        gui_log!(obs, "po", "aircraft JSON: $(basename(json_path))")
-        gui_log!(obs, "po", "running the pipeline (blocking $(blk), $(nH) harmonics at $(bpf) Hz)")
-        result = run_pain_pipeline(; common..., aircraft_json=json_path)
+        args = gui_run_args(gui_base(obs), gui_values(obs))
+        gui_log!(obs, "po", "running the pipeline (blocking $(args.kwargs.blocking), $(args.kwargs.n_harmonics) harmonics)")
+        result = try
+            run_pain_pipeline(; args.kwargs...)
+        finally
+            rm(args.path; force=true)
+        end
         gui_log!(obs, "po", "collecting the printed tables")
-        out = printed_outputs(result.inputs; bpf_Hz=bpf, n_harmonics=nH)
+        st = pain_settings_from_dict(get(args.project, "settings", Dict{String,Any}()))
+        # the run's own BPF (B·rpm/60), and the run's settings (c_ω and the rest) for the tables
+        out = with_pain_settings(st) do
+            printed_outputs(result.inputs; bpf_Hz=result.ff.bpf_Hz, n_harmonics=args.kwargs.n_harmonics)
+        end
         obs["po_text"][] = format_printed_outputs_text(out)
         obs["po_json"][] = printed_outputs_gui_json(out)
         obs["po_report_path"][] = ""
@@ -508,48 +489,17 @@ function run_pain_gui!(obs::AbstractDict)
     obs["status"][] = "Running…"
     t0 = gui_run_begin!(obs, "run", "Running the aircraft pipeline")
     try
-        src = Symbol(String(obs["source"][]))
-        src === :aircraft || error(_GUI_SOURCE_MSG)
-        blk = uppercase(String(obs["blocking"][])) == "R1" ? R1 : R2
-        L = Float64(obs["L"][])
-        a = Float64(obs["a"][])
-        theta0 = _gui_theta0(obs)
-        r_p = Float64(obs["r_p"][])
-        phi_p = Float64(obs["phi_p_deg"][])
-        z_p = Float64(obs["z_p"][])
-        nH = Int(round(Float64(obs["n_harmonics"][])))
-        bpf = Float64(obs["bpf_Hz"][])
-        Cs = Float64(obs["C_struc"][])
-        ηn = Float64(obs["eta_n_bare"][])
-        trim = Symbol(String(obs["trim"][]))
-        json_path = String(obs["aircraft_json"][])
-        ρ0 = Float64(obs["rho0"][])
-        c0 = Float64(obs["c0"][])
-        ρ_ext = Float64(obs["rho_ext"][])
-        ρ_int = Float64(obs["rho_int"][])
-        c_ext = Float64(obs["c_ext"][])
-        c_int = Float64(obs["c_int"][])
-        L_c = Float64(obs["L_c"][])
-        d_cav = Float64(obs["d_cavity"][])
-        rot = Int(round(Float64(obs["rotation_direction"][])))
-        bands_kw, ηr_kw, ηn_kw = _parse_band_card_observables(obs)
-
-        common = (
-            L=L, a=a, theta0_deg=theta0,
-            r_p=r_p, phi_p_deg=phi_p, z_p=z_p,
-            rotation_direction=rot,
-            source=src, blocking=blk,
-            n_harmonics=nH, bpf_Hz=bpf,
-            C_struc=Cs, η_n_bare=ηn, trim=trim,
-            ρ0=ρ0, c0=c0, ρ_ext=ρ_ext, ρ_int=ρ_int, c_ext=c_ext, c_int=c_int,
-            L_c=L_c, d=d_cav,
-            bands=bands_kw, η_r_band=ηr_kw, η_n_band=ηn_kw,
-        )
-        isfile(json_path) || error("aircraft JSON not found: $json_path")
-        gui_log!(obs, "run", "aircraft JSON: $(basename(json_path))")
-        gui_log!(obs, "run", "blocking $(blk), $(nH) harmonics at $(bpf) Hz, trim $(trim)")
+        args = gui_run_args(gui_base(obs), gui_values(obs))
+        kw = args.kwargs
+        gui_log!(obs, "run", "blocking $(kw.blocking), $(kw.n_harmonics) harmonics; $(gui_bpf_text(gui_values(obs)))")
+        nset = length(get(args.project, "settings", Dict()))
+        nset > 0 && gui_log!(obs, "run", "$nset numerics setting(s) differ from the defaults")
         gui_log!(obs, "run", "BEMT → F1A → grid → blocking → modes → Eq. (8) — this is the slow part")
-        result = run_pain_pipeline(; common..., aircraft_json=json_path)
+        result = try
+            run_pain_pipeline(; kw...)
+        finally
+            rm(args.path; force=true)
+        end
         gui_log!(obs, "run", "pipeline done; computing dB(A) and SIL")
 
         tag = validity_for_source(result.source)

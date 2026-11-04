@@ -4,7 +4,7 @@
 const _PO_PREF_PA = 20e-6
 
 """Count structural modes with resonance inside the 1/3-octave about `fc` (list count, not density)."""
-function structural_modes_in_band(inp::PainInputs, fc::Real; c_ω::Real=C_OMEGA_THIRD_OCTAVE)
+function structural_modes_in_band(inp::PainInputs, fc::Real; c_ω::Real=c_omega())
     ω = 2π * fc
     lo = ω * (1 - c_ω / 2)
     hi = ω * (1 + c_ω / 2)
@@ -47,7 +47,7 @@ function printed_outputs(inp::PainInputs;
                          broadband_model::Symbol=:surrogate,
                          η_r_cap::Union{Nothing,Float64}=nothing,
                          q_max::Union{Nothing,Int}=nothing,
-                         c_ω::Real=C_OMEGA_THIRD_OCTAVE)
+                         c_ω::Real=c_omega())
     nH = min(n_harmonics, size(inp.amplitudes, 3))
     bands = resolve_bands(inp)
     xover = acoustic_crossover_band(inp; bands, c_ω)

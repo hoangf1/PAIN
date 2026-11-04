@@ -7,11 +7,9 @@
     @test PAIN._format_third(sp) == "fc=500.0 Hz  SPL=65.0 dB\nfc=1000.0 Hz  SPL=60.0 dB"           # ascending
     @test PAIN._format_third(PAIN.InteriorSpectrum(200.0, [80.0], Dict{Float64,Float64}(), "n")) == "(no 1/3-octave bands)"
     obs = PAIN.make_gui_observables()
-    @test obs["source"][] == "aircraft" && obs["z_p"][] == 0.662 && isfile(obs["aircraft_json"][])
-    @test PAIN._parse_band_card_observables(obs) == (nothing, nothing, nothing)
-    obs["bands_Hz"][] = "[1000, 1250]"; obs["eta_r_band"][] = "{\"1000\": 0.02}"
-    b, ηr, ηn = PAIN._parse_band_card_observables(obs)
-    @test collect(b) == [1000, 1250] && ηr[Symbol("1000")] == 0.02 && ηn === nothing
+    vals = PAIN.gui_values(obs)
+    @test vals["z_p_m"] == "0.662" && vals["rpm"] == "4000" && vals["theta0_deg"] == "auto" && obs["project_path"][] == ""
+    @test PAIN.gui_base(obs)["propeller"]["num_blades"] == 3 && obs["bpf_text"][] == "BPF = 200.0 Hz"
     lines = split(PAIN._format_val_case_list(), '\n')
     @test length(lines) == length(PAIN.validation_map_case_order())
     @test all(length(split(l, '\t')) == 5 for l in lines)
@@ -113,16 +111,17 @@ end
 end
 @testset "run tab, printed outputs and cabin modes" begin
     obs = PAIN.make_gui_observables()
-    obs["n_harmonics"][] = 2.0
+    PAIN.gui_set_input!(obs, "n_harmonics", "2")
     @test PAIN.run_pain_gui!(obs)
     @test obs["validity_tag"][] == "X-EXTRAP" && obs["source_out"][] == "aircraft" && startswith(obs["status"][], "Done (X-EXTRAP)")
     @test occursin("H=2", obs["tonal_text"][]) && startswith(obs["dBA_text"][], "dB(A)=") && occursin("Validation-tab", obs["t1_text"][])
-    obs["source"][] = "e11"                                                                 # E-11 is a verification input
-    @test !PAIN.run_pain_gui!(obs) && occursin("aircraft pipeline only", obs["status"][]) && obs["validity_tag"][] == ""
-    @test PAIN.run_printed_outputs_gui!(obs) === nothing && occursin("aircraft pipeline only", obs["po_status"][])
-    obs["source"][] = "aircraft"
+    PAIN.gui_set_input!(obs, "rpm", "fast")                                                 # Phase 127: a bad field stops the run
+    @test !PAIN.run_pain_gui!(obs) && occursin("Shaft speed: \"fast\" is not a number", obs["status"][]) && obs["validity_tag"][] == ""
+    @test PAIN.run_printed_outputs_gui!(obs) === nothing && occursin("Shaft speed", obs["po_status"][])
+    PAIN.gui_set_input!(obs, "rpm", "4000")
     out = PAIN.run_printed_outputs_gui!(obs)
     @test out !== nothing && PAIN.JSON3.read(obs["po_json"][]).n_harmonics == 2 && startswith(obs["po_status"][], "Done.")
+    @test PAIN.JSON3.read(obs["po_json"][]).bpf_Hz == 200.0                                 # the run's own BPF (was the 150 Hz field)
     obs["cm_mode"][] = 3.0; obs["cm_nframes"][] = 4.0; obs["cm_struct_mode"][] = 2.0
     fr = PAIN.fill_cabin_modes_gui!(obs)
     @test fr !== nothing && fr.mode == 3 && startswith(obs["cm_status"][], "Done mode 3")
@@ -146,17 +145,18 @@ end
     @test obs["cm_mode"][] == 19.0                                                          # clamped to the 20 modes
 end
 
-# Phase 120 (2026-11-03): θ₀ = 0 in the GUI means the auto floor angle for the current radius
+# Phase 120 (2026-11-03): θ₀ "auto" in the GUI means the auto floor angle for the current radius (Phase 127: a field)
 @testset "auto floor angle in the GUI" begin
     obs = PAIN.make_gui_observables()
-    @test obs["theta0_deg"][] == 0.0
-    @test PAIN._gui_theta0(obs) == 56.6                  # default a = 0.508 m: the test article's own value
-    obs["a"][] = 1.25
-    @test occursin("62.6", obs["theta0_auto"][]) && PAIN._gui_theta0(obs) == 62.6
-    obs["a"].val = 1.6                                   # without notifying: the label follows only on update
-    @test occursin("62.6", obs["theta0_auto"][])
-    PAIN._update_theta0_auto!(obs)
-    @test occursin("73.7", obs["theta0_auto"][])
-    obs["theta0_deg"][] = 50.0
-    @test PAIN._gui_theta0(obs) == 50.0
+    base, vals = PAIN.gui_base(obs), PAIN.gui_values(obs)
+    @test vals["theta0_deg"] == "auto"
+    @test !haskey(get(PAIN.gui_build_project(base, vals), "cabin", Dict()), "theta0_deg")   # a = 0.508 m: 56.6°, the default
+    vals["a_m"] = "1.25"
+    @test PAIN.gui_build_project(base, vals)["cabin"]["theta0_deg"] == 62.6
+    vals["a_m"] = "1.6"
+    @test PAIN.gui_build_project(base, vals)["cabin"]["theta0_deg"] == 73.7
+    vals["theta0_deg"] = "50"
+    @test PAIN.gui_build_project(base, vals)["cabin"]["theta0_deg"] == 50.0
+    vals["theta0_deg"] = "flat"
+    @test_throws ErrorException PAIN.gui_build_project(base, vals)
 end

@@ -17,6 +17,41 @@ function run_pain_from_qml()
     return nothing
 end
 
+# Phase 127: Run-tab input fields and the optional project file
+function _gui_try(f, what::AbstractString)
+    obs = _GUI_OBS[]
+    obs === nothing && return nothing
+    try
+        f(obs)
+    catch e
+        obs["status"][] = "$what: $(sprint(showerror, e))"
+    end
+    return nothing
+end
+
+"""QML Run tab: one input field edited (key from `gui_input_specs`, text as typed)."""
+set_gui_input_from_qml(key::AbstractString, text::AbstractString) =
+    _gui_try(obs -> gui_set_input!(obs, String(key), String(text)), "Input")
+
+"""QML Run tab: open a project file into the fields."""
+open_project_from_qml(path::AbstractString) =
+    _gui_try(obs -> (gui_open_project!(obs, _qml_path(path)); obs["status"][] = "Opened $(obs["project_path"][])."), "Open")
+
+"""QML Run tab: save the fields as a project file."""
+save_project_from_qml(path::AbstractString) =
+    _gui_try(obs -> (gui_save_project!(obs, _qml_path(path)); obs["status"][] = "Saved $(obs["project_path"][])."), "Save")
+
+"""QML Run tab: back to the built-in default project."""
+reset_project_from_qml() = _gui_try(obs -> (gui_reset_project!(obs); obs["status"][] = "Default project loaded."), "Defaults")
+
+"""A path from QML: a file:/// URL from a file dialog, or a plain path."""
+function _qml_path(p::AbstractString)
+    s = String(strip(p))
+    startswith(s, "file:///") && (s = s[9:end]; Sys.iswindows() || (s = "/" * s))
+    startswith(s, "file://") && (s = s[8:end])
+    return replace(s, "%20" => " ")
+end
+
 """QML Validation tab: run one case by id string."""
 function run_validation_from_qml(id::AbstractString)
     obs = _GUI_OBS[]
@@ -262,7 +297,8 @@ main()
 button), waits until Done, then quits (for button-path smoke tests).
 """
 function main(args=ARGS; smoke_ms::Real=0, smoke_case::AbstractString="",
-              smoke_map_png::AbstractString="", smoke_runbox_png::AbstractString="")
+              smoke_map_png::AbstractString="", smoke_runbox_png::AbstractString="",
+              smoke_inputs_png::AbstractString="")
     ENV["QT_QUICK_CONTROLS_STYLE"] = get(ENV, "QT_QUICK_CONTROLS_STYLE", "Fusion")
     # Offscreen Qt often has no bundled fonts; point at the OS font dir so map titles render.
     if lowercase(get(ENV, "QT_QPA_PLATFORM", "")) == "offscreen" && !haskey(ENV, "QT_QPA_FONTDIR")
@@ -280,6 +316,10 @@ function main(args=ARGS; smoke_ms::Real=0, smoke_case::AbstractString="",
     if !isempty(smoke_runbox_png)
         obs["smoke_runbox_png"][] = abspath(String(smoke_runbox_png))
         smoke_ms > 0 || (obs["smoke_ms"][] = 120000.0)   # the QML timer quits once the shot is written
+    end
+    if !isempty(smoke_inputs_png)
+        obs["smoke_inputs_png"][] = abspath(String(smoke_inputs_png))
+        smoke_ms > 0 || (obs["smoke_ms"][] = 60000.0)    # the QML timer quits once both shots are written
     end
     if !isempty(smoke_map_png)
         obs["smoke_map_png"][] = abspath(String(smoke_map_png))
@@ -312,6 +352,10 @@ function main(args=ARGS; smoke_ms::Real=0, smoke_case::AbstractString="",
     @qmlfunction set_cabin_struct_from_qml
     @qmlfunction cabin_modes_step_frame_from_qml
     @qmlfunction mark_gui_closed_from_qml
+    @qmlfunction set_gui_input_from_qml
+    @qmlfunction open_project_from_qml
+    @qmlfunction save_project_from_qml
+    @qmlfunction reset_project_from_qml
 
     qml_file = joinpath(@__DIR__, "..", "gui", "main.qml")
     isfile(qml_file) || error("missing QML file: $qml_file")

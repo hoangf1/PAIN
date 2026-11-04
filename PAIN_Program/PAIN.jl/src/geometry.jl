@@ -111,15 +111,25 @@ PropellerPlacement(r_p::Real, phi_p_deg::Real, z_p::Real) = PropellerPlacement(r
 PAIN/ANOPP fuselage-skin grid (User Manual Fig. 3).
 
 Default `k_max = 16`, `ell_max = 10` → 160 points.
-`k_p` is the axial index where x₁ pierces the skin (line ℓ = 1).
+`k_p` is the axial index where x₁ pierces the skin (line ℓ = 1). `step_deg` is the angle between lines (10°); the axial
+step is a·step (πa/18). `GridSpec()` takes all four from `pain_settings()` (Phase 127).
 """
 struct GridSpec
     k_max::Int
     ell_max::Int
     k_p::Int
+    step_deg::Float64
 end
 
-GridSpec() = GridSpec(16, 10, 8)
+GridSpec(k_max::Integer, ell_max::Integer, k_p::Integer) = GridSpec(k_max, ell_max, k_p, 10.0)
+
+function GridSpec()
+    s = pain_settings()
+    return GridSpec(s.grid_k_max, s.grid_ell_max, s.grid_k_p, s.grid_step_deg)
+end
+
+"""180° / step: 18 for the User Manual's 10° grid (kept as a divisor so the default is the printed π/18 exactly)."""
+grid_divisor(spec::GridSpec) = 180 / spec.step_deg
 
 """
     grid_points(fuse, prop, spec) -> Vector of NamedTuples
@@ -148,12 +158,13 @@ function grid_points(fuse::FuselageGeometry, prop::PropellerPlacement, spec::Gri
     sense = prop.rotation_direction   # ±1
     pts = NamedTuple{(:k, :ell, :x1, :x2, :x3, :theta_deg, :alpha_deg, :z),
                      Tuple{Int,Int,Float64,Float64,Float64,Float64,Float64,Float64}}[]
+    nd = grid_divisor(spec)
     for k in 1:spec.k_max
         for ell in 1:spec.ell_max
-            alpha = (ell - 1) * π / 18
+            alpha = (ell - 1) * π / nd
             x1 = (rp - a) + a * (1 - cos(alpha))
             x2 = -sense * a * sin(alpha)
-            x3 = (π * a / 18) * (spec.k_p - k)
+            x3 = (π * a / nd) * (spec.k_p - k)
             # θ from bottom centerline; ℓ = 1 at φ_p; sense flips azimuth of ℓ > 1
             theta = phi_p + sense * alpha
             z = zp - x3          # User Manual pp. 8–9 / CR-3813 p. E-8: z_k = z_p − x₃ (z from the forward end; Phase 65)

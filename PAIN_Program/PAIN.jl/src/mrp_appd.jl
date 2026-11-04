@@ -768,14 +768,17 @@ returned shape with the exact floor integral, as Table D-1's TOTAL MASS is (Phas
 """
 function appd_modes(geometry::AbstractAppDInput;
                     n_modes::Int=32,
-                    n_axial::Int=10,     # series limits NASA ran the test article with (User Manual card 8,
-                    n_circ::Int=12,      # pp. 42-43): M 1-10, ns 0-12, np 0-5 (Phase 80, 2026-10-29; was 6, 8, 5)
-                    n_floor_max::Int=5,
+                    # series limits NASA ran the test article with (User Manual card 8, pp. 42-43): M 1-10, ns 0-12,
+                    # np 0-5 (Phase 80, 2026-10-29; was 6, 8, 5); Phase 127: defaults from `pain_settings()`
+                    n_axial::Int=pain_settings().appd_n_axial,
+                    n_circ::Int=pain_settings().appd_n_circ,
+                    n_floor_max::Int=pain_settings().appd_n_floor_max,
                     include_antisym::Bool=true,
                     rigid::Bool=true,
-                    floor_cross_terms::Bool=false,
+                    floor_cross_terms::Bool=pain_settings().appd_floor_cross_terms,
                     f_max_Hz::Float64=5000.0,
-                    n_keep_shell::Int=5, n_keep_floor::Int=3)   # MRPMOD's term budget (Phase 107)
+                    # MRPMOD's term budget (Phase 107: 5 and 3)
+                    n_keep_shell::Int=pain_settings().appd_n_keep_shell, n_keep_floor::Int=pain_settings().appd_n_keep_floor)
     cands = NamedTuple[]
     for M in 1:n_axial
         for sym in (true, false)
@@ -826,8 +829,11 @@ and at least `n_min` (the lowest). A fixed count of 32 covers the test article's
 the Commander 695A (L = 5.33 m) the 32 lowest modes end at 105 Hz. Results are cached per (geometry, cutoff).
 """
 function appd_modes_to_cutoff(geometry::AbstractAppDInput, f_cut_Hz::Real;
-                              n_min::Int=32, n_axial::Int=10, n_circ::Int=12, max_terms::Int=640)
-    key = (geometry, Float64(f_cut_Hz), n_min, n_axial, n_circ, max_terms)
+                              n_min::Int=32, n_axial::Int=pain_settings().appd_n_axial,
+                              n_circ::Int=pain_settings().appd_n_circ, max_terms::Int=pain_settings().appd_max_terms)
+    s = pain_settings()   # the settings appd_modes and the convergence test read go in the cache key (Phase 127)
+    key = (geometry, Float64(f_cut_Hz), n_min, n_axial, n_circ, max_terms, s.appd_n_floor_max, s.appd_n_keep_shell,
+           s.appd_n_keep_floor, s.appd_floor_cross_terms, s.appd_conv_frac, s.appd_conv_min)
     return get!(() -> _appd_modes_to_cutoff(geometry, Float64(f_cut_Hz), n_min, n_axial, n_circ, max_terms),
                 _APPD_CUTOFF_CACHE, key)
 end
@@ -842,7 +848,7 @@ function _appd_modes_to_cutoff(geometry, f_cut_Hz, n_min, n_axial, n_circ, max_t
     while true
         nb_a = below(2na, nc)
         nb_c = below(na, 2nc)
-        tol = max(2, ceil(Int, 0.01nb))
+        tol = max(pain_settings().appd_conv_min, ceil(Int, pain_settings().appd_conv_frac * nb))   # 2, 0.01 (Phase 127)
         nb_a - nb ≤ tol && nb_c - nb ≤ tol && break
         grow_a, grow_c = nb_a - nb > tol, nb_c - nb > tol
         grow_a && (na *= 2)

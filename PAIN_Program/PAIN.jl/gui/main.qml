@@ -148,19 +148,12 @@ ApplicationWindow {
 
     // The inputs the Run tab and the printed-output tab would run with; a change here makes their result stale.
     function pipelineSignature() {
-        return [pain.source, pain.blocking, pain.L, pain.a, pain.theta0_deg, pain.theta0_auto, pain.r_p, pain.phi_p_deg, pain.z_p,
-                pain.n_harmonics, pain.bpf_Hz, pain.C_struc, pain.eta_n_bare, pain.trim, pain.aircraft_json,
-                pain.rho0, pain.c0, pain.rho_ext, pain.rho_int, pain.c_ext, pain.c_int, pain.L_c, pain.d_cavity,
-                pain.rotation_direction, pain.bands_Hz, pain.eta_r_band, pain.eta_n_band].join("|")
+        // the fields are the run's inputs (a Save rewrites the project file but not what a run computes)
+        return pain.input_values_json
     }
 
     function isExtrapolated() {
         return pain.validity_tag === "X-EXTRAP"
-    }
-
-    function setSource(name) {
-        // phase 33g: GUI offers aircraft only (e11/synthetic remain for tests/scripts)
-        pain.source = name
     }
 
     function caseIdFromRow(rowText) {
@@ -439,6 +432,38 @@ ApplicationWindow {
         }
     }
 
+    // Phase 127 smoke: the Run tab's input tabs, drawn: a shot of the Propeller tab and of a Numerics tab.
+    Timer {
+        property int step: 0
+        interval: 700
+        running: String(pain.smoke_inputs_png || "").length > 0
+        repeat: true
+        onTriggered: {
+            var out = String(pain.smoke_inputs_png)
+            step += 1
+            if (step === 1) {
+                tabs.currentIndex = 0
+                inputsFrame.groupIndex = 1
+            } else if (step === 2) {
+                inputsFrame.grabToImage(function (result) {
+                    result.saveToFile(out)
+                    console.log("RUN_INPUTS saved:", out)
+                })
+            } else if (step === 3) {
+                for (var i = 0; i < inputsFrame.groups.length; i++)
+                    if (inputsFrame.groups[i].name === "Numerics: Blocking") inputsFrame.groupIndex = i
+            } else if (step === 4) {
+                var out2 = out.replace(".png", "_numerics.png")
+                inputsFrame.grabToImage(function (result) {
+                    result.saveToFile(out2)
+                    console.log("RUN_INPUTS saved:", out2)
+                    Julia.mark_gui_closed_from_qml()
+                    Qt.quit()
+                })
+            }
+        }
+    }
+
     ColumnLayout {
         id: mainColumn
         anchors.fill: parent
@@ -503,162 +528,202 @@ ApplicationWindow {
                 spacing: 14
 
                 Frame {
-                    Layout.preferredWidth: 360
+                    id: inputsFrame
+                    Layout.preferredWidth: 520
                     Layout.fillHeight: true
+                    background: Rectangle { color: root.panel; border.color: root.border; radius: 4 }
 
-                    ScrollView {
+                    // Phase 127: every input as a field, grouped in tabs (gui_inputs.jl); the project file is optional
+                    property var groups: JSON.parse(pain.inputs_json).groups
+                    property var values: JSON.parse(pain.input_values_json)
+                    property int groupIndex: 0
+
+                    ColumnLayout {
                         anchors.fill: parent
-                        anchors.margins: 12
-                        clip: true
+                        anchors.margins: 10
+                        spacing: 6
 
-                        ColumnLayout {
-                            width: parent.width
+                        Text {
+                            text: "Inputs"
+                            font.bold: true
+                            font.pixelSize: 15
+                            color: root.ink
+                        }
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: 6
+                            TextField {
+                                id: projectPathField
+                                Layout.fillWidth: true
+                                text: pain.project_path
+                                placeholderText: "project file (optional)"
+                                ToolTip.visible: hovered
+                                ToolTip.text: "A project file is optional: Open fills the fields from it, Save writes the fields to it."
+                            }
+                            Button {
+                                text: "Open"
+                                enabled: !pain.busy
+                                onClicked: Julia.open_project_from_qml(projectPathField.text)
+                            }
+                            Button {
+                                text: "Save"
+                                enabled: !pain.busy
+                                onClicked: Julia.save_project_from_qml(projectPathField.text)
+                            }
+                            Button {
+                                text: "Defaults"
+                                enabled: !pain.busy
+                                onClicked: Julia.reset_project_from_qml()
+                            }
+                        }
+
+                        Label {
+                            Layout.fillWidth: true
+                            text: pain.project_note
+                            color: root.muted
+                            font.pixelSize: 11
+                            wrapMode: Text.WordWrap
+                            maximumLineCount: 3
+                            elide: Text.ElideRight
+                        }
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
                             spacing: 8
 
-                            Text {
-                                text: "Run setup"
-                                font.bold: true
-                                font.pixelSize: 15
-                                color: root.ink
+                            ListView {
+                                id: groupList
+                                Layout.preferredWidth: 150
+                                Layout.fillHeight: true
+                                clip: true
+                                model: inputsFrame.groups
+                                currentIndex: inputsFrame.groupIndex
+                                delegate: ItemDelegate {
+                                    width: groupList.width
+                                    height: 30
+                                    highlighted: index === inputsFrame.groupIndex
+                                    text: modelData.name
+                                    font.pixelSize: 12
+                                    onClicked: inputsFrame.groupIndex = index
+                                }
                             }
 
-                            Label { text: "Source"; color: root.muted }
-                            ComboBox {
-                                id: sourceBox
+                            ScrollView {
+                                id: fieldScroll
                                 Layout.fillWidth: true
-                                model: ["aircraft"]
-                                Component.onCompleted: {
-                                    pain.source = "aircraft"
-                                    currentIndex = 0
-                                }
-                                onActivated: function (index) {
-                                    root.setSource(model[index])
-                                }
-                            }
-                            Label {
-                                text: "e11 / synthetic are validation-only (not in GUI)."
-                                color: root.muted
-                                wrapMode: Text.WordWrap
-                                Layout.fillWidth: true
-                            }
+                                Layout.fillHeight: true
+                                clip: true
+                                contentWidth: availableWidth
 
-                            Label { text: "Blocking"; color: root.muted }
-                            ComboBox {
-                                Layout.fillWidth: true
-                                model: ["R2", "R1"]
-                                Component.onCompleted: currentIndex = pain.blocking === "R1" ? 1 : 0
-                                onActivated: function (index) {
-                                    pain.blocking = model[index]
-                                }
-                            }
+                                ColumnLayout {
+                                    width: fieldScroll.availableWidth
+                                    spacing: 4
 
-                            GridLayout {
-                                columns: 2
-                                columnSpacing: 8
-                                rowSpacing: 6
-                                Layout.fillWidth: true
+                                    Repeater {
+                                        model: inputsFrame.groups.length > 0 ? inputsFrame.groups[inputsFrame.groupIndex].fields : []
 
-                                Label { text: "L [m]"; color: root.muted }
-                                TextField {
-                                    Layout.fillWidth: true
-                                    text: Number(pain.L).toFixed(3)
-                                    onEditingFinished: pain.L = Number(text)
-                                }
+                                        delegate: ColumnLayout {
+                                            id: fieldRow
+                                            property var f: modelData
+                                            property string val: inputsFrame.values[f.key] !== undefined ? inputsFrame.values[f.key] : f.value
+                                            Layout.fillWidth: true
+                                            spacing: 1
 
-                                Label { text: "a [m]"; color: root.muted }
-                                TextField {
-                                    Layout.fillWidth: true
-                                    text: Number(pain.a).toFixed(3)
-                                    onEditingFinished: pain.a = Number(text)
-                                }
+                                            RowLayout {
+                                                Layout.fillWidth: true
+                                                Label {
+                                                    Layout.fillWidth: true
+                                                    text: fieldRow.f.label + (fieldRow.f.unit.length ? " [" + fieldRow.f.unit + "]" : "")
+                                                    color: root.ink
+                                                    font.pixelSize: 12
+                                                    elide: Text.ElideRight
+                                                }
+                                                Label {
+                                                    // numbers compare as numbers ("0" is the default "0.0")
+                                                    visible: fieldRow.f.kind !== "elements" && fieldRow.f["default"].length > 0
+                                                             && (isNaN(Number(fieldRow.val)) || isNaN(Number(fieldRow.f["default"]))
+                                                                 ? fieldRow.val !== fieldRow.f["default"]
+                                                                 : Number(fieldRow.val) !== Number(fieldRow.f["default"]))
+                                                    text: "default " + fieldRow.f["default"]
+                                                    color: root.warn
+                                                    font.pixelSize: 10
+                                                }
+                                            }
 
-                                Label { text: "theta0 [deg]"; color: root.muted }
-                                TextField {
-                                    Layout.fillWidth: true
-                                    // 0 = auto: the floor angle of the printed aircraft nearest in radius (METHODOLOGY §θ₀)
-                                    text: Number(pain.theta0_deg) > 0 ? Number(pain.theta0_deg).toFixed(1) : pain.theta0_auto
-                                    ToolTip.visible: hovered
-                                    ToolTip.text: "Floor angle from the bottom centreline; 0 = " + pain.theta0_auto
-                                    onEditingFinished: pain.theta0_deg = (text.startsWith("auto") || !(Number(text) > 0)) ? 0 : Number(text)
-                                }
+                                            Loader {
+                                                Layout.fillWidth: true
+                                                sourceComponent: fieldRow.f.kind === "bool" ? boolEditor
+                                                               : fieldRow.f.kind === "choice" ? choiceEditor
+                                                               : fieldRow.f.kind === "elements" ? elementsEditor
+                                                               : textEditor
+                                            }
 
-                                Label { text: "r_p [m]"; color: root.muted }
-                                TextField {
-                                    Layout.fillWidth: true
-                                    text: Number(pain.r_p).toFixed(3)
-                                    onEditingFinished: pain.r_p = Number(text)
-                                }
-
-                                Label { text: "phi_p [deg]"; color: root.muted }
-                                TextField {
-                                    Layout.fillWidth: true
-                                    text: Number(pain.phi_p_deg).toFixed(1)
-                                    onEditingFinished: pain.phi_p_deg = Number(text)
-                                }
-
-                                Label { text: "z_p [m]"; color: root.muted }
-                                TextField {
-                                    Layout.fillWidth: true
-                                    text: Number(pain.z_p).toFixed(3)
-                                    onEditingFinished: pain.z_p = Number(text)
-                                }
-
-                                Label { text: "n harmonics"; color: root.muted }
-                                TextField {
-                                    Layout.fillWidth: true
-                                    text: String(Math.round(pain.n_harmonics))
-                                    onEditingFinished: pain.n_harmonics = Number(text)
-                                }
-
-                                Label { text: "BPF [Hz]"; color: root.muted }
-                                TextField {
-                                    Layout.fillWidth: true
-                                    text: Number(pain.bpf_Hz).toFixed(1)
-                                    onEditingFinished: pain.bpf_Hz = Number(text)
-                                }
-
-                                Label { text: "C (Eq. 80)"; color: root.muted }
-                                TextField {
-                                    Layout.fillWidth: true
-                                    text: Number(pain.C_struc).toFixed(2)
-                                    onEditingFinished: pain.C_struc = Number(text)
-                                }
-
-                                Label { text: "eta_n bare"; color: root.muted }
-                                TextField {
-                                    Layout.fillWidth: true
-                                    text: Number(pain.eta_n_bare).toFixed(3)
-                                    onEditingFinished: pain.eta_n_bare = Number(text)
-                                }
-
-                                Label { text: "trim (auto, bare, phase3)"; color: root.muted }
-                                TextField {
-                                    Layout.fillWidth: true
-                                    text: pain.trim
-                                    onEditingFinished: pain.trim = text
+                                            Component {
+                                                id: textEditor
+                                                TextField {
+                                                    text: fieldRow.val
+                                                    placeholderText: fieldRow.f["default"].length ? "" : "(not given)"
+                                                    selectByMouse: true
+                                                    ToolTip.visible: hovered && fieldRow.f.tip.length > 0
+                                                    ToolTip.text: fieldRow.f.tip
+                                                    onEditingFinished: Julia.set_gui_input_from_qml(fieldRow.f.key, text)
+                                                }
+                                            }
+                                            Component {
+                                                id: boolEditor
+                                                CheckBox {
+                                                    checked: fieldRow.val === "true"
+                                                    text: checked ? "on" : "off"
+                                                    ToolTip.visible: hovered && fieldRow.f.tip.length > 0
+                                                    ToolTip.text: fieldRow.f.tip
+                                                    onToggled: Julia.set_gui_input_from_qml(fieldRow.f.key, checked ? "true" : "false")
+                                                }
+                                            }
+                                            Component {
+                                                id: choiceEditor
+                                                ComboBox {
+                                                    model: fieldRow.f.choices
+                                                    currentIndex: Math.max(0, fieldRow.f.choices.indexOf(fieldRow.val))
+                                                    ToolTip.visible: hovered && fieldRow.f.tip.length > 0
+                                                    ToolTip.text: fieldRow.f.tip
+                                                    onActivated: function (i) {
+                                                        Julia.set_gui_input_from_qml(fieldRow.f.key, fieldRow.f.choices[i])
+                                                    }
+                                                }
+                                            }
+                                            Component {
+                                                id: elementsEditor
+                                                TextArea {
+                                                    text: fieldRow.val
+                                                    placeholderText: "(not given)"
+                                                    font.family: "Consolas"
+                                                    font.pixelSize: 11
+                                                    wrapMode: TextArea.NoWrap
+                                                    background: Rectangle { border.color: root.border; color: "#ffffff" }
+                                                    ToolTip.visible: hovered && fieldRow.f.tip.length > 0
+                                                    ToolTip.text: fieldRow.f.tip
+                                                    onEditingFinished: Julia.set_gui_input_from_qml(fieldRow.f.key, text)
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
+                        }
 
-                            Label {
-                                visible: pain.source === "aircraft"
-                                text: "Aircraft JSON path"
-                                color: root.muted
-                            }
-                            TextField {
-                                visible: pain.source === "aircraft"
-                                Layout.fillWidth: true
-                                text: pain.aircraft_json
-                                onEditingFinished: pain.aircraft_json = text
-                            }
+                        Text {
+                            text: pain.bpf_text
+                            color: root.muted
+                        }
 
-                            Button {
-                                Layout.fillWidth: true
-                                Layout.topMargin: 8
-                                text: pain.busy ? "Running..." : "Run"
-                                enabled: !pain.busy
-                                highlighted: true
-                                onClicked: Julia.run_pain_from_qml()
-                            }
+                        Button {
+                            Layout.fillWidth: true
+                            text: pain.busy ? "Running..." : "Run"
+                            enabled: !pain.busy
+                            highlighted: true
+                            onClicked: Julia.run_pain_from_qml()
                         }
                     }
                 }

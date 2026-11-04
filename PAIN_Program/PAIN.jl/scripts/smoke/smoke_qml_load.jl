@@ -99,6 +99,26 @@ function _smoke_run_status_box()
             count(==('\n'), log) + 1, " log lines)")
 end
 
+"""
+Phase 127: the Run tab's input tabs, drawn (offscreen): the Propeller tab and the Numerics: Blocking tab are grabbed to
+a temp folder; the inputs are generated from `gui_input_specs`, so an empty grab means the QML built no field.
+"""
+function _smoke_run_inputs()
+    png = get(ENV, "PAIN_SMOKE_INPUTS_PNG", joinpath(mktempdir(), "RUN_INPUTS.png"))
+    println("smoke_qml_load: run-tab inputs main(; smoke_inputs_png=…)")
+    main(; smoke_inputs_png=png)
+    png2 = replace(png, ".png" => "_numerics.png")
+    @assert isfile(png) && filesize(png) > 0 "expected a Run-tab inputs screenshot at $png"
+    @assert isfile(png2) && filesize(png2) > 0 "expected a Numerics-tab screenshot at $png2"
+    println("smoke_qml_load: run-tab inputs PASS (", png, ", ", png2, ")")
+end
+
+if get(ENV, "PAIN_SMOKE_INPUTS_ONLY", "") == "1"
+    _smoke_run_inputs()
+    println("smoke_qml_load PASS (run-inputs child)")
+    exit(0)
+end
+
 if get(ENV, "PAIN_SMOKE_RUNBOX_ONLY", "") == "1"
     _smoke_run_status_box()
     println("smoke_qml_load PASS (run-status-box child)")
@@ -173,4 +193,12 @@ child_box = addenv(
 )
 println("smoke_qml_load: spawning child for the run-status box")
 run(child_box)
+child_inputs = addenv(
+    `$(Base.julia_cmd()) --project=$proj $(abspath(@__FILE__))`,
+    "PAIN_SMOKE_INPUTS_ONLY" => "1",
+    "QT_QPA_PLATFORM" => "offscreen",
+    "QT_QPA_FONTDIR" => get(ENV, "QT_QPA_FONTDIR", "C:/Windows/Fonts"),
+)
+println("smoke_qml_load: spawning child for the Run-tab inputs")
+run(child_inputs)
 println("smoke_qml_load PASS")

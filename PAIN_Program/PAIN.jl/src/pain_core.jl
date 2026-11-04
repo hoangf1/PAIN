@@ -530,7 +530,7 @@ function blocked_broadband_band_p2(inp::PainInputs, fc::Float64, bpf_Hz::Float64
     A = inp.amplitudes[:, :, H_anchor]
     p2_tone = sum(abs2, A) / length(A)
     # Spread tone power into continuum density; one-third-oct Δω/ω = 0.232 (anchor only)
-    cw = 0.232
+    cw = c_omega()   # 0.232 by default (Phase 127 setting)
     Δω_a = cw * 2π * f_anchor
     Spbl_a = p2_tone / max(Δω_a, 1e-12)   # (Pa²)/ (rad/s)
     f1 = fc * 2.0^(-1 / 6)
@@ -546,18 +546,19 @@ Structural modal density n(ω) [modes / (rad/s)] from retained MRP modes
 in a one-third-octave band about fc (Eq. 19 architecture).
 """
 function structural_modal_density(modes::StructuralModes, fc::Float64)
-    # Third-octave: Δf/f ≈ 0.2316 → Δω = 2π Δf
-    df = 0.2316 * fc
+    # Third-octave: Δf/f ≈ 0.2316 → Δω = 2π Δf. Constants are Phase 127 settings (defaults as before).
+    s = pain_settings()
+    df = s.surr_bw_rel * fc
     lo, hi = fc - df / 2, fc + df / 2
     n_modes = count(m -> lo ≤ m.f_Hz ≤ hi, modes.modes)
     # Below first resonance / sparse bands: use asymptotic plate+shell estimate
     if n_modes < 1
         a, L = modes.a, modes.L
         # Asymptotic cylinder+floor modal density (order-of-magnitude, modes/Hz)
-        n_Hz = 0.015 * (a * L) * (fc / 500)   # rises slowly
+        n_Hz = s.surr_n_coef * (a * L) * (fc / s.surr_n_fref_Hz)   # rises slowly
         return n_Hz / (2π)
     end
-    Δω = 2π * max(df, 1.0)
+    Δω = 2π * max(df, s.surr_df_min_Hz)
     return n_modes / Δω
 end
 
@@ -567,7 +568,8 @@ from blocked grid and structural mode shapes resonant near fc.
 """
 function band_joint_acceptance(inp::PainInputs, fc::Float64; H_anchor::Int=3)
     H = clamp(H_anchor, 1, size(inp.amplitudes, 3))
-    df = 0.2316 * fc
+    s = pain_settings()
+    df = s.surr_bw_rel * fc
     lo, hi = fc - df / 2, fc + df / 2
     js = Float64[]
     for st in inp.structural.modes
@@ -575,8 +577,8 @@ function band_joint_acceptance(inp::PainInputs, fc::Float64; H_anchor::Int=3)
         Ψ = generalized_force_amplitude(st, H, inp.amplitudes, inp.phases, inp.pts, inp.fuse; ΔA=inp.ΔA)
         push!(js, joint_acceptance(Ψ, inp.amplitudes, H, inp.ΔA))
     end
-    isempty(js) && return 2.5e-4   # diffuse-band fallback (educated, below unity)
-    return clamp(sum(js) / length(js), 1e-6, 1.0)
+    isempty(js) && return s.j2_fallback   # diffuse-band fallback (educated, below unity; 2.5e-4)
+    return clamp(sum(js) / length(js), s.j2_min, 1.0)
 end
 
 """
@@ -605,8 +607,9 @@ function broadband_cabin_p2(inp::PainInputs, fc::Float64, p2_bl::Float64;
     j2 = band_joint_acceptance(inp, fc)
     nω = structural_modal_density(inp.structural, fc)
     # Reference modal density ~ a few modes per 1/3-oct near 1.5 kHz
-    n_ref = 3.0 / (2π * 0.2316 * 1500)  # ~ modes/(rad/s)
-    χ = clamp(nω / max(n_ref, 1e-12), 0.25, 4.0)
+    s = pain_settings()
+    n_ref = s.surr_nref_modes / (2π * s.surr_bw_rel * s.surr_nref_fc_Hz)  # ~ modes/(rad/s)
+    χ = clamp(nω / max(n_ref, 1e-12), s.surr_chi_min, s.surr_chi_max)
     # Spbl from H=3 tone overcounts continuum → j2_scale ~ O(0.1–1)
     return p2_bl * (4 * τ_t * A_fc / max(α * S, 1e-9)) * j2 * χ * j2_scale
 end
@@ -655,9 +658,10 @@ function interior_spl(inp::PainInputs; bpf_Hz::Float64, n_harmonics::Int=10,
     notes = "PAIN tones (CR-3813 §3.2); tone_model=$tone_model; crossover=$(round(xover; digits=1)) Hz; both Eq.(8) and Eq.(15)–(16) reported"
     if broadband
         f_last = nH * bpf_Hz
+        st = pain_settings()   # Phase 127: 1000 Hz and 1.15 as settings
         for b in bands
-            b < 1000 && continue
-            b ≤ f_last * 1.15 && continue
+            b < st.bb_start_Hz && continue
+            b ≤ f_last * st.bb_tone_skip && continue
             if has_trim(inp) && !inp.allow_extrapolation && stack_extrapolated(inp.sidewall, b)
                 delete!(band_p2, b)   # outside the Fig. A-2 range and no extrapolation allowed: no value
                 continue
@@ -711,7 +715,7 @@ function nearest_third_octave(f::Real, bands::Vector{Float64})
 end
 
 """1/3-octave band edges about centre `fc` [Hz] using CR-3813 c_ω (relative half-width c_ω/2)."""
-function third_octave_band_edges(fc::Real; c_ω::Real=C_OMEGA_THIRD_OCTAVE)
+function third_octave_band_edges(fc::Real; c_ω::Real=c_omega())
     f = float(fc)
     return (lo=f * (1 - c_ω / 2), hi=f * (1 + c_ω / 2))
 end
@@ -754,7 +758,7 @@ Band centre among `bands` whose 1/3-octave edges contain `f_Hz`, or `nothing` if
 Manual lookup for a tone/mode frequency that is not itself a centre (edges via c_ω).
 """
 function containing_third_octave(f_Hz::Real, bands::AbstractVector{<:Real};
-                                 c_ω::Real=C_OMEGA_THIRD_OCTAVE)
+                                 c_ω::Real=c_omega())
     f = float(f_Hz)
     for fc in bands
         e = third_octave_band_edges(fc; c_ω)
@@ -812,7 +816,7 @@ end
 Per-band override at frequency `f_Hz`: containing-band lookup; 0/absent → `nothing` (compute).
 """
 function loss_factor_override(η_dict::Union{Nothing,Dict{Float64,Float64}}, f_Hz::Real,
-                             bands::AbstractVector{<:Real}; c_ω::Real=C_OMEGA_THIRD_OCTAVE)
+                             bands::AbstractVector{<:Real}; c_ω::Real=c_omega())
     η_dict === nothing && return nothing
     fc = containing_third_octave(f_Hz, bands; c_ω)
     fc === nothing && return nothing
@@ -820,7 +824,7 @@ function loss_factor_override(η_dict::Union{Nothing,Dict{Float64,Float64}}, f_H
     return (isfinite(v) && v != 0) ? float(v) : nothing
 end
 
-loss_factor_override(inp::PainInputs, which::Symbol, f_Hz::Real; c_ω::Real=C_OMEGA_THIRD_OCTAVE) =
+loss_factor_override(inp::PainInputs, which::Symbol, f_Hz::Real; c_ω::Real=c_omega()) =
     loss_factor_override(which === :η_r ? inp.η_r_band : inp.η_n_band, f_Hz, resolve_bands(inp); c_ω)
 
 """
@@ -922,7 +926,7 @@ as NASA's printed η_n show (Phase 95). Otherwise (Phase 89): the exact centre l
 function acoustic_N_per_mode(inp::PainInputs, ac, q::Integer, ωn::Real; V::Real=cabin_volume(inp))
     fn = ωn / 2π
     fn > 0 || return 0.0
-    fc = max(100.0, inp.η_n_band_omega ? nominal_band_centre(fn) : nearest_third_octave(fn, third_octave_centers()))
+    fc = max(pain_settings().eta_n_band_floor_Hz, inp.η_n_band_omega ? nominal_band_centre(fn) : nearest_third_octave(fn, third_octave_centers()))
     ωc = 2π * fc
     ext = inp.allow_extrapolation
     ξ = trim_conductance(inp.sidewall, ωc, inp.m_wall; ρ0=inp.ρ_int, c0=inp.c_int, allow_extrapolation=ext)
