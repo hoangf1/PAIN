@@ -67,8 +67,9 @@ def test_tone_bpf1(case):
     T, Q = seg.eta_p * seg.shaft_power / V, seg.shaft_power / om
     Re = pr.re_fraction * pr.tip_radius
     d = pr.tip_radius + pr.clearance
-    r = np.hypot(pr.axial_offset, d)
-    th = np.arccos(pr.axial_offset / r)
+    x = res.axial_offset if pr.loudest_point else pr.axial_offset   # the search: test_loudest_point_...
+    r = np.hypot(x, d)
+    th = np.arccos(x / r)
     B = pr.blades
     p = B * om / (2 * np.sqrt(2) * np.pi * c_e * r) * abs(T * np.cos(th) - Q * c_e / (om * Re ** 2)) \
         * abs(jv(B, B * om * Re * np.sin(th) / c_e))

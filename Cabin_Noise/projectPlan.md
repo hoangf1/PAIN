@@ -652,3 +652,15 @@ Everything below is digitized under `PAIN_Program/data` and can be copied withou
   - broadband 77.3 dBA. Broadband does not depend on RPM; 77.3 is the 290 KTAS value, and the 79.2 in the six-blade note was at 363 KTAS.
 - No validation or verification result changed. The supersonic-tip test keeps its own 1550 / 1020 RPM.
 
+### Tip clearance from the Dash 8-400; loudest fuselage point; harmonic count shown (2026-11-03, author's request)
+- **Tip clearance:** 0.5 -> 1.10 m. The author asked for a value like the ATR 72 and Dash 8-400. The Dash 8-400 Airport Planning Manual (De Havilland, Figure 2-2, Aircraft Dimensions) prints the propeller tip to fuselage side distance as 43.31 in. (1.10 m), with a 13 ft 6 in. (4.11 m) propeller. No published ATR 72 figure was found. This is a similar aircraft's value, not this aircraft's own.
+- **New option `Propeller.loudest_point`** (default False in the dataclass, so the V6/V7 inputs are unchanged; True in the default project). In generated mode the fuselage point is not fixed. The run searches the fuselage line (lateral R_t + h_c) within +/- 3 (R_t + h_c) of the propeller plane, with an 801-point grid and then a bounded refinement. It takes the point where the sum of Gutin's harmonics, each A-weighted at its band centre (as in the dBA totals), is largest. The noise reduction does not depend on the point, so this is also the cabin tonal-dBA maximum. The point is not fixed at 0.25 m or at the plane. It depends on the thrust and torque: Gutin's thrust term T cos(theta) adds to the torque term behind the plane, so more thrust moves the point aft. A warning appears if the maximum lies at the edge of the range. `Results.axial_offset` holds the point used.
+- **Default case:** the loudest point is 0.21 m behind the plane. Room average 95.9 dBA, max seat 100.6 dBA (tonal 95.8, broadband 77.3). At 1.10 m with the point fixed in the plane it would be 95.7 / 100.5.
+- **Harmonics field:** at 0 (auto) it now shows "auto (N)", with the count the run will use (47 here). The Propeller readout gives the count, the loudest point and the observer distance. All tab readouts refresh after every input edit, because the Propeller readout uses the Mission RPM.
+- **Tests:** `test_loudest_point_is_the_tonal_dba_maximum`:
+  - entering the found offset by hand gives the same dBA;
+  - a 25-point grid over +/- 3 m and the +/- 0.05 m neighbours are all quieter;
+  - three times the thrust moves the point aft.
+  The end-to-end hand check uses the point the run reports. The GUI smoke checks "auto (47)" and the readout.
+- No validation or verification result changed (the smoke shows the recorded counts).
+

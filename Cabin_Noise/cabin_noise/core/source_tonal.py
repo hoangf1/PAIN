@@ -9,6 +9,7 @@ method), at the fuselage point nearest the propeller and with the flight thrust 
 from __future__ import annotations
 
 import numpy as np
+from scipy.optimize import minimize_scalar
 from scipy.special import jv
 
 
@@ -28,3 +29,21 @@ def observer(axial: float, lateral: float, vertical: float = 0.0) -> tuple[float
     vertical) offsets from the hub."""
     r = float(np.sqrt(axial ** 2 + lateral ** 2 + vertical ** 2))
     return r, float(np.arccos(np.clip(axial / r, -1.0, 1.0)))
+
+
+def loudest_axial(m, *, lateral: float, span: float, weights=None, n: int = 801, **gutin) -> float:
+    """Axial offset (forward positive) in [-span, span], at the given lateral distance from the
+    axis, where sum_m w_m p_m^2 from gutin_rms is largest: a grid of n points, then a bounded
+    refinement between the grid neighbours of the best point."""
+    m = np.asarray(m, dtype=float)
+    w = np.ones_like(m) if weights is None else np.asarray(weights, dtype=float)
+
+    def energy(x):
+        r, th = observer(x, lateral)
+        return float(np.sum(w * gutin_rms(m, r=r, theta=th, **gutin) ** 2))
+
+    xs = np.linspace(-span, span, n)
+    i = int(np.argmax([energy(x) for x in xs]))
+    lo, hi = xs[max(i - 1, 0)], xs[min(i + 1, n - 1)]
+    best = minimize_scalar(lambda x: -energy(x), bounds=(lo, hi), method="bounded", options={"xatol": 1e-4})
+    return float(best.x) if -best.fun >= energy(xs[i]) else float(xs[i])

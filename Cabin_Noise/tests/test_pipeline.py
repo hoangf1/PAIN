@@ -151,3 +151,28 @@ def test_auto_harmonic_count_reaches_the_top_band(proj):
     assert not any("left out of the band totals" in w for w in auto.warnings)
     pr.n_harmonics = len(auto.f_m)
     assert np.allclose(run_case(p).L_tone, auto.L_tone)
+
+
+def test_loudest_point_is_the_tonal_dba_maximum(proj):
+    """loudest_point puts the fuselage point where the cabin tonal dBA is largest: entering the found
+    offset by hand gives the same result, every other offset on a grid (and close neighbours) is
+    quieter, and the point is not fixed: more thrust moves it aft, where Gutin's thrust term
+    T cos(theta) (cos < 0 behind the plane) adds to the torque term."""
+    p = copy.deepcopy(proj)
+    pr, seg = p.propeller, p.mission.active_segment()
+    pr.loudest_point = True
+    res = run_case(p)
+    best, top = res.axial_offset, res.totals["average"]["tonal"]["dBA"]
+    pr.loudest_point = False
+
+    def tonal(x):
+        pr.axial_offset = x
+        return run_case(p).totals["average"]["tonal"]["dBA"]
+
+    assert tonal(best) == pytest.approx(top, abs=1e-9)
+    for x in list(np.linspace(-3.0, 3.0, 25)) + [best - 0.05, best + 0.05]:
+        assert tonal(x) <= top + 1e-6, x
+    pr.loudest_point = True
+    seg.thrust = 3.0 * operating_point(seg).thrust
+    assert run_case(p).axial_offset < best - 0.05
+    assert not any("edge of the search" in w for w in res.warnings)

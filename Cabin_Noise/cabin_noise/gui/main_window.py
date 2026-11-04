@@ -275,6 +275,8 @@ class MainWindow(QMainWindow):
     def mark_stale(self):
         """Inputs changed: the plots no longer match them until Run is pressed."""
         self.edits += 1
+        for t in self.tabs:                     # readouts that use other tabs' inputs (e.g. the RPM)
+            t.update_readout()
         msg = ("<span style='color:#b45f00'><b>Not up to date:</b> inputs changed since the last run. "
                "Press Run (F5) to update the plots.</span>" if self.last_bar else
                "<span style='color:#b45f00'><b>Not run yet:</b> press Run (F5) to compute the plots.</span>")

@@ -40,6 +40,9 @@ def main():
         settle(app)
         if w.run_id != 0 or w.result is not None or "Not run yet" not in w.bar.text():
             failures.append("the model ran without Run being pressed, or the bar does not say so")
+        prop = w.tabs[1]                            # auto harmonic count and loudest point shown in the inputs
+        if prop.form.editors["n_harmonics"].text() != "auto (47)" or "loudest fuselage point" not in prop.readout.text():
+            failures.append("Propeller tab: " + prop.form.editors["n_harmonics"].text() + " / " + prop.readout.text())
         w.tabs[0].changed.emit()                    # an input edit must not start a run
         settle(app)
         if w.run_id != 0:

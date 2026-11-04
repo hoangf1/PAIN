@@ -10,7 +10,9 @@ from ..core import cabin as cab
 from ..core.atmosphere import air, cabin_air, isa
 from ..core.io import load_library, load_measured_csv
 from ..core.materials import ALPHA_OCTAVES, Opening, Surface
-from ..core.mission import KT, Segment, flight_mach
+from ..core.frequencies import harmonic_frequencies, third_octave_centers
+from ..core.mission import KT, Segment, flight_mach, operating_point
+from ..core.pipeline import harmonic_count, tone_observer_axial
 from ..core.sea import tau_mass_law_diffuse
 from .widgets import DataclassForm, F, ListTable
 
@@ -109,12 +111,19 @@ class PropellerTab(Tab):
     def __init__(self):
         super().__init__()
         self.v.addWidget(_ref("Gutin's formula (Gutin 1936; NASA RP-1258 vol. 1 ch. 1): loading noise of B blades with "
-                              "the thrust and torque at an effective radius, evaluated at the fuselage point nearest "
-                              "the propeller. One propeller per side; two engines add 3 dB."))
+                              "the thrust and torque at an effective radius, evaluated at a point on the fuselage "
+                              "line (the tip clearance outboard of the tip); with 'loudest position' that point is "
+                              "where the A-weighted tones are largest. One propeller per side; two engines add 3 dB. "
+                              "Default tip clearance 1.10 m: the Dash 8-400's printed prop tip to fuselage "
+                              "clearance (Airport Planning Manual, Figure 2-2, 43.31 in.)."))
         self.form = DataclassForm([
             F("blades", "Blade count B", kind="int", lo=1, hi=12),
             F("tip_radius", "Tip radius R_t", "m", lo=0.1, hi=5),
             F("clearance", "Tip clearance h_c", "m", lo=0.01, hi=5),
+            F("loudest_point", "Fuselage point at the loudest position", kind="bool",
+              tip="Gutin (generated mode): search the fuselage line within +/- 3 (R_t + h_c) of the propeller "
+                  "plane for the point where the summed A-weighted harmonics are largest; the offset below is "
+                  "then not used"),
             F("axial_offset", "Fuselage point ahead of the prop plane", "m", lo=-10, hi=10),
             F("engines", "Engines", kind="choice", choices=[1, 2]),
             F("n_harmonics", "Harmonics N", kind="int", lo=0, hi=200,
@@ -134,6 +143,7 @@ class PropellerTab(Tab):
         h.addStretch()
         self.v.addLayout(h)
         self.readout = QLabel()
+        self.readout.setWordWrap(True)
         self.v.addWidget(self.readout)
         self.v.addStretch()
 
@@ -161,8 +171,22 @@ class PropellerTab(Tab):
         if s.oat > 0:
             a = air(s.oat, a.p)
         om = 2 * np.pi * s.rpm / 60
+        opt = self.project.options
+        centers = third_octave_centers(opt.f_min, opt.f_max)
+        n = harmonic_count(pr, s.rpm, centers)
+        self.form.editors["n_harmonics"].setSpecialValueText(f"auto ({n})")
+        self.form.editors["axial_offset"].setEnabled(not (pr.loudest_point and pr.source_mode == "generated"))
+        axial, where = pr.axial_offset, "fuselage point"
+        if pr.loudest_point and pr.source_mode == "generated":
+            try:
+                axial = tone_observer_axial(pr, operating_point(s), harmonic_frequencies(pr.blades, s.rpm, n), centers)
+                where = "loudest fuselage point"
+            except ValueError:
+                pass
         self.readout.setText(f"BPF = {pr.blades * s.rpm / 60:.1f} Hz, rotational tip Mach = {om * pr.tip_radius / a.c:.3f}, "
-                             f"observer distance = {np.hypot(pr.axial_offset, pr.tip_radius + pr.clearance):.2f} m")
+                             f"{n} harmonics; {where} {abs(axial):.2f} m "
+                             f"{'ahead of' if axial > 0 else 'behind' if axial < 0 else 'in'} the prop plane, "
+                             f"observer distance = {np.hypot(axial, pr.tip_radius + pr.clearance):.2f} m")
 
 
 # ---- Fuselage -----------------------------------------------------------------------

@@ -19,8 +19,9 @@
   "propeller": {
     "blades": 6,
     "tip_radius": 1.7526,
-    "clearance": 0.5,
+    "clearance": 1.1,
     "axial_offset": 0.0,
+    "loudest_point": true,
     "engines": 2,
     "n_harmonics": 0,
     "re_fraction": 0.8,

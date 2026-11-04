@@ -26,8 +26,8 @@ from .frequencies import band_index, harmonic_frequencies, harmonics_in_range, t
 from .materials import Opening, Sidewall, Surface, octave_interp
 from .mission import Mission, Segment, operating_point
 from .source_tbl import boundary_layer, wall_band_pressure2
-from .source_tonal import gutin_rms, observer
-from .weighting import db, p2_from_db, totals
+from .source_tonal import gutin_rms, loudest_axial, observer
+from .weighting import a_weight, db, p2_from_db, totals
 
 WATERHOUSE_DB = 10.0 * np.log10(2.0)
 
@@ -38,6 +38,7 @@ class Propeller:
     tip_radius: float = 1.3          # m
     clearance: float = 0.5           # tip to fuselage, m
     axial_offset: float = 0.0        # observer (fuselage point) ahead of the propeller plane, m
+    loudest_point: bool = False      # generated mode: put the fuselage point where Gutin's tones are loudest
     engines: int = 2                 # 1 or 2 (one propeller per side)
     n_harmonics: int = 0             # 0 = every harmonic up to the top analysis band (auto)
     re_fraction: float = 0.8         # Gutin effective radius / tip radius
@@ -125,6 +126,7 @@ class Results:
     warnings: list
     seat_percentile: float = 95.0  # options.seat_percentile used for "max_seat"
     seat_db: float = 0.0         # max seat above the room average, dB
+    axial_offset: float = 0.0    # fuselage point used for the tones, ahead of the propeller plane, m
 
 
 # ---- noise reduction --------------------------------------------------------------------
@@ -168,6 +170,39 @@ def reverberant_noise_reduction(proj: Project) -> dict:
     return {"centers": centers, "NR": nr, "A": cb.absorption(centers)}
 
 
+# ---- the tone observer ------------------------------------------------------------------
+LOUDEST_SPAN = 3.0                   # loudest-point search: +/- this many lateral distances (R_t + h_c)
+
+
+def harmonic_count(pr: Propeller, rpm: float, centers) -> int:
+    """n_harmonics if > 0; auto (0): the measured harmonics given, else every harmonic below the
+    top analysis band's upper edge."""
+    if pr.n_harmonics > 0:
+        return pr.n_harmonics
+    if pr.source_mode == "measured" and pr.measured:
+        return int(max(r[0] for r in pr.measured))
+    return harmonics_in_range(pr.blades, rpm, centers)
+
+
+def _gutin_inputs(pr: Propeller, op) -> dict:
+    return dict(blades=pr.blades, R_e=pr.re_fraction * pr.tip_radius, omega=op.omega, c=op.atm.c,
+                thrust=op.thrust, torque=op.torque)
+
+
+def tone_observer_axial(pr: Propeller, op, f_m, centers) -> float:
+    """Fuselage point for the tones, ahead of the propeller plane (m): the input axial_offset, or
+    with loudest_point the offset along the fuselage line (lateral R_t + h_c) where the summed
+    A-weighted Gutin harmonics in the analysis bands are largest. The noise reduction does not
+    depend on the point, so this is also where the cabin tonal dBA is largest."""
+    if not pr.loudest_point:
+        return pr.axial_offset
+    bi = band_index(f_m, centers)                     # each harmonic weighted as its band is in the dBA
+    w = np.where(bi >= 0, 10.0 ** (a_weight(np.asarray(centers)[np.maximum(bi, 0)]) / 10.0), 0.0)
+    lateral = pr.tip_radius + pr.clearance
+    return loudest_axial(np.arange(1, len(f_m) + 1), lateral=lateral, span=LOUDEST_SPAN * lateral, weights=w,
+                         **_gutin_inputs(pr, op))
+
+
 # ---- the case ---------------------------------------------------------------------------
 def run_case(proj: Project, segment: int | None = None) -> Results:
     warn: list[str] = []
@@ -177,18 +212,14 @@ def run_case(proj: Project, segment: int | None = None) -> Results:
     ext = op.atm
     air = cabin_air(cb.cabin_altitude, cb.temperature)
     centers = third_octave_centers(opt.f_min, opt.f_max)
-    if pr.n_harmonics > 0:
-        n_harm = pr.n_harmonics
-    elif pr.source_mode == "measured" and pr.measured:          # auto, measured: the harmonics given
-        n_harm = int(max(r[0] for r in pr.measured))
-    else:                                                       # auto: up to the top analysis band
-        n_harm = harmonics_in_range(pr.blades, seg.rpm, centers)
+    n_harm = harmonic_count(pr, seg.rpm, centers)
     f_m = harmonic_frequencies(pr.blades, seg.rpm, n_harm)
     m_idx = np.arange(1, n_harm + 1)
     if pr.engines not in (1, 2):
         raise ValueError("engine count must be 1 or 2")
 
     # [1] exterior tones at the fuselage, one side
+    axial = pr.axial_offset
     if pr.source_mode == "measured":
         meas = {int(r[0]): float(r[1]) for r in pr.measured}
         missing = [m for m in m_idx if m not in meas]
@@ -200,9 +231,11 @@ def run_case(proj: Project, segment: int | None = None) -> Results:
         if M_h >= 1.0:
             warn.append(f"helical tip Mach {M_h:.2f} >= 1: supersonic tips; Gutin's loading-noise formula "
                         "does not cover the thickness and shock noise that then dominate")
-        r, theta = observer(pr.axial_offset, pr.tip_radius + pr.clearance)
-        p = gutin_rms(m_idx, blades=pr.blades, R_e=pr.re_fraction * pr.tip_radius, omega=op.omega, c=ext.c,
-                      thrust=op.thrust, torque=op.torque, r=r, theta=theta)
+        axial = tone_observer_axial(pr, op, f_m, centers)
+        if pr.loudest_point and abs(axial) >= LOUDEST_SPAN * (pr.tip_radius + pr.clearance) - 1e-3:
+            warn.append(f"loudest fuselage point at the edge of the search range ({axial:+.2f} m)")
+        r, theta = observer(axial, pr.tip_radius + pr.clearance)
+        p = gutin_rms(m_idx, r=r, theta=theta, **_gutin_inputs(pr, op))
         L_ext_tone = db(p ** 2)
     else:
         raise ValueError("source mode must be 'generated' or 'measured'")
@@ -249,7 +282,8 @@ def run_case(proj: Project, segment: int | None = None) -> Results:
         tl_trim=(-10 * np.log10(sea.tau_mass_law_diffuse(centers, sw.m_trim, air.rho_c)) if sw.double_wall
                  else np.full_like(centers, np.nan)),
         A_band=A_band, T60_band=T60_band, f_s=f_s, L_tone=L_tone, L_bb=L_bb, L_band_tonal=L_band_tonal,
-        L_band_total=L_band_total, totals={"average": avg, "max_seat": mx}, seat_percentile=opt.seat_percentile, seat_db=seat_db, warnings=warn)
+        L_band_total=L_band_total, totals={"average": avg, "max_seat": mx}, seat_percentile=opt.seat_percentile, seat_db=seat_db, warnings=warn,
+        axial_offset=axial)
 
 
 def run_mission(proj: Project) -> list[Results]:
