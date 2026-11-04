@@ -109,6 +109,11 @@ so every H2 (151.5–157.3 Hz) falls within 2.5 % of this mode, and its half-pow
 from assumed inputs (the stiffener sections, the circular section with a floor at 50°, C_struc = 3). This is the
 "dense set of resonant pairs" of the Phase 123 report, resolved: it is mainly one mode.
 
+H3 (cond 1) has no single carrier: port 93.0 dB, of which 32 % is mode r = 123 (235.7 Hz, M = 5, n = 4) against a
+236.0 Hz tone; starboard 90.3 dB, spread over r = 128, 125, 122 and 118 (228.8–241.2 Hz). The measured H3 NR is
+9 dB larger at mic 6 than at mic 3 for both engines, a left–right difference that PAIN's symmetric point field
+cannot show; at mic 3 PAIN's port H3 NR is within 0.6 dB.
+
 ## Not changed
 
 No input, criterion or production default changed after the run.
