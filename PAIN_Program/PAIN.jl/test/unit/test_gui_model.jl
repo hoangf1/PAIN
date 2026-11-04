@@ -1,15 +1,20 @@
 # Unit tests: src/gui_model.jl (Phase 64). The Observable layer behind the QML tabs; every figure the
 # tests make goes to UNIT_OUT (`figure_dir`), the Cabin-modes cache is the ignored gui/cache folder.
+# Runs use the scale Hartzell project (seconds); the GUI default (Phase 128) is a full-size turboprop (minutes).
+const _HZ = joinpath(pkgdir(PAIN), "examples", "aircraft_scale_hartzell.json")
 @testset "formatting and card parsing" begin
     @test PAIN.validity_for_source(:aircraft) == "X-EXTRAP" && PAIN.validity_for_source(:e11) == "V-EXP"
     sp = PAIN.InteriorSpectrum(200.0, [80.0, 70.123], Dict(1000.0 => 60.0, 500.0 => 65.0), "n")
     @test PAIN._format_tonal(sp) == "H=1  f=200.0 Hz  SPL=80.0 dB\nH=2  f=400.0 Hz  SPL=70.12 dB"
     @test PAIN._format_third(sp) == "fc=500.0 Hz  SPL=65.0 dB\nfc=1000.0 Hz  SPL=60.0 dB"           # ascending
     @test PAIN._format_third(PAIN.InteriorSpectrum(200.0, [80.0], Dict{Float64,Float64}(), "n")) == "(no 1/3-octave bands)"
-    obs = PAIN.make_gui_observables()
+    obs = PAIN.make_gui_observables()   # the GUI default: Cabin_Noise's generic twin turboprop (Phase 128)
     vals = PAIN.gui_values(obs)
-    @test vals["z_p_m"] == "0.662" && vals["rpm"] == "4000" && vals["theta0_deg"] == "auto" && obs["project_path"][] == ""
-    @test PAIN.gui_base(obs)["propeller"]["num_blades"] == 3 && obs["bpf_text"][] == "BPF = 200.0 Hz"
+    @test vals["num_blades"] == "6" && vals["rpm"] == "1181" && vals["tip_radius_m"] == "1.7526" && vals["z_p_m"] == "11.35"
+    @test vals["theta0_deg"] == "auto" && vals["anopp_table8_calibrate"] == "false" && obs["project_path"][] == ""
+    @test PAIN.gui_base(obs)["propeller"]["num_blades"] == 6 && obs["bpf_text"][] == "BPF = 118.1 Hz"
+    hz = PAIN.gui_values(PAIN.make_gui_observables(; default_project=_HZ))
+    @test hz["z_p_m"] == "0.662" && hz["rpm"] == "4000" && hz["num_blades"] == "3"
     lines = split(PAIN._format_val_case_list(), '\n')
     @test length(lines) == length(PAIN.validation_map_case_order())
     @test all(length(split(l, '\t')) == 5 for l in lines)
@@ -19,7 +24,7 @@ end
 # run behind it. These assert the states a user distinguishes: a recorded result read from disk, a run in progress,
 # and a result this session computed — with the steps of that run, not of a previous one, in the log.
 @testset "run-status state and verbose log" begin
-    obs = PAIN.make_gui_observables()
+    obs = PAIN.make_gui_observables(; default_project=_HZ)
     for p in ("run", "val", "po", "cm")
         @test obs["$(p)_state"][] == "ready" && obs["$(p)_log"][] == ""
     end
@@ -76,7 +81,7 @@ end
     @test obs["val_state"][] == "error" && occursin("error: ", obs["val_log"][])
 
     # Run all keeps one cumulative log instead of clearing it per case (track = false)
-    obs2 = PAIN.make_gui_observables()
+    obs2 = PAIN.make_gui_observables(; default_project=_HZ)
     t1 = PAIN.gui_run_begin!(obs2, "val", "Run all: 2 cases")
     PAIN.run_validation_gui!(obs2, "BLK_P68"; figure_dir=UNIT_OUT, track=false)
     @test obs2["val_state"][] == "running"                                  # the nested run did not end it
@@ -86,7 +91,7 @@ end
     @test obs2["val_state"][] == "done"
 end
 @testset "validation tab and map refresh" begin
-    obs = PAIN.make_gui_observables()
+    obs = PAIN.make_gui_observables(; default_project=_HZ)
     r = PAIN.run_validation_gui!(obs, "BLK_P68"; figure_dir=UNIT_OUT)
     @test r !== nothing && obs["val_selected"][] == "BLK_P68" && obs["val_plot_path"][] == joinpath(UNIT_OUT, "BLK_P68.png")
     @test isfile(obs["val_plot_path"][]) && startswith(obs["val_status"][], "Done BLK_P68") && !obs["busy"][]
@@ -110,7 +115,7 @@ end
     end
 end
 @testset "run tab, printed outputs and cabin modes" begin
-    obs = PAIN.make_gui_observables()
+    obs = PAIN.make_gui_observables(; default_project=_HZ)
     PAIN.gui_set_input!(obs, "n_harmonics", "2")
     @test PAIN.run_pain_gui!(obs)
     @test obs["validity_tag"][] == "X-EXTRAP" && obs["source_out"][] == "aircraft" && startswith(obs["status"][], "Done (X-EXTRAP)")
@@ -147,7 +152,7 @@ end
 
 # Phase 120 (2026-11-03): θ₀ "auto" in the GUI means the auto floor angle for the current radius (Phase 127: a field)
 @testset "auto floor angle in the GUI" begin
-    obs = PAIN.make_gui_observables()
+    obs = PAIN.make_gui_observables(; default_project=_HZ)
     base, vals = PAIN.gui_base(obs), PAIN.gui_values(obs)
     @test vals["theta0_deg"] == "auto"
     @test !haskey(get(PAIN.gui_build_project(base, vals), "cabin", Dict()), "theta0_deg")   # a = 0.508 m: 56.6°, the default

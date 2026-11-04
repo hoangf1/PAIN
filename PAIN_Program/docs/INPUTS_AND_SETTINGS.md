@@ -10,8 +10,13 @@ set, and what stays fixed and why. PAIN_Program and Cabin_Noise are not connecte
 - **Run tab, Inputs panel.** One tab per group (left list), one field per input. A field shows the value in use, its
   unit, a tooltip with its meaning and source, and "default X" in orange when it differs from the code default.
 - **Project file (optional).** Open fills the fields from a file in the aircraft JSON format, Save writes them, Defaults
-  returns to the built-in project (`examples/aircraft_scale_hartzell.json`). Run does not need a file: it writes the
-  fields to a temporary project and runs it.
+  returns to the built-in project (`examples/aircraft_generic_twin_turboprop.json`, Phase 128). Run does not need a
+  file: it writes the fields to a temporary project and runs it.
+- **Built-in project (Phase 128, 2026-11-04).** Author: "much of the current defaults like blade number rpm speed arent
+  matched with cabin_noise". The GUI opens on the generic twin turboprop of Cabin_Noise's default project
+  (`Cabin_Noise/cabin_noise/data/default_project.json`), its values copied by hand; the programs share no code or file.
+  The table below gives each value and where it comes from. The scale Hartzell project
+  (`examples/aircraft_scale_hartzell.json`) stays, unchanged, for the tests and the scripts, and opens with Open.
 - **Defaults are the code's.** A field is written to the project only when its value differs from what was loaded, and a
   value equal to the code default is not added. A loaded value keeps its provenance tag (measured / assumed /
   nasa_default) until it is edited. So the default project runs exactly as before Phase 127: H1–H5 and every band are
@@ -19,6 +24,33 @@ set, and what stays fixed and why. PAIN_Program and Cabin_Noise are not connecte
 - **Settings in a run.** `PainSettings` (src/pain_settings.jl) holds the run-path constants; `run_pain_pipeline(;
   settings)` or the project's `"settings"` object (only the fields that differ) applies them to one run through a scoped
   value. Validation cases and tests use `PainSettings()`, the old literals.
+
+## Built-in project: Cabin_Noise's generic twin turboprop
+
+| PAIN field | Value | From Cabin_Noise |
+|---|---|---|
+| Blades, rpm, tip radius | 6, 1181 rpm, 1.7526 m (BPF 118.1 Hz) | `propeller.blades`, mission `rpm`, `propeller.tip_radius` |
+| Flight speed | 149.198 m/s | Mach 0.4818 × c at 7620 m |
+| Air at the propeller: ρ, c, μ | 0.54895 kg/m³, 309.668 m/s, 1.53981e-5 Pa·s | ISA 7620 m (T 238.62 K), Cabin_Noise's `atmosphere.py` formulas |
+| Outside ρ, c (cabin group) | the same | the same |
+| Cabin ρ0, c0 | 0.89440 kg/m³, 343.232 m/s | `cabin_air(2438.4 m, 293.15 K)` |
+| Structure length L, cavity length L_c | 22.7 m | `cabin.Lx` |
+| Radius a | 1.32 m | `cabin.Ly` / 2 (a box there, a cylinder here) |
+| r_p | 4.1726 m | a + tip radius + `propeller.clearance` 1.1 m |
+| z_p | 11.35 m | L / 2: mid-cabin (Cabin_Noise has no station relative to the cabin) |
+| Skin thickness, density | 1.6 mm, 2780 kg/m³ | `sidewall.skin_thickness`, `skin_density` |
+| Trim | stack: insulation 0.09 m, limp mass 2.7 kg/m² | `sidewall.cavity_depth`, `trim_mass` (double wall) |
+| Harmonics | 5 | PAIN's own (Cabin_Noise's auto takes every harmonic below 5 kHz) |
+| ANOPP Table 8 scaling | off | Table 8 is the 0.762 m Hartzell test, not this propeller |
+| Insulation-table extrapolation | on (X-EXTRAP) | the 22.7 m cabin has structural modes from about 13 Hz, below the table's 100 Hz |
+| Blade stations, chords, hub radius | the Hartzell shape × 1.7526/0.381 | Cabin_Noise's Gutin source has no blade geometry |
+| Twist | atan(V/(Ω r)) + 3° per station | from the speed and rpm above; nothing fitted to a result |
+
+Not carried over, because PAIN has no input for them: shaft power (1.64 MW), engines, windows, cabin surface absorption,
+the boundary-layer source, the seat percentile. Every other field keeps PAIN's code default (App. D stiffeners, damping,
+broadband and the Numerics settings). The project is X-EXTRAP and is not a validation case: it is compared with nothing.
+A run takes about 7 min (416 s measured), against seconds for the Hartzell project. Most of it (about 80 %) is the tone
+sum, which couples every structural mode with every cabin mode of the 22.7 m cabin at each harmonic.
 
 ## Physical inputs (GUI groups → project keys)
 

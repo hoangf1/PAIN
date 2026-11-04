@@ -8,8 +8,9 @@
 # project it was loaded from (a loaded value, with its provenance tag, is kept as it was), and a value equal to the code's
 # own default is not added. So the default project runs exactly as `run_pain_pipeline` does without the GUI.
 
-"""Path of the GUI's default project (the scale Hartzell propeller on the CR-3813 test article)."""
-gui_default_project_path() = normpath(joinpath(@__DIR__, "..", "examples", "aircraft_scale_hartzell.json"))
+"""Path of the GUI's default project: the generic twin turboprop of Cabin_Noise's default project, values copied by
+hand (Phase 128; the two programs share no code or file). The scale Hartzell project stays in examples/."""
+gui_default_project_path() = normpath(joinpath(@__DIR__, "..", "examples", "aircraft_generic_twin_turboprop.json"))
 
 _F(key, group, label, unit, kind, path, default, tip; choices=String[], optional=false) =
     (; key=String(key), group=String(group), label=String(label), unit=String(unit), kind=kind,
@@ -48,10 +49,10 @@ function gui_input_specs()
            "auto = parametric on the aircraft path (App. D modes, Eqs. 19–23 broadband); surrogate = Table D-1 path";
            choices=["auto", "parametric", "surrogate"]),
         # Propeller
-        _F("num_blades", "Propeller", "Blades B", "", :int, ["propeller", "num_blades"], "3", "Number of blades."),
-        _F("rpm", "Propeller", "Shaft speed", "rpm", :float, ["propeller", "rpm"], "4000", "Propeller rpm; BPF = B·rpm/60."),
-        _F("tip_radius_m", "Propeller", "Tip radius", "m", :float, ["propeller", "tip_radius_m"], "0.381", "Blade tip radius."),
-        _F("hub_radius_m", "Propeller", "Hub radius", "m", :float, ["propeller", "hub_radius_m"], "0.08", "Hub radius (BEMT hub loss)."),
+        _F("num_blades", "Propeller", "Blades B", "", :int, ["propeller", "num_blades"], "6", "Number of blades."),
+        _F("rpm", "Propeller", "Shaft speed", "rpm", :float, ["propeller", "rpm"], "1181", "Propeller rpm; BPF = B·rpm/60."),
+        _F("tip_radius_m", "Propeller", "Tip radius", "m", :float, ["propeller", "tip_radius_m"], "1.7526", "Blade tip radius."),
+        _F("hub_radius_m", "Propeller", "Hub radius", "m", :float, ["propeller", "hub_radius_m"], "0.368", "Hub radius (BEMT hub loss)."),
         _F("pitch_offset_deg", "Propeller", "Pitch offset", "deg", :float, ["propeller", "pitch_offset_deg"], "0.0",
            "Added to every section twist (blade pitch setting)."),
         _F("thickness_over_chord", "Propeller", "Thickness / chord", "", :float, ["propeller", "thickness_over_chord"], "0.0",

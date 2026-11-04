@@ -13,8 +13,9 @@ end
 using PAIN
 using JSON3
 
-obs = make_gui_observables()
-# Phase 127: inputs are GUI fields (the default project is the scale Hartzell example); 3 harmonics for speed
+@assert make_gui_observables()["bpf_text"][] == "BPF = 118.1 Hz"   # GUI default: Cabin_Noise's turboprop (Phase 128)
+# The runs below use the scale Hartzell project (seconds; the full-size default takes minutes); 3 harmonics for speed
+obs = make_gui_observables(; default_project=joinpath(pkgdir(PAIN), "examples", "aircraft_scale_hartzell.json"))
 @assert obs["bpf_text"][] == "BPF = 200.0 Hz"
 gui_set_input!(obs, "n_harmonics", "3")
 ok = run_pain_gui!(obs)

@@ -76,7 +76,7 @@ end
     @test all(s -> s.kind in (:float, :int, :bool, :choice, :list, :bandmap, :text, :elements), specs)
     # every App. D structure input of the provenance layer is a field
     @test all(sp -> any(s -> s.key == sp.name, specs), (PAIN.APPD_INPUT_SPECS..., PAIN.APPD_DECK_SPECS...))
-    base = PAIN._load_project_dict(gui_default_project_path())
+    base = PAIN._load_project_dict(joinpath(pkgdir(PAIN), "examples", "aircraft_scale_hartzell.json"))
     vals = gui_field_values(base)
     @test PAIN._same(gui_build_project(base, vals), base)                     # nothing changed → the file as loaded
     @test vals["radii_m"] == "0.085, 0.12, 0.16, 0.2, 0.24, 0.28, 0.32, 0.35, 0.37, 0.378"
@@ -160,7 +160,9 @@ end
 
 @testset "GUI project open / save / defaults" begin
     obs = make_gui_observables()
-    @test occursin("built-in default", obs["project_note"][]) && occursin("does not read", PAIN._gui_project_note(gui_default_project_path(), PAIN.gui_base(obs)))
+    @test occursin("built-in default", obs["project_note"][]) && isempty(PAIN.gui_unread_keys(PAIN.gui_base(obs)))
+    hzp = joinpath(pkgdir(PAIN), "examples", "aircraft_scale_hartzell.json")
+    @test occursin("does not read", PAIN._gui_project_note(hzp, PAIN._load_project_dict(hzp)))
     gui_set_input!(obs, "rpm", "2400"); gui_set_input!(obs, "num_blades", "4")
     @test PAIN.gui_values(obs)["rpm"] == "2400" && obs["bpf_text"][] == "BPF = 160.0 Hz"
     @test_throws ErrorException gui_set_input!(obs, "no_such_field", "1")
@@ -168,7 +170,7 @@ end
     gui_save_project!(obs, f)
     @test isfile(f) && PAIN._load_project_dict(f)["propeller"]["rpm"] == 2400.0 && obs["project_path"][] == f
     gui_reset_project!(obs)
-    @test PAIN.gui_values(obs)["rpm"] == "4000" && obs["project_path"][] == ""
+    @test PAIN.gui_values(obs)["rpm"] == "1181" && obs["project_path"][] == ""
     gui_open_project!(obs, f)
     # JSON3.pretty writes 2400.0 as 2400
     @test PAIN.gui_values(obs)["rpm"] == "2400" && PAIN.gui_values(obs)["num_blades"] == "4" && obs["project_path"][] == f

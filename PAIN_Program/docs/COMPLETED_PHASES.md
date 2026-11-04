@@ -215,6 +215,7 @@ Not blockers (recorded so nobody stops on them): BBN tip geometry beyond 40 in. 
 | Q107 | **Phase 125 — the 695A tones at the mic seats** (§8bo; author 2026-11-04: "Yes, add it") | information case (A_CABIN) | Phase 123 | **done 2026-11-04**: 43/108 within ±4 dB (space average: 32/108); PAIN − measured mean −0.2 / +9.3 / +7.3 dB at H1 / H2 / H3 (port +4.1 dB H2, starboard +14.4 dB H2); the seat is +5.3 / +1.1 / +3.8 dB above the space average; I-18 lower-quarter diagnostic raises H2 (not the cause) |
 | Q108 | **Phase 126 — H1: PAIN's method or the recreation; I-18 closed** (§8bp; author 2026-11-04: "have you proved that h1 is a pain limitation rather than my code yes you have full control to close out any open items") | diagnostics + decision | Phases 94, 125 | **done 2026-11-04**: test article H1 code − NASA +0.1 / +0.1 / +0.2 dB (held-out Table 12: +0.24 / +0.34 / +0.27), NASA − measured −17.7 / +1.4 / −13.8 dB: the method's; 695A consistent, not provable (no NASA run); I-18 closed, 160 points kept (lower quarter: 1–6/9 against NASA, 10 lines 9/9) |
 | Q109 | **Phase 127 — every input and run-path constant in the GUI** (§8bq; author 2026-11-04: "if there are any constants then make it available for change in the gui") | GUI, settings, documents | — | **done 2026-11-04**: 59 constants as `PainSettings` (old values as defaults), every input a Run-tab field in tabs; project file optional; default runs bit-identical; printed outputs use the run's BPF |
+| Q110 | **Phase 128 — GUI default project matched to Cabin_Noise** (§8br; author 2026-11-04: "much of the current defaults like blade number rpm speed arent matched with cabin_noise") | `examples/aircraft_generic_twin_turboprop.json`, `gui_inputs.jl`, tests, documents | — | **done 2026-11-04**: the GUI opens on Cabin_Noise's generic twin turboprop (6 blades, 1181 rpm, R 1.7526 m, Mach 0.4818 at 7620 m, cabin 22.7 m), values copied by hand; Hartzell project kept for tests; a run takes about 7 min (the tone sum over the long cabin's modes) |
 | Q58 | **Phase 79 — CYL2D** (§8w; 2026-10-28) | `case_error_summary`, `cyl2d.jl`, CYL2D_WEYL | Q57 | **done 2026-10-28**: information rows leave the pass count; refinement fixed (79b); CYL2D_GRID_CONV (NY 10 within 4.9 % of NY 60); Weyl + surface term 4/5; production NY = 10 kept (decided 2026-10-28) |
 | Q57 | **Phase 78 — structural modes** (§8v; 2026-10-28) | `mrp_appd.jl`, MRP_APPD criterion, map | Q53 | **done 2026-10-28**: App. D solver fixes J1–J6; MRP_APPD not met 2/32 (class I, floor stiffener model undocumented); MRP_D1/MRP_RITZ off the map |
 | Q56 | **Phase 77 — POLAR_FIDELITY as an equivalent angle** (§8u; 2026-10-28) | `src/validation_case_iso67.jl`, figure | Q52 | **done 2026-10-28**: Δα shown next to Δc_l, display only |
@@ -3177,3 +3178,35 @@ inputs in the gui", "i dont want the two programs to connect yet".)*
   R2 factor 1.0 against 0.8 raises the Hartzell H1 by 2.26 dB, showing the setting reaches the run. No criterion,
   reference or recorded result changed. Unit tests: `test/unit/test_pain_settings.jl`. Smoke: an offscreen shot of
   the Propeller and Numerics: Blocking tabs (`smoke_qml_load.jl`). Inventory: `INPUTS_AND_SETTINGS.md`.
+
+## 8br. Phase 128 — GUI default project matched to Cabin_Noise (done 2026-11-04)
+
+*(Author 2026-11-04: "much of the current defaults like blade number rpm speed arent matched with cabin_noise where
+blades is 6 etc and rpm isnt matched"; earlier: "i dont want the two programs to connect yet".)*
+
+- **Project.** `examples/aircraft_generic_twin_turboprop.json` holds the values of Cabin_Noise's default project
+  (`cabin_noise/data/default_project.json`), copied by hand; no code or file is shared:
+  - 6 blades, 1181 rpm, R 1.7526 m (BPF 118.1 Hz), Mach 0.4818 at 7620 m ISA (149.198 m/s);
+  - cabin 22.7 m long, a = 2.64/2 m, r_p = a + R + 1.1 m clearance, propeller plane at mid-cabin;
+  - skin 1.6 mm, 2780 kg/m³, double wall as a stack (0.09 m insulation, 2.7 kg/m² trim);
+  - cabin air at 2438.4 m cabin altitude and 293.15 K.
+
+  Inputs Cabin_Noise does not have are stated in the file's `assumptions` and in `INPUTS_AND_SETTINGS.md`:
+  - the blade shape is the Hartzell shape scaled to R;
+  - the twist is the geometric advance angle plus 3°;
+  - ANOPP Table 8 scaling is off;
+  - the insulation table is extrapolated below 100 Hz (X-EXTRAP);
+  - 5 harmonics.
+
+  Nothing is fitted to a result. The project is not a validation case.
+- **GUI.** `gui_default_project_path()` points to it. The fallbacks for the four required propeller fields are 6 /
+  1181 / 1.7526 / 0.368. The scale Hartzell project is unchanged and opens with Open.
+- **Run time.** A run takes about 7 min (416 s measured, 5 harmonics), against seconds for the Hartzell project.
+  - About 80 % is the tone sum, Eqs. 19–23: the coupling integral of every structural mode with every cabin mode, at
+    each harmonic. The 22.7 m cabin has many more modes of both kinds than the 1.8 m test article.
+  - About 17 % is the App. D mode search up to 1200 Hz, which is cached for the session.
+
+  The method is unchanged; speeding up the coupling sum is a separate change.
+- **Tests.** The GUI runs in `test_gui_model.jl` and `smoke_gui_model.jl` use the Hartzell project, which runs in
+  seconds. New checks cover the default's fields, its BPF and that it has no unread keys. No criterion, reference or
+  recorded result changed.

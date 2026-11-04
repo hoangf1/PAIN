@@ -1,0 +1,60 @@
+{
+  "description": "GUI default (Phase 128, 2026-11-04): the generic twin turboprop of Cabin_Noise's default project (cabin_noise/data/default_project.json), its values copied by hand; the two programs share no code or file. Cruise, 7620 m ISA, Mach 0.4818, 6 blades, 1181 rpm, tip radius 1.7526 m, tip-to-fuselage clearance 1.1 m, cabin 22.7 m long and 2.64 m wide, skin 1.6 mm of density 2780, double wall: 0.09 m blanket cavity behind a 2.7 kg/m2 trim panel. Inputs Cabin_Noise does not have are stated in 'assumptions'. Not a validation case: no comparison with data.",
+  "validity_class": "X-EXTRAP",
+  "assumptions": [
+    "Radius a = cabin width / 2 = 1.32 m (Cabin_Noise models a box, PAIN a cylinder).",
+    "Hub distance r_p = a + tip radius + clearance = 4.1726 m; propeller plane at mid-cabin, z_p = L/2 = 11.35 m (Cabin_Noise has no station relative to the cabin).",
+    "Blade stations, chords and hub radius: the shape of examples/aircraft_scale_hartzell.json scaled by 1.7526/0.381 (Cabin_Noise uses a Gutin source with no blade geometry).",
+    "Twist: the geometric advance angle atan(V/(Omega r)) plus 3 deg at each station, from the cruise speed and rpm above; no value is fitted to a result. Shaft power (1.64 MW in Cabin_Noise) is not a PAIN input.",
+    "Outside air: ISA at 7620 m (T 238.62 K). Cabin air: the pressure of ISA 2438.4 m at 293.15 K, the formulas of Cabin_Noise's atmosphere.py.",
+    "ANOPP Table 8 scaling off: Table 8 is the 0.762 m Hartzell test, not this propeller.",
+    "Insulation table extrapolated (X-EXTRAP): the 22.7 m cabin has structural modes from about 13 Hz, below the 100 Hz start of the PF-105 table.",
+    "Harmonics: 5 (Cabin_Noise's auto takes every harmonic below 5 kHz)."
+  ],
+  "propeller": {
+    "num_blades": 6,
+    "rpm": 1181,
+    "hub_radius_m": 0.368,
+    "tip_radius_m": 1.7526,
+    "radii_m": [0.391, 0.552, 0.736, 0.92, 1.104, 1.288, 1.472, 1.61, 1.702, 1.7388],
+    "chord_m": [0.253, 0.322, 0.3588, 0.368, 0.3588, 0.3312, 0.2852, 0.23, 0.1748, 0.1288],
+    "twist_deg": [75.04, 68.41, 61.61, 55.67, 50.54, 46.13, 42.34, 39.84, 38.33, 37.75],
+    "pitch_offset_deg": 0.0,
+    "thickness_over_chord": 0.0
+  },
+  "operating_point": {
+    "forward_speed_mps": 149.198,
+    "rho_kg_m3": 0.54895,
+    "c0_mps": 309.668,
+    "mu_Pa_s": 1.53981e-5
+  },
+  "anopp_table8_calibrate": false,
+  "run": {
+    "blocking": "R2",
+    "n_harmonics": 5
+  },
+  "cabin": {
+    "L_m": 22.7,
+    "a_m": 1.32,
+    "L_c_m": 22.7,
+    "r_p_m": 4.1726,
+    "phi_p_deg": 90.0,
+    "z_p_m": 11.35,
+    "rotation_direction": 1,
+    "rho_kg_m3": 0.89440,
+    "c0_mps": 343.232,
+    "rho_ext_kg_m3": 0.54895,
+    "c_ext_mps": 309.668,
+    "allow_extrapolation": true,
+    "t_skin_m": 0.0016,
+    "rho_struc_kg_m3": 2780.0,
+    "trim_stack": {
+      "sidewall": {
+        "elements": [
+          {"type": "insulation", "thickness_m": 0.09},
+          {"type": "limp_mass", "m_kg_m2": 2.7}
+        ]
+      }
+    }
+  }
+}

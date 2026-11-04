@@ -4063,6 +4063,12 @@ default Hartzell, e11 and 695A runs are bit-identical). A GUI setting changed fr
 user variant, not a case: the Validation tab never takes GUI settings. Choosing a setting by its effect on a compared
 case would be calibration (CLAUDE.md) and is not offered. Inventory: `INPUTS_AND_SETTINGS.md`.
 
+## 2.50 Phase 128: the GUI default project (2026-11-04)
+
+The GUI default is Cabin_Noise's generic twin turboprop (X-EXTRAP), compared with nothing: it is not a case and has no
+verdict. No case, criterion, reference or recorded result changed. The cases and tests that ran the old default
+(scale Hartzell) still run it, from its own file.
+
 ## 3. What “valid recreation” means for this project
 
 A recreation is **pipeline-valid** only if:

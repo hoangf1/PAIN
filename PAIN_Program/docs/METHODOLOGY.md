@@ -798,6 +798,10 @@ validation cases run with the defaults, and the default runs are bit-identical. 
 variant with no grade of its own. Inventory and the fixed definitions (20 µPa, A-weighting, band centres) with
 reasons: `INPUTS_AND_SETTINGS.md`.
 
+**Phase 128 (2026-11-04) — the GUI default project.** The GUI opens on the generic twin turboprop of Cabin_Noise's
+default project (6 blades, 1181 rpm, 22.7 m cabin), values copied by hand. The inputs PAIN needs and Cabin_Noise lacks
+(blade shape, twist, a cylinder radius for a box cabin) are stated in `INPUTS_AND_SETTINGS.md`. The method is unchanged.
+
 **Phase 31 (2026-10-22) — epistemic uncertainty band.** Pre-registered before any run (`docs/specs/phase31_uncertainty.md`). OAT keep > 3 dB; MC N = 4000, seed 20261022, uniform primary + triangular; P5/P50/P95, never the mean. **31e `UNC_COVER` `:not_met`:** kept `freq_scale`, `eta_t`; uniform P5/P50/P95 H1 88.95/89.87/91.06 vs measured 90 (inside, margin +1.05 dB), H2 85.46/91.3/92.86 vs 80 (miss −5.46), H3 73.09/74.78/77.59 vs 65 (miss −8.09); nothing widened. **Aircraft band:** kept `eta_n_bare`; uniform H1 99.31/101.41/104.21, H2 58.47/59.07/59.94, H3 35.45/35.65/36.26; k = −2.09, B = 3; phase (i) spreads 2.45/3.7/2.08 dB — dominates H2 and H3, not H1; triangular narrower by ~0.2–0.6 dB on the edges. Runtimes ~784 s (test article) / ~727 s (aircraft). **31f:** test-article report points the Required statements at the aircraft band file; empty 1/3-octave cells print —. Code: `src/uncertainty.jl`; reports `uncertainty_budget_testarticle.md`, `uncertainty_aircraft_band.md`.
 
 ## 9. Claim register
