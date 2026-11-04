@@ -740,7 +740,7 @@ aircraft interior, so the chunk is arithmetic checks only; the aircraft value st
 | Interior SPL (`X_OUT`) | Tone and 1/3-octave levels from PAIN main; interior mode shapes | Overall dB(A), SIL, loudest-point dB(A) |
 | Aircraft cabin (`A_CABIN`) | The aircraft run | Band spectrum, A-weighted spectrum, overall dB(A) with the ±3.5 dB band |
 
-**Validation sources.** None experimental: hand-computed SIL, the energy sum of A-weighted bands, and the space average of Eq. (8).
+**Validation sources.** Hand-computed SIL, the energy sum of A-weighted bands, and the space average of Eq. (8); since Phase 121 (2026-11-03) one aircraft measurement as information: the Commander 695A cabin dB(A) of NASA CR-178004 flight 3.
 
 **Validation cases.**
 
@@ -748,6 +748,7 @@ aircraft interior, so the chunk is arithmetic checks only; the aircraft value st
 |------|---------------|-----|----------------|---------------|
 | `ISO_SIL` | Hand-computed SIL from a known spectrum | SIL helpers had only finite-value checks | ≤ 1e-9 dB | met 2/2 (2026-10-23) |
 | `AC_CABIN_DEMO` | Overall dB(A) equals the energy sum of the A-weighted bands | The aircraft hand-off needs a case with a figure | within 1e-9 dB (arithmetic only) | met 1/1 (2026-10-24): 91.6 dB(A), X-EXTRAP, not validated |
+| `AC_C695A_DBA` | PAIN's overall cabin dB(A) for the Commander 695A (printed inputs plus assumed blade, cabin section and stiffener sections; pitch set for the printed power; two engines added in energy) against CR-178004 flight 3, mics 3 and 6, 18 conditions | The aircraft block had no aircraft measurement | none (information, Phase 118 input rule); recorded against ±3.5 dB (1σ) at ≥ 68 % of 36 points | 0/36 (2026-11-03): PAIN 12.9–18.2 dB(A) under the measurement; the gap is mostly 250 Hz–2 kHz broadband PAIN does not model |
 | `LOUDEST_PT` | Point form of Eq. (8): volume average of point values against the space average; loudest point ≥ space average; one mode alone ∝ φ² | A passenger hears the worst seat | (a) interior-node average within 1 % of Eq. (8); (b), (c) as stated | **not met**: (a) 0.83–0.94 (nodes exclude wall and floor); (b), (c) met |
 | `LOUDEST_PT_GRID` | All-node (C.10) average of the point values against Eq. (8) at NY = 40 | Checks the point form itself; (a) of LOUDEST_PT leaves out the wall nodes | within 1 % (2026-10-29) | **met** 3/3 (1.0004, 1.0001, 0.9993) |
 

@@ -1,0 +1,24 @@
+# NASA CR-178004 Table 4: flight 3 test conditions (Commander 695A, bare cabin)
+# columns as printed: pressure altitude (ft), indicated airspeed (kt), outside air temperature (deg F), port and starboard propeller rpm and shaft power (kW), cabin pressure altitude (ft)
+# rpm 0 / power 0 = engine shut down (conditions 11 and 12: single-engine)
+# transcribed 2026-11-03 (same values as Cabin_Noise V6_inputs.json "T4", read from the report for that case)
+# units: cond, alt_ft, ias_kt, oat_F, port_rpm, port_kW, stbd_rpm, stbd_kW, cabin_alt_ft
+cond,alt_ft,ias_kt,oat_F,port_rpm,port_kW,stbd_rpm,stbd_kW,cabin_alt_ft
+1,10000,233,53,1573,482,1520,466,10000
+2,10000,233,53,1525,468,1573,488,10000
+3,10000,230,53,1525,456,1570,445,1700
+4,10000,230,53,1573,482,1518,471,1700
+5,14000,220,38,1530,475,1530,481,2100
+6,14000,227,38,1533,482,1533,488,2100
+7,14000,230,38,1530,481,1530,487,2100
+8,14000,230,38,1530,481,1530,487,2100
+9,14000,233,39,1573,482,1520,466,2100
+10,14000,230,39,1525,468,1573,482,2100
+11,14000,183,38,0,0,1515,447,2100
+12,14000,173,38,1520,460,0,0,2100
+13,28000,170,-19,1525,310,1525,310,7400
+14,28000,174,-19,1528,310,1528,310,7400
+15,28000,173,-19,1528,310,1528,310,7400
+16,28000,173,-19,1528,310,1528,310,7400
+17,28000,175,-19,1570,319,1518,308,7400
+18,28000,174,-19,1520,297,1570,313,7400

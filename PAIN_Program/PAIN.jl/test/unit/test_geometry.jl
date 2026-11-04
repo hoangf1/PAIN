@@ -46,3 +46,20 @@ end
     @test PAIN.incidence_angle_deg(fuse, prop, 90.0, 0.662 + 0.457) ≈ 45.0 atol = 1e-9
     @test PAIN.incidence_angle_deg(fuse, prop, 90.0, 0.2) ≈ PAIN.incidence_angle_deg(fuse, prop, 90.0, 1.124) atol = 1e-9  # symmetric
 end
+
+# Phase 120 (2026-11-03): floor angle θ₀ from the floor height or width, and the auto value (printed aircraft nearest in radius)
+@testset "floor angle and auto θ₀" begin
+    # θ from the bottom centreline: a floor through the axis is 90°, a floor a/2 above the bottom is 60°
+    @test floor_angle_deg(1.0; floor_height=1.0) ≈ 90.0
+    @test floor_angle_deg(1.0; floor_width=2.0) ≈ 90.0
+    @test floor_angle_deg(1.0; floor_height=0.5) ≈ 60.0
+    @test floor_angle_deg(2.0; floor_width=2sqrt(3)) ≈ 60.0
+    @test floor_angle_deg(1.0; floor_height=1.5) ≈ 120.0
+    @test_throws ErrorException floor_angle_deg(1.0)
+    @test_throws ErrorException floor_angle_deg(1.0; floor_width=2.5)
+    @test auto_floor_angle(0.508).theta0_deg == 56.6
+    @test auto_floor_angle(0.725).theta0_deg == 50.0     # Commander 695A (Phase 121): Merlin IVC, a = 0.84 m
+    @test auto_floor_angle(1.25).theta0_deg == 62.6      # 2.5 m fuselage -> CR-172428 small diameter
+    @test auto_floor_angle(1.345).theta0_deg == 62.6     # Dash 8-400 class, 2.69 m
+    @test auto_floor_angle(1.6).theta0_deg == 73.7
+end

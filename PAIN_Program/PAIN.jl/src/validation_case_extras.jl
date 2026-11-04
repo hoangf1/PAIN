@@ -2482,6 +2482,7 @@ function _finish_validation_registry!()
     append!(cases, _iso105_validation_cases()) # phase 105 CYL2D grid rule vs printed cabin modes
     append!(cases, _iso106_validation_cases()) # phase 106 cabin-mode frequency vs printed lists
     append!(cases, _iso119_validation_cases()) # phase 119 the T1 family on App. B's printed field
+    append!(cases, _iso121_validation_cases()) # phase 121 Commander 695A cabin dB(A) vs CR-178004
     append!(cases, _iso108_validation_cases()) # phase 108 run 10 floor-term sign (diagnostic)
     append!(cases, _iso90_validation_cases())  # phase 90 Report 996 Fig. 10 reflecting walls
 
@@ -2581,7 +2582,7 @@ function _finish_validation_registry!()
         "APPB_EPS_N", "APPB_ETA_N", "APPB_ETA_RPP", "Q0_REPRO_18b", "Q0_E18", "Q0_E21", "R172428_CODE_ETAN", "R996_FIG10_FLAT", "R996_FIG10_CIRC",
         "APPB_PAIRS", "APPB_PAIRS_Q0_ETAN", "R172428_CODE_Q0", "R172428_CODE_Q0_ETAN", "R172428_ETAT2", "APPB_ETA_N_T2", "APPB_ETA_N_BAND", "APPB_ETA_N_T2_BAND", "R172428_CODE_DEFAULT", "BAND_REPRO_18b", "BAND_E18", "R172428_TRIM_DECK", "FLIGHT_MODES", "FLIGHT_MODES_P2", "FLIGHT10_H234", "FLIGHT10_FLOOR_SIGN",
         "F1A_PLANE_PEAK", "FF_E11_MAP", "SRC_PASSTHROUGH", "BLK_GAIN_MAP", "MRP_INPUT_QA", "MRP_SHAPE_NORM",
-        "CABIN_GEOM_HAND", "CYL2D_WEYL", "CYL2D_GRID_CONV", "TRIM_INPUT_QA", "TRIM_PASSIVITY", "PAIN_INPUT_ECHO", "AC_CABIN_DEMO",
+        "CABIN_GEOM_HAND", "CYL2D_WEYL", "CYL2D_GRID_CONV", "TRIM_INPUT_QA", "TRIM_PASSIVITY", "PAIN_INPUT_ECHO", "AC_CABIN_DEMO", "AC_C695A_DBA",
         "BEMT_MOMENTUM", "BEMT_HAND_TIP", "BEMT_INTEGRALS", "BEMT_SIMILARITY",
         "F1A_GUTIN_ANGLES", "F1A_GW_FLIGHT", "F1A_THICKNESS", "F1A_PROPERTIES",
         "POLAR_FIDELITY", "F1A_CHORDWISE",

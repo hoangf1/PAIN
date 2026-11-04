@@ -145,3 +145,18 @@ end
     PAIN.fill_cabin_modes_gui!(obs)
     @test obs["cm_mode"][] == 19.0                                                          # clamped to the 20 modes
 end
+
+# Phase 120 (2026-11-03): θ₀ = 0 in the GUI means the auto floor angle for the current radius
+@testset "auto floor angle in the GUI" begin
+    obs = PAIN.make_gui_observables()
+    @test obs["theta0_deg"][] == 0.0
+    @test PAIN._gui_theta0(obs) == 56.6                  # default a = 0.508 m: the test article's own value
+    obs["a"][] = 1.25
+    @test occursin("62.6", obs["theta0_auto"][]) && PAIN._gui_theta0(obs) == 62.6
+    obs["a"].val = 1.6                                   # without notifying: the label follows only on update
+    @test occursin("62.6", obs["theta0_auto"][])
+    PAIN._update_theta0_auto!(obs)
+    @test occursin("73.7", obs["theta0_auto"][])
+    obs["theta0_deg"][] = 50.0
+    @test PAIN._gui_theta0(obs) == 50.0
+end

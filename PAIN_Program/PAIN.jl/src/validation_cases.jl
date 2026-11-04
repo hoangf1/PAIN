@@ -554,6 +554,8 @@ const INFORMATION_ONLY_CASES = Dict(
     "PROP_BB_FIG14" => "inputs incomplete: BPM runs on an assumed blade (the real one is proprietary)",
     "PROP_BB_FIG17" => "inputs incomplete: BPM runs on an assumed blade (the real one is proprietary)",
     "BBN_CIRC" => "inputs incomplete: the Aero Commander blade geometry is assumed",
+    # Phase 121 (2026-11-03): Commander 695A run from the inputs CR-178004 prints plus assumed ones
+    "AC_C695A_DBA" => "inputs incomplete: the 695A blade, cabin cross-section and stiffener sections are not printed (assumed)",
 )
 
 """

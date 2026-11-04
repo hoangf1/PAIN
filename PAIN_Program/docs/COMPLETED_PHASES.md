@@ -208,6 +208,7 @@ Not blockers (recorded so nobody stops on them): BBN tip geometry beyond 40 in. 
 | Q100 | **Phase 118 — input completeness, missing-input search, full-input misses, Q95, review checks** (§8bh) | validation rule, documents, code | Phase 117 | **done 2026-11-02**: 14 cases off the map (all not met); App. B field found for the T1 family (new phase); E14_LOSS deck table not supported; R1 clamped past 90°; `CLAUDE.md` checks restored |
 | Q101 | **Phase 119 — the T1 family on CR-172428 App. B's printed field** (§8bi; author 2026-11-02: "Yes, run Q101") | E test | Phase 118 | **done 2026-11-02**: T1_APPB met 3/3 (H2 by gate B only), T1_MEAS_DAMPING_APPB met 3/3 on the measured mean; H3 excess was the GEXT field; not held out in full (R172428_EXP) |
 | Q102 | **Phase 120 — auto floor angle θ₀ and how to calculate it** (§8bj; author 2026-11-03: "create a figure on how to calculate in the methodology but also just use the dash 8's angle for now as the auto" / "if you can find that theta angle for an equivalent 2.5 m diameter then thats fine too if you have it in the papers") | input default, documents | Phase 105 | **done 2026-11-03**: auto = printed aircraft nearest in radius (2.5–2.7 m → 62.6°); default run unchanged; figure in METHODOLOGY §4 |
+| Q103 | **Phase 121 — Commander 695A cabin dB(A) against CR-178004 flight 3** (§8bk; author 2026-11-03: "are there any interior spl experimental validation checks/figures i can use to see how low or high my db(A) values" / "we are doing this in the pain program" / "you really only need the inputs and then checking the final dba outputs") | information case (A_CABIN) | Phase 118 rule | **done 2026-11-03**: `AC_C695A_DBA` no verdict; PAIN 12.9–18.2 dB(A) under the measured cabin (mean −15.4 dB) |
 | Q58 | **Phase 79 — CYL2D** (§8w; 2026-10-28) | `case_error_summary`, `cyl2d.jl`, CYL2D_WEYL | Q57 | **done 2026-10-28**: information rows leave the pass count; refinement fixed (79b); CYL2D_GRID_CONV (NY 10 within 4.9 % of NY 60); Weyl + surface term 4/5; production NY = 10 kept (decided 2026-10-28) |
 | Q57 | **Phase 78 — structural modes** (§8v; 2026-10-28) | `mrp_appd.jl`, MRP_APPD criterion, map | Q53 | **done 2026-10-28**: App. D solver fixes J1–J6; MRP_APPD not met 2/32 (class I, floor stiffener model undocumented); MRP_D1/MRP_RITZ off the map |
 | Q56 | **Phase 77 — POLAR_FIDELITY as an equivalent angle** (§8u; 2026-10-28) | `src/validation_case_iso67.jl`, figure | Q52 | **done 2026-10-28**: Δα shown next to Δc_l, display only |
@@ -3018,3 +3019,32 @@ combination reproduces the small-diameter list better than 1.1 % (best 62.4°, N
 1.145 m are not misread. No criterion, case, recorded result or data file changed. Also fixed: the merge-conflict markers
 left at the end of this file (118f and Phase 119 both kept, 118f first).
 
+## 8bk. Phase 121 — Commander 695A cabin dB(A) against CR-178004 flight 3 (done 2026-11-03; information, no verdict)
+
+*(Author 2026-11-03: "are there any interior spl experimental validation checks/figures i can use to see how low or high
+my db(A) values estimation/prediction wise"; "we are doing this in the pain program right not the cabin_noise"; "you
+really only need the inputs and then checking the final dba outputs if thisis possible".)*
+
+**Form (fixed 2026-11-03, in `validation_case_iso121.jl` before the first run).** PAIN's aircraft path on the Commander
+695A for each of CR-178004 Table 4's 18 flight-3 conditions; overall dB(A) over 63–5000 Hz against the measured dB(A)
+at mics 3 and 6 (App. E Tables E.3, E.6; same bands, A-weights at PAIN's centres). Recorded as within PAIN's ±3.5 dB
+(1σ) at ≥ 68 % of the 36 points; no verdict (Phase 118: the blade, cabin section and stiffener sections are assumed).
+Flight 4 (treated) is left out: PAIN has no input for the 2-in fiberglass batts.
+
+**Done.** (a) `data/cr178004/`: the measured flight-3 spectra (864 cells, read 2026-11-03 by eye and checked against the
+PDF text layer) and Table 4. (b) `examples/commander695a_cr178004.json`: printed inputs tagged measured, the rest
+assumed (tip-A blade scaled to 2.69 m, a = 0.725 m, auto θ₀ = 50°, L = 5.33 m, test-article stiffener sections, Table 8
+calibration off). (c) `validation_case_iso121.jl`: ISA air from Table 4 (IAS = EAS; cabin at 293.15 K), pitch per engine
+by bisection so the CCBlade torque equals the printed power / Ω, one run per engine (port rotation +1, starboard −1),
+band levels added in energy. (d) Unit tests `test/unit/test_case_helpers_iso121.jl` (ISA values, Table 4 rows, the
+torque match, a hand dB(A) with the IEC tabulated weights, the energy sum of the two engines). (e) The Phase 120
+functions' tests moved from `runtests.jl` to `test/unit` (`auto_floor_angle`, `_gui_theta0`, `_update_theta0_auto!`
+had no unit-test mention; the completeness test failed on them).
+
+**Result (first run 2026-11-03).** 0/36 within ±3.5 dB; PAIN − measured = −18.2 to −12.9 dB, mean −15.4 dB. Post-hoc look
+(condition 1, mic 3, nothing changed): BPF and 2×BPF are 6 dB low; PAIN's harmonics fall fast above H3 (loading-only F1A,
+no section data); the measured dB(A) is set by broadband at 250 Hz–2 kHz, where PAIN has only its tones below 1 kHz and
+its propeller-driven Eq. (19) broadband, 13–24 dB low, above. App. D warns that the 0.686 m stringer spacing exceeds a
+quarter of the circumferential wavelength in all 32 modes (the smeared-stiffener model is outside its range on this
+aircraft). Record: `validation_reports/phase121_c695a_dba.md`. No criterion, recorded result or data file of another
+case changed.

@@ -240,7 +240,7 @@ or the other documents points there. When a phase is done, mark it done and move
 
 | Q | Item | Kind | Prerequisite | Output |
 |---|------|------|--------------|--------|
-| — | No other open item (2026-11-03); Phases 90–120 are done (118f: unit-test gaps; 112–116 merged from branch `heart`, numbered 100–104 there) | — | — | — |
+| — | No other open item (2026-11-03); Phases 90–121 are done (118f: unit-test gaps; 112–116 merged from branch `heart`, numbered 100–104 there) | — | — | — |
 
 If a queue item is blocked on data, skip to the next unblocked item and say which data item blocks it.
 
