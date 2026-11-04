@@ -200,7 +200,9 @@ class FuselageTab(Tab):
         ])
         self.form.changed.connect(self.emit)
         self.v.addWidget(self.form)
-        self.v.addWidget(_ref("Boundary layer: Goody (2004) wall spectrum, 1/7-power flat-plate layer; the wall "
+        self.v.addWidget(_ref("Default nose to prop-plane station 11.3 m: Dash 8-400, measured on the side view of the "
+                              "Airport Planning Manual Fig. 2-2 (De Havilland D84APM), scaled by its printed dimensions. "
+                              "Boundary layer: Goody (2004) wall spectrum, 1/7-power flat-plate layer; the wall "
                               "pressure is converted to the equivalent diffuse field, <p^2> = <p_wall^2> / 2 "
                               "(Waterhouse 1955; CR-3813 p. 23)."))
         self.v.addStretch()
