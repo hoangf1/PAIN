@@ -48,7 +48,7 @@ class Propeller:
 
 @dataclass
 class Fuselage:
-    nose_to_station: float = 4.0     # nose to the propeller-plane station (boundary layer), m
+    nose_to_station: float = 11.3    # nose to the propeller-plane station (boundary layer), m; Dash 8-400 APM Fig. 2-2
     side_area: float = 15.0          # sidewall area on one side (exposed to that side's propeller), m^2
     tbl_area: float = 30.0           # sidewall area exposed to the boundary layer, m^2
 
