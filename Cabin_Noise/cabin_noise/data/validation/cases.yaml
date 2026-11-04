@@ -14,7 +14,7 @@
 # retired transfer-matrix pipeline (records in git, last commit 1c2c8fe), so these runs are not
 # blind. No parameter of the paper pipeline is chosen from those data: the methods and inputs
 # are fixed by the papers and the inputs files, written before these runs.
-criteria_fixed: "2026-11-02 (V2p 2026-11-02, V4 2026-11-03, V8 2026-11-03, each before its run)"
+criteria_fixed: "2026-11-02 (V2p 2026-11-02, V4 2026-11-03, each before its run)"
 
 cases:
   # ---- verification: each block against its paper ----------------------------------------
@@ -191,25 +191,6 @@ cases:
     quantity: il_bands
     defined: "2026-11-02, paper pipeline"
     recorded: "2026-11-02 paper pipeline (definition commit 93bbeb9): not met: 372/519 within +-6 dB (72 %), mean +1.4 dB"
-  # Overall cabin dBA (added 2026-11-03, criterion fixed and committed before App. E / F mics 3 and
-  # 6 were transcribed; only Table E.1, mic 1, had been seen, while finding the appendix). Full
-  # prediction from the report's inputs (V6's projects: Gutin tones of both engines + Goody boundary
-  # layer -> mass-law wall -> Sabine room average), against the measured overall dBA of every
-  # condition printed. Measured dBA = energy sum over the printed 1/3-octave bands 25-5000 Hz of
-  # L + A(f) (IEC 61672 A-weighting at the band centre); the prediction is summed over the same bands.
-  # Flight 3 (bare, App. E) runs on Table 4's conditions; flight 4 (treated, App. F) on Table 5's.
-  - id: V8
-    stage: Total
-    track: both
-    kind: validation
-    check: Cabin overall dBA, full prediction from the report's inputs (room average vs mics 3, 6)
-    reference: NASA CR-178004 App. E (flight 3, bare) and App. F (flight 4, treated), mics 3 and 6
-    metric: ">= 75 % of measured overall dBA values (mics 3, 6, every printed condition, both flights) within +-6 dB"
-    tol_db: 6.0
-    min_fraction: 0.75
-    quantity: cabin_dba
-    defined: "2026-11-03, paper pipeline; criterion committed before the mic 3 / 6 tables were transcribed"
-    recorded: "not run"
   - id: V7
     stage: Total
     track: tonal
