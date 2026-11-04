@@ -4047,6 +4047,14 @@ On CR-172428's test article, the H1–H3 energy sums (dB and dB(A)): the frozen 
 The mics are in the propeller plane, so `AC_C695A_SEAT` compares PAIN's Eq. (8) point form at that seat with App. B:
 43/108 within ±4 dB (space average: 32/108); PAIN − measured mean −0.2 / +9.3 / +7.3 dB at H1 / H2 / H3 (port +4.1 dB H2, starboard +14.4 dB H2); the seat is +5.3 / +1.1 / +3.8 dB above the space average. At the seat H1 agrees on average; H2 and H3 are high. Record: `validation_reports/phase125_c695a_seat.md`.
 
+## 2.48 Phase 126: the H1 shortfall is PAIN's method; I-18 closed (2026-11-04, diagnostics)
+
+No case added and no criterion changed. On CR-172428's test article this code is within 0.2 dB of NASA's printed
+PAIN H1 (0.34 dB on the held-out η_T = 2.0 run, R172428_ETAT2), and NASA's PAIN is 14–18 dB under the measured H1 at
+3000 and 5000 rpm, so R172428_EXP's H1 misses are the method's. The 695A H1 shortfall (AC_C695A_TONES, _SEAT) is
+consistent with this, not proved (NASA never ran PAIN on the 695A). I-18 closed: the lower-quarter grid breaks the
+match with both NASA runs, so the 160-point grid stays. Record: `validation_reports/phase126_h1_method_and_i18.md`.
+
 ## 3. What “valid recreation” means for this project
 
 A recreation is **pipeline-valid** only if:
