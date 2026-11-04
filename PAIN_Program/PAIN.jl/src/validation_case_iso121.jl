@@ -98,8 +98,9 @@ end
 
 One PAIN aircraft run per engine that is on (port rotation +1, starboard −1: both turn the same way, so mirrored onto
 PAIN's one side they turn opposite ways), pitch set for the printed power; band mean-square pressures added in energy.
+`seat=true` adds each engine's H1–H3 at the mic seat (`c695a_seat_dB`, Phase 125).
 """
-function c695a_condition_spectrum(row; n_harmonics::Int=10)
+function c695a_condition_spectrum(row; n_harmonics::Int=10, seat::Bool=false)
     op = c695a_operating_point(row)
     band_p2 = Dict{Float64,Float64}()
     engines = NamedTuple[]
@@ -109,17 +110,20 @@ function c695a_condition_spectrum(row; n_harmonics::Int=10)
         path, io = mktemp()
         write(io, JSON3.write(_p121_cfg_dict(rpm, pitch, op, rot)))
         close(io)
-        sp = try
-            run_pain_pipeline(; source=:aircraft, aircraft_json=path, n_harmonics).spectrum
+        run = try
+            run_pain_pipeline(; source=:aircraft, aircraft_json=path, n_harmonics)
         finally
             rm(path; force=true)
         end
+        sp = run.spectrum
         for (b, l) in sp.third_octave_SPL_dB
             isfinite(l) || continue
             band_p2[b] = get(band_p2, b, 0.0) + 10^(l / 10)
         end
         push!(engines, (; side, rpm, kW, pitch_deg=round(pitch; digits=3), dBA=round(_p121_dBA(sp.third_octave_SPL_dB); digits=2),
-                         harmonics_dB=sp.harmonic_SPL_dB[1:min(3, end)]))
+                         harmonics_dB=sp.harmonic_SPL_dB[1:min(3, end)],
+                         exterior_dB=c695a_flush_mic_dB(run.ff, run.fuse.a),
+                         seat_dB=seat ? c695a_seat_dB(run.inputs, run.ff.bpf_Hz) : Float64[]))
     end
     return (; band_p2, engines, op)
 end
@@ -298,4 +302,180 @@ function _iso122_validation_cases()
                            [_p121_conditions_csv(), _p122_measured_csv()],
                            FigureRef("CR-178004", "App. B Tables B.7, B.8, B.16, B.17; Table 4", nothing), crit,
                            "2026-11-03", "V-EXP", _run_ac_c695a_tones, spec, "")]
+end
+
+# ---------------------------------------------------------------------------------------------------------------------
+# Phase 123 — the source alone (form fixed 2026-11-03 before the first run). CR-178004 App. A prints each near
+# propeller's H1–H3 at a flush microphone on the fuselage, 7.5 cm forward of the propeller plane at the tip clearance:
+# a blocked surface pressure, the quantity PAIN feeds its cabin. PAIN's blocked field at grid line ℓ = 1 (the propeller
+# azimuth), interpolated in dB between k_p and k_p − 1 to 7.5 cm forward, is compared with it. Information (Phase 118).
+
+_p123_measured_csv() = _data_path("cr178004", "appA_flight3_exterior_harmonics.csv")
+const _P123_MIC_FWD_M = 0.075   # CR-178004 Table 8 / p. 16: 7.5 cm forward of the propeller plane
+
+"""
+    c695a_flush_mic_dB(grid, a; x_fwd=0.075, nH=3) -> Vector{Float64}
+
+SPL (dB re 20 µPa) of the grid's harmonics 1…nH on line ℓ = 1 at `x_fwd` forward of the propeller plane: the peak
+amplitudes at k_p (x₃ = 0) and k_p − 1 (x₃ = πa/18 forward) turned to dB and interpolated linearly in x₃.
+"""
+function c695a_flush_mic_dB(grid, a::Real; x_fwd::Real=_P123_MIC_FWD_M, nH::Int=3)
+    kp = GridSpec().k_p
+    w = x_fwd / (π * a / 18)
+    0 ≤ w ≤ 1 || error("c695a_flush_mic_dB: $(x_fwd) m is outside the first grid step $(round(π * a / 18; digits=3)) m")
+    nH = min(nH, size(grid.amplitudes, 3))
+    return [(1 - w) * peak_Pa_to_spl_dB(grid.amplitudes[kp, 1, H]) + w * peak_Pa_to_spl_dB(grid.amplitudes[kp - 1, 1, H])
+            for H in 1:nH]
+end
+
+"""
+    c695a_measured_exterior() -> Dict{(cond, side, H) => dB}
+
+CR-178004 App. A flight-3 flush-microphone levels of the near propeller (side 0 = port, 1 = starboard).
+"""
+function c695a_measured_exterior()
+    c = _read_csv_numeric(_p123_measured_csv())
+    out = Dict{Tuple{Int,String,Int},Float64}()
+    for i in eachindex(c[:cond])
+        key = (Int(c[:cond][i]), Int(c[:side][i]) == 0 ? "port" : "stbd", Int(c[:harmonic][i]))
+        haskey(out, key) && error("App. A exterior: $key given twice")
+        out[key] = c[:L_dB][i]
+    end
+    return out
+end
+
+function _run_ac_c695a_ext()
+    meas = c695a_measured_exterior()
+    rows = Dict(r.cond => r for r in c695a_conditions())
+    pain = Dict{Tuple{Int,String,Int},Float64}()
+    per_cond = NamedTuple[]
+    for c in sort(unique(k[1] for k in keys(meas)))
+        r = c695a_condition_spectrum(rows[c])
+        push!(per_cond, (; cond=c, engines=[(; e.side, e.rpm, e.pitch_deg, ext_H1_H3=round.(e.exterior_dB; digits=2)) for e in r.engines]))
+        for e in r.engines
+            length(e.exterior_dB) ≥ 3 || error("AC_C695A_EXT: the runs need n_harmonics ≥ 3")
+            for H in 1:3
+                pain[(c, e.side, H)] = e.exterior_dB[H]
+            end
+        end
+    end
+    table = ValidationTableRow[]
+    for k in sort(collect(keys(meas)))
+        (c, side, H) = k
+        haskey(pain, k) || error("App. A exterior: no PAIN run for cond $c $side")
+        L, m = pain[k], meas[k]
+        push!(table, ValidationTableRow("cond $c $side H$H", Float64(H), m, L, L - m, abs(L - m) ≤ _P122_TOL_DB, "H$H"))
+    end
+    n = length(table)
+    n_ok = count(r -> r.within_tolerance, table)
+    res = [r.residual for r in table]
+    byH = [(; H, mean=round(sum(r.residual for r in table if r.x == H) / count(r -> r.x == H, table); digits=2)) for H in 1:3]
+    series = [PlotSeries("measured, flush microphone (App. A)", :reference_points, [r.x - 0.06 for r in table], [r.reference for r in table]; panel=1),
+              PlotSeries("PAIN blocked field at the microphone", :computed_points, [r.x + 0.06 for r in table], [r.computed for r in table]; panel=1)]
+    met = n_ok ≥ ceil(Int, 0.68n)
+    return ValidationCaseResult("AC_C695A_EXT", _today_iso(),
+        (; criterion="each near propeller's H1–H3 at the flush microphone within ±4 dB of App. A at ≥ 68 % of the points (form fixed 2026-11-03)",
+           n_ok, n, mean_residual_dB=round(sum(res) / n; digits=2), min_residual_dB=round(minimum(res); digits=2),
+           max_residual_dB=round(maximum(res); digits=2), mean_by_harmonic=byH, conditions=per_cond),
+        table, series, met ? :met : :not_met,
+        "$n_ok/$n exterior tones within ±4 dB; PAIN − measured = $(round(minimum(res); digits=1)) to $(round(maximum(res); digits=1)) dB (mean $(round(sum(res) / n; digits=1)) dB; by harmonic $(join([string(b.mean) for b in byH], ", ")) dB)",
+        "X-EXTRAP (assumed blade; CR-178004 flight 3)",
+        joinpath(_VAL_REPORT_DIR, "phase123_c695a_exterior.md"))
+end
+
+function _iso123_validation_cases()
+    crit = "Information (input-completeness rule, Phase 118). Form fixed 2026-11-03 before the first run: PAIN's blocked " *
+           "field on grid line ℓ = 1, interpolated in dB to 7.5 cm forward of the propeller plane, H1–H3 for each near " *
+           "propeller (the AC_C695A_DBA runs) against CR-178004 App. A's flush-microphone levels, flight 3; recorded as " *
+           "within ±4 dB (T1's gate width) at ≥ 68 % of the points."
+    spec = PlotSpec(; xlabel="harmonic of the blade-passage frequency", ylabel="exterior surface tone level (dB)",
+                    panel_titles=["AC_C695A_EXT"], error_mode=:absolute, error_tol=_P122_TOL_DB,
+                    error_ylabel="PAIN − measured (dB)")
+    return [ValidationCase("AC_C695A_EXT", "Commander 695A exterior tones vs CR-178004 App. A (123)", "123",
+                           [_p121_conditions_csv(), _p123_measured_csv()],
+                           FigureRef("CR-178004", "App. A Tables A.1, A.2; Table 4", nothing), crit,
+                           "2026-11-03", "V-EXP", _run_ac_c695a_ext, spec, "")]
+end
+
+# ---------------------------------------------------------------------------------------------------------------------
+# Phase 125 (author 2026-11-04: "Yes, add it") — the like-for-like quantity at the microphones. CR-178004 Table 7: mics 3
+# and 6 are in the propeller plane (station 117 in, 56.5 in = 1.435 m aft of the cabin front at station 60.5) at the ear
+# height of a seated passenger. PAIN's Eq. (8) point form (`point_tone_p2`, Phase 42) gives each engine's H1–H3 at the
+# interior node nearest that seat. Seat fixed 2026-11-04 before this case's first run: z = 1.435 m, |X| = 0.45 m,
+# 1.0 m above PAIN's floor (the values of the cond-1 diagnostics of 2026-11-03/04, chosen before any seat level was
+# seen). PAIN's point field is left–right symmetric (each structural mode drives cabin modes of one symmetry), so mics
+# 3 and 6 get the same PAIN level. Information (Phase 118); recorded against AC_C695A_TONES' form (±4 dB at ≥ 68 %).
+
+const _P125_SEAT = (; z=1.435, x=0.45, h_ear=1.0)
+
+"""
+    c695a_seat_dB(inp, bpf_Hz; nH=3, seat=_P125_SEAT) -> Vector{Float64}
+
+H1…nH (dB re 20 µPa) of the Eq. (8) point form at the interior node nearest the seat (axial `z`, lateral `x`, `h_ear`
+above PAIN's floor).
+"""
+function c695a_seat_dB(inp::PainInputs, bpf_Hz::Real; nH::Int=3, seat=_P125_SEAT)
+    p0 = cabin_interior_points(inp)
+    0 ≤ seat.z ≤ inp.L_c || error("c695a_seat_dB: seat z = $(seat.z) m is outside the cabin (L_c = $(inp.L_c) m)")
+    pts = (; nodes=p0.nodes, X=p0.X, Y=p0.Y, z=[Float64(seat.z)], wz=[1.0])
+    yfl = -inp.fuse.a * cosd(inp.fuse.theta0_deg)
+    i = argmin(j -> (p0.X[j] - seat.x)^2 + (p0.Y[j] - (yfl + seat.h_ear))^2, eachindex(p0.X))
+    return [10log10(point_tone_p2(inp, H, 2π * H * bpf_Hz; pts)[i, 1] / 2e-5^2) for H in 1:nH]
+end
+
+function _run_ac_c695a_seat()
+    meas = c695a_measured_tones()
+    rows = Dict(r.cond => r for r in c695a_conditions())
+    pain = Dict{Tuple{Int,String,Int},Float64}()
+    avg = Dict{Tuple{Int,String,Int},Float64}()
+    for c in sort(unique(k[1] for k in keys(meas)))
+        r = c695a_condition_spectrum(rows[c]; seat=true)
+        for e in r.engines, H in 1:3
+            pain[(c, e.side, H)] = e.seat_dB[H]
+            avg[(c, e.side, H)] = e.harmonics_dB[H]
+        end
+    end
+    table = ValidationTableRow[]
+    for k in sort(collect(keys(meas)))
+        (c, mic, side, H) = k
+        haskey(pain, (c, side, H)) || error("App. B tones: no PAIN run for cond $c $side")
+        L, m = pain[(c, side, H)], meas[k]
+        push!(table, ValidationTableRow("cond $c mic $mic $side H$H", Float64(H), m, L, L - m, abs(L - m) ≤ _P122_TOL_DB, "H$H"))
+    end
+    n = length(table)
+    n_ok = count(r -> r.within_tolerance, table)
+    res = [r.residual for r in table]
+    byH = [(; H, mean=round(sum(r.residual for r in table if r.x == H) / count(r -> r.x == H, table); digits=2)) for H in 1:3]
+    seat_minus_avg = [(; H, mean=round(sum(pain[k] - avg[k] for k in keys(pain) if k[3] == H) / count(k -> k[3] == H, keys(pain)); digits=2)) for H in 1:3]
+    series = PlotSeries[]
+    for (mic, kind) in ((3, :reference_points), (6, :measured_points))
+        sel = [r for r in table if occursin("mic $mic ", r.quantity)]
+        push!(series, PlotSeries("measured mic $mic (App. B)", kind, [r.x + (mic == 3 ? -0.08 : 0.08) for r in sel], [r.reference for r in sel]; panel=1))
+    end
+    sel = [r for r in table if occursin("mic 3 ", r.quantity)]
+    push!(series, PlotSeries("PAIN point form at the mic seat (per engine)", :computed_points, [r.x for r in sel], [r.computed for r in sel]; panel=1))
+    met = n_ok ≥ ceil(Int, 0.68n)
+    return ValidationCaseResult("AC_C695A_SEAT", _today_iso(),
+        (; criterion="each engine's H1–H3 at the mic seat within ±4 dB of App. B at ≥ 68 % of the points (form fixed 2026-11-04)",
+           seat=_P125_SEAT, n_ok, n, mean_residual_dB=round(sum(res) / n; digits=2), min_residual_dB=round(minimum(res); digits=2),
+           max_residual_dB=round(maximum(res); digits=2), mean_by_harmonic=byH, seat_minus_space_average=seat_minus_avg),
+        table, series, met ? :met : :not_met,
+        "$n_ok/$n tones within ±4 dB at the mic seat; PAIN − measured = $(round(minimum(res); digits=1)) to $(round(maximum(res); digits=1)) dB (mean $(round(sum(res) / n; digits=1)) dB; by harmonic $(join([string(b.mean) for b in byH], ", ")) dB); seat − space average $(join([string(b.mean) for b in seat_minus_avg], ", ")) dB",
+        "X-EXTRAP (assumed blade and cabin section; CR-178004 flight 3)",
+        joinpath(_VAL_REPORT_DIR, "phase125_c695a_seat.md"))
+end
+
+function _iso125_validation_cases()
+    crit = "Information (input-completeness rule, Phase 118). Form fixed 2026-11-04 before the first run: PAIN's Eq. (8) " *
+           "point form at the interior node nearest the mic seat (CR-178004 Table 7: propeller plane, z = 1.435 m; " *
+           "|X| = 0.45 m, 1.0 m above PAIN's floor) gives each engine's H1–H3 (the AC_C695A_DBA runs), against App. B's " *
+           "flight-3 levels at mics 3 and 6 as in AC_C695A_TONES; recorded as within ±4 dB at ≥ 68 % of the points. " *
+           "Disclosure: condition 1's seat levels were seen in the 2026-11-03/04 diagnostics."
+    spec = PlotSpec(; xlabel="harmonic of the blade-passage frequency", ylabel="cabin tone level at the mic seat (dB)",
+                    panel_titles=["AC_C695A_SEAT"], error_mode=:absolute, error_tol=_P122_TOL_DB,
+                    error_ylabel="PAIN − measured (dB)")
+    return [ValidationCase("AC_C695A_SEAT", "Commander 695A cabin tones at the mic seats vs CR-178004 App. B (125)", "125",
+                           [_p121_conditions_csv(), _p122_measured_csv()],
+                           FigureRef("CR-178004", "App. B Tables B.7, B.8, B.16, B.17; Table 7; Table 4", nothing), crit,
+                           "2026-11-04", "V-EXP", _run_ac_c695a_seat, spec, "")]
 end

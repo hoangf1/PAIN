@@ -232,6 +232,64 @@ function _run_r172428_pairs()
         "uncoupled, η_n per mode; before 2026-10-29 the CR-3813 tone sum)", "diagnostic", "")
 end
 
+# Phase 124 (2026-11-04; author: "i just need a dba comparison against pains own output and an experimental").
+# CR-172428 prints, for the 1.016 m test article at 3000/4000/5000 rpm, NASA PAIN's predicted space-average tones and
+# the measured ones (Table 10 / App. B). The tonal dB(A) is the A-weighted energy sum of H1–H3 (A-weight at the tone
+# frequency), formed the same way for this code, for NASA's printout and for the measurement. Criteria fixed 2026-11-04
+# before the first run; tolerances copied unchanged from R172428_CODE (±3 dB) and R172428_EXP (±4 dB), required at each
+# rpm. Disclosure: the H1–H3 levels the sums are formed from were seen in R172428_CODE / _EXP (2026-10-23 onward); the
+# dB(A) sums were not computed before this case.
+
+"""
+    tonal_dBA(levels_dB, f_Hz; weighted=true) -> dB(A) (or dB with `weighted=false`): energy sum of the tones, each
+A-weighted at its own frequency.
+"""
+tonal_dBA(L::AbstractVector{<:Real}, f::AbstractVector{<:Real}; weighted::Bool=true) =
+    10log10(sum(10^((l + (weighted ? a_weight_dB(fi) : 0.0)) / 10) for (l, fi) in zip(L, f)))
+
+# Unweighted twin (R172428_DB_CODE / _EXP; author 2026-11-04: "i think you need both"): the same sums without the A-weight.
+# Criteria fixed 2026-11-04 before their first run, tolerances as above; the dB(A) results of this phase were seen first.
+function _run_r172428_dba(which::Symbol; weighted::Bool=true)
+    # the same runs as the parent case (R172428_CODE: CR-3813 tone sum; R172428_EXP: the default form)
+    lv = _r172428_levels(; η_n_per_mode=which !== :code, q0_coupled=which === :code, η_n_band_omega=which !== :code)
+    tol = which === :code ? 3.0 : 4.0
+    table = ValidationTableRow[]
+    rows = NamedTuple[]
+    for rpm in sort(unique(r.rpm for r in lv))
+        t = sort([r for r in lv if r.rpm == rpm]; by=r -> r.H)
+        [r.H for r in t] == [1, 2, 3] || error("R172428 dB(A): rpm $rpm lacks one of H1–H3")
+        f = [r.f_Hz for r in t]
+        sumdb(x) = tonal_dBA(x, f; weighted)
+        ours, nasa, meas = sumdb([r.ours for r in t]), sumdb([r.nasa for r in t]), sumdb([r.measured for r in t])
+        u = weighted ? "dB(A)" : "dB"
+        ref = which === :code ? nasa : meas
+        push!(table, ValidationTableRow("$rpm rpm tonal $u, H1–H3", Float64(rpm), ref, ours, ours - ref, abs(ours - ref) ≤ tol, "tonal $u"))
+        push!(rows, (; rpm, ours=round(ours; digits=2), nasa=round(nasa; digits=2), measured=round(meas; digits=2)))
+    end
+    n, n_ok = length(table), count(r -> r.within_tolerance, table)
+    complete = n == 3
+    verdict = !complete ? :no_verdict : (n_ok == n ? :met : :not_met)
+    xs = [r.x for r in table]
+    series = [PlotSeries("NASA PAIN (CR-172428 App. B / Table 10)", :reference_points, xs, [r.nasa for r in rows]; panel=1),
+              PlotSeries("measured space average (Table 5 / Table 10)", :measured_points, xs, [r.measured for r in rows]; panel=1),
+              PlotSeries(which === :code ? "this code, NASA inputs, CR-3813 tone sum" : "this code (default form), NASA inputs",
+                         :computed_points, xs, [r.ours for r in rows]; panel=1)]
+    u = weighted ? "dB(A)" : "dB"
+    id = (weighted ? "R172428_DBA_" : "R172428_DB_") * (which === :code ? "CODE" : "EXP")
+    what = which === :code ? "NASA's printed prediction" : "the measured space average"
+    crit = "tonal $u (H1–H3) within ±$(Int(tol)) dB of $what at each of the 3 rpm (fixed 2026-11-04; tolerance from " *
+           (which === :code ? "R172428_CODE" : "R172428_EXP") * ")"
+    reason = "$n_ok/$n rpm within ±$(Int(tol)) $u; " *
+             join(["$(r.rpm) rpm: this code $(r.ours), NASA PAIN $(r.nasa), measured $(r.measured) $u" for r in rows], "; ")
+    return ValidationCaseResult(id, _today_iso(), (; criterion=crit, date="2026-11-04", rows), table, series, verdict,
+                                reason, which === :code ? "V-CODE" : "V-EXP", joinpath(_VAL_REPORT_DIR, "phase124_r172428_dba.md"))
+end
+
+_run_r172428_dba_code() = _run_r172428_dba(:code)
+_run_r172428_dba_exp() = _run_r172428_dba(:exp)
+_run_r172428_db_code() = _run_r172428_dba(:code; weighted=false)
+_run_r172428_db_exp() = _run_r172428_dba(:exp; weighted=false)
+
 function _iso44_validation_cases()
     files = [_r172428_csv("appB_4000rpm_H1.csv"), _r172428_csv("appB_predictions.csv")]
     return [
@@ -264,5 +322,37 @@ function _iso44_validation_cases()
             "No criterion (diagnostic).",
             "2026-10-23", "diagnostic", _run_r172428_pairs,
             PlotSpec(; xlabel="harmonic", ylabel="p² (Pa²)", panel_titles=["R172428_PAIRS"], error_mode=:none), ""),
+        ValidationCase("R172428_DBA_CODE", "CR-172428 tonal dB(A): NASA's inputs vs NASA's printed predictions (124)", "124",
+            [_r172428_csv("appB_predictions.csv")], FigureRef("NASA CR-172428", "App. B p. 206 / Table 10", 206),
+            "Tonal dB(A) (A-weighted energy sum of H1–H3) within ±3 dB of the same sum of NASA's printed prediction at " *
+            "each of 3000/4000/5000 rpm. Fixed 2026-11-04 before the first run; ±3 dB copied from R172428_CODE. The H1–H3 " *
+            "levels were seen in R172428_CODE; the dB(A) sums were not computed before.",
+            "2026-11-04", "V-CODE", _run_r172428_dba_code,
+            PlotSpec(; xlabel="rpm", ylabel="interior tonal level (dB(A))",
+                     panel_titles=["R172428_DBA_CODE"], error_mode=:absolute, error_tol=3.0, error_ylabel="this code − NASA PAIN (dB(A))"), ""),
+        ValidationCase("R172428_DBA_EXP", "CR-172428 tonal dB(A) vs measured space averages (124)", "124",
+            [_r172428_csv("appB_predictions.csv")], FigureRef("NASA CR-172428", "Table 5 / Table 10", 89),
+            "Tonal dB(A) (A-weighted energy sum of H1–H3) within ±4 dB of the same sum of the measured space average at " *
+            "each of 3000/4000/5000 rpm. Fixed 2026-11-04 before the first run; ±4 dB copied from R172428_EXP. The H1–H3 " *
+            "levels were seen in R172428_EXP; the dB(A) sums were not computed before.",
+            "2026-11-04", "V-EXP", _run_r172428_dba_exp,
+            PlotSpec(; xlabel="rpm", ylabel="interior tonal level (dB(A))",
+                     panel_titles=["R172428_DBA_EXP"], error_mode=:absolute, error_tol=4.0, error_ylabel="this code − measured (dB(A))"), ""),
+        ValidationCase("R172428_DB_CODE", "CR-172428 tonal dB (unweighted): NASA's inputs vs NASA's printed predictions (124)", "124",
+            [_r172428_csv("appB_predictions.csv")], FigureRef("NASA CR-172428", "App. B p. 206 / Table 10", 206),
+            "Tonal dB (unweighted energy sum of H1–H3) within ±3 dB of the same sum of NASA's printed prediction at each " *
+            "of 3000/4000/5000 rpm. Fixed 2026-11-04 before its first run; ±3 dB copied from R172428_CODE. The H1–H3 levels " *
+            "(R172428_CODE) and the dB(A) sums (R172428_DBA_CODE) were seen first.",
+            "2026-11-04", "V-CODE", _run_r172428_db_code,
+            PlotSpec(; xlabel="rpm", ylabel="interior tonal level (dB)",
+                     panel_titles=["R172428_DB_CODE"], error_mode=:absolute, error_tol=3.0, error_ylabel="this code − NASA PAIN (dB)"), ""),
+        ValidationCase("R172428_DB_EXP", "CR-172428 tonal dB (unweighted) vs measured space averages (124)", "124",
+            [_r172428_csv("appB_predictions.csv")], FigureRef("NASA CR-172428", "Table 5 / Table 10", 89),
+            "Tonal dB (unweighted energy sum of H1–H3) within ±4 dB of the same sum of the measured space average at each " *
+            "of 3000/4000/5000 rpm. Fixed 2026-11-04 before its first run; ±4 dB copied from R172428_EXP. The H1–H3 levels " *
+            "(R172428_EXP) and the dB(A) sums (R172428_DBA_EXP) were seen first.",
+            "2026-11-04", "V-EXP", _run_r172428_db_exp,
+            PlotSpec(; xlabel="rpm", ylabel="interior tonal level (dB)",
+                     panel_titles=["R172428_DB_EXP"], error_mode=:absolute, error_tol=4.0, error_ylabel="this code − measured (dB)"), ""),
     ]
 end

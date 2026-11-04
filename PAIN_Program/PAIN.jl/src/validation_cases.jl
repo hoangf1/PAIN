@@ -557,6 +557,8 @@ const INFORMATION_ONLY_CASES = Dict(
     # Phase 121 (2026-11-03): Commander 695A run from the inputs CR-178004 prints plus assumed ones
     "AC_C695A_DBA" => "inputs incomplete: the 695A blade, cabin cross-section and stiffener sections are not printed (assumed)",
     "AC_C695A_TONES" => "inputs incomplete: the 695A blade, cabin cross-section and stiffener sections are not printed (assumed)",
+    "AC_C695A_EXT" => "inputs incomplete: the 695A blade is not printed (assumed)",
+    "AC_C695A_SEAT" => "inputs incomplete: the 695A blade, cabin cross-section and stiffener sections are not printed (assumed)",
 )
 
 """

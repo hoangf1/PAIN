@@ -210,6 +210,9 @@ Not blockers (recorded so nobody stops on them): BBN tip geometry beyond 40 in. 
 | Q102 | **Phase 120 — auto floor angle θ₀ and how to calculate it** (§8bj; author 2026-11-03: "create a figure on how to calculate in the methodology but also just use the dash 8's angle for now as the auto" / "if you can find that theta angle for an equivalent 2.5 m diameter then thats fine too if you have it in the papers") | input default, documents | Phase 105 | **done 2026-11-03**: auto = printed aircraft nearest in radius (2.5–2.7 m → 62.6°); default run unchanged; figure in METHODOLOGY §4 |
 | Q103 | **Phase 121 — Commander 695A cabin dB(A) against CR-178004 flight 3** (§8bk; author 2026-11-03: "are there any interior spl experimental validation checks/figures i can use to see how low or high my db(A) values" / "we are doing this in the pain program" / "you really only need the inputs and then checking the final dba outputs") | information case (A_CABIN) | Phase 118 rule | **done 2026-11-03**: `AC_C695A_DBA` no verdict; PAIN 12.9–18.2 dB(A) under the measured cabin (mean −15.4 dB) |
 | Q104 | **Phase 122 — Commander 695A cabin tones against CR-178004 App. B** (§8bl; author 2026-11-03: "yes thats good" to comparing only the tones PAIN models) | information case (A_CABIN) | Phase 121 | **done 2026-11-03**: `AC_C695A_TONES` no verdict; 27/108 within ±4 dB, PAIN low by 6.7 dB on average |
+| Q105 | **Phase 123 — the source alone, and App. D modes up to the tones** (§8bm; author 2026-11-03: "yes find the cause and fix it") | information case (A_CABIN), `mrp_appd.jl`, `run_pain_pipeline` | Phase 122 | **done 2026-11-04**: exterior tones 53/101 within ±4 dB, PAIN +4.0 dB high, so the cabin shortfall was transmission; cause: the pipeline kept the 32 lowest App. D modes (to 105 Hz on the 695A); fix: every mode up to 2 × the highest tone (series converged, ≥ 32). Reruns (post-hoc): AC_C695A_DBA 35/36, mean +0.7 dB(A) (was 0/36, −15.4); AC_C695A_TONES 32/108, mean +2.0 dB (H1 −5.5, H2 +8.2). Three stale App. D tests (since Phase 107) fixed |
+| Q106 | **Phase 124 — interior dB and dB(A) against NASA PAIN and the measurement** (§8bn; author 2026-11-04) | V-CODE / V-EXP cases (P_REPRO, P_MEAS) | Phase 123 | **done 2026-11-04**: R172428_DBA_CODE 0/3, R172428_DB_CODE 0/3 (CR-3813 tone sum, 4000 rpm +12–13 dB); R172428_DBA_EXP 1/3, R172428_DB_EXP 1/3, as NASA's own printout (1/3). Post-hoc: the default form is within 0.9 dB(A) / 0.7 dB of NASA's sums (not independent, Phase 93) |
+| Q107 | **Phase 125 — the 695A tones at the mic seats** (§8bo; author 2026-11-04: "Yes, add it") | information case (A_CABIN) | Phase 123 | **done 2026-11-04**: 43/108 within ±4 dB (space average: 32/108); PAIN − measured mean −0.2 / +9.3 / +7.3 dB at H1 / H2 / H3 (port +4.1 dB H2, starboard +14.4 dB H2); the seat is +5.3 / +1.1 / +3.8 dB above the space average; I-18 lower-quarter diagnostic raises H2 (not the cause) |
 | Q58 | **Phase 79 — CYL2D** (§8w; 2026-10-28) | `case_error_summary`, `cyl2d.jl`, CYL2D_WEYL | Q57 | **done 2026-10-28**: information rows leave the pass count; refinement fixed (79b); CYL2D_GRID_CONV (NY 10 within 4.9 % of NY 60); Weyl + surface term 4/5; production NY = 10 kept (decided 2026-10-28) |
 | Q57 | **Phase 78 — structural modes** (§8v; 2026-10-28) | `mrp_appd.jl`, MRP_APPD criterion, map | Q53 | **done 2026-10-28**: App. D solver fixes J1–J6; MRP_APPD not met 2/32 (class I, floor stiffener model undocumented); MRP_D1/MRP_RITZ off the map |
 | Q56 | **Phase 77 — POLAR_FIDELITY as an equivalent angle** (§8u; 2026-10-28) | `src/validation_case_iso67.jl`, figure | Q52 | **done 2026-10-28**: Δα shown next to Δc_l, display only |
@@ -3069,3 +3072,52 @@ H2 −7.4, H3 −7.0 dB; port −8.8, starboard −4.6 dB). Post-hoc diagnostic 
 rotation signs swapped, 30/108 and the same mean; the engine given −1 is about 4 dB higher in both runs (the sign sets
 which quarter the grid covers). About 6–7 dB of Phase 121's −15 dB(A) is the tones. Record:
 `validation_reports/phase122_c695a_tones.md`. No other case, criterion or data file changed.
+
+## 8bm. Phase 123 — the source alone, and App. D modes up to the tones (done 2026-11-04; information, no verdict)
+
+*(Author 2026-11-03: "why is it so far off", then "yes find the cause and fix it".)*
+
+**Form (fixed 2026-11-03, before the first run).** `AC_C695A_EXT`: PAIN's blocked field on grid line ℓ = 1,
+interpolated in dB to 7.5 cm forward of the propeller plane, H1–H3 of each near propeller against CR-178004 App. A's
+flush-microphone levels (101 points); recorded as within ±4 dB at ≥ 68 %; no verdict (Phase 118).
+
+**Result.** 53/101; PAIN − measured mean +4.0 dB (H1 +6.5, H2 +3.3, H3 +2.2). The source is high, so the cabin
+shortfall was in transmission. Cause: `run_pain_pipeline` kept the 32 lowest App. D modes, which end at 105 Hz on the
+5.33 m cabin (811 Hz on the test article). **Fix (rule fixed 2026-11-03 before use):** `appd_modes_to_cutoff` keeps
+every mode up to 2 × the highest tone (rounded up to 100 Hz; ≥ 32), with the series limits doubled from NASA's 10 / 12
+until a doubling adds ≤ 1 % (≥ 2) modes below the cutoff; cached. Reruns (post-hoc): AC_C695A_DBA 35/36, mean
++0.7 dB(A) (was 0/36, −15.4); AC_C695A_TONES 32/108, mean +2.0 dB (H1 −5.5, H2 +8.2, H3 +3.4); the exterior case is
+unchanged. Diagnostics (post-hoc, nothing changed): the mic-seat level is 3–7 dB above the space average at H1; H1 and
+H2 are carried by near-coincident resonances whose frequencies rest on assumed stiffener sections; damping is at PAIN's
+defaults; the measured H1 is nearly as loud on the far mic, which points to a path PAIN does not model. Three App. D
+unit tests stale since Phase 107 now ask for the full series. Record: `validation_reports/phase123_c695a_exterior.md`.
+
+## 8bn. Phase 124 — interior dB and dB(A) against NASA PAIN and the measurement (done 2026-11-04)
+
+*(Author 2026-11-04: "i just need a dba comparison against pains own output and an experimental"; "i think you need
+both".)*
+
+**Form (fixed 2026-11-04, before each first run).** On CR-172428's test article (the only interior levels with NASA
+PAIN's printout and a measurement from the same inputs), the energy sum of H1–H3, A-weighted (dB(A)) and unweighted
+(dB), of R172428_CODE's run against NASA's printed sum (±3 dB) and of R172428_EXP's run against the measured sum
+(±4 dB), at each of 3000/4000/5000 rpm; tolerances copied from the parents. The H1–H3 levels had been seen.
+
+**Result.** R172428_DBA_CODE 0/3, R172428_DB_CODE 0/3 (CR-3813 tone sum high, +12–13 dB at 4000 rpm);
+R172428_DBA_EXP 1/3 (−6.4 / +1.0 / −4.6 dB(A)), R172428_DB_EXP 1/3 (−12.0 / +1.3 / −8.0 dB); NASA's own printout
+meets the same gates 1/3. Post-hoc: the default form is within 0.9 dB(A) and 0.7 dB of NASA's sums (not independent:
+Phase 93 took that form from these printouts). Record: `validation_reports/phase124_r172428_dba.md`.
+
+## 8bo. Phase 125 — the 695A tones at the mic seats (done 2026-11-04; information, no verdict)
+
+*(Author 2026-11-04: "Yes, add it", to a case comparing PAIN's level at the microphone seats with its criterion fixed
+first.)*
+
+**Form (fixed 2026-11-04, before the first run).** `AC_C695A_SEAT`: PAIN's Eq. (8) point form (`point_tone_p2`) at the
+interior node nearest the seat (z = 1.435 m, the propeller plane per CR-178004 Table 7; |X| = 0.45 m; 1.0 m above
+PAIN's floor), each engine's H1–H3 from the AC_C695A_DBA runs against App. B's 108 levels; recorded against ±4 dB at
+≥ 68 %; no verdict (Phase 118). New: `c695a_seat_dB`, `c695a_condition_spectrum(row; seat=true)`.
+
+**Result.** 43/108 within ±4 dB (space average: 32/108); PAIN − measured mean −0.2 / +9.3 / +7.3 dB at H1 / H2 / H3 (port +4.1 dB H2, starboard +14.4 dB H2); the seat is +5.3 / +1.1 / +3.8 dB above the space average. Post-hoc diagnostic (condition 1, nothing changed): with the propeller at 90°, rotation +1
+puts the 10-line grid on the upper quarter and −1 on the lower; NASA's PAIN generates both (I-18). Adding the lower
+quarter (amplitudes mirrored; phases copied or conjugated, as the rule is not printed) evens the engines but raises
+the port H2 by about 8 dB: not the cause. Noise reduction (App. A exterior − App. B cabin, post-hoc): PAIN's port H2 transmission is within 1.4 dB of the measured, the starboard (lower-quarter grid) transmits 11 dB too much through the sidewall strip just above the floor junction (not the below-floor points), and H1 is transmitted 2–12 dB too weakly on both. Record: `validation_reports/phase125_c695a_seat.md`.

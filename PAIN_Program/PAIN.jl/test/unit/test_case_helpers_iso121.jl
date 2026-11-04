@@ -92,3 +92,68 @@ end
     b = argmin(b -> abs(log(b / bpf)), collect(keys(r.band_p2)))
     @test 10log10(r.band_p2[b]) ≈ r.engines[1].harmonics_dB[1] atol = 1e-9
 end
+
+# Phase 123: App. A exterior tones and the flush-microphone interpolation
+@testset "iso123: App. A exterior tones and the flush microphone" begin
+    @test isfile(PAIN._p123_measured_csv())
+    e = PAIN.c695a_measured_exterior()
+    # 18 conditions × 2 near propellers × 3 harmonics, less port 11 and starboard 12 (shut down) and port 15 H1 (illegible)
+    @test length(e) == 108 - 6 - 1
+    @test !haskey(e, (11, "port", 1)) && !haskey(e, (12, "stbd", 1)) && !haskey(e, (15, "port", 1)) && haskey(e, (15, "port", 2))
+    @test e[(1, "port", 1)] == 130.0 && e[(1, "port", 3)] == 127.0          # side 0 = port (first rows of Table A.1)
+    # interpolation in dB along ℓ = 1 between k_p (propeller plane) and k_p − 1 (πa/18 forward)
+    kp = PAIN.GridSpec().k_p
+    A = zeros(kp + 1, 2, 4)
+    A[kp, 1, :] .= [2.0, 1.0, 0.5, 9.0]
+    A[kp - 1, 1, :] .= [0.2, 0.1, 0.05, 9.0]
+    A[kp + 1, 1, :] .= 1e3; A[kp, 2, :] .= 1e3                               # other points must not enter
+    a = 0.725; dx = π * a / 18
+    db(p) = PAIN.peak_Pa_to_spl_dB(p)
+    @test PAIN.c695a_flush_mic_dB((; amplitudes=A), a; x_fwd=0.0) ≈ db.([2.0, 1.0, 0.5])
+    @test PAIN.c695a_flush_mic_dB((; amplitudes=A), a; x_fwd=dx) ≈ db.([0.2, 0.1, 0.05])
+    @test PAIN.c695a_flush_mic_dB((; amplitudes=A), a; x_fwd=dx / 2) ≈ db.([2.0, 1.0, 0.5]) .- 10    # halfway: −20 dB / 2
+    @test length(PAIN.c695a_flush_mic_dB((; amplitudes=A), a; nH=4)) == 4
+    @test_throws ErrorException PAIN.c695a_flush_mic_dB((; amplitudes=A), a; x_fwd=1.5dx)
+end
+
+# Phase 124: tonal dB(A) of the CR-172428 test article (this code, NASA's printout, the measurement)
+@testset "iso124: tonal dB(A) against NASA PAIN and the measurement" begin
+    # IEC 61672 A-weights at nominal centres (tabulated, independent of a_weight_dB): 500 Hz −3.2, 1 kHz 0.0, 2 kHz +1.2
+    @test PAIN.tonal_dBA([80.0], [1000.0]) ≈ 80.0 atol = 0.05
+    @test PAIN.tonal_dBA([80.0, 80.0], [1000.0, 1000.0]) ≈ 80.0 + 10log10(2) atol = 0.05
+    @test PAIN.tonal_dBA([80.0, 70.0], [500.0, 2000.0]) ≈ 10log10(10^(76.8 / 10) + 10^(71.2 / 10)) atol = 0.1
+    r = PAIN._run_r172428_dba(:exp)
+    @test r.id == "R172428_DBA_EXP" && length(r.table) == 3 && [row.x for row in r.table] == [3000.0, 4000.0, 5000.0]
+    # the reference column is the measured sum, read back from the printed table (4000 rpm: 90.3, 80.3, 65.2 dB at 200/400/600 Hz)
+    c = PAIN._read_csv_numeric_nan(PAIN._r172428_csv("appB_predictions.csv"))
+    i4 = [findfirst(j -> c[:rpm][j] == 4000 && c[:H][j] == H, eachindex(c[:rpm])) for H in 1:3]
+    @test c[:measured_dB][i4] == [90.3, 80.3, 65.2]
+    @test r.table[2].reference ≈ PAIN.tonal_dBA(c[:measured_dB][i4], [200.0, 400.0, 600.0])
+    @test all(row -> row.residual ≈ row.computed - row.reference, r.table)
+    @test r.verdict === (all(row -> abs(row.residual) ≤ 4.0, r.table) ? :met : :not_met)
+    # the code form follows its parent: R172428_DBA_CODE's 4000 rpm sum is that of R172428_CODE's H1–H3
+    rc = PAIN._run_r172428_dba(:code)
+    lv = [l for l in PAIN._r172428_levels(; η_n_per_mode=false, q0_coupled=true, η_n_band_omega=false) if l.rpm == 4000]
+    @test rc.table[2].computed ≈ PAIN.tonal_dBA([l.ours for l in lv], [l.f_Hz for l in lv])
+    @test rc.table[2].reference ≈ PAIN.tonal_dBA([l.nasa for l in lv], [l.f_Hz for l in lv])
+end
+
+# Phase 125: the Eq. (8) point form at the mic seat
+@testset "iso125: tone level at the mic seat" begin
+    inp = PAIN.r172428_inputs(4000)                      # any PainInputs: the test article (fast, Table D-1 modes)
+    s = PAIN.c695a_seat_dB(inp, 200.0; seat=(; z=0.9, x=0.2, h_ear=0.5))
+    @test length(s) == 3 && all(isfinite, s)
+    # the seat value is the point_tone_p2 value at the nearest interior node, in dB re 20 µPa
+    p0 = PAIN.cabin_interior_points(inp)
+    yfl = -inp.fuse.a * cosd(inp.fuse.theta0_deg)
+    i = argmin(j -> (p0.X[j] - 0.2)^2 + (p0.Y[j] - (yfl + 0.5))^2, eachindex(p0.X))
+    p2 = PAIN.point_tone_p2(inp, 2, 2π * 400.0; pts=(; nodes=p0.nodes, X=p0.X, Y=p0.Y, z=[0.9], wz=[1.0]))
+    @test s[2] ≈ 10log10(p2[i, 1] / 4e-10)
+    # left–right symmetric point field (stated in the case): the mirrored seat gives the same level
+    @test PAIN.c695a_seat_dB(inp, 200.0; seat=(; z=0.9, x=-0.2, h_ear=0.5)) ≈ s
+    # a different seat gives a different level (the function reads the seat)
+    @test PAIN.c695a_seat_dB(inp, 200.0; seat=(; z=0.2, x=0.2, h_ear=0.5)) != s
+    @test_throws ErrorException PAIN.c695a_seat_dB(inp, 200.0; seat=(; z=-1.0, x=0.2, h_ear=0.5))
+    @test PAIN._P125_SEAT == (; z=1.435, x=0.45, h_ear=1.0)
+    @test PAIN._run_ac_c695a_seat isa Function
+end

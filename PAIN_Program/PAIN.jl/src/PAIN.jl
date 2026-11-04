@@ -349,8 +349,12 @@ function run_pain_pipeline(;
         solver = :ritz
     end
     appd_g = (solver === :appd) ? build_appd_geometry(fuse, appd_overrides) : nothing
+    # Phase 123 (2026-11-03): computed App. D modes are kept up to twice the highest tone of the run (series converged
+    # there; at least 32); the 32 lowest alone ended at 105 Hz on a 5.33 m cabin. Table D-1 / Ritz unchanged. The cutoff
+    # is rounded up to the next 100 Hz (only adds modes), so runs at nearby rpm share one cached mode set.
+    f_cut = solver === :appd ? 100 * ceil(2 * min(n_harmonics, size(bl.amplitudes, 3)) * bl.bpf_Hz / 100) : nothing
     structural = build_structural_modes(fuse; structural_solver=solver, n_keep=32,
-                                        appd_geometry=appd_g)
+                                        appd_geometry=appd_g, f_cut_Hz=f_cut)
 
     ΔA = (π * a / 18)^2  # User Manual grid spacing scale (from fuse.a)
     trim_used = trim === :auto ? (src === :e11 ? :phase3 : :bare) : trim

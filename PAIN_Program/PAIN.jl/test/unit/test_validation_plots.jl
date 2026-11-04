@@ -17,6 +17,7 @@ _res(id, rows; verdict=:met, series=PAIN.PlotSeries[]) =
     c1 = PAIN._color_for_alpha!(cols, ord, 2.0); c2 = PAIN._color_for_alpha!(cols, ord, 4.0)
     @test c1 != c2 && PAIN._color_for_alpha!(cols, ord, 2.0) == c1 && ord == [2.0, 4.0]
     @test PAIN._unit_in_parens("SPL (dB) re (20 µPa)") == "20 µPa" && PAIN._unit_in_parens("x ()") === nothing && PAIN._unit_in_parens("") === nothing
+    @test PAIN._unit_in_parens("this code − NASA PAIN (dB(A))") == "dB(A)" && PAIN._unit_in_parens("level (dB) (dB(A))") == "dB(A)"   # Phase 124: one nesting level
     @test PAIN._absolute_error_unit(PAIN.PlotSpec(; ylabel="f (Hz)")) == "Hz" && PAIN._absolute_error_unit(PAIN.PlotSpec()) == "abs"
     @test PAIN._legend_kw("") == (;) && PAIN._legend_kw("a") == (; label="a")
     @test PAIN._percentile([1.0, 2.0, 3.0, 4.0], 0.5) ≈ 2.5 && PAIN._percentile([7.0], 0.9) == 7 && isnan(PAIN._percentile(Float64[], 0.5))

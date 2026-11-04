@@ -2484,6 +2484,8 @@ function _finish_validation_registry!()
     append!(cases, _iso119_validation_cases()) # phase 119 the T1 family on App. B's printed field
     append!(cases, _iso121_validation_cases()) # phase 121 Commander 695A cabin dB(A) vs CR-178004
     append!(cases, _iso122_validation_cases()) # phase 122 Commander 695A cabin tones vs CR-178004 App. B
+    append!(cases, _iso123_validation_cases()) # phase 123 Commander 695A exterior tones vs CR-178004 App. A
+    append!(cases, _iso125_validation_cases()) # phase 125 Commander 695A cabin tones at the mic seats
     append!(cases, _iso108_validation_cases()) # phase 108 run 10 floor-term sign (diagnostic)
     append!(cases, _iso90_validation_cases())  # phase 90 Report 996 Fig. 10 reflecting walls
 
@@ -2583,12 +2585,12 @@ function _finish_validation_registry!()
         "APPB_EPS_N", "APPB_ETA_N", "APPB_ETA_RPP", "Q0_REPRO_18b", "Q0_E18", "Q0_E21", "R172428_CODE_ETAN", "R996_FIG10_FLAT", "R996_FIG10_CIRC",
         "APPB_PAIRS", "APPB_PAIRS_Q0_ETAN", "R172428_CODE_Q0", "R172428_CODE_Q0_ETAN", "R172428_ETAT2", "APPB_ETA_N_T2", "APPB_ETA_N_BAND", "APPB_ETA_N_T2_BAND", "R172428_CODE_DEFAULT", "BAND_REPRO_18b", "BAND_E18", "R172428_TRIM_DECK", "FLIGHT_MODES", "FLIGHT_MODES_P2", "FLIGHT10_H234", "FLIGHT10_FLOOR_SIGN",
         "F1A_PLANE_PEAK", "FF_E11_MAP", "SRC_PASSTHROUGH", "BLK_GAIN_MAP", "MRP_INPUT_QA", "MRP_SHAPE_NORM",
-        "CABIN_GEOM_HAND", "CYL2D_WEYL", "CYL2D_GRID_CONV", "TRIM_INPUT_QA", "TRIM_PASSIVITY", "PAIN_INPUT_ECHO", "AC_CABIN_DEMO", "AC_C695A_DBA", "AC_C695A_TONES",
+        "CABIN_GEOM_HAND", "CYL2D_WEYL", "CYL2D_GRID_CONV", "TRIM_INPUT_QA", "TRIM_PASSIVITY", "PAIN_INPUT_ECHO", "AC_CABIN_DEMO", "AC_C695A_DBA", "AC_C695A_TONES", "AC_C695A_EXT", "AC_C695A_SEAT",
         "BEMT_MOMENTUM", "BEMT_HAND_TIP", "BEMT_INTEGRALS", "BEMT_SIMILARITY",
         "F1A_GUTIN_ANGLES", "F1A_GW_FLIGHT", "F1A_THICKNESS", "F1A_PROPERTIES",
         "POLAR_FIDELITY", "F1A_CHORDWISE",
         "T1_F1A_FILL", "T1_F1A_MEAS_DAMP",
-        "R172428_CODE", "R172428_EXP", "R172428_ETA", "R172428_TRIM", "R172428_PAIRS",
+        "R172428_CODE", "R172428_EXP", "R172428_ETA", "R172428_TRIM", "R172428_PAIRS", "R172428_DBA_CODE", "R172428_DBA_EXP", "R172428_DB_CODE", "R172428_DB_EXP",
         "POLAR_R996", "POLAR_PER",
         "R996_LOADS", "BEMT_HAND", "PER_LOADS", "F1A_GUTIN", "F1A_INDEP",
         "R996_FIG14", "R996_FIG12", "R996_FIG13A",

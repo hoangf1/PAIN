@@ -815,6 +815,47 @@ appd_modes(fuse::FuselageGeometry; kwargs...) =
     appd_modes(AppDGeometry(fuse); kwargs...)
 
 """
+    appd_modes_to_cutoff(geometry, f_cut_Hz; n_min=32, n_axial=10, n_circ=12, max_terms=640)
+        -> (; modes::StructuralModes, n_axial, n_circ, n_below)
+
+App. D modes converged up to `f_cut_Hz` (Phase 123, rule fixed 2026-11-03 before its use): starting from NASA's series
+limits (User Manual card 8: M 1–10, n 0–12), the axial and the circumferential limit are doubled until doubling
+either adds at most 1 % (at least 2) to the number of modes at or below `f_cut_Hz` (Ritz frequencies settle from above,
+so a few modes keep crossing the cutoff; a limit past `max_terms` errors); every mode at or below the cutoff is kept,
+and at least `n_min` (the lowest). A fixed count of 32 covers the test article's tones but not a long cabin's: on
+the Commander 695A (L = 5.33 m) the 32 lowest modes end at 105 Hz. Results are cached per (geometry, cutoff).
+"""
+function appd_modes_to_cutoff(geometry::AbstractAppDInput, f_cut_Hz::Real;
+                              n_min::Int=32, n_axial::Int=10, n_circ::Int=12, max_terms::Int=640)
+    key = (geometry, Float64(f_cut_Hz), n_min, n_axial, n_circ, max_terms)
+    return get!(() -> _appd_modes_to_cutoff(geometry, Float64(f_cut_Hz), n_min, n_axial, n_circ, max_terms),
+                _APPD_CUTOFF_CACHE, key)
+end
+
+const _APPD_CUTOFF_CACHE = Dict{Any,Any}()
+
+function _appd_modes_to_cutoff(geometry, f_cut_Hz, n_min, n_axial, n_circ, max_terms)
+    below(na, nc) = count(m -> m.f_Hz ≤ f_cut_Hz,
+                          appd_modes(geometry; n_modes=typemax(Int), n_axial=na, n_circ=nc, f_max_Hz=f_cut_Hz).modes)
+    na, nc = n_axial, n_circ
+    nb = below(na, nc)
+    while true
+        nb_a = below(2na, nc)
+        nb_c = below(na, 2nc)
+        tol = max(2, ceil(Int, 0.01nb))
+        nb_a - nb ≤ tol && nb_c - nb ≤ tol && break
+        grow_a, grow_c = nb_a - nb > tol, nb_c - nb > tol
+        grow_a && (na *= 2)
+        grow_c && (nc *= 2)
+        (na > max_terms || nc > max_terms) &&
+            error("appd_modes_to_cutoff: mode count below $(f_cut_Hz) Hz not converged by $max_terms series terms")
+        nb = grow_a && grow_c ? below(na, nc) : grow_a ? nb_a : nb_c   # one limit doubled: that count is already known
+    end
+    sm = appd_modes(geometry; n_modes=max(n_min, nb), n_axial=na, n_circ=nc)
+    return (; modes=sm, n_axial=na, n_circ=nc, n_below=nb)
+end
+
+"""
 Build the structural mode set for the pipeline.
 `structural_solver = :table_d1` (default) | `:ritz` | `:appd`.
 
@@ -825,7 +866,8 @@ L, a, θ0 come from `fuse`).
 function build_structural_modes(fuse::FuselageGeometry;
                                 structural_solver::Symbol=:table_d1,
                                 n_keep::Int=32,
-                                appd_geometry::Union{Nothing,AbstractAppDInput}=nothing)
+                                appd_geometry::Union{Nothing,AbstractAppDInput}=nothing,
+                                f_cut_Hz::Union{Nothing,Real}=nothing)
     if structural_solver === :table_d1 || structural_solver === :d1
         return structural_modes_from_table_d1(; L=fuse.L, a=fuse.a,
                                               theta0_deg=fuse.theta0_deg, n_keep=n_keep)
@@ -833,7 +875,9 @@ function build_structural_modes(fuse::FuselageGeometry;
         return structural_modes(fuse; n_keep=n_keep)
     elseif structural_solver === :appd
         g = appd_geometry === nothing ? AppDGeometry(fuse) : appd_geometry
-        sm = appd_modes(g; n_modes=n_keep)
+        # Phase 123: with a cutoff, the modes converged up to it (at least n_keep); without, the n_keep lowest
+        sm = f_cut_Hz === nothing ? appd_modes(g; n_modes=n_keep) :
+             appd_modes_to_cutoff(g, f_cut_Hz; n_min=n_keep).modes
         w = appd_input_warnings(g, sm)
         isempty(w) || @warn join(w, "\n")     # one message: a per-line maxlog would drop all but the first
         return sm

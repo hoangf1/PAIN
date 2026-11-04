@@ -95,7 +95,7 @@ _fmt_err_sig(x::Real) = string(round(Float64(x); sigdigits=2))
 function _unit_in_parens(label::AbstractString)
     isempty(label) && return nothing
     last = nothing
-    for m in eachmatch(r"\(([^()]*)\)", String(label))
+    for m in eachmatch(r"\(((?:[^()]|\([^()]*\))*)\)", String(label))   # one nesting level: "(dB(A))" → dB(A) (Phase 124)
         last = m
     end
     last === nothing && return nothing

@@ -109,7 +109,8 @@ end
         K2, M2, _, fp2 = PAIN._appd_assemble_KM(b2, g)
         _, _, E2 = PAIN._appd_reduce(K2, M2, C2)
         q2 = E2 * randn(MersenneTwister(11), size(E2, 2))
-        Cs2, ns2, Cf2, nf2, _ = PAIN._appd_extract_shapes(q2, b2, g, 1.0)
+        # full series (since Phase 107 the default keeps MRPMOD's 5 shell / 3 floor terms; the junction needs all)
+        Cs2, ns2, Cf2, nf2, _ = PAIN._appd_extract_shapes(q2, b2, g, 1.0; n_keep_shell=typemax(Int), n_keep_floor=typemax(Int))
         md = PAIN.StructuralMode(1, 100.0, sym, 1.0, 1, Cs2, ns2, Cf2, nf2)
         raw = (sym ? 1 : -1) * (-1)^b2.n_shell[findfirst(==(ns2[1]), b2.n_shell)] * q2[PAIN._shell_dof(b2, findfirst(==(ns2[1]), b2.n_shell), 3)]
         scale = raw / Cs2[1]
@@ -124,7 +125,8 @@ end
     @test length(sm.modes) == 12 && issorted([m.f_Hz for m in sm.modes]) && all(m.f_Hz ≤ 5000 for m in sm.modes)
     # J3: no spurious mode with a zero shape; J4: no mode dropped by a frequency dedup (count against the families)
     g0 = PAIN.appd_test_article_geometry()
-    sm2 = PAIN.appd_modes(g0; n_modes=1000, n_axial=3, f_max_Hz=900.0)
+    sm2 = PAIN.appd_modes(g0; n_modes=1000, n_axial=3, f_max_Hz=900.0,
+                          n_keep_shell=typemax(Int), n_keep_floor=typemax(Int))   # full shapes (Phase 107 truncates by default)
     θa = range(0.0, 2π; length=721); Lp0 = 2g0.a * sind(g0.theta0_deg)      # whole shell (Phase 80, p. D-10)
     peak(m) = max(maximum(θ -> abs(PAIN.shell_circumferential(m, θ)), θa),
                   maximum(y -> abs(sum((m.symmetric ? cos(n * π * y / Lp0) : sin(n * π * y / Lp0)) * C for (C, n) in zip(m.C_floor, m.n_floor); init=0.0)), range(-Lp0 / 2, Lp0 / 2; length=81)))
@@ -339,7 +341,8 @@ end
     dk = PAIN.r172428_inputs(4000; structural=:deck).structural.modes
     @test length(dk) == length(d1) == 32
     @test maximum(abs(a.f_Hz / b.f_Hz - 1) for (a, b) in zip(dk, d1)) < 2e-4            # Table D-1 within 0.02 %
-    @test maximum(length(m.C_shell) for m in dk) > maximum(length(m.C_shell) for m in d1)  # full series, not the 5 printed
+    # since Phase 107 the deck modes keep MRPMOD's 5 shell terms, as Table D-1 prints (until then the full series)
+    @test maximum(length(m.C_shell) for m in dk) == maximum(length(m.C_shell) for m in d1) == 5
     @test_throws ErrorException PAIN.r172428_inputs(4000; structural=:ritz)
     @test length(PAIN.r172428_inputs(4000; structural=:nasa300).structural.modes) == 300   # Phase 84b
 end
@@ -359,4 +362,33 @@ end
     inp = PAIN.noise_reduction_test_article_inputs()
     sw = PAIN._with_deck_modes(inp)
     @test length(sw.structural.modes) == 300 && sw.sidewall === inp.sidewall && sw.m_wall == inp.m_wall
+end
+
+# Phase 123 (2026-11-03): App. D modes converged up to a cutoff instead of the 32 lowest
+@testset "appd_modes_to_cutoff" begin
+    # test article: a cutoff below its 32nd mode gives back exactly the 32 lowest (the old pipeline set)
+    gt = PAIN.AppDGeometry(FuselageGeometry(PAIN.test_article_length(), 0.508, 56.6))
+    old = PAIN.appd_modes(gt; n_modes=32)
+    c0 = PAIN.appd_modes_to_cutoff(gt, 0.5 * old.modes[end].f_Hz)
+    @test [m.f_Hz for m in c0.modes.modes] == [m.f_Hz for m in old.modes]
+    # a long cabin (5.33 m, a = 0.725 m): the 32 lowest end below 472 Hz; the cutoff set keeps every mode up to it
+    gl = PAIN.AppDGeometry(FuselageGeometry(5.33, 0.725, 50.0))
+    @test PAIN.appd_modes(gl; n_modes=32).modes[end].f_Hz < 472.0
+    c = PAIN.appd_modes_to_cutoff(gl, 472.0)
+    f = [m.f_Hz for m in c.modes.modes]
+    @test length(f) == c.n_below > 32 && maximum(f) ≤ 472.0 && issorted(f)
+    # converged: doubling either series limit again adds at most 1 % (at least 2) modes at or below the cutoff
+    nb(na, nc) = count(m -> m.f_Hz ≤ 472.0, PAIN.appd_modes(gl; n_modes=typemax(Int), n_axial=na, n_circ=nc, f_max_Hz=472.0).modes)
+    tol = max(2, ceil(Int, 0.01c.n_below))
+    @test nb(2c.n_axial, c.n_circ) - c.n_below ≤ tol && nb(c.n_axial, 2c.n_circ) - c.n_below ≤ tol
+    @test nb(c.n_axial ÷ 2, c.n_circ) < c.n_below - tol || nb(c.n_axial, c.n_circ ÷ 2) < c.n_below - tol   # one step fewer is short
+    # and NASA's limits alone (M ≤ 10, n ≤ 12) miss modes below the cutoff on this cabin
+    @test nb(10, 12) < c.n_below
+    @test PAIN.appd_modes_to_cutoff(gl, 472.0) === c          # cached
+    @test [m.f_Hz for m in PAIN._appd_modes_to_cutoff(gl, 472.0, 32, 10, 12, 640).modes.modes] == f   # uncached build, same set
+    @test_throws ErrorException PAIN.appd_modes_to_cutoff(gl, 472.0; max_terms=10, n_axial=11)
+    # build_structural_modes passes the cutoff on; without one it keeps the n_keep lowest
+    g2 = PAIN.build_structural_modes(FuselageGeometry(5.33, 0.725, 50.0); structural_solver=:appd, appd_geometry=gl, f_cut_Hz=472.0)
+    @test length(g2.modes) == c.n_below
+    @test length(PAIN.build_structural_modes(FuselageGeometry(5.33, 0.725, 50.0); structural_solver=:appd, appd_geometry=gl).modes) == 32
 end
