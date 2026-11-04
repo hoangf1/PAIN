@@ -144,3 +144,4 @@ BBN_LEVELS,2026-11-02,2026-11-02,no_verdict,20,32,5.5,1.7,"dB","no verdict · ma
 T1_APPB,2026-11-02,2026-11-02,met,4,6,9.5,2.1,"dB","4/6 in tol · max |err| 9.5 dB · med 2.1 dB"
 T1_MEAS_DAMPING_APPB,2026-11-02,2026-11-02,met,5,6,11.0,1.7,"dB","5/6 in tol · max |err| 11.0 dB · med 1.7 dB"
 AC_C695A_DBA,2026-11-03,2026-11-03,no_verdict,0,36,18.0,15.0,"dB","no verdict · max |err| 18.0 dB · med 15.0 dB"
+AC_C695A_TONES,2026-11-03,2026-11-03,no_verdict,27,108,18.0,7.3,"dB","no verdict · max |err| 18.0 dB · med 7.3 dB"

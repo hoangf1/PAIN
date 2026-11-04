@@ -70,3 +70,25 @@ end
     r12 = PAIN.c695a_condition_spectrum(rows[12]; n_harmonics=3)
     @test length(r12.engines) == 1 && r12.engines[1].side == "port"
 end
+
+# Phase 122: the App. B tones and the per-engine harmonic levels
+@testset "iso122: App. B cabin tones" begin
+    @test isfile(PAIN._p122_measured_csv())
+    t = PAIN.c695a_measured_tones()
+    @test length(t) == 108
+    # conditions where the two engines' tones are separate: different rpm, or one engine (11 starboard, 12 port)
+    @test sort(unique(k[1] for k in keys(t))) == [1, 2, 3, 4, 9, 10, 11, 12, 17, 18]
+    @test all(k -> k[3] == "stbd", (k for k in keys(t) if k[1] == 11)) && all(k -> k[3] == "port", (k for k in keys(t) if k[1] == 12))
+    # every condition named has a different rpm on the two engines, or one engine off (Table 4)
+    rows = Dict(r.cond => r for r in PAIN.c695a_conditions())
+    @test all(c -> rows[c].port_rpm != rows[c].stbd_rpm, unique(k[1] for k in keys(t)))
+    # hand value from App. B Table B.7 (flight 3, condition 1, mic 3, port engine): H1 = 106.6 dB, H2 = 92.3 dB
+    @test t[(1, 3, "port", 1)] == 106.6 && t[(1, 3, "port", 2)] == 92.3
+    # the condition runs carry each engine's H1–H3 from the same run as its bands
+    r = PAIN.c695a_condition_spectrum(rows[12]; n_harmonics=3)
+    @test length(r.engines[1].harmonics_dB) == 3 && all(isfinite, r.engines[1].harmonics_dB)
+    bpf = 3 * rows[12].port_rpm / 60
+    # H1 lies in the band nearest its frequency, alone (no broadband below 1 kHz): the band level equals H1
+    b = argmin(b -> abs(log(b / bpf)), collect(keys(r.band_p2)))
+    @test 10log10(r.band_p2[b]) ≈ r.engines[1].harmonics_dB[1] atol = 1e-9
+end

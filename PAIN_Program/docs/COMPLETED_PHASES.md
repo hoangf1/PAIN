@@ -209,6 +209,7 @@ Not blockers (recorded so nobody stops on them): BBN tip geometry beyond 40 in. 
 | Q101 | **Phase 119 — the T1 family on CR-172428 App. B's printed field** (§8bi; author 2026-11-02: "Yes, run Q101") | E test | Phase 118 | **done 2026-11-02**: T1_APPB met 3/3 (H2 by gate B only), T1_MEAS_DAMPING_APPB met 3/3 on the measured mean; H3 excess was the GEXT field; not held out in full (R172428_EXP) |
 | Q102 | **Phase 120 — auto floor angle θ₀ and how to calculate it** (§8bj; author 2026-11-03: "create a figure on how to calculate in the methodology but also just use the dash 8's angle for now as the auto" / "if you can find that theta angle for an equivalent 2.5 m diameter then thats fine too if you have it in the papers") | input default, documents | Phase 105 | **done 2026-11-03**: auto = printed aircraft nearest in radius (2.5–2.7 m → 62.6°); default run unchanged; figure in METHODOLOGY §4 |
 | Q103 | **Phase 121 — Commander 695A cabin dB(A) against CR-178004 flight 3** (§8bk; author 2026-11-03: "are there any interior spl experimental validation checks/figures i can use to see how low or high my db(A) values" / "we are doing this in the pain program" / "you really only need the inputs and then checking the final dba outputs") | information case (A_CABIN) | Phase 118 rule | **done 2026-11-03**: `AC_C695A_DBA` no verdict; PAIN 12.9–18.2 dB(A) under the measured cabin (mean −15.4 dB) |
+| Q104 | **Phase 122 — Commander 695A cabin tones against CR-178004 App. B** (§8bl; author 2026-11-03: "yes thats good" to comparing only the tones PAIN models) | information case (A_CABIN) | Phase 121 | **done 2026-11-03**: `AC_C695A_TONES` no verdict; 27/108 within ±4 dB, PAIN low by 6.7 dB on average |
 | Q58 | **Phase 79 — CYL2D** (§8w; 2026-10-28) | `case_error_summary`, `cyl2d.jl`, CYL2D_WEYL | Q57 | **done 2026-10-28**: information rows leave the pass count; refinement fixed (79b); CYL2D_GRID_CONV (NY 10 within 4.9 % of NY 60); Weyl + surface term 4/5; production NY = 10 kept (decided 2026-10-28) |
 | Q57 | **Phase 78 — structural modes** (§8v; 2026-10-28) | `mrp_appd.jl`, MRP_APPD criterion, map | Q53 | **done 2026-10-28**: App. D solver fixes J1–J6; MRP_APPD not met 2/32 (class I, floor stiffener model undocumented); MRP_D1/MRP_RITZ off the map |
 | Q56 | **Phase 77 — POLAR_FIDELITY as an equivalent angle** (§8u; 2026-10-28) | `src/validation_case_iso67.jl`, figure | Q52 | **done 2026-10-28**: Δα shown next to Δc_l, display only |
@@ -3048,3 +3049,23 @@ its propeller-driven Eq. (19) broadband, 13–24 dB low, above. App. D warns tha
 quarter of the circumferential wavelength in all 32 modes (the smeared-stiffener model is outside its range on this
 aircraft). Record: `validation_reports/phase121_c695a_dba.md`. No criterion, recorded result or data file of another
 case changed.
+
+## 8bl. Phase 122 — Commander 695A cabin tones against CR-178004 App. B (done 2026-11-03; information, no verdict)
+
+*(Author 2026-11-03, after Phase 121: "yes thats good" to comparing only what PAIN models, the propeller tones, against
+App. B.)*
+
+**Form (fixed 2026-11-03, in `validation_case_iso121.jl` before the first run).** Each engine's cabin H1–H3 from the
+Phase 121 runs (unchanged) against App. B's printed component of that engine at mics 3 and 6, for the flight-3
+conditions where the engines' tones are separate (1–4, 9–12, 17, 18; 108 levels). Recorded as within ±4 dB (T1's gate
+width) at ≥ 68 % of the points; no verdict (Phase 118).
+
+**Done.** `data/cr178004/appB_flight3_cabin_harmonics.csv` (copied unchanged from Cabin_Noise's V7 data, transcribed
+2026-11-02); `c695a_measured_tones`; each engine's `harmonics_dB` kept by `c695a_condition_spectrum`; case
+`AC_C695A_TONES`; unit tests (the 108 levels and their conditions, a printed value, the band of H1 equal to H1).
+
+**Result (first run 2026-11-03).** 27/108 within ±4 dB; PAIN − measured = −18.3 to +12.2 dB, mean −6.7 dB (H1 −5.7,
+H2 −7.4, H3 −7.0 dB; port −8.8, starboard −4.6 dB). Post-hoc diagnostic (no change to the case): with the two assumed
+rotation signs swapped, 30/108 and the same mean; the engine given −1 is about 4 dB higher in both runs (the sign sets
+which quarter the grid covers). About 6–7 dB of Phase 121's −15 dB(A) is the tones. Record:
+`validation_reports/phase122_c695a_tones.md`. No other case, criterion or data file changed.

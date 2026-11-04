@@ -94,7 +94,7 @@ function c695a_pitch_for_power(rpm, P_W, op; lo::Float64=-30.0, hi::Float64=30.0
 end
 
 """
-    c695a_condition_spectrum(row; n_harmonics=10) -> (; band_p2, engines)
+    c695a_condition_spectrum(row; n_harmonics=10) -> (; band_p2, engines, op)
 
 One PAIN aircraft run per engine that is on (port rotation +1, starboard −1: both turn the same way, so mirrored onto
 PAIN's one side they turn opposite ways), pitch set for the printed power; band mean-square pressures added in energy.
@@ -118,7 +118,8 @@ function c695a_condition_spectrum(row; n_harmonics::Int=10)
             isfinite(l) || continue
             band_p2[b] = get(band_p2, b, 0.0) + 10^(l / 10)
         end
-        push!(engines, (; side, rpm, kW, pitch_deg=round(pitch; digits=3), dBA=round(_p121_dBA(sp.third_octave_SPL_dB); digits=2)))
+        push!(engines, (; side, rpm, kW, pitch_deg=round(pitch; digits=3), dBA=round(_p121_dBA(sp.third_octave_SPL_dB); digits=2),
+                         harmonics_dB=sp.harmonic_SPL_dB[1:min(3, end)]))
     end
     return (; band_p2, engines, op)
 end
@@ -214,4 +215,87 @@ function _iso121_validation_cases()
                            [_p121_conditions_csv(), _p121_measured_csv()],
                            FigureRef("CR-178004", "App. E Tables E.3, E.6; Table 4", nothing), crit,
                            "2026-11-03", "V-EXP", _run_ac_c695a_dba, spec, "")]
+end
+
+# ---------------------------------------------------------------------------------------------------------------------
+# Phase 122 — the tones alone (form fixed 2026-11-03 before the first run). CR-178004 App. B prints each engine's cabin
+# harmonics 1–3 at mics 3 and 6 for the flight-3 conditions where the two propellers turn at different rpm or one is off,
+# so each engine's tones are separate. PAIN's per-engine run (as AC_C695A_DBA) gives its cabin harmonic levels H1–H3;
+# they are compared engine by engine, without the broadband PAIN does not model. Information (Phase 118 input rule).
+
+_p122_measured_csv() = _data_path("cr178004", "appB_flight3_cabin_harmonics.csv")
+const _P122_TOL_DB = 4.0   # T1's gate width (fixed 2026-10-20), the band the record uses
+
+"""
+    c695a_measured_tones() -> Dict{(cond, mic, side, H) => dB}
+
+CR-178004 App. B flight-3 cabin harmonic levels, each engine's component (engine 0 = port, 1 = starboard).
+"""
+function c695a_measured_tones()
+    c = _read_csv_numeric(_p122_measured_csv())
+    out = Dict{Tuple{Int,Int,String,Int},Float64}()
+    for i in eachindex(c[:cond])
+        key = (Int(c[:cond][i]), Int(c[:mic][i]), Int(c[:engine][i]) == 0 ? "port" : "stbd", Int(c[:harmonic][i]))
+        haskey(out, key) && error("App. B tones: $key given twice")
+        out[key] = c[:L_dB][i]
+    end
+    return out
+end
+
+function _run_ac_c695a_tones()
+    meas = c695a_measured_tones()
+    conds = sort(unique(k[1] for k in keys(meas)))
+    rows = Dict(r.cond => r for r in c695a_conditions())
+    table = ValidationTableRow[]
+    per_cond = NamedTuple[]
+    pain = Dict{Tuple{Int,String,Int},Float64}()
+    for c in conds
+        r = c695a_condition_spectrum(rows[c])
+        push!(per_cond, (; cond=c, engines=[(; e.side, e.rpm, e.pitch_deg, H1_H3=round.(e.harmonics_dB; digits=2)) for e in r.engines]))
+        for e in r.engines, H in 1:3
+            length(e.harmonics_dB) ≥ 3 || error("AC_C695A_TONES: the runs need n_harmonics ≥ 3")
+            pain[(c, e.side, H)] = e.harmonics_dB[H]
+        end
+    end
+    for k in sort(collect(keys(meas)))
+        (c, mic, side, H) = k
+        haskey(pain, (c, side, H)) || error("App. B tones: no PAIN run for cond $c $side")
+        L = pain[(c, side, H)]
+        m = meas[k]
+        push!(table, ValidationTableRow("cond $c mic $mic $side H$H", Float64(H), m, L, L - m, abs(L - m) ≤ _P122_TOL_DB, "H$H"))
+    end
+    n = length(table)
+    n_ok = count(r -> r.within_tolerance, table)
+    res = [r.residual for r in table]
+    byH = [(; H, mean=round(sum(r.residual for r in table if r.x == H) / count(r -> r.x == H, table); digits=2)) for H in 1:3]
+    series = PlotSeries[]
+    for (mic, kind) in ((3, :reference_points), (6, :measured_points))
+        sel = [r for r in table if occursin("mic $mic ", r.quantity)]
+        push!(series, PlotSeries("measured mic $mic (App. B)", kind, [r.x + (mic == 3 ? -0.08 : 0.08) for r in sel], [r.reference for r in sel]; panel=1))
+    end
+    sel = [r for r in table if occursin("mic 3 ", r.quantity)]
+    push!(series, PlotSeries("PAIN, Commander 695A inputs (per engine)", :computed_points, [r.x for r in sel], [r.computed for r in sel]; panel=1))
+    met = n_ok ≥ ceil(Int, 0.68n)
+    return ValidationCaseResult("AC_C695A_TONES", _today_iso(),
+        (; criterion="each engine's cabin H1–H3 within ±4 dB of App. B at ≥ 68 % of the points (form fixed 2026-11-03)",
+           n_ok, n, mean_residual_dB=round(sum(res) / n; digits=2), min_residual_dB=round(minimum(res); digits=2),
+           max_residual_dB=round(maximum(res); digits=2), mean_by_harmonic=byH, conditions=per_cond),
+        table, series, met ? :met : :not_met,
+        "$n_ok/$n tones within ±4 dB; PAIN − measured = $(round(minimum(res); digits=1)) to $(round(maximum(res); digits=1)) dB (mean $(round(sum(res) / n; digits=1)) dB; by harmonic $(join([string(b.mean) for b in byH], ", ")) dB)",
+        "X-EXTRAP (assumed blade and cabin section; CR-178004 flight 3)",
+        joinpath(_VAL_REPORT_DIR, "phase122_c695a_tones.md"))
+end
+
+function _iso122_validation_cases()
+    crit = "Information (input-completeness rule, Phase 118). Form fixed 2026-11-03 before the first run: PAIN's cabin " *
+           "harmonic levels H1–H3 for each engine (the AC_C695A_DBA runs, one per engine) against CR-178004 App. B's " *
+           "flight-3 levels of that engine's component at mics 3 and 6 (conditions 1–4, 9–12, 17, 18); recorded as within " *
+           "±4 dB (T1's gate width) at ≥ 68 % of the points."
+    spec = PlotSpec(; xlabel="harmonic of the blade-passage frequency", ylabel="cabin tone level (dB)",
+                    panel_titles=["AC_C695A_TONES"], error_mode=:absolute, error_tol=_P122_TOL_DB,
+                    error_ylabel="PAIN − measured (dB)")
+    return [ValidationCase("AC_C695A_TONES", "Commander 695A cabin tones vs CR-178004 App. B (122)", "122",
+                           [_p121_conditions_csv(), _p122_measured_csv()],
+                           FigureRef("CR-178004", "App. B Tables B.7, B.8, B.16, B.17; Table 4", nothing), crit,
+                           "2026-11-03", "V-EXP", _run_ac_c695a_tones, spec, "")]
 end
