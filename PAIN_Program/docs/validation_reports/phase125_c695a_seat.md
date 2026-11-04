@@ -93,6 +93,22 @@ that strip, and both seat H2 values rise to 111–112 dB. So the lower-sidewall 
 strong, and the shipped single-quarter grid hides it on the port engine. Its inputs are assumed (the stiffener
 sections, a circular section with a floor at 50°, the floor's own structure), and none is chosen here.
 
+Which structural mode (cond 1, H2 space average, Eq. (8) summed over cabin modes per structural mode r):
+
+| r | f_r (Hz) | M, n, symmetric | Port (H2 157.3 Hz) | Starboard (H2 152.0 Hz) |
+|---|---|---|---|---|
+| 74 | 155.4 | 2, 2, yes | 99.9 dB (63 %) | 105.7 dB (82 %) |
+| 68 | 144.2 | 2, 6, no | 91.2 dB (8 %) | 91.8 dB (3 %) |
+| 61 | 138.5 | 2, 6, yes | 92.4 dB (11 %) | 85.9 dB (1 %) |
+| Total | | | 102.0 dB | 106.5 dB |
+
+One shell mode (n = 2, coupled to the floor) carries the H2 of both engines. The lower-quarter loading drives it 5.8 dB
+harder, although the starboard tone lies farther from it (2.2 % against 1.2 %). The 18 conditions run at 1515–1573 rpm,
+so every H2 (151.5–157.3 Hz) falls within 2.5 % of this mode, and its half-power band at PAIN's default
+η_r′ = C_struc/f ≈ 0.019 is ±1 %. The H2 comparison is therefore set by one mode's frequency, shape and damping, all
+from assumed inputs (the stiffener sections, the circular section with a floor at 50°, C_struc = 3). This is the
+"dense set of resonant pairs" of the Phase 123 report, resolved: it is mainly one mode.
+
 ## Not changed
 
 No input, criterion or production default changed after the run.
