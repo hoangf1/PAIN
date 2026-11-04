@@ -46,6 +46,47 @@ struct FuselageGeometry
     theta0_deg::Float64 # floor angle θ₀ [deg]
 end
 
+"""
+    floor_angle_deg(a; floor_width=nothing, floor_height=nothing) -> θ₀ [deg]
+
+Floor angle θ₀ from the cabin cross-section (CR-3813 Fig. 1; θ from the bottom centreline to the floor–shell junction):
+floor width w = 2a sin θ₀ (the chord the code uses, `Lp = 2a sin θ0`), floor height above the lowest point of the shell
+h = a(1 − cos θ₀). Give one of the two. A floor above the axis (h > a) gives θ₀ > 90°, which needs `floor_height`.
+"""
+function floor_angle_deg(a::Real; floor_width=nothing, floor_height=nothing)
+    (floor_width === nothing) == (floor_height === nothing) && error("floor_angle_deg: give floor_width or floor_height")
+    if floor_width !== nothing
+        0 < floor_width ≤ 2a || error("floor_angle_deg: floor width $floor_width m outside (0, 2a = $(2a) m]")
+        return asind(floor_width / (2a))
+    end
+    0 < floor_height < 2a || error("floor_angle_deg: floor height $floor_height m outside (0, 2a = $(2a) m)")
+    return acosd(1 - floor_height / a)
+end
+
+"""
+Floor angles PAIN's sources print, with each aircraft's radius: (a [m], θ₀ [deg], source). `auto_floor_angle` picks one;
+it is a similar aircraft's value, not the analysed aircraft's own.
+"""
+const PRINTED_FLOOR_ANGLES = (
+    (0.508, 56.6, "CR-3813 test article (User Manual MRPMOD deck)"),
+    (0.84, 50.0, "CR-172428 App. C Merlin IVC"),
+    (1.145, 62.6, "CR-172428 App. C small diameter"),
+    (1.875, 73.7, "CR-172428 App. C narrow body"),
+)
+
+"""
+    auto_floor_angle(a) -> (; theta0_deg, a_source, source)
+
+θ₀ of the printed aircraft whose radius is nearest `a` (no interpolation): the GUI's 'auto' floor angle when no
+cross-section of the analysed aircraft is at hand. A 2.5–2.7 m fuselage (Dash 8-400 class) gets the small-diameter
+aircraft's 62.6°.
+"""
+function auto_floor_angle(a::Real)
+    _, k = findmin(abs(r[1] - a) for r in PRINTED_FLOOR_ANGLES)
+    r = PRINTED_FLOOR_ANGLES[k]
+    return (; theta0_deg=r[2], a_source=r[1], source=r[3])
+end
+
 """Propeller hub placement relative to fuselage (User Manual Fig. 2 / card 36)."""
 struct PropellerPlacement
     r_p::Float64   # radial distance hub→fuselage axis [m]

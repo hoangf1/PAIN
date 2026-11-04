@@ -3868,6 +3868,12 @@ which is part of T1's registered criterion. Not held out in full: CR-172428's me
 and R172428_EXP had set App. B's field against them with CR-172428's cabin. UNC_COVER and T1_FROM_E12 were not re-run
 (their designs rest on the E-11 field and the E-12 line). Record: `validation_reports/phase119_t1_appb.md`.
 
+## 2.42 Phase 120: the auto floor angle (2026-11-03, no comparison)
+
+No case, criterion or recorded result changed. The GUI's auto θ₀ takes the printed aircraft nearest in radius; for a
+2.5–2.7 m fuselage that is CR-172428's small-diameter 62.6°, where CYL2D_PRINTED records how far the default grid is from
+NASA's printed list (2-D orders 1–4 within 1.1 %, higher orders 1.7–3.4 %; diagnostic). Method: `METHODOLOGY.md` §4.
+
 ## 3. What “valid recreation” means for this project
 
 A recreation is **pipeline-valid** only if:

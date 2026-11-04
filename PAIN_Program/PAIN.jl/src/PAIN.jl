@@ -82,7 +82,7 @@ export
     TEST_ARTICLE_L, TEST_ARTICLE_L_DEFAULT,
     test_article_length, test_article_length_overridden,
     set_test_article_length!, reset_test_article_length!, with_test_article_length,
-    FuselageGeometry, PropellerPlacement, GridSpec, grid_points,
+    FuselageGeometry, floor_angle_deg, PRINTED_FLOOR_ANGLES, auto_floor_angle, PropellerPlacement, GridSpec, grid_points,
     incidence_angle_deg,
     blocking_factor, blocked_amplitude, BlockingVariant, R1, R2,
     delta_L_blocking_dB, BLOCKING_P68_CHECKPOINTS,

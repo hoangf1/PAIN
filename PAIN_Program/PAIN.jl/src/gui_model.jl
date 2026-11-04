@@ -129,12 +129,13 @@ Input/output Observables. Wrap with `JuliaPropertyMap` in `launch_gui`.
 """
 function make_gui_observables(;
         default_aircraft_json::AbstractString=joinpath(@__DIR__, "..", "examples", "aircraft_scale_hartzell.json"))
-    return Dict{String,Observable}(
+    obs = Dict{String,Observable}(
         "source" => Observable("aircraft"),  # phase 33g: only user source; e11/synthetic are validation-only
         "blocking" => Observable("R2"),
         "L" => Observable(test_article_length()),
         "a" => Observable(0.508),
-        "theta0_deg" => Observable(56.6),
+        "theta0_deg" => Observable(0.0),     # 0 = auto: the printed aircraft nearest in radius (auto_floor_angle)
+        "theta0_auto" => Observable(""),     # the auto value and its source, shown in the θ₀ field
         "r_p" => Observable(0.965),
         "phi_p_deg" => Observable(90.0),
         "z_p" => Observable(0.662),
@@ -232,7 +233,19 @@ function make_gui_observables(;
         "cm_f_prime" => Observable(""),
         "cm_note" => Observable("display only — interpolated for drawing; no criterion"),
     )
+    _update_theta0_auto!(obs)
+    on(_ -> _update_theta0_auto!(obs), obs["a"])
+    return obs
 end
+
+function _update_theta0_auto!(obs::AbstractDict)
+    r = auto_floor_angle(Float64(obs["a"][]))
+    obs["theta0_auto"][] = "auto ($(r.theta0_deg)°, $(r.source), a = $(r.a_source) m)"
+    return nothing
+end
+
+"""θ₀ the run uses: the field's value, or the auto floor angle when the field is 0."""
+_gui_theta0(obs::AbstractDict) = (θ = Float64(obs["theta0_deg"][]); θ > 0 ? θ : auto_floor_angle(Float64(obs["a"][])).theta0_deg)
 
 function _format_val_case_list()
     # Map → block order, then the cases on no block; last column says where the case is listed (caseIdFromRow uses col 0).
@@ -338,7 +351,7 @@ function run_printed_outputs_gui!(obs::AbstractDict)
         blk = uppercase(String(obs["blocking"][])) == "R1" ? R1 : R2
         L = Float64(obs["L"][])
         a = Float64(obs["a"][])
-        theta0 = Float64(obs["theta0_deg"][])
+        theta0 = _gui_theta0(obs)
         r_p = Float64(obs["r_p"][])
         phi_p = Float64(obs["phi_p_deg"][])
         z_p = Float64(obs["z_p"][])
@@ -500,7 +513,7 @@ function run_pain_gui!(obs::AbstractDict)
         blk = uppercase(String(obs["blocking"][])) == "R1" ? R1 : R2
         L = Float64(obs["L"][])
         a = Float64(obs["a"][])
-        theta0 = Float64(obs["theta0_deg"][])
+        theta0 = _gui_theta0(obs)
         r_p = Float64(obs["r_p"][])
         phi_p = Float64(obs["phi_p_deg"][])
         z_p = Float64(obs["z_p"][])

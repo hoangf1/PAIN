@@ -413,6 +413,30 @@ $$f_n \;=\; \frac{c_0}{2\pi}\sqrt{\;\frac{\lambda_i}{a^{2}} \;+\; \left(\frac{q\
 | `CYL2D_WEYL` | Cumulative 3-D mode count (NY = 10) at 500–1500 Hz | A count far from Weyl means missing or spurious modes | within 25 % of Weyl with the rigid-wall surface term (2026-10-28, post-hoc; first run: leading term, 0/5) | **not met** 4/5 (N/W 0.99–1.51; converged NY = 40: 0.99–1.06) |
 | `CYL2D_GRID_CONV` | Production NY = 10 against a converged NY = 60 grid on the floored section | How far the paper's grid is from the continuous cabin | none (information) | no verdict: ≤ 4.9 % (19 modes); NY 40 vs 60 ≤ 0.21 %. Production stays NY = 10 (decided 2026-10-28: the paper's grid; the error is a stated limitation) |
 
+**Floor angle θ₀: how to calculate it (2026-11-03).** θ₀ is measured at the fuselage axis from the bottom centreline to
+the floor–shell junction (CR-3813 Fig. 1; the code's floor chord is `Lp = 2a sin θ0`). With the shell radius a, give the floor
+height h above the lowest point of the shell or the floor width w: θ₀ = arccos(1 − h/a), or θ₀ = arcsin(w/2a) for a floor
+below the axis (`floor_angle_deg(a; floor_height=…)` / `floor_width=…`).
+
+![Floor angle θ₀ from the floor height or width](figures/floor_angle_theta0.svg)
+
+When the analysed aircraft's cross-section is not at hand, the GUI's θ₀ field takes 0 = **auto**: the floor angle of the
+aircraft PAIN's sources print whose radius is nearest a (`auto_floor_angle`, no interpolation). It is a similar aircraft's
+value, not the analysed aircraft's own, and the field shows which one.
+
+| Printed aircraft | a (m) | Diameter (m) | θ₀ | Source |
+|---|---|---|---|---|
+| CR-3813 test article | 0.508 | 1.02 | 56.6° | User Manual MRPMOD deck |
+| Merlin IVC | 0.84 | 1.68 | 50.0° | CR-172428 App. C deck |
+| Small diameter | 1.145 | 2.29 | 62.6° | CR-172428 App. C p. 210 |
+| Narrow body | 1.875 | 3.75 | 73.7° | CR-172428 App. C p. 210 |
+
+A 2.5–2.7 m fuselage (Dash 8-400 class: fuselage 2.69 m) gets the small-diameter aircraft's 62.6°; no published Dash 8-400
+cross-section with the floor position was found (De Havilland's spec sheets give no cabin section). At 62.6° the default
+CYL2D grid's 2-D frequencies are within 1.1 % of NASA's printed list for orders 1–4 and 1.7–3.4 % for orders 15–19 (median
+0.5 %; diagnostic 2026-11-03, no criterion), and no App. C grid reproduces that list exactly (CYL2D_PRINTED, Phase 105). The
+GUI default (a = 0.508 m) resolves to the test article's 56.6°, so its run is unchanged.
+
 **Implementation notes and claims.**
 
 

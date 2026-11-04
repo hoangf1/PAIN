@@ -380,6 +380,29 @@ _run_if("Cabin mode animation (phase 36)") do
     @test String(obs["cm_NY"][]) == "10"
 end
 
+_run_if("Floor angle and auto θ₀") do
+    # θ from the bottom centreline: a floor through the axis is 90°, a floor a/2 above the bottom is 60°
+    @test floor_angle_deg(1.0; floor_height=1.0) ≈ 90.0
+    @test floor_angle_deg(1.0; floor_width=2.0) ≈ 90.0
+    @test floor_angle_deg(1.0; floor_height=0.5) ≈ 60.0
+    @test floor_angle_deg(2.0; floor_width=2sqrt(3)) ≈ 60.0
+    @test floor_angle_deg(1.0; floor_height=1.5) ≈ 120.0
+    @test_throws ErrorException floor_angle_deg(1.0)
+    @test_throws ErrorException floor_angle_deg(1.0; floor_width=2.5)
+    # auto: the printed aircraft nearest in radius
+    @test auto_floor_angle(0.508).theta0_deg == 56.6
+    @test auto_floor_angle(1.25).theta0_deg == 62.6     # 2.5 m fuselage -> CR-172428 small diameter
+    @test auto_floor_angle(1.345).theta0_deg == 62.6    # Dash 8-400 class, 2.69 m
+    @test auto_floor_angle(1.6).theta0_deg == 73.7
+    obs = make_gui_observables()
+    @test obs["theta0_deg"][] == 0.0
+    @test PAIN._gui_theta0(obs) == 56.6                  # default a = 0.508 m: the test article's own value
+    obs["a"][] = 1.25
+    @test occursin("62.6", obs["theta0_auto"][]) && PAIN._gui_theta0(obs) == 62.6
+    obs["theta0_deg"][] = 50.0
+    @test PAIN._gui_theta0(obs) == 50.0
+end
+
 _run_if("CYL2D floor values") do
     cy = cyl2d_modes(56.6; n_modes=6, NY=10)
     @test all(m -> length(m.phi_floor) == length(m.x_floor_unit) == 11, cy.modes)

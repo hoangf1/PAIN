@@ -148,7 +148,7 @@ ApplicationWindow {
 
     // The inputs the Run tab and the printed-output tab would run with; a change here makes their result stale.
     function pipelineSignature() {
-        return [pain.source, pain.blocking, pain.L, pain.a, pain.theta0_deg, pain.r_p, pain.phi_p_deg, pain.z_p,
+        return [pain.source, pain.blocking, pain.L, pain.a, pain.theta0_deg, pain.theta0_auto, pain.r_p, pain.phi_p_deg, pain.z_p,
                 pain.n_harmonics, pain.bpf_Hz, pain.C_struc, pain.eta_n_bare, pain.trim, pain.aircraft_json,
                 pain.rho0, pain.c0, pain.rho_ext, pain.rho_int, pain.c_ext, pain.c_int, pain.L_c, pain.d_cavity,
                 pain.rotation_direction, pain.bands_Hz, pain.eta_r_band, pain.eta_n_band].join("|")
@@ -575,8 +575,11 @@ ApplicationWindow {
                                 Label { text: "theta0 [deg]"; color: root.muted }
                                 TextField {
                                     Layout.fillWidth: true
-                                    text: Number(pain.theta0_deg).toFixed(1)
-                                    onEditingFinished: pain.theta0_deg = Number(text)
+                                    // 0 = auto: the floor angle of the printed aircraft nearest in radius (METHODOLOGY §θ₀)
+                                    text: Number(pain.theta0_deg) > 0 ? Number(pain.theta0_deg).toFixed(1) : pain.theta0_auto
+                                    ToolTip.visible: hovered
+                                    ToolTip.text: "Floor angle from the bottom centreline; 0 = " + pain.theta0_auto
+                                    onEditingFinished: pain.theta0_deg = (text.startsWith("auto") || !(Number(text) > 0)) ? 0 : Number(text)
                                 }
 
                                 Label { text: "r_p [m]"; color: root.muted }

@@ -207,6 +207,7 @@ Not blockers (recorded so nobody stops on them): BBN tip geometry beyond 40 in. 
 | Q95 | **[AUTHOR] Eq. (43) past γ = 90°** | question for the author | — | **decided 2026-11-02 from the documents (Phase 118d; author: "implement all four of these in my code")**: R1 held at F = 1 past 90° (CR-3813 p. 31, CR-172428 p. 68); no verdict moves; REPRO_18b re-recorded (+0.08 / +0.35 / +0.02 dB, no verdict) |
 | Q100 | **Phase 118 — input completeness, missing-input search, full-input misses, Q95, review checks** (§8bh) | validation rule, documents, code | Phase 117 | **done 2026-11-02**: 14 cases off the map (all not met); App. B field found for the T1 family (new phase); E14_LOSS deck table not supported; R1 clamped past 90°; `CLAUDE.md` checks restored |
 | Q101 | **Phase 119 — the T1 family on CR-172428 App. B's printed field** (§8bi; author 2026-11-02: "Yes, run Q101") | E test | Phase 118 | **done 2026-11-02**: T1_APPB met 3/3 (H2 by gate B only), T1_MEAS_DAMPING_APPB met 3/3 on the measured mean; H3 excess was the GEXT field; not held out in full (R172428_EXP) |
+| Q102 | **Phase 120 — auto floor angle θ₀ and how to calculate it** (§8bj; author 2026-11-03: "create a figure on how to calculate in the methodology but also just use the dash 8's angle for now as the auto" / "if you can find that theta angle for an equivalent 2.5 m diameter then thats fine too if you have it in the papers") | input default, documents | Phase 105 | **done 2026-11-03**: auto = printed aircraft nearest in radius (2.5–2.7 m → 62.6°); default run unchanged; figure in METHODOLOGY §4 |
 | Q58 | **Phase 79 — CYL2D** (§8w; 2026-10-28) | `case_error_summary`, `cyl2d.jl`, CYL2D_WEYL | Q57 | **done 2026-10-28**: information rows leave the pass count; refinement fixed (79b); CYL2D_GRID_CONV (NY 10 within 4.9 % of NY 60); Weyl + surface term 4/5; production NY = 10 kept (decided 2026-10-28) |
 | Q57 | **Phase 78 — structural modes** (§8v; 2026-10-28) | `mrp_appd.jl`, MRP_APPD criterion, map | Q53 | **done 2026-10-28**: App. D solver fixes J1–J6; MRP_APPD not met 2/32 (class I, floor stiffener model undocumented); MRP_D1/MRP_RITZ off the map |
 | Q56 | **Phase 77 — POLAR_FIDELITY as an equivalent angle** (§8u; 2026-10-28) | `src/validation_case_iso67.jl`, figure | Q52 | **done 2026-10-28**: Δα shown next to Δc_l, display only |
@@ -2970,7 +2971,8 @@ running the affected checks, tests that fail when the behaviour is wrong, labels
 
 **Result (2026-11-02).** (118a) 14 cases fail the input rule and carry no verdict, all of them not met; the other 37 verdicts are unchanged on the 2026-11-02 re-run, and the map holds 37 cases (14 met, 23 not met). (118b) Found: CR-172428 App. B's blocked field for the T1 family; not printed: CR-3813's own run field, the test-propeller blade, the full Aero Commander blade, the exterior above 1250 Hz (`phase118_input_search.md`). (118c) No named cause untested except E14_LOSS's; on NASA's per-band PF-105 table it gives 6/18 against 7/18, not supported (`phase118_full_input_misses.md`, `phase118_e14_deck.md`). (118d) R1 = max(1, F) past 90°; no verdict moves; REPRO_18b re-recorded 88.63 / 79.91 / 78.83 dB (was 88.55 / 79.56 / 78.81), the other R1 runs move ≤ 0.3 dB in their medians, BLK_GAIN_MAP holds 2/2. `case_error_summary` keeps an information case's recorded count (UNC_COVER 0/3, LOUDEST_PT 2/5, display only). (118e) `CLAUDE.md` review checks restored without Cursor. Follow-up (not run): the T1 family on App. B's field, a new phase.
 
-<<<<<<< HEAD
+**118f. Unit-test gaps (done 2026-11-02; tests only, found while running 118's targeted tests).** Unit-test gaps found while running Phase 118's tests (both failures pre-date 118, verified on d673393). (1) `test_case_helpers_late.jl` iso44 compared `_r172428_levels()` (pinned to CR-3813's tone form, R172428_CODE, Phase 93) with `interior_spl` of the default form (q = 0 off, η_n per mode since Phases 93–96): the test was stale, the case is not; it now compares the same form and checks that the default form differs. (2) 21 functions added in Phases 92–110 had no unit test; each now has a hand-value or limit test that fails if the function is wrong (five mutants checked). No criterion, recorded result, default or data file changed. Seen on the way, not changed: CYL2D's (0, 0) mode comes out at 5.8·10⁻⁵ Hz, not 0, so the `ωn > 0` guards of `_eta_n_default` and `acoustic_N_per_mode` do not treat it as the rigid-body mode (η_n ≈ 1.5·10¹¹); it matters only where q = 0 coupling and η_n per mode are on together (`_pre_correction_band`).
+
 ## 8bi. Phase 119 — the T1 family on CR-172428 App. B's printed field (Q101; done 2026-11-02; form and criterion fixed before any run, commit 84dbb27)
 
 *(Author 2026-11-02: "Yes, run Q101".)* Phase 118b found the one missing input that is printed: CR-172428 App. B's blocked
@@ -2993,6 +2995,26 @@ phase. Not run: UNC_COVER (its Monte Carlo varies the E-11 + GEXT field it is bu
 E-12 measured line, which App. B's field would replace); both stay information cases.
 
 **Result (2026-11-02).** Both met T1's unchanged gate. T1_APPB 3/3: 88.51 / 75.32 / 65.36 dB against E-16's 90 / 80 / 65 dB (H1, H3 by gate A; H2 by gate B only, −4.68 dB from the measured mean, −0.18 dB from NASA's prediction). T1_MEAS_DAMPING_APPB 3/3 on the measured mean: 90.06 / 78.74 / 65.80 dB. H3 falls from 77.0 / 78.6 dB on E-11 + GEXT to 65.4 / 65.8 dB: the T1 family's H3 excess was the GEXT field. Check: with its own inputs `interior_spl` reproduces the pipeline's T1 exactly, so the swap changes only the field. Record: `phase119_t1_appb.md`.
-=======
-**118f. Unit-test gaps (done 2026-11-02; tests only, found while running 118's targeted tests).** Unit-test gaps found while running Phase 118's tests (both failures pre-date 118, verified on d673393). (1) `test_case_helpers_late.jl` iso44 compared `_r172428_levels()` (pinned to CR-3813's tone form, R172428_CODE, Phase 93) with `interior_spl` of the default form (q = 0 off, η_n per mode since Phases 93–96): the test was stale, the case is not; it now compares the same form and checks that the default form differs. (2) 21 functions added in Phases 92–110 had no unit test; each now has a hand-value or limit test that fails if the function is wrong (five mutants checked). No criterion, recorded result, default or data file changed. Seen on the way, not changed: CYL2D's (0, 0) mode comes out at 5.8·10⁻⁵ Hz, not 0, so the `ωn > 0` guards of `_eta_n_default` and `acoustic_N_per_mode` do not treat it as the rigid-body mode (η_n ≈ 1.5·10¹¹); it matters only where q = 0 coupling and η_n per mode are on together (`_pre_correction_band`).
->>>>>>> refs/heads/fix/unit-test-gaps
+
+## 8bj. Phase 120 — auto floor angle θ₀ and how to calculate it (done 2026-11-03; input default and documents, no comparison)
+
+*(Author 2026-11-03: "create a figure on how to calculate in the methodology but also just use the dash 8's angle for now
+as the auto"; then "if you can find that theta angle for an equivalent 2.5 m diameter then thats fine too if you have it
+in the papers".)* No published Dash 8-400 cross-section with the floor position was found (De Havilland's 2025 and 2026
+spec sheets give external dimensions only; the planning manual is not in the repository), so the second instruction was
+used: the floor angles PAIN's sources print.
+
+**Done.** (a) `floor_angle_deg(a; floor_height | floor_width)` (`geometry.jl`): θ₀ = arccos(1 − h/a) or arcsin(w/2a), θ
+from the bottom centreline (CR-3813 Fig. 1). (b) `PRINTED_FLOOR_ANGLES` and `auto_floor_angle(a)`: the printed aircraft
+nearest in radius, no interpolation (0.508 m 56.6°, 0.84 m 50.0°, 1.145 m 62.6°, 1.875 m 73.7°). (c) GUI: θ₀ = 0 is auto;
+the field shows the value and its source; the default a = 0.508 m resolves to 56.6°, so the default run is unchanged.
+(d) `METHODOLOGY.md` §4: the figure `docs/figures/floor_angle_theta0.svg` and the table. (e) Test "Floor angle and auto
+θ₀": closed-form values (90°, 60°, 120°), the nearest-radius picks, the GUI resolution.
+
+**Diagnostic (no criterion, 2026-11-03).** At 62.6° the default grid (0.4h, NY 10 else the next that solves: NY = 13) is
+within 1.1 % of NASA's printed small-diameter 2-D frequencies for orders 1–4 and 1.7–3.4 % for orders 15–19 (median
+0.5 %); at 73.7° 1.0 % and 2.1–7.5 %. Scanning θ₀ 50°–80°, NY 6–16 and node rules 0.40h–0.50h with a free radius, no
+combination reproduces the small-diameter list better than 1.1 % (best 62.4°, NY 10, a 1.13 m), so the deck's 62.6° and
+1.145 m are not misread. No criterion, case, recorded result or data file changed. Also fixed: the merge-conflict markers
+left at the end of this file (118f and Phase 119 both kept, 118f first).
+
