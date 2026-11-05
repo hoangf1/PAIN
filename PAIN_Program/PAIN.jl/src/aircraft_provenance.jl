@@ -600,11 +600,14 @@ function collect_nasa_defaults_used(;
         end
     end
 
-    maybe!("spbl_anchor_H", spbl_anchor_H, "blocked_broadband_band_p2 H anchor";
-           nasa=NASA_DEFAULTS.spbl_anchor_H)
-    maybe!("bb_alpha", bb_α, "Spbl f⁻α slope (V-ASSUMED)"; nasa=NASA_DEFAULTS.bb_alpha)
+    # Phase 132 (2026-11-05): the broadband inputs are listed only when the run computes broadband (a tones-only run, as
+    # every GUI run, does not use them)
+    bb_on = pain_settings().broadband
+    bb_on && maybe!("spbl_anchor_H", spbl_anchor_H, "blocked_broadband_band_p2 H anchor";
+                    nasa=NASA_DEFAULTS.spbl_anchor_H)
+    bb_on && maybe!("bb_alpha", bb_α, "Spbl f⁻α slope (V-ASSUMED)"; nasa=NASA_DEFAULTS.bb_alpha)
 
-    if broadband_model === :surrogate
+    if bb_on && broadband_model === :surrogate
         maybe!("bb_j2_scale", bb_j2_scale, "stale T2 fit / interior_spl"; nasa=NASA_DEFAULTS.bb_j2_scale)
         if !("broadband_model" in supplied)
             push!(out, _prov_row("absorption_curve", "absorption_coefficient(f)",

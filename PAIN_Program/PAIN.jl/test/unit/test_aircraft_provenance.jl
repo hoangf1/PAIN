@@ -52,6 +52,14 @@ end
     @test !("L_m" in names)                         # 2.0 ≠ default
     @test "L_c_m" in names && "m_wall_kg_m2" in names && "t_skin_m" in names
     @test !("absorption_curve" in names)            # broadband :eq19 does not use the surrogate α
+    # Phase 132: the broadband inputs are listed only when the run computes broadband
+    @test "bb_alpha" in names && "spbl_anchor_H" in names
+    kw = (; L=2.0, a=0.508, theta0_deg=56.6, r_p=0.965, phi_p_deg=90.0, z_p=0.662, rotation_direction=1, η_n_bare=0.05,
+          C_struc=3.0, NY=10, ρ0=1.225, c0=340.0, L_c=2.0, d=0.0, m_wall_resolved=1.0, m_wall_was_fallback=true,
+          structural_solver=:appd, use_table_d1=false, bb_j2_scale=0.5, bb_α=2.0, broadband_model=:surrogate, spbl_anchor_H=3,
+          trim_used=:bare, sidewall_is_phase3=false, supplied=Set(["a_m", "C_struc"]), input_rows=rows)
+    off = with_pain_settings(() -> [u.name for u in PAIN.collect_nasa_defaults_used(; kw...)], PainSettings(broadband=false))
+    @test !any(n -> n in ("bb_alpha", "spbl_anchor_H", "bb_j2_scale", "absorption_curve"), off) && "C_struc" in off
     @test PAIN.warn_nasa_defaults!(NamedTuple[]) === nothing
     @test_logs (:warn, r"NASA test-article defaults") PAIN.warn_nasa_defaults!(used)
     lab = PAIN.provenance_header_labels((; nasa_defaults=used, inputs=rows))

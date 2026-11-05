@@ -217,6 +217,7 @@ Not blockers (recorded so nobody stops on them): BBN tip geometry beyond 40 in. 
 | Q109 | **Phase 127 — every input and run-path constant in the GUI** (§8bq; author 2026-11-04: "if there are any constants then make it available for change in the gui") | GUI, settings, documents | — | **done 2026-11-04**: 59 constants as `PainSettings` (old values as defaults), every input a Run-tab field in tabs; project file optional; default runs bit-identical; printed outputs use the run's BPF |
 | Q110 | **Phase 128 — GUI default project matched to Cabin_Noise** (§8br; author 2026-11-04: "much of the current defaults like blade number rpm speed arent matched with cabin_noise") | `examples/aircraft_generic_twin_turboprop.json`, `gui_inputs.jl`, tests, documents | — | **done 2026-11-04**: the GUI opens on Cabin_Noise's generic twin turboprop (6 blades, 1181 rpm, R 1.7526 m, Mach 0.4818 at 7620 m, cabin 22.7 m), values copied by hand; Hartzell project kept for tests; a run takes about 7 min (the tone sum over the long cabin's modes) |
 | Q111 | **Phase 131 — grid extent on a full-size cabin** (§8bu; author 2026-11-05: "Run Q111 now", "you have full control") | `examples/aircraft_generic_twin_turboprop.json`, tests, documents | — | **done 2026-11-05**: the GUI default grid is 40 × 19 (k_p 20), converged by the rule fixed in Q111; default 85.9 dB(A) (was 83.0 on 16 × 10) |
+| Q112 | **Phase 132 — overnight audit; GUI output labels** (§8bv; author 2026-11-05: "do an audit to see where any changes/validation cases can be corrected") | audit, `gui_model.jl`, `aircraft_provenance.jl`, example, tests, documents | — | **done 2026-11-05**: no case correctable without a post-hoc choice; 695A grid diagnostic moves H1 by +0.75 dB at most (Phase 126 stands); SIL, empty bands and the defaults list fixed in the GUI output |
 | Q58 | **Phase 79 — CYL2D** (§8w; 2026-10-28) | `case_error_summary`, `cyl2d.jl`, CYL2D_WEYL | Q57 | **done 2026-10-28**: information rows leave the pass count; refinement fixed (79b); CYL2D_GRID_CONV (NY 10 within 4.9 % of NY 60); Weyl + surface term 4/5; production NY = 10 kept (decided 2026-10-28) |
 | Q57 | **Phase 78 — structural modes** (§8v; 2026-10-28) | `mrp_appd.jl`, MRP_APPD criterion, map | Q53 | **done 2026-10-28**: App. D solver fixes J1–J6; MRP_APPD not met 2/32 (class I, floor stiffener model undocumented); MRP_D1/MRP_RITZ off the map |
 | Q56 | **Phase 77 — POLAR_FIDELITY as an equivalent angle** (§8u; 2026-10-28) | `src/validation_case_iso67.jl`, figure | Q52 | **done 2026-10-28**: Δα shown next to Δc_l, display only |
@@ -3305,3 +3306,43 @@ extend the grid until the next step changes H1 and dB(A) by less than 0.5 dB.
   the mode search, about 1 min more).
 - **Tests.** `test_gui_model.jl` checks the default's grid fields and that every station lies on the cylinder with the
   span 39 πa/18; passes. No criterion, reference or recorded result changed.
+
+## 8bv. Phase 132 — overnight audit; GUI output labels (done 2026-11-05)
+
+*(Author 2026-11-05: "you have full access after do an audit to see where any changes/validation cases can be
+corrected".)*
+
+**Audit.** The 27 not-met cases of `case_error_summary.csv` (2026-11-02) against the records: every one is attributed in
+Phases 83–84, 93–94, 124 and 126 (method limits reproduced from NASA's printouts, missing documented inputs, or a form
+that would be post-hoc). Phase 124's R172428_DB(A)_CODE 0/3 stays: the form that matches NASA was taken from those
+printouts (Phase 93), so adopting it would be post-hoc. The new question from Phases 130–131 is whether any case runs
+an unconverged grid on a real fuselage. The CR-172428 reproductions use NASA's printed field on NASA's 160 points
+(Phase 126: NASA's printout used them), so they must keep it. The Commander 695A cases (121–125, information) run the
+computed source on a = 0.725 m with 16 × 10, which spans 2.0 m against a 2.69 m propeller.
+
+**695A grid diagnostic (rule fixed 2026-11-05 before the runs; information, no verdict).** AC_C695A_TONES with the
+largest grid whose stations all lie on the 5.33 m cylinder (k_p 12 for z_p 1.435 m, k_max 42):
+
+| Grid | Within ±4 dB | Mean PAIN − measured: H1, H2, H3 |
+|---|---|---|
+| 16 × 10 (as recorded) | 32/108 | −5.53, +8.21, +3.43 dB |
+| 42 × 10 | 33/108 | −5.38, +8.25, +3.40 dB |
+| 42 × 19 | 36/108 | −4.78, +7.94, +4.04 dB |
+
+The grid moves H1 by +0.75 dB at most: the 695A H1 shortfall is not grid truncation, and Phase 126's attribution stands.
+The recorded case is unchanged (the baseline reproduces 32/108).
+
+**GUI output fixes** (labels, rule 7). On a tones-only run the GUI printed `SIL=-204.3 dB` (the SIL mean took the empty
+bands' −300 dB floor) and `SPL=-300.0 dB` for every band without a tone. Now an empty band prints "no level", and SIL
+prints "not given (no level in every 500–4000 Hz octave; tones only)" unless every octave has a level. The status line
+listed `bb_alpha` and `spbl_anchor_H` as NASA defaults used on a run that computes no broadband; they are listed only
+when broadband is on. The default project tags φ_p, the rotation sense (assumed) and ν (assumed), so they are no longer
+reported as unflagged test-article defaults.
+
+**Default result** confirmed through the GUI's run function: 85.9 dB(A) [82.4, 89.4], tones 100.03, 89.39, 80.65, 62.83,
+60.25 dB.
+
+**Tests.** `test_gui_model.jl` (empty band text; SIL not given / SIL = (60 + 56 + 52 + 48)/4 written out) and
+`test_aircraft_provenance.jl` (broadband inputs listed only with broadband on) pass. No criterion, reference or
+recorded result changed. Note: the memory index entry for this night's authority was refused by the permission check;
+the note file itself was written.

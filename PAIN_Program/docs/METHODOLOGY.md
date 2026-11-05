@@ -798,6 +798,8 @@ validation cases run with the defaults, and the default runs are bit-identical. 
 variant with no grade of its own. Inventory and the fixed definitions (20 µPa, A-weighting, band centres) with
 reasons: `INPUTS_AND_SETTINGS.md`.
 
+**Phase 132 (2026-11-05) — audit and output labels.** No method change. On the Commander 695A the largest on-cylinder grid moves H1 by +0.75 dB at most (Phase 126's attribution of the H1 shortfall stands). The GUI no longer prints a SIL from empty bands or −300 dB band levels.
+
 **Phase 131 (2026-11-05) — grid extent on a full-size cabin.** The User Manual grid (16 × 10 at πa/18) scales with the radius; on the 22.7 m, a = 1.32 m default it spans 3.7 m and 90° and is not converged. The GUI default uses 40 × 19 (9.2 m, 180°), where a longer grid changes H1 by 0.02 dB. Lines past the geometric shadow (about 72°) carry free-field pressure, since Eq. (43) is floored at F = 1; the 90° and 180° arcs bracket the result (83.6–85.9 dB(A)). The method is unchanged.
 
 **Phase 130 (2026-11-04) — GUI default inputs and wall mass.** When a project gives structure inputs (App. D sections or the eight MRP card values) and no wall mass, the wall mass m of the trim conductance and Eqs. (81)–(82) is smeared from those inputs: ρ(t_skin + A_s/d_s + A_f/ℓ_f), or the card shell mass. Before, it was always the CR-3813 test article's 3.2 kg/m² (MRP_* constants), whatever the structure. Runs that give no structure, or give m itself (every validation case and both aircraft examples), are unchanged. The GUI no longer offers the broadband path, which has no met comparison with data: GUI runs are tones only. The GUI default's structure is CR-172428 Table 13's small-body turboprop.

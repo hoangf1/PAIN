@@ -4063,6 +4063,11 @@ default Hartzell, e11 and 695A runs are bit-identical). A GUI setting changed fr
 user variant, not a case: the Validation tab never takes GUI settings. Choosing a setting by its effect on a compared
 case would be calibration (CLAUDE.md) and is not offered. Inventory: `INPUTS_AND_SETTINGS.md`.
 
+## 2.54 Phase 132: audit (2026-11-05)
+
+No case, criterion, reference or recorded result changed. The 695A grid runs are a diagnostic of an information case
+(rule fixed before the runs); AC_C695A_TONES stays as recorded (32/108).
+
 ## 2.53 Phase 131: GUI default grid (2026-11-05)
 
 Numerics of the GUI default only (X-EXTRAP, compared with nothing, not a case). The convergence rule was fixed in Q111

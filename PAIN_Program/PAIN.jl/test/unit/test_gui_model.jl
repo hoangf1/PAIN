@@ -8,6 +8,14 @@ const _HZ = joinpath(pkgdir(PAIN), "examples", "aircraft_scale_hartzell.json")
     @test PAIN._format_tonal(sp) == "H=1  f=200.0 Hz  SPL=80.0 dB\nH=2  f=400.0 Hz  SPL=70.12 dB"
     @test PAIN._format_third(sp) == "fc=500.0 Hz  SPL=65.0 dB\nfc=1000.0 Hz  SPL=60.0 dB"           # ascending
     @test PAIN._format_third(PAIN.InteriorSpectrum(200.0, [80.0], Dict{Float64,Float64}(), "n")) == "(no 1/3-octave bands)"
+    # Phase 132: an empty band (−300 dB floor) prints "no level"; SIL needs a level in every 500–4000 Hz octave
+    @test PAIN._format_third(PAIN.InteriorSpectrum(200.0, [80.0], Dict(125.0 => 80.0, 1000.0 => -300.0), "n")) ==
+          "fc=125.0 Hz  SPL=80.0 dB
+fc=1000.0 Hz  no level"
+    tones_only = Dict(125.0 => 100.0, 500.0 => 62.8, 1000.0 => -300.0, 2000.0 => -300.0, 4000.0 => -300.0)
+    @test startswith(PAIN._format_sil(tones_only), "SIL: not given")
+    full = Dict(500.0 => 60.0, 1000.0 => 56.0, 2000.0 => 52.0, 4000.0 => 48.0)
+    @test PAIN._format_sil(full) == "SIL=54.0 dB"                             # (60 + 56 + 52 + 48) / 4, written out
     obs = PAIN.make_gui_observables()   # the GUI default: Cabin_Noise's generic twin turboprop (Phase 128)
     vals = PAIN.gui_values(obs)
     @test vals["num_blades"] == "6" && vals["rpm"] == "1183.33" && vals["tip_radius_m"] == "1.74994" && vals["z_p_m"] == "11.35"

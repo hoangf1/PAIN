@@ -106,7 +106,19 @@ end
 function _format_third(spectrum::InteriorSpectrum)
     pairs = sort!(collect(spectrum.third_octave_SPL_dB); by=first)
     isempty(pairs) && return "(no 1/3-octave bands)"
-    join(["fc=$(round(fc; digits=1)) Hz  SPL=$(round(spl; digits=2)) dB" for (fc, spl) in pairs], "\n")
+    # Phase 132: a band with no level (the −300 dB floor, e.g. a band with no tone in a tones-only run) says so
+    join(["fc=$(round(fc; digits=1)) Hz  " * (spl > _NO_LEVEL_DB ? "SPL=$(round(spl; digits=2)) dB" : "no level")
+          for (fc, spl) in pairs], "\n")
+end
+
+const _NO_LEVEL_DB = -250.0   # below this a band level is the empty-band floor (−300 dB), not a level
+
+"""SIL text: the mean of the 500–4000 Hz octave levels, or a note when an octave has no level (a tones-only run)."""
+function _format_sil(third::AbstractDict)
+    has(oc) = any(p -> abs(log2(p.first / oc)) ≤ 0.5 / 3 + 0.2 && p.second > _NO_LEVEL_DB, collect(third))
+    all(has, (500.0, 1000.0, 2000.0, 4000.0)) ||
+        return "SIL: not given (no level in every 500–4000 Hz octave; tones only)"
+    return "SIL=$(round(sil_from_third_octave(third); digits=1)) dB"
 end
 
 """
@@ -513,8 +525,7 @@ function run_pain_gui!(obs::AbstractDict)
         dBA, lo, hi = overall_dBA(spec)
         obs["dBA_text"][] =
             "dB(A)=$(round(dBA; digits=1))  [$(round(lo; digits=1)), $(round(hi; digits=1))] (±3.5 dB)"
-        sil = sil_from_third_octave(spec.third_octave_SPL_dB)
-        obs["sil_text"][] = "SIL=$(round(sil; digits=1)) dB"
+        obs["sil_text"][] = _format_sil(spec.third_octave_SPL_dB)
 
         # T1/T2 compare the NASA test article with E-16 / E-9: Validation-tab cases, not this run
         obs["t1_text"][] = "(T1/T2 are Validation-tab cases on the NASA test article)"
