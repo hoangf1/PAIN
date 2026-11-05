@@ -3374,3 +3374,41 @@ brackets the default** (PAIN's blocking limit, §8bu).
 with forward thrust (fails at pitch 0, where power and thrust are negative); 83/83 pass. No criterion, reference or
 recorded validation result changed.
 
+## 8bx. Phase 134 — chain coverage chart (done 2026-11-05)
+
+*(Author 2026-11-05: "is there a better way to organize and visualize these validation cases"; after the mockup, "Yes,
+build it".)*
+
+**Why.** The validation map groups cases by the block they prove, so it does not show how much of the program a case
+runs. Questions such as "do I have a case from the propeller to the interior levels?" needed the case texts read one by
+one: CR-172428's experimental cases start from the printed skin field, so they test the cabin chain only.
+
+**Change (display only).**
+- §2.13: every case has `**Chain span:** <stage> → <stage>` over nine stages (Blade and polars, Blade loads, Free
+  field, Skin field, Wall modes, Cabin modes, Damping and trim, Interior tones, Bands and dB(A)) and `**Compared with:**`
+  measurement (50 cases), NASA's printed prediction (48) or verification (56). Both are required by the parser
+  (`src/validation_map.jl`: a backwards span, an unknown stage or label is an error).
+- `src/validation_coverage.jl`: `coverage_rows`, `coverage_json`, `plot_coverage_chart`, `write_coverage_figures`,
+  `coverage_markdown`. Figures `docs/validation_reports/figures/coverage/chain_coverage_verdict.png` (43 verdict cases:
+  22 measurement, 21 NASA's printed prediction) and `chain_coverage_all.png` (154), written by
+  `write_case_error_summary.jl`.
+- VALIDATION_GUIDELINE §0 shows the verdict chart and a table by span; `NO_VERDICT_CASES.md` shows the all-case chart.
+- GUI Coverage tab (appended, so the other tabs keep their indices): rows by span, coloured by reference, verdict and
+  points at the right, "Show cases without a verdict" toggle, click opens the case in the Validation tab. Smoke:
+  `smoke_qml_load.jl` grabs both views (`main(; smoke_coverage_png=…)`).
+
+**What it shows.** Only cases without a verdict run from Blade and polars to the interior (the Commander 695A cases,
+T2_PRED_BB and the AC_CABIN_DEMO display); every case
+with a verdict that reaches Interior tones or Bands and dB(A) starts at the skin field (measured or printed). The source
+stages are proved separately (Report 996, Pereira, BBN) and stop at the free field.
+
+**Labels.** BLK_P68, NR_TP1964_REF2 and NR_TP1964_XOVER_REF2 compare with NASA's printed output for the same inputs:
+labelled NASA's printed prediction (their verdicts as ruled before). H3_ATTRIB: verification.
+
+**Tests.** `test_validation_map.jl` (synthetic §2.13: span and reference parsed; backwards span, single stage, unknown
+stage, unknown label and missing fields are errors) and new `test_validation_coverage.jl` (every case has a span; no
+verdict case is verification; AC_C695A_DBA spans the whole chain against measurement; R172428_EXP spans Skin field →
+Interior tones; JSON, §0 table rows and figures; an undocumented case has no reference): 72/72. `test_gui_model.jl`
+and `test_validation_plots.jl`: 173/173. `smoke_gui_model.jl` and `smoke_qml_load.jl` pass (plain load, button path,
+map, run box, inputs, Coverage); the Coverage tab and the Validation tab's new "Chain span … compared with" line were
+looked at in the grabs. No criterion, reference data, recorded result or verdict changed.

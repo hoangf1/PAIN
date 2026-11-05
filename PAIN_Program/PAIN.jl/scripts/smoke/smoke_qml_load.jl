@@ -113,6 +113,26 @@ function _smoke_run_inputs()
     println("smoke_qml_load: run-tab inputs PASS (", png, ", ", png2, ")")
 end
 
+"""
+Phase 134: the Coverage tab, drawn (offscreen): one grab with the cases with a verdict, one with every case, to a temp
+folder. The rows come from `coverage_json`, so an empty or blank grab means the QML built no chart.
+"""
+function _smoke_coverage()
+    png = get(ENV, "PAIN_SMOKE_COVERAGE_PNG", joinpath(mktempdir(), "COVERAGE.png"))
+    println("smoke_qml_load: coverage tab main(; smoke_coverage_png=…)")
+    main(; smoke_coverage_png=png)
+    png2 = replace(png, ".png" => "_all.png")
+    @assert isfile(png) && filesize(png) > 0 "expected a Coverage-tab screenshot at $png"
+    @assert isfile(png2) && read(png2) != read(png) "expected the every-case shot ($png2) to differ from $png (toggle had no effect)"
+    println("smoke_qml_load: coverage tab PASS (", png, ", ", png2, ")")
+end
+
+if get(ENV, "PAIN_SMOKE_COVERAGE_ONLY", "") == "1"
+    _smoke_coverage()
+    println("smoke_qml_load PASS (coverage child)")
+    exit(0)
+end
+
 if get(ENV, "PAIN_SMOKE_INPUTS_ONLY", "") == "1"
     _smoke_run_inputs()
     println("smoke_qml_load PASS (run-inputs child)")
@@ -201,4 +221,12 @@ child_inputs = addenv(
 )
 println("smoke_qml_load: spawning child for the Run-tab inputs")
 run(child_inputs)
+child_cov = addenv(
+    `$(Base.julia_cmd()) --project=$proj $(abspath(@__FILE__))`,
+    "PAIN_SMOKE_COVERAGE_ONLY" => "1",
+    "QT_QPA_PLATFORM" => "offscreen",
+    "QT_QPA_FONTDIR" => get(ENV, "QT_QPA_FONTDIR", "C:/Windows/Fonts"),
+)
+println("smoke_qml_load: spawning child for the Coverage tab")
+run(child_cov)
 println("smoke_qml_load PASS")

@@ -15,6 +15,34 @@ struct CaseInfo
     explanation::String
     map_id::String
     block_id::String
+    span_from::Int        # Phase 134: CHAIN_STAGES index of the stage the case's given input enters at
+    span_to::Int          # … and of the stage of the quantity it compares
+    reference::Symbol     # :measurement | :nasa (NASA's printed prediction) | :verification
+end
+
+"""The program chain, in order: the stages a case's `**Chain span:**` names (Phase 134), labels as written in §2.13."""
+const CHAIN_STAGES = ("Blade and polars", "Blade loads", "Free field", "Skin field", "Wall modes", "Cabin modes",
+                      "Damping and trim", "Interior tones", "Bands and dB(A)")
+const CASE_REFERENCES = ("measurement" => :measurement, "NASA's printed prediction" => :nasa, "verification" => :verification)
+reference_label(r::Symbol) = only(k for (k, v) in CASE_REFERENCES if v === r)
+
+function _parse_chain_span(s::AbstractString; id::AbstractString="")
+    p = split(strip(String(s)), r"\s*(?:→|->)\s*")
+    length(p) == 2 || error("VALIDATION_GUIDELINE.md §2.13: Case $id bad Chain span: $s (want <stage> → <stage>)")
+    idx = map(p) do t
+        i = findfirst(==(lowercase(strip(t))), lowercase.(CHAIN_STAGES))
+        i === nothing && error("VALIDATION_GUIDELINE.md §2.13: Case $id unknown chain stage: $t")
+        i
+    end
+    idx[1] <= idx[2] || error("VALIDATION_GUIDELINE.md §2.13: Case $id Chain span runs backwards: $s")
+    return idx[1], idx[2]
+end
+
+function _parse_reference(s::AbstractString; id::AbstractString="")
+    i = findfirst(p -> p.first == strip(String(s)), CASE_REFERENCES)
+    i === nothing && error("VALIDATION_GUIDELINE.md §2.13: Case $id bad Compared with: $s " *
+                           "(want measurement, NASA's printed prediction or verification)")
+    return CASE_REFERENCES[i].second
 end
 
 struct MapBlock
@@ -175,6 +203,8 @@ function parse_validation_guideline_section(md::AbstractString)
                 _field_value(fields, "Recorded outcome"; id="Case: $id"),
                 _field_value(fields, "Explanation"; id="Case: $id"),
                 map_id, block_id,
+                _parse_chain_span(_field_value(fields, "Chain span"; id="Case: $id"); id)...,
+                _parse_reference(_field_value(fields, "Compared with"; id="Case: $id"); id),
             )
             push!(case_order, id)
         end
@@ -306,7 +336,7 @@ function _case_info_or_missing(id::AbstractString)
     return CaseInfo(
         String(id), _MISSING_DOC, :deferred, :deferred,
         _MISSING_DOC, _MISSING_DOC, _MISSING_DOC, _MISSING_DOC,
-        _MISSING_DOC, _MISSING_DOC, _MISSING_DOC, "", "",
+        _MISSING_DOC, _MISSING_DOC, _MISSING_DOC, "", "", 0, 0, :verification,
     )
 end
 
@@ -404,6 +434,8 @@ function case_info_json(id::AbstractString;
         "missing" => info.missing,
         "recorded" => info.recorded,
         "explanation" => info.explanation,
+        "chain_span" => info.span_from == 0 ? "" : CHAIN_STAGES[info.span_from] * " → " * CHAIN_STAGES[info.span_to],
+        "compared_with" => info.span_from == 0 ? "" : reference_label(info.reference),
         "criterion_text" => "",
         "criterion_date" => "",
         "source_image" => "",

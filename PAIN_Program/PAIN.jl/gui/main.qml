@@ -485,6 +485,36 @@ ApplicationWindow {
         }
     }
 
+    // Phase 134 smoke: the Coverage tab, drawn: a shot with the cases with a verdict, then one with every case.
+    Timer {
+        property int step: 0
+        interval: 700
+        running: String(pain.smoke_coverage_png || "").length > 0
+        repeat: true
+        onTriggered: {
+            var out = String(pain.smoke_coverage_png)
+            step += 1
+            if (step === 1) {
+                tabs.currentIndex = 5
+            } else if (step === 2) {
+                coveragePage.grabToImage(function (result) {
+                    result.saveToFile(out)
+                    console.log("COVERAGE saved:", out)
+                })
+            } else if (step === 3) {
+                coverageShowAll.checked = true
+            } else if (step === 4) {
+                var out2 = out.replace(".png", "_all.png")
+                coveragePage.grabToImage(function (result) {
+                    result.saveToFile(out2)
+                    console.log("COVERAGE saved:", out2)
+                    Julia.mark_gui_closed_from_qml()
+                    Qt.quit()
+                })
+            }
+        }
+    }
+
     ColumnLayout {
         id: mainColumn
         anchors.fill: parent
@@ -537,6 +567,7 @@ ApplicationWindow {
             TabButton { text: "Validation map" }
             TabButton { text: "Printed outputs" }
             TabButton { text: "Cabin modes" }
+            TabButton { text: "Coverage" }
         }
 
         StackLayout {
@@ -986,6 +1017,15 @@ ApplicationWindow {
                             Text {
                                 visible: !!(root.valInfo && root.valInfo.missing)
                                 text: "Not covered: " + (root.valInfo.missing || "")
+                                wrapMode: Text.WordWrap
+                                Layout.fillWidth: true
+                                color: root.ink
+                                font.pixelSize: 11
+                            }
+                            Text {
+                                visible: !!(root.valInfo && root.valInfo.chain_span)
+                                text: "Chain span: " + (root.valInfo.chain_span || "") + "; compared with "
+                                      + (root.valInfo.compared_with || "")
                                 wrapMode: Text.WordWrap
                                 Layout.fillWidth: true
                                 color: root.ink
@@ -2144,6 +2184,184 @@ ApplicationWindow {
                                 source: pain.cm_struct_path.length > 0
                                         ? ("file:///" + String(pain.cm_struct_path).replace(/\\/g, "/"))
                                         : ""
+                            }
+                        }
+                    }
+                }
+            }
+
+            // ---- Coverage tab (phase 134; display only): each case's chain span, what it is compared with, its verdict ----
+            Rectangle {
+                id: coveragePage
+                color: root.color
+                property var cov: JSON.parse(String(pain.coverage_json || "{}"))
+                property var stages: cov.stages || []
+                property var refs: cov.references || []
+                property var rows: (cov.rows || []).filter(function (r) {
+                    return coverageShowAll.checked || r.verdict !== "no verdict"
+                })
+                property real labelW: 190
+                property real verdictW: 130
+                property real colW: Math.max(40, (width - labelW - verdictW - 16) / Math.max(1, stages.length))
+                function refColour(key) {
+                    for (var i = 0; i < refs.length; i++)
+                        if (refs[i].key === key) return refs[i].colour
+                    return "#888780"
+                }
+                function refLabel(key) {
+                    for (var i = 0; i < refs.length; i++)
+                        if (refs[i].key === key) return refs[i].label
+                    return key
+                }
+                function verdictColour(v) {
+                    return v === "met" ? "#1b7a3a" : (v === "not met" ? "#b3261e" : root.muted)
+                }
+
+                ColumnLayout {
+                    anchors.fill: parent
+                    spacing: 6
+
+                    Frame {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 100
+                        ColumnLayout {
+                            anchors.fill: parent
+                            anchors.margins: 8
+                            spacing: 4
+                            Text {
+                                text: "Chain coverage (display only)"
+                                font.bold: true
+                                font.pixelSize: 15
+                                color: root.ink
+                            }
+                            Text {
+                                text: "Each bar spans the stages of the program chain a case runs: from the stage its given input enters at to the stage of the quantity it compares (§2.13 Chain span). Its colour is what it is compared with; only cases compared with measurement or NASA's printed prediction carry a verdict. Verdicts are the recorded snapshot; n/N = rows within the case's own criterion (for a case without a verdict, not a pass). Click a row to open the case in the Validation tab."
+                                color: root.muted
+                                font.pixelSize: 11
+                                wrapMode: Text.WordWrap
+                                Layout.fillWidth: true
+                            }
+                            RowLayout {
+                                spacing: 14
+                                CheckBox {
+                                    id: coverageShowAll
+                                    text: "Show cases without a verdict (pale)"
+                                    font.pixelSize: 11
+                                }
+                                Repeater {
+                                    model: coveragePage.refs
+                                    delegate: RowLayout {
+                                        spacing: 5
+                                        Rectangle {
+                                            width: 14; height: 10; radius: 2
+                                            color: modelData.colour
+                                        }
+                                        Text { text: modelData.label; color: root.ink; font.pixelSize: 11 }
+                                    }
+                                }
+                                Item { Layout.fillWidth: true }
+                                Text {
+                                    text: coveragePage.rows.length + " cases shown"
+                                    color: root.muted
+                                    font.pixelSize: 11
+                                }
+                            }
+                        }
+                    }
+
+                    Item {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 30
+                        Repeater {
+                            model: coveragePage.stages
+                            delegate: Text {
+                                x: coveragePage.labelW + index * coveragePage.colW
+                                width: coveragePage.colW
+                                height: parent.height
+                                text: modelData
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignBottom
+                                wrapMode: Text.WordWrap
+                                font.pixelSize: 11
+                                font.bold: true
+                                color: root.ink
+                            }
+                        }
+                    }
+
+                    Item {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        clip: true
+                        Repeater {
+                            model: coveragePage.stages.length + 1
+                            delegate: Rectangle {
+                                x: coveragePage.labelW + index * coveragePage.colW
+                                width: 1
+                                height: parent.height
+                                color: root.border
+                            }
+                        }
+                        ListView {
+                            id: coverageList
+                            anchors.fill: parent
+                            clip: true
+                            model: coveragePage.rows
+                            boundsBehavior: Flickable.StopAtBounds
+                            ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
+                            delegate: Item {
+                                id: covRow
+                                width: coverageList.width
+                                height: 20
+                                property bool pale: modelData.verdict === "no verdict"
+                                property color base: coveragePage.refColour(modelData.reference)
+                                Rectangle {
+                                    anchors.fill: parent
+                                    color: rowMouse.containsMouse ? "#eef2f6" : "transparent"
+                                }
+                                Text {
+                                    x: 0
+                                    width: coveragePage.labelW - 8
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    text: modelData.id
+                                    horizontalAlignment: Text.AlignRight
+                                    elide: Text.ElideLeft
+                                    font.pixelSize: 10
+                                    color: root.ink
+                                }
+                                Rectangle {
+                                    x: coveragePage.labelW + modelData.from * coveragePage.colW + 3
+                                    width: (modelData.to - modelData.from + 1) * coveragePage.colW - 6
+                                    height: 12
+                                    radius: 2
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    color: Qt.rgba(covRow.base.r, covRow.base.g, covRow.base.b, covRow.pale ? 0.25 : 0.9)
+                                    border.width: covRow.pale ? 1 : 0
+                                    border.color: covRow.base
+                                }
+                                Text {
+                                    x: coveragePage.labelW + coveragePage.stages.length * coveragePage.colW + 8
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    text: modelData.verdict + (modelData.points.length > 0 ? " " + modelData.points : "")
+                                    font.pixelSize: 10
+                                    color: coveragePage.verdictColour(modelData.verdict)
+                                }
+                                MouseArea {
+                                    id: rowMouse
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    ToolTip.visible: containsMouse
+                                    ToolTip.delay: 400
+                                    ToolTip.text: modelData.id + ": " + modelData.title + "\n"
+                                                  + coveragePage.stages[modelData.from] + " → "
+                                                  + coveragePage.stages[modelData.to] + "; compared with "
+                                                  + coveragePage.refLabel(modelData.reference)
+                                    onClicked: {
+                                        Julia.select_validation_case_from_qml(modelData.id)
+                                        tabs.currentIndex = 1
+                                    }
+                                }
                             }
                         }
                     }

@@ -315,6 +315,7 @@ function validation_scoreboard_markdown(; map_id::AbstractString="total",
         println(io, "| ", get(gtitle, g, g), " | ", length(rs), " | ", nm, " | ", length(rs) - nm, " | ", pts, " |")
     end
     println(io)
+    print(io, coverage_markdown(; rec))   # Phase 134: which part of the chain each case runs, and against what
     # --- not met, fewest points first ---------------------------------------------------------------
     println(io, "### Not met (fewest points within criterion first)\n")
     println(io, "| Case | Block | Points | Error |\n|---|---|---|---|")
@@ -391,6 +392,8 @@ function no_verdict_cases_markdown(; map_id::AbstractString="total", rec::Abstra
             "(`VALIDATION_GUIDELINE.md` §0 and the GUI's Validation map tab) shows only the cases with a verdict (author ",
             "2026-10-29). The cases below still run, in the GUI's Validation tab and in the tests; their records and ",
             "criteria are in `VALIDATION_GUIDELINE.md` §2.13. A recorded outcome listed here is not a pass.\n")
+    println(io, "Every case, with and without a verdict, on the program chain (pale dashed bars: no verdict; Phase 134):\n\n",
+            "![Chain coverage, every case](validation_reports/figures/coverage/chain_coverage_all.png)\n")
     for kind in _NO_VERDICT_KIND_ORDER
         isempty(rows[kind]) && continue
         println(io, "## ", kind, " (", length(rows[kind]), ")\n")

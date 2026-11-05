@@ -93,6 +93,7 @@ function reload_validation_docs_gui!(obs::AbstractDict)
         obs["val_criterion"][] = _criterion_for(vsid)
     end
     obs["val_cases"][] = _format_val_case_list()
+    haskey(obs, "coverage_json") && (obs["coverage_json"][] = coverage_json())
     return nothing
 end
 
@@ -182,6 +183,9 @@ function make_gui_observables(; default_project::AbstractString=gui_default_proj
         "smoke_map_png" => Observable(""),
         "smoke_runbox_png" => Observable(""),   # Phase 114: offscreen shot of the Validation tab run-status box
         "smoke_inputs_png" => Observable(""),   # Phase 127: offscreen shots of the Run tab's input tabs
+        "smoke_coverage_png" => Observable(""), # Phase 134: offscreen shot of the Coverage tab
+        # Phase 134 — Coverage tab: every case's chain span, reference and recorded verdict (display only)
+        "coverage_json" => Observable(coverage_json()),
         # Phase 38h — Manual §5.4.3 printed outputs (read-only)
         "po_status" => Observable("Ready. Press Run / Refresh for the current Run-tab case."),
         "po_text" => Observable(""),

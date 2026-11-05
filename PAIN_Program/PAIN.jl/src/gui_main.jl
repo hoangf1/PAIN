@@ -298,7 +298,7 @@ button), waits until Done, then quits (for button-path smoke tests).
 """
 function main(args=ARGS; smoke_ms::Real=0, smoke_case::AbstractString="",
               smoke_map_png::AbstractString="", smoke_runbox_png::AbstractString="",
-              smoke_inputs_png::AbstractString="")
+              smoke_inputs_png::AbstractString="", smoke_coverage_png::AbstractString="")
     ENV["QT_QUICK_CONTROLS_STYLE"] = get(ENV, "QT_QUICK_CONTROLS_STYLE", "Fusion")
     # Offscreen Qt often has no bundled fonts; point at the OS font dir so map titles render.
     if lowercase(get(ENV, "QT_QPA_PLATFORM", "")) == "offscreen" && !haskey(ENV, "QT_QPA_FONTDIR")
@@ -320,6 +320,10 @@ function main(args=ARGS; smoke_ms::Real=0, smoke_case::AbstractString="",
     if !isempty(smoke_inputs_png)
         obs["smoke_inputs_png"][] = abspath(String(smoke_inputs_png))
         smoke_ms > 0 || (obs["smoke_ms"][] = 60000.0)    # the QML timer quits once both shots are written
+    end
+    if !isempty(smoke_coverage_png)
+        obs["smoke_coverage_png"][] = abspath(String(smoke_coverage_png))
+        smoke_ms > 0 || (obs["smoke_ms"][] = 60000.0)    # the QML timer quits once both Coverage shots are written
     end
     if !isempty(smoke_map_png)
         obs["smoke_map_png"][] = abspath(String(smoke_map_png))

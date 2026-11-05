@@ -13,6 +13,7 @@ path = write_case_error_summary()
 println("wrote ", path)
 println("wrote ", write_validation_scoreboard())   # top-of-file status section of VALIDATION_GUIDELINE.md
 println("wrote ", write_no_verdict_cases())       # docs/NO_VERDICT_CASES.md: the cases kept off the map
+println("wrote ", join(write_coverage_figures(), ", "))   # Phase 134: the chain coverage figures §0 and that file show
 rec = recorded_case_errors(path)
 println("cases=", length(rec))
 for id in ("R996_LOADS", "R996_FIG14", "T1", "UNC_COVER", "BBN_CIRC", "POLAR_R996")

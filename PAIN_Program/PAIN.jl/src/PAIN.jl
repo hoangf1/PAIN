@@ -77,6 +77,7 @@ include("validation_case_iso90.jl")   # phase 90 Eq. (43) blocking vs Report 996
 include("validation_case_extras.jl")
 include("validation_map.jl")
 include("validation_plots.jl")
+include("validation_coverage.jl")     # phase 134 chain coverage chart
 include("gui_inputs.jl")            # phase 127 every input as a GUI field
 include("gui_model.jl")
 include("gui_main.jl")
@@ -177,6 +178,7 @@ export
     CaseInfo, MapBlock, ValidationMap, CASE_INFO, VALIDATION_MAPS,
     validation_guideline_path, parse_validation_guideline_section,
     load_validation_docs!, reload_validation_docs!,
+    coverage_rows, coverage_json, plot_coverage_chart, write_coverage_figures, CHAIN_STAGES,
     validation_map_json, case_info_json, map_block_info_json, validation_map_case_order,
     validation_map_group_rects, assert_validation_map_groups_disjoint,
     f1a_gutin_h1_comparison,

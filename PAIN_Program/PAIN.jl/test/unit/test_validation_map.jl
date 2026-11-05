@@ -23,6 +23,8 @@ const _MD_OK = """
 **Map / block:** m1 / B
 **Category:** verification
 **Kind:** runnable
+**Chain span:** Skin field → Interior tones
+**Compared with:** verification
 **Source:** s
 **What it tests:** t
 **Why it is here:** w
@@ -58,6 +60,15 @@ end
     @test_throws ErrorException PAIN.parse_validation_guideline_section(bad("**Position:** 1,0", "**Position:** 1,0\n**Feeds:** A"))   # cycle
     @test_throws ErrorException PAIN.parse_validation_guideline_section(bad("**Role:** input", "**Role:** boss"))
     @test_throws ErrorException PAIN.parse_validation_guideline_section(bad("**Source:** s\n", ""))
+    # Phase 134: the chain span runs forwards over known stages; the reference is one of the three labels; both required.
+    @test (cases["C1"].span_from, cases["C1"].span_to, cases["C1"].reference) == (4, 8, :verification)
+    @test PAIN.parse_validation_guideline_section(bad("Skin field → Interior tones", "skin field -> interior tones"))[2]["C1"].span_to == 8
+    @test_throws ErrorException PAIN.parse_validation_guideline_section(bad("Skin field → Interior tones", "Wall modes"))
+    @test_throws ErrorException PAIN.parse_validation_guideline_section(bad("Skin field → Interior tones", "Interior tones → Skin field"))
+    @test_throws ErrorException PAIN.parse_validation_guideline_section(bad("Skin field → Interior tones", "Skin field → Cockpit"))
+    @test_throws ErrorException PAIN.parse_validation_guideline_section(bad("**Compared with:** verification", "**Compared with:** a hunch"))
+    @test_throws ErrorException PAIN.parse_validation_guideline_section(bad("**Chain span:** Skin field → Interior tones\n", ""))
+    @test_throws ErrorException PAIN.parse_validation_guideline_section(bad("**Compared with:** verification\n", ""))
 end
 @testset "load / lookup / JSON on the real guideline" begin
     p = joinpath(UNIT_OUT, "unit_guideline.md")
