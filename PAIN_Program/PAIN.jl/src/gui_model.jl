@@ -492,7 +492,7 @@ function run_pain_gui!(obs::AbstractDict)
         args = gui_run_args(gui_base(obs), gui_values(obs))
         kw = args.kwargs
         gui_log!(obs, "run", "blocking $(kw.blocking), $(kw.n_harmonics) harmonics; $(gui_bpf_text(gui_values(obs)))")
-        nset = length(get(args.project, "settings", Dict()))
+        nset = count(k -> k != "broadband", keys(get(args.project, "settings", Dict())))   # broadband: forced off (Phase 130)
         nset > 0 && gui_log!(obs, "run", "$nset numerics setting(s) differ from the defaults")
         gui_log!(obs, "run", "BEMT → F1A → grid → blocking → modes → Eq. (8) — this is the slow part")
         result = try

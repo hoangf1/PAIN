@@ -184,7 +184,7 @@ const PAIN_SETTING_SPECS = [
     (key=:cyl2d_ny_extra, group="Cabin modes", label="CYL2D: extra NY tried", unit="", kind=:int, choices=String[],
      tip="When NY has no App. C solution for θ0, grids up to NY + this are tried (Q60: 10)."),
     (key=:c_cyl2d_mps, group="Cabin modes", label="Speed of 2-D mode part", unit="m/s", kind=:float, choices=String[],
-     tip="Sound speed of the 2-D part of every cabin-mode frequency (CYL2D's 341 m/s, Phase 106)."),
+     tip="Sound speed of the 2-D part of every cabin-mode frequency (CYL2D's 341 m/s, Phase 106); 0 = the cabin air's."),
     # App. D
     (key=:n_struct_modes, group="Structural modes", label="Structural modes kept (min)", unit="", kind=:int, choices=String[],
      tip="Lowest structural modes always kept (32)."),
@@ -234,7 +234,7 @@ const PAIN_SETTING_SPECS = [
     (key=:c_omega, group="Coupling", label="Band width c_ω", unit="Δω/ω", kind=:float, choices=String[],
      tip="Relative bandwidth of a 1/3-octave band (CR-3813 p. 10: 0.232)."),
     # Tones and broadband
-    (key=:tone_model, group="Tones and broadband", label="Tone model", unit="", kind=:choice, choices=["eq8", "eq15_16", "auto"],
+    (key=:tone_model, group="Tones", label="Tone model", unit="", kind=:choice, choices=["eq8", "eq15_16", "auto"],
      tip="Eq. 8 (default), Eqs. 15–16 (high-frequency expected value), or auto (Eq. 8 below the crossover)."),
     (key=:broadband, group="Tones and broadband", label="High-frequency broadband", unit="", kind=:bool, choices=String[],
      tip="Add the high-frequency broadband bands (on)."),

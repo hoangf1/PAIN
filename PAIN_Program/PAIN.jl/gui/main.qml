@@ -18,6 +18,27 @@ ApplicationWindow {
     readonly property color warn: "#8a4b08"
     readonly property color border: "#d5dbe3"
 
+    // Phase 130 (2026-11-04): the window is drawn light, so the controls' palette is set light too. Without it the
+    // Fusion style takes the system palette, and in Windows dark mode the input text is white on the white fields.
+    palette.window: "#f4f6f8"
+    palette.windowText: ink
+    palette.base: "#ffffff"
+    palette.alternateBase: "#eef1f4"
+    palette.text: ink
+    palette.button: "#e9edf1"
+    palette.buttonText: ink
+    palette.placeholderText: muted
+    palette.highlight: accent
+    palette.highlightedText: "#ffffff"
+    palette.toolTipBase: "#ffffff"
+    palette.toolTipText: ink
+    palette.brightText: "#ffffff"
+    palette.light: "#ffffff"
+    palette.midlight: "#e9edf1"
+    palette.mid: border
+    palette.dark: "#9aa4b0"
+    palette.shadow: "#5a6577"
+
 
     // Phase 114 - run-status box. Every Run button gets one, so the user can tell which of five things the panel
     // is showing: nothing run yet, a result recorded earlier and read from disk, a run in progress, a result this

@@ -17,6 +17,20 @@ const _HZ = joinpath(pkgdir(PAIN), "examples", "aircraft_scale_hartzell.json")
     @test length(split(vals["radii_m"], ",")) == 39 && length(split(vals["twist_deg"], ",")) == 39 && length(split(vals["area_over_chord2"], ",")) == 39
     Vf, c0f, Rf, Ωf = parse(Float64, vals["forward_speed_mps"]), parse(Float64, vals["op_c0"]), parse(Float64, vals["tip_radius_m"]), 2π * parse(Float64, vals["rpm"]) / 60
     @test isapprox(hypot(Vf, Ωf * Rf) / c0f, 0.85; atol=1e-4)
+    # Phase 130: 290 KTAS at 25000 ft ISA (written out here: 1 kt = 1852/3600 m/s; T = 288.15 − 0.0065·7620, γR = 1.4·287.05287)
+    @test isapprox(Vf, 290 * 1852 / 3600; atol=0.02) && isapprox(c0f, sqrt(1.4 * 287.05287 * (288.15 - 0.0065 * 7620)); atol=0.01)
+    # Phase 130: structure = CR-172428 Table 13 small-body cards (as printed)
+    num(k) = parse(Float64, vals[k])
+    @test num.(["t_shell_card_m", "m_shell_kg_m2", "Dp_stringers_Nm", "Dp_frames_Nm"]) == [0.00193, 5.34, 1892.0, 43620.0]
+    @test num.(["t_floor_card_m", "m_floor_kg_m2", "Dp_floor_beams_Nm", "Dp_floor_supports_Nm"]) == [0.00191, 19.68, 1892.0, 43620.0]
+    # D' = E I / l from Table 13's own I and spacing (stringer 3.397e-9 m⁴ at 0.13 m, frame 1.988e-7 m⁴ at 0.33 m)
+    @test num("E_Pa") == 7.24e10 && isapprox(num("E_Pa") * 3.397e-9 / 0.13, num("Dp_stringers_Nm"); rtol=1e-3) &&
+          isapprox(num("E_Pa") * 1.988e-7 / 0.33, num("Dp_frames_Nm"); rtol=1e-3)
+    @test !haskey(vals, "settings.broadband") && !haskey(vals, "bb_alpha") && PAIN.gui_base(obs)["settings"]["broadband"] == false
+    # Q111 (2026-11-05): the converged grid, 40 × 19 with the plane at k = 20; every station on the 22.7 m cylinder
+    @test (vals["settings.grid_k_max"], vals["settings.grid_k_p"], vals["settings.grid_ell_max"]) == ("40", "20", "19")
+    gs = GridSpec(40, 19, 20); zs = [p.z for p in grid_points(FuselageGeometry(22.7, 1.32, 62.6), PropellerPlacement(4.1699, 90.0, 11.35), gs)]
+    @test 0 < minimum(zs) && maximum(zs) < 22.7 && isapprox(maximum(zs) - minimum(zs), 39 * π * 1.32 / 18; rtol=1e-12)
     hz = PAIN.gui_values(PAIN.make_gui_observables(; default_project=_HZ))
     @test hz["z_p_m"] == "0.662" && hz["rpm"] == "4000" && hz["num_blades"] == "3"
     lines = split(PAIN._format_val_case_list(), '\n')

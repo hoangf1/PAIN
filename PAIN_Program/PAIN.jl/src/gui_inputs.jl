@@ -31,6 +31,14 @@ const _APPD_LABELS = Dict(
 
 _gstr(x) = x isa AbstractFloat ? repr(Float64(x)) : string(x)
 
+# Phase 130 (2026-11-04, author: broadband "shouldnt be an input currently especially if it hasnt been verified"): the
+# interior broadband path (Eqs. 19–23 or the surrogate, from an f^−α exterior spectrum anchored to a tone) has no met
+# comparison with data, so the GUI has no broadband field and every GUI run is tones only (`gui_run_args` sets
+# settings.broadband = false). The code path stays for the validation cases. Hidden settings:
+const GUI_BROADBAND_SETTINGS = (:broadband, :bb_start_Hz, :bb_tone_skip, :j2_fallback, :j2_min, :surr_bw_rel, :surr_n_coef,
+                                :surr_n_fref_Hz, :surr_df_min_Hz, :surr_nref_modes, :surr_nref_fc_Hz, :surr_chi_min,
+                                :surr_chi_max)
+
 """
 GUI input fields: (key, group, label, unit, kind, path, default, tip, choices, optional). `path` is the place in the
 project file; `default` is what the code uses when the project does not give the value (as text; "" for optional fields
@@ -112,7 +120,7 @@ function gui_input_specs()
            "auto = App. D on the parametric path; table_d1 = NASA's printed Table D-1; ritz = surrogate";
            choices=["auto", "appd", "table_d1", "ritz"]),
         _F("m_wall_kg_m2", "Structure", "Wall mass per area", "kg/m²", :float, ["cabin", "m_wall_kg_m2"], "",
-           "Blank = smeared from the skin, stringers and frames."; optional=true),
+           "Blank = smeared from the structure given here: skin + stringers + frames, or the card shell mass."; optional=true),
     ]
     for s in APPD_INPUT_SPECS
         lab, unit = _APPD_LABELS[s.name]
@@ -148,26 +156,19 @@ function gui_input_specs()
         _F("mech_N_points", "Damping and trim", "Mechanical: point mounts", "", :int, ["cabin", "trim_stack", "mechanical", "N_points"], "0", ""),
         _F("mech_n_lines", "Damping and trim", "Mechanical: line mounts", "", :float, ["cabin", "trim_stack", "mechanical", "n_lines"], "0.0",
            "Lines along the cabin length."),
-        # Broadband & bands
-        _F("broadband_model", "Broadband and bands", "Broadband model", "", :choice, ["cabin", "broadband_model"], "auto",
-           "auto = Eqs. 19–23 on the parametric path; surrogate = the Table D-1 path form"; choices=["auto", "eq19", "surrogate"]),
-        _F("bb_alpha", "Broadband and bands", "Exterior spectrum slope α", "", :float, ["cabin", "bb_alpha"], _gstr(nd.bb_alpha),
-           "Blocked broadband ∝ f^−α above the anchor tone."),
-        _F("bb_j2_scale", "Broadband and bands", "Surrogate j² scale", "", :float, ["cabin", "bb_j2_scale"], _gstr(nd.bb_j2_scale),
-           "Surrogate broadband only."),
-        _F("spbl_anchor_H", "Broadband and bands", "Anchor harmonic", "", :int, ["cabin", "spbl_anchor_H"], string(nd.spbl_anchor_H),
-           "Tone whose level anchors the broadband spectrum."),
-        _F("allow_extrapolation", "Broadband and bands", "Extrapolate the insulation table", "", :bool, ["cabin", "allow_extrapolation"], "false",
+        # Bands (Phase 130: the broadband inputs are not GUI fields; GUI runs are tones only, see GUI_BROADBAND_SETTINGS)
+        _F("allow_extrapolation", "Bands", "Extrapolate the insulation table", "", :bool, ["cabin", "allow_extrapolation"], "false",
            "Continue the insulation properties beyond Fig. A-2."),
-        _F("bands_Hz", "Broadband and bands", "Band centres", "Hz", :list, ["bands_Hz"], "",
+        _F("bands_Hz", "Bands", "Band centres", "Hz", :list, ["bands_Hz"], "",
            "1/3-octave centres to report (cards 3–6); blank = 63 Hz … 8 kHz."; optional=true),
-        _F("eta_r_band", "Broadband and bands", "η_r per band", "", :bandmap, ["eta_r_band"], "",
+        _F("eta_r_band", "Bands", "η_r per band", "", :bandmap, ["eta_r_band"], "",
            "Structural loss factor per band (cards 11–18), \"1000: 0.02, 1250: 0.03\" or one value per band centre above; blank = Eqs. 79–82."; optional=true),
-        _F("eta_n_band", "Broadband and bands", "η_n per band", "", :bandmap, ["eta_n_band"], "",
+        _F("eta_n_band", "Bands", "η_n per band", "", :bandmap, ["eta_n_band"], "",
            "Cabin loss factor per band, in the same form; blank = Eq. 77 or the bare value."; optional=true),
     ])
     base = PainSettings()
     for s in PAIN_SETTING_SPECS
+        s.key in GUI_BROADBAND_SETTINGS && continue
         v = getfield(base, s.key)
         push!(f, _F("settings." * String(s.key), "Numerics: " * s.group, s.label, s.unit, s.kind, ["settings", String(s.key)],
                     v isa Symbol ? String(v) : _gstr(v), s.tip; choices=s.choices))
@@ -503,6 +504,8 @@ Build the project, write it to a temporary file (removed by the caller) and retu
 """
 function gui_run_args(base::AbstractDict, values::AbstractDict)
     proj = gui_build_project(base, values)
+    st = get!(proj, "settings", Dict{String,Any}())
+    st["broadband"] = false                         # Phase 130: GUI runs are tones only (GUI_BROADBAND_SETTINGS)
     run = get(proj, "run", Dict{String,Any}())
     blk = uppercase(String(get(run, "blocking", "R2"))) == "R1" ? R1 : R2
     nH = Int(get(run, "n_harmonics", 5))

@@ -216,6 +216,7 @@ Not blockers (recorded so nobody stops on them): BBN tip geometry beyond 40 in. 
 | Q108 | **Phase 126 — H1: PAIN's method or the recreation; I-18 closed** (§8bp; author 2026-11-04: "have you proved that h1 is a pain limitation rather than my code yes you have full control to close out any open items") | diagnostics + decision | Phases 94, 125 | **done 2026-11-04**: test article H1 code − NASA +0.1 / +0.1 / +0.2 dB (held-out Table 12: +0.24 / +0.34 / +0.27), NASA − measured −17.7 / +1.4 / −13.8 dB: the method's; 695A consistent, not provable (no NASA run); I-18 closed, 160 points kept (lower quarter: 1–6/9 against NASA, 10 lines 9/9) |
 | Q109 | **Phase 127 — every input and run-path constant in the GUI** (§8bq; author 2026-11-04: "if there are any constants then make it available for change in the gui") | GUI, settings, documents | — | **done 2026-11-04**: 59 constants as `PainSettings` (old values as defaults), every input a Run-tab field in tabs; project file optional; default runs bit-identical; printed outputs use the run's BPF |
 | Q110 | **Phase 128 — GUI default project matched to Cabin_Noise** (§8br; author 2026-11-04: "much of the current defaults like blade number rpm speed arent matched with cabin_noise") | `examples/aircraft_generic_twin_turboprop.json`, `gui_inputs.jl`, tests, documents | — | **done 2026-11-04**: the GUI opens on Cabin_Noise's generic twin turboprop (6 blades, 1181 rpm, R 1.7526 m, Mach 0.4818 at 7620 m, cabin 22.7 m), values copied by hand; Hartzell project kept for tests; a run takes about 7 min (the tone sum over the long cabin's modes) |
+| Q111 | **Phase 131 — grid extent on a full-size cabin** (§8bu; author 2026-11-05: "Run Q111 now", "you have full control") | `examples/aircraft_generic_twin_turboprop.json`, tests, documents | — | **done 2026-11-05**: the GUI default grid is 40 × 19 (k_p 20), converged by the rule fixed in Q111; default 85.9 dB(A) (was 83.0 on 16 × 10) |
 | Q58 | **Phase 79 — CYL2D** (§8w; 2026-10-28) | `case_error_summary`, `cyl2d.jl`, CYL2D_WEYL | Q57 | **done 2026-10-28**: information rows leave the pass count; refinement fixed (79b); CYL2D_GRID_CONV (NY 10 within 4.9 % of NY 60); Weyl + surface term 4/5; production NY = 10 kept (decided 2026-10-28) |
 | Q57 | **Phase 78 — structural modes** (§8v; 2026-10-28) | `mrp_appd.jl`, MRP_APPD criterion, map | Q53 | **done 2026-10-28**: App. D solver fixes J1–J6; MRP_APPD not met 2/32 (class I, floor stiffener model undocumented); MRP_D1/MRP_RITZ off the map |
 | Q56 | **Phase 77 — POLAR_FIDELITY as an equivalent angle** (§8u; 2026-10-28) | `src/validation_case_iso67.jl`, figure | Q52 | **done 2026-10-28**: Δα shown next to Δc_l, display only |
@@ -3211,7 +3212,7 @@ blades is 6 etc and rpm isnt matched"; earlier: "i dont want the two programs to
   seconds. New checks cover the default's fields, its BPF and that it has no unread keys. No criterion, reference or
   recorded result changed.
 
-## 8bs. Phase 129 — GUI default blades: Heart HP_1650 at helical tip Mach 0.85 (done 2026-11-04)
+## 8bs. Phase 129 — GUI default blades: HP_1650 at helical tip Mach 0.85 (done 2026-11-04)
 
 *(Author 2026-11-04: pull the hp_1650 geometry as defaulted, changeable inputs and set the rpm so the helical true tip speed is M = 0.85.)*
 
@@ -3222,3 +3223,85 @@ blades is 6 etc and rpm isnt matched"; earlier: "i dont want the two programs to
 - **rpm.** 1183.33 rpm from √(V² + (ΩR)²) = 0.85 c at V = 149.198 m/s, c = 309.668 m/s (flight condition unchanged); r_p recomputed from the new R (4.1699 m).
 - **Tests.** `test_gui_model.jl` checks 39 stations in three lists and recomputes the helical Mach from the field values (0.85 ± 1e-4); BPF text 118.33 Hz. `test_gui_model.jl`, `test_pain_settings.jl` and `smoke_gui_model.jl` pass. The full Pkg.test and `smoke_qml_load.jl` were not run.
 - **Not measured.** The default run time (7 min with 10 stations) with 39 stations. No criterion, reference or recorded result changed.
+
+## 8bt. Phase 130 — GUI default inputs checked; wall mass from the project's structure; GUI tones only (done 2026-11-04)
+
+*(Author 2026-11-04: "ensure all the default inputs are correct flight speed is 290 ktas at 25kft ... placement ... cabin
+... structure ... damping and trim[;] broadband i feel like shouldnt be an input currently especially if it hasnt been
+verified and ensure all the numerics are working". Structure source and placement chosen by the author the same day:
+"Table 13 deck", "Keep mid-cabin".)*
+
+- **Flight.** 149.198 m/s, ISA 7620 m (T 238.62 K, ρ 0.54895 kg/m³, c 309.668 m/s, μ 1.53981e-5 Pa·s) recomputed:
+  290 KTAS = 149.19 m/s at 25000 ft; Mach 0.4818 (Cabin_Noise's rounding) differs by 0.006 %. Unchanged. Cabin air
+  (ISA 2438.4 m pressure at 293.15 K: 0.89440 kg/m³, 343.232 m/s) recomputed, unchanged.
+- **Placement.** r_p = a + R + 1.1 m = 4.1699 m checked. z_p mid-cabin and φ_p = 90° kept (author); stated in the file.
+- **Structure.** The App. D stiffener, floor and modulus inputs were the CR-3813 1.8 m test article's (frames 0.2 m,
+  stringers 0.177 m, floor 0.81 mm). Now the eight MRP card values of CR-172428 Table 13 (PDF pp. 109–110), small-body
+  aircraft, the printed turboprop nearest this cabin (D 2.29 m against 2.64 m), unscaled: shell 1.93 mm equivalent,
+  5.34 kg/m²; D′ stringers 1.892e3 N·m (E I_s/l_s, 3.397e-9 m⁴ at 0.13 m); D′ frames 4.362e4 N·m (1.988e-7 m⁴ at
+  0.33 m); floor 1.91 mm, 19.68 kg/m² with seats (the MRPMOD deck, PDF p. 220, carries the same 5.34 and 19.68);
+  floor D′ 1.892e3 (longitudinal) and 4.362e4 N·m (transverse); E 7.24e10 Pa; ν 0.33 (the business deck; Table 13
+  does not print ν). Read twice from the scan; each D′ checked against E I / l. The floor angle (auto) is that
+  aircraft's 62.6°. Cabin_Noise's 1.6 mm skin is no longer used by the structure.
+- **Wall mass (code fix).** With no `m_wall_kg_m2`, `run_pain_pipeline` used the test article's smeared mass
+  (`MRP_*`, 3.22 kg/m²) even when the project gave its own structure, against the GUI tip "smeared from the skin,
+  stringers and frames". Now, when the project gives structure inputs, the wall mass is smeared from them (ρ t_eq of the
+  App. D sections, or the card shell mass): 5.34 kg/m² here (Cabin_Noise: 5.95). No validation case is affected: those
+  with structure inputs (Commander 695A, Hartzell full cabin) give m; the rest give no structure (unchanged, tested).
+- **Damping and trim.** η_n bare 0.05 and C = 3 are PAIN's defaults (nothing printed for this cabin); trim stack
+  insulation 0.09 m + limp mass 2.7 kg/m² matches Cabin_Noise. Unchanged.
+- **Broadband.** No GUI field any more (model, α, j² scale, anchor harmonic, the 13 broadband settings,
+  `GUI_BROADBAND_SETTINGS`); `gui_run_args` writes `settings.broadband = false`, so every GUI run is tones only. The
+  code path stays for the validation cases (none of which has a met broadband comparison for an aircraft).
+- **2-D cabin-mode speed.** `settings.c_cyl2d_mps` = 0 now means the cabin air's sound speed, and the default uses it (343.232 m/s); PAIN's CYL2D used
+  341 m/s whatever the air (Phase 106), kept as the code default for the NASA reproductions.
+- **Settings check.** Each `PainSettings` field changed alone on the scale Hartzell project (3 harmonics; then a trimmed
+  copy, 5 harmonics): all 59 run. Every one acts where it applies; those with no effect apply only elsewhere (static
+  guard, source span of a periodic source, extra NY grids, App. D start counts / cap / minimum, which the cutoff search
+  overrides by doubling until converged, and the broadband settings).
+- **Default run (GUI path, 5 harmonics, 481 s): 83.0 dB(A) [79.5, 86.5], tones 95.51, 88.16, 80.40, 62.46, 60.21 dB
+  (H1–H5); 4720 structural modes to the 1200 Hz cutoff; Eq. (8)/(15)–(16) crossover 315 Hz.** X-EXTRAP, compared with
+  nothing; not a case.
+- **Grid convergence (not converged).** k_max 24 (k_p 12): 83.53 dB(A) (H1 96.34); ℓ_max 15: 84.18 dB(A) (H1 97.25).
+  The User Manual grid scales with a: on this cabin it spans 3.7 m axially (about one propeller diameter) and 100° of
+  arc, and H1 still rises 0.8–1.7 dB when either is extended. The default grid is unchanged (a numerics choice for the
+  author); the open item is queue Q111 in IMPLEMENTATION_PLAN.
+- **GUI text.** The window sets a light palette (`gui/main.qml`): in Windows dark mode the Fusion controls took the
+  system palette and the input text was white on the white fields.
+- **Tests.** `test_pain_settings.jl` (wall mass from the project's structure, written-out smeared formula; no broadband
+  field; GUI runs write broadband = false) and `test_gui_model.jl` (290 KTAS / 25000 ft written out; Table 13 cards
+  and D′ = E I / l; no broadband field) pass; `smoke_gui_model.jl` and `smoke_qml_load.jl` pass; the window was looked at in Windows dark mode (input text dark on white, no Broadband group). No criterion, reference or recorded result
+  changed.
+
+## 8bu. Phase 131 — grid extent on a full-size cabin (Q111; done 2026-11-05)
+
+*(Author 2026-11-05: "Run Q111 now"; "you have full control".)* Rule fixed in Q111 on 2026-11-04, before these runs:
+extend the grid until the next step changes H1 and dB(A) by less than 0.5 dB.
+
+- **Runs** (GUI default project, GUI path, 5 harmonics, tones only; step πa/18 = 0.230 m and 10°; k_p = k_max / 2):
+
+  | k_max × ℓ_max | Axial span, arc | dB(A) | H1 … H5 (dB) |
+  |---|---|---|---|
+  | 16 × 10 (User Manual) | 3.7 m, 90° | 83.00 | 95.51, 88.16, 80.40, 62.46, 60.21 |
+  | 24 × 13 | 5.5 m, 120° | 84.65 | 97.94, 89.47, 79.79, 62.82, 60.20 |
+  | 32 × 16 | 7.4 m, 150° | 85.19 | 99.03, 89.23, 80.28, 62.45, 60.19 |
+  | 40 × 19 | 9.2 m, 180° | 85.87 | 100.03, 89.39, 80.65, 62.83, 60.25 |
+  | 56 × 19 | 12.9 m, 180° | 85.86 | 100.01, 89.37, 80.65, 62.83, 60.25 |
+  | 40 × 10 | 9.2 m, 90° | 83.61 | 96.56, 88.48, 80.38, 62.48, 60.21 |
+  | 40 × 13 | 9.2 m, 120° | 84.79 | 98.32, 89.31, 79.79, 62.82, 60.20 |
+
+- **Converged** at 40 × 19: 56 × 19 changes H1 by 0.02 dB and dB(A) by 0.01 dB. 19 lines reach 180°, the whole half of
+  the circumference on the grid's side (PAIN's lines run one way from the propeller line); no further line exists.
+  Adopted as the GUI default (`settings.grid_k_max` 40, `grid_k_p` 20, `grid_ell_max` 19); every station lies on the
+  cylinder (z 6.97–15.96 m of 22.7 m). Default result: **85.9 dB(A)** (H1 100.0 dB). The code default (16 × 10) is
+  unchanged for the NASA cases, whose cabins it was written for.
+- **Where the rise comes from.** The axial extent adds 0.6 dB(A) (40 × 10 against 16 × 10). The arc adds 2.3 dB(A)
+  (40 × 19 against 40 × 10), H1 3.5 dB. Past about 72° (cos α = a / r_p in the propeller plane) the lines are in the
+  propeller's geometric shadow, where Eq. 43 is floored at F = 1: the free field, with no shadowing. At H1 the wavelength
+  (2.6 m) is about the fuselage diameter, so the real shadow is weak but not zero. The 90° grid sets that pressure to
+  zero; the 180° grid leaves it unshadowed. **83.6–85.9 dB(A) brackets the default** between the two (a limit of PAIN's
+  blocking, not of the grid). Information only; nothing compared with data.
+- **Run time** 274–317 s per run once the structural modes are cached in the session (the first run of a session adds
+  the mode search, about 1 min more).
+- **Tests.** `test_gui_model.jl` checks the default's grid fields and that every station lies on the cylinder with the
+  span 39 πa/18; passes. No criterion, reference or recorded result changed.

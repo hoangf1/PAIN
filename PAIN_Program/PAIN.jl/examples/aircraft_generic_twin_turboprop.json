@@ -1,16 +1,22 @@
 {
-  "description": "GUI default (Phase 128, 2026-11-04): the generic twin turboprop of Cabin_Noise's default project (cabin_noise/data/default_project.json), its values copied by hand; the two programs share no code or file. Propeller: Heart HP_1650 geometry at helical tip Mach 0.85 (see assumptions). Cruise, 7620 m ISA, Mach 0.4818, 6 blades, 1181 rpm, tip radius 1.7526 m, tip-to-fuselage clearance 1.1 m, cabin 22.7 m long and 2.64 m wide, skin 1.6 mm of density 2780, double wall: 0.09 m blanket cavity behind a 2.7 kg/m2 trim panel. Inputs Cabin_Noise does not have are stated in 'assumptions'. Not a validation case: no comparison with data.",
+  "description": "GUI default (Phase 128, 2026-11-04): the generic twin turboprop of Cabin_Noise's default project (cabin_noise/data/default_project.json), its values copied by hand; the two programs share no code or file. Propeller: HP_1650 geometry at helical tip Mach 0.85 (see assumptions). Cruise, 290 KTAS at 25000 ft (7620 m ISA, Mach 0.4818), 6 blades, 1183.33 rpm, tip radius 1.74994 m, tip-to-fuselage clearance 1.1 m, cabin 22.7 m long and 2.64 m wide, structure of CR-172428 Table 13's small-body turboprop (Phase 130), double wall: 0.09 m blanket cavity behind a 2.7 kg/m2 trim panel. Tones only (Phase 130: the broadband path is not verified for this use). Inputs Cabin_Noise does not have are stated in 'assumptions'. Not a validation case: no comparison with data.",
   "validity_class": "X-EXTRAP",
   "assumptions": [
     "Radius a = cabin width / 2 = 1.32 m (Cabin_Noise models a box, PAIN a cylinder).",
     "Hub distance r_p = a + tip radius + clearance = 4.1699 m; propeller plane at mid-cabin, z_p = L/2 = 11.35 m (Cabin_Noise has no station relative to the cabin).",
-    "Propeller geometry (2026-11-04): Heart HP_1650 from propeller_sizing_and_analysis/propellers/hp_1650 (propeller.yaml, blade_form.csv): 6 blades, D 3.49988 m (R 1.74994 m), hub = spinner radius 0.325 m, the 39 stations of blade_form.csv at r/R >= 0.1857 (the two inside the spinner are dropped), chord = c/R x R, twist = the file's beta_deg (chord-line datum, set at the file's first design point, beta75 34.281 deg; pitch offset 0). The tip radius replaces Cabin_Noise's 1.7526 m.",
+    "Propeller geometry (2026-11-04): HP_1650 from propeller_sizing_and_analysis/propellers/hp_1650 (propeller.yaml, blade_form.csv): 6 blades, D 3.49988 m (R 1.74994 m), hub = spinner radius 0.325 m, the 39 stations of blade_form.csv at r/R >= 0.1857 (the two inside the spinner are dropped), chord = c/R x R, twist = the file's beta_deg (chord-line datum, set at the file's first design point, beta75 34.281 deg; pitch offset 0). The tip radius replaces Cabin_Noise's 1.7526 m.",
     "area_over_chord2: the file's t/c per station through naca4_area_over_chord2 (a NACA 4-digit thickness shape; the file's sections are NACA 16-series, whose area differs slightly). Clear the field for loading-only noise.",
     "rpm 1183.33: set so the helical tip Mach number sqrt(V^2 + (Omega R)^2) / c = 0.85 at the flight speed and sound speed below (author 2026-11-04); Cabin_Noise's 1181 rpm is replaced. Shaft power (1.64 MW in Cabin_Noise) is not a PAIN input.",
     "Outside air: ISA at 7620 m (T 238.62 K). Cabin air: the pressure of ISA 2438.4 m at 293.15 K, the formulas of Cabin_Noise's atmosphere.py.",
     "ANOPP Table 8 scaling off: Table 8 is the 0.762 m Hartzell test, not this propeller.",
     "Insulation table extrapolated (X-EXTRAP): the 22.7 m cabin has structural modes from about 13 Hz, below the 100 Hz start of the PF-105 table.",
-    "Harmonics: 5 (Cabin_Noise's auto takes every harmonic below 5 kHz)."
+    "Harmonics: 5 (Cabin_Noise's auto takes every harmonic below 5 kHz).",
+    "Structure (Phase 130, 2026-11-04): the eight MRP card values of CR-172428 Table 13 (PDF pp. 109-110), small-body aircraft (D 2.29 m, the printed turboprop nearest this 2.64 m cabin): equivalent shell thickness 1.93 mm, shell mass 5.34 kg/m2 (skin + stiffeners), stringer D' = E I_s / l_s = 1.892e3 N m (l_s 0.13 m), frame D' = E I_f / l_f = 4.362e4 N m (l_f 0.33 m), equivalent floor thickness 1.91 mm, floor mass 19.68 kg/m2 (with seating; the MRPMOD deck, PDF p. 220, uses the same value), longitudinal floor beam D' 1.892e3 N m, transverse floor support D' 4.362e4 N m; E 7.24e10 Pa (Table 13, 2024 aluminium); nu 0.33 (the same report's business-aircraft deck; Table 13 does not print it). Table 13 is printed for a 2.29 m fuselage; it is used here unscaled for the 2.64 m one. Cabin_Noise's 1.6 mm skin is not used by the structure; the wall mass for the trim and damping (Eqs. 81-82) is the card shell mass 5.34 kg/m2 (Cabin_Noise: 1.6 mm x 2780 + 1.5 = 5.95 kg/m2). The values were read twice from the scan and checked with D' = E I / l (Table 13's own I and spacing).",
+    "Propeller placement: propeller plane at mid-cabin and hub level with the fuselage axis (phi_p 90 deg), kept by the author 2026-11-04; Cabin_Noise gives only the nose-to-propeller-plane distance (11.3 m, Dash 8-400), not the cabin start.",
+    "Damping: eta_n (bare cabin) 0.05 and C = 3 in eta_r' = C / f_r are PAIN's own defaults (CR-3813: C between 2 and 4); no aircraft value is printed for this cabin.",
+    "2-D cabin-mode sound speed (settings.c_cyl2d_mps, Phase 130): 0 = the cabin air's sound speed (343.232 m/s here, c0 above), so it follows an edited c0; PAIN's CYL2D used 341 m/s whatever the cabin air (Phase 106), which is kept for the NASA reproductions.",
+    "Grid (Q111, 2026-11-05): 40 axial stations (propeller plane at k = 20) x 19 lines, 9.2 m by 180 deg at the User Manual step pi a / 18 = 0.230 m. Chosen by the convergence rule fixed in Q111 before the runs (next step changes H1 and dB(A) by < 0.5 dB): 56 x 19 differs by 0.02 dB at H1. The User Manual's 16 x 10 spans 3.7 m and 90 deg on this cabin and gives H1 4.5 dB lower. Lines past about 72 deg are in the propeller's geometric shadow, where Eq. 43 is floored at F = 1 (free field, no shadowing).",
+    "Broadband off (settings.broadband = false, Phase 130): the interior broadband path (Eqs. 19-23 with an f^-alpha exterior spectrum anchored to a tone) has no met comparison with data, so the GUI reports tones only."
   ],
   "propeller": {
     "num_blades": 6,
@@ -31,6 +37,13 @@
     "mu_Pa_s": 1.53981e-5
   },
   "anopp_table8_calibrate": false,
+  "settings": {
+    "broadband": false,
+    "c_cyl2d_mps": 0.0,
+    "grid_k_max": 40,
+    "grid_k_p": 20,
+    "grid_ell_max": 19
+  },
   "run": {
     "blocking": "R2",
     "n_harmonics": 5
@@ -48,8 +61,16 @@
     "rho_ext_kg_m3": 0.54895,
     "c_ext_mps": 309.668,
     "allow_extrapolation": true,
-    "t_skin_m": 0.0016,
-    "rho_struc_kg_m3": 2780.0,
+    "E_Pa": 7.24e10,
+    "nu": 0.33,
+    "t_shell_card_m": 0.00193,
+    "m_shell_kg_m2": 5.34,
+    "Dp_stringers_Nm": 1892.0,
+    "Dp_frames_Nm": 43620.0,
+    "t_floor_card_m": 0.00191,
+    "m_floor_kg_m2": 19.68,
+    "Dp_floor_beams_Nm": 1892.0,
+    "Dp_floor_supports_Nm": 43620.0,
     "trim_stack": {
       "sidewall": {
         "elements": [

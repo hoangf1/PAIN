@@ -72,7 +72,10 @@ end
 @testset "GUI input fields and the project builder" begin
     specs = gui_input_specs()
     @test allunique(s.key for s in specs) && allunique(Tuple(s.path) for s in specs)
-    @test count(s -> startswith(s.key, "settings."), specs) == length(PAIN_SETTING_SPECS)
+    # Phase 130: every setting is a field except the broadband ones (GUI runs are tones only)
+    @test count(s -> startswith(s.key, "settings."), specs) == length(PAIN_SETTING_SPECS) - length(PAIN.GUI_BROADBAND_SETTINGS)
+    @test all(k -> !any(s -> s.key == "settings.$k", specs), PAIN.GUI_BROADBAND_SETTINGS) && :broadband in PAIN.GUI_BROADBAND_SETTINGS
+    @test !any(s -> s.key in ("broadband_model", "bb_alpha", "bb_j2_scale", "spbl_anchor_H"), specs)
     @test all(s -> s.kind in (:float, :int, :bool, :choice, :list, :bandmap, :text, :elements), specs)
     # every App. D structure input of the provenance layer is a field
     @test all(sp -> any(s -> s.key == sp.name, specs), (PAIN.APPD_INPUT_SPECS..., PAIN.APPD_DECK_SPECS...))
@@ -155,6 +158,8 @@ end
     @test PAIN.gui_bpf_text(Dict("num_blades" => "2", "rpm" => "2400")) == "BPF = 80.0 Hz" && PAIN.gui_bpf_text(Dict{String,String}()) == ""
     ra = gui_run_args(base, vals)
     @test isfile(ra.path) && ra.kwargs.blocking === R2 && ra.kwargs.n_harmonics == 5 && ra.kwargs.aircraft_json == ra.path
+    @test ra.project["settings"]["broadband"] == false                          # Phase 130: tones only from the GUI
+    @test PAIN._load_project_dict(ra.path)["settings"]["broadband"] == false
     rm(ra.path)
 end
 
@@ -176,4 +181,32 @@ end
     @test PAIN.gui_values(obs)["rpm"] == "2400" && PAIN.gui_values(obs)["num_blades"] == "4" && obs["project_path"][] == f
     @test_throws ErrorException gui_open_project!(obs, joinpath(UNIT_OUT, "missing.json"))
     @test_throws ErrorException gui_save_project!(obs, " ")
+end
+
+# Phase 130 (2026-11-04): with structure inputs in the project and no wall mass, the wall mass of Eqs. (81)–(82) and the
+# trim is smeared from those inputs; before, it was always the CR-3813 test article's (MRP_* constants).
+@testset "wall mass from the project's own structure" begin
+    hzp = joinpath(pkgdir(PAIN), "examples", "aircraft_scale_hartzell.json")
+    run1(p) = run_pain_pipeline(; source=:aircraft, aircraft_json=p, blocking=R2, n_harmonics=1)
+    @test run1(hzp).inputs.m_wall == PAIN.nasa_default_m_wall()             # no structure given: the test article, as before
+    base = PAIN._load_project_dict(hzp)
+    function with_cabin(c)
+        p = deepcopy(base); p["cabin"] = c
+        f = joinpath(UNIT_OUT, "wall_mass_project.json"); write(f, PAIN.JSON3.write(p)); f
+    end
+    # skin 2.0 mm, the test article's stiffeners: 2780 × (t + A_s/d_s + A_f/ℓ_f), written out
+    m_skin = 2780.0 * (0.002 + 1.05723e-5 / 0.17732545200262387 + 5.832e-5 / 0.2)
+    @test isapprox(run1(with_cabin(Dict{String,Any}("t_skin_m" => 0.002))).inputs.m_wall, m_skin; rtol=1e-6)
+    # the eight card values: the card shell mass
+    deck = Dict{String,Any}("t_shell_card_m" => 0.00193, "m_shell_kg_m2" => 5.34, "Dp_stringers_Nm" => 1892.0, "Dp_frames_Nm" => 43620.0,
+                            "t_floor_card_m" => 0.00191, "m_floor_kg_m2" => 19.68, "Dp_floor_beams_Nm" => 1892.0, "Dp_floor_supports_Nm" => 43620.0)
+    @test run1(with_cabin(deck)).inputs.m_wall == 5.34
+    @test run1(with_cabin(merge(deck, Dict{String,Any}("m_wall_kg_m2" => 7.0)))).inputs.m_wall == 7.0   # a given mass wins
+    # a partial card set off the App. D path runs as before (test-article mass); on the App. D path it still errors
+    part = Dict{String,Any}("m_shell_kg_m2" => 5.34, "cabin_blocks" => "surrogate")
+    @test run1(with_cabin(part)).inputs.m_wall == PAIN.nasa_default_m_wall()
+    @test_throws ErrorException run1(with_cabin(Dict{String,Any}("m_shell_kg_m2" => 5.34)))
+    # c_cyl2d = 0: the cabin air's sound speed
+    r0 = run_pain_pipeline(; source=:synthetic, n_harmonics=1, settings=PainSettings(c_cyl2d_mps=0.0), c0=330.0)
+    @test r0.inputs.c_cyl2d == r0.inputs.c_int == 330.0
 end

@@ -4063,9 +4063,22 @@ default Hartzell, e11 and 695A runs are bit-identical). A GUI setting changed fr
 user variant, not a case: the Validation tab never takes GUI settings. Choosing a setting by its effect on a compared
 case would be calibration (CLAUDE.md) and is not offered. Inventory: `INPUTS_AND_SETTINGS.md`.
 
+## 2.53 Phase 131: GUI default grid (2026-11-05)
+
+Numerics of the GUI default only (X-EXTRAP, compared with nothing, not a case). The convergence rule was fixed in Q111
+before the runs; no case, criterion, reference or recorded result changed; the cases keep the 16 × 10 grid.
+
+## 2.52 Phase 130: GUI default inputs, wall mass, tones only (2026-11-04)
+
+No case, criterion, reference or recorded result changed. The wall-mass change acts only when a project gives structure
+inputs and no wall mass; no validation case does (the Commander 695A and Hartzell full-cabin projects give m). The GUI
+default stays X-EXTRAP, compared with nothing, not a case. Table 13's small-body values are printed inputs of another
+aircraft, used unscaled; nothing was chosen by its effect on a result. The settings check of §8bt (COMPLETED_PHASES)
+is verification: each setting runs and acts where it applies; it is not a verdict.
+
 ## 2.51 Phase 129: GUI default blades (2026-11-04)
 
-The default project's propeller is now Heart HP_1650 at helical tip Mach 0.85. Still X-EXTRAP, compared with nothing, not a case; no criterion or record changed.
+The default project's propeller is now HP_1650 at helical tip Mach 0.85. Still X-EXTRAP, compared with nothing, not a case; no criterion or record changed.
 
 ## 2.50 Phase 128: the GUI default project (2026-11-04)
 

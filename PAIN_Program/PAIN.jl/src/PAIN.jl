@@ -395,6 +395,13 @@ function _run_pain_pipeline(;
     elseif trim_used === :custom
         error("trim=:custom requires sidewall_trim_stack / end_trim_stack")
     end
+    # Phase 130 (2026-11-04): with the project's own structure inputs and no wall mass, the wall mass is smeared from those
+    # inputs (skin + stringers + frames, or the card mass), not from the CR-3813 test article's MRP_* constants.
+    # A partial card set errors only on the App. D path (build_appd_geometry); elsewhere it is skipped here as before.
+    n_cards = count(sp -> haskey(appd_overrides, Symbol(sp.name)), APPD_DECK_SPECS)
+    if isnan(m_wall_eff) && !isempty(appd_overrides) && (appd_g !== nothing || n_cards in (0, length(APPD_DECK_SPECS)))
+        m_wall_eff = _appd_shell_props(something(appd_g, build_appd_geometry(fuse, appd_overrides))).ms
+    end
     m_wall_was_fallback = isnan(m_wall_eff)  # PainInputs will fill from MRP_*
     inp = PainInputs(fuse, prop, structural, acoustic,
                      bl.amplitudes, bl.phases, bl.pts, ΔA;
@@ -407,7 +414,7 @@ function _run_pain_pipeline(;
                      floor_sign=st.floor_sign, q0_coupled=st.q0_coupled, η_n_per_mode=st.eta_n_per_mode,
                      η_n_band_omega=st.eta_n_band_omega, trim_band_centre=st.trim_band_centre,
                      crossover_band_Hz=st.crossover_band_Hz > 0 ? st.crossover_band_Hz : nothing,
-                     c_cyl2d=st.c_cyl2d_mps)
+                     c_cyl2d=st.c_cyl2d_mps > 0 ? st.c_cyl2d_mps : nothing)   # 0 = the cabin air (Phase 130)
     # Parametric HF path: Eqs. 19–23 (I-21 open readings → X-EXTRAP); η_r_cap=nothing
     spec_out = interior_spl(inp; bpf_Hz=bl.bpf_Hz,
                             n_harmonics=min(n_harmonics, size(bl.amplitudes, 3)),
