@@ -4063,6 +4063,12 @@ default Hartzell, e11 and 695A runs are bit-identical). A GUI setting changed fr
 user variant, not a case: the Validation tab never takes GUI settings. Choosing a setting by its effect on a compared
 case would be calibration (CLAUDE.md) and is not offered. Inventory: `INPUTS_AND_SETTINGS.md`.
 
+## 2.55 Phase 133: GUI default blade pitch (2026-11-05)
+
+The GUI default's blade pitch is set so CCBlade absorbs the author's stated 2200 hp; it is an input taken from that
+power alone, compared with nothing. The default stays X-EXTRAP and is not a case; no case, criterion, reference or
+recorded result changed.
+
 ## 2.54 Phase 132: audit (2026-11-05)
 
 No case, criterion, reference or recorded result changed. The 695A grid runs are a diagnostic of an information case

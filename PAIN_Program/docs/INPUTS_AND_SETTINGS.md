@@ -48,10 +48,11 @@ set, and what stays fixed and why. PAIN_Program and Cabin_Noise are not connecte
 | Harmonics | 5 | PAIN's own (Cabin_Noise's auto takes every harmonic below 5 kHz) |
 | ANOPP Table 8 scaling | off | Table 8 is the 0.762 m Hartzell test, not this propeller |
 | Insulation-table extrapolation | on (X-EXTRAP) | the 22.7 m cabin has structural modes from about 13 Hz, below the table's 100 Hz |
-| Blade stations, chords, twist, hub radius | HP_1650: 39 stations, c/R·R, β(r) of `blade_form.csv` (pitch offset 0), hub 0.325 m | Phase 129: `propeller_sizing_and_analysis/propellers/hp_1650` (propeller.yaml, blade_form.csv); stations inside the spinner (r/R < 0.1857) dropped; β is the file's chord-line datum at its first design point (β75 34.281°); all editable in the Propeller tab |
+| Blade stations, chords, twist, hub radius | HP_1650: 39 stations, c/R·R, β(r) of `blade_form.csv`, hub 0.325 m | Phase 129: `propeller_sizing_and_analysis/propellers/hp_1650` (propeller.yaml, blade_form.csv); stations inside the spinner (r/R < 0.1857) dropped; β is the file's chord-line datum at its first design point (β75 34.281°); all editable in the Propeller tab |
+| Blade pitch (Phase 133) | pitch offset 15.98° (β75 50.26°) | sets CCBlade's shaft power to the author's 2200 hp (2026-11-05; Cabin_Noise's 1640539.7 W) at 1183.33 rpm, 290 KTAS, 25000 ft: 2199 hp, thrust 9.24 kN, η 0.84. The file's β alone windmills here (inflow 42.5° at 0.75R: −9.9 kN, −1.25 MW). PAIN has no power input: re-set the offset for another flight condition |
 | Station area / chord² | naca4_area_over_chord2(t/c) at each station | t/c from `blade_form.csv`; the file's sections are NACA 16-series, the area formula is the NACA 4-digit one (approximation); clear the field for loading-only |
 
-Not carried over, because PAIN has no input for them: shaft power (1.64 MW), engines, windows, cabin surface absorption,
+Not carried over, because PAIN has no input for them: shaft power (1.64 MW; since Phase 133 it sets the blade pitch above), engines, windows, cabin surface absorption,
 the boundary-layer source, the seat percentile. Every other field keeps PAIN's code default (damping and the Numerics
 settings, except the grid, the 2-D mode speed and broadband, listed above). The project is X-EXTRAP and is not a validation case: it is compared with nothing.
 A run takes about 5 min (274–332 s measured on the 40 × 19 grid, Phase 131), against seconds for the Hartzell project. Most of it (about 80 %) is the tone

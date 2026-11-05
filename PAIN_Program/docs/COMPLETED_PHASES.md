@@ -3346,3 +3346,31 @@ reported as unflagged test-article defaults.
 `test_aircraft_provenance.jl` (broadband inputs listed only with broadband on) pass. No criterion, reference or
 recorded result changed. Note: the memory index entry for this night's authority was refused by the permission check;
 the note file itself was written.
+
+## 8bw. Phase 133 — GUI default blade pitch set for 2200 hp (done 2026-11-05)
+
+*(Author 2026-11-05: "the defaulted input should be 2200hp"; "i though the pitch was already set based on the
+geometry".)*
+
+**Defect.** The default ran HP_1650's `blade_form.csv` twist with pitch offset 0: β75 = 34.28°, the file's chord-line
+datum at its first design point. At 290 KTAS and 1183.33 rpm the inflow angle at 0.75R is 42.5°, so every section ran
+at −1.6° to −4.7° angle of attack: CCBlade gave thrust −9.9 kN and shaft power −1.25 MW, a windmilling propeller.
+Phases 129–132's default results (85.9 dB(A)) were for that propeller. A constant-speed propeller's governor turns the
+whole blade to absorb the engine's power; PAIN has no power input, so the angle is a project input.
+
+**Fix (input, not calibration).** `propeller.pitch_offset_deg` = 15.98° (β75 50.26°): the angle at which CCBlade's
+shaft power is the author's 2200 hp (1.6405 MW, Cabin_Noise's 1640539.7 W) at the project's own operating point,
+found by bisection on power alone. Result: 2199 hp, thrust 9.24 kN, η 0.84, section α 1.9° to 5.4° (inside the
+default polar's ±20° linear range). Nothing is compared with data; the default stays X-EXTRAP.
+
+**Default result** (GUI path, 40 × 19, tones only): **88.3 dB(A)** [84.8, 91.8]; H1–H5 102.51, 91.85, 82.44, 63.85,
+60.78 dB (was 85.9 dB(A), H1 100.03 dB, windmilling).
+
+**Grid (Q111 rule re-applied, fixed 2026-11-04 before the runs).** 56 × 19: dB(A) 88.3, H1 102.47 dB (−0.04 dB): still
+converged at 40 × 19. 40 × 10 (far side unshadowed lines dropped): 86.0 dB(A), H1 99.01 dB. **86.0–88.3 dB(A)
+brackets the default** (PAIN's blocking limit, §8bu).
+
+**Tests.** `test_gui_model.jl`: the default's pitch field is 15.98 and CCBlade's power on it is 2200 hp within 0.1 %
+with forward thrust (fails at pitch 0, where power and thrust are negative); 83/83 pass. No criterion, reference or
+recorded validation result changed.
+

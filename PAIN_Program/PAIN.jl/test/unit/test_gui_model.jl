@@ -25,6 +25,11 @@ fc=1000.0 Hz  no level"
     @test length(split(vals["radii_m"], ",")) == 39 && length(split(vals["twist_deg"], ",")) == 39 && length(split(vals["area_over_chord2"], ",")) == 39
     Vf, c0f, Rf, Ωf = parse(Float64, vals["forward_speed_mps"]), parse(Float64, vals["op_c0"]), parse(Float64, vals["tip_radius_m"]), 2π * parse(Float64, vals["rpm"]) / 60
     @test isapprox(hypot(Vf, Ωf * Rf) / c0f, 0.85; atol=1e-4)
+    # Phase 133: the blade pitch makes CCBlade absorb the author's 2200 hp (1 hp = 745.69987 W) with forward thrust;
+    # the twist alone (pitch 0) windmills (thrust < 0, power < 0)
+    su = PAIN._ccblade_setup(PAIN.JSON3.read(PAIN.JSON3.write(PAIN.gui_base(obs))))
+    Tq = PAIN.CCBlade.thrusttorque(su.rotor, su.sections, su.outs)
+    @test vals["pitch_offset_deg"] == "15.98" && isapprox(Tq[2] * su.Ω, 2200 * 745.69987; rtol=1e-3) && Tq[1] > 0
     # Phase 130: 290 KTAS at 25000 ft ISA (written out here: 1 kt = 1852/3600 m/s; T = 288.15 − 0.0065·7620, γR = 1.4·287.05287)
     @test isapprox(Vf, 290 * 1852 / 3600; atol=0.02) && isapprox(c0f, sqrt(1.4 * 287.05287 * (288.15 - 0.0065 * 7620)); atol=0.01)
     # Phase 130: structure = CR-172428 Table 13 small-body cards (as printed)

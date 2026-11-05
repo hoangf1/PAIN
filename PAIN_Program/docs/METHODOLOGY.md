@@ -798,6 +798,8 @@ validation cases run with the defaults, and the default runs are bit-identical. 
 variant with no grade of its own. Inventory and the fixed definitions (20 µPa, A-weighting, band centres) with
 reasons: `INPUTS_AND_SETTINGS.md`.
 
+**Phase 133 (2026-11-05) — blade pitch from shaft power.** PAIN takes blade geometry, rpm and flight speed, not shaft power, so the blade angle of a constant-speed propeller is an input (`propeller.pitch_offset_deg`, added to every station's twist). The GUI default sets it to 15.98° so CCBlade absorbs the stated 2200 hp at 290 KTAS, 25000 ft; HP_1650's twist alone windmills there (inflow 42.5° against β75 34.3° at 0.75R). Default: 88.3 dB(A), tones only. No method change.
+
 **Phase 132 (2026-11-05) — audit and output labels.** No method change. On the Commander 695A the largest on-cylinder grid moves H1 by +0.75 dB at most (Phase 126's attribution of the H1 shortfall stands). The GUI no longer prints a SIL from empty bands or −300 dB band levels.
 
 **Phase 131 (2026-11-05) — grid extent on a full-size cabin.** The User Manual grid (16 × 10 at πa/18) scales with the radius; on the 22.7 m, a = 1.32 m default it spans 3.7 m and 90° and is not converged. The GUI default uses 40 × 19 (9.2 m, 180°), where a longer grid changes H1 by 0.02 dB. Lines past the geometric shadow (about 72°) carry free-field pressure, since Eq. (43) is floored at F = 1; the 90° and 180° arcs bracket the result (83.6–85.9 dB(A)). The method is unchanged.
