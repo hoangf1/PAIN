@@ -29,22 +29,23 @@ set, and what stays fixed and why. PAIN_Program and Cabin_Noise are not connecte
 
 | PAIN field | Value | From Cabin_Noise |
 |---|---|---|
-| Blades, rpm, tip radius | 6, 1181 rpm, 1.7526 m (BPF 118.1 Hz) | `propeller.blades`, mission `rpm`, `propeller.tip_radius` |
+| Blades | 6 | `propeller.blades` |
+| Tip radius, rpm | 1.74994 m (HP_1650), 1183.33 rpm (BPF 118.33 Hz) | Phase 129 (2026-11-04): R from HP_1650; rpm set so the helical tip Mach number √(V² + (ΩR)²)/c = 0.85 (Cabin_Noise: 1.7526 m, 1181 rpm) |
 | Flight speed | 149.198 m/s | Mach 0.4818 × c at 7620 m |
 | Air at the propeller: ρ, c, μ | 0.54895 kg/m³, 309.668 m/s, 1.53981e-5 Pa·s | ISA 7620 m (T 238.62 K), Cabin_Noise's `atmosphere.py` formulas |
 | Outside ρ, c (cabin group) | the same | the same |
 | Cabin ρ0, c0 | 0.89440 kg/m³, 343.232 m/s | `cabin_air(2438.4 m, 293.15 K)` |
 | Structure length L, cavity length L_c | 22.7 m | `cabin.Lx` |
 | Radius a | 1.32 m | `cabin.Ly` / 2 (a box there, a cylinder here) |
-| r_p | 4.1726 m | a + tip radius + `propeller.clearance` 1.1 m |
+| r_p | 4.1699 m | a + tip radius + `propeller.clearance` 1.1 m |
 | z_p | 11.35 m | L / 2: mid-cabin (Cabin_Noise has no station relative to the cabin) |
 | Skin thickness, density | 1.6 mm, 2780 kg/m³ | `sidewall.skin_thickness`, `skin_density` |
 | Trim | stack: insulation 0.09 m, limp mass 2.7 kg/m² | `sidewall.cavity_depth`, `trim_mass` (double wall) |
 | Harmonics | 5 | PAIN's own (Cabin_Noise's auto takes every harmonic below 5 kHz) |
 | ANOPP Table 8 scaling | off | Table 8 is the 0.762 m Hartzell test, not this propeller |
 | Insulation-table extrapolation | on (X-EXTRAP) | the 22.7 m cabin has structural modes from about 13 Hz, below the table's 100 Hz |
-| Blade stations, chords, hub radius | the Hartzell shape × 1.7526/0.381 | Cabin_Noise's Gutin source has no blade geometry |
-| Twist | atan(V/(Ω r)) + 3° per station | from the speed and rpm above; nothing fitted to a result |
+| Blade stations, chords, twist, hub radius | Heart HP_1650: 39 stations, c/R·R, β(r) of `blade_form.csv` (pitch offset 0), hub 0.325 m | Phase 129: `propeller_sizing_and_analysis/propellers/hp_1650` (propeller.yaml, blade_form.csv); stations inside the spinner (r/R < 0.1857) dropped; β is the file's chord-line datum at its first design point (β75 34.281°); all editable in the Propeller tab |
+| Station area / chord² | naca4_area_over_chord2(t/c) at each station | t/c from `blade_form.csv`; the file's sections are NACA 16-series, the area formula is the NACA 4-digit one (approximation); clear the field for loading-only |
 
 Not carried over, because PAIN has no input for them: shaft power (1.64 MW), engines, windows, cabin surface absorption,
 the boundary-layer source, the seat percentile. Every other field keeps PAIN's code default (App. D stiffeners, damping,

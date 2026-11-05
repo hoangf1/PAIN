@@ -3210,3 +3210,15 @@ blades is 6 etc and rpm isnt matched"; earlier: "i dont want the two programs to
 - **Tests.** The GUI runs in `test_gui_model.jl` and `smoke_gui_model.jl` use the Hartzell project, which runs in
   seconds. New checks cover the default's fields, its BPF and that it has no unread keys. No criterion, reference or
   recorded result changed.
+
+## 8bs. Phase 129 — GUI default blades: Heart HP_1650 at helical tip Mach 0.85 (done 2026-11-04)
+
+*(Author 2026-11-04: pull the hp_1650 geometry as defaulted, changeable inputs and set the rpm so the helical true tip speed is M = 0.85.)*
+
+- **Data.** From `propeller_sizing_and_analysis/propellers/hp_1650` (`propeller.yaml`, `blade_form.csv`) into `examples/aircraft_generic_twin_turboprop.json`:
+  - R = D/2 = 1.74994 m, 6 blades, hub = spinner radius 0.325 m;
+  - 39 stations (r/R ≥ 0.1857; the two inside the spinner are dropped), chord = c/R·R, twist = the file's β (chord-line datum at its first design point, β75 34.281°; pitch offset 0);
+  - `area_over_chord2` from the file's t/c through `naca4_area_over_chord2` (NACA 4-digit area for NACA 16-series sections: an approximation, stated in the file; clear it for loading-only).
+- **rpm.** 1183.33 rpm from √(V² + (ΩR)²) = 0.85 c at V = 149.198 m/s, c = 309.668 m/s (flight condition unchanged); r_p recomputed from the new R (4.1699 m).
+- **Tests.** `test_gui_model.jl` checks 39 stations in three lists and recomputes the helical Mach from the field values (0.85 ± 1e-4); BPF text 118.33 Hz. `test_gui_model.jl`, `test_pain_settings.jl` and `smoke_gui_model.jl` pass. The full Pkg.test and `smoke_qml_load.jl` were not run.
+- **Not measured.** The default run time (7 min with 10 stations) with 39 stations. No criterion, reference or recorded result changed.

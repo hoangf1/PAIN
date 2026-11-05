@@ -10,9 +10,13 @@ const _HZ = joinpath(pkgdir(PAIN), "examples", "aircraft_scale_hartzell.json")
     @test PAIN._format_third(PAIN.InteriorSpectrum(200.0, [80.0], Dict{Float64,Float64}(), "n")) == "(no 1/3-octave bands)"
     obs = PAIN.make_gui_observables()   # the GUI default: Cabin_Noise's generic twin turboprop (Phase 128)
     vals = PAIN.gui_values(obs)
-    @test vals["num_blades"] == "6" && vals["rpm"] == "1181" && vals["tip_radius_m"] == "1.7526" && vals["z_p_m"] == "11.35"
+    @test vals["num_blades"] == "6" && vals["rpm"] == "1183.33" && vals["tip_radius_m"] == "1.74994" && vals["z_p_m"] == "11.35"
     @test vals["theta0_deg"] == "auto" && vals["anopp_table8_calibrate"] == "false" && obs["project_path"][] == ""
-    @test PAIN.gui_base(obs)["propeller"]["num_blades"] == 6 && obs["bpf_text"][] == "BPF = 118.1 Hz"
+    @test PAIN.gui_base(obs)["propeller"]["num_blades"] == 6 && obs["bpf_text"][] == "BPF = 118.33 Hz"
+    # HP_1650 geometry (39 stations from blade_form.csv) at helical tip Mach 0.85, from the field values themselves
+    @test length(split(vals["radii_m"], ",")) == 39 && length(split(vals["twist_deg"], ",")) == 39 && length(split(vals["area_over_chord2"], ",")) == 39
+    Vf, c0f, Rf, Ωf = parse(Float64, vals["forward_speed_mps"]), parse(Float64, vals["op_c0"]), parse(Float64, vals["tip_radius_m"]), 2π * parse(Float64, vals["rpm"]) / 60
+    @test isapprox(hypot(Vf, Ωf * Rf) / c0f, 0.85; atol=1e-4)
     hz = PAIN.gui_values(PAIN.make_gui_observables(; default_project=_HZ))
     @test hz["z_p_m"] == "0.662" && hz["rpm"] == "4000" && hz["num_blades"] == "3"
     lines = split(PAIN._format_val_case_list(), '\n')

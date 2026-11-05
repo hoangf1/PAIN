@@ -798,6 +798,8 @@ validation cases run with the defaults, and the default runs are bit-identical. 
 variant with no grade of its own. Inventory and the fixed definitions (20 µPa, A-weighting, band centres) with
 reasons: `INPUTS_AND_SETTINGS.md`.
 
+**Phase 129 (2026-11-04) — GUI default blades.** The default project's propeller is Heart HP_1650 (blade_form.csv: 39 stations, chord, twist β, t/c via the NACA 4-digit area formula; R 1.74994 m) at the rpm giving helical tip Mach √(V²+(ΩR)²)/c = 0.85 (1183.33 rpm); r_p follows the new R (4.1699 m). Data only; no method, criterion or result changed.
+
 **Phase 128 (2026-11-04) — the GUI default project.** The GUI opens on the generic twin turboprop of Cabin_Noise's
 default project (6 blades, 1181 rpm, 22.7 m cabin), values copied by hand. The inputs PAIN needs and Cabin_Noise lacks
 (blade shape, twist, a cylinder radius for a box cabin) are stated in `INPUTS_AND_SETTINGS.md`. The method is unchanged.

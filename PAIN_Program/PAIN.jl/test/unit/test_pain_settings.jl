@@ -170,7 +170,7 @@ end
     gui_save_project!(obs, f)
     @test isfile(f) && PAIN._load_project_dict(f)["propeller"]["rpm"] == 2400.0 && obs["project_path"][] == f
     gui_reset_project!(obs)
-    @test PAIN.gui_values(obs)["rpm"] == "1181" && obs["project_path"][] == ""
+    @test PAIN.gui_values(obs)["rpm"] == "1183.33" && obs["project_path"][] == ""
     gui_open_project!(obs, f)
     # JSON3.pretty writes 2400.0 as 2400
     @test PAIN.gui_values(obs)["rpm"] == "2400" && PAIN.gui_values(obs)["num_blades"] == "4" && obs["project_path"][] == f

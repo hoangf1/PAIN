@@ -4063,6 +4063,10 @@ default Hartzell, e11 and 695A runs are bit-identical). A GUI setting changed fr
 user variant, not a case: the Validation tab never takes GUI settings. Choosing a setting by its effect on a compared
 case would be calibration (CLAUDE.md) and is not offered. Inventory: `INPUTS_AND_SETTINGS.md`.
 
+## 2.51 Phase 129: GUI default blades (2026-11-04)
+
+The default project's propeller is now Heart HP_1650 at helical tip Mach 0.85. Still X-EXTRAP, compared with nothing, not a case; no criterion or record changed.
+
 ## 2.50 Phase 128: the GUI default project (2026-11-04)
 
 The GUI default is Cabin_Noise's generic twin turboprop (X-EXTRAP), compared with nothing: it is not a case and has no
