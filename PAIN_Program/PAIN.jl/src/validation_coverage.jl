@@ -13,8 +13,9 @@ const CASE_FAMILIES = Dict{String,NamedTuple{(:family, :derived_from),Tuple{Stri
     "R172428_EXP" => (family="CR-172428 test-article tones against the measurement", derived_from=""),
     "R172428_DB_EXP" => (family="CR-172428 test-article tones against the measurement", derived_from="R172428_EXP"),
     "R172428_DBA_EXP" => (family="CR-172428 test-article tones against the measurement", derived_from="R172428_EXP"),
-    "NR_TP1964" => (family="TP-1964 bare cylinder", derived_from=""),
-    "NR_TP1964_XOVER" => (family="TP-1964 bare cylinder", derived_from="NR_TP1964"),       # same bands below 2.5 kHz
+    # 2026-11-10: parent and variant swapped so the case that keeps the verdict (the shipped path, 135f) is the parent
+    "NR_TP1964" => (family="TP-1964 bare cylinder", derived_from="NR_TP1964_XOVER"),       # same bands below 2.5 kHz
+    "NR_TP1964_XOVER" => (family="TP-1964 bare cylinder", derived_from=""),
     "PER_FIG7" => (family="Pereira forward flight", derived_from=""),
     "PER_FIG8" => (family="Pereira forward flight", derived_from=""),
     "PER_FIG9" => (family="Pereira forward flight", derived_from="PER_FIG8"),   # Phase 74: equals Fig. 8 within 0.1 dB
@@ -24,8 +25,8 @@ const CASE_FAMILIES = Dict{String,NamedTuple{(:family, :derived_from),Tuple{Stri
     "T1_APPB" => (family="T1 on CR-172428 App. B's printed field", derived_from=""),
     "T1_MEAS_DAMPING_APPB" => (family="T1 on CR-172428 App. B's printed field", derived_from="T1_APPB"),
     "R172428_ETAT2" => (family="CR-172428 η_T = 2.0 run", derived_from=""),
-    "APPB_ETA_N_T2" => (family="CR-172428 η_T = 2.0 run", derived_from=""),
-    "APPB_ETA_N_T2_BAND" => (family="CR-172428 η_T = 2.0 run", derived_from="APPB_ETA_N_T2"),
+    "APPB_ETA_N_T2" => (family="CR-172428 η_T = 2.0 run", derived_from="APPB_ETA_N_T2_BAND"),   # swapped 2026-11-10, as above
+    "APPB_ETA_N_T2_BAND" => (family="CR-172428 η_T = 2.0 run", derived_from=""),
     "APPB_EPS_N" => (family="CR-172428 App. B per-mode printout", derived_from=""),
     "APPB_ETA_N" => (family="CR-172428 App. B per-mode printout", derived_from=""),
     "APPB_ETA_RPP" => (family="CR-172428 App. B per-mode printout", derived_from=""),

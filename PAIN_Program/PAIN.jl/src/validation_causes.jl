@@ -25,32 +25,36 @@ struct CaseCause
     source::String
 end
 
+# Phase 135d (2026-11-10): the causes of R996_LOADS, PER_FIG8, R172428_EXP, NR_TP1964_XOVER, FLIGHT_MODES, R172428_ETA
+# and E14_LOSS checked and approved by the author ("yes"); PER_FIG8 moved from "not explained" to the method (author:
+# Pereira's CFD misses the same way). CYL2D_PRINTED approved the same day as both: the miss comes from this recreation's
+# eigenvalue check, and why NASA's program solves that grid is not explained (ISSUE-033).
 const CASE_CAUSES = Dict{String,CaseCause}(
     "R996_LOADS" => CaseCause("approximation in this recreation",
-        "Thrust and power fall short of the measured values by the error of the XFOIL section data; the compact-chord sound model is not the cause (at most 0.27 dB).",
-        "Phases 67, 69", "measured section data (Phase 141)", "report996_loads.md"),
-    "PER_FIG8" => CaseCause("NASA's printout or the measurement, not explained by the documents",
-        "Thrust is within 1 % of the measured value, yet the second harmonic misses at 20°; no measured section data exist at Pereira's Reynolds number.",
-        "Phases 69, 72, 74, 76", "measured section data (Phase 141)", "pereira_forward_flight.md"),
+        "XFOIL's section drag is about 25 % below TN 1546's measured drag and accounts for about half the torque gap (VALIDATION_GUIDELINE §2.14); section lift is not the cause (thrust moves at most 7.9 %).",
+        "Phases 67, 69, 73, 141d", "on hold: more measured section data or CFD (ISSUE-030)", "phase73_polar_sensitivity.md"),
+    "PER_FIG8" => CaseCause("PAIN's method misses the measurement",
+        "Pereira's own CFD misses at the same angles by similar amounts (VALIDATION_GUIDELINE §2.14), and the loads are within 1 % of the measured thrust.",
+        "Phases 69, 72, 74, 76", "chart label (ISSUE-031)", "pereira_forward_flight.md"),
     "R172428_EXP" => CaseCause("PAIN's method misses the measurement",
-        "NASA's own printout misses the first harmonic at 3000 and 5000 rpm by the same amount as this code.",
-        "Phases 54, 84, 88", "share of the largest mode pair (Phase 136d)", "phase92_appb_pairs.md"),
+        "The code matches NASA's printout (9/9 within 1.19 dB, post-hoc), and NASA's printout misses the measurement the same way (5/9).",
+        "Phases 54, 84, 88, 137c", "chart label (ISSUE-031)", "phase106_cabin_freq_printed.md"),
     "NR_TP1964_XOVER" => CaseCause("PAIN's method misses the measurement",
         "The misses are the Eq. (18) bands, where a negative noise reduction is a property of the equation (CR-159363 p. 138); the Eq. (19) bands agree within 2.5 dB.",
-        "Phase 53", "none in the documents", "tp1964_hf.md"),
+        "Phases 53, 138", "chart label (ISSUE-031)", "phase50_58_closeout.md"),
     "CYL2D_PRINTED" => CaseCause("approximation in this recreation",
-        "On NASA's printed grid rule the narrow body (61/61) and the Merlin (51/51) are reproduced; at 62.6° this code's eigenproblem fails its own real-eigenvalue check on NASA's grid (|Im|/|Re| 0.0012 against 0.001, an assumption of Q60), so a finer grid is used and misses.",
-        "Phases 103, 105, 140", "why the 62.6° grid gives complex eigenvalues here and not in NASA's program", "phase105_cyl2d_printed.md"),
+        "On NASA's printed grid rule the narrow body (61/61) and the Merlin (51/51) are reproduced; at 62.6° this code's eigenproblem fails its own real-eigenvalue check on NASA's grid (|Im|/|Re| 0.0012 against 0.001, a check set in Phase 79b), so the fallback grid of Q60 is used and misses. Why NASA's program solves that grid is not explained by the documents.",
+        "Phases 103, 105, 140", "why the 62.6° grid gives complex eigenvalues here and not in NASA's program (ISSUE-033)", "phase140_cyl2d_printed_rule.md"),
     "FLIGHT_MODES" => CaseCause("reference data",
-        "The reference file is a partial transcription of App. C, and the in-plane mass of about 20 modes differs.",
-        "Phase 110", "blind second transcription (Phase 142)", "phase110_flight_modes_pass2.md"),
+        "The reference file has two misreads; corrected, it gives 199/221 (post-hoc). The in-plane part of the generalized mass differs for about 20 modes, cause not found.",
+        "Phases 101, 110", "blind second transcription (Phase 142)", "phase110_flight_modes_pass2.md"),
     # Phase 139d (2026-11-10): the band-centre hypothesis was not supported (15/32), so both are unexplained
     "R172428_ETA" => CaseCause("unexplained (no documented cause survived its test)",
-        "The floor modes agree within 5 %; the shell modes are 0.5–0.8 of NASA's, in the trim term. Shapes, masses, trim admittance and the band-centre rule were each tested.",
-        "Phases 82c, 139", "none in the documents", "phase139b_band_centre.md"),
+        "Up to 470 Hz every mode is within 12 % of NASA's; above it the modes with almost no shell motion (share under 0.05) agree within 6 % and every other mode is 0.51–0.80 of NASA's. Every cause tested so far was ruled out, the band-centre rule included.",
+        "Phases 82c, 118, 139", "look for an error in the loss-factor method (ISSUE-032)", "phase139b_band_centre.md"),
     "E14_LOSS" => CaseCause("unexplained (no documented cause survived its test)",
-        "1.1–1.7 times NASA's loss factor at 630–1250 Hz and 0.5–0.7 above 1600 Hz, a pattern unlike R172428_ETA's; NASA's per-band PF-105 table was refuted (6/18 against 7/18).",
-        "Phases 100, 139", "none in the documents", "phase139b_band_centre.md"),
+        "0.47–2.29 times NASA's loss factor, a pattern unlike R172428_ETA's; the one cause tested (NASA's per-band PF-105 table) was refuted (6/18 against 7/18).",
+        "Phases 100, 118, 139", "look for an error in the loss-factor method (ISSUE-032)", "phase139b_band_centre.md"),
 )
 
 """Cause record of `id`, or `nothing`."""

@@ -13,7 +13,7 @@ Single source of truth for building this project without re-deriving context in 
 2. Data register and digitization instructions (status, procedure, one card per figure; §2.5 candidate sources found 2026-11-09)
 3. Current status and open work queue
 4. Architecture
-8by–8co. Open phases 135–151 (planned 2026-11-09 from `ISSUES.md`; not started)
+8bz–8co. Open phases 136–151 (planned 2026-11-09 from `ISSUES.md`; Phase 135 done 2026-11-10 and moved to `COMPLETED_PHASES.md`)
 5–8ac, 11. *(in `COMPLETED_PHASES.md`, same section numbers, moved 2026-10-29)* every completed phase, the queue Q0–Q66 and the 2026-10-21 review
 9. Reference appendices (BBN evidence, Report 996 figures and data, Pereira polar specification, variables)
 10. Optional future work, key formulas, file checklist
@@ -254,7 +254,7 @@ Already in `references/` and bearing on an open phase: `NASA_TP_2444.pdf` p. 8 p
 ## 3. Current status and work queue
 
 **Status of the validation cases:** `VALIDATION_GUIDELINE.md` §0 (the map: cases with a verdict) and `NO_VERDICT_CASES.md`
-(the cases without one). **Open issues:** `ISSUES.md` (001–028; each solution is one of the open phases 135–151 below). **Completed phases** (§§5–8ac and §11, with the work queue Q0–Q66 and the 2026-10-21 review I-01–I-20)
+(the cases without one). **Open issues:** `ISSUES.md` (001–029, each solved by one of the open phases 135–151 below; 030–033, recorded 2026-11-10, are not assigned to a phase, and 030 is on hold). **Completed phases** (§§5–8ac and §11, with the work queue Q0–Q66 and the 2026-10-21 review I-01–I-20)
 are in `COMPLETED_PHASES.md` under the same section numbers; a reference such as "IMPLEMENTATION_PLAN.md §8b" in the code
 or the other documents points there. When a phase is done, mark it done and move its section to the bottom of
 `COMPLETED_PHASES.md` (`CLAUDE.md`).
@@ -263,7 +263,6 @@ or the other documents points there. When a phase is done, mark it done and move
 
 | Q | Item | Kind | Prerequisite | Output |
 |---|------|------|--------------|--------|
-| Q113 | Phase 135: one current value per case; cause records (ISSUE-002, 003, 004, 019) | documents, [AUTHOR] | — | superseded notes; 27 cause records |
 | Q114 | Phase 136: CR-172428 tone cases, program form (ISSUE-014, 017, 009) | labels, [CONFIRM], [AUTHOR] | Q113 | `form` field; pairs; NASA-on-same-gate column |
 | Q115 | Phase 137: high-frequency NR cases (ISSUE-026) | rule by kind, [AUTHOR] | Q114 (136f) | input rule applied; method-limit mark |
 | Q116 | Phase 138: TP-1964 ref. 2 and E22_HF_CODE (ISSUE-022) | investigation | — | input table from CR-159363; a cause, class U, or no verdict |
@@ -332,7 +331,7 @@ The diagram matches the code (phases 21–22 done 2026-10-21): `propeller_ccblad
 
 ---
 
-## Open phases 135–151 (planned 2026-11-09 from `ISSUES.md`)
+## Open phases 136–151 (planned 2026-11-09 from `ISSUES.md`; Phase 135 is in `COMPLETED_PHASES.md`)
 
 *(Author 2026-11-09: "continue finding issues based off the validation coverage map"; "i mainly want to target issues as to why current validation tests arent met and fixing a lot of the readability and organizing wise"; "some of the issues have open questions and needed solutions as well which i want you to create"; "create the solutions into phases".)*
 
@@ -345,21 +344,6 @@ Each phase is the solution of one or more entries of `ISSUES.md`; the evidence i
 Rules common to all: no recorded verdict, criterion, tolerance or reference file changes unless the step names it; a result that moves is recorded with its date, its before and after, and "post-hoc" where the earlier result was known; targeted testsets only (not the full `Pkg.test()`); the five documents of R5 are updated in the phase that changes code or a recorded result.
 
 **Status 2026-11-10 (overnight, decided by Claude under the author's delegation of 2026-11-10).** Done: 136e, 136f, 137b, 137c, 137d, 138a/b/d, 139a/b/b′/d, 140c/d, 141a, 141c (Report 996 part; the Pereira PER_FIG8 line is open), 141d, 144a, 144b, 145d, 147, 150c/d. Decisions and outcomes: `validation_reports/phase135_151_decisions.md`. Open: 141c Pereira line, 141e, 142, 143b–d, 145a rest, 146b/c, 148, 149a, 150a/b/e, 151a/b, regenerating the summary CSV and §0. These changes were pushed without running the full test suite or /code-review, at the author's request (2026-11-10); the next session runs the affected testsets first.
-
-## 8by. Phase 135 — the record says one thing per case (ISSUE-002, 003, 004, 019; documents only)
-
-No run, no code. Each step replaces nothing in the record; it marks older values as superseded and points to the current one.
-- [x] **135a R996_PHASE.** Beside 103.8° (COMPLETED_PHASES row 27; VALIDATION_GUIDELINE line 941) and 109.0° (line 941): "superseded; current 112.8°, |Δφ − 155°| = 42.2°, `report996_acoustics.md` 2026-10-28". Correct the 109° in ISSUE-001's table. **Done 2026-11-10:** markers added in VALIDATION_GUIDELINE (§1 table, §2.12, §2.14), METHODOLOGY, COMPLETED_PHASES and ISSUE-001's table.
-- [x] **135b Row 27.** Split "Fig.13a `scaled_RM_L51C27`; 23c scaled ±2 dB FAIL (5/24)" into one clause per figure: the 5/24 is Fig. 14's sample.
-- [x] **135c Pereira.** "Superseded by Phases 74 and 76" beside the §23d result line (H1 0/9, PER_FIG7 2/3). State in the three case texts that the verdict rows are `polar_set = ncrit9`, `loads = scaled`. Remove "not computed in this pass (Fig.7 fit deferred)" from the text `scripts/run/run_pereira.jl` writes, if PER_FIG7's Δψ₁ is in `pereira_results.csv` (check first; a script text change, no re-run of the comparison). **Done 2026-11-10:** the 21 `dpsi1_fig7` rows are in the file; the line in `run_pereira.jl` and in `pereira_forward_flight.md` now says the count comes from `PER_FIG7`.
-- [ ] **135d Cause records.** For each of the 27 not-met cases, one record: class (M, A, I, N, D, and the two new ones F form and U unexplained), one sentence, the phases that tested it, what is left; each sentence cites its report. Start from the table in ISSUE-019. **[DECIDED 2026-11-09]** the two new causes are added, and every cause is written in plain words with no letter code: old program form; PAIN's method misses the measurement; approximation in this recreation; reference data; not explained by the documents; unexplained. **[AUTHOR]** checks the cause given to each case before it is written into the case records.
-- [x] **135e Stale numbers.** VALIDATION_GUIDELINE §1.1 `AC_C695A_DBA` "0/36" → the current record (35/36, post-hoc, Phase 123). Any other number in §1 – §2.12 that disagrees with `case_error_summary.csv` is listed, then corrected with a date. **Done 2026-11-10:** `validation_reports/phase135_stale_numbers.md`.
-
-- [x] **135f The chart rule, all 43 cases [DECIDED 2026-11-09].** One table: case, runs the shipped code (yes / no, with the option or form that differs), inputs complete (yes / no, with the missing input), compared with (measurement / NASA's program output / other). A case with a "no" or "other" leaves the chart. The sorting of all 43 is the table in ISSUE-029, **[DECIDED 2026-11-09]** (author: "Yes, use it"): 18 keep, 2 inside a parent case, 5 to check, 15 diagnostic, 3 retire; the chart then holds 11 met and 7 not met. Expected to leave, to be confirmed row by row: R172428_CODE, R172428_DB_CODE, R172428_DBA_CODE, APPB_ETA_N (old form); NR_PROP_TP2444, NR_PROP_TP2444_BR, NR_PROP_TP2444_PF (inputs; additions that are not the shipped tool); BLK_P68 (the equation written out); CYL2D_PRINTED (a grid rule the code does not use); E22_BR (sound bridges are not the default); NR_TP1964 and NR_TP1964_REF2 if the shipped path is the one with the changeover (NR_TP1964_XOVER). This step writes the table only; the flags in `src/validation_cases.jl` change in the phase that owns each case ([CONFIRM] there), and a row whose check against the code disagrees with the approved table goes back to the author before its flag changes; the five "check" rows are settled here (PER_FIG9, T1_APPB, APPB_ETA_N_T2) or in their own phase (R996_FIG10_FLAT in 144, NR_TP1964_XOVER_REF2 in 138). **Done 2026-11-10:** `validation_reports/phase135_chart_rule_table.md` (all 43 ids match `case_error_summary.csv`; the three rows settled: PER_FIG9 a duplicate of PER_FIG8, T1_APPB a variant of R172428_EXP, APPB_ETA_N_T2 not the shipped form).
-
-**Status 2026-11-10: 135a, b, c, e, f done; 135d is drafted in `validation_reports/phase135_cause_records.md` and waits for the author's check, so the phase stays open.**
-
-**Done when:** each number above appears once as current, with its date; a search for 103.8, 109.0, "5/24" and "0/36" finds only lines marked superseded; the 43-row table exists.
 
 ## 8bz. Phase 136 — the CR-172428 tone cases: which program form each one tests (ISSUE-014, 017, 009) [CONFIRM]
 
@@ -417,7 +401,7 @@ No run, no code. Each step replaces nothing in the record; it marks older values
 - [ ] **141c Unscaled replays [DECIDED 2026-11-09].** `R996_FIG12_UNSCALED`, `R996_FIG13A_UNSCALED`, `R996_FIG14_UNSCALED`, `PER_FIG8_UNSCALED`, `PER_FIG9_UNSCALED`: 23c's and 23d's rules copied unchanged (author: add, same tolerances); the criteria are entered in the criteria document with the date before the run. **Under review the same day (ISSUE-029):** with the loads up to 39 % off, these five would very likely be five more not-met rows that repeat R996_LOADS. Proposed instead: the unscaled result as a second line on each existing scaled case, no verdict. **[AUTHOR]** confirms "add" or takes the second-line form before this step starts. These are the chart's only acoustic rows that carry the load error.
 - [ ] **141d Measured polars: coverage first [DECIDED 2026-11-09].** Fraction of the Report 996 blade span whose thickness and Mach fall inside TN 1546's measured sections (from `blade_form.csv`). Under half → stop, record, drop the proposal. TN 1546 holds 24 sections, 6 to 30 % thick by its catalogue record (confirm in its Table I); three are digitized, so the coverage is computed for the three and for all 24, and digitizing more is a §2.2 card, not part of this step.
 - [ ] **141f Forward-flight loads (D-26).** If the author obtains RM L9G06a: a loads case for the same blade in forward flight, **[AUTHOR]** criterion (proposed: ±15 % as 23c), fixed before any curve is digitized. It tests every polar set on data none was built from.
-- [ ] **141e [AUTHOR] Measured-polar set.** Interpolation rule, range limits and Reynolds treatment written and dated before any load is computed. New loads case on it, ±15 % copied from 23c; first result stands. `R996_LOADS` keeps its record.
+- [ ] **141e [AUTHOR] Measured-polar set (on hold with ISSUE-030, author 2026-11-10: needs more digitization or CFD first).** Interpolation rule, range limits and Reynolds treatment written and dated before any load is computed. New loads case on it, ±15 % copied from 23c; first result stands. `R996_LOADS` keeps its record.
 
 ## 8cf. Phase 142 — FLIGHT_MODES: the reference file, then the in-plane mass (ISSUE-024)
 
@@ -447,7 +431,7 @@ No run, no code. Each step replaces nothing in the record; it marks older values
 - [ ] **145a `in_verdict`** on `ValidationTableRow`; counts and worst error over those rows; "+ n shown, not judged". Gate cases count tones. Before / after table for every CSV row that moves (POLAR_FIDELITY 40/61 → 13/26, CYL2D_PRINTED, T1_APPB, T1_MEAS_DAMPING_APPB at least); no verdict moves.
 - [ ] **145b Error text.** The rule beside a fractional count; no NaN; an error size or "count only"; units from the case's definition; one decimal.
 - [ ] **145c Independence record [DECIDED 2026-11-09].** Author: "this needs to be proven that its not circular somehow on the coverage map or somewhere accessible by the reader". Per case whose verdict was reached after a change: `first_run` (date, verdict, count); each change since, with the document page or independent check it rests on; and "was the compared data used to choose it" (yes / no, with the evidence). All "no" → the verdict stands and the record opens from the chart row and is listed on the short validation page. Any "yes", or a change with no stated basis → the case carries no verdict. Written first for APPB_ETA_RPP, R996_FIG12, R996_FIG13A, R996_FIG14, PER_FIG7, MRP_APPD, R996_LOADS; **[AUTHOR]** reads the seven records before any verdict is kept or dropped on their strength.
-- [ ] **145d `family` and `derived_from`** per case (list in ISSUE-018, **[AUTHOR]** check). §0 states cases and independent comparisons.
+- [ ] **145d `family` and `derived_from`** per case (list in ISSUE-018, **[AUTHOR]** check). **Fix 2026-11-10:** two pairs had the parent and the variant the wrong way round after 135f (NR_TP1964_XOVER and APPB_ETA_N_T2_BAND keep the verdict but were marked derived from cases that lost theirs); swapped in `CASE_FAMILIES`, so the chart counts 20 cases with a verdict and 20 independent comparisons, and the two bars are no longer drawn thinner. `test_validation_coverage.jl` 48/48. §0 states cases and independent comparisons.
 - [ ] **145e `cause`** fields from 135d; generated "why not met" table; a test that fails if a not-met case has none.
 - [ ] **145f R172428 plot labels** (ISSUE-009 steps 1–4): `error_ylabel` names both series and the unit; the series that carries the criterion is marked; table headers traced and named.
 
