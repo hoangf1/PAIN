@@ -10,9 +10,10 @@ Single source of truth for building this project without re-deriving context in 
 
 0. Agent hand-off brief: rules, workflow, stop conditions
 1. Goal and validity classes
-2. Data register and digitization instructions (status, procedure, one card per figure)
+2. Data register and digitization instructions (status, procedure, one card per figure; §2.5 candidate sources found 2026-11-09)
 3. Current status and open work queue
 4. Architecture
+8by–8co. Open phases 135–151 (planned 2026-11-09 from `ISSUES.md`; not started)
 5–8ac, 11. *(in `COMPLETED_PHASES.md`, same section numbers, moved 2026-10-29)* every completed phase, the queue Q0–Q66 and the 2026-10-21 review
 9. Reference appendices (BBN evidence, Report 996 figures and data, Pereira polar specification, variables)
 10. Optional future work, key formulas, file checklist
@@ -226,12 +227,34 @@ Target names `data\report996\tr996_fig<NN><panel>_<content>.csv`, columns `x, y,
 | Pereira Fig. 7 (phase-locked pressure, panels φ = 0°, 20°, 40°, PDF p. 8), Fig. 1(b) chord/twist (PDF p. 2), NACA 4412 polars (three transition sets) | `data\pereira\*` | 1 | 28 |
 | BBN static and taxi data (D-01–D-06) | `data\NASA_CR-158919\`, `data\NASA_CR-159124\` (each with a README giving PDF pages) | typed, exact as printed | 24 |
 
+### 2.5 Candidate sources for the open phases (searched 2026-11-09; D-23 and D-24 downloaded and read in part the same day)
+
+Found by web search on 2026-11-09 for Phases 135–151. What is said of each comes from its catalogue record or abstract, not from the report, except D-23 and D-24 (read notes below the table). Downloading one is the author's step (or needs the author's go-ahead); it is then added to `references/SOURCES.md` with its checksum. A value from any of them is used only after rule R9's procedure, and a comparison with any of them needs its criterion fixed and dated before the data are read (R3).
+
+| ID | Source | Where | What it may give | For | Check first |
+|----|--------|-------|------------------|-----|-------------|
+| D-23 | Pope, Wilby: *Analytical prediction of the interior noise for cylindrical models of aircraft fuselages for prescribed exterior noise fields. Phase II: Models for sidewall trim, stiffened structures, and cabin acoustics with floor partition*, NASA CR-165869, 1982 (journal form: NTRS 19840038435) | https://ntrs.nasa.gov/citations/19820015078 | The development of the trim model, the stiffened shell with floor and the cabin acoustics that CR-3813 uses: where Eqs. (77), (78), (82) come from; how the cabin grid is chosen; the floor's in-plane terms | 139, 140, 142 | Whether it states the band rule for the loss factors, a grid rule for the cabin cross-section, and the generalized-mass terms of the floor |
+| D-24 | Magliozzi, Brooks: *Advanced turbo-prop airplane interior noise reduction: source definition*, NASA CR-159668, 1979 (Hamilton Standard) | https://ntrs.nasa.gov/citations/19800005626 | Pressure amplitude and phase at 21 microphones on a rigid semicylinder beside a model prop-fan, with and without the cylinder; the abstract gives 6 dB at 90° incidence falling to no effect at grazing. Probably the measurement behind Eq. (43) | 144 | Whether the values are tabulated or only drawn as contours; the incidence angle of each microphone. Prop-fan at Mach 0.8, so outside the source model's checked range: use for the blocking ratio only |
+| D-25 | Hanson and Magliozzi / Magliozzi: propagation of propeller tone noise through a fuselage boundary layer, with scattering correction factors (NASA report; title not confirmed by the search) | NTRS 19910014539 (to confirm) | A scattering factor for a cylinder, which Eq. (43) has no term for | 144b, 144c | The title and what is tabulated |
+| D-26 | Delano, Carmel: *Investigation of the NACA 4-(5)(08)-03 two-blade propeller at forward Mach numbers to 0.925*, NACA RM L9G06a | https://ntrs.nasa.gov/citations/19930085929 | Thrust and power of the Report 996 blade in forward flight, blade angles 20° to 70°, Mach 0.175 to 0.925. Not in this repository (`data/report996/naca_4-5-08-03/measured/` holds geometry, noise and static only) | 141 | Which curves can be read at a tip Mach number the polars cover. The sibling repository's k_cl and k_cd were fitted to this report (§9); those factors are not used here and must stay unused if it becomes a test |
+| D-27 | NACA Report 1012 (search summary: the 4-(5)(08)-03 and 4-(10)(08)-03 blades to Mach 0.725; number not confirmed) | NTRS (to confirm) | The same tests in report form | 141 | That it is the same data as D-26 |
+| D-28 | Pla, Ranaudo, Woodward: *In-flight measurement of propeller noise on the fuselage of an airplane*, NASA TM-102285, 1989 (OV-10A) | https://ntrs.nasa.gov/citations/19890016304 | Fuselage-surface propeller harmonics in flight on horizontal and vertical microphone arrays, over angle of attack, sideslip, power, tip Mach number and rotation direction: the measured near field in forward flight that `VALIDATION_GUIDELINE.md` §1.1 says the record lacks | a later source case | Whether the blade geometry is printed or citable. Without it the case fails the input rule (Phase 118a) |
+| D-29 | Propfan Test Assessment: NASA CR-182278 (flight results: 2.74 m prop-fan, tones to 10 harmonics), CR-185138 (testbed), CR-4315 (structure-borne cabin noise), TM-103645 (near field at angle of attack) | NTRS | One aircraft with source, fuselage-surface and cabin measurements | none now | Swept prop-fan at transonic tip speed: outside the compact-chord F1A and CCBlade range checked here. Recorded as considered, low priority |
+| D-30 | Peterson, Boyd: *Free vibrations of circular cylinders with longitudinal, interior partitions*, J. Sound Vib. 60(1), 45–62, 1978 (as cited in CR-165869, ref. [8]) | journal | A Rayleigh–Ritz model of a shell with an interior floor, rigid and hinged joints | 142d | Verification only (another method): no verdict can rest on it |
+| D-31 | Pope, Wilby, Wilby: *Propeller aircraft interior noise model, Part I: Analytical model*, J. Sound Vib. 118(3), 449–467, 1987. A Part II (scale-model and flight comparisons) is expected and was not confirmed by the search | journal | The published form of CR-3813, three years later than the report | 138, 139 | Whether any equation or statement differs from CR-3813 (the loss-factor band rule, the high-frequency routine) |
+
+**Read 2026-11-09, D-23 (`references/NASA_CR_165869.pdf`, 218 pages; text layer searched, pp. 60–61 read as page images).** (i) pp. 60–61, the cabin grid: "The approximate grid spacing chosen is a/7"; h = a (1 + cos θ₀) / Integral Part[7 (1 + cos θ₀)]; NK = Integral Part[7 (1 + cos θ₀)] intervals from floor to crown; on each grid line, of the last point inside and the first point outside, the one closest to the boundary is taken as the boundary point. (ii) p. 73: the structure in this phase is a curved orthotropic panel from floor line to floor line; Peterson and Boyd [8], J. Sound Vib. 60(1), 45–62 (1978), "will be integrated into the model in the future" (this fixes D-30's volume and pages). (iii) pp. 2–3: the Langley models' linings are 0.0127 m PF-105 with a 0.0000508 m vinyl film, and lead vinyl of 2.44 kg/m². (iv) pp. 129–130: the trim panel loss factor 0.5 was chosen from the measured acoustic loss factors. (v) Fig. 3: the PF-105 acoustical parameters (bulk density 9.6 kg/m³) with their source, the figure CR-3813 reprints as Fig. A-2. (vi) Not found by text search: a statement of the frequency at which η_r′ is evaluated (the "band center frequency" on p. 101 belongs to the end-cap formula). Sections 3.1–3.3 and App. A were not read page by page.
+
+**Read 2026-11-09, D-24 (`references/NASA_CR_159668.pdf`, 96 pages; report pp. 13–15).** The measured blocking is Table VI and Fig. 21: semicylinder at 0.8 D against the same positions without it, averaged over ten harmonics and three speeds per microphone, against incidence angle. The report: "much scatter", "no clear trend is shown by the data"; the curve of Fig. 21 is "an exponential curve fit passing through 0 dB at 0 degrees and through 6 dB at 60 degrees". The first derivation (Tables III–V, against calculated levels) gave 4.1 to 18.8 dB and is called probably in error by its authors. No case is made from it (ISSUE-006, ISSUE-029).
+
+Already in `references/` and bearing on an open phase: `NASA_TP_2444.pdf` p. 8 prints the trim lining of the stiffened model (four fiberglass layers of 0.27 kg/m² and 13 mm each with a 0.05 mm vinyl film, a 0.81 mm epoxy-fiberglass finish trim, floor bare), read 2026-11-09 from the PDF text (Phase 137); `NACA_TN_1546.pdf` holds 24 sections, 6 to 30 % thick by its catalogue record, of which three are digitized (Phase 141d); `NASA_CR_159363.pdf` for the TP-1964 prediction inputs (Phase 138); `NASA_CR_172384.pdf` (stiffened cylinder analysis) for Phase 142.
+
 ---
 
 ## 3. Current status and work queue
 
 **Status of the validation cases:** `VALIDATION_GUIDELINE.md` §0 (the map: cases with a verdict) and `NO_VERDICT_CASES.md`
-(the cases without one). **Completed phases** (§§5–8ac and §11, with the work queue Q0–Q66 and the 2026-10-21 review I-01–I-20)
+(the cases without one). **Open issues:** `ISSUES.md` (001–028; each solution is one of the open phases 135–151 below). **Completed phases** (§§5–8ac and §11, with the work queue Q0–Q66 and the 2026-10-21 review I-01–I-20)
 are in `COMPLETED_PHASES.md` under the same section numbers; a reference such as "IMPLEMENTATION_PLAN.md §8b" in the code
 or the other documents points there. When a phase is done, mark it done and move its section to the bottom of
 `COMPLETED_PHASES.md` (`CLAUDE.md`).
@@ -240,7 +263,24 @@ or the other documents points there. When a phase is done, mark it done and move
 
 | Q | Item | Kind | Prerequisite | Output |
 |---|------|------|--------------|--------|
-| — | No open item (2026-11-05); Phases 90–134 are done (118f: unit-test gaps; 112–116 merged from branch `heart`, numbered 100–104 there) | — | — | — |
+| Q113 | Phase 135: one current value per case; cause records (ISSUE-002, 003, 004, 019) | documents, [AUTHOR] | — | superseded notes; 27 cause records |
+| Q114 | Phase 136: CR-172428 tone cases, program form (ISSUE-014, 017, 009) | labels, [CONFIRM], [AUTHOR] | Q113 | `form` field; pairs; NASA-on-same-gate column |
+| Q115 | Phase 137: high-frequency NR cases (ISSUE-026) | rule by kind, [AUTHOR] | Q114 (136f) | input rule applied; method-limit mark |
+| Q116 | Phase 138: TP-1964 ref. 2 and E22_HF_CODE (ISSUE-022) | investigation | — | input table from CR-159363; a cause, class U, or no verdict |
+| Q117 | Phase 139: trim loss term (ISSUE-023) | investigation, [AUTHOR] | — | ratio curves; hypothesis test; held-out check |
+| Q118 | Phase 140: CYL2D grid label and bound (ISSUE-025) | label, bound | — | shipped-grid row; level spread |
+| Q119 | Phase 141: source chain labels, unscaled replays, measured polars (ISSUE-001, 004, 027) | labels, new cases, [CONFIRM], [AUTHOR] | Q113 | labels; unscaled cases; TN 1546 coverage |
+| Q120 | Phase 142: FLIGHT_MODES reference file and in-plane mass (ISSUE-024) | data, investigation, [AUTHOR] | — | blind transcription; one re-run |
+| Q121 | Phase 143: E12_BLOCK one implementation (ISSUE-007) | [CONFIRM], re-run | — | one max error on record |
+| Q122 | Phase 144: blocking R2 (ISSUE-006, 008) | [AUTHOR], text | — | (P) case for R2, or information |
+| Q123 | Phase 145: summary writer (ISSUE-009, 018, 019, 020, 021) | [CONFIRM], [AUTHOR] | Q113 | verdict-row counts; first-run mark; families; causes |
+| Q124 | Phase 146: chart by figure, titles, glossary (ISSUE-010, 013, 018) | [CONFIRM], [AUTHOR] | Q123 | grouped chart; plain titles |
+| Q125 | Phase 147: block validation map retired (ISSUE-015) | [CONFIRM] | Q124 | map tab and §0 map removed |
+| Q126 | Phase 148: VALIDATION_GUIDELINE split (ISSUE-016, 005) | [CONFIRM], [AUTHOR] | Q125 | `VALIDATION.md`; case data file; criteria file |
+| Q127 | Phase 149: Markdown inventory; README (ISSUE-005, 012) | documents, [AUTHOR] | Q126 | inventory; README GUI step |
+| Q128 | Phase 150: source and test layout; the 111 no-verdict cases sorted (ISSUE-028, 029) | [CONFIRM] | Q125 | `src/cases/`, `test/cases/`; paths |
+| Q129 | Phase 151: cabin-mode animation (ISSUE-011) | [CONFIRM] | — | animation plays in the window |
+| — | Phases 90–134 are done (2026-11-05; 118f: unit-test gaps; 112–116 merged from branch `heart`, numbered 100–104 there). Q113–Q129 were planned on 2026-11-09 from `ISSUES.md`; none is started. Author decisions of 2026-11-09 are in the steps; order confirmed: Q113, then Q114–Q122 (not-met cases), then Q123–Q129 | — | — | — |
 
 If a queue item is blocked on data, skip to the next unblocked item and say which data item blocks it.
 
@@ -289,6 +329,171 @@ The diagram matches the code (phases 21–22 done 2026-10-21): `propeller_ccblad
 | Trim / loss | `src/trim_loss.jl` |
 | Metrics | `src/metrics.jl` |
 | Driver | `scripts/run/run_pain.jl` |
+
+---
+
+## Open phases 135–151 (planned 2026-11-09 from `ISSUES.md`)
+
+*(Author 2026-11-09: "continue finding issues based off the validation coverage map"; "i mainly want to target issues as to why current validation tests arent met and fixing a lot of the readability and organizing wise"; "some of the issues have open questions and needed solutions as well which i want you to create"; "create the solutions into phases".)*
+
+Each phase is the solution of one or more entries of `ISSUES.md`; the evidence is there and is not repeated here. Order: the record first (135), then the not-met cases with the fewest points (136–144), then presentation and organisation (145–151). 145–151 do not depend on 136–144 and may run first if the author prefers. Nothing below has been run, and writing this section changed no code, test or data file (author 2026-11-09: "you are only creating detailed plans and phases right now not editting any internal code"). The author's decisions of 2026-11-09 are written into the steps as **[DECIDED 2026-11-09]**, with the full table in `ISSUES.md`; a line still marked **[AUTHOR]** needs the author's value or decision, with its date, before the step that uses it (R3). Every phase that edits `PAIN.jl/src/` is marked **[CONFIRM]** (R1). Candidate sources are in §2.5 (D-23 to D-31).
+
+**The chart rule [DECIDED 2026-11-09].** A case is on the coverage chart only if it weighs on the validity of the tool as shipped: it runs the shipped code, every input that enters its compared quantity is printed or measured, and it is compared with a measurement or with NASA's program output. A case that fails is kept, with its results, in a list of diagnostics and checks. Applied by kind to all 43 cases in 135f, whatever each case's outcome.
+
+**The rule for new cases [DECIDED 2026-11-10: in CLAUDE.md, "Rules for all code in this repo"; first proposed 2026-11-09 after the author's caution: "i created many validation cases that arent met and arent useful"; ISSUE-029].** A case is registered only if it passes the chart rule, answers a question no kept case answers, has an outcome that cannot be told in advance from the kept cases, and rests on data whose own scatter or reading error is clearly smaller than the tolerance. Every step below that adds a case is read with this rule; the table in ISSUE-029 applies it to each proposed case.
+
+Rules common to all: no recorded verdict, criterion, tolerance or reference file changes unless the step names it; a result that moves is recorded with its date, its before and after, and "post-hoc" where the earlier result was known; targeted testsets only (not the full `Pkg.test()`); the five documents of R5 are updated in the phase that changes code or a recorded result.
+
+## 8by. Phase 135 — the record says one thing per case (ISSUE-002, 003, 004, 019; documents only)
+
+No run, no code. Each step replaces nothing in the record; it marks older values as superseded and points to the current one.
+- [ ] **135a R996_PHASE.** Beside 103.8° (COMPLETED_PHASES row 27; VALIDATION_GUIDELINE line 941) and 109.0° (line 941): "superseded; current 112.8°, |Δφ − 155°| = 42.2°, `report996_acoustics.md` 2026-10-28". Correct the 109° in ISSUE-001's table.
+- [ ] **135b Row 27.** Split "Fig.13a `scaled_RM_L51C27`; 23c scaled ±2 dB FAIL (5/24)" into one clause per figure: the 5/24 is Fig. 14's sample.
+- [ ] **135c Pereira.** "Superseded by Phases 74 and 76" beside the §23d result line (H1 0/9, PER_FIG7 2/3). State in the three case texts that the verdict rows are `polar_set = ncrit9`, `loads = scaled`. Remove "not computed in this pass (Fig.7 fit deferred)" from the text `scripts/run/run_pereira.jl` writes, if PER_FIG7's Δψ₁ is in `pereira_results.csv` (check first; a script text change, no re-run of the comparison).
+- [ ] **135d Cause records.** For each of the 27 not-met cases, one record: class (M, A, I, N, D, and the two new ones F form and U unexplained), one sentence, the phases that tested it, what is left; each sentence cites its report. Start from the table in ISSUE-019. **[DECIDED 2026-11-09]** the two new causes are added, and every cause is written in plain words with no letter code: old program form; PAIN's method misses the measurement; approximation in this recreation; reference data; not explained by the documents; unexplained. **[AUTHOR]** checks the cause given to each case before it is written into the case records.
+- [ ] **135e Stale numbers.** VALIDATION_GUIDELINE §1.1 `AC_C695A_DBA` "0/36" → the current record (35/36, post-hoc, Phase 123). Any other number in §1 – §2.12 that disagrees with `case_error_summary.csv` is listed, then corrected with a date.
+
+- [ ] **135f The chart rule, all 43 cases [DECIDED 2026-11-09].** One table: case, runs the shipped code (yes / no, with the option or form that differs), inputs complete (yes / no, with the missing input), compared with (measurement / NASA's program output / other). A case with a "no" or "other" leaves the chart. The sorting of all 43 is the table in ISSUE-029, **[DECIDED 2026-11-09]** (author: "Yes, use it"): 18 keep, 2 inside a parent case, 5 to check, 15 diagnostic, 3 retire; the chart then holds 11 met and 7 not met. Expected to leave, to be confirmed row by row: R172428_CODE, R172428_DB_CODE, R172428_DBA_CODE, APPB_ETA_N (old form); NR_PROP_TP2444, NR_PROP_TP2444_BR, NR_PROP_TP2444_PF (inputs; additions that are not the shipped tool); BLK_P68 (the equation written out); CYL2D_PRINTED (a grid rule the code does not use); E22_BR (sound bridges are not the default); NR_TP1964 and NR_TP1964_REF2 if the shipped path is the one with the changeover (NR_TP1964_XOVER). This step writes the table only; the flags in `src/validation_cases.jl` change in the phase that owns each case ([CONFIRM] there), and a row whose check against the code disagrees with the approved table goes back to the author before its flag changes; the five "check" rows are settled here (PER_FIG9, T1_APPB, APPB_ETA_N_T2) or in their own phase (R996_FIG10_FLAT in 144, NR_TP1964_XOVER_REF2 in 138).
+
+**Done when:** each number above appears once as current, with its date; a search for 103.8, 109.0, "5/24" and "0/36" finds only lines marked superseded; the 43-row table exists.
+
+## 8bz. Phase 136 — the CR-172428 tone cases: which program form each one tests (ISSUE-014, 017, 009) [CONFIRM]
+
+- [ ] **136a Off the chart [DECIDED 2026-11-09].** `R172428_CODE`, `R172428_DB_CODE`, `R172428_DBA_CODE`, `APPB_ETA_N` become diagnostics (author: "if there isnt a weight on the validity of the tool should it still be on the coverage map"). Each keeps its run, table and recorded outcome and gets `form = "CR-3813 printed form (not the shipped default)"`, shown in its title and in the Validation tab.
+- [ ] **136b Pairs.** Each of the four shows, beside its own result, the default-form result on the same printout (labelled post-hoc, no verdict) and the held-out case of the default form (`R172428_ETAT2`; `APPB_ETA_N_T2_BAND`).
+- [ ] **136c Kind [DECIDED 2026-11-09].** A case that runs a superseded program form is a diagnostic (the Phase 86 kind), by kind and whatever its outcome. The rule is written into CLAUDE.md's PAIN section only with the author's approval of the wording.
+- [ ] **136d The (0,1) × mode 8 pair.** From the existing `R172428_PAIRS` output: this pair's share of the 4000 rpm H1 level with q = 0 coupled and uncoupled. A statement, no criterion.
+- [ ] **136e One more held-out printout.** Search CR-172428 for a complete PAIN run (inputs and interior levels both printed) that no phase has compared. If one exists: **[AUTHOR]** criterion (proposed: R172428_CODE's ±3 dB at ≥ 7/9 form, copied unchanged), dated before transcription. If none: say so in §0.
+- [ ] **136f "NASA's own printout on the same gate".** A generated column for every measurement case where NASA printed a prediction (R172428_EXP, R172428_DB_EXP, R172428_DBA_EXP, E22_BR, E21_E22_NR, NR_TP1964, NR_TP1964_XOVER). It is information about NASA's program, not a case and not a verdict; `R172428_NASA_EXP` (ISSUE-009) is not added.
+
+**Checks:** testsets of `validation_case_iso44`, `iso94`, `iso96`, `test_validation_coverage.jl`; `case_error_summary.csv` unchanged in verdict and count for every case. **Done when:** the four cases are in the diagnostics list with their form named, the chart shows the shipped-form cases for the same printouts, and ISSUE-014 and ISSUE-017 are closed with a pointer here.
+
+## 8ca. Phase 137 — the high-frequency noise-reduction cases (ISSUE-026)
+
+- [ ] **137a Input rule [DECIDED 2026-11-09].** `NR_PROP_TP2444`, `NR_PROP_TP2444_BR`, `NR_PROP_TP2444_PF` carry no verdict (author: "if all inputs arent available then it should not have a verdict"). `_BR` and `_PF` are retired as cases (two additions that are not the shipped tool, on assumed inputs); their outcomes stay in the phase reports. [CONFIRM] for the registry change.
+- [ ] **137a′ TP-2444's own trim.** `references/NASA_TP_2444.pdf` p. 8 prints the lining: four fiberglass layers of 0.27 kg/m² and 13 mm with a 0.05 mm vinyl film, a 0.81 mm epoxy-fiberglass finish trim, floor bare. List every input the App. A trim model needs beside what p. 8 and the rest of the report print. All printed → a new case with TP-2444's own trim, **[AUTHOR]** criterion fixed before it is run, with the disclosure that the old run on CR-172428's trim was seen. One missing (for example the blanket's acoustic material table) → `NR_PROP_TP2444` stays information and the case text names the missing input in place of "no printed properties". Lead (CR-165869 pp. 2–3, read 2026-11-09): the Langley models of this series were lined with PF-105 of the same 13 mm thickness and the same 0.05 mm vinyl film; check whether TP-2444 names its fiberglass, and settle the 0.27 kg/m² per layer against PF-105's 9.6 kg/m³ before treating them as the same material.
+- [ ] **137b `E22_BR`.** Read CR-172490 and CR-3813 App. E for the bridge connections of the CR-3813 article. If they are assumed, the same rule applies; if printed, the case stays and cites the page.
+- [ ] **137c Method-limit mark.** From 136f: a measurement case whose gate NASA's own printout also misses is drawn with a "method limit" mark on the chart and in §0. The verdict stays not met.
+- [ ] **137d Range statement.** METHODOLOGY states once the frequency above which the trim model is outside NASA's stated range (about 1 kHz, with the page), and the NR plots shade the bands above it.
+
+**Checks:** `test_validation_coverage.jl`, `test_zz_completeness.jl`, the NR testsets. **Done when:** every NR row on the chart shows whether NASA's PAIN meets the same gate.
+
+## 8cb. Phase 138 — the code-against-NASA misses with no cause: TP-1964 ref. 2 and E22_HF_CODE (ISSUE-022)
+
+- [ ] **138a Inputs of ref. 2.** Read `references/NASA_CR_159363.pdf` for the Phase I prediction of the TP-1964 cylinder: loss factors, mode sets, band rule, range of Eq. (18). Table: NASA's input, page, this code's input.
+- [ ] **138b Decision table, written before any re-run.** (i) An input differs and is printed → re-run `NR_TP1964_REF2` and `NR_TP1964_XOVER_REF2` with it, criterion unchanged, dated re-run. (ii) Inputs not printed → both fail the 118a rule and carry no verdict. (iii) Inputs equal → 138c.
+- [ ] **138c Band by band.** For each missing band, the terms of Eq. (18) (resonant modes in the band, joint acceptance, loss factors) against any intermediate value CR-159363 prints.
+- [ ] **138d `E22_HF_CODE`.** The same for Eqs. (19)–(23) with what CR-3813 prints. If nothing is printed, class U with the sign pattern recorded.
+
+**Stop:** a printed equation and the code disagree → §0.4. **Done when:** each of the three cases has a cause that can explain a code-against-NASA difference, or is class U, or carries no verdict under 118a.
+
+## 8cc. Phase 139 — the trim loss term: E14_LOSS and R172428_ETA together (ISSUE-023)
+
+- [ ] **139a Ratio curves.** This code / NASA, per mode for R172428_ETA and per band for E14_LOSS, on one frequency axis, with each mode's floor share. A script (`scripts/checks/`), no case.
+- [ ] **139b Band-centre hypothesis [DECIDED 2026-11-09].** Eq. (82) and Eq. (78) with ω and the trim conductance at the 1/3-octave centre (the rule NASA's η_n follows, Phases 95–96). Supported if at least 24 of R172428_ETA's 32 modes are then within ±25 %; fixed by the author on 2026-11-09 before any run. Diagnostic on R172428_ETA's unchanged criterion. Before the run the same sentence is entered, with this date, in the criteria document (R3).
+- [ ] **139b′ Read D-23 first** (CR-165869, in `references/` since 2026-11-09): sections 3.1–3.3 and App. A page by page, for the frequency at which the loss factors are evaluated. A text search on 2026-11-09 found no such statement. A statement in the document outranks the diagnostic.
+- [ ] **139c Held-out check.** Before any default changes: the η_r′ NASA prints for the η_T = 2.0 run or for flight run 10's deck, if printed (search first). **[AUTHOR]** criterion, dated.
+- [ ] **139d Outcome.** Supported and held-out met → [CONFIRM] default change, affected cases re-run and labelled post-hoc. Otherwise class U for both, with the curves in the report.
+
+**Done when:** E14_LOSS no longer carries "I (probable)", which Phase 118 refuted.
+
+## 8cd. Phase 140 — CYL2D's grid: what the verdict is on, and whether it matters (ISSUE-025)
+
+- [ ] **140a The printed grid rule (CR-165869 pp. 60–61, read 2026-11-09).** NK = Integral Part[7 (1 + cos θ₀)], h = a (1 + cos θ₀)/NK, boundary point = the nearer of the last inside and first outside point on each grid line. By arithmetic (no run) it gives NK = 11, 10, 10, 8 at 50°, 56.6°, 62.6°, 73.7°: the grids the diagnostics of Phases 103 and 105 found for the Merlin (11) and the narrow body (8), and the test article's 10. `cyl2d.jl` has NY = 10 and a 0.40h threshold at every angle.
+- [ ] **140a′ Compare the rule with `_build_grid`, on paper first.** Which nodes differ between the nearest-point test and the 0.40h threshold at 56.6° (the validated angle): if none, the change cannot move CYL2D_C1 (59/59) or APPB_EPS_N (48/48); if some, list them. Also read the User Manual §5.1 again for anything that contradicts the 1982 rule.
+- [ ] **140a″ [CONFIRM] Adopt the printed rule** as CYL2D's grid rule. The basis is the document, not a comparison: the independence record (145c) cites pp. 60–61. CYL2D_C1, APPB_EPS_N and CABIN_FREQ_PRINTED are re-run and must stay met; CYL2D_PRINTED is run once on its unchanged criterion (0.02 %, 0.1 %, types equal) and the result stands whatever it is, labelled as a run after a documented rule was adopted, with the two lists already seen. Until this step is done CYL2D_PRINTED is a diagnostic (chart rule); after it, it tests the shipped code and returns to the chart.
+- [ ] **140b Shipped grid, information.** Only if 140a″ is not confirmed: the shipped rule (0.40h, NY = 10) against the two printed lists, per 2-D order; no verdict. Form fixed before the run.
+- [ ] **140c Bound, no verdict.** Small-diameter aircraft, NY = 8, 10, 12 and node rules 0.40h, 0.45h, 0.55h: spread of the interior tone levels per harmonic. Form fixed before the run; no grid is chosen from it.
+- [ ] **140d** If the spread exceeds 1 dB: an uncertainty line in METHODOLOGY §CYL2D and in the aircraft uncertainty band's inputs ([CONFIRM]).
+
+## 8ce. Phase 141 — the source chain: labels, unscaled replays, measured polars (ISSUE-001, 004, 027) [CONFIRM]
+
+- [ ] **141a Labels.** `R996_FIG12`, `R996_FIG13A`, `R996_FIG14`, `PER_FIG7/8/9`: "loads scaled to measured thrust and torque" in the title and on the chart; chain span of R996_FIG12 and R996_FIG14 starts at Blade loads. N_crit note in METHODOLOGY and in every case that reads `polars_phase69_ncrit8.json`.
+- [ ] **141b Check for seen results.** Search `data/report996/f1a_results.csv`, `data/pereira/pereira_results.csv` and the reports for unscaled Fig. 12 / 13a / 14 and Pereira rows. If they were reported, the cases of 141c are post-hoc and carry no verdict.
+- [ ] **141c Unscaled replays [DECIDED 2026-11-09].** `R996_FIG12_UNSCALED`, `R996_FIG13A_UNSCALED`, `R996_FIG14_UNSCALED`, `PER_FIG8_UNSCALED`, `PER_FIG9_UNSCALED`: 23c's and 23d's rules copied unchanged (author: add, same tolerances); the criteria are entered in the criteria document with the date before the run. **Under review the same day (ISSUE-029):** with the loads up to 39 % off, these five would very likely be five more not-met rows that repeat R996_LOADS. Proposed instead: the unscaled result as a second line on each existing scaled case, no verdict. **[AUTHOR]** confirms "add" or takes the second-line form before this step starts. These are the chart's only acoustic rows that carry the load error.
+- [ ] **141d Measured polars: coverage first [DECIDED 2026-11-09].** Fraction of the Report 996 blade span whose thickness and Mach fall inside TN 1546's measured sections (from `blade_form.csv`). Under half → stop, record, drop the proposal. TN 1546 holds 24 sections, 6 to 30 % thick by its catalogue record (confirm in its Table I); three are digitized, so the coverage is computed for the three and for all 24, and digitizing more is a §2.2 card, not part of this step.
+- [ ] **141f Forward-flight loads (D-26).** If the author obtains RM L9G06a: a loads case for the same blade in forward flight, **[AUTHOR]** criterion (proposed: ±15 % as 23c), fixed before any curve is digitized. It tests every polar set on data none was built from.
+- [ ] **141e [AUTHOR] Measured-polar set.** Interpolation rule, range limits and Reynolds treatment written and dated before any load is computed. New loads case on it, ±15 % copied from 23c; first result stands. `R996_LOADS` keeps its record.
+
+## 8cf. Phase 142 — FLIGHT_MODES: the reference file, then the in-plane mass (ISSUE-024)
+
+- [ ] **142a [DECIDED 2026-11-09]** A re-run on a corrected transcription carries the verdict when the correction is made blind against the source page; the first run stays on record as the run on the faulty file.
+- [ ] **142b Blind second transcription** of CR-172428 App. C pp. 213–216, all 221 rows, without the code's output or the earlier files in view; cell-by-cell comparison with both; every disagreement settled against the PDF and listed (R9).
+- [ ] **142c One re-run** on the settled file, criterion unchanged, dated.
+- [ ] **142d In-plane mass.** For the about 20 modes off by 10–80 %: this code's in-plane part against NASA's total − SHELL W − PLATE W; the in-plane terms of Eqs. (D.17)–(D.29) for the floor against `mrp_appd.jl`; a unit test per term found. Any `src/` change [CONFIRM], and MRP_APPD (32/32) must stay met. CR-165869 p. 73 names Peterson and Boyd, J. Sound Vib. 60(1), 45–62 (1978) as the shell-with-floor theory the model was to take over (D-30): the in-plane terms are checked against that paper once the author has it (verification, no verdict).
+- [ ] **142e Pairing.** How many of those modes change partner under a 0.5 % frequency shift.
+
+## 8cg. Phase 143 — E12_BLOCK: one implementation of the registered comparison (ISSUE-007) [CONFIRM]
+
+- [ ] **143a** One mean-curve function (passes A and B), used by `scripts/run/e12_blocking.jl` and `_run_e12_block`. The runner today reads pass A only.
+- [ ] **143b** Re-run, dated as a re-run; one max and median in `case_error_summary.csv`, VALIDATION_GUIDELINE and `e12_blocking.md`.
+- [ ] **143c** Re-read the H3 aft segment (k = 10, 11) from pixels in both passes (procedure §2.2). The 3.41 dB tolerance and the 31 points do not change.
+- [ ] **143d** If NASA's drawn H3 aft step stays smaller than Eq. (43): class N with a dated note; no term is added.
+
+## 8ch. Phase 144 — blocking R2 (ISSUE-006, 008)
+
+- [ ] **144a [AUTHOR] (P) case for R2.** PAIN's printed blocked field of flight run 10 against R2 on PAIN's printed free field, at every printed card not already compared in Phase 104's unit test. Criterion dated before those cards are compared. If Phase 104 compared them all, the case is post-hoc and is recorded as information.
+- [ ] **144b Fig. 10.** `R996_FIG10_FLAT` with R2 and `R996_FIG10_CIRC`: registered with a disclosure that the numbers are on record (4.03–4.06 dB; 1/5); information, no verdict.
+- [ ] **144c Text.** Circular reason "radius not stated" → "Eq. (43) has no curvature term" ([CONFIRM], `validation_case_iso90.jl`). METHODOLOGY §Blocking: one dated sentence on why the default is R2 (CR-172428 §5.3.2; Phase 93). METHODOLOGY line 368's "R2 maximum about 4 dB" labelled information.
+- [ ] **144d BLK_P68 [DECIDED 2026-11-09].** Off the coverage chart; it stays as a unit check of Eq. (43) ([CONFIRM] for the registry change).
+- [ ] **144e CR-159668 as a document, not a case (read 2026-11-09).** Its measured blocking (Table VI, Fig. 21) is, in the report's words, scattered with no clear trend, and its curve is a fit through 0 dB at 0° and 6 dB at 60°. No case is made from it: the scatter is as large as the effect. METHODOLOGY §Blocking cites it for where the curve's shape comes from, compares Eq. (43) as printed with that fit (document against document, a figure, no verdict), and states that it gives no support for a 4 dB maximum, so R2 rests on CR-172428 §5.3.2 alone.
+
+## 8ci. Phase 145 — the summary writer says what each number is (ISSUE-009, 018, 019, 020, 021) [CONFIRM]
+
+- [ ] **145a `in_verdict`** on `ValidationTableRow`; counts and worst error over those rows; "+ n shown, not judged". Gate cases count tones. Before / after table for every CSV row that moves (POLAR_FIDELITY 40/61 → 13/26, CYL2D_PRINTED, T1_APPB, T1_MEAS_DAMPING_APPB at least); no verdict moves.
+- [ ] **145b Error text.** The rule beside a fractional count; no NaN; an error size or "count only"; units from the case's definition; one decimal.
+- [ ] **145c Independence record [DECIDED 2026-11-09].** Author: "this needs to be proven that its not circular somehow on the coverage map or somewhere accessible by the reader". Per case whose verdict was reached after a change: `first_run` (date, verdict, count); each change since, with the document page or independent check it rests on; and "was the compared data used to choose it" (yes / no, with the evidence). All "no" → the verdict stands and the record opens from the chart row and is listed on the short validation page. Any "yes", or a change with no stated basis → the case carries no verdict. Written first for APPB_ETA_RPP, R996_FIG12, R996_FIG13A, R996_FIG14, PER_FIG7, MRP_APPD, R996_LOADS; **[AUTHOR]** reads the seven records before any verdict is kept or dropped on their strength.
+- [ ] **145d `family` and `derived_from`** per case (list in ISSUE-018, **[AUTHOR]** check). §0 states cases and independent comparisons.
+- [ ] **145e `cause`** fields from 135d; generated "why not met" table; a test that fails if a not-met case has none.
+- [ ] **145f R172428 plot labels** (ISSUE-009 steps 1–4): `error_ylabel` names both series and the unit; the series that carries the criterion is marked; table headers traced and named.
+
+**Checks:** `test_validation_plots.jl`, `test_validation_coverage.jl`, `test_validation_framework.jl`; `write_case_error_summary.jl`; both smoke scripts and a look at the window.
+
+## 8cj. Phase 146 — the coverage chart as the one view: figures, families, plain titles (ISSUE-010, 013, 018) [CONFIRM]
+
+- [ ] **146a `figure` field** (document, figure, PDF page) per case, from `FigureRef` where it exists.
+- [ ] **146b Grouping.** Toggle "by chain stage" / "by figure"; inside a figure: measurement, NASA's printed prediction, verification; families of 145d drawn as one group, derived cases smaller.
+- [ ] **146c Titles.** A plain title per verdict case (43 first), each checked against the case's criterion text; title first, ID in brackets; phase tags out of titles. **[AUTHOR]** reviews the list before it is merged.
+- [ ] **146d Glossary** of ID prefixes and suffixes, one place, linked.
+- [ ] **146e Tests:** a verdict case without figure or title fails; sort order by figure then relation.
+
+## 8ck. Phase 147 — the block validation map is retired (ISSUE-015) [CONFIRM]
+
+- [ ] **147a** `on_validation_map` → `has_verdict` (same rule; every caller).
+- [ ] **147b** Website: cards grouped by the nine chain stages; stage diagrams from the stage list (`site/build_site.jl`).
+- [ ] **147c** Remove the Validation map tab, §0's Mermaid map and group tables, the map JSON and layout code, `**Map / block:**`, the `### Map:` / `#### Block:` records; not-met table gets `Chain span` and `Compared with` in place of `Block`.
+- [ ] **147d** Tests: block tests removed, span-and-reference tests kept; smoke scripts lose the map grab.
+- [ ] **147e [DECIDED 2026-11-09]** PAIN only; Cabin_Noise keeps its map for now.
+
+**Done when:** the 43 verdict cases and their counts are unchanged in `case_error_summary.csv`, the GUI has Run, Validation, Coverage and Cabin modes, and no document mentions a map tab.
+
+## 8cl. Phase 148 — VALIDATION_GUIDELINE.md split (ISSUE-016, 005) [CONFIRM]
+
+- [ ] **148a [AUTHOR]** The new CLAUDE.md update list, approved before any file is split.
+- [ ] **148b** Case records → data file(s); the GUI and site read them. Same 154 cases, same fields, same verdicts: `case_error_summary.csv` equal apart from its date line. "Recorded outcome" → `current` + `history`.
+- [ ] **148c** `VALIDATION.md`, generated: chart, one row per verdict case, the why-not-met table, the independence records of 145c. **[DECIDED 2026-11-09]** mostly chart and tables, little text, no letter codes, so a reader can find a case and its cause quickly.
+- [ ] **148d** Criteria (§1 – §2.12) stay in `VALIDATION_GUIDELINE.md`, wording and dates unchanged (diff empty).
+- [ ] **148e** §2.14 – §2.56: each checked against COMPLETED_PHASES.md; what is missing there is moved; then removed here.
+
+## 8cm. Phase 149 — Markdown inventory and the README (ISSUE-005, 012; documents only)
+
+- [ ] **149a** Inventory of the 138 `.md` files: purpose, last change, what it duplicates; keep / merge / archive / delete. Validation reports are kept in place. **[AUTHOR]** approves any deletion.
+- [ ] **149b** README: "(optional)" off the GUI step and its contents line; the four tab paragraphs → a short list and two links; every remaining link resolves.
+
+## 8cn. Phase 150 — source and test layout by chain stage (ISSUE-028) [CONFIRM]
+
+- [ ] **150a** Mapping table old file and lines → new file, reviewed before the move.
+- [ ] **150b** One move commit: `src/cases/<stage>.jl` and `registry.jl`; `test/cases/<stage>.jl`; no edit inside a function. Testset counts and frozen baselines (R11) equal before and after.
+- [ ] **150c** `scripts/retired/` deleted.
+- [ ] **150d** `rea-work` → `PAIN_Program`; absolute paths → repository-relative; every `data\…` and `references\…` path in this file checked against the tree; `IMPLEMENTATION_PLAN.md §8…` comments → `COMPLETED_PHASES.md §8…`.
+- [ ] **150e The 111 cases without a verdict.** The case-by-case list is in ISSUE-029, **[DECIDED 2026-11-10]** (author: "Approve the list"): 44 stay as tests only, 14 stay visible as information, 6 are kept until Phases 136, 139, 144 or this one decides them, 47 are retired with their reports kept. The list comes from the case texts, so each row is checked against its runner first, and a row the code contradicts goes back to the author. Per case: *test* → its GUI entry, figure and guideline record go, its test stays; *show* → moved to one short "run, not judged" list; *retire* → runner and the tests that assert its old outcome removed in the same commit, with the report's path noted in the commit message. `NO_VERDICT_CASES.md` shrinks to the "run, not judged" list. The frozen-baseline regression test (R11) is not a case and stays.
+
+## 8co. Phase 151 — the cabin-mode animation plays in the window (ISSUE-011) [CONFIRM]
+
+- [ ] **151a** Run the GUI and record which of the three points fails today (no frames until Refresh; the play flag; the per-frame disk load).
+- [ ] **151b** Check that the Qt build has the GIF plugin. Yes → `AnimatedImage` on `cm_gif_path` with play, pause and speed. No → frames preloaded once and shown by index.
+- [ ] **151c** Frames built when the tab opens.
+- [ ] **151d** Tests: frame count and node values equal `mode_animation_frames`; smoke grabs two frames at different times and they differ. A look at the window: the mode is seen moving.
 
 ---
 

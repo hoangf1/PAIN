@@ -46,3 +46,14 @@ Downloaded 2026-10-22 from the NASA Technical Reports Server (public use permitt
 |------|--------|------|
 | `NASA_CR_178004.pdf` | Wilby, McDaniel, Wilby: *In-flight acoustic measurements on a light twin-engined turboprop airplane*, NASA CR-178004, November 1985 (Gulfstream Commander 695A; exterior and interior levels per propeller harmonic, untreated and fibreglass-treated cabin; 238 pages) | https://ntrs.nasa.gov/citations/19860010618 |
 - `NASA_CR_178004.pdf`: SHA-256 `3c7b58b3ff0d7c74adc30a384a0b2cbee3b7e9da8549f8c231dbab1630732a6a`
+
+## Added 2026-11-09 (planning of Phases 135–151; author's go-ahead in session)
+
+Downloaded 2026-11-09 from the NASA Technical Reports Server. Read notes: `docs/IMPLEMENTATION_PLAN.md` §2.5.
+
+| File | Report | NTRS |
+|------|--------|------|
+| `NASA_CR_165869.pdf` | Pope, Wilby: *Analytical prediction of the interior noise for cylindrical models of aircraft fuselages for prescribed exterior noise fields. Phase II: Models for sidewall trim, stiffened structures, and cabin acoustics with floor partition*, NASA CR-165869, April 1982 (cabin finite-difference grid rule, pp. 60–61; trim model; test linings) | https://ntrs.nasa.gov/citations/19820015078 |
+| `NASA_CR_159668.pdf` | Magliozzi, Brooks: *Advanced turbo-prop airplane interior noise reduction: source definition*, NASA CR-159668, October 1979 (pressures on a rigid semicylinder beside a model prop-fan; pressure doubling against incidence angle, Table VI and Fig. 21) | https://ntrs.nasa.gov/citations/19800005626 |
+- `NASA_CR_165869.pdf`: SHA-256 `0c44d4eae35035c322dbd6249d3b5bfdbfdfaca269096dd99aaf454749dd1cb7`
+- `NASA_CR_159668.pdf`: SHA-256 `f31b2c3ff42a73a2bc07348e0ad5ddcdbe2ffeed6ea4a6cc6802d920efe75371`
