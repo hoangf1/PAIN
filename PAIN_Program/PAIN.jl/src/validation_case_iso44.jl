@@ -298,7 +298,7 @@ _run_r172428_db_exp() = _run_r172428_dba(:exp; weighted=false)
 function _iso44_validation_cases()
     files = [_r172428_csv("appB_4000rpm_H1.csv"), _r172428_csv("appB_predictions.csv")]
     return [
-        ValidationCase("R172428_CODE", "CR-172428 reproduction: NASA's inputs vs NASA's printed predictions (44d)", "44",
+        ValidationCase("R172428_CODE", "CR-172428 reproduction: NASA's inputs vs NASA's printed predictions (44d; CR-3813 printed form)", "44",
             files, FigureRef("NASA CR-172428", "App. B pp. 196–212 / Table 10", 206),
             "Within ±3 dB of NASA's printed prediction at ≥ 7 of 9 points (3000/4000/5000 rpm, H1–H3).",
             "2026-10-23", "V-CODE", _run_r172428_code,
@@ -329,7 +329,7 @@ function _iso44_validation_cases()
             "No criterion (diagnostic).",
             "2026-10-23", "diagnostic", _run_r172428_pairs,
             PlotSpec(; xlabel="harmonic", ylabel="p² (Pa²)", panel_titles=["R172428_PAIRS"], error_mode=:none), ""),
-        ValidationCase("R172428_DBA_CODE", "CR-172428 tonal dB(A): NASA's inputs vs NASA's printed predictions (124)", "124",
+        ValidationCase("R172428_DBA_CODE", "CR-172428 tonal dB(A): NASA's inputs vs NASA's printed predictions (124; CR-3813 printed form)", "124",
             [_r172428_csv("appB_predictions.csv")], FigureRef("NASA CR-172428", "App. B p. 206 / Table 10", 206),
             "Tonal dB(A) (A-weighted energy sum of H1–H3) within ±3 dB of the same sum of NASA's printed prediction at " *
             "each of 3000/4000/5000 rpm. Fixed 2026-11-04 before the first run; ±3 dB copied from R172428_CODE. The H1–H3 " *
@@ -345,7 +345,7 @@ function _iso44_validation_cases()
             "2026-11-04", "V-EXP", _run_r172428_dba_exp,
             PlotSpec(; xlabel="rpm", ylabel="interior tonal level (dB(A))",
                      panel_titles=["R172428_DBA_EXP"], error_mode=:absolute, error_tol=4.0, error_ylabel="this code − measured (dB(A))"), ""),
-        ValidationCase("R172428_DB_CODE", "CR-172428 tonal dB (unweighted): NASA's inputs vs NASA's printed predictions (124)", "124",
+        ValidationCase("R172428_DB_CODE", "CR-172428 tonal dB (unweighted): NASA's inputs vs NASA's printed predictions (124; CR-3813 printed form)", "124",
             [_r172428_csv("appB_predictions.csv")], FigureRef("NASA CR-172428", "App. B p. 206 / Table 10", 206),
             "Tonal dB (unweighted energy sum of H1–H3) within ±3 dB of the same sum of NASA's printed prediction at each " *
             "of 3000/4000/5000 rpm. Fixed 2026-11-04 before its first run; ±3 dB copied from R172428_CODE. The H1–H3 levels " *

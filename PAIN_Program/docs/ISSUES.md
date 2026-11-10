@@ -4,12 +4,14 @@ Known problems in the PAIN validation record that are not yet fixed. Each entry:
 
 ## Index
 
-Two lists, newest first in each. **Not assigned to a phase**: issues to act on or to hold, each waiting for the author's decision on what to do. **Assigned to a phase**: the solution is a phase of `IMPLEMENTATION_PLAN.md` (Phases 135–151); the entries follow in the same order below. Issues 001–014 were recorded first and answered on 2026-11-09; 015–029 were found on 2026-11-09 from the chain coverage chart; 030–033 on 2026-11-10 from the review of the eight not-met cases left on the chart.
+Two lists, newest first in each. **Not assigned to a phase**: issues to act on or to hold, each waiting for the author's decision on what to do. **Assigned to a phase**: the solution is a phase of `IMPLEMENTATION_PLAN.md` (Phases 135–151); the entries follow in the same order below. Issues 001–014 were recorded first and answered on 2026-11-09; 015–029 were found on 2026-11-09 from the chain coverage chart; 030–033 on 2026-11-10 from the review of the eight not-met cases left on the chart; 034 and 035 on 2026-11-10 during Phase 136.
 
 ### Not assigned to a phase
 
 | Issue | Subject | Kind | State |
 |---|---|---|---|
+| 035 | The summary file and §0 date from 2026-11-02 and do not show the changes since | Record | open |
+| 034 | The shipped program form has no held-out test of all its parts; R172428_ETAT2 changes only the trim damping | Validity, investigation | open |
 | 033 | CYL2D at 62.6°: this code rejects NASA's grid where NASA's program solved it | Not met, investigation | open |
 | 032 | R172428_ETA and E14_LOSS: look for an error in the loss-factor method | Not met, investigation | open |
 | 031 | Not-met cases where a published prediction misses the same way: a separate look on the chart | Readability | open, two questions for the author |
@@ -31,10 +33,10 @@ Two lists, newest first in each. **Not assigned to a phase**: issues to act on o
 | 020 | Points and error text count rows outside the verdict | Readability | 145 |
 | 019 | No single current statement of why a case is not met | Not met, readability | 135, 145 |
 | 018 | 27 not-met rows are about 14 comparisons | Readability | 145, 146 |
-| 017 | Four not-met verdicts are on a superseded program form | Not met | 136 |
+| 017 | Four not-met verdicts are on a superseded program form | Not met | 136 (closed 2026-11-10) |
 | 016 | VALIDATION_GUIDELINE.md is 4,566 lines | Organisation | 148 |
 | 015 | Retire the block validation map | Organisation | 147 |
-| 014 | R172428_CODE not met 5/9 | Not met | 136 |
+| 014 | R172428_CODE not met 5/9 | Not met | 136 (closed 2026-11-10) |
 | 013 | Case names and abbreviations unexplained | Readability | 146 |
 | 012 | README treats the GUI as optional | Readability | 149 |
 | 011 | Cabin-mode animation does not play | Readability | 151 |
@@ -80,6 +82,50 @@ Still open for the author: the new CLAUDE.md update list (Phase 148a), the plain
 ## Sources found (2026-11-09)
 
 A web search for reports that could settle open questions of these issues. The list, with what each may give and what to check first, is `IMPLEMENTATION_PLAN.md` §2.5 (D-23 to D-31). Two were then downloaded with the author's go-ahead and read in part the same day: CR-165869, which prints the cabin grid rule that Phase 111 could not find (ISSUE-025), and CR-159668, whose measured blocking data are too scattered to judge a case on (ISSUE-006). The others were not downloaded; what is said about them comes from catalogue records and abstracts. Two findings came from PDFs already in `references/`: TP-2444 p. 8 prints its trim lining (ISSUE-026), and TN 1546 holds 24 sections of which three are digitized (ISSUE-027).
+
+---
+
+## ISSUE-035: The summary file and §0 date from 2026-11-02 and do not show the changes since
+
+**Status:** open, not assigned to a phase. Recorded 2026-11-10 during Phase 136. Record only: re-running changes no criterion, tolerance or reference file.
+
+**Author (2026-11-10).** Asked whether to regenerate it inside Phase 136: "whichever option does not take time away and just bring this up as a new issue ticket".
+
+**What is wrong.** `validation_reports/case_error_summary.csv` was last written on 2026-11-02 (`PAIN.jl/scripts/run/write_case_error_summary.jl`); §0 of VALIDATION_GUIDELINE.md and NO_VERDICT_CASES.md are written from the same run. Since then:
+- Phases 135f and 136a moved cases off the chart by rule (for example R172428_CODE, R172428_DB_CODE, R172428_DBA_CODE, APPB_ETA_N). The file still records them as not met; the chart and the why-not-met table already read the rule from the code, so they show no verdict.
+- Phase 140 adopted NASA's printed grid rule; CYL2D_PRINTED's 57/168 in the file is from the old rule.
+- Phase 136e found no other complete PAIN run in CR-172428; §0 does not say so yet.
+- §0 still gives 18 independent comparisons; the chart gives 20 (Phase 135, family fix).
+
+**Action.** One full run of the writer, in the background. Each number that moves is recorded with its date, its before and after, and "post-hoc" where the earlier result was known. A case moved off the chart by rule keeps its earlier outcome as its recorded outcome, under "no verdict".
+
+**Not done yet.** Nothing has been run.
+
+---
+
+## ISSUE-034: The shipped program form has no held-out test of all its parts; R172428_ETAT2 changes only the trim damping
+
+**Status:** open, not assigned to a phase. Recorded 2026-11-10 during Phase 136b. Investigation. No criterion, tolerance or verdict changes; R172428_ETAT2 keeps its verdict.
+
+**Author (2026-11-10).** "the test carries a verdict but an issue ticket needs to be created to encompass the full form independently".
+
+**What is wrong.** The form the code ships with for CR-172428's tones (q = 0 cabin modes uncoupled, η_n per cabin mode, the band-centre rule; Phases 89–96) was read from NASA's App. B printout, and its run on those nine points (`R172428_CODE_DEFAULT`, 9/9 within 1.2 dB) is post-hoc. Its held-out tests are:
+- `R172428_ETAT2` (Table 12, p. 85; met 9/9, max 1.7 dB): the same scale-model inputs with only the trim loss factor changed to η_T = 2.0.
+- `APPB_ETA_N_T2_BAND` (p. 85; met 3/3): the band-centre η_n rule at three modes.
+
+Both change only the damping. Nothing held out tests the q = 0 choice or the form as a whole on other inputs.
+
+**Already on record.**
+- Phase 136e: CR-172428 prints no other complete PAIN run for the scale model.
+- `FLIGHT10_H234` (Phase 102): the shipped form against PAIN's printed flight run 10, H2–H4, 6/6 within its tolerance (max 2.0 dB). It is the only other printout run on the shipped form, and it carries no verdict while FLIGHT_MODES is not met (Phase 142).
+- The q = 0 and band-centre re-runs of CR-3813's printed runs (`Q0_REPRO_18b`, `Q0_E18`, `Q0_E21`, `BAND_REPRO_18b`, `BAND_E18`; Phases 88, 99) are on the pre-correction program, not the shipped one; they missed (for example 2/3, 1/3, 3/16).
+
+**Questions to answer.**
+1. Once Phase 142 settles FLIGHT_MODES, can `FLIGHT10_H234` carry a verdict as the held-out test of the full form? Its criterion and date need checking against the rule (fixed before its first run, or post-hoc).
+2. Is there another PAIN printout outside CR-172428 (CR-3813, the User Manual, the reports they cite) run with the corrected program, inputs and interior levels both printed?
+3. What do the CR-3813 re-runs above say about the q = 0 choice, given that they run the pre-correction program?
+
+**Not done yet.** Nothing has been run.
 
 ---
 
@@ -657,7 +703,7 @@ Single cases: R996_PHASE, E12_BLOCK, CYL2D_PRINTED, FLIGHT_MODES, E14_LOSS, R172
 
 ## ISSUE-017: Four not-met verdicts are on a program form the code no longer runs by default; the default form reproduces the same NASA printouts
 
-**Status:** open. Recorded 2026-11-09. Labelling and classification. No verdict, criterion or recorded result changes. Solution: Phase 136. Corrects the premise of ISSUE-014.
+**Status:** closed 2026-11-10 by Phase 136 (`COMPLETED_PHASES.md` §8bz): the case is a diagnostic on the old program form, its title names the form, and its reason names the shipped-form cases; the shipped form's held-out test of all its parts is ISSUE-034. Was: open. Recorded 2026-11-09. Labelling and classification. No verdict, criterion or recorded result changes. Solution: Phase 136. Corrects the premise of ISSUE-014.
 
 **Summary.** `R172428_CODE` (5/9), `R172428_DB_CODE` (0/3), `R172428_DBA_CODE` (0/3) and `APPB_ETA_N` (12/46) are judged on the form each was first registered with. That form was replaced as the default by Phases 93, 96 and 100 because NASA's printouts showed the CR-172428 program ran differently. On the chart they read as "the code does not reproduce NASA's PAIN". The record says the opposite for the code as it ships. These four are a seventh of the 27 not-met cases, and two of the four cases with 0 points.
 
@@ -761,7 +807,7 @@ Single cases: R996_PHASE, E12_BLOCK, CYL2D_PRINTED, FLIGHT_MODES, E14_LOSS, R172
 
 ## ISSUE-014: R172428_CODE is not met (5/9 within ±3 dB of NASA's printed prediction): find the cause in PAIN's code
 
-**Status:** open. Recorded 2026-11-09. Investigation only. No criterion, tolerance, reference data, recorded result or verdict changes. No code changed until a cause is found and its fix is dated and reviewed.
+**Status:** closed 2026-11-10 by Phase 136 (`COMPLETED_PHASES.md` §8bz): the case is a diagnostic on the old program form, its title names the form, and its reason names the shipped-form cases; the shipped form's held-out test of all its parts is ISSUE-034. Was: open. Recorded 2026-11-09. Investigation only. No criterion, tolerance, reference data, recorded result or verdict changes. No code changed until a cause is found and its fix is dated and reviewed.
 
 **Problem.** R172428_CODE runs PAIN's cabin chain on NASA's own printed CR-172428 inputs (App. B blocked field, Table 6, App. B trim) and compares the nine interior tone levels (3000/4000/5000 rpm, H1–H3) with NASA's printed predictions. The criterion, fixed 2026-10-23 before any run, is ±3 dB at ≥ 7 of 9 points. The current record is 5/9 within tolerance, max |err| 13.0 dB, median 2.8 dB (`docs/validation_reports/case_error_summary.csv` line 118). The case is not met. Because the inputs are NASA's own, a miss here is a code miss, not an input miss. The gap is large (up to 13 dB at a point) and the case should be explained, not just recorded.
 

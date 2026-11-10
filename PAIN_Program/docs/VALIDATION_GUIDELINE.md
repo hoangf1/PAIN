@@ -2863,7 +2863,7 @@ Equations: full cabin chain, Eq. (8).
 Outputs: SPL H1–H3 [dB], with the Table D-1 run beside it.
 
 ### Case: R172428_CODE
-**Title:** CR-172428 reproduction: NASA's inputs vs NASA's printed predictions (44d)
+**Title:** CR-172428 reproduction: NASA's inputs vs NASA's printed predictions (44d; CR-3813 printed form)
 **Map / block:** total / P_REPRO
 **Category:** verification
 **Kind:** runnable
@@ -2881,7 +2881,7 @@ Equations: Eq. (8) on the 16 × 19 grid; App. A Eq. (82) with m̄_r; Eq. (83) wi
 Outputs: 9 interior tone levels [dB] next to NASA's printed values; verdict vs ±3 dB at ≥ 7/9.
 
 ### Case: R172428_DBA_CODE
-**Title:** CR-172428 tonal dB(A): NASA's inputs vs NASA's printed predictions (124)
+**Title:** CR-172428 tonal dB(A): NASA's inputs vs NASA's printed predictions (124; CR-3813 printed form)
 **Map / block:** total / P_REPRO
 **Category:** verification
 **Kind:** runnable
@@ -2899,7 +2899,7 @@ Equations: as R172428_CODE; dB(A) = 10 log₁₀ Σ_H 10^((L_H + A(f_H))/10).
 Outputs: 3 tonal dB(A) [dB(A)] next to NASA's; verdict vs ±3 dB(A) at each rpm.
 
 ### Case: R172428_DB_CODE
-**Title:** CR-172428 tonal dB (unweighted): NASA's inputs vs NASA's printed predictions (124)
+**Title:** CR-172428 tonal dB (unweighted): NASA's inputs vs NASA's printed predictions (124; CR-3813 printed form)
 **Map / block:** total / P_REPRO
 **Category:** verification
 **Kind:** runnable
@@ -3555,7 +3555,7 @@ Equations: Eq. (C.11).
 Outputs: ε_n per mode, ratio to NASA.
 
 ### Case: APPB_ETA_N
-**Title:** Cabin-mode η_n vs NASA's App. B printout (87b)
+**Title:** Cabin-mode η_n vs NASA's App. B printout (87b; CR-3813 printed damping form)
 **Map / block:** total / P_TRIM
 **Category:** verification
 **Kind:** runnable

@@ -200,7 +200,7 @@ function _iso87_validation_cases()
            FigureRef("NASA CR-172428", "App. B p. 195", 195),
            "|ε_n/NASA − 1| ≤ 1 % at every printed cabin mode (fixed 2026-10-29, before the run).", _run_appb_eps_n,
            "App. B cabin mode number", "ε_n", rel(1.0)),
-        mk("APPB_ETA_N", "Cabin-mode η_n vs NASA's App. B printout (87b)", "87", [ac],
+        mk("APPB_ETA_N", "Cabin-mode η_n vs NASA's App. B printout (87b; CR-3813 printed damping form)", "87", [ac],
            FigureRef("NASA CR-172428", "App. B p. 195", 195),
            "|η_n/NASA − 1| ≤ 2 % at every printed cabin mode at or above 100 Hz (fixed 2026-10-29, before the run).",
            _run_appb_eta_n, "App. B cabin mode number", "η_n", rel(2.0)),

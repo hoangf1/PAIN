@@ -17,4 +17,4 @@ The author handed the open phases over on 2026-11-10: "im hands off continue the
 | 136f / 137c NASA on the same gate | Generated from the data the cases read. R172428_EXP: NASA's printout 5/9; the tonal dB and dB(A) sums 1/3 each; TP-1964 ref. 2 12/18 bands (under 75 %). R172428_EXP and NR_TP1964_XOVER carry the "method limit" mark; their verdicts stay not met. | `nasa_printout_on_gate` |
 | 146c Plain titles | **Not merged.** The plan asks the author to read the list before it is merged. Phase tags remain in the titles for now. | plan text of 146c |
 | 148 Guideline split | **Not started.** 148a is the author's approval of a new CLAUDE.md update list, and CLAUDE.md's PAIN section changes only with the author's approval of the wording (136c). | plan text of 148a and 136c |
-| 136c Kind rule in CLAUDE.md | Applied in the registry since 135f. The CLAUDE.md wording waits for the author, as the step says. | plan text |
+| 136c Kind rule in CLAUDE.md | Applied in the registry since 135f. The CLAUDE.md wording waits for the author, as the step says. (Approved 2026-11-10 and written into CLAUDE.md in Phase 136.) | plan text |

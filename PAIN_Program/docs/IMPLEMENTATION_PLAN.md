@@ -13,7 +13,7 @@ Single source of truth for building this project without re-deriving context in 
 2. Data register and digitization instructions (status, procedure, one card per figure; §2.5 candidate sources found 2026-11-09)
 3. Current status and open work queue
 4. Architecture
-8bz–8co. Open phases 136–151 (planned 2026-11-09 from `ISSUES.md`; Phase 135 done 2026-11-10 and moved to `COMPLETED_PHASES.md`)
+8ca–8co. Open phases 137–151 (planned 2026-11-09 from `ISSUES.md`; Phases 135 and 136 done 2026-11-10 and moved to `COMPLETED_PHASES.md`)
 5–8ac, 11. *(in `COMPLETED_PHASES.md`, same section numbers, moved 2026-10-29)* every completed phase, the queue Q0–Q66 and the 2026-10-21 review
 9. Reference appendices (BBN evidence, Report 996 figures and data, Pereira polar specification, variables)
 10. Optional future work, key formulas, file checklist
@@ -254,7 +254,7 @@ Already in `references/` and bearing on an open phase: `NASA_TP_2444.pdf` p. 8 p
 ## 3. Current status and work queue
 
 **Status of the validation cases:** `VALIDATION_GUIDELINE.md` §0 (the map: cases with a verdict) and `NO_VERDICT_CASES.md`
-(the cases without one). **Open issues:** `ISSUES.md` (001–029, each solved by one of the open phases 135–151 below; 030–033, recorded 2026-11-10, are not assigned to a phase, and 030 is on hold). **Completed phases** (§§5–8ac and §11, with the work queue Q0–Q66 and the 2026-10-21 review I-01–I-20)
+(the cases without one). **Open issues:** `ISSUES.md` (001–029, each solved by one of the open phases 135–151 below; 030–035, recorded 2026-11-10, are not assigned to a phase, and 030 is on hold). **Completed phases** (§§5–8ac and §11, with the work queue Q0–Q66 and the 2026-10-21 review I-01–I-20)
 are in `COMPLETED_PHASES.md` under the same section numbers; a reference such as "IMPLEMENTATION_PLAN.md §8b" in the code
 or the other documents points there. When a phase is done, mark it done and move its section to the bottom of
 `COMPLETED_PHASES.md` (`CLAUDE.md`).
@@ -263,8 +263,7 @@ or the other documents points there. When a phase is done, mark it done and move
 
 | Q | Item | Kind | Prerequisite | Output |
 |---|------|------|--------------|--------|
-| Q114 | Phase 136: CR-172428 tone cases, program form (ISSUE-014, 017, 009) | labels, [CONFIRM], [AUTHOR] | Q113 | `form` field; pairs; NASA-on-same-gate column |
-| Q115 | Phase 137: high-frequency NR cases (ISSUE-026) | rule by kind, [AUTHOR] | Q114 (136f) | input rule applied; method-limit mark |
+| Q115 | Phase 137: high-frequency NR cases (ISSUE-026) | rule by kind, [AUTHOR] | Q114 (136f, done) | input rule applied; method-limit mark |
 | Q116 | Phase 138: TP-1964 ref. 2 and E22_HF_CODE (ISSUE-022) | investigation | — | input table from CR-159363; a cause, class U, or no verdict |
 | Q117 | Phase 139: trim loss term (ISSUE-023) | investigation, [AUTHOR] | — | ratio curves; hypothesis test; held-out check |
 | Q118 | Phase 140: CYL2D grid label and bound (ISSUE-025) | label, bound | — | shipped-grid row; level spread |
@@ -331,7 +330,7 @@ The diagram matches the code (phases 21–22 done 2026-10-21): `propeller_ccblad
 
 ---
 
-## Open phases 136–151 (planned 2026-11-09 from `ISSUES.md`; Phase 135 is in `COMPLETED_PHASES.md`)
+## Open phases 137–151 (planned 2026-11-09 from `ISSUES.md`; Phases 135 and 136 are in `COMPLETED_PHASES.md`)
 
 *(Author 2026-11-09: "continue finding issues based off the validation coverage map"; "i mainly want to target issues as to why current validation tests arent met and fixing a lot of the readability and organizing wise"; "some of the issues have open questions and needed solutions as well which i want you to create"; "create the solutions into phases".)*
 
@@ -344,17 +343,6 @@ Each phase is the solution of one or more entries of `ISSUES.md`; the evidence i
 Rules common to all: no recorded verdict, criterion, tolerance or reference file changes unless the step names it; a result that moves is recorded with its date, its before and after, and "post-hoc" where the earlier result was known; targeted testsets only (not the full `Pkg.test()`); the five documents of R5 are updated in the phase that changes code or a recorded result.
 
 **Status 2026-11-10 (overnight, decided by Claude under the author's delegation of 2026-11-10).** Done: 136e, 136f, 137b, 137c, 137d, 138a/b/d, 139a/b/b′/d, 140c/d, 141a, 141c (Report 996 part; the Pereira PER_FIG8 line is open), 141d, 144a, 144b, 145d, 147, 150c/d. Decisions and outcomes: `validation_reports/phase135_151_decisions.md`. Open: 141c Pereira line, 141e, 142, 143b–d, 145a rest, 146b/c, 148, 149a, 150a/b/e, 151a/b, regenerating the summary CSV and §0. These changes were pushed without running the full test suite or /code-review, at the author's request (2026-11-10); the next session runs the affected testsets first.
-
-## 8bz. Phase 136 — the CR-172428 tone cases: which program form each one tests (ISSUE-014, 017, 009) [CONFIRM]
-
-- [ ] **136a Off the chart [DECIDED 2026-11-09].** `R172428_CODE`, `R172428_DB_CODE`, `R172428_DBA_CODE`, `APPB_ETA_N` become diagnostics (author: "if there isnt a weight on the validity of the tool should it still be on the coverage map"). Each keeps its run, table and recorded outcome and gets `form = "CR-3813 printed form (not the shipped default)"`, shown in its title and in the Validation tab.
-- [ ] **136b Pairs.** Each of the four shows, beside its own result, the default-form result on the same printout (labelled post-hoc, no verdict) and the held-out case of the default form (`R172428_ETAT2`; `APPB_ETA_N_T2_BAND`).
-- [ ] **136c Kind [DECIDED 2026-11-09].** A case that runs a superseded program form is a diagnostic (the Phase 86 kind), by kind and whatever its outcome. The rule is written into CLAUDE.md's PAIN section only with the author's approval of the wording.
-- [ ] **136d The (0,1) × mode 8 pair.** From the existing `R172428_PAIRS` output: this pair's share of the 4000 rpm H1 level with q = 0 coupled and uncoupled. A statement, no criterion. **Done 2026-11-10** (from `phase92_appb_pairs.md`; the single pair's exact share needs a fresh run): `validation_reports/phase136_144_preparation.md`.
-- [ ] **136e One more held-out printout.** Search CR-172428 for a complete PAIN run (inputs and interior levels both printed) that no phase has compared. If one exists: **[AUTHOR]** criterion (proposed: R172428_CODE's ±3 dB at ≥ 7/9 form, copied unchanged), dated before transcription. If none: say so in §0.
-- [ ] **136f "NASA's own printout on the same gate".** A generated column for every measurement case where NASA printed a prediction (R172428_EXP, R172428_DB_EXP, R172428_DBA_EXP, E22_BR, E21_E22_NR, NR_TP1964, NR_TP1964_XOVER). It is information about NASA's program, not a case and not a verdict; `R172428_NASA_EXP` (ISSUE-009) is not added.
-
-**Checks:** testsets of `validation_case_iso44`, `iso94`, `iso96`, `test_validation_coverage.jl`; `case_error_summary.csv` unchanged in verdict and count for every case. **Done when:** the four cases are in the diagnostics list with their form named, the chart shows the shipped-form cases for the same printouts, and ISSUE-014 and ISSUE-017 are closed with a pointer here.
 
 ## 8ca. Phase 137 — the high-frequency noise-reduction cases (ISSUE-026)
 

@@ -621,10 +621,14 @@ const DIAGNOSTIC_CASES = Dict(
     "FLIGHT10_FLOOR_SIGN" => "tests on the printed H1/H5 pairs whether run 10 used the pre-correction floor-term sign (Phase 108)",
     # Phase 135f / 136a (2026-11-10; the author's sorting of 2026-11-09): runs a program form or option that is not the
     # shipped default, or repeats another case's measurement. By kind, whatever the outcome.
-    "R172428_CODE" => "runs CR-3813's printed program form, not the shipped default; R172428_ETAT2 tests the shipped form (Phase 136a)",
-    "R172428_DB_CODE" => "runs CR-3813's printed program form, not the shipped default (Phase 136a)",
-    "R172428_DBA_CODE" => "runs CR-3813's printed program form, not the shipped default (Phase 136a)",
-    "APPB_ETA_N" => "runs CR-3813's printed damping form, not the shipped default; APPB_ETA_N_T2_BAND tests the shipped rule (Phase 136a)",
+    "R172428_CODE" => "runs CR-3813's printed program form, not the shipped default; R172428_CODE_DEFAULT runs the shipped form on the " *
+                      "same printout (post-hoc), R172428_ETAT2 tests it held out (Phase 136a, 136b)",
+    "R172428_DB_CODE" => "runs CR-3813's printed program form, not the shipped default; the shipped form on the same " *
+                         "tones is R172428_CODE_DEFAULT; no separate test of the total (ISSUE-034; Phase 136a, 136b)",
+    "R172428_DBA_CODE" => "runs CR-3813's printed program form, not the shipped default; the shipped form on the same " *
+                          "tones is R172428_CODE_DEFAULT; no separate test of the total (ISSUE-034; Phase 136a, 136b)",
+    "APPB_ETA_N" => "runs CR-3813's printed damping form, not the shipped default; APPB_ETA_N_BAND sets the shipped rule against " *
+                    "the same printout (post-hoc), APPB_ETA_N_T2_BAND tests it held out (Phase 136a, 136b)",
     "APPB_ETA_N_T2" => "η_n with the trim at the mode frequency (the Phase 93 form); APPB_ETA_N_T2_BAND carries the shipped rule",
     "NR_TP1964" => "runs without the Eq. (18)/(19) changeover the tool uses; NR_TP1964_XOVER carries the verdict",
     "E21_E22_NR" => "compared with NASA's program before its corrections, and with measurement above the trim model's stated range",

@@ -46,7 +46,9 @@ end
                 [PAIN.ValidationTableRow("f mode 2 NY10 (info, production grid)", 2, 100, 150, 50, false)])
     si = PAIN.case_error_summary(_res("X", info), PAIN.PlotSpec(; ylabel="f (Hz)"))
     @test si.n_within == 2 && si.n_rows == 2 && si.max_abs == 1
-    @test PAIN.case_error_summary(_res("X", info), PAIN.PlotSpec(; error_mode=:none)).text == "2/2 within criterion"
+    # Phase 145a: the information row is counted apart, as every row outside the verdict is
+    @test PAIN.case_error_summary(_res("X", info), PAIN.PlotSpec(; error_mode=:none)).text ==
+          "2/2 within criterion (+ 1 shown, not judged)"
     grp = [PAIN.ValidationTableRow("η f=1", 1, 1, 2, 1, false, "V-EXP η (info)")]                  # info by group; only info rows
     @test PAIN.case_error_summary(_res("X", grp; verdict=:no_verdict), PAIN.PlotSpec()).n_rows == 1
     # Phase 145a: a row shown but not judged (in_verdict = false) leaves the count and the worst error, counted apart
@@ -153,8 +155,8 @@ end
     @test PAIN._scoreboard_verdict((; verdict="not_met"), "T1") == "not met"
     @test PAIN._scoreboard_unrun("NO_SUCH_CASE") == "not in snapshot"
     @test PAIN._scoreboard_verdict(nothing, "NO_SUCH_CASE") == "not in snapshot"
-    # a synthetic snapshot: every case of block P_MRP met except one, which must be listed as not met, bold, with its
-    # points and an escaped error text, and the block coloured amber
+    # a synthetic snapshot: every case of block P_MRP met except one, which must be listed in the not-met table with its
+    # points and an escaped error text; a met case is not (Phase 147: the block map and its colours are retired)
     b = first(b for b in PAIN._map_by_id("total").blocks if b.id == "P_MRP")
     row(v, k, n, t) = (; run_date="2000-01-01", source_date="2000-01-01", verdict=v, n_within=k, n_rows=n,
                        max_abs=1.0, median_abs=1.0, unit="%", text=t, chip_text=t)
@@ -163,8 +165,9 @@ end
     bad = shown[end]; rec[bad] = row("not_met", 1, 4, "1/4 · max |err| 9 %")
     md = PAIN.validation_scoreboard_markdown(; rec)
     @test occursin("latest run 2000-01-01", md)
-    @test occursin("| `$bad` ", md) && occursin("**not met** | 1/4 | 1/4 · max \\|err\\| 9 % |", md)
-    @test occursin(r"class [A-Z_,]*\bP_MRP\b[A-Z_,]* " * (length(shown) > 1 ? "partial" : "not_met"), md)
+    notmet = split(split(md, "### Not met (fewest points within criterion first)")[end], "### Verdicts reached")[1]
+    @test occursin("| `$bad` ", notmet) && occursin("| 1/4 | 1/4 · max \\|err\\| 9 % |", notmet)
+    @test length(shown) > 1 && !occursin("| `$(shown[1])` ", notmet)
     # Phase 86: only cases with a verdict are on the map; a met information case and an unrun case are listed elsewhere
     info = first(id for id in b.cases if PAIN.no_verdict_by_rule(id))
     @test !occursin("| `$info` ", md) && !PAIN.on_validation_map(info; rec) && PAIN.on_validation_map(bad; rec)
