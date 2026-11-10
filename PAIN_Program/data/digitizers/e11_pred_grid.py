@@ -1,7 +1,7 @@
 """QA overlays for digitizing the Fig. E-11 *predicted* (solid) line (plan A3b, registered 2026-10-28).
 mode A: a vertical line at every grid station (labelled k) and horizontal lines every 1 dB (labelled every 5);
 mode B: lines every 0.1 X3/D and every 2 dB, as e12_grid.py. Writes data/cr3813/e11_pred/qa_<mode>_panel<h>.png.
-Run from rea-work: python data/digitizers/e11_pred_grid.py A|B"""
+Run from PAIN_Program: python data/digitizers/e11_pred_grid.py A|B"""
 import sys
 sys.path.insert(0, 'data/digitizers')
 import fitz

@@ -1,4 +1,4 @@
-# Phase 90 — Eq. (43) blocking against NACA Report 996 Fig. 10 (measured), IMPLEMENTATION_PLAN.md §8ag; criteria fixed
+# Phase 90 — Eq. (43) blocking against NACA Report 996 Fig. 10 (measured), COMPLETED_PHASES.md §8ag; criteria fixed
 # 2026-10-29 before Fig. 10 was digitized. Total rms pressure along a line parallel to the propeller axis at the
 # blade-tip clearance d/D = 0.083, in free space and at a flat and a circular wall. Eq. (43) predicts the wall/free
 # ratio F(γ), γ the angle between the hub-to-point line and the wall normal: γ = atan(|x/D| / (0.5 + d/D)). On the
@@ -35,6 +35,12 @@ function _run_r996_fig10(wall::String)
         push!(xs, xd); push!(meas, m); push!(r1, g1); push!(r2, g2)
         push!(table, ValidationTableRow("x/D = $xd (γ = $(round(γ; digits=1))°)", xd, m, g1, g1 - m, ok))
     end
+    # Phase 144b (2026-11-10): the R2 form, the shipped default, as rows shown but not judged. Its numbers were on record
+    # before this (Phase 90: 4.03–4.06 dB at the five points), so they cannot carry a verdict.
+    for (xd, m, g2) in zip(xs, meas, r2)
+        push!(table, ValidationTableRow("R2: x/D = $xd (shown, not judged)", xd, m, g2, g2 - m, abs(g2 - m) ≤ 1.5, "R2";
+                                        in_verdict=false))
+    end
     n = length(xs)
     flat = wall == "flat_wall"
     name = flat ? "flat wall" : "circular wall"
@@ -44,9 +50,9 @@ function _run_r996_fig10(wall::String)
     r2d = x -> round.(x; digits=2)
     id = flat ? "R996_FIG10_FLAT" : "R996_FIG10_CIRC"
     verdict = !flat ? :no_verdict : (n_ok ≥ 4 ? :met : :not_met)
-    reason = (flat ? "" : "information (no criterion: the circular wall's radius is not stated; Eq. (43) gives the same F as for the flat wall); ") *
+    reason = (flat ? "" : "information (no criterion: Eq. (43) has no curvature term, so it gives the same F as for the flat wall); ") *
              "$n_ok/$n points with Eq. (43) R1 within ±1.5 dB of the measured $name increase; measured $(r2d(meas)) dB, " *
-             "R1 $(r2d(r1)) dB, R2 $(r2d(r2)) dB"
+             "R1 $(r2d(r1)) dB, R2 $(r2d(r2)) dB (R2 rows shown, not judged: on record since Phase 90)"
     return ValidationCaseResult(id, _today_iso(),
         (; criterion="|20 log10 F_R1 − 20 log10(p_wall/p_free)| ≤ 1.5 dB at ≥ 4 of 5 points", date="2026-10-29",
            x_over_D=xs, measured_dB=r2d(meas), R1_dB=r2d(r1), R2_dB=r2d(r2), n_ok, n),
@@ -66,6 +72,6 @@ function _iso90_validation_cases()
             "|Eq. (43) R1 − measured flat-wall increase| ≤ 1.5 dB at ≥ 4 of the 5 points (fixed 2026-10-29, before digitizing).",
             "2026-10-29", "V-EXP", _run_r996_fig10_flat, spec(1.5), ""),
         ValidationCase("R996_FIG10_CIRC", "Eq. (43) blocking vs Report 996 Fig. 10 circular wall, information (90c)", "90", [csv], fig,
-            "No criterion (the circular wall's radius is not stated).", "2026-10-29", "V-EXP", _run_r996_fig10_circ, spec(nothing), ""),
+            "No criterion (Eq. (43) has no curvature term; wording of 2026-11-10, Phase 144c).", "2026-10-29", "V-EXP", _run_r996_fig10_circ, spec(nothing), ""),
     ]
 end

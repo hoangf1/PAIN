@@ -11,7 +11,7 @@ a line is fitted by total least squares, outliers beyond 2.5 px are dropped and 
 X is the fitted line of the segment that covers X. A corner is the intersection of two fitted lines whose
 directions differ by more than 25 deg.
 
-Run from rea-work: python data/digitizers/e11_e12_linefit.py  -> data/cr3813/e11_pred/e11_e12_predicted_linefit.csv
+Run from PAIN_Program: python data/digitizers/e11_e12_linefit.py  -> data/cr3813/e11_pred/e11_e12_predicted_linefit.csv
 """
 import csv, math, sys
 import numpy as np

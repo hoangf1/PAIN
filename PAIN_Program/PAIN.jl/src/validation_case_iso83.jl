@@ -1,7 +1,7 @@
 # Phase 83 — the not-met cases with the fewest points. The high-frequency path and the reproduction ran on Table D-1's
 # 32 modes (to 811 Hz); NASA ran PAIN with MRP's 300 modes for this article (CR-172428 Table 6). These cases rerun the
 # originals with the App. D solver's 300 modes on NASA's MRP deck (`nasa_deck_modes`), everything else unchanged.
-# Criteria are the originals', fixed 2026-10-29 (IMPLEMENTATION_PLAN.md §8aa) before any run.
+# Criteria are the originals', fixed 2026-10-29 (COMPLETED_PHASES.md §8aa) before any run.
 
 const _P83_REPORT = "phase83_deck_modes.md"
 
@@ -140,8 +140,9 @@ _run_r172428_code_deck() = _run_r172428_vs(:code; structural=:nasa300)
 _run_r172428_exp_deck() = _run_r172428_vs(:exp; structural=:nasa300)
 
 function _iso83_validation_cases()
-    mk(id, title, files, fig, crit, run, ylab, tol, vc) = ValidationCase(id, title, "83", files, fig, crit, "2026-10-29", vc, run,
-        PlotSpec(; xlabel="band (Hz)", ylabel=ylab, xscale=:log10, panel_titles=[id], error_mode=:absolute, error_tol=tol), "")
+    mk(id, title, files, fig, crit, run, ylab, tol, vc, elab="") = ValidationCase(id, title, "83", files, fig, crit, "2026-10-29", vc, run,
+        PlotSpec(; xlabel="band (Hz)", ylabel=ylab, xscale=:log10, panel_titles=[id], error_mode=:absolute, error_tol=tol,
+                 error_ylabel=elab), "")
     return [
         mk("E22_HF_DECK", "High-frequency NR on NASA's 300 modes vs NASA's E-22 prediction (83b)",
            [_data_path("cr3813", "e22_noise_reduction_ci.csv"), _data_path("cr3813", "um_mrp_input_deck.csv")],
@@ -163,10 +164,12 @@ function _iso83_validation_cases()
         mk("R172428_CODE_DECK", "CR-172428 reproduction on NASA's 300 modes vs NASA's printed predictions (84b)",
            [_r172428_csv("appB_predictions.csv"), _data_path("cr3813", "um_mrp_input_deck.csv")],
            FigureRef("NASA CR-172428", "App. B pp. 196–212 / Table 10", 206),
-           "±3 dB of NASA's printed prediction at ≥ 7 of 9 points (R172428_CODE's).", _run_r172428_code_deck, "SPL (dB)", 3.0, "V-CODE"),
+           "±3 dB of NASA's printed prediction at ≥ 7 of 9 points (R172428_CODE's).", _run_r172428_code_deck, "SPL (dB)", 3.0, "V-CODE",
+           "this code − NASA's printed prediction (dB)"),
         mk("R172428_EXP_DECK", "CR-172428 reproduction on NASA's 300 modes vs measured space averages (84b)",
            [_r172428_csv("appB_predictions.csv"), _data_path("cr3813", "um_mrp_input_deck.csv")],
            FigureRef("NASA CR-172428", "Table 5 / Table 10", 89),
-           "±4 dB of the measured space average at each of the 9 points (R172428_EXP's).", _run_r172428_exp_deck, "SPL (dB)", 4.0, "V-EXP"),
+           "±4 dB of the measured space average at each of the 9 points (R172428_EXP's).", _run_r172428_exp_deck, "SPL (dB)", 4.0, "V-EXP",
+           "this code − measured space average (dB)"),
     ]
 end

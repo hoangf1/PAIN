@@ -1,4 +1,4 @@
-# Phase 92 — NASA's printed mode-pair contributions, IMPLEMENTATION_PLAN.md §8ai (diagnostics; no verdict). CR-172428
+# Phase 92 — NASA's printed mode-pair contributions, COMPLETED_PHASES.md §8ai (diagnostics; no verdict). CR-172428
 # App. B prints the five largest acoustic × structural pair terms of Eq. (8) at 4000 rpm H1–H3 and 5000 rpm H1–H2
 # (pp. 207, 212). 92a sets this code's pair terms against them; 92b tests, on the 3000 rpm points held out (criterion
 # fixed 2026-10-29 before the run), whether the q = 0 cabin modes add nothing in NASA's run; the run with q = 0 off and

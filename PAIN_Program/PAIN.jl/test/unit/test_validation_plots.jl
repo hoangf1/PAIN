@@ -25,6 +25,7 @@ _res(id, rows; verdict=:met, series=PAIN.PlotSeries[]) =
     @test lims[2] ≥ 2.0 && lims[1] == -lims[2]
     @test PAIN._error_ylims([NaN], nothing) == (nothing, false)
     @test PAIN._fmt_err_sig(0.012345) == "0.012"
+    @test PAIN._fmt_err_sig(42.2) == "42.2" && PAIN._fmt_err_sig(12.43) == "12.4" && PAIN._fmt_err_sig(850.0) == "850.0"   # Phase 145b
 end
 @testset "error roll-up (case_error_summary)" begin
     rows = [PAIN.ValidationTableRow("a", 1, 100, 101, 1, true), PAIN.ValidationTableRow("b", 2, 100, 97, -3, false)]
@@ -48,6 +49,18 @@ end
     @test PAIN.case_error_summary(_res("X", info), PAIN.PlotSpec(; error_mode=:none)).text == "2/2 within criterion"
     grp = [PAIN.ValidationTableRow("η f=1", 1, 1, 2, 1, false, "V-EXP η (info)")]                  # info by group; only info rows
     @test PAIN.case_error_summary(_res("X", grp; verdict=:no_verdict), PAIN.PlotSpec()).n_rows == 1
+    # Phase 145a: a row shown but not judged (in_verdict = false) leaves the count and the worst error, counted apart
+    nj = [PAIN.ValidationTableRow("a", 1, 100, 101, 1, true),
+          PAIN.ValidationTableRow("fit point", 2, 100, 150, 50, false; in_verdict=false)]
+    sj = PAIN.case_error_summary(_res("X", nj; verdict=:met), PAIN.PlotSpec(; ylabel="f (Hz)"))
+    @test sj.n_within == 1 && sj.n_rows == 1 && sj.max_abs == 1 && occursin("(+ 1 shown, not judged)", sj.text)
+    @test nj[1].in_verdict && !nj[2].in_verdict && PAIN._is_info_row(nj[2])
+    @test PAIN.ValidationTableRow("q", 1, 2, 3, 4, false, "g"; in_verdict=false).group == "g"
+    # Phase 145f: a case names its reference and computed columns in the printed table
+    named = PAIN.ValidationCaseResult("X", "2026-11-10", (; reference_name="measured (dB)", computed_name="this code (dB)"),
+                                      nj, PAIN.PlotSeries[], :met, "", "V-EXP", "")
+    @test occursin("quantity\tx\tmeasured (dB)\tthis code (dB)\tresidual\tok", PAIN.format_validation_result(named))
+    @test occursin("quantity\tx\treference\tcomputed", PAIN.format_validation_result(_res("X", nj)))
 end
 @testset "figure staleness flag (Phase 75b)" begin
     png = joinpath(UNIT_OUT, "stale_probe.png"); write(png, "x")              # written today
@@ -160,12 +173,12 @@ end
     @test occursin("| `$info` ", nv) && occursin("| `T1` ", nv) && !occursin("| `$bad` ", nv)
     @test occursin("## Information and verification under the meaningfulness rule", nv)
     @test occursin("Pkg.test only", nv) || !any(i -> PAIN.CASE_INFO[i].kind === :pkgtest, keys(PAIN.CASE_INFO))
-    rec2 = merge(rec, Dict("R172428_CODE_DECK" => row("not_met", 4, 9, "4/9"), "R172428_CODE" => row("not_met", 4, 9, "4/9")))
+    rec2 = merge(rec, Dict("R172428_CODE_DECK" => row("not_met", 4, 9, "4/9"), "R172428_EXP" => row("not_met", 4, 9, "4/9")))
     nv2 = PAIN.no_verdict_cases_markdown(; rec=rec2)
-    @test occursin("## Diagnostic re-runs", nv2) && occursin("| `R172428_CODE_DECK` ", nv2) && !occursin("| `R172428_CODE` ", nv2)
+    @test occursin("## Diagnostic re-runs", nv2) && occursin("| `R172428_CODE_DECK` ", nv2) && !occursin("| `R172428_EXP` ", nv2)
     @test sort(PAIN._no_verdict_case_ids(; rec=rec2)) == sort([id for id in keys(PAIN.CASE_INFO) if !PAIN.on_validation_map(id; rec=rec2)])
     @test PAIN._no_verdict_kind("E21_PRE", nothing)[1] == "Diagnostic re-runs" && PAIN._no_verdict_kind("NO_SUCH", nothing)[1] == "Not in the snapshot"
-    @test PAIN._no_verdict_kind("R172428_CODE", row("no_verdict", 0, 0, ""))[1] == "No criterion (displays and records)"
+    @test PAIN._no_verdict_kind("R172428_EXP", row("no_verdict", 0, 0, ""))[1] == "No criterion (displays and records)"
     @test startswith(PAIN._no_verdict_kind("T1", nothing)[1], "Inputs not printed or measured")    # Phase 118a
     @test PAIN._no_verdict_kind("CYL2D_WEYL", nothing)[1] == "Information and verification under the meaningfulness rule"
     @test endswith(PAIN.no_verdict_cases_path(), joinpath("docs", "NO_VERDICT_CASES.md"))

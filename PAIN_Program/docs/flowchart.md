@@ -6,12 +6,13 @@
 | [2. NASA validation (e11)](#2-nasa-validation-e11) | Measured free-field → GEXT → cabin → T1/T2 |
 | [3. Aircraft validation](#3-aircraft-validation) | BEMT+F1A source and experiment checks |
 | [4. Shared cabin model](#4-shared-cabin-model) | Blocking, modes, trim, PAIN main |
-| [5. Validation maps](#5-validation-maps) | GUI `total` map (titles only) |
+| [5. Coverage chart](#5-coverage-chart) | The chain stages each case runs (GUI Coverage tab) |
 
 Colour key in diagrams: green = check exists and passes as stated; orange = planned / differs / calibrated; blue = calibrated surrogate; red = blocked / fail. **Status and evidence live in the tables under each diagram**, not inside nodes. Detail: `IMPLEMENTATION_PLAN.md`.
 
 ## Status
 
+- **2026-11-10 (Phase 147):** the block validation map is retired: the GUI tab, its canvas and §0's Mermaid map are gone; §5 below is now the coverage chart. Diagrams 1–4 are unchanged. Phase 140: CYL2D builds its grid by the rule NASA printed (CR-165869 pp. 60–62), grid size from the floor angle. Phase 143: the E-12 blocking reference is the mean of the two digitization passes.
 - **2026-10-24:** Closure register (`VALIDATION_GUIDELINE.md` §2.14): every not-met case mapped to its cause class; no open code defect.
 - **2026-10-24:** Phase 67: `POLAR_FIDELITY` on A_GEO (XFOIL vs TN 1546 measured c_l, not met 9/60), `F1A_CHORDWISE` on A_AMP (compact vs chordwise loading ≤ 0.27 dB): the Report 996 source misses come from the section polars.
 - **2026-10-24:** Phase 66 (A_LOADS / A_AMP): `BEMT_MOMENTUM`, `BEMT_HAND_TIP`, `BEMT_INTEGRALS`, `BEMT_SIMILARITY` on A_LOADS; `F1A_GUTIN_ANGLES` (not met 4/5, near-null phase), `F1A_GW_FLIGHT`, `F1A_THICKNESS`, `F1A_PROPERTIES` on A_AMP; the shared CCBlade set-up is `_ccblade_setup`, the F1A step `_f1a_harmonics`.
@@ -357,51 +358,21 @@ flowchart LR
 | HF broadband | Surrogate default; Eq. 19 | 38b–38c; T2_EQ19 |
 | SRC_TA amplitude | I-17 open (√2) | `VALIDATION_GUIDELINE.md` §2.1 |
 
-## 5. Validation maps
+## 5. Coverage chart
 
-GUI tab **Validation map** shows one map `total` (`src/validation_map.jl`), laid out from §2.13 `Position` / `Feeds` / `Group` / `Role`. Stage frames bound each group's own blocks only (positions chosen so frames are pairwise disjoint; aircraft checks above/below the pipeline). Row heights follow the tallest block in each row, so chips never cover the block below (2026-10-28). Titles only on boxes; case chips keep verdict dots and a short display-only error line plus source date (`case_error_summary`: `k/n · X U max` / `no verdict · X U max`; paren units; `:none` coverage text when met/not_met). Horizontal + vertical scroll; zoom / fit.
+The GUI's Coverage tab and `VALIDATION_GUIDELINE.md` §0 draw one row per case over the nine program stages it runs, from its `Chain span` and `Compared with` fields in §2.13 (`src/validation_coverage.jl`). By default only the cases with a verdict are shown.
 
 ```mermaid
 flowchart LR
-  subgraph G_AIR["Airfoil BEMT+F1A"]
-    direction LR
-    A_GEO["Aircraft inputs"] --> A_LOADS["CCBlade BEMT"] --> X_F1A["F1A source"] --> X_FF["Free field p"]
-  end
-  subgraph G_FF["Free field"]
-    P_FF["e11 free field"] --> X_SRC["Source select"]
-    X_FF --> X_SRC
-  end
-  subgraph G_GRID["Grid and blocking"]
-    X_SRC --> P_GRID["160-point grid"] --> P_BLK["Blocking Eq. 43"] --> X_BLK_OUT["Blocked pressures"]
-  end
-  subgraph G_MRP["Structural modes"]
-    X_MRP_IN["Structure inputs"] --> P_MRP["Structural modes"] --> X_MRP_OUT["Modes f_r, ψ_r"]
-  end
-  subgraph G_CYL["CYL2D"]
-    X_CYL_IN["Cabin geometry"] --> P_CYL["CYL2D"] --> X_CYL_OUT["Modes Φ_G"]
-  end
-  subgraph G_TRIM["Trim and loss"]
-    X_TRIM_IN["Trim stack"] --> P_TRIM["Trim and loss"] --> X_TRIM_OUT["τ, η"]
-  end
-  subgraph G_PAIN["PAIN main"]
-    X_PAIN_IN["Cabin inputs"] --> P_EQ8["Coupling / Eq. 8"] --> X_OUT["Interior SPL"]
-  end
-  subgraph G_VAL["Validation comparisons"]
-    P_REPRO["vs NASA PAIN"]
-    P_MEAS["vs measurement"]
-    A_CABIN["Aircraft cabin"]
-  end
-  X_BLK_OUT --> X_PAIN_IN
-  X_MRP_OUT --> X_PAIN_IN
-  X_CYL_OUT --> X_PAIN_IN
-  X_TRIM_OUT --> X_PAIN_IN
-  X_FF -.-> A_AMP & A_PHASE & A_FWD & A_SURF
-  X_OUT -.-> P_REPRO & P_MEAS & A_CABIN
+  S1["Blade and polars"] --> S2["Blade loads"] --> S3["Free field"] --> S4["Skin field"] --> S5["Wall modes"] --> S6["Cabin modes"] --> S7["Damping and trim"] --> S8["Interior tones"] --> S9["Bands and dB(A)"]
 ```
 
-| Block | Status / evidence | Where |
-|-------|-------------------|-------|
-| All P_* / A_* cases | Unchanged ids, verdicts, criteria | `VALIDATION_GUIDELINE.md` §2.13 |
-| New X_* connectors | Layout only; no cases | Map `total` |
-| UT_GRID figure | Sample-index error panel | `docs/validation_reports/figures/Grid_160_point/UT_GRID.png` |
-| Screenshot | Offscreen smoke, zoom 1, left + right | `VALIDATION_MAP_TOTAL.png`, `VALIDATION_MAP_TOTAL_right.png` |
+| Colour | Compared with |
+|---|---|
+| green | measurement |
+| purple | NASA's printed prediction |
+| grey | verification |
+
+A case without a verdict is drawn pale (only with "Show cases without a verdict").
+
+The block map that stood here (one `total` flowchart of blocks with case chips) was retired in Phase 147 (2026-11-10, ISSUE-015).

@@ -7,7 +7,7 @@ and after a hang the sweep restarts in a new session at the next alpha (the hung
 short after pass 1 get pass 2, stepping alpha in 0.25 deg sub-steps (only grid alphas are recorded).
 Merge: existing points are kept unchanged, only absent alphas are added; alphas still absent are listed, not filled.
 
-Run from rea-work (XFOIL_EXE set):
+Run from PAIN_Program (XFOIL_EXE set):
     python data/polars/xfoil_regen_2026_10_22.py pass1 keys.json pass1.json   # keys: entries empty or alpha_max < 8
     python data/polars/xfoil_regen_2026_10_22.py pass2 keys.json pass2.json   # keys: entries still short after pass 1
     python data/polars/xfoil_regen_2026_10_22.py merge pass1.json pass2.json [--dry]

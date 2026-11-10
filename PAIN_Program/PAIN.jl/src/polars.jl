@@ -120,7 +120,7 @@ end
 """
     measured_polar_series(section) -> Vector
 
-Display-only measured airfoil overlays from `rea-work/data/airfoil_measured/`.
+Display-only measured airfoil overlays from `PAIN_Program/data/airfoil_measured/`.
 Nothing in the BEMT path reads these files.
 
 Returns a vector of named tuples:

@@ -1,5 +1,5 @@
 # Phase 101a — the MRP solver on NASA's Merlin IVC deck (CR-172428 App. C) against PAIN's printed structural-mode list
-# for that aircraft, the modal file of flight-test run 10 (IMPLEMENTATION_PLAN.md §8aq; criterion fixed 2026-10-30 before
+# for that aircraft, the modal file of flight-test run 10 (COMPLETED_PHASES.md §8aq; criterion fixed 2026-10-30 before
 # the run). P case: PAIN's own inputs (the printed MRP deck) and PAIN's own output (the printed list).
 
 const _P101_REPORT = "phase101_flight_run10.md"

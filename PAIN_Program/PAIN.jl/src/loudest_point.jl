@@ -1,4 +1,4 @@
-# Phase 42 — interior level at the loudest point (criteria fixed 2026-10-23, IMPLEMENTATION_PLAN.md §8b).
+# Phase 42 — interior level at the loudest point (criteria fixed 2026-10-23, COMPLETED_PHASES.md §8b).
 # PAIN reports the space average (Eq. 3). Here the same Eq. (8) terms are summed at interior points:
 # for each structural mode r the acoustic modes add coherently, structural modes add in mean square
 # (as Eq. (8) does), so the volume average of the point values returns Eq. (8).

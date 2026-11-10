@@ -408,4 +408,5 @@ function main()
     println("asym: ", asym_note)
 end
 
-main()
+# Phase 141c: run_report996_unscaled.jl includes this file for its functions
+abspath(PROGRAM_FILE) == abspath(@__FILE__) && main()

@@ -1,5 +1,5 @@
 # Phase 67 — test the attribution of the source-block experimental misses (polars; compact chord).
-# Criteria fixed 2026-10-24 (IMPLEMENTATION_PLAN.md §8k) before any number was computed. Nothing here changes an
+# Criteria fixed 2026-10-24 (COMPLETED_PHASES.md §8k) before any number was computed. Nothing here changes an
 # input, a load or a criterion of an existing case.
 
 const _P67_REPORT = "phase67_source_attribution.md"
@@ -57,7 +57,8 @@ function _run_polar_fidelity()
                 calibrated = sec in _P69_NCRIT_FIT_SECTIONS
                 calibrated || (n += 1; n_ok += ok)
                 push!(table, ValidationTableRow("$sec M=$M α=$(round(α; digits=2))° c_l XFOIL − TN 1546" *
-                                                (calibrated ? " (N_crit fit point, no verdict)" : ""), 10si + M, clm, clx, d, ok, sec))
+                                                (calibrated ? " (N_crit fit point, no verdict)" : ""), 10si + M, clm, clx, d, ok, sec;
+                                                in_verdict=!calibrated))   # Phase 145a: the fit points are shown, not judged
                 push!(αs, α); push!(dcl, d)
             end
             isempty(αs) && continue

@@ -1,5 +1,5 @@
 #!/usr/bin/env julia
-# Phase 80f (IMPLEMENTATION_PLAN.md §8x), report only, no verdict: each of the 16 App. D inputs of the 2.64 m working
+# Phase 80f (COMPLETED_PHASES.md §8x), report only, no verdict: each of the 16 App. D inputs of the 2.64 m working
 # example (`examples/aircraft_scale_hartzell_cabin_full.json`, parametric path) varied by ±20 % one at a time; change of
 # the 32 lowest structural frequencies and of the H1–H3 interior levels. Nothing is chosen from the result; defaults,
 # criteria and records are not changed. Writes docs/validation_reports/phase80_mrp_sensitivity.md.

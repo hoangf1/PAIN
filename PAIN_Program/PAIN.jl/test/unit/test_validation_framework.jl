@@ -63,23 +63,25 @@ end
     r = PAIN._as_information_case(mk("CYL2D_WEYL", :not_met))
     @test r.verdict === :no_verdict && r.inputs_echo.original_verdict === :not_met && r.inputs_echo.n_ok == 0
     @test occursin("not a pass: not met, 0/1", r.reason) && r.table == [row]
-    @test PAIN._as_information_case(mk("R172428_CODE", :not_met)).verdict === :not_met     # a validation case is untouched
+    @test PAIN._as_information_case(mk("R172428_EXP", :not_met)).verdict === :not_met     # a validation case is untouched
     @test PAIN._as_information_case(mk("CYL2D_WEYL", :no_verdict)).reason == "0/1"
     # underlying_verdict: the recorded outcome of an information case, else the verdict
-    @test PAIN.underlying_verdict(r) === :not_met && PAIN.underlying_verdict(mk("R172428_CODE", :met)) === :met
+    @test PAIN.underlying_verdict(r) === :not_met && PAIN.underlying_verdict(mk("R172428_EXP", :met)) === :met
     # Phase 85: the met cases that keep a verdict compare with measurement (E) or reproduce a PAIN printout (P)
-    keep = ["R996_FIG14", "R996_FIG12", "R996_FIG13A", "PER_FIG7", "BLK_P68", "MRP_APPD", "CYL2D_C1"]
+    keep = ["R996_FIG14", "R996_FIG12", "R996_FIG13A", "PER_FIG7", "MRP_APPD", "CYL2D_C1"]
     @test !any(id -> haskey(PAIN.INFORMATION_ONLY_CASES, id), keep)
     @test all(id -> haskey(PAIN.INFORMATION_ONLY_CASES, id), ["UT_GRID", "MRP_INPUT_QA", "BPM_RP1218", "F1A_GUTIN", "ISO_SIL"])
     # Phase 118a: the 14 cases (18 since Phases 121-125) whose compared quantity rests on an input that is not printed or measured carry no verdict,
     # named by the rule; full-input cases on both sides of the map keep theirs
     p118 = ["REPRO_18b", "E18_TONES", "T1", "T1_MEAS_DAMPING", "UNC_COVER", "T1_FROM_E12", "T1_F1A_FILL", "T2_EQ19",
             "T2_MEAS_EXT", "T2_MEAS_EXT_BR", "T2_PRED_BB", "PROP_BB_FIG14", "PROP_BB_FIG17", "BBN_CIRC",
-            "AC_C695A_DBA", "AC_C695A_TONES", "AC_C695A_EXT", "AC_C695A_SEAT"]   # Phases 121-125 (2026-11-03): assumed 695A blade and cabin section
-    @test all(PAIN.input_incomplete, p118) && !PAIN.input_incomplete("CYL2D_WEYL") && !PAIN.input_incomplete("R172428_CODE")
+            "AC_C695A_DBA", "AC_C695A_TONES", "AC_C695A_EXT", "AC_C695A_SEAT",   # Phases 121-125 (2026-11-03): assumed 695A blade and cabin section
+            "R996_PHASE", "E22_HF_CODE", "NR_TP1964_REF2", "NR_PROP_TP2444", "NR_PROP_TP2444_BR", "NR_PROP_TP2444_PF", "E22_BR",   # Phase 135f (2026-11-10)
+            "NR_TP1964_XOVER_REF2"]   # Phase 138b (2026-11-10): NASA's ref. 2 inputs not printed
+    @test all(PAIN.input_incomplete, p118) && !PAIN.input_incomplete("CYL2D_WEYL") && !PAIN.input_incomplete("R172428_EXP")
     @test count(PAIN.input_incomplete, keys(PAIN.INFORMATION_ONLY_CASES)) == length(p118)
     @test !any(id -> haskey(PAIN.INFORMATION_ONLY_CASES, id),
-               ["R172428_CODE", "R172428_EXP", "E21_E22_NR", "E22_HF_CODE", "NR_PROP_TP2444", "POLAR_FIDELITY", "E12_BLOCK"])
+               ["R172428_EXP", "R172428_ETA", "E14_LOSS", "NR_TP1964_XOVER", "FLIGHT_MODES", "R996_LOADS", "PER_FIG8"])   # on the chart (Phase 135f)
     r118 = PAIN._as_information_case(mk("T1", :not_met))
     @test r118.verdict === :no_verdict && occursin("the 2026-11-02 input rule (inputs incomplete", r118.reason)
     @test occursin("the 2026-10-29 rule", PAIN._as_information_case(mk("CYL2D_WEYL", :not_met)).reason)
@@ -88,6 +90,7 @@ end
     @test isempty(intersect(keys(PAIN.DIAGNOSTIC_CASES), keys(PAIN.INFORMATION_ONLY_CASES)))
     d = PAIN._as_information_case(mk("R172428_CODE_DECK", :not_met))
     @test d.verdict === :no_verdict && PAIN.underlying_verdict(d) === :not_met && startswith(d.reason, "diagnostic: ")
-    @test PAIN.no_verdict_by_rule("E21_PRE") && PAIN.no_verdict_by_rule("UT_GRID") && !PAIN.no_verdict_by_rule("R172428_CODE")
-    @test PAIN._as_information_case(mk("R172428_CODE", :not_met)).verdict === :not_met
+    @test PAIN.no_verdict_by_rule("E21_PRE") && PAIN.no_verdict_by_rule("UT_GRID") && !PAIN.no_verdict_by_rule("R172428_EXP") && PAIN.no_verdict_by_rule("R172428_CODE")
+    @test PAIN._as_information_case(mk("R172428_EXP", :not_met)).verdict === :not_met
+    @test startswith(PAIN._as_information_case(mk("R172428_CODE", :not_met)).reason, "diagnostic: ")   # old program form (Phase 136a)
 end

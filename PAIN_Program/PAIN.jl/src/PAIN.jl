@@ -78,6 +78,7 @@ include("validation_case_extras.jl")
 include("validation_map.jl")
 include("validation_plots.jl")
 include("validation_coverage.jl")     # phase 134 chain coverage chart
+include("validation_causes.jl")       # phase 145e why each not-met case is not met
 include("gui_inputs.jl")            # phase 127 every input as a GUI field
 include("gui_model.jl")
 include("gui_main.jl")
@@ -173,14 +174,13 @@ export
     plot_case, validation_figure_path, validation_figure_stale, validation_figure_dir, VALIDATION_FIGURE_DIRS, validation_source_figure_path,
     case_error_summary, case_error_summary_path, write_case_error_summary, recorded_case_errors,
     validation_scoreboard_markdown, write_validation_scoreboard,
-    no_verdict_cases_markdown, no_verdict_cases_path, write_no_verdict_cases, on_validation_map, shown_validation_map,
+    no_verdict_cases_markdown, no_verdict_cases_path, write_no_verdict_cases, has_verdict, on_validation_map,
     VALIDATION_SOURCE_FIGURE_FALLBACKS,
     CaseInfo, MapBlock, ValidationMap, CASE_INFO, VALIDATION_MAPS,
     validation_guideline_path, parse_validation_guideline_section,
     load_validation_docs!, reload_validation_docs!,
     coverage_rows, coverage_json, plot_coverage_chart, write_coverage_figures, CHAIN_STAGES,
-    validation_map_json, case_info_json, map_block_info_json, validation_map_case_order,
-    validation_map_group_rects, assert_validation_map_groups_disjoint,
+    case_info_json, validation_map_case_order,
     f1a_gutin_h1_comparison,
     run_validation_gui!, run_all_validation_gui!, reload_validation_docs_gui!,
     structural_modes_in_band, modal_tone_contributions, printed_outputs,
@@ -250,7 +250,7 @@ function _run_pain_pipeline(;
         η_n_bare::Float64=0.05,
         C_struc::Float64=3.0,
         q_max::Union{Nothing,Int}=nothing,
-        NY::Int=10,
+        NY::Int=0,                     # 0: the grid of CR-165869 p. 60 (Phase 140); 10 at θ0 = 56.6°
         allow_extrapolation::Bool=false,
         ρ0::Float64=1.225,
         c0::Float64=340.0,

@@ -1,5 +1,5 @@
 # Phase 48 — the exterior broadband predicted from physics (NASA RP-1218), and T2 fully predictive.
-# Criteria fixed 2026-10-23 (IMPLEMENTATION_PLAN.md §8d Phase 48) before any run; 48b–48d implementation
+# Criteria fixed 2026-10-23 (COMPLETED_PHASES.md §8d Phase 48) before any run; 48b–48d implementation
 # decisions fixed the same day before any comparison with Fig. 14, Fig. 17 or E-9.
 
 const _P48_AF = Ref{Any}(nothing)

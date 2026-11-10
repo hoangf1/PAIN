@@ -71,7 +71,11 @@ function _error_quantity_group(quantity::AbstractString)
     return isempty(s) ? "value" : s
 end
 
-"""One row of the comparison table shown in the GUI / report."""
+"""
+One row of the comparison table shown in the GUI / report. `in_verdict` (Phase 145a, 2026-11-10; default true) is
+false for a row that is shown but not judged (for example a point a parameter was fitted to): it stays in the table
+and figure, and leaves the counts and the error roll-up, as a row labelled "(info" does.
+"""
 struct ValidationTableRow
     quantity::String
     x::Float64
@@ -80,19 +84,21 @@ struct ValidationTableRow
     residual::Float64
     within_tolerance::Bool
     group::String
+    in_verdict::Bool
 end
 
 """6-arg constructor: `group` derived from `quantity` (backward compatible)."""
-function ValidationTableRow(quantity::AbstractString, x, reference, computed, residual, within_tolerance::Bool)
+function ValidationTableRow(quantity::AbstractString, x, reference, computed, residual, within_tolerance::Bool;
+                            in_verdict::Bool=true)
     q = String(quantity)
     return ValidationTableRow(q, Float64(x), Float64(reference), Float64(computed),
-                              Float64(residual), within_tolerance, _error_quantity_group(q))
+                              Float64(residual), within_tolerance, _error_quantity_group(q), in_verdict)
 end
 
 function ValidationTableRow(quantity::AbstractString, x, reference, computed, residual,
-                            within_tolerance::Bool, group::AbstractString)
+                            within_tolerance::Bool, group::AbstractString; in_verdict::Bool=true)
     return ValidationTableRow(String(quantity), Float64(x), Float64(reference), Float64(computed),
-                              Float64(residual), within_tolerance, String(group))
+                              Float64(residual), within_tolerance, String(group), in_verdict)
 end
 
 """Registered validation case (fixed inputs; no GUI edits)."""
@@ -559,6 +565,20 @@ const INFORMATION_ONLY_CASES = Dict(
     "AC_C695A_TONES" => "inputs incomplete: the 695A blade, cabin cross-section and stiffener sections are not printed (assumed)",
     "AC_C695A_EXT" => "inputs incomplete: the 695A blade is not printed (assumed)",
     "AC_C695A_SEAT" => "inputs incomplete: the 695A blade, cabin cross-section and stiffener sections are not printed (assumed)",
+    # Phase 135f (2026-11-10; the author's sorting of 2026-11-09, ISSUE-029): the chart rule. Off the chart: a unit check,
+    # a check of an input, or a comparison one of whose inputs is not printed or measured.
+    "BLK_P68" => "Eq. (43) against its own printed narrative (CR-172428 p. 68): a unit check of the equation (Phase 144d)",
+    "POLAR_FIDELITY" => "it tests the section data that the Report 996 cases are fed, an input rather than the tool",
+    "R996_PHASE" => "inputs incomplete: Report 996 does not state the two stations its one measured phase lies between",
+    "E22_HF_CODE" => "inputs incomplete: NASA's 1983 high-frequency routine, whose output it is compared with, is not printed",
+    "NR_TP1964_REF2" => "inputs incomplete: NASA's ref. 2 curve is CR-159363 Fig. 34, whose mode spacing, radiation damping " *
+                        "and excluded (1,1) mode were chosen against the measurement and are not printed (Phase 138b)",
+    "NR_TP1964_XOVER_REF2" => "inputs incomplete: NASA's ref. 2 curve is CR-159363 Fig. 34, whose mode spacing, radiation " *
+                              "damping and excluded (1,1) mode were chosen against the measurement and are not printed (Phase 138b)",
+    "NR_PROP_TP2444" => "inputs incomplete: run on CR-172428's trim, not the lining TP-2444 prints (Phase 137a)",
+    "NR_PROP_TP2444_BR" => "inputs incomplete: sound bridges on assumed connections, an addition that is not the shipped tool (Phase 137a)",
+    "NR_PROP_TP2444_PF" => "inputs incomplete: CR-172428's trim and a separable propeller field, not the shipped tool (Phase 137a)",
+    "E22_BR" => "inputs incomplete: the sound-bridge connections are assumed, and bridges are not the default (Phase 137)",
 )
 
 """
@@ -599,6 +619,21 @@ const DIAGNOSTIC_CASES = Dict(
     "FLIGHT10_H234" => "sets the code as it ships and the trim per band against PAIN's printed run 10 levels (Phase 102)",
     "FLIGHT_MODES_P2" => "re-runs FLIGHT_MODES on the checked (second-pass) App. C transcription (Phase 110, post-hoc)",
     "FLIGHT10_FLOOR_SIGN" => "tests on the printed H1/H5 pairs whether run 10 used the pre-correction floor-term sign (Phase 108)",
+    # Phase 135f / 136a (2026-11-10; the author's sorting of 2026-11-09): runs a program form or option that is not the
+    # shipped default, or repeats another case's measurement. By kind, whatever the outcome.
+    "R172428_CODE" => "runs CR-3813's printed program form, not the shipped default; R172428_ETAT2 tests the shipped form (Phase 136a)",
+    "R172428_DB_CODE" => "runs CR-3813's printed program form, not the shipped default (Phase 136a)",
+    "R172428_DBA_CODE" => "runs CR-3813's printed program form, not the shipped default (Phase 136a)",
+    "APPB_ETA_N" => "runs CR-3813's printed damping form, not the shipped default; APPB_ETA_N_T2_BAND tests the shipped rule (Phase 136a)",
+    "APPB_ETA_N_T2" => "η_n with the trim at the mode frequency (the Phase 93 form); APPB_ETA_N_T2_BAND carries the shipped rule",
+    "NR_TP1964" => "runs without the Eq. (18)/(19) changeover the tool uses; NR_TP1964_XOVER carries the verdict",
+    "E21_E22_NR" => "compared with NASA's program before its corrections, and with measurement above the trim model's stated range",
+    "T1_MEAS_DAMPING_APPB" => "re-runs T1_APPB with measured damping in place of the tool's damping model",
+    "E12_BLOCK" => "runs the R1 blocking, not the shipped R2, against a hand-read curve whose spread (2.91 dB) is near its tolerance",
+    "R172428_DB_EXP" => "the dB sum of R172428_EXP's tones: a row of that case, not a case of its own",
+    "R172428_DBA_EXP" => "the dB(A) sum of R172428_EXP's tones: a row of that case, not a case of its own",
+    "PER_FIG9" => "the same measured values as PER_FIG8 at its three angles (within 0.15 dB): a row of PER_FIG8",
+    "T1_APPB" => "the measurement and field of R172428_EXP's 4000 rpm points with T1's gate: a row of that case",
 )
 
 """True for an information case whose reason is the Phase 118a input-completeness rule (an unprinted input)."""
@@ -659,7 +694,10 @@ function format_validation_result(r::ValidationCaseResult)
     println(io, "report: ", r.report_path)
     println(io, "inputs: ", r.inputs_echo)
     println(io)
-    println(io, "quantity\tx\treference\tcomputed\tresidual\tok")
+    # Phase 145f (2026-11-10): a case may name its reference and computed columns (with the unit) in its inputs echo
+    refname = haskey(r.inputs_echo, :reference_name) ? r.inputs_echo.reference_name : "reference"
+    compname = haskey(r.inputs_echo, :computed_name) ? r.inputs_echo.computed_name : "computed"
+    println(io, "quantity\tx\t", refname, "\t", compname, "\tresidual\tok")
     for row in r.table
         println(io, row.quantity, '\t', row.x, '\t', row.reference, '\t',
                 row.computed, '\t', row.residual, '\t', row.within_tolerance)

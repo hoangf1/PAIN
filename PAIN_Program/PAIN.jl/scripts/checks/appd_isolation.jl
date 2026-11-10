@@ -1,5 +1,5 @@
 #!/usr/bin/env julia
-# Phase 78b (IMPLEMENTATION_PLAN.md §8v): isolation checks of the App. D structural solver (`src/mrp_appd.jl`),
+# Phase 78b (COMPLETED_PHASES.md §8v): isolation checks of the App. D structural solver (`src/mrp_appd.jl`),
 # each part against an independent reference, none against Table D-1 frequencies. Diagnostic: no criterion, no
 # code change. Writes docs/validation_reports/phase78_appd_isolation.md.
 using PAIN

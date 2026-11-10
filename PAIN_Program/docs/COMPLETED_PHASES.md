@@ -24,7 +24,7 @@ Order: §3 (the status table, the 2026-10-21 review and approvals, the work queu
 | 24 | BBN/Wilby phase check | **24b PASS**; 23a pre-registered **FAIL** 26/168 on record; I-19 pair convention fixed 2026-10-22, post-hoc re-run 134/168 (79.8 %), still **FAIL**; tip assumed (24f); I-09 sense fixed |
 | 25 | NACA Report 996 verification setup | **Done 2026-10-22** (25g: scope 2026-10-16 and criteria 23c frozen 2026-10-21); I-07 re-ran `report996_setup.md` (behind>ahead **false** after I-01/I-02) |
 | 26 | CCBlade check vs Report 996 | **Numbers recorded** (`report996_loads.md`); labelled "criteria registered after the loads were computed" (I-06) |
-| 27 | AcousticAnalogies check vs Report 996 | **I-07 + I-08 re-run 2026-10-21** (`report996_acoustics.md`): Fig.13a `scaled_RM_L51C27`; 23c scaled ±2 dB **FAIL** (5/24); page-12 phase **FAIL** (103.8° vs 155°) |
+| 27 | AcousticAnalogies check vs Report 996 | **I-07 + I-08 re-run 2026-10-21** (`report996_acoustics.md`): Fig.13a `scaled_RM_L51C27`; Fig. 14 sample: 23c scaled ±2 dB **FAIL** (5/24; superseded, now 24/24, `report996_acoustics.md` 2026-10-28); page-12 phase **FAIL** (103.8° vs 155°; superseded, current 112.8°, |Δφ − 155°| = 42.2°, `report996_acoustics.md` 2026-10-28) |
 | 28 | Forward-flight check vs Pereira et al. (2026) | **I-07 re-run 2026-10-21** (`pereira_forward_flight.md`): loads OK (xtr005 s_T≈1.34); 23d H1 **FAIL** 0/9 (±1.7 dB); H2 6/9 (±3 dB); I-10 chord note recorded |
 | 29 | Aircraft cabin inputs: audit, guard, provenance, required inputs | **Done 2026-10-22** (29a, 29d earlier; 29b guard and 29c provenance tags 2026-10-22) |
 | 30 | Parametric cabin blocks for the aircraft | **Done 2026-10-22** (30a–30d; `cabin_blocks`, `parametric_regression.md`) |
@@ -122,7 +122,7 @@ Not blockers (recorded so nobody stops on them): BBN tip geometry beyond 40 in. 
 | Q6 | Phase 24 | scripts + tests | Q5, D-21 (C-06 **done**), phase 21 | `bbn_phase.md` |
 | Q7 | Phase 25 | setup, 25h/25i [CONFIRM] | Q5, D-07 | **Done 2026-10-22** (25g recorded); `report996_setup.md` (25k) |
 | Q8 | Phase 26 | script | Q7 | **done**; `report996_loads.md`; verdict R996_LOADS 6/32 not met (post-hoc label) |
-| Q9 | Phase 27 | script | Q8 | **done**; 23c verdicts recorded (R996_FIG14 5/24, FIG12 21/40, FIG13A 8/14, not met) |
+| Q9 | Phase 27 | script | Q8 | **done**; 23c verdicts recorded (R996_FIG14 5/24 [superseded: 24/24], FIG12 21/40, FIG13A 8/14, not met) |
 | Q10 | Phase 28 | script | Q5, Q7 (polar loader), D-11–D-13 (C-01–C-04 **done**) | **Expanded**; ScaledLoads path; 23d verdict |
 | Q11 | Phase 29 (29a any time; 29b, 29c [CONFIRM]) | docs + `src/` | Q3 | **Done 2026-10-22**: register rows, guard, tags |
 | Q12 | Phase 30 | `src/` [CONFIRM] | Q11, D-20 | **Done 2026-10-22**: parametric blocks, 30d shift |

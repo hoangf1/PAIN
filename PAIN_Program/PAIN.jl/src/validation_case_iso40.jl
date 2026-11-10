@@ -1,5 +1,5 @@
 # Phase 40 — isolated analytic checks (V-UNIT). Criteria fixed 2026-10-23 in
-# IMPLEMENTATION_PLAN.md §8b; do not change tolerances. References are independent
+# COMPLETED_PHASES.md §8b; do not change tolerances. References are independent
 # closed forms / quadrature written here — never the function under test.
 
 # --- helpers (independent of the code under test) ---------------------------------

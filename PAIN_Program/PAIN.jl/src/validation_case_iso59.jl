@@ -1,5 +1,5 @@
 # Phase 59 — Sharp sound bridges (NASA CR-172490) in Eq. (23): the source check and the three comparisons.
-# Criteria and mapping fixed 2026-10-23 (IMPLEMENTATION_PLAN.md §8g Phase 59) before any run.
+# Criteria and mapping fixed 2026-10-23 (COMPLETED_PHASES.md §8g Phase 59) before any run.
 
 const _P59_REPORT = "phase59_60_bridges_modes.md"
 

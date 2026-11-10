@@ -1,5 +1,5 @@
 # Phase 45 — T2's high-frequency path (Eqs. 19–23) on the TP-1964 bare cylinder.
-# Criteria pre-registered 2026-10-23 before any run (IMPLEMENTATION_PLAN.md §8c, commit 9ffb107).
+# Criteria pre-registered 2026-10-23 before any run (COMPLETED_PHASES.md §8c, commit 9ffb107).
 
 """
     tp1964_hf_inputs(setup) -> PainInputs

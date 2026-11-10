@@ -1,4 +1,4 @@
-# Phase 80 (IMPLEMENTATION_PLAN.md §8x): verify the App. D structural solver with references that get the same, fully
+# Phase 80 (COMPLETED_PHASES.md §8x): verify the App. D structural solver with references that get the same, fully
 # stated inputs. Criteria fixed and dated 2026-10-29, before any of these checks was run.
 
 # --- references (independent of the coupled solve) -----------------------------------

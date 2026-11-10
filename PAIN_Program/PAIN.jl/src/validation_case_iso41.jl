@@ -1,5 +1,5 @@
 # Phase 41 — isolation of failing experimental cases (V-UNIT / V-CODE).
-# Criteria fixed 2026-10-23 in IMPLEMENTATION_PLAN.md §8b; do not change tolerances.
+# Criteria fixed 2026-10-23 in COMPLETED_PHASES.md §8b; do not change tolerances.
 # Pattern matches phase 40: independent reference written here, never the function under test.
 
 # --- shared helpers -----------------------------------------------------------------

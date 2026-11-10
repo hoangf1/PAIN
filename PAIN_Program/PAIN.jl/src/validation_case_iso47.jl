@@ -1,5 +1,5 @@
 # Phase 47 — T2 with a measured exterior spectrum of the test article (TP-2444 model 2).
-# Criteria fixed 2026-10-23 (IMPLEMENTATION_PLAN.md §8d Phase 47) before any run; the 47b–47d
+# Criteria fixed 2026-10-23 (COMPLETED_PHASES.md §8d Phase 47) before any run; the 47b–47d
 # implementation decisions were fixed the same day after the 47a digitizing and before any band
 # level, noise reduction or interior level was computed (plan, "Implementation decisions").
 

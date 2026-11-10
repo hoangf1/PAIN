@@ -4,7 +4,7 @@ position; harmonic by bar order within the panel; SPL from the bar top against t
 zero line. Check: ΔSPL(series − BEMT) read from the lower panel equals the SPL difference from the upper panel within
 0.5 dB wherever the ΔSPL bar is not clipped at ±10 dB.
 
-Run from rea-work: python -I data/digitizers/dig_pereira_fig9_vector.py references/Pereira.pdf data/pereira/pereira_fig9_harmonics.csv
+Run from PAIN_Program: python -I data/digitizers/dig_pereira_fig9_vector.py references/Pereira.pdf data/pereira/pereira_fig9_harmonics.csv
 """
 import csv, sys
 import pymupdf

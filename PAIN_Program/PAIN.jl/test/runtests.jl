@@ -51,7 +51,8 @@ if !isdefined(@__MODULE__, :_run_if)
     end
 
     """Parse `git status --porcelain` lines into tracked docs/data paths (repo-relative, `/`).
-    Skips untracked (`??`) and VALIDATION_MAP_TOTAL*.png under validation_reports/figures."""
+    Skips untracked (`??`). Paths are relative to the git top level, so the project's are under `PAIN_Program/`
+    (Phase 150d, 2026-11-10: the guard matched only the old `rea-work/` prefix and so never saw a change)."""
     function _parse_docs_data_porcelain(raw::AbstractString)
         dirty = String[]
         for line in split(raw, '\n'; keepempty=false)
@@ -63,11 +64,7 @@ if !isdefined(@__MODULE__, :_run_if)
             end
             occursin(" -> ", path) && (path = split(path, " -> "; limit=2)[2])
             path = replace(path, '\\' => '/')
-            # Smoke scripts write these on purpose; the suite itself must not.
-            endswith(path, ".png") && occursin("VALIDATION_MAP_TOTAL", basename(path)) &&
-                occursin("validation_reports/figures", path) && continue
-            under = startswith(path, "rea-work/docs/") || startswith(path, "rea-work/data/") ||
-                    startswith(path, "docs/") || startswith(path, "data/")
+            under = any(pre -> startswith(path, pre), ("PAIN_Program/docs/", "PAIN_Program/data/", "docs/", "data/"))
             under && push!(dirty, path)
         end
         return dirty
@@ -92,7 +89,7 @@ empty!(_TESTSETS_SKIPPED)
 # Snapshot already-dirty docs/data so mid-task edits are not blamed on the suite.
 empty!(_DOCS_DATA_BASELINE)
 _DOCS_DATA_REPO[] = ""
-let rea = abspath(joinpath(@__DIR__, "..", ".."))  # rea-work
+let rea = abspath(joinpath(@__DIR__, "..", ".."))  # PAIN_Program
     if Sys.which("git") !== nothing
         inside = try
             readchomp(`git -C $rea rev-parse --is-inside-work-tree`) == "true"
@@ -1389,13 +1386,13 @@ _run_if("Noise reduction Eqs. (17)–(18) (38a)") do
         r = run_validation_case("E21_E22_NR")
         @test !isempty(r.table)
         @test !isempty(r.series)
-        @test r.verdict in (:met, :not_met)
+        @test r.verdict === :no_verdict && PAIN.underlying_verdict(r) in (:met, :not_met)   # diagnostic since Phase 135f
         n_nasa = r.inputs_echo.n_nasa
         n_nasa_ok = r.inputs_echo.n_nasa_ok
         n_e22 = r.inputs_echo.n_e22
         n_e22_ok = r.inputs_echo.n_e22_ok
         expect = (n_nasa_ok / max(n_nasa, 1) ≥ 0.75) && (n_e22_ok / max(n_e22, 1) ≥ 0.75)
-        @test (r.verdict === :met) == expect
+        @test (PAIN.underlying_verdict(r) === :met) == expect
         @test occursin("crossover", r.reason)
         @test occursin("80", r.reason)
     end
@@ -2525,29 +2522,14 @@ _run_if("Validation map errors (V-UNIT)") do
     after = _report_mtimes(rep_dir)
     @test before == after
 
-    # Map / case JSON carry error fields + chip_row_h
-    parsed = JSON3.read(validation_map_json("total"))   # the map holds the cases with a recorded verdict (Phase 86)
-    @test haskey(parsed, :chip_row_h)
-    @test Int(parsed.chip_row_h) == PAIN.VALIDATION_MAP_CHIP_ROW_H
-    chip = nothing
-    for b in parsed.blocks
-        for c in b.cases
-            if String(c.id) == "R996_FIG14"
-                chip = c
-            end
-            @test haskey(c, :error)
-            @test haskey(c, :error_chip)
-            @test haskey(c, :error_source)
-        end
-    end
-    @test chip !== nothing
-
     fig14 = run_validation_case("R996_FIG14")
     s14 = case_error_summary(fig14, VALIDATION_CASES["R996_FIG14"].plot_spec)
     @test s14.n_within == 24                     # Phase 76 (2026-10-28) recorded rerun (Phase 72: 14, before: 20)
     @test s14.n_rows == 24
     @test count(r -> r.within_tolerance, fig14.table) == 24
     @test length(fig14.table) == 24
+    # Phase 141c: the unscaled-load second line (12 measured points) is drawn but leaves the table and the count
+    @test fig14.inputs_echo.unscaled_n == 12 && count(s -> occursin("not scaled", s.name), fig14.series) == 3
 
     unc = run_validation_case("UNC_COVER")
     s_unc = case_error_summary(unc, VALIDATION_CASES["UNC_COVER"].plot_spec)
@@ -2572,14 +2554,7 @@ _run_if("Validation map errors (V-UNIT)") do
     end
 
     sess = Dict{String,NamedTuple}("R996_FIG14" => s14)
-    map_sess = JSON3.read(validation_map_json("total"; session_errors=sess))   # session text wins over the snapshot
-    chip2 = nothing
-    for b in map_sess.blocks, c in b.cases
-        String(c.id) == "R996_FIG14" && (chip2 = c)
-    end
-    @test String(chip2.error) == s14.text
-    @test String(chip2.error_chip) == s14.chip_text
-    @test String(chip2.error_source) == "run"
+    # session text wins over the snapshot (the map chips that also showed it were retired in Phase 147)
     info = JSON3.read(case_info_json("R996_FIG14"; session_errors=sess,
                                       recorded_errors=Dict{String,NamedTuple}()))
     @test String(info.error) == s14.text
@@ -2611,33 +2586,7 @@ _run_if("Validation case registry (34d)") do
         @test get(block_hits, id, 0) == (CASE_INFO[id].map_id == "none" ? 0 : 1)
     end
     @test sort([id for id in VALIDATION_CASE_ORDER if CASE_INFO[id].map_id == "none"]) == ["MRP_D1", "MRP_RITZ"]
-    for map_id in ("total",)
-        raw = validation_map_json(map_id)
-        parsed = JSON3.read(raw)
-        @test parsed.id == map_id
-        listed = String[]
-        for b in parsed.blocks
-            @test haskey(b, :col) && haskey(b, :row) && haskey(b, :feeds)
-            @test haskey(b, :group) && haskey(b, :role)
-            for c in b.cases
-                push!(listed, String(c.id))
-            end
-        end
-        @test haskey(parsed, :groups)
-        for id in VALIDATION_CASE_ORDER
-            get(block_hits, id, 0) == 1 || continue
-            info = CASE_INFO[id]
-            own = nothing
-            for m in VALIDATION_MAPS
-                for b in m.blocks
-                    id in b.cases && (own = m.id)
-                end
-            end
-            own == map_id && @test (id in listed) == PAIN.on_validation_map(id)   # only cases with a verdict (Phase 86)
-        end
-    end
-
-    # Task F2 — §2.13 is the single source for CASE_INFO / map structure
+    # Task F2 — §2.13 is the single source for CASE_INFO
     ut_ids = String[]
     for m in VALIDATION_MAPS
         for b in m.blocks
@@ -2658,54 +2607,8 @@ _run_if("Validation case registry (34d)") do
         @test !isempty(info.explanation)
         @test !isempty(info.source)
     end
-    for m in VALIDATION_MAPS
-        @test !isempty(m.what_is)
-        @test !isempty(m.how_to_read)
-        for b in m.blocks
-            @test !isempty(b.title)
-            @test !isempty(b.what_it_does)
-        end
-    end
-    # Expected structure — single total map (aircraft + cabin + checks); R996_FIG8 removed
-    @test [m.id for m in VALIDATION_MAPS] == ["total"]
-    total = VALIDATION_MAPS[1]
-    @test Set([
-        "A_GEO", "A_LOADS", "A_AMP", "A_PHASE", "A_FWD", "A_SURF", "A_CABIN",
-        "P_FF", "P_GRID", "P_BLK", "P_MRP", "P_CYL", "P_TRIM", "P_EQ8", "P_REPRO", "P_MEAS",
-        "X_F1A", "X_FF", "X_SRC", "X_BLK_OUT", "X_OUT",
-    ]) ⊆ Set(b.id for b in total.blocks)
-    blk_p68 = only(b for b in total.blocks if b.id == "P_BLK")
-    @test blk_p68.cases == ["BLK_P68", "E12_BLOCK", "ISO_BLOCKING", "R996_FIG10_FLAT", "R996_FIG10_CIRC"]   # + Phase 90
-    amp = only(b for b in total.blocks if b.id == "A_AMP")
-    @test amp.cases ==
-          ["F1A_GUTIN", "R996_FIG14", "R996_FIG12", "R996_FIG13A", "R996_FIG6", "R996_FIG7",
-           "F1A_GUTIN_ANGLES", "F1A_GW_FLIGHT", "F1A_THICKNESS", "F1A_PROPERTIES",   # Phase 66
-           "F1A_CHORDWISE"]                                                          # Phase 67
-    # Phase 70 F2–F4 (2026-10-28): each case sits on the block it tests
-    blkcases(id) = only(b for b in total.blocks if b.id == id).cases
-    @test "F1A_INDEP" in blkcases("X_F1A") && "F1A_PLANE_PEAK" in blkcases("X_FF") && "ISO_TABLE8" in blkcases("X_FF")
-    @test "FF_E11_MAP" in blkcases("P_GRID")
-    @test issubset(["BPM_RP1218", "PROP_BB_FIG14", "PROP_BB_FIG17"], blkcases("A_SURF"))
-    @test !any(id -> id in blkcases("P_FF"), ["ISO_TABLE8", "BPM_RP1218", "PROP_BB_FIG14", "PROP_BB_FIG17"])
-    loads = only(b for b in total.blocks if b.id == "A_LOADS")
-    @test "BEMT_HAND" in loads.cases
-    @test "TRIM_CLOSED" in only(b for b in total.blocks if b.id == "P_TRIM").cases
-    @test "T1_FROM_E12" in only(b for b in total.blocks if b.id == "P_MEAS").cases
-    @test "NR_BAND_HAND" in only(b for b in total.blocks if b.id == "P_EQ8").cases
-    @test "HF_MASSLAW" in only(b for b in total.blocks if b.id == "P_EQ8").cases
-    air = only(b for b in total.blocks if b.id == "A_GEO")
-    @test air.group_title == "Airfoil BEMT+F1A"
-    @test air.role == "input"
-    # Feeds targets exist; layout positions present; no empty-role pipeline without group
-    ids = Set(b.id for b in total.blocks)
-    for b in total.blocks
-        @test b.col >= 0 && b.row >= 0
-        for f in b.feeds
-            @test f in ids
-        end
-        @test !isempty(b.group)
-        @test b.role in ("input", "function", "output", "check")
-    end
+    # Phase 147 (2026-11-10): the block layout, membership and map-text tests were retired with the block map; a
+    # case's block now only names its figure folder (one block per case, checked above).
     @test !haskey(CASE_INFO, "R996_FIG8")
     # Every case Map / block points at total, except the off-map regression cases (Phase 78f, "none")
     for id in keys(CASE_INFO)
@@ -2731,12 +2634,6 @@ _run_if("Validation case registry (34d)") do
     end
     blk = JSON3.read(case_info_json("BLK_P68"))
     @test occursin("R2", String(blk.explanation))
-    total_json = JSON3.read(validation_map_json("total"))
-    @test haskey(total_json, :how_to_read)
-    @test !isempty(String(total_json.how_to_read))
-    @test haskey(total_json.blocks[1], :what_it_does)
-    @test haskey(total_json.blocks[1], :col)
-    @test haskey(total_json, :groups)
     r1 = run_validation_case("CYL2D_C1")
     r2 = run_validation_case("CYL2D_C1")
     @test r1.verdict === :met
@@ -2786,7 +2683,7 @@ _run_if("Validation case registry (34d)") do
     @test length(fig14.table) == 24
     @test fig14.verdict === :met            # Phase 76 (2026-10-28): thickness on
     @test run_validation_case("MRP_RITZ").verdict === :no_verdict
-    @test run_validation_case("BLK_P68").verdict === :met
+    @test PAIN.underlying_verdict(run_validation_case("BLK_P68")) === :met   # a unit check since Phase 144d
     f1a_gutin = run_validation_case("F1A_GUTIN")   # information since Phase 85 (2026-10-29); the check itself still holds
     @test f1a_gutin.verdict === :no_verdict && PAIN.underlying_verdict(f1a_gutin) === :met
 
@@ -2938,20 +2835,23 @@ end
 
 _run_if("Git porcelain docs/data parse helper") do
     synthetic = """
- M rea-work/docs/flowchart.md
-?? rea-work/docs/untracked.md
-R  rea-work/docs/old.md -> rea-work/docs/renamed.md
- M "rea-work/docs/quoted name.md"
- M rea-work/src/not_docs.jl
- M rea-work/docs/validation_reports/figures/VALIDATION_MAP_TOTAL_x.png
- M rea-work/data/foo.csv
+ M PAIN_Program/docs/flowchart.md
+?? PAIN_Program/docs/untracked.md
+R  PAIN_Program/docs/old.md -> PAIN_Program/docs/renamed.md
+ M "PAIN_Program/docs/quoted name.md"
+ M PAIN_Program/PAIN.jl/src/not_docs.jl
+ M PAIN_Program/docs/validation_reports/figures/x.png
+ M PAIN_Program/data/foo.csv
+ M rea-work/docs/old_prefix.md
+ M Cabin_Noise/docs/other_project.md
 """
     got = _parse_docs_data_porcelain(synthetic)
     @test got == [
-        "rea-work/docs/flowchart.md",
-        "rea-work/docs/renamed.md",
-        "rea-work/docs/quoted name.md",
-        "rea-work/data/foo.csv",
+        "PAIN_Program/docs/flowchart.md",
+        "PAIN_Program/docs/renamed.md",
+        "PAIN_Program/docs/quoted name.md",
+        "PAIN_Program/docs/validation_reports/figures/x.png",
+        "PAIN_Program/data/foo.csv",
     ]
 end
 
@@ -3184,7 +3084,7 @@ _run_if("CR-3813 reproduction with NASA's pre-correction form (phase 61)") do
     r2 = run_validation_case("E21_PRE")
     @test r2.verdict === :no_verdict && PAIN.underlying_verdict(r2) === :not_met && r2.inputs_echo.n_ok == 1 && r2.inputs_echo.n == 4
     r3 = run_validation_case("E22_HF_CODE")
-    @test r3.verdict === :not_met && r3.inputs_echo.n_ok == 1
+    @test r3.verdict === :no_verdict && PAIN.underlying_verdict(r3) === :not_met && r3.inputs_echo.n_ok == 1   # inputs incomplete since Phase 135f
     @test all(r3.inputs_echo.nasa_minus_measured .> 30)              # NASA's own HF prediction misses by > 30 dB
     @test all(abs.(r3.inputs_echo.code .- r3.inputs_echo.nasa) .< 10) # within 10 dB of NASA (8 before the Phase 93 defaults)
     for id in ("REPRO_18b_PRE", "E21_PRE", "E22_HF_CODE")
@@ -3248,7 +3148,7 @@ _run_if("NASA's App. B per-mode values, the q = 0 hypothesis, η_n per mode (pha
     e = run_validation_case("APPB_EPS_N")
     @test e.verdict === :met && e.inputs_echo.n == 48 && all(r -> abs(r.computed / r.reference - 1) < 1e-4, e.table)
     h = run_validation_case("APPB_ETA_N")
-    @test h.verdict === :not_met && h.inputs_echo.n_ok == 12 && h.inputs_echo.n == 46 && h.inputs_echo.skipped == [1, 2]   # 11 with Fig. A-2, 16 with the deck table; 12 after Phase 106 (post-hoc)
+    @test h.verdict === :no_verdict && PAIN.underlying_verdict(h) === :not_met && h.inputs_echo.n_ok == 12 && h.inputs_echo.n == 46 && h.inputs_echo.skipped == [1, 2]   # 11 with Fig. A-2, 16 with the deck table; 12 after Phase 106 (post-hoc)
     @test isnan(PAIN._eta_n_at_mode(inp, inp.acoustic.modes[1], 1))                                 # 93.8 Hz: below Fig. A-2
     hi = [r for r in h.table if r.x ≥ 25]                                                           # modes ≥ 465 Hz
     @test all(r -> abs(r.computed / r.reference - 1) ≤ 0.10, hi)
@@ -3282,6 +3182,11 @@ _run_if("Eq. (43) blocking against Report 996 Fig. 10 (phase 90)") do
     @test all(4.0 .< r.inputs_echo.measured_dB .< 7.5)                       # about the doubling (6.02 dB)
     @test maximum(abs.(r.inputs_echo.R1_dB .- r.inputs_echo.measured_dB)) < 1.5
     @test all(r.inputs_echo.R2_dB .< r.inputs_echo.R1_dB .- 1.9)            # R2 is 0.8 F: about 2 dB under R1
+    # Phase 144b: the R2 rows are in the table, shown but not judged; the verdict and its 5/5 are R1's alone
+    r2rows = filter(t -> !t.in_verdict, r.table)
+    @test length(r2rows) == 5 && count(t -> t.in_verdict, r.table) == 5
+    @test isapprox([t.computed for t in r2rows], r.inputs_echo.R2_dB; atol=0.006)
+    @test PAIN.case_error_summary(r, VALIDATION_CASES["R996_FIG10_FLAT"].plot_spec).n_rows == 5
     c = run_validation_case("R996_FIG10_CIRC")
     @test c.verdict === :no_verdict && c.inputs_echo.R1_dB == r.inputs_echo.R1_dB   # Eq. (43): same γ, same F
     @test all(c.inputs_echo.measured_dB .< r.inputs_echo.measured_dB)              # the curved wall raises less
@@ -3335,12 +3240,12 @@ _run_if("CR-172428 program form as default; held-out Table 12 (phases 93, 94)") 
     @test tone_mean_square_pressure(inp, 1, ωH) != tone_mean_square_pressure(old, 1, ωH)
     # R172428_CODE keeps CR-3813's tone sum (its recorded 4/9); the default form against it is post-hoc
     c = run_validation_case("R172428_CODE")
-    @test c.verdict === :not_met && count(r -> r.within_tolerance, c.table) == 5   # 4 before Phase 106 (post-hoc)
+    @test c.verdict === :no_verdict && PAIN.underlying_verdict(c) === :not_met && count(r -> r.within_tolerance, c.table) == 5   # diagnostic since Phase 136a   # 4 before Phase 106 (post-hoc)
     # 94a, 94b (P, held out): met
     t = run_validation_case("R172428_ETAT2")
     @test t.verdict === :met && t.inputs_echo.n_ok == 9 && maximum(abs(r.residual) for r in t.table) < 2.15   # 1.69 before Phase 96, 2.09 after
     e = run_validation_case("APPB_ETA_N_T2")
-    @test e.verdict === :met && e.inputs_echo.n_ok == 3
+    @test e.verdict === :no_verdict && PAIN.underlying_verdict(e) === :met && e.inputs_echo.n_ok == 3   # diagnostic since Phase 135f
     @test e.inputs_echo.ours ≈ [0.0884, 0.0787, 0.0833] atol = 1e-4   # Phase 106; deck table 0.0876, 0.0779, 0.0827; Fig. A-2: 0.0877, 0.0782, 0.0829
     # η_T is an input: the η_T = 2.0 run differs from the Table 6 one
     @test interior_spl(r172428_inputs(4000; η_T=2.0); bpf_Hz=200.0, n_harmonics=1).harmonic_SPL_dB[1] !=
@@ -3458,13 +3363,24 @@ end
 
 _run_if("CYL2D grid rule vs PAIN's printed cabin modes (phase 105)") do
     # Plan §8au; criterion fixed 2026-10-30 before the two held-out lists were transcribed. Recorded first run: not met.
-    @test PAIN.cyl2d_modes(56.6).NY == 10 && PAIN._build_grid(deg2rad(50.0), 11).h > 0          # default node rule unchanged
+    @test PAIN.cyl2d_modes(56.6).NY == 10 && PAIN._build_grid(deg2rad(50.0), 11).h > 0          # NK = 10 at 56.6° (Phase 140)
+    # Phase 140 (2026-11-10): the printed rule of CR-165869 pp. 60–62 gives exactly the earlier 0.4h nodes at 56.6° and 62.6°,
+    # and NK = 11, 10, 8 at 50°, 62.6°, 73.7°
+    for θ in (56.6, 62.6)
+        @test PAIN._build_grid(deg2rad(θ), 10; rule=:printed).incab == PAIN._build_grid(deg2rad(θ), 10; rule=:threshold, node_tol=0.4).incab
+    end
+    @test PAIN.cyl2d_printed_NK.((50.0, 56.6, 62.6, 73.7)) == (11, 10, 10, 8)
+    @test PAIN._build_grid(deg2rad(50.0), 11; rule=:printed).incab != PAIN._build_grid(deg2rad(50.0), 11; rule=:threshold, node_tol=0.4).incab   # 0.4h misses one node there
     sd = PAIN._printed_2d_list("appC_smalldia_acoustic_modes.csv"); nb = PAIN._printed_2d_list("appC_narrowbody_acoustic_modes.csv")
     @test sd.eps00_printed && sd.eps00 == 0.96858 && !nb.eps00_printed && nb.eps00 ≈ 1.9508 / 2
     @test isapprox(sd.Δ, 14.913; atol=0.001) && isapprox(nb.Δ, 8.1667; atol=0.001)                # the prints' own axial spacing
     r = run_validation_case("CYL2D_PRINTED")
+    # Re-run 2026-11-10 on the shipped (printed) rule, both lists seen before: not met. The narrow body is reproduced on
+    # NASA's NK = 8; at 62.6° this code's App. C eigenproblem fails its own real-eigenvalue check on NK = 10 (|Im|/|Re|
+    # 0.0012 > 0.001), so NY = 12 is used and misses
     @test r.verdict === :not_met
-    @test occursin("narrow body (θ₀ 73.7°, NY 12)", r.reason) && occursin("2-D f 51/51", r.reason)  # Merlin (seen) reproduced
+    @test occursin("narrow body (θ₀ 73.7°, NY 8)", r.reason) && occursin("2-D f 61/61", r.reason)
+    @test occursin("small diameter (θ₀ 62.6°, NY 12)", r.reason) && occursin("2-D f 51/51", r.reason)  # Merlin (seen) reproduced
     # Diagnostic (after the verdict): NASA's narrow-body grid is NY = 8 with 0.45h
     cy = PAIN.cyl2d_modes(73.7; NY=8, c0=341.0, node_tol=0.45)
     @test cy.modes[1].eps_n ≈ nb.eps00 rtol = 2e-4
@@ -3573,7 +3489,7 @@ _run_if("Propeller-field NR and open items (phases 50, 53, 56, 57)") do
     # Criteria fixed 2026-10-23 (plan §8e Phase 50, §8f Phases 53, 56, 57) before these checks were run.
     # 50b recorded result (first valid run 2026-10-23): not met 2/7
     r = run_validation_case("NR_PROP_TP2444_PF")
-    @test r.verdict === :not_met && r.inputs_echo.n_ok == 1                              # 2 before the Phase 93 defaults
+    @test r.verdict === :no_verdict && PAIN.underlying_verdict(r) === :not_met && r.inputs_echo.n_ok == 1   # 2 before the Phase 93 defaults; inputs incomplete since Phase 137a
     @test all(abs.(r.inputs_echo.NR_model[1:5] .- r.inputs_echo.NR_meas[1:5]) .< 11.0)  # 315–800 Hz within 11 dB (7 before Phase 93)
     png = plot_case(r, VALIDATION_CASES["NR_PROP_TP2444_PF"].plot_spec; path=joinpath(TEST_OUT, "NR_PROP_TP2444_PF.png"))
     @test isfile(png) && filesize(png) > 0
@@ -3745,7 +3661,7 @@ _run_if("T2 with the measured TP-2444 exterior (phase 47)") do
     @test all(abs.(pk .- 200.0 .* (1:7)) .≤ 7.5)
     # recorded results
     r = run_validation_case("NR_PROP_TP2444")
-    @test r.verdict === :not_met && r.inputs_echo.n_ok == 1 && r.inputs_echo.n == 7
+    @test r.verdict === :no_verdict && PAIN.underlying_verdict(r) === :not_met && r.inputs_echo.n_ok == 1 && r.inputs_echo.n == 7   # Phase 137a
     @test r.inputs_echo.changeover_band_Hz ≈ 1000 * 2^(1 / 3)
     @test all(25 .< r.inputs_echo.NR_meas .< 40)
     r2 = run_validation_case("T2_MEAS_EXT")
@@ -3763,7 +3679,8 @@ _run_if("T2 HF path on TP-1964 (phase 45)") do
     # Criteria pre-registered 2026-10-23 (plan §8c); recorded not met 9/18 and 8/18.
     for (id, n_ok) in (("NR_TP1964_XOVER", 9), ("NR_TP1964_XOVER_REF2", 8))
         r = run_validation_case(id)
-        @test r.verdict === :not_met
+        # NR_TP1964_XOVER_REF2 carries no verdict since Phase 138b (NASA's ref. 2 inputs not printed); outcome kept
+        @test PAIN.underlying_verdict(r) === :not_met && (r.verdict === :no_verdict) == (id == "NR_TP1964_XOVER_REF2")
         @test r.inputs_echo.n_ok == n_ok
         @test r.inputs_echo.changeover_band_Hz == 2500.0            # band containing f = 4.1 c₀/∛V
         @test count(t -> occursin("Eq. 19", t.quantity), r.table) == 4
@@ -3879,7 +3796,7 @@ _run_if("CR-172428 reproduction (phase 44)") do
 end
 
 _run_if("Suite leaves tree clean") do
-    rea = abspath(joinpath(@__DIR__, "..", ".."))  # rea-work
+    rea = abspath(joinpath(@__DIR__, "..", ".."))  # PAIN_Program
     if Sys.which("git") === nothing
         @info "Suite leaves tree clean: skipped (git unavailable)"
         return

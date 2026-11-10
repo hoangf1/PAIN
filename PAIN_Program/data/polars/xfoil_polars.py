@@ -1,6 +1,6 @@
 """Phase 11a/11b/11d: generate XFOIL polars for PAIN (Report 996 gap fill, Pereira NACA 4412 sets).
 
-Run from rea-work (Python 3, standard library only; XFOIL 6.99 on PATH or XFOIL_EXE):
+Run from PAIN_Program (Python 3, standard library only; XFOIL 6.99 on PATH or XFOIL_EXE):
     python data/polars/xfoil_polars.py report996                 # 11a: Re 3e5 / M 0.1 gap fill, merged grid
     python data/polars/xfoil_polars.py pereira ncrit9|ncrit5|xtr005   # 11b: one file per transition setting
 
@@ -14,7 +14,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-ROOT = HERE.parent.parent                      # rea-work
+ROOT = HERE.parent.parent                      # PAIN_Program
 XFOIL = os.environ.get("XFOIL_EXE") or shutil.which("xfoil") or r"C:\Users\francis\tools\XFOIL6.99\xfoil.exe"
 XFOIL_VERSION = "6.99 (stock Windows build, single precision; the sibling-repo set used a Linux double-precision build)"
 ITER = 200

@@ -266,7 +266,7 @@ function main()
         end
         println(io, "- H1 within ±1.7 dB: $n1ok / $n1")
         println(io, "- H2 within ±3 dB: $n2ok / $n2")
-        println(io, "- ψ₁(φ)−ψ₁(0°) within ±5°: not computed in this pass (Fig.7 fit deferred; levels only).")
+        println(io, "- ψ₁(φ)−ψ₁(0°) within ±5°: counted by `PER_FIG7` from the `dpsi1_fig7` rows of pereira_results.csv, not in this report.")
         println(io, "- Fig.8 vs Fig.9 H1 scatter recorded as reference (I-15 d/e); not corrected.")
         println(io)
         println(io, "## Loads vs Table 3")

@@ -6,8 +6,8 @@ import jlqml
 ApplicationWindow {
     id: root
     visible: true
-    width: String(pain.smoke_map_png || "").length > 0 ? 1900 : 1180
-    height: String(pain.smoke_map_png || "").length > 0 ? 1000 : 780
+    width: 1180
+    height: 780
     title: "PAIN - Propeller Aircraft Interior Noise"
     color: "#f4f6f8"
 
@@ -194,6 +194,10 @@ ApplicationWindow {
     function rebuildValCaseRows() {
         valCaseRows = String(pain.val_cases || "").split("\n").filter(function (s) { return s.length > 0 })
     }
+    // Phase 151: frame paths (a JSON list from Julia) as a Repeater model
+    function cmFrames(js) {
+        try { var a = JSON.parse(String(js)); return Array.isArray(a) ? a : [] } catch (e) { return [] }
+    }
     function indexOfValSelected() {
         var id = String(pain.val_selected || "")
         for (var i = 0; i < valCaseRows.length; i++) {
@@ -217,167 +221,6 @@ ApplicationWindow {
         } catch (e) {
             valInfo = {}
         }
-    }
-
-    // ---- Validation map helpers (single total flowchart) ----
-    property string activeMapId: "total"
-    property var mapData: ({ "id": "", "title": "", "intro": "", "what_is": "", "how_to_read": "", "blocks": [], "groups": [] })
-    property var mapDetail: ({})
-    property bool mapHowExpanded: false
-    property real mapZoom: 1.0
-    readonly property real mapCellW: 168
-    readonly property real mapCellH: 118
-    readonly property real mapPad: 28
-
-    function categoryColor(cat) {
-        if (cat === "verification") return "#0b6e4f"
-        if (cat === "experiment") return "#1f5fa8"
-        if (cat === "calibrated") return "#8a4b08"
-        if (cat === "input_qa") return "#5b4b8a"
-        if (cat === "extrap") return "#b4500a"
-        if (cat === "display") return "#4a6670"
-        return "#9aa3ae"  // deferred / unknown
-    }
-
-    function kindTag(kind) {
-        if (kind === "pkgtest") return "Pkg.test"
-        if (kind === "replay") return "replay"
-        if (kind === "report") return "report"
-        if (kind === "deferred") return "deferred"
-        return ""
-    }
-
-    function roleBorder(role) {
-        if (role === "input") return "#5b4b8a"
-        if (role === "function") return "#1f5fa8"
-        if (role === "output") return "#0b6e4f"
-        if (role === "check") return "#8a4b08"
-        return root.border
-    }
-
-    // Row tops come from map JSON `row_y` (Julia validation_map_row_y): each row is as tall
-    // as its tallest block with chips, so no block overlaps the one below.
-    function rowY(row) {
-        var ys = root.mapData && root.mapData.row_y
-        if (ys && row < ys.length)
-            return Number(ys[row])
-        return root.mapPad + row * root.mapCellH
-    }
-    function blockAt(col, row) {
-        return Qt.point(root.mapPad + col * root.mapCellW, root.rowY(row))
-    }
-
-    // Chip stack height under a title box (one full-width chip per line). Chip height comes
-    // from map JSON `chip_row_h` (Julia VALIDATION_MAP_CHIP_ROW_H) so the smoke overlap check matches.
-    function chipRowH() {
-        var h = root.mapData && root.mapData.chip_row_h
-        var n = Number(h)
-        return (isFinite(n) && n > 0) ? n : 56
-    }
-    function blockChipExtra(block) {
-        var n = (block && block.cases) ? block.cases.length : 0
-        if (n <= 0)
-            return 0
-        return 4 + n * root.chipRowH()
-    }
-
-    function chipErrorText(chip) {
-        var chipShort = String((chip && chip.error_chip) || "")
-        if (chipShort.length > 0)
-            return chipShort
-        return String((chip && chip.error) || "")
-    }
-
-    function chipSourceText(chip) {
-        return String((chip && chip.error_source) || "")
-    }
-
-    function detailErrorText(detail) {
-        return String((detail && detail.error) || "")
-    }
-
-    function detailSourceText(detail) {
-        return String((detail && detail.error_source) || "")
-    }
-
-    function detailSnapshotText(detail) {
-        return String((detail && detail.error_snapshot) || "")
-    }
-
-    // Axis-aligned group rectangle from that group's own blocks only (incl. check chips).
-    function groupBounds(groupId, blocks) {
-        var minX = 1e9, minY = 1e9, maxX = -1e9, maxY = -1e9, any = false
-        for (var i = 0; i < blocks.length; i++) {
-            var b = blocks[i]
-            if (String(b.group || "") !== String(groupId))
-                continue
-            any = true
-            var p = root.blockAt(b.col, b.row)
-            var extra = root.blockChipExtra(b)
-            if (p.x < minX) minX = p.x
-            if (p.y < minY) minY = p.y
-            if (p.x + 148 > maxX) maxX = p.x + 148
-            if (p.y + 44 + extra > maxY) maxY = p.y + 44 + extra
-        }
-        if (!any)
-            return { x: 0, y: 0, w: 40, h: 40 }
-        return {
-            x: minX - 10,
-            y: minY - 22,
-            w: Math.max(40, (maxX + 10) - (minX - 10)),
-            h: Math.max(40, (maxY + 10) - (minY - 22))
-        }
-    }
-
-    function mapContentSize() {
-        var blocks = (root.mapData && root.mapData.blocks) ? root.mapData.blocks : []
-        var maxC = 0, maxBottom = 0
-        for (var i = 0; i < blocks.length; i++) {
-            if (blocks[i].col > maxC) maxC = blocks[i].col
-            var bottom = root.rowY(blocks[i].row) + 44 + root.blockChipExtra(blocks[i])
-            if (bottom > maxBottom) maxBottom = bottom
-        }
-        return Qt.size(root.mapPad * 2 + (maxC + 1) * root.mapCellW + 80,
-                       maxBottom + root.mapPad + 100)
-    }
-
-    function resetMapFlowScroll() {
-        if (typeof mapCanvasFlick !== "undefined" && mapCanvasFlick) {
-            mapCanvasFlick.contentX = 0
-            mapCanvasFlick.contentY = 0
-        }
-    }
-
-    function reloadActiveMap() {
-        var raw = pain.map_total_json
-        try {
-            mapData = JSON.parse(String(raw || "{}"))
-        } catch (e) {
-            mapData = { "id": "", "title": "", "intro": "", "blocks": [], "groups": [] }
-        }
-        resetMapFlowScroll()
-        Qt.callLater(function () {
-            if (typeof mapCanvasFlick !== "undefined" && mapCanvasFlick)
-                Julia.report_map_canvas_size_from_qml(mapCanvasFlick.contentWidth, mapCanvasFlick.width)
-        })
-    }
-
-    function reloadMapDetail() {
-        try {
-            mapDetail = JSON.parse(String(pain.map_detail_json || "{}"))
-        } catch (e) {
-            mapDetail = {}
-        }
-    }
-
-    function fitMapToWindow() {
-        if (typeof mapCanvasFlick === "undefined" || !mapCanvasFlick)
-            return
-        var sz = root.mapContentSize()
-        var zx = mapCanvasFlick.width / Math.max(1, sz.width)
-        var zy = mapCanvasFlick.height / Math.max(1, sz.height)
-        root.mapZoom = Math.max(0.35, Math.min(1.5, Math.min(zx, zy) * 0.95))
-        resetMapFlowScroll()
     }
 
     onClosing: Julia.mark_gui_closed_from_qml()
@@ -495,7 +338,7 @@ ApplicationWindow {
             var out = String(pain.smoke_coverage_png)
             step += 1
             if (step === 1) {
-                tabs.currentIndex = 5
+                tabs.currentIndex = 4
             } else if (step === 2) {
                 coveragePage.grabToImage(function (result) {
                     result.saveToFile(out)
@@ -511,6 +354,48 @@ ApplicationWindow {
                     Julia.mark_gui_closed_from_qml()
                     Qt.quit()
                 })
+            }
+        }
+    }
+
+    // Phase 151d smoke: open the Cabin modes tab (the frames are built on open), press Play, and grab the frame view
+    // twice, some ticks apart; the two shots must differ (the mode is seen moving).
+    Timer {
+        property int step: 0
+        property real elapsedMs: 0
+        interval: 500
+        running: String(pain.smoke_cabin_png || "").length > 0
+        repeat: true
+        onTriggered: {
+            var out = String(pain.smoke_cabin_png)
+            elapsedMs += interval
+            if (step === 0) {
+                tabs.currentIndex = 3
+                step = 1
+            } else if (step === 1) {
+                if (pain.cm_frame_path.length > 0 && !pain.busy) {
+                    pain.cm_playing = true
+                    step = 2
+                } else if (elapsedMs >= 150000) {
+                    console.log("CABIN_ANIM: no frames after", elapsedMs, "ms")
+                    Julia.mark_gui_closed_from_qml()
+                    Qt.quit()
+                }
+            } else if (step === 2) {
+                cmFrameView.grabToImage(function (result) {
+                    result.saveToFile(out)
+                    console.log("CABIN_ANIM saved:", out, "frame", pain.cm_frame_index)
+                })
+                step = 3
+            } else if (step === 3) {
+                var out2 = out.replace(".png", "_later.png")
+                cmFrameView.grabToImage(function (result) {
+                    result.saveToFile(out2)
+                    console.log("CABIN_ANIM saved:", out2, "frame", pain.cm_frame_index)
+                    Julia.mark_gui_closed_from_qml()
+                    Qt.quit()
+                })
+                step = 4
             }
         }
     }
@@ -558,13 +443,15 @@ ApplicationWindow {
             id: tabs
             Layout.fillWidth: true
             onCurrentIndexChanged: {
-                // Validation map tab index 2: re-parse §2.13 so an edited .md shows without restart.
-                if (currentIndex === 2)
+                // Coverage tab (index 4): re-parse §2.13 so an edited .md shows without restart.
+                if (currentIndex === 4)
                     Julia.reload_validation_docs_from_qml()
+                // Phase 151c: the cabin-mode frames (tab index 3) are built when the tab first opens, not only on Refresh
+                if (currentIndex === 3 && pain.cm_frame_path.length === 0 && !pain.busy)
+                    Julia.run_cabin_modes_from_qml()
             }
             TabButton { text: "Run" }
             TabButton { text: "Validation" }
-            TabButton { text: "Validation map" }
             TabButton { text: "Printed outputs" }
             TabButton { text: "Cabin modes" }
             TabButton { text: "Coverage" }
@@ -1130,788 +1017,7 @@ ApplicationWindow {
                 }
             }
 
-            // ---- Validation map tab (single total flowchart, horizontal) ----
-            RowLayout {
-                spacing: 14
-                Component.onCompleted: {
-                    root.reloadActiveMap()
-                    root.reloadMapDetail()
-                }
-
-                property string mapJsonWatch: pain.map_total_json
-                onMapJsonWatchChanged: root.reloadActiveMap()
-                property string mapDetailWatch: pain.map_detail_json
-                onMapDetailWatchChanged: root.reloadMapDetail()
-
-                Frame {
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-
-                    ColumnLayout {
-                        anchors.fill: parent
-                        anchors.margins: 12
-                        spacing: 8
-
-                        RowLayout {
-                            Layout.fillWidth: true
-                            spacing: 8
-                            Text {
-                                text: (root.mapData && root.mapData.title) ? root.mapData.title : ""
-                                font.bold: true
-                                font.pixelSize: 14
-                                color: root.ink
-                                Layout.fillWidth: true
-                                wrapMode: Text.WordWrap
-                            }
-                            Button {
-                                text: "Fit"
-                                flat: true
-                                onClicked: root.fitMapToWindow()
-                            }
-                            Button {
-                                text: "−"
-                                flat: true
-                                onClicked: root.mapZoom = Math.max(0.35, root.mapZoom - 0.1)
-                            }
-                            Text {
-                                text: Math.round(root.mapZoom * 100) + "%"
-                                color: root.muted
-                                font.pixelSize: 11
-                            }
-                            Button {
-                                text: "+"
-                                flat: true
-                                onClicked: root.mapZoom = Math.min(2.0, root.mapZoom + 0.1)
-                            }
-                        }
-
-                        // Collapsible "How to read this map" (from §2.13 what_is + how_to_read)
-                        Rectangle {
-                            Layout.fillWidth: true
-                            radius: 4
-                            color: "#f0f3f6"
-                            border.color: root.border
-                            implicitHeight: mapHowCol.implicitHeight + 12
-                            Column {
-                                id: mapHowCol
-                                anchors.left: parent.left
-                                anchors.right: parent.right
-                                anchors.top: parent.top
-                                anchors.margins: 6
-                                spacing: 4
-                                RowLayout {
-                                    width: parent.width
-                                    Text {
-                                        text: "How to read this map"
-                                        font.bold: true
-                                        font.pixelSize: 12
-                                        color: root.ink
-                                        Layout.fillWidth: true
-                                    }
-                                    Button {
-                                        text: root.mapHowExpanded ? "Hide" : "Show"
-                                        flat: true
-                                        onClicked: root.mapHowExpanded = !root.mapHowExpanded
-                                    }
-                                }
-                                Text {
-                                    visible: root.mapHowExpanded
-                                    width: parent.width
-                                    wrapMode: Text.WordWrap
-                                    color: root.ink
-                                    font.pixelSize: 11
-                                    text: (root.mapData && (root.mapData.what_is || root.mapData.intro))
-                                          ? String(root.mapData.what_is || root.mapData.intro) : ""
-                                }
-                                Text {
-                                    visible: root.mapHowExpanded
-                                    width: parent.width
-                                    wrapMode: Text.WordWrap
-                                    color: root.muted
-                                    font.pixelSize: 11
-                                    text: (root.mapData && root.mapData.how_to_read)
-                                          ? String(root.mapData.how_to_read) : ""
-                                }
-                            }
-                        }
-
-                        // Legend
-                        Flow {
-                            Layout.fillWidth: true
-                            spacing: 10
-                            Repeater {
-                                model: [
-                                    { label: "verification", color: "#0b6e4f" },
-                                    { label: "experiment", color: "#1f5fa8" },
-                                    { label: "calibrated / post-hoc", color: "#8a4b08" },
-                                    { label: "input QA", color: "#5b4b8a" },
-                                    { label: "X-EXTRAP", color: "#b4500a" },
-                                    { label: "deferred", color: "#9aa3ae" }
-                                ]
-                                delegate: Row {
-                                    spacing: 4
-                                    Rectangle {
-                                        width: 12; height: 12; radius: 2
-                                        color: "transparent"
-                                        border.color: modelData.color
-                                        border.width: 2
-                                        anchors.verticalCenter: parent.verticalCenter
-                                    }
-                                    Text {
-                                        text: modelData.label
-                                        font.pixelSize: 10
-                                        color: root.muted
-                                        anchors.verticalCenter: parent.verticalCenter
-                                    }
-                                }
-                            }
-                            Row {
-                                spacing: 4
-                                Rectangle {
-                                    width: 10; height: 10; radius: 5
-                                    color: "#0b6e4f"
-                                    anchors.verticalCenter: parent.verticalCenter
-                                }
-                                Text { text: "met"; font.pixelSize: 10; color: root.muted; anchors.verticalCenter: parent.verticalCenter }
-                            }
-                            Row {
-                                spacing: 4
-                                Rectangle {
-                                    width: 10; height: 10; radius: 5
-                                    color: "#c0392b"
-                                    anchors.verticalCenter: parent.verticalCenter
-                                }
-                                Text { text: "not_met"; font.pixelSize: 10; color: root.muted; anchors.verticalCenter: parent.verticalCenter }
-                            }
-                            Row {
-                                spacing: 4
-                                Rectangle {
-                                    width: 10; height: 10; radius: 5
-                                    color: "#9aa3ae"
-                                    anchors.verticalCenter: parent.verticalCenter
-                                }
-                                Text { text: "no_verdict"; font.pixelSize: 10; color: root.muted; anchors.verticalCenter: parent.verticalCenter }
-                            }
-                            Row {
-                                spacing: 4
-                                Rectangle {
-                                    width: 10; height: 10; radius: 5
-                                    color: "transparent"
-                                    border.color: "#9aa3ae"
-                                    border.width: 1
-                                    anchors.verticalCenter: parent.verticalCenter
-                                }
-                                Text { text: "not run"; font.pixelSize: 10; color: root.muted; anchors.verticalCenter: parent.verticalCenter }
-                            }
-                        }
-
-                        Item {
-                            Layout.fillWidth: true
-                            Layout.fillHeight: true
-
-                            Flickable {
-                                id: mapCanvasFlick
-                                anchors.fill: parent
-                                clip: true
-                                interactive: true
-                                boundsBehavior: Flickable.StopAtBounds
-                                ScrollBar.horizontal: ScrollBar { policy: ScrollBar.AlwaysOn }
-                                ScrollBar.vertical: ScrollBar { policy: ScrollBar.AlwaysOn }
-                                contentWidth: mapScaled.width
-                                contentHeight: mapScaled.height
-                                onWidthChanged: Julia.report_map_canvas_size_from_qml(contentWidth, width)
-                                onContentWidthChanged: Julia.report_map_canvas_size_from_qml(contentWidth, width)
-                                Component.onCompleted: Julia.report_map_canvas_size_from_qml(contentWidth, width)
-
-                                // Shift+wheel → horizontal scroll; Ctrl+wheel → zoom
-                                MouseArea {
-                                    anchors.fill: parent
-                                    acceptedButtons: Qt.NoButton
-                                    onWheel: function (w) {
-                                        if (w.modifiers & Qt.ControlModifier) {
-                                            var dz = w.angleDelta.y > 0 ? 0.1 : -0.1
-                                            root.mapZoom = Math.max(0.35, Math.min(2.0, root.mapZoom + dz))
-                                            w.accepted = true
-                                        } else if (w.modifiers & Qt.ShiftModifier) {
-                                            mapCanvasFlick.contentX = Math.max(0, Math.min(
-                                                mapCanvasFlick.contentWidth - mapCanvasFlick.width,
-                                                mapCanvasFlick.contentX - w.angleDelta.y))
-                                            w.accepted = true
-                                        }
-                                    }
-                                }
-
-                                Item {
-                                    id: mapScaled
-                                    width: mapCanvas.width * root.mapZoom
-                                    height: mapCanvas.height * root.mapZoom
-
-                                    Item {
-                                        id: mapCanvas
-                                        property var blocks: (root.mapData && root.mapData.blocks) ? root.mapData.blocks : []
-                                        property var groups: (root.mapData && root.mapData.groups) ? root.mapData.groups : []
-                                        width: root.mapContentSize().width
-                                        height: root.mapContentSize().height
-                                        transform: Scale {
-                                            xScale: root.mapZoom
-                                            yScale: root.mapZoom
-                                            origin.x: 0
-                                            origin.y: 0
-                                        }
-
-                                        // Stage group frames (bounds from that group's blocks only)
-                                        Repeater {
-                                            model: mapCanvas.groups
-                                            delegate: Rectangle {
-                                                id: grpRect
-                                                property var grp: modelData
-                                                property var ownBounds: root.groupBounds(grp.id, mapCanvas.blocks)
-                                                x: ownBounds.x
-                                                y: ownBounds.y
-                                                width: ownBounds.w
-                                                height: ownBounds.h
-                                                radius: 10
-                                                color: "#f7f9fb"
-                                                border.color: "#c5ced8"
-                                                border.width: 1
-                                                z: 0
-                                                Text {
-                                                    anchors.left: parent.left
-                                                    anchors.top: parent.top
-                                                    anchors.margins: 6
-                                                    text: String(grp.title || grp.id || "")
-                                                    font.pixelSize: 10
-                                                    font.bold: true
-                                                    color: root.muted
-                                                }
-                                            }
-                                        }
-
-                                        // Edges (feeds)
-                                        Canvas {
-                                            id: mapEdges
-                                            anchors.fill: parent
-                                            z: 1
-                                            property var blocks: mapCanvas.blocks
-                                            onBlocksChanged: requestPaint()
-                                            onPaint: {
-                                                var ctx = getContext("2d")
-                                                ctx.reset()
-                                                var byId = {}
-                                                for (var i = 0; i < blocks.length; i++)
-                                                    byId[blocks[i].id] = blocks[i]
-                                                function centerOf(b) {
-                                                    var p = root.blockAt(b.col, b.row)
-                                                    var h = 44 + root.blockChipExtra(b)
-                                                    return { x: p.x + 74, y: p.y + Math.min(22, h / 2) }
-                                                }
-                                                function route(c0, c1, toCheck) {
-                                                    // Prefer orthogonal elbows so curves do not cut block titles.
-                                                    ctx.moveTo(c0.x, c0.y)
-                                                    if (Math.abs(c0.y - c1.y) < 8) {
-                                                        ctx.lineTo(c1.x, c1.y)
-                                                    } else if (toCheck) {
-                                                        var midY = (c0.y + c1.y) / 2
-                                                        ctx.lineTo(c0.x, midY)
-                                                        ctx.lineTo(c1.x, midY)
-                                                        ctx.lineTo(c1.x, c1.y)
-                                                    } else if (c1.x >= c0.x + 40) {
-                                                        var mx = c0.x + Math.max(36, (c1.x - c0.x) * 0.35)
-                                                        ctx.lineTo(mx, c0.y)
-                                                        ctx.lineTo(mx, c1.y)
-                                                        ctx.lineTo(c1.x, c1.y)
-                                                    } else {
-                                                        var mid = (c0.x + c1.x) / 2
-                                                        ctx.bezierCurveTo(mid, c0.y, mid, c1.y, c1.x, c1.y)
-                                                    }
-                                                }
-                                                for (var i = 0; i < blocks.length; i++) {
-                                                    var src = blocks[i]
-                                                    var feeds = src.feeds || []
-                                                    var c0 = centerOf(src)
-                                                    for (var j = 0; j < feeds.length; j++) {
-                                                        var dst = byId[feeds[j]]
-                                                        if (!dst) continue
-                                                        var c1 = centerOf(dst)
-                                                        var toCheck = String(dst.role || "") === "check"
-                                                        ctx.beginPath()
-                                                        if (toCheck) {
-                                                            ctx.setLineDash([5, 4])
-                                                            ctx.strokeStyle = "#a0a8b4"
-                                                        } else {
-                                                            ctx.setLineDash([])
-                                                            ctx.strokeStyle = "#6a7585"
-                                                        }
-                                                        ctx.lineWidth = 1.5
-                                                        route(c0, c1, toCheck)
-                                                        ctx.stroke()
-                                                        // arrowhead along final segment
-                                                        var ang = Math.atan2(c1.y - c0.y, c1.x - c0.x)
-                                                        if (toCheck)
-                                                            ang = Math.atan2(c1.y - ((c0.y + c1.y) / 2), 0)
-                                                        else if (Math.abs(c0.y - c1.y) >= 8 && c1.x >= c0.x + 40)
-                                                            ang = 0
-                                                        ctx.setLineDash([])
-                                                        ctx.beginPath()
-                                                        ctx.moveTo(c1.x, c1.y)
-                                                        ctx.lineTo(c1.x - 8 * Math.cos(ang - 0.35), c1.y - 8 * Math.sin(ang - 0.35))
-                                                        ctx.lineTo(c1.x - 8 * Math.cos(ang + 0.35), c1.y - 8 * Math.sin(ang + 0.35))
-                                                        ctx.closePath()
-                                                        ctx.fillStyle = toCheck ? "#a0a8b4" : "#6a7585"
-                                                        ctx.fill()
-                                                    }
-                                                }
-                                            }
-                                        }
-
-                                        // Blocks (titles only + chips)
-                                        Repeater {
-                                            model: mapCanvas.blocks
-                                            delegate: Item {
-                                                id: blockItem
-                                                property var block: modelData
-                                                x: root.blockAt(block.col, block.row).x
-                                                y: root.blockAt(block.col, block.row).y
-                                                width: 148
-                                                height: blockBox.height + chipFlow.implicitHeight + 4
-                                                z: 2
-
-                                                Rectangle {
-                                                    id: blockBox
-                                                    width: parent.width
-                                                    height: 44
-                                                    radius: 6
-                                                    color: pain.map_selected_block === block.id ? "#e8f4ef" : "#ffffff"
-                                                    border.color: root.roleBorder(String(block.role || ""))
-                                                    border.width: pain.map_selected_block === block.id ? 2 : 1
-                                                    Text {
-                                                        anchors.fill: parent
-                                                        anchors.margins: 6
-                                                        text: String(block.title || block.id)
-                                                        font.bold: true
-                                                        font.pixelSize: 11
-                                                        color: root.ink
-                                                        wrapMode: Text.WordWrap
-                                                        horizontalAlignment: Text.AlignHCenter
-                                                        verticalAlignment: Text.AlignVCenter
-                                                    }
-                                                    MouseArea {
-                                                        anchors.fill: parent
-                                                        cursorShape: Qt.PointingHandCursor
-                                                        onClicked: Julia.select_map_block_from_qml(block.id)
-                                                    }
-                                                }
-
-                                                Flow {
-                                                    id: chipFlow
-                                                    anchors.top: blockBox.bottom
-                                                    anchors.topMargin: 4
-                                                    width: parent.width
-                                                    spacing: 4
-                                                    Repeater {
-                                                        model: blockItem.block.cases || []
-                                                        delegate: Rectangle {
-                                                            property var chip: modelData
-                                                            property color catColor: root.categoryColor(chip.category)
-                                                            property bool selected: pain.map_selected === chip.id
-                                                            radius: 8
-                                                            color: selected ? "#e8f4ef" : root.panel
-                                                            border.color: catColor
-                                                            border.width: selected ? 2 : 1
-                                                            // Fixed size = layout height in Julia (validation_map_row_y).
-                                                            width: chipFlow.width
-                                                            height: root.chipRowH() - chipFlow.spacing
-                                                            clip: true
-                                                            Column {
-                                                                id: chipCol
-                                                                anchors.centerIn: parent
-                                                                spacing: 1
-                                                                Row {
-                                                                    spacing: 3
-                                                                    Rectangle {
-                                                                        width: 7; height: 7; radius: 4
-                                                                        color: {
-                                                                            var last = String(chip.last || "not_run")
-                                                                            if (last === "met") return "#0b6e4f"
-                                                                            if (last === "not_met") return "#c0392b"
-                                                                            if (last === "no_verdict") return "#9aa3ae"
-                                                                            return "transparent"
-                                                                        }
-                                                                        border.color: "#9aa3ae"
-                                                                        border.width: String(chip.last || "not_run") === "not_run" ? 1 : 0
-                                                                        anchors.verticalCenter: parent.verticalCenter
-                                                                    }
-                                                                    Text {
-                                                                        text: chip.id
-                                                                        font.pixelSize: 9
-                                                                        font.bold: true
-                                                                        color: root.ink
-                                                                        anchors.verticalCenter: parent.verticalCenter
-                                                                    }
-                                                                }
-                                                                Text {
-                                                                    text: chip.title
-                                                                    font.pixelSize: 8
-                                                                    color: root.muted
-                                                                    width: Math.min(130, implicitWidth)
-                                                                    elide: Text.ElideRight
-                                                                }
-                                                                Text {
-                                                                    visible: root.chipErrorText(chip).length > 0
-                                                                    text: root.chipErrorText(chip)
-                                                                    font.pixelSize: 9
-                                                                    color: root.muted
-                                                                    width: Math.min(130, implicitWidth)
-                                                                    elide: Text.ElideRight
-                                                                }
-                                                                Text {
-                                                                    visible: root.chipSourceText(chip).length > 0
-                                                                    text: root.chipSourceText(chip)
-                                                                    font.pixelSize: 7
-                                                                    color: root.muted
-                                                                    width: Math.min(130, implicitWidth)
-                                                                    elide: Text.ElideRight
-                                                                }
-                                                            }
-                                                            MouseArea {
-                                                                anchors.fill: parent
-                                                                cursorShape: Qt.PointingHandCursor
-                                                                onClicked: Julia.select_map_case_from_qml(chip.id)
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-
-                            // Offscreen screenshots (zoom 1, no fit): left then scrolled right.
-                            Timer {
-                                interval: 400
-                                running: String(pain.smoke_map_png || "").length > 0
-                                repeat: false
-                                onTriggered: {
-                                    tabs.currentIndex = 2
-                                    root.mapHowExpanded = false
-                                    root.mapZoom = 1.0
-                                    root.reloadActiveMap()
-                                    mapShotDelay.start()
-                                }
-                            }
-                            Timer {
-                                id: mapShotDelay
-                                interval: 700
-                                repeat: false
-                                onTriggered: {
-                                    var path = String(pain.smoke_map_png || "")
-                                    if (path.length === 0) return
-                                    mapCanvasFlick.contentX = 0
-                                    mapCanvasFlick.contentY = 0
-                                    mapCanvasFlick.grabToImage(function (result) {
-                                        result.saveToFile(path)
-                                        console.log("VALIDATION_MAP_TOTAL saved:", path)
-                                        mapShotRightDelay.start()
-                                    })
-                                }
-                            }
-                            Timer {
-                                id: mapShotRightDelay
-                                interval: 500
-                                repeat: false
-                                onTriggered: {
-                                    var path = String(pain.smoke_map_png || "")
-                                    if (path.length === 0) return
-                                    var rightPath = path.replace("VALIDATION_MAP_TOTAL.png",
-                                                                 "VALIDATION_MAP_TOTAL_right.png")
-                                    if (rightPath === path)
-                                        rightPath = path + ".right.png"
-                                    var maxX = Math.max(0, mapCanvasFlick.contentWidth - mapCanvasFlick.width)
-                                    mapCanvasFlick.contentX = maxX
-                                    mapCanvasFlick.contentY = 0
-                                    mapCanvasFlick.grabToImage(function (result) {
-                                        result.saveToFile(rightPath)
-                                        console.log("VALIDATION_MAP_TOTAL_right saved:", rightPath)
-                                    })
-                                }
-                            }
-                        }
-                    }
-                }
-
-                Frame {
-                    // Offscreen map shots: hide detail so the canvas uses the full 1900 px width.
-                    visible: String(pain.smoke_map_png || "").length === 0
-                    Layout.preferredWidth: 520
-                    Layout.fillHeight: true
-
-                    ScrollView {
-                        id: mapDetailScroll
-                        anchors.fill: parent
-                        anchors.margins: 12
-                        clip: true
-                        // Assign (not bind) so availableWidth ↔ contentWidth cannot loop.
-                        ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
-                        onAvailableWidthChanged: contentWidth = availableWidth
-                        Component.onCompleted: contentWidth = availableWidth
-
-                        ColumnLayout {
-                            width: mapDetailScroll.availableWidth
-                            spacing: 8
-
-                            RowLayout {
-                                Layout.fillWidth: true
-                                Text {
-                                    text: (root.mapDetail && root.mapDetail.title)
-                                          ? root.mapDetail.title
-                                          : "(select a block or case chip)"
-                                    font.bold: true
-                                    font.pixelSize: 14
-                                    color: root.ink
-                                    Layout.fillWidth: true
-                                    wrapMode: Text.WordWrap
-                                }
-                                Rectangle {
-                                    visible: !!(root.mapDetail && root.mapDetail.category)
-                                    radius: 4
-                                    color: "transparent"
-                                    border.color: root.categoryColor(root.mapDetail.category || "")
-                                    border.width: 1
-                                    implicitHeight: catBadge.implicitHeight + 6
-                                    implicitWidth: catBadge.implicitWidth + 12
-                                    Text {
-                                        id: catBadge
-                                        anchors.centerIn: parent
-                                        text: root.mapDetail.category || ""
-                                        font.pixelSize: 10
-                                        color: root.categoryColor(root.mapDetail.category || "")
-                                    }
-                                }
-                            }
-
-                            // Block detail (click a pipeline box)
-                            Text {
-                                visible: !!(root.mapDetail && root.mapDetail.detail_kind === "block")
-                                text: "Role: " + (root.mapDetail.role || "")
-                                      + (root.mapDetail.group_title ? (" · " + root.mapDetail.group_title)
-                                         : (root.mapDetail.group ? (" · " + root.mapDetail.group) : ""))
-                                wrapMode: Text.WordWrap
-                                Layout.fillWidth: true
-                                color: root.muted
-                                font.pixelSize: 11
-                            }
-                            Text {
-                                visible: !!(root.mapDetail && root.mapDetail.detail_kind === "block" && root.mapDetail.code)
-                                text: "Code: " + (root.mapDetail.code || "")
-                                wrapMode: Text.WordWrap
-                                Layout.fillWidth: true
-                                color: root.ink
-                                font.pixelSize: 11
-                            }
-                            Text {
-                                visible: !!(root.mapDetail && root.mapDetail.detail_kind === "block")
-                                text: root.mapDetail.what_it_does || ""
-                                wrapMode: Text.WordWrap
-                                Layout.fillWidth: true
-                                color: root.ink
-                                font.pixelSize: 11
-                            }
-
-                            // Case detail (click a chip)
-                            Text {
-                                visible: !!(root.mapDetail && root.mapDetail.detail_kind !== "block" && root.mapDetail.id)
-                                text: "Source: " + (root.mapDetail.source || "")
-                                wrapMode: Text.WordWrap
-                                Layout.fillWidth: true
-                                color: root.ink
-                                font.pixelSize: 11
-                            }
-                            Text {
-                                visible: !!(root.mapDetail && root.mapDetail.detail_kind !== "block" && root.mapDetail.id)
-                                text: "What it tests: " + (root.mapDetail.verifies || "")
-                                wrapMode: Text.WordWrap
-                                Layout.fillWidth: true
-                                color: root.ink
-                                font.pixelSize: 11
-                            }
-                            Text {
-                                visible: !!(root.mapDetail && root.mapDetail.detail_kind !== "block" && root.mapDetail.id)
-                                text: "Why it is here: " + (root.mapDetail.why || "")
-                                wrapMode: Text.WordWrap
-                                Layout.fillWidth: true
-                                color: root.ink
-                                font.pixelSize: 11
-                            }
-                            Text {
-                                visible: !!(root.mapDetail && root.mapDetail.detail_kind !== "block" && root.mapDetail.id)
-                                text: "A pass means: " + (root.mapDetail.meaning || "")
-                                wrapMode: Text.WordWrap
-                                Layout.fillWidth: true
-                                color: root.ink
-                                font.pixelSize: 11
-                            }
-                            Text {
-                                visible: !!(root.mapDetail && root.mapDetail.detail_kind !== "block" && root.mapDetail.id)
-                                text: "Not covered: " + (root.mapDetail.missing || "")
-                                wrapMode: Text.WordWrap
-                                Layout.fillWidth: true
-                                color: root.ink
-                                font.pixelSize: 11
-                            }
-                            Text {
-                                visible: !!(root.mapDetail && root.mapDetail.detail_kind !== "block" && root.mapDetail.id)
-                                text: "Recorded outcome: " + (root.mapDetail.recorded || "")
-                                wrapMode: Text.WordWrap
-                                Layout.fillWidth: true
-                                color: root.ink
-                                font.pixelSize: 11
-                            }
-                            Text {
-                                visible: !!(root.mapDetail && root.mapDetail.detail_kind !== "block" && root.mapDetail.id)
-                                text: "Explanation: " + (root.mapDetail.explanation || "")
-                                wrapMode: Text.WordWrap
-                                Layout.fillWidth: true
-                                color: root.ink
-                                font.pixelSize: 11
-                            }
-                            Text {
-                                visible: !!(root.mapDetail && root.mapDetail.detail_kind !== "block" && root.mapDetail.criterion_text)
-                                text: "Criterion (" + (root.mapDetail.criterion_date || "") + "): " + (root.mapDetail.criterion_text || "")
-                                wrapMode: Text.WordWrap
-                                Layout.fillWidth: true
-                                color: root.muted
-                                font.pixelSize: 11
-                            }
-                            Text {
-                                visible: !!(root.mapDetail && root.mapDetail.detail_kind !== "block"
-                                            && root.detailErrorText(root.mapDetail).length > 0)
-                                text: "Error: " + root.detailErrorText(root.mapDetail)
-                                wrapMode: Text.WordWrap
-                                Layout.fillWidth: true
-                                color: root.muted
-                                font.pixelSize: 11
-                            }
-                            Text {
-                                visible: !!(root.mapDetail && root.mapDetail.detail_kind !== "block"
-                                            && root.detailSourceText(root.mapDetail).length > 0)
-                                text: root.detailSourceText(root.mapDetail)
-                                wrapMode: Text.WordWrap
-                                Layout.fillWidth: true
-                                color: root.muted
-                                font.pixelSize: 10
-                            }
-                            Text {
-                                visible: !!(root.mapDetail && root.mapDetail.detail_kind !== "block"
-                                            && root.detailSnapshotText(root.mapDetail).length > 0)
-                                text: root.detailSnapshotText(root.mapDetail)
-                                wrapMode: Text.WordWrap
-                                Layout.fillWidth: true
-                                color: root.muted
-                                font.pixelSize: 10
-                            }
-
-                            RowLayout {
-                                Layout.fillWidth: true
-                                visible: !!(root.mapDetail && root.mapDetail.detail_kind !== "block")
-                                Button {
-                                    text: pain.busy ? "Running…" : "Run"
-                                    enabled: !pain.busy
-                                             && !!root.mapDetail
-                                             && !!root.mapDetail.id
-                                             && (root.mapDetail.kind === "runnable" || root.mapDetail.kind === "replay")
-                                             && root.mapDetail.in_registry === true
-                                    highlighted: true
-                                    onClicked: Julia.run_validation_from_qml(pain.map_selected)
-                                }
-                                Button {
-                                    text: "Open report"
-                                    enabled: pain.val_report_path.length > 0 && pain.map_selected === pain.val_selected
-                                    onClicked: Julia.open_validation_report_from_qml()
-                                }
-                            }
-
-                            RunStatusBox {
-                                visible: !!(root.mapDetail && root.mapDetail.detail_kind !== "block")
-                                runState: pain.val_state
-                                statusText: pain.val_status
-                                logText: pain.val_log
-                                signature: pain.map_selected
-                            }
-
-                            Text {
-                                text: "Code vs figure"
-                                font.bold: true
-                                color: root.ink
-                                font.pixelSize: 12
-                            }
-                            Item {
-                                Layout.fillWidth: true
-                                Layout.preferredHeight: 560
-                                Image {
-                                    anchors.fill: parent
-                                    fillMode: Image.PreserveAspectFit
-                                    asynchronous: true
-                                    cache: false
-                                    visible: pain.map_selected.length > 0
-                                             && pain.val_selected === pain.map_selected
-                                             && pain.val_plot_path.length > 0
-                                    source: (pain.map_selected.length > 0
-                                             && pain.val_selected === pain.map_selected
-                                             && pain.val_plot_path.length > 0)
-                                            ? ("file:///" + String(pain.val_plot_path).replace(/\\/g, "/"))
-                                            : ""
-                                    MouseArea {
-                                        anchors.fill: parent
-                                        enabled: pain.map_selected.length > 0
-                                                 && pain.val_selected === pain.map_selected
-                                                 && pain.val_plot_path.length > 0
-                                        cursorShape: Qt.PointingHandCursor
-                                        onClicked: Qt.openUrlExternally("file:///" + String(pain.val_plot_path).replace(/\\/g, "/"))
-                                    }
-                                }
-                                Text {
-                                    anchors.centerIn: parent
-                                    visible: !(pain.map_selected.length > 0
-                                               && pain.val_selected === pain.map_selected
-                                               && pain.val_plot_path.length > 0)
-                                    text: "Press Run to draw the comparison plot"
-                                    color: root.muted
-                                    font.pixelSize: 13
-                                    wrapMode: Text.WordWrap
-                                    width: parent.width - 24
-                                    horizontalAlignment: Text.AlignHCenter
-                                }
-                            }
-
-                            CheckBox {
-                                id: mapShowSource
-                                visible: !!(root.mapDetail && root.mapDetail.source_image)
-                                text: "Show source figure"
-                                checked: false
-                            }
-                            Image {
-                                visible: mapShowSource.visible && mapShowSource.checked
-                                Layout.fillWidth: true
-                                Layout.preferredHeight: Math.min(480, implicitHeight > 0 ? implicitHeight : 480)
-                                Layout.maximumHeight: 480
-                                fillMode: Image.PreserveAspectFit
-                                asynchronous: true
-                                cache: false
-                                source: (root.mapDetail && root.mapDetail.source_image)
-                                        ? ("file:///" + String(root.mapDetail.source_image).replace(/\\/g, "/"))
-                                        : ""
-                                MouseArea {
-                                    anchors.fill: parent
-                                    enabled: !!(root.mapDetail && root.mapDetail.source_image)
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: Qt.openUrlExternally("file:///" + String(root.mapDetail.source_image).replace(/\\/g, "/"))
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            // (Validation map tab removed in Phase 147, 2026-11-10: the coverage chart is the one view, ISSUE-015)
 
             // ---- Printed outputs tab (Manual §5.4.3, phase 38h; read-only) ----
             ColumnLayout {
@@ -2123,18 +1229,22 @@ ApplicationWindow {
                                 Layout.fillWidth: true
                             }
                             Item {
+                                id: cmFrameView
                                 Layout.fillWidth: true
                                 Layout.fillHeight: true
                                 Layout.preferredHeight: 360
-                                Image {
-                                    anchors.fill: parent
-                                    fillMode: Image.PreserveAspectFit
-                                    asynchronous: true
-                                    cache: false
-                                    visible: pain.cm_frame_path.length > 0
-                                    source: pain.cm_frame_path.length > 0
-                                            ? ("file:///" + String(pain.cm_frame_path).replace(/\\/g, "/"))
-                                            : ""
+                                // Phase 151 (2026-11-10): every frame is loaded once when the frames are built and
+                                // shown by index, so playing does not read a file from disk at each tick.
+                                Repeater {
+                                    model: root.cmFrames(pain.cm_frame_paths_json)
+                                    delegate: Image {
+                                        anchors.fill: parent
+                                        fillMode: Image.PreserveAspectFit
+                                        asynchronous: false
+                                        cache: true
+                                        visible: index === Math.round(pain.cm_frame_index)
+                                        source: "file:///" + String(modelData).replace(/\\/g, "/")
+                                    }
                                 }
                                 Text {
                                     anchors.centerIn: parent
@@ -2174,16 +1284,21 @@ ApplicationWindow {
                                 color: root.ink
                                 font.pixelSize: 12
                             }
-                            Image {
+                            Item {
                                 Layout.fillWidth: true
                                 Layout.preferredHeight: 240
-                                fillMode: Image.PreserveAspectFit
-                                asynchronous: true
-                                cache: false
                                 visible: pain.cm_struct_path.length > 0
-                                source: pain.cm_struct_path.length > 0
-                                        ? ("file:///" + String(pain.cm_struct_path).replace(/\\/g, "/"))
-                                        : ""
+                                Repeater {   // Phase 151: preloaded, shown by index (as the cabin frames)
+                                    model: root.cmFrames(pain.cm_struct_frame_paths_json)
+                                    delegate: Image {
+                                        anchors.fill: parent
+                                        fillMode: Image.PreserveAspectFit
+                                        asynchronous: false
+                                        cache: true
+                                        visible: index === Math.round(pain.cm_frame_index)
+                                        source: "file:///" + String(modelData).replace(/\\/g, "/")
+                                    }
+                                }
                             }
                         }
                     }
@@ -2197,9 +1312,25 @@ ApplicationWindow {
                 property var cov: JSON.parse(String(pain.coverage_json || "{}"))
                 property var stages: cov.stages || []
                 property var refs: cov.references || []
-                property var rows: (cov.rows || []).filter(function (r) {
-                    return coverageShowAll.checked || r.verdict !== "no verdict"
-                })
+                property var rows: {
+                    var rs = (cov.rows || []).filter(function (r) {
+                        return coverageShowAll.checked || r.verdict !== "no verdict"
+                    })
+                    // Phase 146b: by source figure, then measurement / NASA's printed prediction / verification;
+                    // a family (Phase 145d) stays together, its parent before the cases derived from it
+                    if (coverageByFigure.checked) {
+                        var order = { "measurement": 0, "nasa": 1, "verification": 2 }
+                        rs = rs.slice().sort(function (a, b) {
+                            if (a.figure !== b.figure) return a.figure < b.figure ? -1 : 1
+                            if (a.reference !== b.reference) return order[a.reference] - order[b.reference]
+                            if ((a.family || "") !== (b.family || "")) return (a.family || "") < (b.family || "") ? -1 : 1
+                            var da = (a.derived_from || "").length > 0, db = (b.derived_from || "").length > 0
+                            if (da !== db) return da ? 1 : -1
+                            return a.id < b.id ? -1 : (a.id > b.id ? 1 : 0)
+                        })
+                    }
+                    return rs
+                }
                 property real labelW: 190
                 property real verdictW: 130
                 property real colW: Math.max(40, (width - labelW - verdictW - 16) / Math.max(1, stages.length))
@@ -2235,7 +1366,7 @@ ApplicationWindow {
                                 color: root.ink
                             }
                             Text {
-                                text: "Each bar spans the stages of the program chain a case runs: from the stage its given input enters at to the stage of the quantity it compares (§2.13 Chain span). Its colour is what it is compared with; only cases compared with measurement or NASA's printed prediction carry a verdict. Verdicts are the recorded snapshot; n/N = rows within the case's own criterion (for a case without a verdict, not a pass). Click a row to open the case in the Validation tab."
+                                text: "Each bar spans the stages of the program chain a case runs: from the stage its given input enters at to the stage of the quantity it compares (§2.13 Chain span). Its colour is what it is compared with; only cases compared with measurement or NASA's printed prediction carry a verdict. Verdicts are the recorded snapshot; n/N = rows within the case's own criterion (for a case without a verdict, not a pass). A thin bar is computed from another case (a sum or a variant); \"method limit\" means NASA's own printout misses the same gate. Click a row to open the case in the Validation tab."
                                 color: root.muted
                                 font.pixelSize: 11
                                 wrapMode: Text.WordWrap
@@ -2246,6 +1377,11 @@ ApplicationWindow {
                                 CheckBox {
                                     id: coverageShowAll
                                     text: "Show cases without a verdict (pale)"
+                                    font.pixelSize: 11
+                                }
+                                CheckBox {
+                                    id: coverageByFigure
+                                    text: "Order by source figure"
                                     font.pixelSize: 11
                                 }
                                 Repeater {
@@ -2332,7 +1468,7 @@ ApplicationWindow {
                                 Rectangle {
                                     x: coveragePage.labelW + modelData.from * coveragePage.colW + 3
                                     width: (modelData.to - modelData.from + 1) * coveragePage.colW - 6
-                                    height: 12
+                                    height: (modelData.derived_from || "").length > 0 ? 7 : 12   // Phase 145d: derived, thinner
                                     radius: 2
                                     anchors.verticalCenter: parent.verticalCenter
                                     color: Qt.rgba(covRow.base.r, covRow.base.g, covRow.base.b, covRow.pale ? 0.25 : 0.9)
@@ -2343,6 +1479,7 @@ ApplicationWindow {
                                     x: coveragePage.labelW + coveragePage.stages.length * coveragePage.colW + 8
                                     anchors.verticalCenter: parent.verticalCenter
                                     text: modelData.verdict + (modelData.points.length > 0 ? " " + modelData.points : "")
+                                          + (modelData.method_limit ? " · method limit" : "")
                                     font.pixelSize: 10
                                     color: coveragePage.verdictColour(modelData.verdict)
                                 }
@@ -2357,6 +1494,10 @@ ApplicationWindow {
                                                   + coveragePage.stages[modelData.from] + " → "
                                                   + coveragePage.stages[modelData.to] + "; compared with "
                                                   + coveragePage.refLabel(modelData.reference)
+                                                  + (modelData.figure && modelData.figure.length > 0 ? "\nsource: " + modelData.figure : "")
+                                                  + (modelData.family && modelData.family.length > 0 ? "\nfamily: " + modelData.family : "")
+                                                  + (modelData.derived_from && modelData.derived_from.length > 0 ? " (computed from " + modelData.derived_from + ")" : "")
+                                                  + (modelData.method_limit ? "\nmethod limit: NASA's own printout misses the same gate" : "")
                                     onClicked: {
                                         Julia.select_validation_case_from_qml(modelData.id)
                                         tabs.currentIndex = 1

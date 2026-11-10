@@ -1,4 +1,4 @@
-# Phase 96 — NASA's band-centre η_n rule as the default (IMPLEMENTATION_PLAN.md §8am; 96b criterion fixed 2026-10-30
+# Phase 96 — NASA's band-centre η_n rule as the default (COMPLETED_PHASES.md §8am; 96b criterion fixed 2026-10-30
 # before the run). Eq. (77) for each cabin mode at the nominal 1/3-octave centre holding the mode, for both ω and the trim
 # conductance (Phase 95: 45/46 App. B modes with NASA's printed admittance).
 

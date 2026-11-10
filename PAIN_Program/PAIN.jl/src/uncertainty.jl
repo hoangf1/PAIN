@@ -163,6 +163,13 @@ function uncertainty_budget(context::Symbol=:testarticle;
             "BBN H1 residual gradient ratio — bounding case only (31c), not Monte-Carlo sampled",
             "assumed", :bounding, Float64[], String[]))
         push!(notes, "Source residuals: amplitude/polar/Pereira ±1.7 dB marked not registered: excluded; phase via 31c bounding cases.")
+        # Phase 140d (2026-11-10; decided by Claude under the author's delegation): the CYL2D grid on a small cabin.
+        push!(rows, UncertaintyBudgetRow(
+            "cyl2d_grid", NaN, NaN, NaN,
+            "Phase 140c bound: CYL2D on NY 8–12 with node rules 0.40h–0.55h moves the tones of the 2.64 m default " *
+            "aircraft by 0.6 / 3.1 / 9.9 / 4.8 / 6.3 dB at H1–H5 (phase140c_grid_bound.md); stated, not sampled",
+            "assumed", :bounding, Float64[], String[]))
+        push!(notes, "CYL2D grid (Phase 140d): a stated bound on a small cabin, up to 9.9 dB at H3; not in the Monte Carlo band.")
     else
         push!(notes, "Source-side residuals of phases 24–28 do not apply to the test-article coverage check.")
         push!(notes, "NASA's Phase III value η_T = 0.5 (CR-3813 p. E-24, `phase3_trim` default) lies outside the registered 0.01–0.10 range; the pre-registered range is used unchanged.")
@@ -224,7 +231,7 @@ function build_testarticle_cache(; n_harmonics::Int=3, bpf_Hz::Float64=200.0,
     structural0 = build_structural_modes(fuse; structural_solver=:appd, n_keep=32)
     acoustic_by_tol = Dict{Float64,Cyl2DResult}()
     for t in node_tols
-        acoustic_by_tol[Float64(t)] = cyl2d_modes(56.6; n_modes=20, NY=10, c0=340.0, node_tol=Float64(t))
+        acoustic_by_tol[Float64(t)] = cyl2d_modes(56.6; n_modes=20, NY=10, c0=340.0, node_tol=Float64(t), rule=:threshold)   # the inferred rule's window (13a a); the printed rule has no node choice (Phase 140)
     end
     ΔA = (π * fuse.a / 18)^2
     # Blade count for the e11 / CR-3813 path: 3-bladed Hartzell (data/cr3813/e11_freefield_measured_A.csv
@@ -256,7 +263,7 @@ function build_aircraft_cache(aircraft_json::AbstractString;
     ny = r0.acoustic.NY
     for t in node_tols
         acoustic_by_tol[Float64(t)] = cyl2d_modes_solvable(fuse.theta0_deg; n_modes=20, NY=ny,
-                                                            c0=340.0, node_tol=Float64(t))
+                                                            c0=340.0, node_tol=Float64(t), rule=:threshold)
     end
     ΔA = (π * fuse.a / 18)^2
     return UncertaintyChainCache(fuse, prop, ff_free, ff_free.bpf_Hz, n_harmonics, structural0,

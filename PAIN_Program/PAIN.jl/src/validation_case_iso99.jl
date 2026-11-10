@@ -1,5 +1,5 @@
 # Phase 99 — did the program that produced CR-3813's printed runs already use the band-centre η_n of Phase 95?
-# (IMPLEMENTATION_PLAN.md §8ao; criteria and decision fixed 2026-10-30 before the run.) Pre-correction form (floor sign
+# (COMPLETED_PHASES.md §8ao; criteria and decision fixed 2026-10-30 before the run.) Pre-correction form (floor sign
 # −1, printed Eq. (82), q = 0 coupled) with η_n per mode by the band rule, against CR-3813's E-16 and E-18 NASA
 # predictions, which played no part in reading the rule. Diagnostics: no verdict, outcomes recorded.
 

@@ -5,11 +5,12 @@ Half-cabin finite-difference grid (X ≥ 0), unit radius, θ measured from the b
 centerline. The floor lies on a grid line and there are NY intervals from floor to
 crown, h = (1 + cos θ0)/NY (Fig. C-3 uses NY = 10).
 
-  * a node is in the cabin when r ≤ 1 + 0.4h and above the floor (inferred rule; any
-    value in 0.31h–0.47h gives the Fig. C-3 row counts 3,5,6,6,7,7,7,7,7,7,6). NASA's printed grids of
-    CR-172428 App. C need 0.43h–0.50h at 50° (NY = 11) and 0.40h–0.55h at 73.7° (NY = 8); the rule
-    "0.45h, NY = 10 else the next grid that solves" was tested and not met (Phase 105, 2026-10-30), so the
-    default is unchanged;
+  * the grid and the cabin nodes follow the rule NASA printed for this program in CR-165869 pp. 60–62 (default since
+    Phase 140, 2026-11-10; `pain_settings().cyl2d_grid_rule = :printed`): NY = NK = Integral Part[7(1 + cos θ0)]
+    intervals floor to crown, every point with r ≤ 1, and on each grid row and column the nearer to the wall of the
+    last point inside and the first point outside. At 56.6° this is NY = 10 and exactly the nodes of the earlier rule
+    (r ≤ 1 + 0.4h, inferred from the Fig. C-3 row counts 3,5,6,6,7,7,7,7,7,7,6), which stays available as
+    `cyl2d_grid_rule = :threshold` with `node_tol`;
   * Eq. (C.1) at every cabin node (interior and boundary);
   * Eq. (C.2) at every boundary node with θ_mn of the node, θ_mn set to 0 below θ0;
   * the two missing equations: zero tangential gradient at the boundary points with two
@@ -114,15 +115,46 @@ struct _CylGrid
     incab::Matrix{Bool}   # index [m+1, n+1], m = 0..M, n = 0..NY
 end
 
-function _build_grid(θ0::Float64, NY::Int; node_tol::Float64=0.4)
+"""NK of CR-165869 p. 60: grid intervals from floor to crown, Integral Part[7(1 + cos θ0)] (Phase 140)."""
+cyl2d_printed_NK(theta0_deg::Real) = floor(Int, 7 * (1 + cosd(float(theta0_deg))) + 1e-9)
+
+"""The grid size used when `NY = 0` is asked for: the printed NK under the printed rule, else the paper's 10."""
+_cyl2d_default_NY(theta0_deg::Real, rule::Symbol) = rule === :printed ? cyl2d_printed_NK(theta0_deg) : 10
+
+function _build_grid(θ0::Float64, NY::Int; node_tol::Float64=0.4, rule::Symbol=pain_settings().cyl2d_grid_rule)
     h = (1 + cos(θ0)) / NY
     yfloor = -cos(θ0)
     M = ceil(Int, 1.6 / h)
     incab = falses(M + 1, NY + 1)
-    for m in 0:M, n in 0:NY
-        x = m * h
-        y = yfloor + n * h
-        incab[m+1, n+1] = hypot(x, y) <= 1 + node_tol * h
+    r(m, n) = hypot(m * h, yfloor + n * h)
+    if rule === :threshold
+        for m in 0:M, n in 0:NY
+            incab[m+1, n+1] = r(m, n) <= 1 + node_tol * h
+        end
+    elseif rule === :printed
+        # CR-165869 pp. 60–62: every point inside; on each row and column the nearer of the last point inside and the
+        # first point outside the wall is a cabin point too.
+        tol = 1e-12
+        inside(m, n) = r(m, n) <= 1 + tol
+        d(m, n) = abs(1 - r(m, n))
+        for m in 0:M, n in 0:NY
+            incab[m+1, n+1] = inside(m, n)
+        end
+        for n in 0:NY                                    # rows Y = NY·G
+            ms = [m for m in 0:M if inside(m, n)]
+            isempty(ms) && continue
+            mi = maximum(ms)
+            mi < M && d(mi + 1, n) < d(mi, n) && (incab[mi+2, n+1] = true)
+        end
+        for m in 0:M                                     # columns X = NX·G
+            ns = [n for n in 0:NY if inside(m, n)]
+            isempty(ns) && continue
+            hi = maximum(ns); lo = minimum(ns)
+            hi < NY && d(m, hi + 1) < d(m, hi) && (incab[m+1, hi+2] = true)
+            lo > 0 && d(m, lo - 1) < d(m, lo) && (incab[m+1, lo] = true)   # below the arc, beside the floor
+        end
+    else
+        error("CYL2D: unknown grid rule $(rule) (:printed or :threshold)")
     end
     return _CylGrid(h, NY, θ0, yfloor, incab)
 end
@@ -281,10 +313,11 @@ Cabin acoustic modes of CR-3813 Appendix C for a = 1 m, q = 0. `NY` is the numbe
 intervals from floor to crown (Fig. C-3 uses 10). `c0` converts eigenvalues to Hz
 (use `TABLE_C1_C0` = 341 m/s to compare with Table C-1).
 """
-function cyl2d_modes(theta0_deg::Real; n_modes::Int=20, NY::Int=10, c0::Float64=340.0,
-                     node_tol::Float64=pain_settings().cyl2d_node_tol)
+function cyl2d_modes(theta0_deg::Real; n_modes::Int=20, NY::Int=0, c0::Float64=340.0,
+                     node_tol::Float64=pain_settings().cyl2d_node_tol, rule::Symbol=pain_settings().cyl2d_grid_rule)
     θ0 = deg2rad(float(theta0_deg))
-    g = _build_grid(θ0, NY; node_tol=node_tol)
+    NY = NY > 0 ? NY : _cyl2d_default_NY(theta0_deg, rule)   # 0: the printed NK (Phase 140)
+    g = _build_grid(θ0, NY; node_tol=node_tol, rule=rule)
     h = g.h
     A_cab = π - θ0 + cos(θ0) * sin(θ0)         # V/(a²L), Eq. (C.11)
 
@@ -395,7 +428,9 @@ Production grid for any floor angle (Q60, 2026-10-29): App. C on the requested `
 is solvable, otherwise on the next larger NY that is (B_E non-singular, kept modes real), with a warning. The grid
 used is `result.NY`. For θ0 = 56.6° this is NY = 10 unchanged; NY = 10 has no solution at e.g. θ0 = 40° or 45.3°.
 """
-function cyl2d_modes_solvable(theta0_deg::Real; NY::Int=10, NY_max::Int=NY + pain_settings().cyl2d_ny_extra, kw...)
+function cyl2d_modes_solvable(theta0_deg::Real; NY::Int=0, NY_max::Int=0, kw...)
+    NY = NY > 0 ? NY : _cyl2d_default_NY(theta0_deg, get(kw, :rule, pain_settings().cyl2d_grid_rule))   # Phase 140
+    NY_max = NY_max > 0 ? NY_max : NY + pain_settings().cyl2d_ny_extra
     for ny in NY:NY_max
         try
             r = cyl2d_modes(theta0_deg; NY=ny, kw...)

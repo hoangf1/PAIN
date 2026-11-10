@@ -1,5 +1,5 @@
 # Phase 106 — cabin-mode frequencies with CYL2D's 2-D part at 341 m/s and the axial part at the deck's c, against the
-# cabin modes PAIN printed (IMPLEMENTATION_PLAN.md §8av; criterion fixed 2026-10-30). Held out: CR-172428 App. B p. 185
+# cabin modes PAIN printed (COMPLETED_PHASES.md §8av; criterion fixed 2026-10-30). Held out: CR-172428 App. B p. 185
 # (48 modes; two rows were seen in Phase 103). Recorded alongside, seen (post-hoc): the Merlin list (App. C p. 212) and
 # run 10's printed cabin frequencies (App. D pp. 235–236).
 

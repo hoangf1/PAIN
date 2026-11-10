@@ -9,6 +9,8 @@
     @test all(r.nominal in r.alternatives for r in act if r.type === :discrete)
     ba = PAIN.uncertainty_budget(:aircraft)
     @test any(r.name == "source_amp_residual" && r.type === :excluded for r in ba.rows)
+    # Phase 140d: the CYL2D grid bound is stated on the aircraft path, not sampled, and absent on the test article
+    @test only(r for r in ba.rows if r.name == "cyl2d_grid").type === :bounding && !any(r -> r.name == "cyl2d_grid", b.rows)
     @test_throws ErrorException PAIN.uncertainty_budget(:other)
     nom = PAIN.nominal_sample(b)
     @test Set(keys(nom)) == Set(r.name for r in act)

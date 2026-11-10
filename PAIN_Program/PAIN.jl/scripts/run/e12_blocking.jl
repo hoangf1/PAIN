@@ -48,15 +48,9 @@ measA, measB = readcurve(joinpath(data, "e12", "e12_measured_A.csv")), readcurve
 δ_dig = maximum(vcat(collect(values(δpred)), collect(values(δmeas))))
 δ_pred = maximum(values(δpred))
 
-# mean of the two passes on the union of their X values, inside both ranges
-function meancurve(A, B)
-    M = Dict{Int,Vector{Tuple{Float64,Float64,String}}}()
-    for H in 1:3
-        xs = sort(unique(vcat([p[1] for p in A[H]], [p[1] for p in B[H]])))
-        M[H] = [(x, (interp(A[H], x) + interp(B[H], x)) / 2, "mean") for x in xs if !isnan(interp(A[H], x)) && !isnan(interp(B[H], x))]
-    end
-    return M
-end
+# mean of the two passes on the union of their X values, inside both ranges: the same function as the registered case
+# (Phase 143a, 2026-11-10)
+meancurve(A, B) = PAIN._e12_mean_curve(A, B)
 predM, measM = meancurve(predA, predB), meancurve(measA, measB)
 
 # Eq. (43) on the l = 1 line: F(γ) from the test-cylinder geometry of the e11 path (run_pain_pipeline defaults)

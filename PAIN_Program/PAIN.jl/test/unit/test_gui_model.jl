@@ -121,21 +121,19 @@ end
     PAIN.gui_run_end!(obs2, "val", t1; note="ran 1 case")
     @test obs2["val_state"][] == "done"
 end
-@testset "validation tab and map refresh" begin
+@testset "validation tab and coverage refresh" begin
     obs = PAIN.make_gui_observables(; default_project=_HZ)
     r = PAIN.run_validation_gui!(obs, "BLK_P68"; figure_dir=UNIT_OUT)
     @test r !== nothing && obs["val_selected"][] == "BLK_P68" && obs["val_plot_path"][] == joinpath(UNIT_OUT, "BLK_P68.png")
     @test isfile(obs["val_plot_path"][]) && startswith(obs["val_status"][], "Done BLK_P68") && !obs["busy"][]
     @test PAIN._GUI_LAST_VERDICTS["BLK_P68"] == r.verdict
-    m = PAIN.JSON3.read(obs["map_total_json"][])
-    chip = first(c for b in m.blocks for c in b.cases if c.id == "BLK_P68")
-    @test chip.last == String(r.verdict) && chip.error_source == "run"                      # map refreshed after the run
+    @test !haskey(obs, "map_total_json")                                                     # the map was retired (Phase 147)
+    @test PAIN.JSON3.read(obs["val_info_json"][]).error_source == "run"                       # the case text shows this run
     @test PAIN.run_validation_gui!(obs, "NO_SUCH"; figure_dir=UNIT_OUT) === nothing && startswith(obs["val_status"][], "Error (NO_SUCH)")
-    obs["map_selected"][] = "T1"
+    obs["coverage_json"][] = "{}"
     PAIN.reload_validation_docs_gui!(obs)
-    @test PAIN.JSON3.read(obs["map_detail_json"][]).id == "T1" && obs["val_criterion"][] == PAIN._criterion_for("BLK_P68")
-    PAIN._refresh_map_json!(obs)
-    @test PAIN.JSON3.read(obs["map_total_json"][]).id == "total"
+    @test PAIN.JSON3.read(obs["val_info_json"][]).id == "BLK_P68" && obs["val_criterion"][] == PAIN._criterion_for("BLK_P68")
+    @test !isempty(PAIN.JSON3.read(obs["coverage_json"][]).rows)                              # the Coverage tab re-read §2.13
     saved = copy(PAIN.VALIDATION_CASE_ORDER)
     try                                                                                     # run-all over a two-case order
         empty!(PAIN.VALIDATION_CASE_ORDER); append!(PAIN.VALIDATION_CASE_ORDER, ["MRP_D1", "CABIN_GEOM_HAND"])

@@ -10,9 +10,9 @@
 # Read-only on the repository: it renders what the documents and the recorded snapshot already say. It runs no
 # validation case and writes only under the output directory.
 #
-#   julia --project=rea-work/PAIN.jl rea-work/site/build_site.jl              # build and open in the browser
-#   julia --project=rea-work/PAIN.jl rea-work/site/build_site.jl --no-open    # build only
-#   julia --project=rea-work/PAIN.jl rea-work/site/build_site.jl --out DIR    # build somewhere else
+#   julia --project=PAIN_Program/PAIN.jl PAIN_Program/site/build_site.jl              # build and open in the browser
+#   julia --project=PAIN_Program/PAIN.jl PAIN_Program/site/build_site.jl --no-open    # build only
+#   julia --project=PAIN_Program/PAIN.jl PAIN_Program/site/build_site.jl --out DIR    # build somewhere else
 ENV["QT_QPA_PLATFORM"] = get(ENV, "QT_QPA_PLATFORM", "offscreen")
 
 using Pkg
@@ -244,50 +244,34 @@ function resolve_internal(html::AbstractString, ids::Set{String})
     end)
 end
 
-# ---- the stage diagrams, generated from the validation map ------------------------------------------------------
+# ---- the stage diagrams, generated from the chain stages (Phase 147b, 2026-11-10) ---------------------------------
 _mlabel(s) = replace(String(s), "\"" => "'")
 
 """
-One mermaid flowchart for a stage, built from `VALIDATION_GUIDELINE.md` §2.13 — the same fields the GUI map reads,
-so the picture cannot drift from the map. Chain blocks in Feeds order, check blocks dashed off the block they
-branch from, each labelled with how many of its cases are met.
+One mermaid flowchart for a site stage: the program's nine chain stages (`PAIN.CHAIN_STAGES`, the stages of the
+coverage chart) left to right, the ones this site stage covers highlighted, each labelled with how many of this site
+stage's verdict cases end there (met · not met). Built from the `**Chain span:**` fields of §2.13, as the chart is.
 """
-function stage_diagram(blocks, rec, group_ids::Set{String}, title_of::Dict{String,String})
-    isempty(blocks) && return ""
+function stage_diagram(chain::Vector{Int}, cases, rec)
+    isempty(chain) && return ""
     io = IOBuffer()
     write(io, "flowchart LR\n")
-    own = Set(b.id for b in blocks)
-    for b in blocks
-        label = _mlabel(b.title)
-        if b.role == "check"
-            on = [c for c in b.cases if PAIN.on_validation_map(c; rec)]
-            met = count(c -> rec[c].verdict == "met", on)
-            label *= "<br/><small>$(met) met · $(length(on) - met) not met</small>"
+    ns = length(PAIN.CHAIN_STAGES)
+    for k in 1:ns
+        label = _mlabel(PAIN.CHAIN_STAGES[k])
+        if k in chain
+            ending = [c for (c, _) in cases if PAIN.CASE_INFO[c].span_to == k]
+            met = count(c -> rec[c].verdict == "met", ending)
+            isempty(ending) || (label *= "<br/><small>$(met) met · $(length(ending) - met) not met</small>")
         end
-        shape = b.role == "input" ? ("([\"", "\"])") :
-                b.role == "output" ? ("[\"", "\"]") : ("[\"", "\"]")
-        write(io, "  ", b.id, shape[1], label, shape[2], "\n")
+        write(io, "  S", k, "[\"", label, "\"]\n")
     end
-    external = String[]
-    for b in blocks, f in b.feeds
-        if f in own
-            target = only(x for x in blocks if x.id == f)
-            write(io, "  ", b.id, target.role == "check" ? " -.-> " : " --> ", f, "\n")
-        elseif haskey(title_of, f) && !(f in external)
-            push!(external, f)
-            write(io, "  ", f, "[\"", _mlabel(title_of[f]), "\"]:::ext\n")
-            write(io, "  ", b.id, " --> ", f, "\n")
-        end
+    write(io, "  ", join(("S$k" for k in 1:ns), " --> "), "\n")
+    for k in 1:ns
+        write(io, "  class S", k, k in chain ? " here" : " ext", "\n")
     end
+    write(io, "  classDef here fill:#eef4fd,stroke:#5b8fd6\n")
     write(io, "  classDef ext fill:#f2f4f7,stroke:#aab3bf,color:#5b6b7c,stroke-dasharray:3 3\n")
-    for b in blocks
-        cls = b.role == "input" ? "inp" : b.role == "output" ? "outp" : b.role == "check" ? "chk" : "fn"
-        write(io, "  class ", b.id, " ", cls, "\n")
-    end
-    write(io, "  classDef inp fill:#eef4fd,stroke:#5b8fd6\n")
-    write(io, "  classDef fn fill:#ffffff,stroke:#44506080\n")
-    write(io, "  classDef outp fill:#eef7f0,stroke:#4a8f5b\n")
-    write(io, "  classDef chk fill:#fdf6ea,stroke:#c08a3e\n")
     return String(take!(io))
 end
 
@@ -297,14 +281,16 @@ diagram_html(src, caption) = isempty(src) ? "" :
 
 # ---- the page's sections --------------------------------------------------------------------------------------
 """
-A stage of the read-through: the map groups it covers, the METHODOLOGY sections its prose comes from, and which
-bold parts of those sections to show. Everything else in those sections stays in the document.
+A stage of the read-through: the chain stages it covers (indices into `PAIN.CHAIN_STAGES`), the METHODOLOGY sections
+its prose comes from, and which bold parts of those sections to show. Everything else in those sections stays in the
+document. A case is shown under the site stage of the last chain stage it reaches; a case that runs from the skin
+field or earlier to the interior tones or later is shown under "end to end" (`site_stage_of`).
 """
 struct Stage
     id::String
     title::String
     lead::String
-    groups::Vector{String}            # map group ids
+    chain::Vector{Int}                # chain stages (PAIN.CHAIN_STAGES) whose cases end here
     prose::Vector{Pair{String,Vector{String}}}   # METHODOLOGY heading => bold markers to keep
 end
 
@@ -313,45 +299,56 @@ const PARTS = ["Validation chunk", "What it does", "Key equation", "Chain", "Cla
 const STAGES = Stage[
     Stage("source", "Stage 1 — The free-field source",
           "Where the sound starts: blade loads to the pressure at 160 points on the fuselage skin.",
-          ["G_AIR", "G_FF"],
+          [1, 2, 3],
           ["2.3 Airfoil BEMT+F1A" => PARTS,
            "2.2 NASA measured data (validation test only)" => PARTS]),
     Stage("blocking", "Stage 2 — Blocking, Eq. (43)",
           "The fuselage reflects the incoming sound, so the skin pressure is above the free field.",
-          ["G_GRID"],
+          [4],
           ["3. Stage 2: blocking (Eq. 43)" => PARTS]),
     Stage("cyl2d", "Stage 3 — Cabin acoustic modes (CYL2D)",
           "The cross-section eigenproblem that gives the cabin its acoustic modes.",
-          ["G_CYL"],
+          [6],
           ["4. Stage 3: cabin acoustic modes (CYL2D)" => PARTS]),
     Stage("mrp", "Stage 4 — Structural modes (MRP)",
           "The shell-and-floor modes the exterior pressure drives.",
-          ["G_MRP"],
+          [5],
           ["5. Stage 4: structural modes (MRP)" => PARTS]),
     Stage("trim", "Stage 5 — Trim and loss",
           "What the sidewall treatment transmits and what the structure and cabin absorb.",
-          ["G_TRIM"],
+          [7],
           ["6.1 Trim and loss" => PARTS]),
     Stage("painmain", "Stage 6 — PAIN main",
           "Coupling the two mode sets and summing the tones: Eq. (8).",
-          ["G_PAIN"],
+          [8],
           ["6.2 PAIN main (coupling, Eq. 8, broadband)" => PARTS]),
     Stage("endtoend", "Stage 7 — Interior SPL, end to end",
           "The whole chain run against what NASA printed and what was measured. This is where PAIN's functionality stands or falls.",
-          ["G_VAL"],
+          [4, 5, 6, 7, 8, 9],
           ["6.3 End-to-end comparisons" => PARTS]),
     Stage("metrics", "Stage 8 — Metrics",
           "A-weighting and SIL on the interior spectrum.",
-          String[],
+          [9],
           ["7. Stage 6: metrics" => PARTS]),
 ]
 
-"""Verdict-bearing cases of a stage, in map order, with the block they hang from."""
-function stage_cases(blocks, rec)
+"""The site stage a case is shown under: "endtoend" for a case that runs from the skin field or earlier to the
+interior tones or later, otherwise the site stage of the last chain stage it reaches."""
+function site_stage_of(cid)
+    info = PAIN.CASE_INFO[cid]
+    info.span_from <= 4 && info.span_to >= 8 && return "endtoend"
+    return only(st.id for st in STAGES if st.id != "endtoend" && info.span_to in st.chain)
+end
+
+"""Verdict-bearing cases of a stage, in the Validation tab's order, each with its chain span and what it is compared with."""
+function stage_cases(st, rec)
     out = Tuple{String,String}[]
-    for b in blocks, cid in b.cases
-        PAIN.on_validation_map(cid; rec) || continue
-        push!(out, (cid, b.title))
+    for cid in PAIN.validation_map_case_order()
+        PAIN.has_verdict(cid; rec) || continue
+        site_stage_of(cid) == st.id || continue
+        info = PAIN.CASE_INFO[cid]
+        span = PAIN.CHAIN_STAGES[info.span_from] * " → " * PAIN.CHAIN_STAGES[info.span_to]
+        push!(out, (cid, span * " · " * PAIN.reference_label(info.reference)))
     end
     return out
 end
@@ -377,9 +374,8 @@ function case_card(state, cid, block_title, rec)
     """
 end
 
-function render_stage(state, st::Stage, mblocks, rec, title_of, method)
-    blocks = [b for b in mblocks if b.group in st.groups]
-    cases = stage_cases(blocks, rec)
+function render_stage(state, st::Stage, rec, method)
+    cases = stage_cases(st, rec)
     met = count(c -> rec[c[1]].verdict == "met", cases)
 
     prose = IOBuffer()
@@ -391,13 +387,13 @@ function render_stage(state, st::Stage, mblocks, rec, title_of, method)
         write(prose, shape_claims(fix_refs(state, md2html(part))))
     end
 
-    diag = diagram_html(stage_diagram(blocks, rec, Set(st.groups), title_of),
-                        "generated from VALIDATION_GUIDELINE.md §2.13 — the fields the GUI map reads")
+    diag = diagram_html(stage_diagram(st.chain, cases, rec),
+                        "generated from VALIDATION_GUIDELINE.md §2.13 — the chain spans the coverage chart reads")
 
     cards = isempty(cases) ? """
-      <p class="note">No case here carries a verdict. The checks on these blocks compare with another method, an
-      identity or a property of a printed table, so under the rule above they are verification, not validation.
-      The evidence for this stage sits on the check blocks of the stages it feeds.</p>
+      <p class="note">No case ending at this stage carries a verdict. The checks here compare with another method,
+      an identity or a property of a printed table, so under the rule above they are verification, not validation.
+      The evidence for this stage is in the cases that run through it to a later stage.</p>
       """ : "<div class=\"cards\">" * join([case_card(state, cid, bt, rec) for (cid, bt) in cases], "\n") * "</div>"
 
     body = """
@@ -638,8 +634,6 @@ function build(opts)
 
     PAIN.reload_validation_docs!()
     rec = PAIN.recorded_case_errors()
-    total = only(m for m in PAIN.VALIDATION_MAPS if m.id == "total")
-    title_of = Dict(b.id => b.title for b in total.blocks)
     method = doc_sections(read(METHOD_MD, String))
     flow = read(FLOW_MD, String)
 
@@ -670,7 +664,7 @@ function build(opts)
     isempty(rule) && @warn "verdict rule not found in METHODOLOGY.md"
     glance = fix_refs(state, md2html(get(method, "1. The pipeline at a glance", "")))
 
-    all_cases = [c for b in total.blocks for c in b.cases if PAIN.on_validation_map(c; rec)]
+    all_cases = [c for c in PAIN.validation_map_case_order() if PAIN.has_verdict(c; rec)]
     n_met = count(c -> rec[c].verdict == "met", all_cases)
 
     io = IOBuffer()
@@ -702,7 +696,7 @@ function build(opts)
 
     navs = [("start", "What counts as proof"), ("pipeline", "The pipeline at a glance")]
     for st in STAGES
-        r = render_stage(state, st, total.blocks, rec, title_of, method)
+        r = render_stage(state, st, rec, method)
         write(io, r.body)
         push!(navs, (st.id, st.title))
         println("  ", rpad(st.id, 10), r.n, " verdict cases (", r.met, " met)")

@@ -73,20 +73,9 @@ function gui_mark_snapshot!(obs::AbstractDict, panel::AbstractString, id::Abstra
     return nothing
 end
 
-function _refresh_map_json!(obs::AbstractDict)
-    obs["map_total_json"][] = validation_map_json("total";
-        last=_GUI_LAST_VERDICTS, session_errors=_GUI_LAST_ERRORS)
-    return nothing
-end
-
-"""Re-parse §2.13 and refresh map / selected-case Observables (map tab open / doc edit)."""
+"""Re-parse §2.13 and refresh the selected-case and coverage Observables (Coverage tab open / doc edit)."""
 function reload_validation_docs_gui!(obs::AbstractDict)
     reload_validation_docs!()
-    _refresh_map_json!(obs)
-    sid = String(obs["map_selected"][])
-    if !isempty(sid)
-        obs["map_detail_json"][] = case_info_json(sid; session_errors=_GUI_LAST_ERRORS)
-    end
     vsid = String(obs["val_selected"][])
     if !isempty(vsid)
         obs["val_info_json"][] = case_info_json(vsid; session_errors=_GUI_LAST_ERRORS)
@@ -172,15 +161,7 @@ function make_gui_observables(; default_project::AbstractString=gui_default_proj
         "val_criterion" => Observable(_criterion_for("CYL2D_C1")),
         "val_info_json" => Observable(case_info_json("CYL2D_C1"; session_errors=_GUI_LAST_ERRORS)),
         "val_report_path" => Observable(""),
-        # Task C — Validation map tab (single total flowchart)
-        "map_total_json" => Observable(validation_map_json("total";
-            last=_GUI_LAST_VERDICTS, session_errors=_GUI_LAST_ERRORS)),
-        "map_selected" => Observable(""),
-        "map_selected_block" => Observable(""),
-        "map_detail_json" => Observable("{}"),
-        "map_content_width" => Observable(0.0),
-        "map_view_width" => Observable(0.0),
-        "smoke_map_png" => Observable(""),
+        "smoke_cabin_png" => Observable(""),    # Phase 151d: two offscreen shots of the playing cabin-mode animation
         "smoke_runbox_png" => Observable(""),   # Phase 114: offscreen shot of the Validation tab run-status box
         "smoke_inputs_png" => Observable(""),   # Phase 127: offscreen shots of the Run tab's input tabs
         "smoke_coverage_png" => Observable(""), # Phase 134: offscreen shot of the Coverage tab
@@ -275,12 +256,12 @@ function gui_save_project!(obs::AbstractDict, path::AbstractString)
 end
 
 function _format_val_case_list()
-    # Map → block order, then the cases on no block; last column says where the case is listed (caseIdFromRow uses col 0).
+    # §2.13 block order, then the cases on no block; last column says where the case is listed (caseIdFromRow uses col 0).
     lines = String[]
     for id in validation_map_case_order()
         c = VALIDATION_CASES[id]
         grey = isempty(c.unavailable_reason) ? "" : " [unavailable]"
-        place = on_validation_map(id) ? "on the validation map" : "no verdict (NO_VERDICT_CASES.md)"
+        place = has_verdict(id) ? "has a verdict (coverage chart)" : "no verdict (NO_VERDICT_CASES.md)"
         push!(lines, "$(c.id)\t$(c.title)\tphase $(c.phase)\t$(c.label)$(grey)\t$(place)")
     end
     return join(lines, "\n")
@@ -330,10 +311,7 @@ function run_validation_gui!(obs::AbstractDict, id::AbstractString; figure_dir::
         _GUI_LAST_VERDICTS[String(id)] = result.verdict
         _GUI_LAST_ERRORS[String(id)] = case_error_summary(result, case.plot_spec)
         obs["val_info_json"][] = case_info_json(id; session_errors=_GUI_LAST_ERRORS)
-        if String(obs["map_selected"][]) == String(id)
-            obs["map_detail_json"][] = case_info_json(id; session_errors=_GUI_LAST_ERRORS)
-        end
-        _refresh_map_json!(obs)
+        haskey(obs, "coverage_json") && (obs["coverage_json"][] = coverage_json())
         track && gui_run_end!(obs, "val", t0; note="$id $(result.verdict)")
         return result
     catch e

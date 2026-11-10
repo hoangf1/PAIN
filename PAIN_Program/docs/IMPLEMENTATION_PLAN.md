@@ -4,7 +4,7 @@ Single source of truth for building this project without re-deriving context in 
 
 **Read first:** §0 of this file · `METHODOLOGY.md` · `VALIDATION_GUIDELINE.md` · `flowchart.md` · `README.md`  
 **Code:** `PAIN.jl/` (Julia package; `Manifest.toml` pins CCBlade 1.0.0 and AcousticAnalogies 1.0.0)  
-**Source PDFs (in `rea-work\references`, moved there 2026-10-21):** `Pain Methodology.pdf` (CR-3813), `Pain User Manual.pdf` (CR-172425), `Pain Validation.pdf` (CR-172428), `NASA Report 996.pdf`, `Pereira.pdf`. Text extractions: `docs/extracted/`. CR-3813 App. E PDF page = printed page E-n + 116 (E-19 → PDF 135).
+**Source PDFs (in `PAIN_Program\references`, moved there 2026-10-21):** `Pain Methodology.pdf` (CR-3813), `Pain User Manual.pdf` (CR-172425), `Pain Validation.pdf` (CR-172428), `NASA Report 996.pdf`, `Pereira.pdf`. Text extractions: `docs/extracted/`. CR-3813 App. E PDF page = printed page E-n + 116 (E-19 → PDF 135).
 
 ## Contents
 
@@ -40,7 +40,7 @@ Single source of truth for building this project without re-deriving context in 
 | R4 | **Labels.** Use the validity classes of §1. Never claim NASA experimental validation for the CCBlade/F1A free field. T1 and T2 are not validation. Fuselage scattering and reflection stay V-ASSUMED. |
 | R5 | **Docs in the same session (CLAUDE.md).** Every code or result change updates `README.md`, `docs/flowchart.md`, `docs/IMPLEMENTATION_PLAN.md`, `docs/METHODOLOGY.md`, `docs/VALIDATION_GUIDELINE.md`. When a step is done: tick it and date it; when every step of a phase is done, move the phase to the bottom of `COMPLETED_PHASES.md` (moved out of this file 2026-10-29), and its queue row to that file's §3. |
 | R6 | **Line endings are preserved.** LF: `IMPLEMENTATION_PLAN.md`, `README.md`, `flowchart.md`. CRLF: `METHODOLOGY.md`, `VALIDATION_GUIDELINE.md`, `test/runtests.jl`, `test/unit/test_pain_core.jl`; `src/pain_core.jl` is LF (checked 2026-11-02). Any other file: check with `file <path>` before editing and keep what is there. |
-| R7 | **Commands.** PowerShell, from `C:\Users\FrancisHoang\git\PAIN\rea-work\PAIN.jl`, one command per line, `julia --project=. ...`. If Julia cannot run in the agent's environment, hand the commands to the author and wait for the output. **Never write a number that no run produced.** |
+| R7 | **Commands.** PowerShell, from `PAIN_Program\PAIN.jl` (repository root first), one command per line, `julia --project=. ...`. If Julia cannot run in the agent's environment, hand the commands to the author and wait for the output. **Never write a number that no run produced.** |
 | R8 | **Reports are generated, not typed.** Each run writes its report under `docs/validation_reports/<name>.md` from the script, containing: date, script name, inputs and a settings echo, the criterion quoted with its registration date, the result table, the label, and what the result does not show. |
 | R9 | **Reference data are never invented.** If a step needs a value from a figure or table that is not in `data/`, stop and add it to the data register (§2) as a request to the author. Do not estimate it from the plot. A digitization is valid only if a script located every value in the pixels of a render calibrated on labelled gridlines (§2.2), with a QA overlay and a pixel sidecar file; values typed by eye, placed on a round grid, copied from another pass or filled to satisfy a check are void (review I-03, I-05). |
 | R10 | **Wording.** Cite NASA figures and equations by number and page. Follow the paper's form, not another normalization. No "expected to fail" wording; never "until compared to ANOPP" (no ANOPP comparison will happen). Be concise. |
@@ -103,13 +103,13 @@ Recreate NASA **PAIN** (Propeller Aircraft Interior Noise) in Julia.
 
 Every reference value a remaining step compares against, where it is, and what is still to be digitized. Checked against the folder on 2026-10-21. **Rule R9 applies:** a step that needs an item marked *to do* waits until the item is done; no value is estimated from a plot inside an analysis script.
 
-All PDFs are in `C:\Users\FrancisHoang\git\PAIN\rea-work\` (bash path `rea-work/`). "PDF p." is the 1-based page index of the PDF file (what a viewer's page box and `pymupdf` `doc[p-1]` use); "printed p." is the number printed on the page. Page indices below were checked on 2026-10-21 by text search and page renders.
+All PDFs are in `PAIN_Program\references\` (bash path `PAIN_Program/references/`, from the repository root). "PDF p." is the 1-based page index of the PDF file (what a viewer's page box and `pymupdf` `doc[p-1]` use); "printed p." is the number printed on the page. Page indices below were checked on 2026-10-21 by text search and page renders.
 
 ### 2.1 Status of every data item (D-IDs are used throughout this file)
 
 | ID | Item | Status 2026-10-21 | Where it is / goes | Needed by |
 |----|------|-------------------|--------------------|-----------|
-| D-01 | BBN report PDFs | **Present** | `rea-work\references\NASA Contractor Report 158919.pdf` (103 p.), `rea-work\references\NASA Contractor Report 159124.pdf` (146 p.) | 24 |
+| D-01 | BBN report PDFs | **Present** | `PAIN_Program\references\NASA Contractor Report 158919.pdf` (103 p.), `PAIN_Program\references\NASA Contractor Report 159124.pdf` (146 p.) | 24 |
 | D-02 | BBN phase and coherence per pair, harmonic, run | **Present** (typed, exact as printed) | `data\NASA_CR-158919\bbn_phase_coherence_CR158919_appendixC.csv` (PDF p. 86–95); `data\NASA_CR-159124\bbn_phase_coherence_CR159124_appendixD.csv` (PDF p. 94–97); harmonic phase tables C-1, C-2 of CR-159124 | 24c |
 | D-03 | BBN trace velocities | **Present** | CR-158919 Tables 8, 9 (`bbn_trace_velocity_table8.csv`, `_table9.csv`); CR-159124 Tables 6, 9 | 24c |
 | D-04 | BBN microphone geometry | **Present, one gap** | CR-158919 Fig. 1 table (`bbn_microphones_fig1.csv`), CR-159124 Tables 7 (hub distances) and 8 (hub angles). **Gap: propeller rotation direction and hub position in the Fig. 1 frame → D-21** | 24b, 24c |
@@ -117,7 +117,7 @@ All PDFs are in `C:\Users\FrancisHoang\git\PAIN\rea-work\` (bash path `rea-work/
 | D-06 | BBN run conditions | **Present** | `bbn_runs_table1.csv` in both folders | 24c |
 | D-07 | Report 996 files from the sibling repository | **Present (copied 2026-10-21)**; checksums written 2026-10-21 | `data\report996\naca_4-5-08-03\` (same tree as the source: `blade_form.csv`, `propeller.yaml`, `analytical\`, `measured\`, `plots\`). Every plan reference to "`data\report996\<file>` from the data folder" means this subfolder. `CHECKSUMS.txt` SHA-256 of every file (14 files) | 25–27 |
 | D-08 | BBN longitudinal phase vs frequency | Author's Fig. 18 files valid; **Figs. 19, 20 author digitized 2026-10-21** (`Fig 19.txt`, `Fig 20.txt`; convert per I-15); agent's Fig. 18–20 files void (I-16) | `data\NASA_CR-159124\bbn_phase_vs_freq_fig{18,19,20}_*.csv` | 24e (X-EXTRAP, not blocking) |
-| D-09 | Hartzell 9333C-3 blade table | **Present 2026-10-21** (C-14): PDF downloaded, Table III typed and checked; tip beyond 40 in **not found** | `rea-work\references\Hartzell_114-8.pdf`, `data\NASA_CR-158919\hartzell_9333C_table3.csv` | 24c (blade), 24e |
+| D-09 | Hartzell 9333C-3 blade table | **Present 2026-10-21** (C-14): PDF downloaded, Table III typed and checked; tip beyond 40 in **not found** | `PAIN_Program\references\Hartzell_114-8.pdf`, `data\NASA_CR-158919\hartzell_9333C_table3.csv` | 24c (blade), 24e |
 | D-10 | Pereira Fig. 6 (acoustic spectra) | **Author digitized 2026-10-21** (raw export; convert and check per I-15; replaces C-02) | `data\pereira\pereira_fig6_peaks.csv` | 28 |
 | D-11 | Pereira Fig. 8 (tonal directivity, harmonics 1–6) | **Present 2026-10-21** (pixel digitization, `pereira_fig8_directivity.csv`, I-15 e) | `data\pereira\pereira_fig8_directivity.csv` | 28 |
 | D-12 | Pereira Fig. 9 (tonal levels, harmonics 1–10, three angles) | **Author digitized 2026-10-21** (raw export; convert and check per I-15; replaces C-01) | `data\pereira\pereira_fig9_harmonics.csv` | 28 |
@@ -152,7 +152,7 @@ Tools available: Python 3 with `pymupdf`, `numpy`, `Pillow` (`pip install pymupd
 ### 2.3 Cards: what to digitize, where, and how
 
 **C-01 · Pereira Fig. 9 · D-12 · blocks phase 28 · 1 pass + consistency check · REDO (I-04, I-05)** (`pereira_fig9_harmonics.csv`; H1 Exp φ=0 = 88.95 dB ≈ Fig.7 peak 87.2)
-- File `rea-work\Pereira.pdf`, **PDF p. 10** (printed p. 10). Caption: "Comparison of experimental, numerical, and BEMT-based phase-lock averaged tonal components at different harmonics of the blade passing frequency (BPF)".
+- File `PAIN_Program\references\Pereira.pdf`, **PDF p. 10** (printed p. 10). Caption: "Comparison of experimental, numerical, and BEMT-based phase-lock averaged tonal components at different harmonics of the blade passing frequency (BPF)".
 - Panels: (a) φ = 0° (top left), (b) φ = 20° (top right), (c) φ = 40° (bottom). Each panel has an upper bar chart, SPL (dB), y axis labelled 50 and 100, and a lower bar chart ΔSPL (dB) relative to BEMT, y −10 to 10. x: BPF harmonic number 1–10. Three bars per harmonic: BEMT (black), Numerical (red), Experimental (blue).
 - Read: top of every bar in both charts. ΔSPL bars at ±10 are clipped by the frame: flag them.
 - Target `data\pereira\pereira_fig9_harmonics.csv`, columns `panel, phi_deg, harmonic, series, SPL_dB, dSPL_vs_BEMT_dB, flag`.
@@ -175,7 +175,7 @@ Tools available: Python 3 with `pymupdf`, `numpy`, `Pillow` (`pip install pymupd
 - Dual independent hand readings on 300 dpi renders (`dig_cr3813_e21_e22_hand.py`); δ_dig = 1.00 dB on means (**PASS**). Auto pass A discarded. Files: `e21_noise_reduction_range.csv`, `e21_noise_reduction_range_B2.csv`, `e22_noise_reduction_ci.csv`.
 
 **C-06 · BBN rotation direction and hub position · D-21 · blocks 24b/24c sign · reading · relabel and finish per I-09**
-- `rea-work\references\NASA Contractor Report 158919.pdf` **PDF p. 9 (printed p. 3), Figure 1**, and `NASA Contractor Report 159124.pdf` **PDF p. 16, Figure 1**; search both texts for "rotation" first.
+- `PAIN_Program\references\NASA Contractor Report 158919.pdf` **PDF p. 9 (printed p. 3), Figure 1**, and `NASA Contractor Report 159124.pdf` **PDF p. 16, Figure 1**; search both texts for "rotation" first.
 - Read: (1) the direction of propeller rotation as drawn or stated (seen from the front or from the side the microphones are on; say which view); (2) the hub position in the Fig. 1 frame (x along the fuselage, y as printed). If the hub position is not printed, compute it from the Fig. 1 coordinates of mics 3–6 (all at x = 0; y = 0.584, 0.279, 0, −0.305 m) and the CR-159124 Table 7 hub distances (1.33, 1.31, 1.36, 1.52 m), least squares, and report the residual; check the result against Table 8 (13.3°, 11.8°, 10.4°).
 - Target `data\NASA_CR-158919\bbn_geometry.csv`, rows `quantity, value, unit, source`: `rotation_direction`, `view`, `hub_x_m`, `hub_y_m`, `hub_offset_from_skin_m`, `fit_residual_m`. If the direction is not printed anywhere, write `not printed`; 24b then runs both signs and 24c reports both.
 
@@ -209,7 +209,7 @@ Tools available: Python 3 with `pymupdf`, `numpy`, `Pillow` (`pip install pymupd
 Target names `data\report996\tr996_fig<NN><panel>_<content>.csv`, columns `x, y, series, units` with the axis names in the header. The page indices of Figs. 12–14 are those used by `data\report996\tools\digitize_tr996.py` (Fig. 12(a) p. 13, 12(b) p. 14, 13(a) p. 15, 14(a) p. 16).
 
 **C-14 · Hartzell 9333C-3 blade data · D-09 · obtain, then type · done 2026-10-21**
-- Downloaded `rea-work\references\Hartzell_114-8.pdf`; Table III typed and checked → `data\NASA_CR-158919\hartzell_9333C_table3.csv`. Tip beyond 40 in: **not found** (24f).
+- Downloaded `PAIN_Program\references\Hartzell_114-8.pdf`; Table III typed and checked → `data\NASA_CR-158919\hartzell_9333C_table3.csv`. Tip beyond 40 in: **not found** (24f).
 
 ### 2.4 Present and complete (no action)
 
@@ -284,9 +284,9 @@ or the other documents points there. When a phase is done, mark it done and move
 
 If a queue item is blocked on data, skip to the next unblocked item and say which data item blocks it.
 
-**Run** (PowerShell, from `rea-work\PAIN.jl`, one command at a time; Julia must be on PATH, see `README.md` Step 0):
+**Run** (PowerShell, from `PAIN_Program\PAIN.jl`, one command at a time; Julia must be on PATH, see `README.md` Step 0):
 ```powershell
-cd C:\Users\FrancisHoang\git\PAIN\rea-work\PAIN.jl
+cd PAIN_Program\PAIN.jl
 julia --project=. -e "using Pkg; Pkg.test()"
 julia --project=. scripts/run/run_pain.jl
 julia --project=. scripts/run/run_f1a_smoke.jl
@@ -297,7 +297,7 @@ julia --project=. scripts/run/write_walkthrough.jl
 The methodology website is built from the repository root, not from `PAIN.jl` (it reads every document):
 ```powershell
 cd C:\Users\FrancisHoang\git\PAIN
-julia --project=rea-work/PAIN.jl rea-work/site/build_site.jl
+julia --project=PAIN_Program/PAIN.jl PAIN_Program/site/build_site.jl
 ```
 
 ---
@@ -344,16 +344,20 @@ Each phase is the solution of one or more entries of `ISSUES.md`; the evidence i
 
 Rules common to all: no recorded verdict, criterion, tolerance or reference file changes unless the step names it; a result that moves is recorded with its date, its before and after, and "post-hoc" where the earlier result was known; targeted testsets only (not the full `Pkg.test()`); the five documents of R5 are updated in the phase that changes code or a recorded result.
 
+**Status 2026-11-10 (overnight, decided by Claude under the author's delegation of 2026-11-10).** Done: 136e, 136f, 137b, 137c, 137d, 138a/b/d, 139a/b/b′/d, 140c/d, 141a, 141c (Report 996 part; the Pereira PER_FIG8 line is open), 141d, 144a, 144b, 145d, 147, 150c/d. Decisions and outcomes: `validation_reports/phase135_151_decisions.md`. Open: 141c Pereira line, 141e, 142, 143b–d, 145a rest, 146b/c, 148, 149a, 150a/b/e, 151a/b, regenerating the summary CSV and §0. These changes were pushed without running the full test suite or /code-review, at the author's request (2026-11-10); the next session runs the affected testsets first.
+
 ## 8by. Phase 135 — the record says one thing per case (ISSUE-002, 003, 004, 019; documents only)
 
 No run, no code. Each step replaces nothing in the record; it marks older values as superseded and points to the current one.
-- [ ] **135a R996_PHASE.** Beside 103.8° (COMPLETED_PHASES row 27; VALIDATION_GUIDELINE line 941) and 109.0° (line 941): "superseded; current 112.8°, |Δφ − 155°| = 42.2°, `report996_acoustics.md` 2026-10-28". Correct the 109° in ISSUE-001's table.
-- [ ] **135b Row 27.** Split "Fig.13a `scaled_RM_L51C27`; 23c scaled ±2 dB FAIL (5/24)" into one clause per figure: the 5/24 is Fig. 14's sample.
-- [ ] **135c Pereira.** "Superseded by Phases 74 and 76" beside the §23d result line (H1 0/9, PER_FIG7 2/3). State in the three case texts that the verdict rows are `polar_set = ncrit9`, `loads = scaled`. Remove "not computed in this pass (Fig.7 fit deferred)" from the text `scripts/run/run_pereira.jl` writes, if PER_FIG7's Δψ₁ is in `pereira_results.csv` (check first; a script text change, no re-run of the comparison).
+- [x] **135a R996_PHASE.** Beside 103.8° (COMPLETED_PHASES row 27; VALIDATION_GUIDELINE line 941) and 109.0° (line 941): "superseded; current 112.8°, |Δφ − 155°| = 42.2°, `report996_acoustics.md` 2026-10-28". Correct the 109° in ISSUE-001's table. **Done 2026-11-10:** markers added in VALIDATION_GUIDELINE (§1 table, §2.12, §2.14), METHODOLOGY, COMPLETED_PHASES and ISSUE-001's table.
+- [x] **135b Row 27.** Split "Fig.13a `scaled_RM_L51C27`; 23c scaled ±2 dB FAIL (5/24)" into one clause per figure: the 5/24 is Fig. 14's sample.
+- [x] **135c Pereira.** "Superseded by Phases 74 and 76" beside the §23d result line (H1 0/9, PER_FIG7 2/3). State in the three case texts that the verdict rows are `polar_set = ncrit9`, `loads = scaled`. Remove "not computed in this pass (Fig.7 fit deferred)" from the text `scripts/run/run_pereira.jl` writes, if PER_FIG7's Δψ₁ is in `pereira_results.csv` (check first; a script text change, no re-run of the comparison). **Done 2026-11-10:** the 21 `dpsi1_fig7` rows are in the file; the line in `run_pereira.jl` and in `pereira_forward_flight.md` now says the count comes from `PER_FIG7`.
 - [ ] **135d Cause records.** For each of the 27 not-met cases, one record: class (M, A, I, N, D, and the two new ones F form and U unexplained), one sentence, the phases that tested it, what is left; each sentence cites its report. Start from the table in ISSUE-019. **[DECIDED 2026-11-09]** the two new causes are added, and every cause is written in plain words with no letter code: old program form; PAIN's method misses the measurement; approximation in this recreation; reference data; not explained by the documents; unexplained. **[AUTHOR]** checks the cause given to each case before it is written into the case records.
-- [ ] **135e Stale numbers.** VALIDATION_GUIDELINE §1.1 `AC_C695A_DBA` "0/36" → the current record (35/36, post-hoc, Phase 123). Any other number in §1 – §2.12 that disagrees with `case_error_summary.csv` is listed, then corrected with a date.
+- [x] **135e Stale numbers.** VALIDATION_GUIDELINE §1.1 `AC_C695A_DBA` "0/36" → the current record (35/36, post-hoc, Phase 123). Any other number in §1 – §2.12 that disagrees with `case_error_summary.csv` is listed, then corrected with a date. **Done 2026-11-10:** `validation_reports/phase135_stale_numbers.md`.
 
-- [ ] **135f The chart rule, all 43 cases [DECIDED 2026-11-09].** One table: case, runs the shipped code (yes / no, with the option or form that differs), inputs complete (yes / no, with the missing input), compared with (measurement / NASA's program output / other). A case with a "no" or "other" leaves the chart. The sorting of all 43 is the table in ISSUE-029, **[DECIDED 2026-11-09]** (author: "Yes, use it"): 18 keep, 2 inside a parent case, 5 to check, 15 diagnostic, 3 retire; the chart then holds 11 met and 7 not met. Expected to leave, to be confirmed row by row: R172428_CODE, R172428_DB_CODE, R172428_DBA_CODE, APPB_ETA_N (old form); NR_PROP_TP2444, NR_PROP_TP2444_BR, NR_PROP_TP2444_PF (inputs; additions that are not the shipped tool); BLK_P68 (the equation written out); CYL2D_PRINTED (a grid rule the code does not use); E22_BR (sound bridges are not the default); NR_TP1964 and NR_TP1964_REF2 if the shipped path is the one with the changeover (NR_TP1964_XOVER). This step writes the table only; the flags in `src/validation_cases.jl` change in the phase that owns each case ([CONFIRM] there), and a row whose check against the code disagrees with the approved table goes back to the author before its flag changes; the five "check" rows are settled here (PER_FIG9, T1_APPB, APPB_ETA_N_T2) or in their own phase (R996_FIG10_FLAT in 144, NR_TP1964_XOVER_REF2 in 138).
+- [x] **135f The chart rule, all 43 cases [DECIDED 2026-11-09].** One table: case, runs the shipped code (yes / no, with the option or form that differs), inputs complete (yes / no, with the missing input), compared with (measurement / NASA's program output / other). A case with a "no" or "other" leaves the chart. The sorting of all 43 is the table in ISSUE-029, **[DECIDED 2026-11-09]** (author: "Yes, use it"): 18 keep, 2 inside a parent case, 5 to check, 15 diagnostic, 3 retire; the chart then holds 11 met and 7 not met. Expected to leave, to be confirmed row by row: R172428_CODE, R172428_DB_CODE, R172428_DBA_CODE, APPB_ETA_N (old form); NR_PROP_TP2444, NR_PROP_TP2444_BR, NR_PROP_TP2444_PF (inputs; additions that are not the shipped tool); BLK_P68 (the equation written out); CYL2D_PRINTED (a grid rule the code does not use); E22_BR (sound bridges are not the default); NR_TP1964 and NR_TP1964_REF2 if the shipped path is the one with the changeover (NR_TP1964_XOVER). This step writes the table only; the flags in `src/validation_cases.jl` change in the phase that owns each case ([CONFIRM] there), and a row whose check against the code disagrees with the approved table goes back to the author before its flag changes; the five "check" rows are settled here (PER_FIG9, T1_APPB, APPB_ETA_N_T2) or in their own phase (R996_FIG10_FLAT in 144, NR_TP1964_XOVER_REF2 in 138). **Done 2026-11-10:** `validation_reports/phase135_chart_rule_table.md` (all 43 ids match `case_error_summary.csv`; the three rows settled: PER_FIG9 a duplicate of PER_FIG8, T1_APPB a variant of R172428_EXP, APPB_ETA_N_T2 not the shipped form).
+
+**Status 2026-11-10: 135a, b, c, e, f done; 135d is drafted in `validation_reports/phase135_cause_records.md` and waits for the author's check, so the phase stays open.**
 
 **Done when:** each number above appears once as current, with its date; a search for 103.8, 109.0, "5/24" and "0/36" finds only lines marked superseded; the 43-row table exists.
 
@@ -362,7 +366,7 @@ No run, no code. Each step replaces nothing in the record; it marks older values
 - [ ] **136a Off the chart [DECIDED 2026-11-09].** `R172428_CODE`, `R172428_DB_CODE`, `R172428_DBA_CODE`, `APPB_ETA_N` become diagnostics (author: "if there isnt a weight on the validity of the tool should it still be on the coverage map"). Each keeps its run, table and recorded outcome and gets `form = "CR-3813 printed form (not the shipped default)"`, shown in its title and in the Validation tab.
 - [ ] **136b Pairs.** Each of the four shows, beside its own result, the default-form result on the same printout (labelled post-hoc, no verdict) and the held-out case of the default form (`R172428_ETAT2`; `APPB_ETA_N_T2_BAND`).
 - [ ] **136c Kind [DECIDED 2026-11-09].** A case that runs a superseded program form is a diagnostic (the Phase 86 kind), by kind and whatever its outcome. The rule is written into CLAUDE.md's PAIN section only with the author's approval of the wording.
-- [ ] **136d The (0,1) × mode 8 pair.** From the existing `R172428_PAIRS` output: this pair's share of the 4000 rpm H1 level with q = 0 coupled and uncoupled. A statement, no criterion.
+- [ ] **136d The (0,1) × mode 8 pair.** From the existing `R172428_PAIRS` output: this pair's share of the 4000 rpm H1 level with q = 0 coupled and uncoupled. A statement, no criterion. **Done 2026-11-10** (from `phase92_appb_pairs.md`; the single pair's exact share needs a fresh run): `validation_reports/phase136_144_preparation.md`.
 - [ ] **136e One more held-out printout.** Search CR-172428 for a complete PAIN run (inputs and interior levels both printed) that no phase has compared. If one exists: **[AUTHOR]** criterion (proposed: R172428_CODE's ±3 dB at ≥ 7/9 form, copied unchanged), dated before transcription. If none: say so in §0.
 - [ ] **136f "NASA's own printout on the same gate".** A generated column for every measurement case where NASA printed a prediction (R172428_EXP, R172428_DB_EXP, R172428_DBA_EXP, E22_BR, E21_E22_NR, NR_TP1964, NR_TP1964_XOVER). It is information about NASA's program, not a case and not a verdict; `R172428_NASA_EXP` (ISSUE-009) is not added.
 
@@ -400,7 +404,7 @@ No run, no code. Each step replaces nothing in the record; it marks older values
 ## 8cd. Phase 140 — CYL2D's grid: what the verdict is on, and whether it matters (ISSUE-025)
 
 - [ ] **140a The printed grid rule (CR-165869 pp. 60–61, read 2026-11-09).** NK = Integral Part[7 (1 + cos θ₀)], h = a (1 + cos θ₀)/NK, boundary point = the nearer of the last inside and first outside point on each grid line. By arithmetic (no run) it gives NK = 11, 10, 10, 8 at 50°, 56.6°, 62.6°, 73.7°: the grids the diagnostics of Phases 103 and 105 found for the Merlin (11) and the narrow body (8), and the test article's 10. `cyl2d.jl` has NY = 10 and a 0.40h threshold at every angle.
-- [ ] **140a′ Compare the rule with `_build_grid`, on paper first.** Which nodes differ between the nearest-point test and the 0.40h threshold at 56.6° (the validated angle): if none, the change cannot move CYL2D_C1 (59/59) or APPB_EPS_N (48/48); if some, list them. Also read the User Manual §5.1 again for anything that contradicts the 1982 rule.
+- [~] **140a′ Compare the rule with `_build_grid`, on paper first (arithmetic done 2026-11-10 in `phase136_144_preparation.md`: three nodes differ at 56.6°, so the change is not free; the page re-read and the User Manual §5.1 check are not done).** Which nodes differ between the nearest-point test and the 0.40h threshold at 56.6° (the validated angle): if none, the change cannot move CYL2D_C1 (59/59) or APPB_EPS_N (48/48); if some, list them. Also read the User Manual §5.1 again for anything that contradicts the 1982 rule.
 - [ ] **140a″ [CONFIRM] Adopt the printed rule** as CYL2D's grid rule. The basis is the document, not a comparison: the independence record (145c) cites pp. 60–61. CYL2D_C1, APPB_EPS_N and CABIN_FREQ_PRINTED are re-run and must stay met; CYL2D_PRINTED is run once on its unchanged criterion (0.02 %, 0.1 %, types equal) and the result stands whatever it is, labelled as a run after a documented rule was adopted, with the two lists already seen. Until this step is done CYL2D_PRINTED is a diagnostic (chart rule); after it, it tests the shipped code and returns to the chart.
 - [ ] **140b Shipped grid, information.** Only if 140a″ is not confirmed: the shipped rule (0.40h, NY = 10) against the two printed lists, per 2-D order; no verdict. Form fixed before the run.
 - [ ] **140c Bound, no verdict.** Small-diameter aircraft, NY = 8, 10, 12 and node rules 0.40h, 0.45h, 0.55h: spread of the interior tone levels per harmonic. Form fixed before the run; no grid is chosen from it.
@@ -409,7 +413,7 @@ No run, no code. Each step replaces nothing in the record; it marks older values
 ## 8ce. Phase 141 — the source chain: labels, unscaled replays, measured polars (ISSUE-001, 004, 027) [CONFIRM]
 
 - [ ] **141a Labels.** `R996_FIG12`, `R996_FIG13A`, `R996_FIG14`, `PER_FIG7/8/9`: "loads scaled to measured thrust and torque" in the title and on the chart; chain span of R996_FIG12 and R996_FIG14 starts at Blade loads. N_crit note in METHODOLOGY and in every case that reads `polars_phase69_ncrit8.json`.
-- [ ] **141b Check for seen results.** Search `data/report996/f1a_results.csv`, `data/pereira/pereira_results.csv` and the reports for unscaled Fig. 12 / 13a / 14 and Pereira rows. If they were reported, the cases of 141c are post-hoc and carry no verdict.
+- [x] **141b Check for seen results (done 2026-11-10, `phase136_144_preparation.md`: unscaled Fig. 13a was seen, Figs. 12 and 14 and the Pereira sound levels were not).** Search `data/report996/f1a_results.csv`, `data/pereira/pereira_results.csv` and the reports for unscaled Fig. 12 / 13a / 14 and Pereira rows. If they were reported, the cases of 141c are post-hoc and carry no verdict.
 - [ ] **141c Unscaled replays [DECIDED 2026-11-09].** `R996_FIG12_UNSCALED`, `R996_FIG13A_UNSCALED`, `R996_FIG14_UNSCALED`, `PER_FIG8_UNSCALED`, `PER_FIG9_UNSCALED`: 23c's and 23d's rules copied unchanged (author: add, same tolerances); the criteria are entered in the criteria document with the date before the run. **Under review the same day (ISSUE-029):** with the loads up to 39 % off, these five would very likely be five more not-met rows that repeat R996_LOADS. Proposed instead: the unscaled result as a second line on each existing scaled case, no verdict. **[AUTHOR]** confirms "add" or takes the second-line form before this step starts. These are the chart's only acoustic rows that carry the load error.
 - [ ] **141d Measured polars: coverage first [DECIDED 2026-11-09].** Fraction of the Report 996 blade span whose thickness and Mach fall inside TN 1546's measured sections (from `blade_form.csv`). Under half → stop, record, drop the proposal. TN 1546 holds 24 sections, 6 to 30 % thick by its catalogue record (confirm in its Table I); three are digitized, so the coverage is computed for the three and for all 24, and digitizing more is a §2.2 card, not part of this step.
 - [ ] **141f Forward-flight loads (D-26).** If the author obtains RM L9G06a: a loads case for the same blade in forward flight, **[AUTHOR]** criterion (proposed: ±15 % as 23c), fixed before any curve is digitized. It tests every polar set on data none was built from.
@@ -436,7 +440,7 @@ No run, no code. Each step replaces nothing in the record; it marks older values
 - [ ] **144b Fig. 10.** `R996_FIG10_FLAT` with R2 and `R996_FIG10_CIRC`: registered with a disclosure that the numbers are on record (4.03–4.06 dB; 1/5); information, no verdict.
 - [ ] **144c Text.** Circular reason "radius not stated" → "Eq. (43) has no curvature term" ([CONFIRM], `validation_case_iso90.jl`). METHODOLOGY §Blocking: one dated sentence on why the default is R2 (CR-172428 §5.3.2; Phase 93). METHODOLOGY line 368's "R2 maximum about 4 dB" labelled information.
 - [ ] **144d BLK_P68 [DECIDED 2026-11-09].** Off the coverage chart; it stays as a unit check of Eq. (43) ([CONFIRM] for the registry change).
-- [ ] **144e CR-159668 as a document, not a case (read 2026-11-09).** Its measured blocking (Table VI, Fig. 21) is, in the report's words, scattered with no clear trend, and its curve is a fit through 0 dB at 0° and 6 dB at 60°. No case is made from it: the scatter is as large as the effect. METHODOLOGY §Blocking cites it for where the curve's shape comes from, compares Eq. (43) as printed with that fit (document against document, a figure, no verdict), and states that it gives no support for a 4 dB maximum, so R2 rests on CR-172428 §5.3.2 alone.
+- [~] **144e (note written in METHODOLOGY §3 on 2026-11-10; the Eq. (43)-against-fit figure is not drawn) CR-159668 as a document, not a case (read 2026-11-09).** Its measured blocking (Table VI, Fig. 21) is, in the report's words, scattered with no clear trend, and its curve is a fit through 0 dB at 0° and 6 dB at 60°. No case is made from it: the scatter is as large as the effect. METHODOLOGY §Blocking cites it for where the curve's shape comes from, compares Eq. (43) as printed with that fit (document against document, a figure, no verdict), and states that it gives no support for a 4 dB maximum, so R2 rests on CR-172428 §5.3.2 alone.
 
 ## 8ci. Phase 145 — the summary writer says what each number is (ISSUE-009, 018, 019, 020, 021) [CONFIRM]
 
@@ -477,7 +481,7 @@ No run, no code. Each step replaces nothing in the record; it marks older values
 
 ## 8cm. Phase 149 — Markdown inventory and the README (ISSUE-005, 012; documents only)
 
-- [ ] **149a** Inventory of the 138 `.md` files: purpose, last change, what it duplicates; keep / merge / archive / delete. Validation reports are kept in place. **[AUTHOR]** approves any deletion.
+- [~] **149a** (inventory of the 48 files outside `validation_reports/` written: `docs/MARKDOWN_INVENTORY.md`, 2026-11-10; no keep / merge / archive / delete proposal yet) Inventory of the 138 `.md` files: purpose, last change, what it duplicates; keep / merge / archive / delete. Validation reports are kept in place. **[AUTHOR]** approves any deletion.
 - [ ] **149b** README: "(optional)" off the GUI step and its contents line; the four tab paragraphs → a short list and two links; every remaining link resolves.
 
 ## 8cn. Phase 150 — source and test layout by chain stage (ISSUE-028) [CONFIRM]
@@ -560,7 +564,7 @@ Fig. 1 chord table before running.
 | Fig. 13 (b) | Same at M_t 1.00, 10° | Out of scope (M_t > 0.90) | No | Recorded only |
 | Fig. 6 | Total rms pressure vs x/D at four tip clearances (B = 4) | F1A distance scaling | Yes | Yes (`tr996_fig6_...csv`) |
 | Fig. 7 | p_c/C_P vs x/D at three blade angles, with C_P in the legend | F1A loading sensitivity; C_P check | Yes | Yes (`tr996_fig7_...csv`) |
-| p. 12 text | Phase difference ahead vs behind: 155° measured, 165° Eq. (2) (M_t 0.75); 125° Eq. (2) only | Phase check | Yes | In `rea-work\references\NASA Report 996.pdf` (checked) |
+| p. 12 text | Phase difference ahead vs behind: 155° measured, 165° Eq. (2) (M_t 0.75); 125° Eq. (2) only | Phase check | Yes | In `PAIN_Program\references\NASA Report 996.pdf` (checked) |
 | Fig. 8 | p_c vs C_P in the rotation plane (B = 2, 4; M_t 0.60, 1.00) | Loading sensitivity; cross-propeller consistency | Yes (was optional) | Yes (`tr996_fig8_...csv`) |
 | Fig. 15 | Effect of effective radius R_e on first harmonic | Eq. (2) cross-check | Optional | No |
 | Fig. 17 | Gutin simplified vs Eq. (2) | Far-field limit check | Optional | No |
@@ -608,7 +612,7 @@ the files below were read in full unless noted). It holds a NACA 4-(5)(08)-03 tw
 3. **No B = 4 load data**, so Fig. 6 can only be judged on shape and clearance ratios.
 4. **Geometry is from the Harris table**, not the report's Fig. 3; the report's propeller diameter and the air density/sound speed are not stated.
 5. **The folder's own BEM underpredicts static thrust and torque** by 12–35% with these polars. That is a polar/stall problem; use scaled loads to isolate F1A and do not retune polars to the target.
-6. **Page-12 phase:** one measured value (155°), no stated x/D pair or blade angle for the 125° case; the PDF is in `rea-work`.
+6. **Page-12 phase:** one measured value (155°), no stated x/D pair or blade angle for the 125° case; the PDF is in `PAIN_Program/references`.
 
 ### Phase-validation figure list (exact figures, status)
 

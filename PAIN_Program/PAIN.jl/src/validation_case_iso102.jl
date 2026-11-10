@@ -1,5 +1,5 @@
 # Phase 102 — CR-172428 flight-test run 10 (Merlin IVC), harmonics 2–4, from PAIN's printed deck and field
-# (IMPLEMENTATION_PLAN.md §8ar; what is compared fixed 2026-10-30 before the run). Diagnostic: FLIGHT_MODES (Phase 101a)
+# (COMPLETED_PHASES.md §8ar; what is compared fixed 2026-10-30 before the run). Diagnostic: FLIGHT_MODES (Phase 101a)
 # is not met, so this run carries no verdict. It sets the code as it ships and the trim per band against PAIN's
 # printed levels.
 

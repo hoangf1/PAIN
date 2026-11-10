@@ -1,6 +1,6 @@
 #!/usr/bin/env julia
 # Phase 117 (diagnostic, 2026-11-02): which factor of Eq. (83) puts run 10's η_r″ near 0.6× NASA's printed ETA R# away
-# from resonance (Phase 109). Tests fixed in IMPLEMENTATION_PLAN.md §8bg (commit 001b34f) before any factor was computed.
+# from resonance (Phase 109). Tests fixed in COMPLETED_PHASES.md §8bg (commit 001b34f) before any factor was computed.
 # Every variant lives in this process (no src/ change, no default changed, no verdict). Writes
 # docs/validation_reports/phase117_run10_eta_rpp.md.
 using Pkg; Pkg.activate(joinpath(@__DIR__, "..", ".."))

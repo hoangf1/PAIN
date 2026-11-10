@@ -1,5 +1,5 @@
 # Phase 66 — further code checks of the BEMT (CCBlade wrapper) and F1A source blocks.
-# Criteria fixed 2026-10-24 (IMPLEMENTATION_PLAN.md §8j) before any run; readings in the same section, also
+# Criteria fixed 2026-10-24 (COMPLETED_PHASES.md §8j) before any run; readings in the same section, also
 # before any run. No measured data is used: every reference is a closed form or an identity.
 
 const _P66_REPORT = "phase66_bemt_f1a.md"

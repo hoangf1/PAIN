@@ -89,7 +89,7 @@ const CASE_ID = "R172428_CODE"
 case = PAIN.VALIDATION_CASES[CASE_ID]
 result = run_validation_case(CASE_ID)
 rec = recorded_case_errors()
-on_map = [id for id in PAIN.VALIDATION_CASE_ORDER if on_validation_map(id; rec)]
+on_map = [id for id in PAIN.VALIDATION_CASE_ORDER if has_verdict(id; rec)]
 n_met = count(id -> rec[id].verdict == "met", on_map)
 
 f3(x) = @sprintf("%.1f", x)

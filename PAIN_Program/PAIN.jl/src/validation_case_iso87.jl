@@ -1,4 +1,4 @@
-# Phases 87–88 — the differences from NASA's corrected program (IMPLEMENTATION_PLAN.md §8ae; criteria fixed 2026-10-29
+# Phases 87–88 — the differences from NASA's corrected program (COMPLETED_PHASES.md §8ae; criteria fixed 2026-10-29
 # before any run). 87: NASA's printed per-mode values of CR-172428 App. B (cabin-mode ε_n and η_n, p. 195; per-pair η_r″,
 # pp. 197/202) against this code's on CR-172428's inputs (P cases). 88: the q = 0 hypothesis (NASA's program left the
 # q = 0 cabin modes uncoupled) on CR-3813's printed runs, which played no part in forming it (diagnostics).
@@ -223,6 +223,6 @@ function _iso87_validation_cases()
         mk("R172428_CODE_ETAN", "CR-172428 reproduction with η_n per cabin mode vs NASA's printed predictions (89b)", "89",
            [_r172428_csv("appB_predictions.csv"), ac], FigureRef("NASA CR-172428", "App. B pp. 196–212 / Table 10", 206),
            "±3 dB of NASA's printed prediction at ≥ 7 of 9 points (R172428_CODE's; decision fixed 2026-10-29, before the run).",
-           _run_r172428_code_etan, "tone frequency (Hz)", "SPL (dB)", abs3(3.0)),
+           _run_r172428_code_etan, "tone frequency (Hz)", "SPL (dB)", merge(abs3(3.0), (; error_ylabel="this code − NASA's printed prediction (dB)"))),
     ]
 end

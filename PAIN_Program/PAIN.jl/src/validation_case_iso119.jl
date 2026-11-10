@@ -1,4 +1,4 @@
-# Phase 119 — the T1 family on CR-172428 App. B's printed field (IMPLEMENTATION_PLAN.md §8bi; form and criterion fixed
+# Phase 119 — the T1 family on CR-172428 App. B's printed field (COMPLETED_PHASES.md §8bi; form and criterion fixed
 # 2026-11-02 before any run). App. B prints the blocked field PAIN used for the same article, propeller and rpm (4000 rpm,
 # H1–H3, 16 × 19 points); here it replaces E-11's line + GEXT, the input Phase 118a found unprinted. CR-3813's cabin as
 # T1 and T1_MEAS_DAMPING ship; T1's gate unchanged. Not held out in full: R172428_EXP already set App. B's field against

@@ -5,22 +5,58 @@
 const _COVERAGE_REF_ORDER = (:measurement, :nasa, :verification)
 const _COVERAGE_COLOURS = Dict(:measurement => "#1D9E75", :nasa => "#7F77DD", :verification => "#888780")
 
+# Phase 145d (2026-11-10; ISSUE-018's list redone on the cases that keep a verdict, decided by Claude under the author's
+# delegation of 2026-11-10). A family is cases that share one comparison or one run. `derived_from` names the case this
+# one is computed from: a sum of its levels, a variant with one input changed, or the same points shown another way.
+# A derived case is drawn thinner and is not counted as an independent comparison. No verdict is merged.
+const CASE_FAMILIES = Dict{String,NamedTuple{(:family, :derived_from),Tuple{String,String}}}(
+    "R172428_EXP" => (family="CR-172428 test-article tones against the measurement", derived_from=""),
+    "R172428_DB_EXP" => (family="CR-172428 test-article tones against the measurement", derived_from="R172428_EXP"),
+    "R172428_DBA_EXP" => (family="CR-172428 test-article tones against the measurement", derived_from="R172428_EXP"),
+    "NR_TP1964" => (family="TP-1964 bare cylinder", derived_from=""),
+    "NR_TP1964_XOVER" => (family="TP-1964 bare cylinder", derived_from="NR_TP1964"),       # same bands below 2.5 kHz
+    "PER_FIG7" => (family="Pereira forward flight", derived_from=""),
+    "PER_FIG8" => (family="Pereira forward flight", derived_from=""),
+    "PER_FIG9" => (family="Pereira forward flight", derived_from="PER_FIG8"),   # Phase 74: equals Fig. 8 within 0.1 dB
+    "R996_FIG12" => (family="Report 996 static sound levels", derived_from=""),
+    "R996_FIG13A" => (family="Report 996 static sound levels", derived_from=""),
+    "R996_FIG14" => (family="Report 996 static sound levels", derived_from=""),
+    "T1_APPB" => (family="T1 on CR-172428 App. B's printed field", derived_from=""),
+    "T1_MEAS_DAMPING_APPB" => (family="T1 on CR-172428 App. B's printed field", derived_from="T1_APPB"),
+    "R172428_ETAT2" => (family="CR-172428 η_T = 2.0 run", derived_from=""),
+    "APPB_ETA_N_T2" => (family="CR-172428 η_T = 2.0 run", derived_from=""),
+    "APPB_ETA_N_T2_BAND" => (family="CR-172428 η_T = 2.0 run", derived_from="APPB_ETA_N_T2"),
+    "APPB_EPS_N" => (family="CR-172428 App. B per-mode printout", derived_from=""),
+    "APPB_ETA_N" => (family="CR-172428 App. B per-mode printout", derived_from=""),
+    "APPB_ETA_RPP" => (family="CR-172428 App. B per-mode printout", derived_from=""),
+    "R172428_ETA" => (family="CR-172428 App. B per-mode printout", derived_from=""),
+    "CYL2D_C1" => (family="CYL2D cabin modes", derived_from=""),
+    "CYL2D_PRINTED" => (family="CYL2D cabin modes", derived_from=""),
+    "CABIN_FREQ_PRINTED" => (family="CYL2D cabin modes", derived_from=""),
+)
+
+"""Family and parent of `id` (Phase 145d): `(family, derived_from)`, both `""` for a case in no family."""
+case_family(id::AbstractString) = get(CASE_FAMILIES, String(id), (family="", derived_from=""))
+
 """
     coverage_rows(; rec=recorded_case_errors(), verdict_only=false) -> Vector{NamedTuple}
 
 One row per documented case: `id, title, from, to` (indices into `CHAIN_STAGES`), `reference` (`:measurement`, `:nasa`,
-`:verification`), `verdict` (`"met"`, `"not met"` or `"no verdict"`, as on the validation map) and `points`
+`:verification`), `verdict` (`"met"`, `"not met"` or `"no verdict"`, by `has_verdict`) and `points`
 (`"n/N"` rows within the criterion, `""` when the snapshot has none). Sorted by first stage, last stage, reference, id.
-`verdict_only` keeps the cases on the validation map.
+`verdict_only` keeps the cases with a verdict. `figure` (Phase 146a, 2026-11-10) is the case's source figure from its
+`FigureRef` ("document, figure, PDF p. n"), `""` for a case not in the registry.
 """
 function coverage_rows(; rec::AbstractDict=recorded_case_errors(), verdict_only::Bool=false)
     rows = NamedTuple[]
     for (id, info) in CASE_INFO
         info.span_from == 0 && continue
-        on = on_validation_map(id; rec)
+        on = has_verdict(id; rec)
         verdict_only && !on && continue
         r = get(rec, id, nothing)
         push!(rows, (; id, title=info.title, from=info.span_from, to=info.span_to, reference=info.reference,
+                     figure=_coverage_figure(id), method_limit=on && method_limit(id),   # Phase 137c
+                     family=case_family(id).family, derived_from=case_family(id).derived_from,   # Phase 145d
                      verdict=on ? replace(r.verdict, "_" => " ") : "no verdict",
                      points=(r === nothing || r.n_rows == 0) ? "" : "$(r.n_within)/$(r.n_rows)"))
     end
@@ -28,10 +64,18 @@ function coverage_rows(; rec::AbstractDict=recorded_case_errors(), verdict_only:
     return rows
 end
 
+"""A case's source figure as one line: document, figure and PDF page (Phase 146a)."""
+function _coverage_figure(id::AbstractString)
+    haskey(VALIDATION_CASES, id) || return ""
+    f = VALIDATION_CASES[id].figure_ref
+    return f.document * ", " * f.figure * (f.pdf_page === nothing ? "" : ", PDF p. $(f.pdf_page)")
+end
+
 """`coverage_rows` as JSON for the GUI's Coverage tab: `stages`, `references` (key, label, colour) and `rows`."""
 function coverage_json(; verdict_only::Bool=false, rec::AbstractDict=recorded_case_errors())
     rows = [Dict("id" => r.id, "title" => r.title, "from" => r.from - 1, "to" => r.to - 1,
-                 "reference" => String(r.reference), "verdict" => r.verdict, "points" => r.points)
+                 "reference" => String(r.reference), "verdict" => r.verdict, "points" => r.points, "figure" => r.figure,
+                 "method_limit" => r.method_limit, "family" => r.family, "derived_from" => r.derived_from)
             for r in coverage_rows(; rec, verdict_only)]
     refs = [Dict("key" => String(k), "label" => reference_label(k), "colour" => _COVERAGE_COLOURS[k])
             for k in _COVERAGE_REF_ORDER]
@@ -55,10 +99,12 @@ function plot_coverage_chart(path::AbstractString; rec::AbstractDict=recorded_ca
     for (i, r) in enumerate(rows)
         c = parse(Makie.Colors.Colorant, _COVERAGE_COLOURS[r.reference])
         pale = r.verdict == "no verdict"
-        poly!(ax, Rect(r.from - 0.45, i - 0.32, r.to - r.from + 0.9, 0.64);
+        h = isempty(r.derived_from) ? 0.64 : 0.36                 # Phase 145d: a derived case is drawn thinner
+        poly!(ax, Rect(r.from - 0.45, i - h / 2, r.to - r.from + 0.9, h);
               color=(c, pale ? 0.25 : 0.85), strokecolor=c, strokewidth=pale ? 0.8 : 0.0,
               linestyle=pale ? :dash : :solid)
-        text!(ax, ns + 0.6, i; text=r.verdict * (isempty(r.points) ? "" : " " * r.points), align=(:left, :center),
+        text!(ax, ns + 0.6, i; text=r.verdict * (isempty(r.points) ? "" : " " * r.points) *
+                                    (r.method_limit ? " · method limit" : ""), align=(:left, :center),
               fontsize=10, color=r.verdict == "met" ? :darkgreen : (r.verdict == "not met" ? :firebrick : :gray40))
     end
     hideydecorations!(ax; ticklabels=false)
@@ -71,7 +117,9 @@ function plot_coverage_chart(path::AbstractString; rec::AbstractDict=recorded_ca
     end
     Legend(fig[2, 1], elems, labels, "Compared with"; orientation=:horizontal, framevisible=false, titleposition=:left)
     Label(fig[3, 1], "Right: recorded verdict; n/N = rows within the case's own criterion (recorded snapshot; for a case " *
-          "without a verdict, not a pass)."; fontsize=11, color=:gray30, tellwidth=false)
+          "without a verdict, not a pass). Method limit: NASA's own printout misses the same gate. Thin bar: computed " *
+          "from another case (a sum or a variant)."; fontsize=11,
+          color=:gray30, tellwidth=false)
     mkpath(dirname(path))
     save(path, fig)
     return String(path)
@@ -94,13 +142,23 @@ function coverage_markdown(; rec::AbstractDict=recorded_case_errors())
             "stage of the quantity it compares (`**Chain span:**`, §2.13); its colour is what it is compared with ",
             "(`**Compared with:**`). The cases without a verdict are drawn in `NO_VERDICT_CASES.md`; the GUI's Coverage ",
             "tab shows both.\n")
+    nind = count(r -> isempty(r.derived_from), rows)
+    nfam = length(unique(r.family for r in rows if !isempty(r.family)))
+    println(io, "**", length(rows), " cases with a verdict, ", nind, " independent comparisons**",
+            nind == length(rows) ? " (the sums and variants of a case carry no verdict since Phase 135f)" :
+            " ($(length(rows) - nind) computed from another case, drawn thinner)",
+            "; met ", count(r -> r.verdict == "met", rows), ", not met ", count(r -> r.verdict == "not met", rows),
+            ". ", nfam, " families group the cases that share one run or one printout (Phase 145d; GUI Coverage tab, ",
+            "\"Order by source figure\").\n")
     println(io, "![Chain coverage](validation_reports/figures/coverage/chain_coverage_verdict.png)\n")
     println(io, "| Chain span | Compared with | Case | Verdict | Points |\n|---|---|---|---|---|")
     for r in rows
         println(io, "| ", CHAIN_STAGES[r.from], " → ", CHAIN_STAGES[r.to], " | ", reference_label(r.reference), " | `",
-                r.id, "` ", _md_cell(r.title), " | ", r.verdict, " | ", r.points, " |")
+                r.id, "` ", _md_cell(r.title), " | ", r.verdict, r.method_limit ? " (method limit)" : "", " | ",
+                r.points, " |")
     end
     println(io)
+    print(io, why_not_met_markdown(; rec))   # Phase 145e
     return String(take!(io))
 end
 

@@ -1,5 +1,5 @@
 # Phase 100 — NASA's per-band PF-105 input table (CR-172428 App. D deck, cards 22–33) against the trim admittances App. B
-# p. 197 prints (IMPLEMENTATION_PLAN.md §8ap; predictions fixed 2026-10-30 before the run). Diagnostic: it decides which
+# p. 197 prints (COMPLETED_PHASES.md §8ap; predictions fixed 2026-10-30 before the run). Diagnostic: it decides which
 # insulation table `r172428_inputs` takes; the held-out verdicts are R172428_ETAT2 and APPB_ETA_N_T2_BAND.
 
 const _P100_REPORT = "phase100_pf105_deck.md"

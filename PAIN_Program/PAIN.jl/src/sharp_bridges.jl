@@ -1,6 +1,6 @@
 # Phase 59 — Sharp's double-panel transmission with sound bridges (NASA CR-172490 §2.3, May, Plotkin,
 # Selden & Sharp 1985), as an option in Eq. (23). An extension beyond CR-3813. Criteria and mapping fixed
-# 2026-10-23 (IMPLEMENTATION_PLAN.md §8g Phase 59) before any run.
+# 2026-10-23 (COMPLETED_PHASES.md §8g Phase 59) before any run.
 
 """Mass law of CR-172490 Eq. (5) at normal incidence (cos θ cos φ = 1): TL = 20 log(m f) − 10 log(ρ₁c₁ρ₂c₂) + 10 dB."""
 sharp_mass_law_TL(m::Real, f::Real; ρc1::Real=1.21 * 343.0, ρc2::Real=1.21 * 343.0) =

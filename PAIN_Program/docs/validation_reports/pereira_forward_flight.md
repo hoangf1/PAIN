@@ -10,7 +10,7 @@ Geometry: `pereira_fig1b_chord_twist.csv` downsampled to 25 stations; area-mean 
 
 - H1 within ±1.7 dB: 9 / 9
 - H2 within ±3 dB: 6 / 9
-- ψ₁(φ)−ψ₁(0°) within ±5°: not computed in this pass (Fig.7 fit deferred; levels only).
+- ψ₁(φ)−ψ₁(0°) within ±5°: counted by `PER_FIG7` from the `dpsi1_fig7` rows of pereira_results.csv, not in this report.
 - Fig.8 vs Fig.9 H1 scatter recorded as reference (I-15 d/e); not corrected.
 
 ## Loads vs Table 3

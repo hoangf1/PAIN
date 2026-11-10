@@ -30,11 +30,28 @@ function _e12_interp(pts, x)
     return pts[end][2]
 end
 
-"""Fig. E-12: Eq. (43) R1 on Table 8 vs digitized predicted/measured."""
+"""
+    _e12_mean_curve(A, B) -> Dict{Int,Vector{Tuple{Float64,Float64}}}
+
+Mean of two digitization passes of a Fig. E-12 curve, per harmonic, at the union of their X values inside both ranges.
+The one implementation used by `_run_e12_block` and `scripts/run/e12_blocking.jl` (Phase 143a, 2026-11-10).
+"""
+function _e12_mean_curve(A, B)
+    M = Dict{Int,Vector{Tuple{Float64,Float64}}}()
+    for H in sort(collect(intersect(keys(A), keys(B))))
+        xs = sort(unique(vcat([Float64(p[1]) for p in A[H]], [Float64(p[1]) for p in B[H]])))
+        M[H] = [(x, (_e12_interp(A[H], x) + _e12_interp(B[H], x)) / 2) for x in xs
+                if isfinite(_e12_interp(A[H], x)) && isfinite(_e12_interp(B[H], x))]
+    end
+    return M
+end
+
+"""Fig. E-12: Eq. (43) R1 on Table 8 vs the digitized predicted curve, mean of passes A and B (as registered; Phase 143)."""
 function _run_e12_block()
     data = joinpath(@__DIR__, "..", "..", "data", "cr3813", "e12")
     predA = _e12_readcurve(joinpath(data, "e12_predicted_A.csv"))
     predB = _e12_readcurve(joinpath(data, "e12_predicted_B.csv"))
+    predM = _e12_mean_curve(predA, predB)   # Phase 143a (2026-11-10): the registered reference; pass A alone before
     fuse = FuselageGeometry(test_article_length(), 0.508, 56.6)
     prop = PropellerPlacement(0.965, 90.0, 0.662)
     pts = [p for p in grid_points(fuse, prop, GridSpec()) if p.ell == 1]
@@ -54,7 +71,7 @@ function _run_e12_block()
     # δ_pred + 0.5 from e12 script (δ_pred ≈ 2.91 → tol ≈ 3.41); use 3.41 fixed dated criterion
     tol = 3.41
     for H in 1:3
-        ref_pts = haskey(predA, H) ? predA[H] : Tuple{Float64,Float64}[]
+        ref_pts = haskey(predM, H) ? predM[H] : Tuple{Float64,Float64}[]
         xref = Float64[p[1] for p in ref_pts]
         yref = Float64[p[2] for p in ref_pts]
         ycomp = Float64[]
@@ -72,7 +89,12 @@ function _run_e12_block()
                 push!(table, ValidationTableRow("H$H blocked SPL", X3D[i], r, got, got - r, ok))
             end
         end
-        push!(series, PlotSeries("NASA pred A H$H", :reference_points, xref, yref; panel=H))
+        push!(series, PlotSeries("NASA pred, mean of A and B, H$H", :reference_points, xref, yref; panel=H))
+        if haskey(predA, H)
+            push!(series, PlotSeries("NASA pred A H$H", :reference_points,
+                                    Float64[p[1] for p in predA[H]],
+                                    Float64[p[2] for p in predA[H]]; panel=H))
+        end
         if haskey(predB, H)
             push!(series, PlotSeries("NASA pred B H$H", :reference_points,
                                     Float64[p[1] for p in predB[H]],
@@ -83,11 +105,11 @@ function _run_e12_block()
     all_ok = n_ok == n_tot && n_tot > 0
     return ValidationCaseResult(
         "E12_BLOCK", _today_iso(),
-        (; blocking=:R1, free_field="ANOPP Table 8", tol_dB=tol,
-         csv_pred=joinpath(data, "e12_predicted_A.csv"),
+        (; blocking=:R1, free_field="ANOPP Table 8", tol_dB=tol, reference="mean of passes A and B",
+         csv_pred=joinpath(data, "e12_predicted_A.csv"), csv_pred_B=joinpath(data, "e12_predicted_B.csv"),
          csv_table8=t8path),
         table, series, all_ok ? :met : :not_met,
-        "$n_ok/$n_tot within ±$(tol) dB of digitized NASA predicted E-12",
+        "$n_ok/$n_tot within ±$(tol) dB of digitized NASA predicted E-12 (mean of passes A and B)",
         "V-CODE", joinpath(_VAL_REPORT_DIR, "e12_blocking.md"),
     )
 end
@@ -619,6 +641,38 @@ function _read_csv_rows(path::AbstractString)
     return hdr, rows
 end
 
+"""
+Phase 141c (2026-11-10; ISSUE-029's second-line form): the same figure on the CCBlade loads as computed, not scaled to the
+measured thrust and torque (`f1a_results_unscaled.csv`, `scripts/run/run_report996_unscaled.jl`). One series per
+harmonic and the count within the case's ±2 dB, as information: these rows carry no verdict and leave the case's count.
+"""
+function _r996_unscaled_line(figure_pred)
+    path = _data_path("report996", "f1a_results_unscaled.csv")
+    isfile(path) || return (; series=PlotSeries[], n_ok=0, n=0)
+    hdr, rows = _read_csv_rows(path)
+    col = Dict(h => i for (i, h) in enumerate(hdr))
+    by_h = Dict{String,Tuple{Vector{Float64},Vector{Float64}}}()
+    n_ok = 0; n = 0
+    for r in rows
+        length(r) < length(hdr) && continue
+        figure_pred(r[col["figure"]]) || continue
+        meas = tryparse(Float64, r[col["meas_dyne_cm2"]])
+        (meas === nothing || !isfinite(meas)) && continue
+        comp = pa_to_dyne_cm2(parse(Float64, r[col["A_rms_Pa"]]))
+        m = match(r"Mt([0-9.]+)", r[col["case"]])
+        x = r[col["figure"]] == "fig14" && m !== nothing ? parse(Float64, m.captures[1]) : parse(Float64, r[col["x_over_D"]])
+        n += 1; n_ok += abs(20log10(comp / meas)) ≤ 2.0
+        xs, ys = get!(by_h, r[col["harmonic"]], (Float64[], Float64[]))
+        push!(xs, x); push!(ys, comp)
+    end
+    series = PlotSeries[]
+    for (H, (xs, ys)) in sort(collect(by_h); by=first)
+        o = sortperm(xs)
+        push!(series, PlotSeries("loads not scaled H=$H (no verdict)", :computed, xs[o], ys[o]; panel=1))
+    end
+    return (; series, n_ok, n)
+end
+
 """Replay Report 996 F1A acoustics from recorded `f1a_results.csv` (23c counting)."""
 function _run_r996_f1a_replay(id::AbstractString, figure_pred, load_pred;
                               xlabel="x/D", yscale=:identity, panel_titles=String["replay"])
@@ -675,9 +729,13 @@ function _run_r996_f1a_replay(id::AbstractString, figure_pred, load_pred;
     frac = n_in == 0 ? 0.0 : n_ok / n_in
     met = n_in > 0 && frac ≥ 0.75
     reason = "$n_ok/$n_in within ±2 dB ($(round(100 * frac; digits=0))%; need ≥75%); replay of data/report996/f1a_results.csv generated by scripts/run/run_report996_acoustics.jl (amplitude convention fixed 2026-10-21, post-hoc)"
+    un = _r996_unscaled_line(figure_pred)                        # Phase 141c: second line, no verdict
+    append!(series, un.series)
+    un.n > 0 && (reason *= "; loads not scaled (second line, no verdict): $(un.n_ok)/$(un.n) within ±2 dB")
     return ValidationCaseResult(
         String(id), _today_iso(),
-        (; csv=path, criterion="23c ±2 dB at ≥75% scaled points", date="2026-10-21"),
+        (; csv=path, criterion="23c ±2 dB at ≥75% scaled points", date="2026-10-21",
+           unscaled_n_ok=un.n_ok, unscaled_n=un.n),
         table, series, met ? :met : :not_met, reason,
         "V-EXP, calibrated loads (replay of recorded run; amplitude convention fixed 2026-10-21, post-hoc)",
         joinpath(_VAL_REPORT_DIR, "report996_acoustics.md"),
@@ -2338,22 +2396,22 @@ function _finish_validation_registry!()
             "2026-10-21", "V-CODE (cross-implementation)", _run_f1a_gutin,
             PlotSpec(; xlabel="harmonic", ylabel="SPL (dB)", panel_titles=["H1"],
                      error_mode=:absolute, error_tol=1.0, error_ylabel="dB"), ""),
-        ValidationCase("R996_FIG14", "Report 996 Fig. 14(a) harmonic amplitude vs tip Mach (replay)", "27",
-            [_data_path("report996", "f1a_results.csv")],
+        ValidationCase("R996_FIG14", "Report 996 Fig. 14(a) harmonic amplitude vs tip Mach (replay); loads scaled to measured thrust and torque", "27",
+            [_data_path("report996", "f1a_results.csv"), _data_path("report996", "f1a_results_unscaled.csv")],
             FigureRef("NACA Report 996", "Fig. 14(a)", 16),
             "With loads scaled to measured thrust and torque: |20 log10(A_rms/measured)| ≤ 2 dB at ≥ 75 % of points (23c). (amplitude convention fixed 2026-10-21, post-hoc)",
             "2026-10-21", "V-EXP, calibrated loads (replay of recorded run; amplitude convention fixed 2026-10-21, post-hoc)", _run_r996_fig14,
             PlotSpec(; xlabel="M_t", ylabel="dyne/cm²", yscale=:log10, panel_titles=["Fig. 14(a)"],
                      error_mode=:db_ratio, error_tol=2.0), ""),
-        ValidationCase("R996_FIG12", "Report 996 Fig. 12(a)(b) harmonic amplitude vs x/D (replay)", "27",
-            [_data_path("report996", "f1a_results.csv")],
+        ValidationCase("R996_FIG12", "Report 996 Fig. 12(a)(b) harmonic amplitude vs x/D (replay); loads scaled to measured thrust and torque", "27",
+            [_data_path("report996", "f1a_results.csv"), _data_path("report996", "f1a_results_unscaled.csv")],
             FigureRef("NACA Report 996", "Fig. 12", 13),
             "With loads scaled to measured thrust and torque: |20 log10(A_rms/measured)| ≤ 2 dB at ≥ 75 % of points (23c). (amplitude convention fixed 2026-10-21, post-hoc)",
             "2026-10-21", "V-EXP, calibrated loads (replay of recorded run; amplitude convention fixed 2026-10-21, post-hoc)", _run_r996_fig12,
             PlotSpec(; xlabel="x/D", ylabel="dyne/cm²", panel_titles=["Fig. 12(a)(b)"],
                      error_mode=:db_ratio, error_tol=2.0), ""),
-        ValidationCase("R996_FIG13A", "Report 996 Fig. 13(a) first harmonic vs x/D (replay)", "27",
-            [_data_path("report996", "f1a_results.csv")],
+        ValidationCase("R996_FIG13A", "Report 996 Fig. 13(a) first harmonic vs x/D (replay); loads scaled to measured thrust and torque", "27",
+            [_data_path("report996", "f1a_results.csv"), _data_path("report996", "f1a_results_unscaled.csv")],
             FigureRef("NACA Report 996", "Fig. 13(a)", 15),
             "With loads scaled to RM L51C27 thrust and torque: |20 log10(A_rms/measured)| ≤ 2 dB at ≥ 75 % of points (23c). (amplitude convention fixed 2026-10-21, post-hoc)",
             "2026-10-21", "V-EXP, calibrated loads (replay of recorded run; amplitude convention fixed 2026-10-21, post-hoc)", _run_r996_fig13a,
@@ -2392,7 +2450,7 @@ function _finish_validation_registry!()
             "2026-10-21", "X-EXTRAP", _run_per_loads,
             PlotSpec(; xlabel="case index", ylabel="T / Q", panel_titles=["T (N)", "Q (N·m)"],
                      error_mode=:none), ""),
-        ValidationCase("PER_FIG9", "Pereira Fig. 9 forward-flight harmonics at 1 m (replay)", "28",
+        ValidationCase("PER_FIG9", "Pereira Fig. 9 forward-flight harmonics at 1 m (replay); loads scaled to measured thrust and torque", "28",
             [_data_path("pereira", "pereira_results.csv"),
              _data_path("pereira", "pereira_fig9_harmonics.csv")],
             FigureRef("Pereira et al. (2026)", "Fig. 9", 10),
@@ -2401,7 +2459,7 @@ function _finish_validation_registry!()
             PlotSpec(; xlabel="BPF harmonic", ylabel="SPL (dB)",
                      panel_titles=["φ=0°", "φ=20°", "φ=40°"],
                      error_mode=:absolute, error_tol=1.7, error_ylabel="dB"), ""),
-        ValidationCase("PER_FIG8", "Pereira Fig. 8 forward-flight directivity at 1 m (replay)", "28",
+        ValidationCase("PER_FIG8", "Pereira Fig. 8 forward-flight directivity at 1 m (replay); loads scaled to measured thrust and torque", "28",
             [_data_path("pereira", "pereira_results.csv"),
              _data_path("pereira", "pereira_fig8_directivity.csv")],
             FigureRef("Pereira et al. (2026)", "Fig. 8", 9),
@@ -2410,7 +2468,7 @@ function _finish_validation_registry!()
             PlotSpec(; xlabel="φ (deg)", ylabel="SPL (dB)",
                      panel_titles=["H1", "H2"],
                      error_mode=:absolute, error_tol=1.7, error_ylabel="dB"), ""),
-        ValidationCase("PER_FIG7", "Pereira Fig. 7 first-harmonic phase shift Δψ₁ (replay)", "28",
+        ValidationCase("PER_FIG7", "Pereira Fig. 7 first-harmonic phase shift Δψ₁ (replay); loads scaled to measured thrust and torque", "28",
             [_data_path("pereira", "pereira_results.csv"),
              _data_path("pereira", "pereira_fig7_harmonics.csv")],
             FigureRef("Pereira et al. (2026)", "Fig. 7", 8),

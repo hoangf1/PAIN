@@ -1,5 +1,5 @@
 # Phase 50 — propeller-field coupling for the broadband noise reduction below the changeover.
-# Criteria fixed 2026-10-23 (IMPLEMENTATION_PLAN.md §8e Phase 50); implementation decisions fixed the
+# Criteria fixed 2026-10-23 (COMPLETED_PHASES.md §8e Phase 50); implementation decisions fixed the
 # same day before any comparison with the TP-2444 noise reduction.
 
 """

@@ -1,5 +1,5 @@
 #!/usr/bin/env julia
-# Phase 75a (IMPLEMENTATION_PLAN.md §8s): rerun validation cases offscreen, save each figure to its map-block folder
+# Phase 75a (COMPLETED_PHASES.md §8s): rerun validation cases offscreen, save each figure to its map-block folder
 # through the same `plot_case` path the GUI Run button uses, and update those cases' rows of
 # docs/validation_reports/case_error_summary.csv (other rows untouched), then §0 of VALIDATION_GUIDELINE.md and
 # docs/NO_VERDICT_CASES.md from it. Display only: criteria and verdicts are

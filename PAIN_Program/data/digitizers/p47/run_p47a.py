@@ -1,6 +1,6 @@
-"""Phase 47a: digitize TP-2444 Figs. 17 and 19 and CR-172428 Fig. 14 from the PDFs in rea-work/references.
+"""Phase 47a: digitize TP-2444 Figs. 17 and 19 and CR-172428 Fig. 14 from the PDFs in PAIN_Program/references.
 Usage: python run_p47a.py <work_dir>
-Page images and QA overlays go to <work_dir> (not committed); CSVs go to rea-work/data/tp2444 and data/cr172428.
+Page images and QA overlays go to <work_dir> (not committed); CSVs go to PAIN_Program/data/tp2444 and data/cr172428.
 Two independent passes per trace:
   Fig. 17 / Fig. 14: pass A = native image, run centre; pass B = 600 dpi render (Fig. 17) or 2x upscale (Fig. 14), top of the ink.
   Fig. 19: pass A = by eye on zoomed crops; pass B = band-centre ink runs (dig_tp2444_fig19.py)."""
@@ -48,7 +48,7 @@ for side, name in (("ext", "exterior"), ("int", "interior")):
     for p in "AB":
         write_trace(os.path.join(TP, f"tp2444_fig17_{name}_pass{p}.csv"), [
             f"NASA TP-2444 (Willis, Mayes, Daniels 1985) Fig. 17, PDF p. 32 (printed 28): {name} narrowband spectrum, model 2, 4000 rpm.",
-            "Digitized 2026-10-23 (Phase 47a, rea-work/data/digitizers/p47); " + how[p] + ".",
+            "Digitized 2026-10-23 (Phase 47a, PAIN_Program/data/digitizers/p47); " + how[p] + ".",
             "Axes calibrated from the tick marks; L_top/L_bottom = ends of the ink run (a near-vertical tone line spans them).",
             "Analysis bandwidth not stated in TP-2444; B = 5 Hz assumed in Phase 47b (V-ASSUMED)."], f17[p][side])
 how14 = {"A": "pass A: native page image, centre of the ink run in each pixel column",
@@ -56,7 +56,7 @@ how14 = {"A": "pass A: native page image, centre of the ink run in each pixel co
 for p in "AB":
     write_trace(os.path.join(CR, f"cr172428_fig14_mic1_5000rpm_pass{p}.csv"), [
         "NASA CR-172428 (Pain Validation.pdf) Fig. 14, PDF p. 38 (printed -28-): free-field propeller noise at microphone 1, run 8113, 5000 rpm.",
-        "Digitized 2026-10-23 (Phase 47a, rea-work/data/digitizers/p47); " + how14[p] + ".",
+        "Digitized 2026-10-23 (Phase 47a, PAIN_Program/data/digitizers/p47); " + how14[p] + ".",
         "Axes calibrated from the tick marks (page rotated 90 deg). The tone peaks fall 9-22 Hz below H x 250 Hz: the separately drawn",
         "frequency axis is offset from the plotted trace (Phase 47a QA). Frequencies here are as calibrated from the ticks, not shifted."], f14[p]["trace"])
 f19 = json.load(open(P("f19.json")))

@@ -1,5 +1,5 @@
 #!/usr/bin/env julia
-# Phase 73c (rule fixed 2026-10-28 before the run, docs/IMPLEMENTATION_PLAN.md §8q): sensitivity of the Report 996
+# Phase 73c (rule fixed 2026-10-28 before the run, docs/COMPLETED_PHASES.md §8q): sensitivity of the Report 996
 # loads and scaled-load acoustics to a uniform section c_l shift δ at every blade station (c_d unchanged).
 # δ ∈ {+0.026 (mean XFOIL − TN 1546 offset removed), −0.056, +0.056 (± RMS)}; 73c2: c_d × 1.33 (median TN 1546 / XFOIL
 # c_d ratio). Bound only: no verdict, nothing adopted.

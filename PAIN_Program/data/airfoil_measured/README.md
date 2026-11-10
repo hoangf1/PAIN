@@ -1,6 +1,6 @@
 # Measured airfoil section data (digitized 2026-10-22)
 
-Wind-tunnel section data for the airfoil-polar display and for the high-Mach polar gap (the XFOIL grid of `data/report996/polars_forced_merged.json` stops at M = 0.72; Report 996 tip Mach is 0.75–0.90). These are independent airfoil measurements, not the propeller noise or load data the source cases are compared against. Sources and checksums of the PDFs: `rea-work/references/SOURCES.md`.
+Wind-tunnel section data for the airfoil-polar display and for the high-Mach polar gap (the XFOIL grid of `data/report996/polars_forced_merged.json` stops at M = 0.72; Report 996 tip Mach is 0.75–0.90). These are independent airfoil measurements, not the propeller noise or load data the source cases are compared against. Sources and checksums of the PDFs: `PAIN_Program/references/SOURCES.md`.
 
 ## Files
 

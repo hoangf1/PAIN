@@ -44,6 +44,7 @@ Base.@kwdef struct PainSettings
     # CYL2D (App. C)
     cyl2d_n_modes::Int = 20
     cyl2d_node_tol::Float64 = 0.4
+    cyl2d_grid_rule::Symbol = :printed   # Phase 140 (2026-11-10): CR-165869 pp. 60–62; :threshold = r ≤ 1 + node_tol·h
     cyl2d_ny_extra::Int = 10
     c_cyl2d_mps::Float64 = 341.0
     # App. D structural modes (card 8 series limits; Phase 123 cutoff rule)
@@ -179,8 +180,10 @@ const PAIN_SETTING_SPECS = [
     # CYL2D
     (key=:cyl2d_n_modes, group="Cabin modes", label="CYL2D modes per parity", unit="", kind=:int, choices=String[],
      tip="2-D cabin modes solved per symmetry class (20)."),
+    (key=:cyl2d_grid_rule, group="Cabin modes", label="CYL2D grid rule", unit="", kind=:choice, choices=["printed", "threshold"],
+     tip="printed: NASA's rule of CR-165869 pp. 60–62 (NY = 7(1 + cos θ0), nearest point to the wall); threshold: r ≤ 1 + tolerance × cell."),
     (key=:cyl2d_node_tol, group="Cabin modes", label="CYL2D node tolerance", unit="cell", kind=:float, choices=String[],
-     tip="Fraction of a cell within which a node counts as on the boundary (App. C grid: 0.4)."),
+     tip="Used only by the threshold rule: fraction of a cell within which a node counts as on the boundary (0.4)."),
     (key=:cyl2d_ny_extra, group="Cabin modes", label="CYL2D: extra NY tried", unit="", kind=:int, choices=String[],
      tip="When NY has no App. C solution for θ0, grids up to NY + this are tried (Q60: 10)."),
     (key=:c_cyl2d_mps, group="Cabin modes", label="Speed of 2-D mode part", unit="m/s", kind=:float, choices=String[],

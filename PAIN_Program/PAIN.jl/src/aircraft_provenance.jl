@@ -15,7 +15,7 @@ const NASA_DEFAULTS = (
     z_p_m = 0.662,
     η_n_bare = 0.05,         # aircraft register default (register g)
     C_struc = 3.0,
-    NY = 10,
+    NY = 0,                  # 0: the printed grid NK = 7(1 + cos θ0) (CR-165869 p. 60; Phase 140); 10 at 56.6°
     c0_mps = 340.0,
     rho_kg_m3 = 1.225,
     bb_j2_scale = 0.5,

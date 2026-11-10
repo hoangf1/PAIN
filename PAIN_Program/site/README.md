@@ -8,17 +8,17 @@ with the validation cases that carry a verdict on it. It is not a copy of the do
 From the repository root:
 
 ```
-julia --project=rea-work/PAIN.jl rea-work/site/build_site.jl
+julia --project=PAIN_Program/PAIN.jl PAIN_Program/site/build_site.jl
 ```
 
-That writes `rea-work/site/out/index.html` and opens it in your browser. No server and no network: open the file
+That writes `PAIN_Program/site/out/index.html` and opens it in your browser. No server and no network: open the file
 again whenever you like, or hand the `out/` folder to someone else.
 
 | Flag | What it does |
 |---|---|
 | *(none)* | Build, then open `index.html` in the default browser |
 | `--no-open` | Build only |
-| `--out DIR` | Build somewhere other than `rea-work/site/out` |
+| `--out DIR` | Build somewhere other than `PAIN_Program/site/out` |
 
 ## What is on the page
 
@@ -59,10 +59,12 @@ they scale instead of pixelating.
 
 ### The stage flowcharts
 
-Each stage's diagram is generated from `docs/VALIDATION_GUIDELINE.md` §2.13 — the same `Position` / `Feeds` /
-`Group` / `Role` fields the GUI's validation map reads — so the picture cannot drift from the map. Chain blocks run
-left to right, check blocks hang off them dashed and carry their met / not-met count, and the faint box on the
-right is the stage this one feeds. The whole-program diagram at the top is `flowchart.md` §1.
+Each stage's diagram is generated from the `**Chain span:**` fields of `docs/VALIDATION_GUIDELINE.md` §2.13 — the
+same fields the coverage chart reads (Phase 147b, 2026-11-10) — so the picture cannot drift from the chart. The nine
+chain stages run left to right; the ones this stage covers are highlighted and carry the met / not-met count of the
+cases that end there. A case is shown under the stage of the last chain stage it reaches; a case that runs from the
+skin field or earlier to the interior tones or later is shown under *end to end*. The whole-program diagram at the
+top is `flowchart.md` §1.
 
 ## What the build does and does not do
 
@@ -72,20 +74,20 @@ the ones in `docs/validation_reports/case_error_summary.csv`, each with its own 
 
 To refresh what the page shows:
 
-| To update | Run (in `rea-work/PAIN.jl`) |
+| To update | Run (in `PAIN_Program/PAIN.jl`) |
 |---|---|
 | A case's verdict, error line and figure | `julia --project=. scripts/run/regenerate_case_figures.jl CASE_ID` |
 | The whole case snapshot | `julia --project=. scripts/run/write_case_error_summary.jl` |
 | The walk-through's numbers and figures | `julia --project=. scripts/run/write_walkthrough.jl` |
 
-Then rebuild the site. To run a case live instead, use the GUI (`scripts/run_gui.jl`): its Validation tab and the
-chips on the Validation map run the same functions, and their run-status boxes say whether what you are looking at
+Then rebuild the site. To run a case live instead, use the GUI (`scripts/run_gui.jl`): its Validation tab runs the
+same functions (a click on a Coverage row opens the case there), and its run-status box says whether what you are looking at
 is a fresh run or the recorded snapshot.
 
 ## Adding or moving a stage
 
-`STAGES` in `build_site.jl` is the whole structure: each entry names the map groups it covers and the
-`METHODOLOGY.md` headings its prose comes from. A new map group, or a renamed methodology heading, needs its entry
+`STAGES` in `build_site.jl` is the whole structure: each entry names the chain stages it covers and the
+`METHODOLOGY.md` headings its prose comes from. A renamed methodology heading needs its entry
 updated — the build warns (`METHODOLOGY section not found`) when a heading no longer resolves.
 
 ## Layout

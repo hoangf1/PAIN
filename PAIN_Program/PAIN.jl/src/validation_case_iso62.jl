@@ -1,5 +1,5 @@
 # Phase 62 — a proving case with its own figure for every validation-map block that had none.
-# Criteria fixed 2026-10-23 (IMPLEMENTATION_PLAN.md §8i Phase 62) before any run.
+# Criteria fixed 2026-10-23 (COMPLETED_PHASES.md §8i Phase 62) before any run.
 
 const _P62_REPORT = "phase62_65_map_blocks_grid.md"
 _p62_example(name) = joinpath(@__DIR__, "..", "examples", name)

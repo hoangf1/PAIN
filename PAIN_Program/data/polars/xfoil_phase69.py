@@ -3,7 +3,7 @@
 Same XFOIL session and acceptance rule as xfoil_polars.py (XFOIL 6.99, ITER 200, last viscous rms <= 1e-4,
 sweeps away from alpha = 0, 60 s hang limit, 240 panels for the NACA 16 sections). Free transition everywhere.
 
-Run from rea-work (XFOIL_EXE set or xfoil on PATH):
+Run from PAIN_Program (XFOIL_EXE set or xfoil on PATH):
     python data/polars/xfoil_phase69.py tn1546 <points.csv> <out.json>
         69b: every TN 1546 matched point (section, M, alpha) at the TN 1546 Re(M), for N_crit = 1..12.
     python data/polars/xfoil_phase69.py grid <N_crit> <out.json>

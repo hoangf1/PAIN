@@ -123,43 +123,7 @@ function select_validation_case_from_qml(id::AbstractString)
     return nothing
 end
 
-"""QML Validation map tab: select a case chip (registry or UT_*)."""
-function select_map_case_from_qml(id::AbstractString)
-    obs = _GUI_OBS[]
-    obs === nothing && return nothing
-    sid = String(strip(String(id)))
-    isempty(sid) && return nothing
-    obs["map_selected"][] = sid
-    obs["map_selected_block"][] = ""
-    obs["map_detail_json"][] = case_info_json(sid; session_errors=_GUI_LAST_ERRORS)
-    if haskey(VALIDATION_CASES, sid)
-        select_validation_case_from_qml(sid)
-    end
-    return nothing
-end
-
-"""QML Validation map tab: select a pipeline block (shows what_it_does / code)."""
-function select_map_block_from_qml(block_id::AbstractString)
-    obs = _GUI_OBS[]
-    obs === nothing && return nothing
-    bid = String(strip(String(block_id)))
-    isempty(bid) && return nothing
-    obs["map_selected"][] = ""
-    obs["map_selected_block"][] = bid
-    obs["map_detail_json"][] = map_block_info_json("total", bid)
-    return nothing
-end
-
-"""QML reports Flickable content/view widths (smoke checks horizontal scroll)."""
-function report_map_canvas_size_from_qml(content_w::Real, view_w::Real)
-    obs = _GUI_OBS[]
-    obs === nothing && return nothing
-    obs["map_content_width"][] = Float64(content_w)
-    obs["map_view_width"][] = Float64(view_w)
-    return nothing
-end
-
-"""QML Validation map tab opened: re-parse §2.13 so an edited .md shows without restart."""
+"""QML Coverage tab opened: re-parse §2.13 so an edited .md shows without restart."""
 function reload_validation_docs_from_qml()
     obs = _GUI_OBS[]
     obs === nothing && return nothing
@@ -297,10 +261,10 @@ main()
 button), waits until Done, then quits (for button-path smoke tests).
 """
 function main(args=ARGS; smoke_ms::Real=0, smoke_case::AbstractString="",
-              smoke_map_png::AbstractString="", smoke_runbox_png::AbstractString="",
-              smoke_inputs_png::AbstractString="", smoke_coverage_png::AbstractString="")
+              smoke_runbox_png::AbstractString="", smoke_inputs_png::AbstractString="",
+              smoke_coverage_png::AbstractString="", smoke_cabin_png::AbstractString="")
     ENV["QT_QUICK_CONTROLS_STYLE"] = get(ENV, "QT_QUICK_CONTROLS_STYLE", "Fusion")
-    # Offscreen Qt often has no bundled fonts; point at the OS font dir so map titles render.
+    # Offscreen Qt often has no bundled fonts; point at the OS font dir so titles render.
     if lowercase(get(ENV, "QT_QPA_PLATFORM", "")) == "offscreen" && !haskey(ENV, "QT_QPA_FONTDIR")
         for cand in ("C:/Windows/Fonts", "/usr/share/fonts", "/System/Library/Fonts")
             if isdir(cand)
@@ -325,12 +289,9 @@ function main(args=ARGS; smoke_ms::Real=0, smoke_case::AbstractString="",
         obs["smoke_coverage_png"][] = abspath(String(smoke_coverage_png))
         smoke_ms > 0 || (obs["smoke_ms"][] = 60000.0)    # the QML timer quits once both Coverage shots are written
     end
-    if !isempty(smoke_map_png)
-        obs["smoke_map_png"][] = abspath(String(smoke_map_png))
-        # Give the map tab time to lay out before auto-quit when capturing.
-        if !(smoke_ms > 0)
-            obs["smoke_ms"][] = 2500.0
-        end
+    if !isempty(smoke_cabin_png)
+        obs["smoke_cabin_png"][] = abspath(String(smoke_cabin_png))
+        smoke_ms > 0 || (obs["smoke_ms"][] = 180000.0)   # the QML timer quits once both animation shots are written
     end
     _GUI_OBS[] = obs
     _GUI_CLOSED[] = false
@@ -344,9 +305,6 @@ function main(args=ARGS; smoke_ms::Real=0, smoke_case::AbstractString="",
     @qmlfunction run_validation_from_qml
     @qmlfunction run_all_validation_from_qml
     @qmlfunction select_validation_case_from_qml
-    @qmlfunction select_map_case_from_qml
-    @qmlfunction select_map_block_from_qml
-    @qmlfunction report_map_canvas_size_from_qml
     @qmlfunction reload_validation_docs_from_qml
     @qmlfunction open_validation_report_from_qml
     @qmlfunction run_printed_outputs_from_qml

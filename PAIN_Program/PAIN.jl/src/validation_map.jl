@@ -1,4 +1,5 @@
-# Validation map (single total flowchart) + per-case metadata for the GUI "Validation map" tab.
+# Per-case metadata from §2.13 for the GUI (Validation and Coverage tabs). The block map these records once drew was
+# retired in Phase 147 (2026-11-10); the blocks stay as figure folders and as the Validation tab's case order.
 # Texts and map structure come from docs/VALIDATION_GUIDELINE.md §2.13 (single source of truth).
 
 struct CaseInfo
@@ -308,25 +309,22 @@ function _map_by_id(map_id::AbstractString)
 end
 
 """
-    on_validation_map(id; rec=recorded_case_errors()) -> Bool
+    has_verdict(id; rec=recorded_case_errors()) -> Bool
 
-A case is shown on the validation map only when its recorded verdict (the snapshot `case_error_summary.csv`) is met or
-not met (author 2026-10-29: "all no verdicts should be placed elsewhere"). Information cases, diagnostic re-runs, cases
-with no criterion, Pkg.test-only and unrun cases are listed in `docs/NO_VERDICT_CASES.md` and in the Validation tab.
+A case carries a verdict (and is drawn on the coverage chart by default) only when its recorded verdict (the snapshot
+`case_error_summary.csv`) is met or not met and no rule takes it off (author 2026-10-29: "all no verdicts should be
+placed elsewhere"). Information cases, diagnostic re-runs, cases with no criterion, Pkg.test-only and unrun cases are
+listed in `docs/NO_VERDICT_CASES.md` and in the Validation tab. Phase 147a (2026-11-10): renamed from
+`on_validation_map` when the block map was retired; the old name is kept as an alias.
 """
-function on_validation_map(id::AbstractString; rec::AbstractDict=recorded_case_errors())
+function has_verdict(id::AbstractString; rec::AbstractDict=recorded_case_errors())
     no_verdict_by_rule(id) && return false
     r = get(rec, String(id), nothing)
     return r !== nothing && r.verdict in ("met", "not_met")
 end
 
-"""The map as shown: every block (the program's stages) kept, each holding only its cases with a verdict."""
-function shown_validation_map(map_id::AbstractString; rec::AbstractDict=recorded_case_errors())
-    m = _map_by_id(map_id)
-    blocks = [MapBlock(b.id, b.title, b.code, b.note, b.what_it_does, filter(id -> on_validation_map(id; rec), b.cases),
-                       b.col, b.row, b.feeds, b.group, b.role, b.group_title) for b in m.blocks]
-    return ValidationMap(m.id, m.title, m.intro, m.what_is, m.how_to_read, blocks)
-end
+"""Old name of [`has_verdict`](@ref) (the block validation map was retired in Phase 147, 2026-11-10)."""
+const on_validation_map = has_verdict
 
 """Soft lookup for GUI: missing CASE_INFO → placeholder fields, no crash."""
 function _case_info_or_missing(id::AbstractString)
@@ -338,81 +336,6 @@ function _case_info_or_missing(id::AbstractString)
         _MISSING_DOC, _MISSING_DOC, _MISSING_DOC, _MISSING_DOC,
         _MISSING_DOC, _MISSING_DOC, _MISSING_DOC, "", "", 0, 0, :verification,
     )
-end
-
-"""JSON for one flowchart: map + per-case chip fields (id, title, category, kind, recorded, last, runnable, error, error_chip, error_source)."""
-function validation_map_json(map_id::AbstractString;
-                             last::Dict{String,Symbol}=Dict{String,Symbol}(),
-                             session_errors::Dict{String,NamedTuple}=Dict{String,NamedTuple}(),
-                             recorded_errors::Union{Nothing,Dict{String,NamedTuple}}=nothing)
-    recorded = recorded_errors === nothing ? recorded_case_errors() : recorded_errors
-    m = shown_validation_map(map_id; rec=recorded)
-    blocks = []
-    for b in m.blocks
-        cases = []
-        for id in b.cases
-            info = _case_info_or_missing(id)
-            last_sym = get(last, id, :not_run)
-            runnable = if info.kind === :pkgtest || info.kind === :deferred
-                false
-            elseif haskey(VALIDATION_CASES, id)
-                validation_case_runnable(id)
-            else
-                false
-            end
-            err = _case_error_json_fields(id; session=session_errors, recorded=recorded)
-            push!(cases, Dict(
-                "id" => id,
-                "title" => info.title,
-                "category" => String(info.category),
-                "kind" => String(info.kind),
-                "recorded" => info.recorded,
-                "last" => String(last_sym),
-                "runnable" => runnable,
-                "error" => err.error,
-                "error_chip" => err.error_chip,
-                "error_source" => err.error_source,
-            ))
-        end
-        push!(blocks, Dict(
-            "id" => b.id,
-            "title" => b.title,
-            "code" => b.code,
-            "note" => b.note,
-            "what_it_does" => b.what_it_does,
-            "cases" => cases,
-            "col" => b.col,
-            "row" => b.row,
-            "feeds" => b.feeds,
-            "group" => b.group,
-            "role" => b.role,
-            "group_title" => b.group_title,
-        ))
-    end
-    # Group metadata for QML stage frames (title from first block that declares Group title).
-    groups = Dict{String,Dict{String,Any}}()
-    for b in m.blocks
-        isempty(b.group) && continue
-        g = get!(groups, b.group) do
-            Dict{String,Any}("id" => b.group, "title" => "", "block_ids" => String[])
-        end
-        push!(g["block_ids"], b.id)
-        if !isempty(b.group_title)
-            g["title"] = b.group_title
-        end
-    end
-    group_list = [groups[k] for k in sort!(collect(keys(groups)))]
-    return JSON3.write(Dict(
-        "id" => m.id,
-        "title" => m.title,
-        "intro" => m.intro,
-        "what_is" => m.what_is,
-        "how_to_read" => m.how_to_read,
-        "blocks" => blocks,
-        "groups" => group_list,
-        "chip_row_h" => VALIDATION_MAP_CHIP_ROW_H,
-        "row_y" => validation_map_row_y(m),
-    ))
 end
 
 """JSON of CaseInfo + criterion (if registered) + source image path + error summary when present."""
@@ -458,51 +381,9 @@ function case_info_json(id::AbstractString;
     return JSON3.write(d)
 end
 
-"""JSON for a map block detail panel (title, what_it_does, code, role); `cases` are the ones on the map,
-`off_map_cases` the block's cases without a verdict."""
-function map_block_info_json(map_id::AbstractString, block_id::AbstractString)
-    m = shown_validation_map(map_id)
-    full = Dict(b.id => b.cases for b in _map_by_id(map_id).blocks)
-    for b in m.blocks
-        if b.id == block_id
-            return JSON3.write(Dict(
-                "detail_kind" => "block",
-                "id" => b.id,
-                "title" => b.title,
-                "code" => b.code,
-                "note" => b.note,
-                "what_it_does" => b.what_it_does,
-                "role" => b.role,
-                "group" => b.group,
-                "group_title" => b.group_title,
-                "col" => b.col,
-                "row" => b.row,
-                "feeds" => b.feeds,
-                "cases" => b.cases,
-                "off_map_cases" => setdiff(full[b.id], b.cases),
-            ))
-        end
-    end
-    return JSON3.write(Dict(
-        "detail_kind" => "block",
-        "id" => String(block_id),
-        "title" => _MISSING_DOC,
-        "code" => "",
-        "note" => "",
-        "what_it_does" => _MISSING_DOC,
-        "role" => "",
-        "group" => "",
-        "group_title" => "",
-        "col" => 0,
-        "row" => 0,
-        "feeds" => String[],
-        "cases" => String[],
-        "off_map_cases" => String[],
-    ))
-end
-
-"""Registry ids in map → block order (excludes UT_* / non-registry nodes), then the registry ids placed on no block
-(`Map / block: none`) in registry order, so the Validation tab lists every registered case."""
+"""Registry ids in §2.13 block order (excludes UT_* / non-registry nodes), then the registry ids placed on no block
+(`Map / block: none`) in registry order, so the Validation tab lists every registered case. The blocks are no longer
+drawn (Phase 147, 2026-11-10); they keep the case order and the figure folders."""
 function validation_map_case_order()
     out = String[]
     for m in VALIDATION_MAPS
@@ -515,124 +396,6 @@ function validation_map_case_order()
     seen = Set(out)
     append!(out, [id for id in VALIDATION_CASE_ORDER if !(id in seen)])
     return out
-end
-
-# Layout constants must match gui/main.qml (mapCellW/H, mapPad, block 148×44, chip rows).
-const _MAP_CELL_W = 168
-const _MAP_CELL_H = 118
-const _MAP_PAD = 28
-const _MAP_BLOCK_W = 148
-const _MAP_BLOCK_H = 44
-const _MAP_GRP_PAD_X = 10
-const _MAP_GRP_PAD_TOP = 22
-const _MAP_GRP_PAD_BOT = 10
-"""Per chip height (px, chip box + 4 px spacing) with short error + source lines; passed to QML as `chip_row_h`."""
-const VALIDATION_MAP_CHIP_ROW_H = 56
-"""Vertical gap between the tallest block of a row and the next row (room for both group frame pads)."""
-const _MAP_ROW_GAP = _MAP_GRP_PAD_TOP + _MAP_GRP_PAD_BOT + 14
-
-"""Chip stack height under a title box (one full-width chip per line) — same as QML `blockChipExtra`."""
-function _map_block_chip_extra(n_cases::Integer)
-    n_cases <= 0 && return 0
-    return 4 + n_cases * VALIDATION_MAP_CHIP_ROW_H
-end
-
-"""
-Top y (px) of every map row, `row_y[r + 1]` for row `r`. Each row is as tall as its tallest block
-(title box + chips) plus `_MAP_ROW_GAP`, and at least `_MAP_CELL_H`, so no block's chips reach the
-next row. Passed to QML as `row_y`.
-"""
-function validation_map_row_y(m)
-    n_rows = isempty(m.blocks) ? 1 : maximum(b.row for b in m.blocks) + 1
-    tallest = zeros(Float64, n_rows)
-    for b in m.blocks
-        tallest[b.row + 1] = max(tallest[b.row + 1], _MAP_BLOCK_H + _map_block_chip_extra(length(b.cases)))
-    end
-    row_y = Vector{Float64}(undef, n_rows)
-    y = Float64(_MAP_PAD)
-    for r in 1:n_rows
-        row_y[r] = y
-        y += max(Float64(_MAP_CELL_H), tallest[r] + _MAP_ROW_GAP)
-    end
-    return row_y
-end
-
-"""Block rectangle `(x, y, w, h)` including its chip stack."""
-function _map_block_rect(b, row_y)
-    return (x = Float64(_MAP_PAD + b.col * _MAP_CELL_W), y = row_y[b.row + 1],
-            w = Float64(_MAP_BLOCK_W), h = Float64(_MAP_BLOCK_H + _map_block_chip_extra(length(b.cases))))
-end
-
-"""
-Axis-aligned stage-group rectangles from map model data (own blocks only, including check chips).
-Matches QML `groupBounds`. Returns `Dict(group_id => (x, y, w, h))`.
-"""
-function validation_map_group_rects(map_id::AbstractString="total")
-    m = shown_validation_map(map_id)
-    row_y = validation_map_row_y(m)
-    rects = Dict{String,NamedTuple{(:x, :y, :w, :h),NTuple{4,Float64}}}()
-    by_group = Dict{String,Vector{MapBlock}}()
-    for b in m.blocks
-        isempty(b.group) && continue
-        push!(get!(() -> MapBlock[], by_group, b.group), b)
-    end
-    for (gid, blks) in by_group
-        min_x = Inf
-        min_y = Inf
-        max_x = -Inf
-        max_y = -Inf
-        for b in blks
-            r = _map_block_rect(b, row_y)
-            min_x = min(min_x, r.x)
-            min_y = min(min_y, r.y)
-            max_x = max(max_x, r.x + r.w)
-            max_y = max(max_y, r.y + r.h)
-        end
-        rects[gid] = (
-            x = min_x - _MAP_GRP_PAD_X,
-            y = min_y - _MAP_GRP_PAD_TOP,
-            w = max(40.0, (max_x + _MAP_GRP_PAD_X) - (min_x - _MAP_GRP_PAD_X)),
-            h = max(40.0, (max_y + _MAP_GRP_PAD_BOT) - (min_y - _MAP_GRP_PAD_TOP)),
-        )
-    end
-    return rects
-end
-
-"""True if two axis-aligned rects `(x,y,w,h)` have empty interior intersection (edges may touch)."""
-function _map_rects_disjoint(a, b)
-    return (a.x + a.w <= b.x) || (b.x + b.w <= a.x) ||
-           (a.y + a.h <= b.y) || (b.y + b.h <= a.y)
-end
-
-"""Assert every stage group rectangle is pairwise disjoint (smoke / layout check)."""
-function assert_validation_map_groups_disjoint(map_id::AbstractString="total")
-    rects = validation_map_group_rects(map_id)
-    ids = sort!(collect(keys(rects)))
-    for i in 1:length(ids)
-        for j in (i + 1):length(ids)
-            a, b = rects[ids[i]], rects[ids[j]]
-            _map_rects_disjoint(a, b) || error(
-                "validation map group rectangles overlap: $(ids[i])=$a vs $(ids[j])=$b")
-        end
-    end
-    # No block of another group may overlap a group's rectangle.
-    m = shown_validation_map(map_id)
-    row_y = validation_map_row_y(m)
-    for b in m.blocks
-        isempty(b.group) && continue
-        br = _map_block_rect(b, row_y)
-        for (gid, r) in rects
-            gid == b.group && continue
-            _map_rects_disjoint(br, r) || error("block $(b.id) (group $(b.group)) overlaps group rectangle $gid=$r")
-        end
-    end
-    # No two blocks (title box + chips) may overlap, so every block and chip stays clickable.
-    for i in eachindex(m.blocks), j in (i + 1):length(m.blocks)
-        a, b = m.blocks[i], m.blocks[j]
-        _map_rects_disjoint(_map_block_rect(a, row_y), _map_block_rect(b, row_y)) ||
-            error("validation map blocks overlap: $(a.id) vs $(b.id)")
-    end
-    return rects
 end
 
 # Module-load fill from the guideline (raises if §2.13 is incomplete).

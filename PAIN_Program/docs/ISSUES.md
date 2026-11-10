@@ -137,8 +137,8 @@ A web search for reports that could settle open questions of these issues. The l
 
 | Run | Phase value | \|Δφ − 155°\| | Where |
 |---|---|---|---|
-| 2026-10-21 (I-07 + I-08) | 103.8° | 51.2° | COMPLETED_PHASES row 27; VALIDATION_GUIDELINE line 941 |
-| 2026-10-22 (polar re-run, post-hoc) | 109.0° | 46.0° (155 − 109.0) | VALIDATION_GUIDELINE line 941 |
+| 2026-10-21 (I-07 + I-08) | 103.8° (superseded; Phase 135a) | 51.2° | COMPLETED_PHASES row 27; VALIDATION_GUIDELINE line 941 |
+| 2026-10-22 (polar re-run, post-hoc) | 109.0° (superseded; Phase 135a) | 46.0° (155 − 109.0) | VALIDATION_GUIDELINE line 941 |
 | 2026-10-28 (Phase 69 re-run, post-hoc) | 113.6° | 41.4° (155 − 113.6) | VALIDATION_GUIDELINE §2.14 |
 | 2026-10-28 (current: x-sign of Phase 72, thickness of Phase 76) | 112.8° | 42.2° | `report996_acoustics.md` line 20; `case_error_summary.csv` (2026-11-02) prints it as 42.0 |
 

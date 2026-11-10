@@ -88,8 +88,12 @@ function _row_error(row::ValidationTableRow, mode::Symbol)
     end
 end
 
-"""Format |err| for chip / summary text (2 significant figures)."""
-_fmt_err_sig(x::Real) = string(round(Float64(x); sigdigits=2))
+"""Format |err| for chip / summary text. Error size for the summary: one decimal from 1 up (42.2 stays 42.2, not 42.0), two significant figures below 1, where a
+loss factor or a ratio would otherwise print as 0.0 (Phase 145b, 2026-11-10)."""
+function _fmt_err_sig(x::Real)
+    y = Float64(x)
+    return isfinite(y) && abs(y) >= 1 ? string(round(y; digits=1)) : string(round(y; sigdigits=2))
+end
 
 """Text inside the last `(...)` of a label, or `nothing` if absent/empty."""
 function _unit_in_parens(label::AbstractString)
@@ -128,7 +132,7 @@ function _error_chip_text(; text::AbstractString, n_within::Int, n_rows::Int,
 end
 
 """Information row (no tolerance applies): its label or group carries "(info" (Phase 79a)."""
-_is_info_row(r::ValidationTableRow) = occursin("(info", r.quantity) || occursin("(info", r.group)
+_is_info_row(r::ValidationTableRow) = !r.in_verdict || occursin("(info", r.quantity) || occursin("(info", r.group)
 
 """Error-panel colour of a row: grey for a case without a criterion and for information rows (Phase 81: they have no
 tolerance, so green or red would claim one), else green within / red outside the criterion."""
@@ -138,7 +142,7 @@ _error_point_color(r::ValidationTableRow, has_criterion::Bool) =
 """
     case_error_summary(result, spec) -> NamedTuple
 
-Display-only error roll-up for the Validation map. Uses `_row_error` / `_error_ylabel`
+Display-only error roll-up for the GUI and the snapshot. Uses `_row_error` / `_error_ylabel`
 exactly as the error panel; does not change criteria or verdicts.
 `n_within` / `n_rows` count the criterion rows; max/median use their finite `_row_error` only. Information rows
 (label or group marked "(info", `_is_info_row`) stay in the table and figure but leave the roll-up (Phase 79a), so the
@@ -147,13 +151,16 @@ chip agrees with the verdict; a table with only information rows is rolled up wh
 function case_error_summary(result::ValidationCaseResult, spec::PlotSpec)
     crit = filter(!_is_info_row, result.table)
     rows = isempty(crit) ? result.table : crit
+    # Phase 145a: rows shown but not judged are counted apart ("+ n shown, not judged")
+    n_shown = isempty(crit) ? 0 : length(result.table) - length(crit)
+    shown = n_shown == 0 ? "" : " (+ $(n_shown) shown, not judged)"
     # :none with a met/not_met outcome and a non-empty table → coverage-style count only (an information case keeps its
     # recorded count, labelled as carrying no verdict).
     if spec.error_mode === :none
         if !isempty(rows) && underlying_verdict(result) in (:met, :not_met)
             n_within = count(r -> r.within_tolerance, rows)
             n_rows = length(rows)
-            text = (result.verdict === :no_verdict ? "no verdict · " : "") * "$(n_within)/$(n_rows) within criterion"
+            text = (result.verdict === :no_verdict ? "no verdict · " : "") * "$(n_within)/$(n_rows) within criterion" * shown
             chip_text = text
             return (; n_within, n_rows, max_abs=NaN, median_abs=NaN, unit="", text, chip_text)
         end
@@ -181,10 +188,12 @@ function case_error_summary(result::ValidationCaseResult, spec::PlotSpec)
     med_abs = isempty(errs) ? NaN : Statistics.median(abs.(errs))
     text = if isempty(result.table)
         "no criterion"
+    elseif isempty(errs)   # Phase 145b: no "NaN" in the summary
+        (result.verdict === :no_verdict ? "no verdict · " : "$(n_within)/$(n_rows) in tol$(shown) · ") * "no error size (count only)"
     elseif result.verdict === :no_verdict
         "no verdict · max |err| $(_fmt_err_sig(max_abs)) $(unit) · med $(_fmt_err_sig(med_abs)) $(unit)"
     else
-        "$(n_within)/$(n_rows) in tol · max |err| $(_fmt_err_sig(max_abs)) $(unit) · med $(_fmt_err_sig(med_abs)) $(unit)"
+        "$(n_within)/$(n_rows) in tol$(shown) · max |err| $(_fmt_err_sig(max_abs)) $(unit) · med $(_fmt_err_sig(med_abs)) $(unit)"
     end
     chip_text = _error_chip_text(; text, n_within, n_rows, max_abs, unit)
     return (; n_within, n_rows, max_abs, median_abs=med_abs, unit, text, chip_text)
@@ -250,97 +259,45 @@ _md_cell(s) = replace(String(s), "|" => "\\|")
 """
     validation_scoreboard_markdown(; map_id="total", rec=recorded_case_errors()) -> String
 
-The at-a-glance section at the top of `VALIDATION_GUIDELINE.md`: the validation map as a Mermaid flowchart with each
-block coloured by its cases' verdicts, the cases that are not met (fewest points first), and one table per map group
-listing the cases with a verdict. Only cases with a verdict are on the map (`on_validation_map`); the rest are listed in
-`docs/NO_VERDICT_CASES.md` (`no_verdict_cases_markdown`). Built from §2.13 (blocks, groups, feeds, case placement) and
-the recorded snapshot `case_error_summary.csv`, so it shows exactly what the Validation map tab shows.
-Display only: no criterion or verdict is computed here.
+The at-a-glance section at the top of `VALIDATION_GUIDELINE.md`: the chain coverage chart of the cases with a verdict,
+why each not-met case is not met, the not-met cases (fewest points first) with their chain span and what they are
+compared with, and the independence records of the verdicts reached after a change. Since Phase 147 (2026-11-10) the
+block map is no longer drawn here (ISSUE-015). Cases without a verdict are listed in `docs/NO_VERDICT_CASES.md`.
+Built from §2.13 and the recorded snapshot `case_error_summary.csv`. Display only: no criterion or verdict is computed.
 """
 function validation_scoreboard_markdown(; map_id::AbstractString="total",
                                         rec::AbstractDict=recorded_case_errors())
-    m = shown_validation_map(map_id; rec)
     get_rec(id) = get(rec, id, nothing)
     snap = isempty(rec) ? "none" : maximum(r.run_date for r in values(rec))
-    groups = String[]; gtitle = Dict{String,String}()
-    for b in m.blocks
-        b.group in groups || push!(groups, b.group)
-        isempty(b.group_title) || haskey(gtitle, b.group) || (gtitle[b.group] = b.group_title)
-    end
     title(id) = haskey(CASE_INFO, id) ? CASE_INFO[id].title : id
     n_off = length(_no_verdict_case_ids(map_id; rec))
+    rows = coverage_rows(; rec, verdict_only=true)
     io = IOBuffer()
     println(io, _SCOREBOARD_START)
     println(io, "## 0. Validation status at a glance\n")
     println(io, "Snapshot of the recorded case results (`docs/validation_reports/case_error_summary.csv`, latest run ",
-            snap, "). The map holds only the cases with a verdict (met or not met); the ", n_off, " cases without one ",
-            "(information and verification checks, diagnostic re-runs, displays, Pkg.test-only checks) are listed in ",
-            "`NO_VERDICT_CASES.md`. **Points** = table rows within the case's criterion / all rows. Block colour: ",
-            "green = every case met, amber = some met, red = none met, grey = no case with a verdict. Regenerated by ",
-            "`scripts/run/write_case_error_summary.jl`; the criteria and records are in §2.13, the closure classes ",
-            "of not-met cases in §2.14.\n")
-    # --- Mermaid map -------------------------------------------------------------------------------
-    println(io, "```mermaid\nflowchart LR")
-    status = Dict{String,Symbol}()
-    for g in groups
-        blocks = [b for b in m.blocks if b.group == g]
-        println(io, "  subgraph ", g, "[\"", _mermaid_text(get(gtitle, g, g)), "\"]")
-        println(io, "    direction LR")
-        for b in blocks
-            v = String[get_rec(id).verdict for id in b.cases]
-            status[b.id] = _scoreboard_block_status(v)
-            lab = _mermaid_text(b.title)
-            isempty(b.cases) || (lab *= "<br/>$(count(==("met"), v)) met · $(count(==("not_met"), v)) not met")
-            println(io, "    ", b.id, "[\"", lab, "\"]")
-        end
-        println(io, "  end")
-    end
-    for b in m.blocks, f in b.feeds
-        println(io, "  ", b.id, " --> ", f)
-    end
-    println(io, "  classDef met fill:#d4edda,stroke:#2e7d32\n  classDef partial fill:#fff3cd,stroke:#b8860b",
-            "\n  classDef not_met fill:#f8d7da,stroke:#c62828\n  classDef none fill:#eeeeee,stroke:#9e9e9e")
-    for s in (:met, :partial, :not_met, :none)
-        ids = [b.id for b in m.blocks if status[b.id] === s]
-        isempty(ids) || println(io, "  class ", join(ids, ","), " ", s)
-    end
-    println(io, "```\n")
-    # --- group summary -----------------------------------------------------------------------------
-    println(io, "| Group | Cases with a verdict | Met | Not met | Points within criterion |")
-    println(io, "|---|---|---|---|---|")
-    for g in groups
-        rs = [get_rec(id) for b in m.blocks if b.group == g for id in b.cases]
-        nm = count(r -> r.verdict == "met", rs)
-        pts = isempty(rs) ? "—" : "$(sum(r.n_within for r in rs))/$(sum(r.n_rows for r in rs))"
-        println(io, "| ", get(gtitle, g, g), " | ", length(rs), " | ", nm, " | ", length(rs) - nm, " | ", pts, " |")
-    end
-    println(io)
-    print(io, coverage_markdown(; rec))   # Phase 134: which part of the chain each case runs, and against what
-    # --- not met, fewest points first ---------------------------------------------------------------
+            snap, "). ", length(rows), " cases carry a verdict: ", count(r -> r.verdict == "met", rows), " met, ",
+            count(r -> r.verdict == "not met", rows), " not met. A case carries one only if it runs the shipped code, every ",
+            "input it compares on is printed or measured, and it is compared with a measurement or with NASA's program ",
+            "output (author 2026-11-09). The ", n_off, " cases without one are listed in `NO_VERDICT_CASES.md`. ",
+            "**Points** = table rows within the case's criterion / all rows. Regenerated by ",
+            "`scripts/run/write_case_error_summary.jl`; the criteria and records are in §2.13.\n")
+    print(io, coverage_markdown(; rec))   # Phase 134 chart and table; Phase 145e why not met
     println(io, "### Not met (fewest points within criterion first)\n")
-    println(io, "| Case | Block | Points | Error |\n|---|---|---|---|")
-    notmet = [(id, b, get_rec(id)) for b in m.blocks for id in b.cases if get_rec(id).verdict == "not_met"]
-    sort!(notmet; by=t -> (t[3].n_rows == 0 ? 0.0 : t[3].n_within / t[3].n_rows, t[1]))
-    for (id, b, r) in notmet
-        println(io, "| `", id, "` ", _md_cell(title(id)), " | ", _md_cell(b.title), " | ", _scoreboard_points(r), " | ", _md_cell(r.text), " |")
+    println(io, "| Case | Chain span | Compared with | Points | Error |
+|---|---|---|---|---|")
+    notmet = [r for r in rows if r.verdict == "not met"]
+    sort!(notmet; by=r -> (get_rec(r.id).n_rows == 0 ? 0.0 : get_rec(r.id).n_within / get_rec(r.id).n_rows, r.id))
+    for r in notmet
+        rr = get_rec(r.id)
+        println(io, "| `", r.id, "` ", _md_cell(title(r.id)), " | ", CHAIN_STAGES[r.from], " → ", CHAIN_STAGES[r.to], " | ",
+                reference_label(r.reference), " | ", _scoreboard_points(rr), " | ", _md_cell(rr.text), " |")
     end
     println(io)
-    # --- per group ---------------------------------------------------------------------------------
-    for g in groups
-        println(io, "### ", get(gtitle, g, g), " (`", g, "`)\n")
-        println(io, "| Block | Case | Verdict | Points | Error |\n|---|---|---|---|---|")
-        for b in m.blocks
-            b.group == g || continue
-            isempty(b.cases) && (println(io, "| ", _md_cell(b.title), " | — (no case with a verdict) | — | — | — |"); continue)
-            for id in b.cases
-                r = get_rec(id); v = _scoreboard_verdict(r, id)
-                v == "not met" && (v = "**not met**")
-                println(io, "| ", _md_cell(b.title), " | `", id, "` ", _md_cell(title(id)), " | ", v, " | ",
-                        _scoreboard_points(r), " | ", _md_cell(r.text), " |")
-            end
-        end
-        println(io)
-    end
+    println(io, "### Verdicts reached after a change\n")
+    println(io, "Every met verdict that was not met at its first run, and every change in between, is listed with what the ",
+            "change rests on and whether the compared data was used to choose it (author 2026-11-09: \"this needs to be ",
+            "proven that its not circular\"): `validation_reports/phase145_independence_records.md` (Phase 145c).\n")
     print(io, _SCOREBOARD_END)
     return String(take!(io))
 end
@@ -348,7 +305,7 @@ end
 """Ids of the documented cases that are not on the map: the map's own off-map cases in block order, then the cases
 placed on no block (`Map / block: none`), sorted."""
 function _no_verdict_case_ids(map_id::AbstractString="total"; rec::AbstractDict=recorded_case_errors())
-    ids = [id for b in _map_by_id(map_id).blocks for id in b.cases if !on_validation_map(id; rec)]
+    ids = [id for b in _map_by_id(map_id).blocks for id in b.cases if !has_verdict(id; rec)]
     append!(ids, sort!([id for (id, info) in CASE_INFO if info.map_id == "none"]))
     return ids
 end
@@ -369,14 +326,14 @@ end
 """
     no_verdict_cases_markdown(; map_id="total", rec=recorded_case_errors()) -> String
 
-`docs/NO_VERDICT_CASES.md`: every case kept off the validation map because it carries no verdict, grouped by why
+`docs/NO_VERDICT_CASES.md`: every case kept off the coverage chart because it carries no verdict, grouped by why
 (diagnostic re-run, information under the meaningfulness rule, inputs not printed or measured, no criterion, not in
-the snapshot), with its block, the reason and the recorded result. Display only, from the same snapshot as §0.
+the snapshot), with its chain span, the reason and the recorded result. Display only, from the same snapshot as §0.
 """
 function no_verdict_cases_markdown(; map_id::AbstractString="total", rec::AbstractDict=recorded_case_errors())
-    block_title = Dict(b.id => b.title for b in _map_by_id(map_id).blocks)
     title(id) = haskey(CASE_INFO, id) ? CASE_INFO[id].title : id
-    blk(id) = haskey(CASE_INFO, id) ? get(block_title, CASE_INFO[id].block_id, CASE_INFO[id].block_id) : "—"
+    span = Dict(r.id => string(CHAIN_STAGES[r.from], " → ", CHAIN_STAGES[r.to]) for r in coverage_rows(; rec))   # Phase 147c
+    blk(id) = get(span, id, "—")
     snap = isempty(rec) ? "none" : maximum(r.run_date for r in values(rec))
     rows = Dict(k => Tuple{String,String,String}[] for k in _NO_VERDICT_KIND_ORDER)
     for id in _no_verdict_case_ids(map_id; rec)
@@ -386,18 +343,18 @@ function no_verdict_cases_markdown(; map_id::AbstractString="total", rec::Abstra
         push!(rows[kind], (id, why, res))
     end
     io = IOBuffer()
-    println(io, "# Cases without a verdict (not on the validation map)\n")
+    println(io, "# Cases without a verdict (not on the coverage chart)\n")
     println(io, "Generated by `scripts/run/write_case_error_summary.jl` from the snapshot ",
-            "`validation_reports/case_error_summary.csv` (latest run ", snap, "); do not edit by hand. The validation map ",
-            "(`VALIDATION_GUIDELINE.md` §0 and the GUI's Validation map tab) shows only the cases with a verdict (author ",
-            "2026-10-29). The cases below still run, in the GUI's Validation tab and in the tests; their records and ",
+            "`validation_reports/case_error_summary.csv` (latest run ", snap, "); do not edit by hand. The coverage chart ",
+            "(`VALIDATION_GUIDELINE.md` §0 and the GUI's Coverage tab) shows only the cases with a verdict (author ",
+            "2026-10-29; the block map was retired in Phase 147, 2026-11-10). The cases below still run, in the GUI's Validation tab and in the tests; their records and ",
             "criteria are in `VALIDATION_GUIDELINE.md` §2.13. A recorded outcome listed here is not a pass.\n")
     println(io, "Every case, with and without a verdict, on the program chain (pale dashed bars: no verdict; Phase 134):\n\n",
             "![Chain coverage, every case](validation_reports/figures/coverage/chain_coverage_all.png)\n")
     for kind in _NO_VERDICT_KIND_ORDER
         isempty(rows[kind]) && continue
         println(io, "## ", kind, " (", length(rows[kind]), ")\n")
-        println(io, "| Case | Block | Why it has no verdict | Recorded result |\n|---|---|---|---|")
+        println(io, "| Case | Chain span | Why it has no verdict | Recorded result |\n|---|---|---|---|")
         for (id, why, res) in rows[kind]
             println(io, "| `", id, "` ", _md_cell(title(id)), " | ", _md_cell(blk(id)), " | ", _md_cell(why), " | ", _md_cell(res), " |")
         end
@@ -611,6 +568,22 @@ end
 # True when the case is judged against a criterion; a no-verdict figure draws no tolerance band or within/outside colours.
 _has_criterion(result) = result.verdict !== :no_verdict
 
+"""Top of the trim model's stated range (CR-172428 pp. 152 and 168: "about 50 to 1000 Hz"; Phase 137d, 2026-11-10)."""
+const TRIM_RANGE_TOP_HZ = 1000.0
+
+"""
+On a noise-reduction plot (y label starting "NR", x in Hz), shade the bands above `TRIM_RANGE_TOP_HZ`, where NASA
+says the trim model over-predicts the sound isolation (Phase 137d). Display only: no row, count or verdict changes.
+"""
+function _shade_trim_range!(ax, spec::PlotSpec, result::ValidationCaseResult, p::Integer)
+    (startswith(_panel_ylabel(spec, p), "NR") && occursin("Hz", _panel_xlabel(spec, p))) || return nothing
+    xs = Float64[x for s in result.series if s.panel == p for x in s.x if isfinite(x)]
+    (isempty(xs) || maximum(xs) <= TRIM_RANGE_TOP_HZ) && return nothing
+    vspan!(ax, TRIM_RANGE_TOP_HZ, maximum(xs) * 1.12; color=(:gray, 0.12),
+           label="above 1 kHz: outside the trim model's stated range (CR-172428 p. 168)")
+    return nothing
+end
+
 """
     plot_case(result, spec; path=nothing) -> String
 
@@ -659,6 +632,7 @@ function plot_case(result::ValidationCaseResult, spec::PlotSpec; path::Union{Not
                       yscale=spec.yscale === :log10 ? log10 : identity)
             xlim_p = _panel_xlim(spec, p)
             ylim_p = _panel_ylim(spec, p)
+            _shade_trim_range!(ax, spec, result, p)
             if xlim_p !== nothing
                 xlims!(ax, xlim_p...)
             end
@@ -880,7 +854,7 @@ function plot_case(result::ValidationCaseResult, spec::PlotSpec; path::Union{Not
     return abspath(png)
 end
 
-"""Published / digitized source pages for the GUI “source figure” panel (paths relative to `rea-work/`)."""
+"""Published / digitized source pages for the GUI “source figure” panel (paths relative to `PAIN_Program/`)."""
 const VALIDATION_SOURCE_FIGURE_FALLBACKS = Dict{String,String}(
     "T1" => "data/cr3813/pages/e16-142.png",
     "REPRO_18b" => "data/cr3813/pages/e16-142.png",

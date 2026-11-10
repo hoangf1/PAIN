@@ -1,5 +1,5 @@
 #!/usr/bin/env julia
-# Display-only Validation-map error snapshot. Runs every registered case and writes
+# Display-only error snapshot of every case (coverage chart, §0). Runs every registered case and writes
 # docs/validation_reports/case_error_summary.csv, then the at-a-glance section at the top of
 # docs/VALIDATION_GUIDELINE.md and docs/NO_VERDICT_CASES.md from it. Does not change criteria or verdicts.
 # Never open a GUI window.
@@ -12,7 +12,7 @@ using PAIN
 path = write_case_error_summary()
 println("wrote ", path)
 println("wrote ", write_validation_scoreboard())   # top-of-file status section of VALIDATION_GUIDELINE.md
-println("wrote ", write_no_verdict_cases())       # docs/NO_VERDICT_CASES.md: the cases kept off the map
+println("wrote ", write_no_verdict_cases())       # docs/NO_VERDICT_CASES.md: the cases without a verdict
 println("wrote ", join(write_coverage_figures(), ", "))   # Phase 134: the chain coverage figures §0 and that file show
 rec = recorded_case_errors(path)
 println("cases=", length(rec))

@@ -1,5 +1,5 @@
 # Phase 94 — the Phase 93 default form against a PAIN run no earlier phase used: CR-172428 Table 12 and p. 85, Table 6
-# inputs with the trim panel loss factor η_T = 2.0 (IMPLEMENTATION_PLAN.md §8ak; criteria fixed 2026-10-29 before any
+# inputs with the trim panel loss factor η_T = 2.0 (COMPLETED_PHASES.md §8ak; criteria fixed 2026-10-29 before any
 # run). P cases: NASA's inputs, NASA's printed outputs, the code as it ships.
 
 const _P94_REPORT = "phase94_table12_eta_T2.md"

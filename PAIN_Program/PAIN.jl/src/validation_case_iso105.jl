@@ -1,5 +1,5 @@
 # Phase 105 — CYL2D's grid rule at any floor angle, against the acoustic-mode lists PAIN printed for CR-172428's
-# small-diameter (θ₀ = 62.6°) and narrow-body (θ₀ = 73.7°) aircraft (IMPLEMENTATION_PLAN.md §8au; criterion fixed
+# small-diameter (θ₀ = 62.6°) and narrow-body (θ₀ = 73.7°) aircraft (COMPLETED_PHASES.md §8au; criterion fixed
 # 2026-10-30 before these lists were transcribed). The Merlin list (50°, Phase 103) is recorded alongside, post-hoc.
 
 const _P105_REPORT = "phase105_cyl2d_printed.md"
@@ -29,19 +29,21 @@ function _run_cyl2d_printed()
     table = ValidationTableRow[]; series = PlotSeries[]; met = true; notes = String[]
     for (k, (name, file, θ0, a, held)) in enumerate(lists)
         p = _printed_2d_list(file)
-        cy = cyl2d_modes_solvable(θ0; n_modes=20, NY=10, c0=_CYL2D_C_PRINTED, node_tol=0.45)   # the rule under test
+        # Phase 140a″ (2026-11-10): the shipped grid rule (CR-165869 pp. 60–62, the default since then); until then the case
+        # ran the rule "0.45h, NY = 10 else the next solvable grid" of Phase 105, not met (57/168), now a diagnostic record
+        cy = cyl2d_modes_solvable(θ0; n_modes=20, c0=_CYL2D_C_PRINTED)
         f = Dict(m.index => m.f_Hz_unit / a for m in cy.modes); sy = Dict(m.index => m.symmetric for m in cy.modes)
         e0 = cy.modes[1].eps_n
         ok_e = abs(e0 / p.eps00 - 1) ≤ 2e-4
         push!(table, ValidationTableRow("$name: ε(0,0)$(p.eps00_printed ? "" : " (printed ε(1,0)/2)")", 0, p.eps00, e0,
-                                        e0 - p.eps00, ok_e, name))
+                                        e0 - p.eps00, ok_e, name; in_verdict=held))   # Phase 145a: the seen list is shown, not judged
         nf = 0; nok = 0; ns = 0
         for q in p.pts
             haskey(f, q.I) || continue
             okf = abs(f[q.I] / q.f2d - 1) ≤ 1e-3; oks = sy[q.I] == q.symm
             nf += 1; nok += okf; ns += oks
             push!(table, ValidationTableRow("$name: mode $(q.mode) (Q=$(q.Q), I=$(q.I)) 2-D frequency (Hz)", q.I, q.f2d, f[q.I],
-                                            f[q.I] - q.f2d, okf && oks, name))
+                                            f[q.I] - q.f2d, okf && oks, name; in_verdict=held))
         end
         held && (met &= ok_e && nok == nf && ns == nf)
         push!(notes, "$name (θ₀ $(θ0)°, NY $(cy.NY)): ε $(round(e0; digits=5)) vs $(round(p.eps00; digits=5)); " *
@@ -51,7 +53,8 @@ function _run_cyl2d_printed()
     end
     return ValidationCaseResult("CYL2D_PRINTED", _today_iso(),
         (; criterion="per held-out aircraft: ε(0,0) within 0.02 %, every printed 2-D frequency within 0.1 % at 341 m/s / a, " *
-                     "every mode type equal; met if both aircraft pass", date="2026-10-30", node_tol=0.45, c=_CYL2D_C_PRINTED),
+                     "every mode type equal; met if both aircraft pass", date="2026-10-30", grid_rule=pain_settings().cyl2d_grid_rule,
+           c=_CYL2D_C_PRINTED, rerun="2026-11-10, after the printed grid rule was adopted (Phase 140); both lists seen before"),
         table, series, met ? :met : :not_met, join(notes, "; "), "V-CODE", joinpath(_VAL_REPORT_DIR, _P105_REPORT))
 end
 

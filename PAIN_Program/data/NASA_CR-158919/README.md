@@ -1,6 +1,6 @@
 # NASA CR-158919 (BBN, static Aero Commander tests): digitized data
 
-Source: `rea-work\NASA Contractor Report 158919.pdf` (103 pages). Transcribed 2026-10-20 by reading the page images (rendered at 110 dpi) and checked against the text layer.
+Source: `PAIN_Program\NASA Contractor Report 158919.pdf` (103 pages). Transcribed 2026-10-20 by reading the page images (rendered at 110 dpi) and checked against the text layer.
 Run numbers are the BBN numbers of Table 1 (run 4 has no BBN number; it is the port-engine-only run).
 
 | File | Source (PDF page / printed page) | Content | Method | Uncertainty |

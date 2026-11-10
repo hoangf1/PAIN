@@ -1,5 +1,5 @@
 # Phase 44 — reproduce NASA's fundamental validation of the 1.016 m test article (CR-172428 §3, App. A, App. B).
-# Criteria dated 2026-10-23 before any transcription or run (IMPLEMENTATION_PLAN.md §8b Phase 44).
+# Criteria dated 2026-10-23 before any transcription or run (COMPLETED_PHASES.md §8b Phase 44).
 # Inputs are NASA's own: the App. B blocked field (16 × 19 grid, as PAIN used it), Table 6 and the App. B trim page.
 
 _r172428_csv(name) = _data_path("cr172428", name)
@@ -121,8 +121,11 @@ function _run_r172428_vs(which::Symbol; structural::Symbol=:table_d1, η_n_per_m
               which === :code ? (n_ok ≥ 7 ? :met : :not_met) : (n_ok == 9 ? :met : :not_met)
     xs = [r.f_Hz for r in lv]
     series = [
-        PlotSeries("NASA PAIN (CR-172428 App. B / Table 10)", :reference_points, xs, [r.nasa for r in lv]; panel=1),
-        PlotSeries("measured (Table 5)", :measured_points, xs, [r.measured for r in lv]; panel=1),
+        # Phase 145f (2026-11-10): the series the criterion is on is named as such; the other is shown for reference
+        PlotSeries("NASA PAIN (CR-172428 App. B / Table 10)" * (which === :code ? ", criterion reference" : ", shown only"),
+                   :reference_points, xs, [r.nasa for r in lv]; panel=1),
+        PlotSeries("measured space average (Table 5)" * (which === :code ? ", shown only" : ", criterion reference"),
+                   :measured_points, xs, [r.measured for r in lv]; panel=1),
         PlotSeries(deck ? "this code, NASA inputs, NASA's 300 modes" :
                    which !== :code ? "this code (default form), NASA inputs" :
                    η_n_per_mode ? "this code, NASA inputs, η_n per mode (H1)" : "this code, NASA inputs, CR-3813 tone sum",
@@ -136,6 +139,8 @@ function _run_r172428_vs(which::Symbol; structural::Symbol=:table_d1, η_n_per_m
     id = (which === :code ? "R172428_CODE" : "R172428_EXP") * (deck ? "_DECK" : "") * (which === :code && η_n_per_mode ? "_ETAN" : "")
     return ValidationCaseResult(id, _today_iso(),
         (; criterion=crit, date=deck || (which === :code && η_n_per_mode) ? "2026-10-29" : "2026-10-23", rpms=_r172428_rpms(), structural, η_n_per_mode,
+           reference_name=which === :code ? "NASA's printed prediction (dB)" : "measured space average (dB)",
+           computed_name="this code (dB)",
            ours=[r.ours for r in lv], nasa=[r.nasa for r in lv], measured=[r.measured for r in lv]),
         table, series, verdict, reason, which === :code ? "V-CODE" : "V-EXP", "")
 end
@@ -298,13 +303,15 @@ function _iso44_validation_cases()
             "Within ±3 dB of NASA's printed prediction at ≥ 7 of 9 points (3000/4000/5000 rpm, H1–H3).",
             "2026-10-23", "V-CODE", _run_r172428_code,
             PlotSpec(; xlabel="tone frequency (Hz)", ylabel="interior SPL (dB)",
-                     panel_titles=["R172428_CODE"], error_mode=:absolute, error_tol=3.0), ""),
+                     panel_titles=["R172428_CODE"], error_mode=:absolute, error_tol=3.0,
+                     error_ylabel="this code − NASA's printed prediction (dB)"), ""),
         ValidationCase("R172428_EXP", "CR-172428 reproduction vs measured space averages (44e)", "44",
             files, FigureRef("NASA CR-172428", "Table 5 / Table 10", 89),
             "Within ±4 dB of the measured space average at each of the 9 points.",
             "2026-10-23", "V-EXP", _run_r172428_exp,
             PlotSpec(; xlabel="tone frequency (Hz)", ylabel="interior SPL (dB)",
-                     panel_titles=["R172428_EXP"], error_mode=:absolute, error_tol=4.0), ""),
+                     panel_titles=["R172428_EXP"], error_mode=:absolute, error_tol=4.0,
+                     error_ylabel="this code − measured space average (dB)"), ""),
         ValidationCase("R172428_ETA", "CR-172428 structural loss factors η_r′ vs App. B (44c/44d)", "44",
             [_r172428_csv("appB_structural_modes.csv")], FigureRef("NASA CR-172428", "App. B p. 194", 194),
             "η_r′ of each listed structural mode within ±25 % of App. B.",

@@ -53,31 +53,14 @@ gext = run_validation_case("GEXT_BOUND")
 @assert gext.verdict === :no_verdict
 @assert occursin("diagnostic", gext.reason)
 
-# Task C — Validation map JSON (single total) + select/run R996_FIG14
-@assert haskey(obs, "map_total_json")
-parsed = JSON3.read(obs["map_total_json"][])
-@assert String(parsed.id) == "total"
-@assert length(parsed.blocks) > 0
-@assert haskey(parsed, :how_to_read) && !isempty(String(parsed.how_to_read))
-@assert haskey(parsed, :groups) && length(parsed.groups) > 0
-# Layout fields for horizontal canvas
-max_col = maximum(Int(b.col) for b in parsed.blocks)
-@assert max_col >= 8 "total map should span enough columns for horizontal scroll (got max_col=$max_col)"
-for b in parsed.blocks
-    @assert haskey(b, :col) && haskey(b, :row) && haskey(b, :feeds)
-    @assert haskey(b, :group) && haskey(b, :role)
-end
-# Stage group rectangles (from model data, same geometry as QML) must be pairwise disjoint.
-rects = assert_validation_map_groups_disjoint("total")
-@assert length(rects) == length(parsed.groups)
-println("smoke_gui_model: group rects pairwise disjoint (", length(rects), " groups)")
-# Block detail path
-PAIN.select_map_block_from_qml("A_GEO")
-@assert obs["map_selected_block"][] == "A_GEO"
-bdet = JSON3.read(obs["map_detail_json"][])
-@assert String(bdet.detail_kind) == "block"
-@assert String(bdet.id) == "A_GEO"
-@assert occursin("Airfoil BEMT+F1A", String(bdet.group_title))
+# Phase 147 (2026-11-10): the block map is retired; the Coverage tab's JSON holds the nine chain stages and one row
+# per case, and the rows with a verdict are exactly the cases `has_verdict` keeps.
+@assert !haskey(obs, "map_total_json")
+cov = JSON3.read(obs["coverage_json"][])
+@assert length(cov.stages) == length(PAIN.CHAIN_STAGES)
+@assert Set(String(r.id) for r in cov.rows if String(r.verdict) != "no verdict") ==
+        Set(id for id in keys(PAIN.CASE_INFO) if has_verdict(id))
+println("smoke_gui_model: coverage JSON ", length(cov.rows), " rows")
 # Task F2 — case_info_json from §2.13
 blk = JSON3.read(case_info_json("BLK_P68"))
 @assert occursin("R2", String(blk.explanation)) "BLK_P68 explanation must mention R2"
@@ -85,9 +68,7 @@ blk = JSON3.read(case_info_json("BLK_P68"))
 PAIN.select_validation_case_from_qml("BLK_P68")
 vinfo = JSON3.read(obs["val_info_json"][])
 @assert occursin("R2", String(vinfo.explanation))
-PAIN.select_map_case_from_qml("R996_FIG14")
-@assert obs["map_selected"][] == "R996_FIG14"
-detail = JSON3.read(obs["map_detail_json"][])
+detail = JSON3.read(case_info_json("R996_FIG14"))
 @assert String(detail.id) == "R996_FIG14"
 @assert !isempty(String(detail.source))
 @assert haskey(detail, :explanation)
@@ -96,19 +77,7 @@ replay = run_validation_gui!(obs, "R996_FIG14")
 @assert replay.verdict === :met  # after A_rms = A/√2 (I-17 / F4 2026-10-21, post-hoc)
 png14 = obs["val_plot_path"][]
 @assert isfile(png14) && filesize(png14) > 0 "expected non-empty PNG at $png14"
-let
-    total_after = JSON3.read(obs["map_total_json"][])
-    chip14 = nothing
-    for b in total_after.blocks
-        for c in b.cases
-            if String(c.id) == "R996_FIG14"
-                chip14 = c
-            end
-        end
-    end
-    @assert chip14 !== nothing "R996_FIG14 missing from total map JSON after run"
-    @assert String(chip14.last) == "met" "expected last=met, got $(chip14.last)"
-end
+@assert PAIN._GUI_LAST_VERDICTS["R996_FIG14"] === :met
 # Phase 38h — Printed outputs Observables for the example (Run-tab) case
 @assert haskey(obs, "po_status") && haskey(obs, "po_text") && haskey(obs, "po_json")
 po = run_printed_outputs_gui!(obs)

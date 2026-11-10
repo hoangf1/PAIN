@@ -1,6 +1,6 @@
 # Phase 61 — is the code the same as PAIN as NASA ran it for CR-3813? CR-3813's printed outputs predate
 # NASA's correction of the Eq. (52) floor-term sign (CR-172428 p. 178); `floor_sign = −1` runs that form.
-# Criteria fixed 2026-10-23 (IMPLEMENTATION_PLAN.md §8h) before any run.
+# Criteria fixed 2026-10-23 (COMPLETED_PHASES.md §8h) before any run.
 
 const _P61_REPORT = "phase61_cr3813_reproduction.md"
 
