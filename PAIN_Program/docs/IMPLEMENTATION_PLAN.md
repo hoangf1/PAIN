@@ -13,7 +13,7 @@ Single source of truth for building this project without re-deriving context in 
 2. Data register and digitization instructions (status, procedure, one card per figure; §2.5 candidate sources found 2026-11-09)
 3. Current status and open work queue
 4. Architecture
-8cd–8co. Open phases 140–151 (planned 2026-11-09 from `ISSUES.md`; Phases 135–138 done 2026-11-10, 139 done 2026-11-11 and moved to `COMPLETED_PHASES.md`)
+8ce–8co. Open phases 141–151 (planned 2026-11-09 from `ISSUES.md`; Phases 135–138 done 2026-11-10, 139–140 done 2026-11-11 and moved to `COMPLETED_PHASES.md`)
 5–8ac, 11. *(in `COMPLETED_PHASES.md`, same section numbers, moved 2026-10-29)* every completed phase, the queue Q0–Q66 and the 2026-10-21 review
 9. Reference appendices (BBN evidence, Report 996 figures and data, Pereira polar specification, variables)
 10. Optional future work, key formulas, file checklist
@@ -263,7 +263,6 @@ or the other documents points there. When a phase is done, mark it done and move
 
 | Q | Item | Kind | Prerequisite | Output |
 |---|------|------|--------------|--------|
-| Q118 | Phase 140: CYL2D grid label and bound (ISSUE-025) | label, bound | — | shipped-grid row; level spread |
 | Q119 | Phase 141: source chain labels, unscaled replays, measured polars (ISSUE-001, 004, 027) | labels, new cases, [CONFIRM], [AUTHOR] | Q113 | labels; unscaled cases; TN 1546 coverage |
 | Q120 | Phase 142: FLIGHT_MODES reference file and in-plane mass (ISSUE-024) | data, investigation, [AUTHOR] | — | blind transcription; one re-run |
 | Q121 | Phase 143: E12_BLOCK one implementation (ISSUE-007) | [CONFIRM], re-run | — | one max error on record |
@@ -340,15 +339,6 @@ Each phase is the solution of one or more entries of `ISSUES.md`; the evidence i
 Rules common to all: no recorded verdict, criterion, tolerance or reference file changes unless the step names it; a result that moves is recorded with its date, its before and after, and "post-hoc" where the earlier result was known; targeted testsets only (not the full `Pkg.test()`); the five documents of R5 are updated in the phase that changes code or a recorded result.
 
 **Status 2026-11-10 (overnight, decided by Claude under the author's delegation of 2026-11-10).** Done: 136e, 136f, 137b, 137c, 137d, 138a/b/d, 139a/b/b′/d, 140c/d, 141a, 141c (Report 996 part; the Pereira PER_FIG8 line is open), 141d, 144a, 144b, 145d, 147, 150c/d. Decisions and outcomes: `validation_reports/phase135_151_decisions.md`. Open: 141c Pereira line, 141e, 142, 143b–d, 145a rest, 146b/c, 148, 149a, 150a/b/e, 151a/b, regenerating the summary CSV and §0. These changes were pushed without running the full test suite or /code-review, at the author's request (2026-11-10); the next session runs the affected testsets first.
-
-## 8cd. Phase 140 — CYL2D's grid: what the verdict is on, and whether it matters (ISSUE-025)
-
-- [ ] **140a The printed grid rule (CR-165869 pp. 60–61, read 2026-11-09).** NK = Integral Part[7 (1 + cos θ₀)], h = a (1 + cos θ₀)/NK, boundary point = the nearer of the last inside and first outside point on each grid line. By arithmetic (no run) it gives NK = 11, 10, 10, 8 at 50°, 56.6°, 62.6°, 73.7°: the grids the diagnostics of Phases 103 and 105 found for the Merlin (11) and the narrow body (8), and the test article's 10. `cyl2d.jl` has NY = 10 and a 0.40h threshold at every angle.
-- [~] **140a′ Compare the rule with `_build_grid`, on paper first (arithmetic done 2026-11-10 in `phase136_144_preparation.md`: three nodes differ at 56.6°, so the change is not free; the page re-read and the User Manual §5.1 check are not done).** Which nodes differ between the nearest-point test and the 0.40h threshold at 56.6° (the validated angle): if none, the change cannot move CYL2D_C1 (59/59) or APPB_EPS_N (48/48); if some, list them. Also read the User Manual §5.1 again for anything that contradicts the 1982 rule.
-- [ ] **140a″ [CONFIRM] Adopt the printed rule** as CYL2D's grid rule. The basis is the document, not a comparison: the independence record (145c) cites pp. 60–61. CYL2D_C1, APPB_EPS_N and CABIN_FREQ_PRINTED are re-run and must stay met; CYL2D_PRINTED is run once on its unchanged criterion (0.02 %, 0.1 %, types equal) and the result stands whatever it is, labelled as a run after a documented rule was adopted, with the two lists already seen. Until this step is done CYL2D_PRINTED is a diagnostic (chart rule); after it, it tests the shipped code and returns to the chart.
-- [ ] **140b Shipped grid, information.** Only if 140a″ is not confirmed: the shipped rule (0.40h, NY = 10) against the two printed lists, per 2-D order; no verdict. Form fixed before the run.
-- [ ] **140c Bound, no verdict.** Small-diameter aircraft, NY = 8, 10, 12 and node rules 0.40h, 0.45h, 0.55h: spread of the interior tone levels per harmonic. Form fixed before the run; no grid is chosen from it.
-- [ ] **140d** If the spread exceeds 1 dB: an uncertainty line in METHODOLOGY §CYL2D and in the aircraft uncertainty band's inputs ([CONFIRM]).
 
 ## 8ce. Phase 141 — the source chain: labels, unscaled replays, measured polars (ISSUE-001, 004, 027) [CONFIRM]
 

@@ -245,7 +245,8 @@ _run_if("CYL2D vs Table C-1 and Fig. C-3 (App. C scheme, V-CODE, criteria fixed 
     @test all(m1.phi_nodes[(0, n)] == 0.0 for n in 0:10)
     # a singular or non-real grid is an error that names the grid (no pseudo-inverse)
     @test_throws ErrorException cyl2d_modes(90.0; NY=10)
-    @test_throws ErrorException cyl2d_modes(56.6; NY=9)
+    @test_throws ErrorException cyl2d_modes(56.6; NY=9, rule=:threshold)   # the earlier node rule (0.40h)
+    @test_throws ErrorException cyl2d_modes(62.6; NY=10)   # shipped (printed) rule: NASA's own 62.6° grid fails the real-eigenvalue check (ISSUE-033)
     # search for another θ0: the next valid NY must agree within the stated change or the call errors
     @test_throws ErrorException cyl2d_modes_search(56.6; NY0=8)   # NY = 8 and 10 differ by more than 1 %
 end
@@ -254,8 +255,12 @@ _run_if("Three-dimensional cabin modes (Eqs. C.7, C.9, C.12)") do
     cy = cyl2d_modes(56.6; n_modes=20, NY=10, c0=340.0)
     a, L = 0.508, 1.83
     m = cy.modes[2]
-    @test cabin_frequency_3d(m, a, L, 0; c0=340.0) ≈ m.f_Hz_unit / a rtol=1e-12
-    @test cabin_frequency_3d(m, a, L, 2; c0=340.0) ≈ sqrt((m.f_Hz_unit / a)^2 + (340.0 * 2 / (2L))^2) rtol=1e-12
+    # the 2-D part is at CYL2D's own 341 m/s since Phase 106 (m.f_Hz_unit is at the 340 m/s asked for above)
+    f2d = m.f_Hz_unit / a * PAIN.CYL2D_C0 / 340.0
+    @test PAIN.CYL2D_C0 == 341.0
+    @test cabin_frequency_3d(m, a, L, 0; c0=340.0) ≈ f2d rtol=1e-12
+    @test cabin_frequency_3d(m, a, L, 2; c0=340.0) ≈ sqrt(f2d^2 + (340.0 * 2 / (2L))^2) rtol=1e-12
+    @test cabin_frequency_3d(m, a, L, 0; c0=340.0, c2d=340.0) ≈ m.f_Hz_unit / a rtol=1e-12
     @test cabin_eps_3d(m, 0) == m.eps_n
     @test cabin_eps_3d(m, 3) == 2 * m.eps_n
     @test axial_truncation(2π * 1000.0, L, 340.0) == ceil(Int, 2 * 2π * 1000.0 * L / (π * 340.0))

@@ -10,6 +10,7 @@ Two lists, newest first in each. **Not assigned to a phase**: issues to act on o
 
 | Issue | Subject | Kind | State |
 |---|---|---|---|
+| 038 | The uncertainty budget's nominal sample is not the pipeline's result (structural mode cut-off) | Tests, code | open |
 | 037 | The Phase III trim has guessed inputs; cases that use it may carry a verdict they should not | Input rule, investigation | open |
 | 036 | Twelve source functions have no unit test, so the completeness check fails | Tests | open |
 | 035 | The summary file and §0 date from 2026-11-02 and do not show the changes since | Record | open |
@@ -27,7 +28,7 @@ Two lists, newest first in each. **Not assigned to a phase**: issues to act on o
 | 028 | Files named and grouped by phase number; old paths | Organisation | 150 |
 | 027 | Source loads: XFOIL drag; measured polars unused as input | Not met | 141 |
 | 026 | High-frequency NR cases: method limit and assumed inputs | Not met | 137 (closed 2026-11-10) |
-| 025 | CYL2D_PRINTED judges a grid rule that was not adopted | Not met | 140 |
+| 025 | CYL2D_PRINTED judges a grid rule that was not adopted | Not met | 140 (closed 2026-11-11) |
 | 024 | FLIGHT_MODES is two modes short on a file with two misreads | Not met | 142 |
 | 023 | E14_LOSS and R172428_ETA: the trim loss term | Not met | 139 (closed 2026-11-11; continued in 032) |
 | 022 | Code-against-NASA misses classed as a method limit | Not met | 138 (closed 2026-11-10) |
@@ -86,6 +87,18 @@ Still open for the author: the new CLAUDE.md update list (Phase 148a), the plain
 A web search for reports that could settle open questions of these issues. The list, with what each may give and what to check first, is `IMPLEMENTATION_PLAN.md` §2.5 (D-23 to D-31). Two were then downloaded with the author's go-ahead and read in part the same day: CR-165869, which prints the cabin grid rule that Phase 111 could not find (ISSUE-025), and CR-159668, whose measured blocking data are too scattered to judge a case on (ISSUE-006). The others were not downloaded; what is said about them comes from catalogue records and abstracts. Two findings came from PDFs already in `references/`: TP-2444 p. 8 prints its trim lining (ISSUE-026), and TN 1546 holds 24 sections of which three are digitized (ISSUE-027).
 
 ---
+
+## ISSUE-038: The uncertainty budget's nominal sample is not the pipeline's result
+
+**Status:** open, not assigned to a phase. Recorded 2026-11-11 while closing Phase 140. No criterion, tolerance or data file is involved; no case with a verdict uses the budget.
+
+**Decided as a ticket** by Claude under the author's authority of 2026-11-10 ("make the same logical choices ive made"), following the author's "Open a ticket" for the failing completeness check (ISSUE-036): the failure is outside the phase being closed.
+
+**What is wrong.** The testset "Uncertainty budget (phase 31, V-UNIT)" (`test/runtests.jl`) fails 3 of 57 checks: the budget's nominal sample with η_T = 0.5 should equal `run_pain_pipeline(source = :e11, cabin_blocks = :parametric)` within 1e-6 dB and gives 86.977 / 83.065 / 75.426 dB against 86.996 / 83.093 / 75.627 dB at H1–H3.
+
+**Cause (found, not fixed).** Not Phase 140: the cabin modes of the two paths are equal to the last digit (checked 2026-11-11). Since Phase 123 (2026-11-03) the pipeline keeps the App. D structural modes up to twice the highest tone (here 1200 Hz), while `build_testarticle_cache` (`src/uncertainty.jl`) still asks for the 32 lowest (`n_keep = 32`, no cut-off). The difference grows with the harmonic, as a missing set of higher modes would. The cause is read from the code; it has not been confirmed by a run with the cut-off added.
+
+**Action.** Give the two uncertainty caches the pipeline's cut-off rule (one shared helper), re-run the testset, and state in the budget's report that its band was computed on 32 modes before that date. `UNC_COVER` carries no verdict (Phase 118a), so no verdict can move; its recorded numbers are re-run and dated.
 
 ## ISSUE-037: The Phase III trim has guessed inputs; cases that use it may carry a verdict they should not
 
@@ -190,7 +203,7 @@ Both change only the damping. Nothing held out tests the q = 0 choice or the for
 **Already on record.** Phase 105: no App. C grid tried reproduced the small-diameter list (best about 2 %). So accepting NASA's grid may not be enough on its own.
 
 **Questions to answer.**
-1. Does CR-3813 App. C or the User Manual §5.1 say how complex or nearly-real eigenvalues are handled (real part, a symmetrised matrix, another solver)? The User Manual §5.1 was not re-read in Phase 140.
+1. Does CR-3813 App. C or the User Manual §5.1 say how complex or nearly-real eigenvalues are handled (real part, a symmetrised matrix, another solver)? **User Manual §5.1 re-read 2026-11-11 (Phase 140 closing):** it names the IMSL routine EIGRF (eigenvalues of a real general matrix, so complex pairs are returned as such) and VSRTR / VSRTU (sorting), and says nothing on complex values. CR-3813 App. C is still to be re-read for this.
 2. Is this code's curved-wall row at 62.6° the same as App. C's, node by node? The asymmetry comes from those rows.
 3. A one-question diagnostic (a script and a report, no case, no verdict, post-hoc since the list was seen): on NASA's 10-interval grid at 62.6°, take the real parts despite the check and set them against NASA's list. If they match, the check is the whole cause; if not, something else in the scheme differs.
 
@@ -316,7 +329,7 @@ The two patterns are not the same, so one cause for both is not shown.
 | MRP_APPD | met 32/32 | Keep | needs its independence record |
 | FLIGHT_MODES | not met 197/221 | Keep | re-run on a checked reference file (Phase 142) |
 | CYL2D_C1, APPB_EPS_N, CABIN_FREQ_PRINTED | met | Keep | PAIN's own printed cabin modes |
-| CYL2D_PRINTED | not met 57/168 | Diagnostic now; back on the chart after Phase 140 | tests a grid rule the code does not use; CR-165869 prints the rule (ISSUE-025) |
+| CYL2D_PRINTED | not met (57/168 on the old rule) | On the chart since Phase 140 (done) | tests a grid rule the code does not use; CR-165869 prints the rule (ISSUE-025) |
 | APPB_ETA_N | not met 12/46 | Diagnostic (decided) | old program form |
 | APPB_ETA_N_T2 | met 3/3 | Check | may run the form of Phase 93, before the band-centre rule became the default |
 | APPB_ETA_N_T2_BAND | met 3/3 | Keep | the shipped damping rule on a held-out printout |
@@ -511,7 +524,7 @@ Applied to the cases the open phases proposed:
 
 ## ISSUE-025: CYL2D_PRINTED's not-met verdict is on a grid rule that was never adopted; the shipped grid's difference from NASA's lists has no case
 
-**Status:** open. Recorded 2026-11-09. Labelling and a bound. No verdict changes. Solution: Phase 140.
+**Status:** closed 2026-11-11 by Phase 140 (`COMPLETED_PHASES.md` §8cd): NASA's printed grid rule is the shipped rule, CYL2D_PRINTED tests the shipped code and is back on the chart (not met; cause in ISSUE-033), and the grid bound is stated as an uncertainty. Recorded 2026-11-09.
 
 **Evidence.**
 - The case tests "the node rule 0.45h and NY = 10 else the next grid that solves". Result: NY = 12 at both floor angles, 2-D frequencies 0/53 and 5/61 within 0.1 %. §2.34: "The rule is not adopted; defaults are unchanged."

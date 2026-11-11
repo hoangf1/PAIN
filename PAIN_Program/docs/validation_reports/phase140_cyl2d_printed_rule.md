@@ -17,7 +17,7 @@ Decided by Claude under the author's delegation of 2026-11-10 ([CONFIRM] step 14
 
 So at the test article's angle the printed rule is the earlier grid exactly, and CYL2D_C1, APPB_EPS_N and CABIN_FREQ_PRINTED cannot move. The earlier draft of this table in `phase136_144_preparation.md` (three nodes differing) read the rule as an intersection of row and column limits; the page says each test adds a point, so the cabin is the union. That draft is superseded.
 
-The User Manual §5.1 was not re-read for a conflicting statement (not done).
+**User Manual §5.1, re-read 2026-11-11.** CYL2D's only input card is the floor angle; the modes are computed for a = 1 m and q = 0; "Appendix C of Ref. [2] may be consulted" for the calculation. No grid size or node rule is printed, so nothing contradicts CR-165869: a grid fixed by the floor angle alone is what its rule gives. The manual lists the IMSL routines CYL2D calls (EIGRF, LINV2F, VMULFF, VSRTR, VSRTU): EIGRF returns the eigenvalues of a real general matrix, complex pairs included, and the manual does not say what is done with them (ISSUE-033, question 1).
 
 ## 140a″: adopted
 `pain_settings().cyl2d_grid_rule = :printed` (default) in `src/cyl2d.jl`; `:threshold` keeps the earlier rule with `cyl2d_node_tol`. A grid size of 0 (the new default of the pipeline and of `cyl2d_modes`) means the printed NK. The uncertainty budget's node-rule row still samples the earlier rule's 0.32h–0.47h window explicitly (`rule = :threshold`); with the printed rule there is no node choice left.
