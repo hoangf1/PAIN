@@ -26,7 +26,7 @@ Two lists, newest first in each. **Not assigned to a phase**: issues to act on o
 |---|---|---|---|
 | 029 | Which of the 43 chart cases to keep; a rule before any new case | Not met, organisation | 135, 150 |
 | 028 | Files named and grouped by phase number; old paths | Organisation | 150 |
-| 027 | Source loads: XFOIL drag; measured polars unused as input | Not met | 141 |
+| 027 | Source loads: XFOIL drag; measured polars unused as input | Not met | 141 (closed 2026-11-11; continued in 030) |
 | 026 | High-frequency NR cases: method limit and assumed inputs | Not met | 137 (closed 2026-11-10) |
 | 025 | CYL2D_PRINTED judges a grid rule that was not adopted | Not met | 140 (closed 2026-11-11) |
 | 024 | FLIGHT_MODES is two modes short on a file with two misreads | Not met | 142 |
@@ -49,10 +49,10 @@ Two lists, newest first in each. **Not assigned to a phase**: issues to act on o
 | 007 | E12_BLOCK 29/31; two max errors on record | Not met | 143 |
 | 006 | R2 and the circular wall have no criterion | Not met | 144 |
 | 005 | Too many Markdown files | Organisation | 148, 149 |
-| 004 | Pereira counts differ across the record | Readability, not met | 135, 141 |
+| 004 | Pereira counts differ across the record | Readability, not met | 135, 141 (closed 2026-11-11) |
 | 003 | Fig. 13a recorded as FAIL and PASS | Readability | 135 |
 | 002 | Report 996 page-12 phase stated three ways | Readability | 135 |
-| 001 | Report 996 acoustic verdicts run on loads scaled to the measured loads | Not met | 141 |
+| 001 | Report 996 acoustic verdicts run on loads scaled to the measured loads | Not met | 141 (closed 2026-11-11) |
 
 ## Author decisions (2026-11-09 and 2026-11-10)
 
@@ -462,7 +462,7 @@ Applied to the cases the open phases proposed:
 
 ## ISSUE-027: The source chain's two not-met cases come down to XFOIL's drag; measured section polars are in the repository and are used only as a check
 
-**Status:** open. Recorded 2026-11-09. Proposal for a new input; needs the author's decision before anything is run. Solution: Phase 141.
+**Status:** closed 2026-11-11 by Phase 141 (`COMPLETED_PHASES.md` §8ce): the coverage check was run (141d); building the measured-polar set waits on more section data and is carried by ISSUE-030 (on hold). Recorded 2026-11-09.
 
 **Evidence.**
 - `POLAR_FIDELITY`: not met 13/26 on the held-out NACA 16-312 section (|Δc_l| ≤ 0.05 at ≥ 75 %).
@@ -1267,7 +1267,7 @@ This is raised as a question. No change is made.
 
 ## ISSUE-004: Pereira Fig. 7, 8 and 9 verdicts are recorded with three different counts, and the scaled loads inherit the ISSUE-001 problem
 
-**Status:** open. Recorded 2026-11-09. The verdict counts disagree across the record; no verdict has been changed.
+**Status:** closed 2026-11-11 by Phases 135 and 141 (`COMPLETED_PHASES.md` §8ce): the counts agree, the titles name the scaled loads, and no unscaled Pereira line is drawn because the computed loads are within 0.7 % and 3.5 % of the measured ones. Recorded 2026-11-09.
 
 **Summary.** The Pereira forward-flight cases (PER_FIG7, PER_FIG8, PER_FIG9) are reported with different results in different documents. The 23d criterion is frozen, but the recorded counts do not come from one run. The verdict path also uses loads scaled to Pereira's measured Table 3 thrust and torque, which is the same calibration pattern as ISSUE-001.
 
@@ -1361,7 +1361,7 @@ The current recorded value is 112.8° (miss 42.2°, not met). The 109° in ISSUE
 
 ## ISSUE-001: Report 996 acoustic verdicts are scaled to measured loads and inherit the polar set
 
-**Status:** open. Recorded 2026-11-09.
+**Status:** closed 2026-11-11 by Phase 141 (`COMPLETED_PHASES.md` §8ce): the three cases are labelled "loads scaled to measured thrust and torque", and the unscaled result is drawn on each as a second line without a verdict. Recorded 2026-11-09.
 
 **Summary.** The Report 996 acoustic cases (R996_FIG12, R996_FIG13A, R996_FIG14) run on CCBlade loads that are multiplied up to the measured thrust and torque before the acoustics are computed. Their met verdicts therefore do not test the section polars, and R996_FIG14 is compared against the same table its scale factors come from. The cases still list the Phase 69 polar set as their input, so the polar error is present in the chain but cancelled before the comparison.
 

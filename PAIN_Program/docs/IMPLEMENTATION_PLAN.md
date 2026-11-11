@@ -13,7 +13,7 @@ Single source of truth for building this project without re-deriving context in 
 2. Data register and digitization instructions (status, procedure, one card per figure; §2.5 candidate sources found 2026-11-09)
 3. Current status and open work queue
 4. Architecture
-8ce–8co. Open phases 141–151 (planned 2026-11-09 from `ISSUES.md`; Phases 135–138 done 2026-11-10, 139–140 done 2026-11-11 and moved to `COMPLETED_PHASES.md`)
+8cf–8co. Open phases 142–151 (planned 2026-11-09 from `ISSUES.md`; Phases 135–138 done 2026-11-10, 139–141 done 2026-11-11 and moved to `COMPLETED_PHASES.md`)
 5–8ac, 11. *(in `COMPLETED_PHASES.md`, same section numbers, moved 2026-10-29)* every completed phase, the queue Q0–Q66 and the 2026-10-21 review
 9. Reference appendices (BBN evidence, Report 996 figures and data, Pereira polar specification, variables)
 10. Optional future work, key formulas, file checklist
@@ -263,7 +263,6 @@ or the other documents points there. When a phase is done, mark it done and move
 
 | Q | Item | Kind | Prerequisite | Output |
 |---|------|------|--------------|--------|
-| Q119 | Phase 141: source chain labels, unscaled replays, measured polars (ISSUE-001, 004, 027) | labels, new cases, [CONFIRM], [AUTHOR] | Q113 | labels; unscaled cases; TN 1546 coverage |
 | Q120 | Phase 142: FLIGHT_MODES reference file and in-plane mass (ISSUE-024) | data, investigation, [AUTHOR] | — | blind transcription; one re-run |
 | Q121 | Phase 143: E12_BLOCK one implementation (ISSUE-007) | [CONFIRM], re-run | — | one max error on record |
 | Q122 | Phase 144: blocking R2 (ISSUE-006, 008) | [AUTHOR], text | — | (P) case for R2, or information |
@@ -339,15 +338,6 @@ Each phase is the solution of one or more entries of `ISSUES.md`; the evidence i
 Rules common to all: no recorded verdict, criterion, tolerance or reference file changes unless the step names it; a result that moves is recorded with its date, its before and after, and "post-hoc" where the earlier result was known; targeted testsets only (not the full `Pkg.test()`); the five documents of R5 are updated in the phase that changes code or a recorded result.
 
 **Status 2026-11-10 (overnight, decided by Claude under the author's delegation of 2026-11-10).** Done: 136e, 136f, 137b, 137c, 137d, 138a/b/d, 139a/b/b′/d, 140c/d, 141a, 141c (Report 996 part; the Pereira PER_FIG8 line is open), 141d, 144a, 144b, 145d, 147, 150c/d. Decisions and outcomes: `validation_reports/phase135_151_decisions.md`. Open: 141c Pereira line, 141e, 142, 143b–d, 145a rest, 146b/c, 148, 149a, 150a/b/e, 151a/b, regenerating the summary CSV and §0. These changes were pushed without running the full test suite or /code-review, at the author's request (2026-11-10); the next session runs the affected testsets first.
-
-## 8ce. Phase 141 — the source chain: labels, unscaled replays, measured polars (ISSUE-001, 004, 027) [CONFIRM]
-
-- [ ] **141a Labels.** `R996_FIG12`, `R996_FIG13A`, `R996_FIG14`, `PER_FIG7/8/9`: "loads scaled to measured thrust and torque" in the title and on the chart; chain span of R996_FIG12 and R996_FIG14 starts at Blade loads. N_crit note in METHODOLOGY and in every case that reads `polars_phase69_ncrit8.json`.
-- [x] **141b Check for seen results (done 2026-11-10, `phase136_144_preparation.md`: unscaled Fig. 13a was seen, Figs. 12 and 14 and the Pereira sound levels were not).** Search `data/report996/f1a_results.csv`, `data/pereira/pereira_results.csv` and the reports for unscaled Fig. 12 / 13a / 14 and Pereira rows. If they were reported, the cases of 141c are post-hoc and carry no verdict.
-- [ ] **141c Unscaled replays [DECIDED 2026-11-09].** `R996_FIG12_UNSCALED`, `R996_FIG13A_UNSCALED`, `R996_FIG14_UNSCALED`, `PER_FIG8_UNSCALED`, `PER_FIG9_UNSCALED`: 23c's and 23d's rules copied unchanged (author: add, same tolerances); the criteria are entered in the criteria document with the date before the run. **Under review the same day (ISSUE-029):** with the loads up to 39 % off, these five would very likely be five more not-met rows that repeat R996_LOADS. Proposed instead: the unscaled result as a second line on each existing scaled case, no verdict. **[AUTHOR]** confirms "add" or takes the second-line form before this step starts. These are the chart's only acoustic rows that carry the load error.
-- [ ] **141d Measured polars: coverage first [DECIDED 2026-11-09].** Fraction of the Report 996 blade span whose thickness and Mach fall inside TN 1546's measured sections (from `blade_form.csv`). Under half → stop, record, drop the proposal. TN 1546 holds 24 sections, 6 to 30 % thick by its catalogue record (confirm in its Table I); three are digitized, so the coverage is computed for the three and for all 24, and digitizing more is a §2.2 card, not part of this step.
-- [ ] **141f Forward-flight loads (D-26).** If the author obtains RM L9G06a: a loads case for the same blade in forward flight, **[AUTHOR]** criterion (proposed: ±15 % as 23c), fixed before any curve is digitized. It tests every polar set on data none was built from.
-- [ ] **141e [AUTHOR] Measured-polar set (on hold with ISSUE-030, author 2026-11-10: needs more digitization or CFD first).** Interpolation rule, range limits and Reynolds treatment written and dated before any load is computed. New loads case on it, ±15 % copied from 23c; first result stands. `R996_LOADS` keeps its record.
 
 ## 8cf. Phase 142 — FLIGHT_MODES: the reference file, then the in-plane mass (ISSUE-024)
 
