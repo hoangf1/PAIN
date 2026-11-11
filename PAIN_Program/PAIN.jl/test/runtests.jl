@@ -3309,30 +3309,33 @@ _run_if("NASA's per-band PF-105 table (phase 100)") do
 end
 
 _run_if("Merlin IVC modes vs CR-172428 App. C (phase 101)") do
-    # Plan §8aq; criterion fixed 2026-10-30 before the run. Recorded first-run result (not met).
+    # Plan §8aq; criterion fixed 2026-10-30 before the run. First run (2026-10-30): not met, 197/221, on the first-pass file.
+    # Phase 142 (2026-11-11): one re-run on the settled transcription, criterion unchanged; it carries the verdict (author 2026-11-09).
     d = PAIN.merlin_mrp_deck()
     @test d.a == 0.84 && d.L == 9.27 && d.theta0_deg == 50.0 && d.n_circ == 14 && d.m_floor == 13.66
     r = run_validation_case("FLIGHT_MODES")
-    @test r.verdict === :not_met && r.inputs_echo.n == 221 && r.inputs_echo.n_ok == 197 && r.inputs_echo.n_freq == 219
+    @test r.verdict === :met && r.inputs_echo.n == 221 && r.inputs_echo.n_ok == 200 && r.inputs_echo.n_freq == 220
+    r1 = PAIN._run_flight_modes(; file="appC_merlin_structural_modes.csv")              # the first-pass file, as first run
+    @test r1.verdict === :not_met && r1.inputs_echo.n_ok == 197 && r1.inputs_echo.n_freq == 219
     m1 = only(t for t in r.table if startswith(t.quantity, "mode 1 "))                  # 39.60 Hz, 137.89 kg printed
     @test abs(m1.computed / m1.reference - 1) < 0.01
     png = plot_case(r, VALIDATION_CASES["FLIGHT_MODES"].plot_spec; path=joinpath(TEST_OUT, "FLIGHT_MODES.png"))
     @test isfile(png) && filesize(png) > 0
 end
 
-_run_if("FLIGHT_MODES second transcription pass and mass parts (phase 110)") do
-    # Plan §8az: the checked transcription keeps FLIGHT_MODES' verdict (first pass) and re-runs it post-hoc.
-    r = run_validation_case("FLIGHT_MODES_P2")
-    @test r.verdict === :no_verdict && PAIN.underlying_verdict(r) === :met && r.inputs_echo.n_ok == 199 && r.inputs_echo.n == 221
-    @test run_validation_case("FLIGHT_MODES").verdict === :not_met                                  # first-pass verdict on record
+_run_if("FLIGHT_MODES settled transcription and mass parts (phases 110, 142)") do
+    # Phase 110 read the list a second time; Phase 142 a third time, blind, and settled the one cell that differed (mode 41).
+    # FLIGHT_MODES_P2 (the Phase 110 re-run, 199/221 with mode 41 misread) was retired in Phase 142.
+    @test !haskey(VALIDATION_CASES, "FLIGHT_MODES_P2")
     c = PAIN._appc_mode_rows("appC_merlin_structural_modes_checked.csv")
     @test length(c.mode) == 221 && c.M[findfirst(==(230), c.mode)] == 4 && c.M_total_kg[findfirst(==(174), c.mode)] == 73.40
-    # mass parts: the shell and plate normal-displacement parts match NASA's; mode 41's total does not (in-plane part)
+    @test c.M_total_kg[findfirst(==(41), c.mode)] == 1802.69
+    # mass parts: the shell and plate normal-displacement parts match NASA's, and so does mode 41's total (1802.69 printed)
     g = PAIN.merlin_mrp_deck()
     full = PAIN.appd_modes(g; n_modes=60, n_axial=10, n_circ=14, n_floor_max=5, n_keep_shell=typemax(Int), n_keep_floor=typemax(Int)).modes
     x = only(m for m in full if m.symmetric && m.M_axial == 1 && abs(m.f_Hz - 231.09) < 1)
     pr = PAIN._mode_mass_parts(x, g)
-    @test isapprox(pr.shell, 19.749; rtol=0.01) && isapprox(pr.plate, 4.557; rtol=0.01) && x.M_r > 1.5 * 1002.69
+    @test isapprox(pr.shell, 19.749; rtol=0.01) && isapprox(pr.plate, 4.557; rtol=0.01) && isapprox(x.M_r, 1802.69; rtol=0.01)
 end
 
 _run_if("Run 10's floor-term sign on the printed H1/H5 pairs (phase 108)") do

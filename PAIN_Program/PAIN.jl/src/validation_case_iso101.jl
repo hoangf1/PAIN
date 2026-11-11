@@ -3,6 +3,8 @@
 # the run). P case: PAIN's own inputs (the printed MRP deck) and PAIN's own output (the printed list).
 
 const _P101_REPORT = "phase101_flight_run10.md"
+# FLIGHT_MODES_P2 (Phase 110, the re-run on the second-pass file) was retired in Phase 142 (2026-11-11): FLIGHT_MODES runs
+# on the settled file itself. Its recorded outcome (199/221) is in phase110_flight_modes_pass2.md.
 
 """NASA's MRP deck for the Merlin IVC (`data/cr172428/appC_merlin_mrp_deck.csv`, App. C pp. 204–205)."""
 merlin_mrp_deck() = appd_nasa_deck(_r172428_csv("appC_merlin_mrp_deck.csv"))
@@ -18,8 +20,10 @@ function _appc_mode_rows(file::AbstractString)
 end
 
 """101a: each printed mode against the solver mode of the same symmetry and axial order M nearest in frequency.
-`file`/`id`: Phase 110 re-runs it on the checked transcription (FLIGHT_MODES_P2, post-hoc)."""
-function _run_flight_modes(; file::AbstractString="appC_merlin_structural_modes.csv", id::AbstractString="FLIGHT_MODES")
+Reference file since Phase 142 (2026-11-11): the checked transcription, settled by a blind third pass. The first run
+(2026-10-30, 197/221, not met) was on the first-pass file `appC_merlin_structural_modes.csv`, which had three misreads
+(mode 41's total, mode 174's total, mode 230's M); pass `file` to repeat it."""
+function _run_flight_modes(; file::AbstractString="appC_merlin_structural_modes_checked.csv", id::AbstractString="FLIGHT_MODES")
     c = _appc_mode_rows(file)
     types = c.types
     ms = appd_modes(merlin_mrp_deck(); n_modes=400, n_axial=10, n_circ=14, n_floor_max=5).modes
@@ -45,7 +49,7 @@ function _run_flight_modes(; file::AbstractString="appC_merlin_structural_modes.
         table, series, n_ok ≥ 0.9n ? :met : :not_met,
         "$n_ok/$n listed modes ($(pc(n_ok / n)) %) within 2 % in frequency and 10 % in generalized mass (criterion ≥ 90 %); " *
         "$nf/$n within 2 % in frequency alone (median $(pc(sort(dfs)[cld(n, 2)])) %)",
-        "V-CODE", joinpath(_VAL_REPORT_DIR, id == "FLIGHT_MODES" ? _P101_REPORT : "phase110_flight_modes_pass2.md"))
+        "V-CODE", joinpath(_VAL_REPORT_DIR, "phase142_flight_modes.md"))
 end
 
 """
@@ -70,17 +74,10 @@ end
 
 function _iso101_validation_cases()
     return [ValidationCase("FLIGHT_MODES", "MRP solver on NASA's Merlin IVC deck vs PAIN's printed mode list (101a)", "101",
-        [_r172428_csv("appC_merlin_mrp_deck.csv"), _r172428_csv("appC_merlin_structural_modes.csv")],
+        [_r172428_csv("appC_merlin_mrp_deck.csv"), _r172428_csv("appC_merlin_structural_modes_checked.csv")],
         FigureRef("NASA CR-172428", "App. C pp. 204–205 (deck), 213–216 (modes)", 213),
         "f_r within 2 % and generalized mass within 10 % for ≥ 90 % of the listed modes up to 1 kHz (fixed 2026-10-30, before the run).",
         "2026-10-30", "V-CODE", _run_flight_modes,
         PlotSpec(; xlabel="frequency (Hz)", ylabel="generalized mass (kg)", panel_titles=["FLIGHT_MODES"], error_mode=:relative_pct,
-                 error_tol=10.0, xscale=:log10, yscale=:log10), ""),
-        ValidationCase("FLIGHT_MODES_P2", "FLIGHT_MODES re-run on the checked App. C transcription (110, post-hoc)", "110",
-        [_r172428_csv("appC_merlin_mrp_deck.csv"), _r172428_csv("appC_merlin_structural_modes_checked.csv")],
-        FigureRef("NASA CR-172428", "App. C pp. 213–216 (modes, second pass)", 213),
-        "FLIGHT_MODES' criterion (fixed 2026-10-30) on the checked transcription; diagnostic, post-hoc (no verdict).",
-        "2026-10-30", "V-CODE", () -> _run_flight_modes(; file="appC_merlin_structural_modes_checked.csv", id="FLIGHT_MODES_P2"),
-        PlotSpec(; xlabel="frequency (Hz)", ylabel="generalized mass (kg)", panel_titles=["FLIGHT_MODES_P2"], error_mode=:relative_pct,
                  error_tol=10.0, xscale=:log10, yscale=:log10), "")]
 end

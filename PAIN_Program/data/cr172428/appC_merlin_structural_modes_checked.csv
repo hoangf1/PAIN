@@ -6,6 +6,11 @@
 # 73.40 (pass 2), mode 230 M = 4 (pass 2). Modes 47-52, 111-121, 182-185 and 243-250 are cut off in the scan.
 # CMNS / CMNP: largest shell / plate generalized coordinate (signed) with its order NS / NP; total, shell_W, plate_W:
 # generalized mass and its shell and plate normal-displacement parts (kg). The print's 8 and 0 look alike.
+# Phase 142b (2026-11-11): third pass, all 221 rows of mode, f, type, M and total mass read again from 300 dpi tiles
+# without the code's output or either file in view, then compared cell by cell with both files. It agrees with this
+# file in every cell but one: mode 41's total reads 1802.69, not 1002.69 (both earlier passes). Settled at 600 dpi
+# against the page: the second digit is the print's filled 8, unlike the open 0 beside it
+# (docs/validation_reports/figures/phase142_mode41_cell.png). FLIGHT_MODES runs on this file since that date.
 mode,f_Hz,type,M,NS,CMNS,NP,CMNP,M_total_kg,shell_W_kg,plate_W_kg
 1,39.60,S,1,1,.7309,0,.8908,137.89,32.072,72.202
 2,56.82,A,1,2,.6761,1,.4457,59.66,34.632,8.319
@@ -47,7 +52,7 @@ mode,f_Hz,type,M,NS,CMNS,NP,CMNP,M_total_kg,shell_W_kg,plate_W_kg
 38,222.50,S,2,1,.3422,2,-.7172,57.13,19.195,29.001
 39,224.73,A,4,2,.6230,1,.4602,63.57,33.392,22.018
 40,227.73,S,10,5,-.0939,1,.8269,38.65,.806,37.810
-41,231.09,S,1,4,-.3083,2,-.3477,1002.69,19.749,4.557
+41,231.09,S,1,4,-.3083,2,-.3477,1802.69,19.749,4.557
 42,232.82,A,1,4,.6729,2,.4970,41.16,27.670,9.002
 43,232.94,A,2,4,.8027,2,.5139,60.94,37.577,15.530
 44,233.42,S,5,3,.4579,1,-.0798,23.85,20.958,.666

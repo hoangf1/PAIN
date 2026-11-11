@@ -10,6 +10,7 @@ Two lists, newest first in each. **Not assigned to a phase**: issues to act on o
 
 | Issue | Subject | Kind | State |
 |---|---|---|---|
+| 039 | FLIGHT_MODES: twenty generalized masses differ in the in-plane part, with both signs | Investigation | open |
 | 038 | The uncertainty budget's nominal sample is not the pipeline's result (structural mode cut-off) | Tests, code | open |
 | 037 | The Phase III trim has guessed inputs; cases that use it may carry a verdict they should not | Input rule, investigation | open |
 | 036 | Twelve source functions have no unit test, so the completeness check fails | Tests | open |
@@ -29,7 +30,7 @@ Two lists, newest first in each. **Not assigned to a phase**: issues to act on o
 | 027 | Source loads: XFOIL drag; measured polars unused as input | Not met | 141 (closed 2026-11-11; continued in 030) |
 | 026 | High-frequency NR cases: method limit and assumed inputs | Not met | 137 (closed 2026-11-10) |
 | 025 | CYL2D_PRINTED judges a grid rule that was not adopted | Not met | 140 (closed 2026-11-11) |
-| 024 | FLIGHT_MODES is two modes short on a file with two misreads | Not met | 142 |
+| 024 | FLIGHT_MODES is two modes short on a file with two misreads | Not met | 142 (closed 2026-11-11: met on the settled file) |
 | 023 | E14_LOSS and R172428_ETA: the trim loss term | Not met | 139 (closed 2026-11-11; continued in 032) |
 | 022 | Code-against-NASA misses classed as a method limit | Not met | 138 (closed 2026-11-10) |
 | 021 | Post-hoc verdicts are not marked on the chart | Readability | 145 |
@@ -87,6 +88,27 @@ Still open for the author: the new CLAUDE.md update list (Phase 148a), the plain
 A web search for reports that could settle open questions of these issues. The list, with what each may give and what to check first, is `IMPLEMENTATION_PLAN.md` §2.5 (D-23 to D-31). Two were then downloaded with the author's go-ahead and read in part the same day: CR-165869, which prints the cabin grid rule that Phase 111 could not find (ISSUE-025), and CR-159668, whose measured blocking data are too scattered to judge a case on (ISSUE-006). The others were not downloaded; what is said about them comes from catalogue records and abstracts. Two findings came from PDFs already in `references/`: TP-2444 p. 8 prints its trim lining (ISSUE-026), and TN 1546 holds 24 sections of which three are digitized (ISSUE-027).
 
 ---
+
+## ISSUE-039: FLIGHT_MODES: twenty generalized masses differ from NASA's in the in-plane part
+
+**Status:** open, not assigned to a phase. Recorded 2026-11-11 while closing Phase 142. Investigation. FLIGHT_MODES is met (200/221) and its criterion does not change.
+
+**Decided as a ticket** by Claude under the author's authority of 2026-11-10 and 2026-11-11, following the author's choice for R172428_ETA after Phase 139 (ISSUE-032): the phase's test found no cause, and the search goes on outside it.
+
+**What is known** (`validation_reports/phase142_flight_modes.md`).
+- 21 of 221 modes are outside the rule: one in frequency (mode 29, −5.2 %), twenty in generalized mass (10–113 %).
+- For the twenty, the shell and plate normal-displacement parts match NASA's printed SHELL W and PLATE W. The difference is in total − shell − plate, the in-plane part.
+- The in-plane part is too large in ten modes and too small in ten. One missing term would give one sign.
+- 17 of the twenty are symmetric and 17 lie above 680 Hz.
+- The pairing rule is not the cause (two near-degenerate modes; swapping makes both worse).
+- Mode 41, the earlier example of this difference, was a misread of the page (1802.69 kg printed; this code 1800.91).
+
+**Questions.**
+1. Which in-plane terms do Eqs. (D.17)–(D.29) of CR-3813 App. D put into the generalized mass of the floor and of the shell, and does `mrp_appd.jl` have each one? A unit test per term found.
+2. Do the twenty have a neighbour of the same symmetry and M within a few per cent in frequency, so that the two solvers mix the same pair differently? Then the difference is a property of near-degenerate pairs, not an error.
+3. Peterson and Boyd, J. Sound Vib. 60(1), 45–62 (1978) (D-30, not in the repository): the shell-with-floor theory CR-165869 p. 73 names. A check of the in-plane terms against it is verification, no verdict.
+
+**Rules.** MRP_APPD (32/32) and FLIGHT_MODES must stay met after any change to `src/`; a change rests on a printed equation, not on these twenty numbers.
 
 ## ISSUE-038: The uncertainty budget's nominal sample is not the pipeline's result
 
@@ -178,7 +200,7 @@ Both change only the damping. Nothing held out tests the q = 0 choice or the for
 - The q = 0 and band-centre re-runs of CR-3813's printed runs (`Q0_REPRO_18b`, `Q0_E18`, `Q0_E21`, `BAND_REPRO_18b`, `BAND_E18`; Phases 88, 99) are on the pre-correction program, not the shipped one; they missed (for example 2/3, 1/3, 3/16).
 
 **Questions to answer.**
-1. Once Phase 142 settles FLIGHT_MODES, can `FLIGHT10_H234` carry a verdict as the held-out test of the full form? Its criterion and date need checking against the rule (fixed before its first run, or post-hoc).
+1. Phase 142 settled FLIGHT_MODES on 2026-11-11 (met, 200/221). Can `FLIGHT10_H234` now carry a verdict as the held-out test of the full form? Its criterion and date need checking against the rule (fixed before its first run, or post-hoc).
 2. Is there another PAIN printout outside CR-172428 (CR-3813, the User Manual, the reports they cite) run with the corrected program, inputs and interior levels both printed?
 3. What do the CR-3813 re-runs above say about the q = 0 choice, given that they run the pre-correction program?
 
@@ -327,7 +349,7 @@ The two patterns are not the same, so one cause for both is not shown.
 | E22_BR, NR_PROP_TP2444_BR, NR_PROP_TP2444_PF | not met | Retire | additions that are not part of the shipped tool, on assumed inputs |
 | NR_PROP_TP2444 | not met 1/7 | Information (Phase 137a′ done) | its lining's acoustic table is not printed; CR-172428's PF-105 does not match TP-2444's weight |
 | MRP_APPD | met 32/32 | Keep | needs its independence record |
-| FLIGHT_MODES | not met 197/221 | Keep | re-run on a checked reference file (Phase 142) |
+| FLIGHT_MODES | met 200/221 (Phase 142; first run not met 197/221) | Keep | reference file settled by a blind third transcription |
 | CYL2D_C1, APPB_EPS_N, CABIN_FREQ_PRINTED | met | Keep | PAIN's own printed cabin modes |
 | CYL2D_PRINTED | not met (57/168 on the old rule) | On the chart since Phase 140 (done) | tests a grid rule the code does not use; CR-165869 prints the rule (ISSUE-025) |
 | APPB_ETA_N | not met 12/46 | Diagnostic (decided) | old program form |
@@ -363,7 +385,7 @@ Totals: 44 test, 14 show, 6 until, 47 retire.
 | Retire | `Q0_REPRO_18b`, `Q0_E18`, `Q0_E21`, `BAND_REPRO_18b`, `BAND_E18` | q = 0 and the band-centre rule on CR-3813's runs: refuted (Phases 88, 99) |
 | Retire | `R172428_CODE_ETAN`, `R172428_CODE_Q0`, `R172428_CODE_Q0_ETAN`, `APPB_PAIRS`, `APPB_PAIRS_Q0_ETAN` | steps on the way to the shipped form; `R172428_CODE_DEFAULT` shows where they ended |
 | Retire | `FLIGHT10_FLOOR_SIGN` | answered (Phase 108); its result is an input of `FLIGHT10_H234` |
-| Retire | `FLIGHT_MODES_P2` | becomes the FLIGHT_MODES re-run of Phase 142 |
+| Retire | `FLIGHT_MODES_P2` | became the FLIGHT_MODES re-run of Phase 142; retired 2026-11-11 |
 
 *Checks of the code against a formula, an identity or another method (47): 37 test, 3 until, 7 retire.*
 
@@ -562,7 +584,7 @@ The third column is arithmetic done today, not a run. The rule gives the NY that
 
 ## ISSUE-024: FLIGHT_MODES misses its rule by two modes, and its reference file has two known misreads
 
-**Status:** open. Recorded 2026-11-09. Reference data and investigation. The recorded verdict (not met, 197/221) is not changed. Solution: Phase 142.
+**Status:** closed 2026-11-11 by Phase 142 (`COMPLETED_PHASES.md` §8cf): a blind third transcription settled the reference file (mode 41's total is 1802.69), and the one re-run on it is met, 200/221. The first run (not met, 197/221) stays on record. The remaining mass differences are ISSUE-039. Recorded 2026-11-09.
 
 **Evidence.**
 - Rule: f_r within 2 % and generalized mass within 10 % for ≥ 90 % of the listed modes. First run: 197/221 = 89.1 %. 90 % of 221 is 198.9, so 199 are needed.

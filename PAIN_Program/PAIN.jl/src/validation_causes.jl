@@ -45,9 +45,6 @@ const CASE_CAUSES = Dict{String,CaseCause}(
     "CYL2D_PRINTED" => CaseCause("approximation in this recreation",
         "On NASA's printed grid rule the narrow body (61/61) and the Merlin (51/51) are reproduced; at 62.6° this code's eigenproblem fails its own real-eigenvalue check on NASA's grid (|Im|/|Re| 0.0012 against 0.001, a check set in Phase 79b), so the fallback grid of Q60 is used and misses. Why NASA's program solves that grid is not explained by the documents.",
         "Phases 103, 105, 140", "why the 62.6° grid gives complex eigenvalues here and not in NASA's program (ISSUE-033)", "phase140_cyl2d_printed_rule.md"),
-    "FLIGHT_MODES" => CaseCause("reference data",
-        "The reference file has two misreads; corrected, it gives 199/221 (post-hoc). The in-plane part of the generalized mass differs for about 20 modes, cause not found.",
-        "Phases 101, 110", "blind second transcription (Phase 142)", "phase110_flight_modes_pass2.md"),
     # Phase 139d (2026-11-10): the band-centre hypothesis was not supported (15/32), so both are unexplained
     "R172428_ETA" => CaseCause("unexplained (no documented cause survived its test)",
         "Up to 470 Hz every mode is within 12 % of NASA's; above it the modes with almost no shell motion (share under 0.05) agree within 6 % and every other mode is 0.51–0.80 of NASA's. Every cause tested so far was ruled out, the band-centre rule included.",
