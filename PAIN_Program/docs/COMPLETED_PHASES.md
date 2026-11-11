@@ -222,6 +222,7 @@ Not blockers (recorded so nobody stops on them): BBN tip geometry beyond 40 in. 
 | Q114 | Phase 136: CR-172428 tone cases, program form (ISSUE-014, 017, 009) | labels, [CONFIRM], [AUTHOR] | Q113 | `form` field; pairs; NASA-on-same-gate column · **done 2026-11-10**: titles name the form; pairs named in the diagnostic reasons; rule in CLAUDE.md; ISSUE-034, 035 |
 | Q115 | Phase 137: high-frequency NR cases (ISSUE-026) | rule by kind, [AUTHOR] | Q114 (136f, done) | input rule applied; method-limit mark | · **done 2026-11-10**: three cases retired; `NR_PROP_TP2444` stays information (TP-2444's lining not printed in full; CR-172428's not valid for it); method-limit mark; 1 kHz range shaded; ISSUE-036, 037 |
 | Q116 | Phase 138: TP-1964 ref. 2 and E22_HF_CODE (ISSUE-022) | investigation | — | input table from CR-159363; a cause, class U, or no verdict | · **done 2026-11-10**: case (ii), the three cases carry no verdict; case texts name the missing inputs |
+| Q117 | Phase 139: trim loss term (ISSUE-023) | investigation, [AUTHOR] | — | ratio curves; hypothesis test; held-out check | · **done 2026-11-11**: band-centre idea not supported (15/32 against 24); both cases unexplained; continued in ISSUE-032 |
 | Q58 | **Phase 79 — CYL2D** (§8w; 2026-10-28) | `case_error_summary`, `cyl2d.jl`, CYL2D_WEYL | Q57 | **done 2026-10-28**: information rows leave the pass count; refinement fixed (79b); CYL2D_GRID_CONV (NY 10 within 4.9 % of NY 60); Weyl + surface term 4/5; production NY = 10 kept (decided 2026-10-28) |
 | Q57 | **Phase 78 — structural modes** (§8v; 2026-10-28) | `mrp_appd.jl`, MRP_APPD criterion, map | Q53 | **done 2026-10-28**: App. D solver fixes J1–J6; MRP_APPD not met 2/32 (class I, floor stiffener model undocumented); MRP_D1/MRP_RITZ off the map |
 | Q56 | **Phase 77 — POLAR_FIDELITY as an equivalent angle** (§8u; 2026-10-28) | `src/validation_case_iso67.jl`, figure | Q52 | **done 2026-10-28**: Δα shown next to Δc_l, display only |
@@ -3483,3 +3484,20 @@ No run, no code. Each step replaces nothing in the record; it marks older values
 - The same choice as the author's in 137a′: a source counts only if it is the curve's own inputs; here the curve rests on choices NASA made while looking at the measurement and did not print, so no verdict.
 - All three cases (`NR_TP1964_REF2`, `NR_TP1964_XOVER_REF2`, `E22_HF_CODE`) carry no verdict; their recorded outcomes stay on record. The two ref. 2 case texts now name the three missing inputs.
 - No code changed in this closing; §0 and `case_error_summary.csv` not regenerated (ISSUE-035).
+
+## 8cc. Phase 139 — the trim loss term: E14_LOSS and R172428_ETA together (ISSUE-023; done 2026-11-11)
+
+- [x] **139a Ratio curves.** This code / NASA, per mode for R172428_ETA and per band for E14_LOSS, on one frequency axis, with each mode's floor share. A script (`scripts/checks/`), no case. **Done 2026-11-10** (`phase139b_band_centre.md`, figure `phase139a_trim_loss_ratio.png`; runner not kept).
+- [x] **139b Band-centre hypothesis [DECIDED 2026-11-09].** Eq. (82) and Eq. (78) with ω and the trim conductance at the 1/3-octave centre (the rule NASA's η_n follows, Phases 95–96). Supported if at least 24 of R172428_ETA's 32 modes are then within ±25 %; fixed by the author on 2026-11-09 before any run. Diagnostic on R172428_ETA's unchanged criterion. Before the run the same sentence is entered, with this date, in the criteria document (R3). **Done 2026-11-10: not supported, 15 of 32.**
+- [x] **139b′ Read D-23 first** (CR-165869, in `references/` since 2026-11-09): sections 3.1–3.3 and App. A page by page, for the frequency at which the loss factors are evaluated. A text search on 2026-11-09 found no such statement. A statement in the document outranks the diagnostic. **Done 2026-11-10**: the document does not state the frequency.
+- [x] **139c Held-out check.** Before any default changes: the η_r′ NASA prints for the η_T = 2.0 run or for flight run 10's deck, if printed (search first). **[AUTHOR]** criterion, dated. **Not needed** (2026-11-11): no default changes, so nothing is held out against.
+- [x] **139d Outcome.** Supported and held-out met → [CONFIRM] default change, affected cases re-run and labelled post-hoc. Otherwise class U for both, with the curves in the report. **Done 2026-11-10**: unexplained for both; no default change.
+
+**Done when:** E14_LOSS no longer carries "I (probable)", which Phase 118 refuted.
+
+**Done 2026-11-11** (139a, 139b, 139b′, 139d run overnight on 2026-11-10 under the delegation of that day; checked and closed, decided by Claude under the author's authority of 2026-11-10 ("make the same logical choices ive made") and of 2026-11-11 ("finish all open phases")):
+- 139b: the band-centre idea is **not supported**: 15 of 32 modes against the 24 fixed on 2026-11-09 (shipped form 17 of 32). No default changes.
+- 139c: not needed, since it guards a default change and none is made. The held-out set (CR-172428 App. C LOSS FACTOR column, PDF p. 223 on) stays unused and unseen for ISSUE-032.
+- 139d: both cases carry "unexplained (no documented cause survived its test)" in `CASE_CAUSES`, with Phase 139 among their tests. VALIDATION_GUIDELINE §2.13's cause table no longer says "I (probable)" for E14_LOSS.
+- The author's follow-up of 2026-11-10 ("there must be something wrong with this function methodlogical wise") is ISSUE-032, open.
+- No code changed in this closing. Report: `validation_reports/phase139b_band_centre.md`.

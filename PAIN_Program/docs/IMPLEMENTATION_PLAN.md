@@ -13,7 +13,7 @@ Single source of truth for building this project without re-deriving context in 
 2. Data register and digitization instructions (status, procedure, one card per figure; §2.5 candidate sources found 2026-11-09)
 3. Current status and open work queue
 4. Architecture
-8cc–8co. Open phases 139–151 (planned 2026-11-09 from `ISSUES.md`; Phases 135–138 done 2026-11-10 and moved to `COMPLETED_PHASES.md`)
+8cd–8co. Open phases 140–151 (planned 2026-11-09 from `ISSUES.md`; Phases 135–138 done 2026-11-10, 139 done 2026-11-11 and moved to `COMPLETED_PHASES.md`)
 5–8ac, 11. *(in `COMPLETED_PHASES.md`, same section numbers, moved 2026-10-29)* every completed phase, the queue Q0–Q66 and the 2026-10-21 review
 9. Reference appendices (BBN evidence, Report 996 figures and data, Pereira polar specification, variables)
 10. Optional future work, key formulas, file checklist
@@ -263,7 +263,6 @@ or the other documents points there. When a phase is done, mark it done and move
 
 | Q | Item | Kind | Prerequisite | Output |
 |---|------|------|--------------|--------|
-| Q117 | Phase 139: trim loss term (ISSUE-023) | investigation, [AUTHOR] | — | ratio curves; hypothesis test; held-out check |
 | Q118 | Phase 140: CYL2D grid label and bound (ISSUE-025) | label, bound | — | shipped-grid row; level spread |
 | Q119 | Phase 141: source chain labels, unscaled replays, measured polars (ISSUE-001, 004, 027) | labels, new cases, [CONFIRM], [AUTHOR] | Q113 | labels; unscaled cases; TN 1546 coverage |
 | Q120 | Phase 142: FLIGHT_MODES reference file and in-plane mass (ISSUE-024) | data, investigation, [AUTHOR] | — | blind transcription; one re-run |
@@ -341,16 +340,6 @@ Each phase is the solution of one or more entries of `ISSUES.md`; the evidence i
 Rules common to all: no recorded verdict, criterion, tolerance or reference file changes unless the step names it; a result that moves is recorded with its date, its before and after, and "post-hoc" where the earlier result was known; targeted testsets only (not the full `Pkg.test()`); the five documents of R5 are updated in the phase that changes code or a recorded result.
 
 **Status 2026-11-10 (overnight, decided by Claude under the author's delegation of 2026-11-10).** Done: 136e, 136f, 137b, 137c, 137d, 138a/b/d, 139a/b/b′/d, 140c/d, 141a, 141c (Report 996 part; the Pereira PER_FIG8 line is open), 141d, 144a, 144b, 145d, 147, 150c/d. Decisions and outcomes: `validation_reports/phase135_151_decisions.md`. Open: 141c Pereira line, 141e, 142, 143b–d, 145a rest, 146b/c, 148, 149a, 150a/b/e, 151a/b, regenerating the summary CSV and §0. These changes were pushed without running the full test suite or /code-review, at the author's request (2026-11-10); the next session runs the affected testsets first.
-
-## 8cc. Phase 139 — the trim loss term: E14_LOSS and R172428_ETA together (ISSUE-023)
-
-- [ ] **139a Ratio curves.** This code / NASA, per mode for R172428_ETA and per band for E14_LOSS, on one frequency axis, with each mode's floor share. A script (`scripts/checks/`), no case.
-- [ ] **139b Band-centre hypothesis [DECIDED 2026-11-09].** Eq. (82) and Eq. (78) with ω and the trim conductance at the 1/3-octave centre (the rule NASA's η_n follows, Phases 95–96). Supported if at least 24 of R172428_ETA's 32 modes are then within ±25 %; fixed by the author on 2026-11-09 before any run. Diagnostic on R172428_ETA's unchanged criterion. Before the run the same sentence is entered, with this date, in the criteria document (R3).
-- [ ] **139b′ Read D-23 first** (CR-165869, in `references/` since 2026-11-09): sections 3.1–3.3 and App. A page by page, for the frequency at which the loss factors are evaluated. A text search on 2026-11-09 found no such statement. A statement in the document outranks the diagnostic.
-- [ ] **139c Held-out check.** Before any default changes: the η_r′ NASA prints for the η_T = 2.0 run or for flight run 10's deck, if printed (search first). **[AUTHOR]** criterion, dated.
-- [ ] **139d Outcome.** Supported and held-out met → [CONFIRM] default change, affected cases re-run and labelled post-hoc. Otherwise class U for both, with the curves in the report.
-
-**Done when:** E14_LOSS no longer carries "I (probable)", which Phase 118 refuted.
 
 ## 8cd. Phase 140 — CYL2D's grid: what the verdict is on, and whether it matters (ISSUE-025)
 

@@ -12,6 +12,7 @@ Colour key in diagrams: green = check exists and passes as stated; orange = plan
 
 ## Status
 
+- **2026-11-11 (Phase 139 closed):** the band-centre idea for the trim loss term is not supported; no default changes; flow unchanged.
 - **2026-11-10 (Phase 138 closed):** the two TP-1964 ref. 2 cases and `E22_HF_CODE` carry no verdict (inputs not printed); flow unchanged.
 - **2026-11-10 (Phase 137 closed):** ISSUE-026 closed; flow unchanged.
 - **2026-11-10 (Phase 137a′):** `NR_PROP_TP2444` stays information (TP-2444's lining has no printed acoustic table; CR-172428's PF-105 does not match its weight). Flow unchanged.

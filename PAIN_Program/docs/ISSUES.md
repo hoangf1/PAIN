@@ -29,7 +29,7 @@ Two lists, newest first in each. **Not assigned to a phase**: issues to act on o
 | 026 | High-frequency NR cases: method limit and assumed inputs | Not met | 137 (closed 2026-11-10) |
 | 025 | CYL2D_PRINTED judges a grid rule that was not adopted | Not met | 140 |
 | 024 | FLIGHT_MODES is two modes short on a file with two misreads | Not met | 142 |
-| 023 | E14_LOSS and R172428_ETA: the trim loss term | Not met | 139 (continued in 032) |
+| 023 | E14_LOSS and R172428_ETA: the trim loss term | Not met | 139 (closed 2026-11-11; continued in 032) |
 | 022 | Code-against-NASA misses classed as a method limit | Not met | 138 (closed 2026-11-10) |
 | 021 | Post-hoc verdicts are not marked on the chart | Readability | 145 |
 | 020 | Points and error text count rows outside the verdict | Readability | 145 |
@@ -321,8 +321,8 @@ The two patterns are not the same, so one cause for both is not shown.
 | APPB_ETA_N_T2 | met 3/3 | Check | may run the form of Phase 93, before the band-centre rule became the default |
 | APPB_ETA_N_T2_BAND | met 3/3 | Keep | the shipped damping rule on a held-out printout |
 | APPB_ETA_RPP | met 16/19 | Keep | needs its independence record |
-| R172428_ETA | not met 17/32 | Keep | unexplained; Phase 139 |
-| E14_LOSS | not met 7/18 | Keep for now | unexplained; Phase 139 decides whether it tells anything R172428_ETA does not |
+| R172428_ETA | not met 17/32 | Keep | unexplained; Phase 139 done, ISSUE-032 open |
+| E14_LOSS | not met 7/18 | Keep | unexplained; Phase 139 found its error pattern differs from R172428_ETA's, so it tells something that case does not |
 
 **What the chart would hold.** 18 bars: 11 met (six of them waiting on an independence record) and 7 not met (R996_LOADS, PER_FIG8, R172428_EXP, NR_TP1964_XOVER, FLIGHT_MODES, R172428_ETA, E14_LOSS). Each of the seven has an open phase or a stated limit of PAIN's method.
 
@@ -575,7 +575,7 @@ The third column is arithmetic done today, not a run. The rule gives the NY that
 
 ## ISSUE-023: E14_LOSS (7/18) and R172428_ETA (17/32) point at the same trim term, and the one cause tested for it was refuted
 
-**Status:** open. Recorded 2026-11-09. Investigation. No criterion or verdict changes. Solution: Phase 139.
+**Status:** closed 2026-11-11 by Phase 139 (`COMPLETED_PHASES.md` §8cc): the band-centre idea is not supported (15 of 32 against the 24 fixed beforehand); both cases are unexplained. The search for the cause continues in ISSUE-032. Recorded 2026-11-09.
 
 **Summary.** Both cases compare a trim-controlled loss factor with NASA's calculated values and both are low where the trim dominates. The cause on record ("I, probable: Fig. A-2 digitized at six frequencies") was tested in Phase 118 and not supported. No cause is left standing, and the two cases have not been looked at together.
 
