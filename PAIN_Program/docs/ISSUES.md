@@ -4,12 +4,14 @@ Known problems in the PAIN validation record that are not yet fixed. Each entry:
 
 ## Index
 
-Two lists, newest first in each. **Not assigned to a phase**: issues to act on or to hold, each waiting for the author's decision on what to do. **Assigned to a phase**: the solution is a phase of `IMPLEMENTATION_PLAN.md` (Phases 135–151); the entries follow in the same order below. Issues 001–014 were recorded first and answered on 2026-11-09; 015–029 were found on 2026-11-09 from the chain coverage chart; 030–033 on 2026-11-10 from the review of the eight not-met cases left on the chart; 034 and 035 on 2026-11-10 during Phase 136.
+Two lists, newest first in each. **Not assigned to a phase**: issues to act on or to hold, each waiting for the author's decision on what to do. **Assigned to a phase**: the solution is a phase of `IMPLEMENTATION_PLAN.md` (Phases 135–151); the entries follow in the same order below. Issues 001–014 were recorded first and answered on 2026-11-09; 015–029 were found on 2026-11-09 from the chain coverage chart; 030–033 on 2026-11-10 from the review of the eight not-met cases left on the chart; 034 and 035 on 2026-11-10 during Phase 136; 036 and 037 on 2026-11-10 during Phase 137.
 
 ### Not assigned to a phase
 
 | Issue | Subject | Kind | State |
 |---|---|---|---|
+| 037 | The Phase III trim has guessed inputs; cases that use it may carry a verdict they should not | Input rule, investigation | open |
+| 036 | Twelve source functions have no unit test, so the completeness check fails | Tests | open |
 | 035 | The summary file and §0 date from 2026-11-02 and do not show the changes since | Record | open |
 | 034 | The shipped program form has no held-out test of all its parts; R172428_ETAT2 changes only the trim damping | Validity, investigation | open |
 | 033 | CYL2D at 62.6°: this code rejects NASA's grid where NASA's program solved it | Not met, investigation | open |
@@ -24,11 +26,11 @@ Two lists, newest first in each. **Not assigned to a phase**: issues to act on o
 | 029 | Which of the 43 chart cases to keep; a rule before any new case | Not met, organisation | 135, 150 |
 | 028 | Files named and grouped by phase number; old paths | Organisation | 150 |
 | 027 | Source loads: XFOIL drag; measured polars unused as input | Not met | 141 |
-| 026 | High-frequency NR cases: method limit and assumed inputs | Not met | 137 |
+| 026 | High-frequency NR cases: method limit and assumed inputs | Not met | 137 (closed 2026-11-10) |
 | 025 | CYL2D_PRINTED judges a grid rule that was not adopted | Not met | 140 |
 | 024 | FLIGHT_MODES is two modes short on a file with two misreads | Not met | 142 |
 | 023 | E14_LOSS and R172428_ETA: the trim loss term | Not met | 139 (continued in 032) |
-| 022 | Code-against-NASA misses classed as a method limit | Not met | 138 |
+| 022 | Code-against-NASA misses classed as a method limit | Not met | 138 (closed 2026-11-10) |
 | 021 | Post-hoc verdicts are not marked on the chart | Readability | 145 |
 | 020 | Points and error text count rows outside the verdict | Readability | 145 |
 | 019 | No single current statement of why a case is not met | Not met, readability | 135, 145 |
@@ -85,6 +87,47 @@ A web search for reports that could settle open questions of these issues. The l
 
 ---
 
+## ISSUE-037: The Phase III trim has guessed inputs; cases that use it may carry a verdict they should not
+
+**Status:** open, not assigned to a phase. Recorded 2026-11-10 during Phase 137a′. Record only: no case, flag or number has been changed.
+
+**Author (2026-11-10).** Found while checking TP-2444's lining; the author asked for a ticket instead of following it inside Phase 137 ("write as issue ticket").
+
+**What is wrong.** `phase3_trim` (`PAIN.jl/src/trim_loss.jl`) builds the CR-3813 Phase III trim. METHODOLOGY §10 ("What this recreation does not claim", register f) lists four of its inputs as V-ASSUMED: the facing/septum loss factor, the G-10 wavespeed, the mechanical connections (nine screws as a uniform lattice, the floor mounting as two lines, soft mounts treated as rigid; see `phase137b_e22_bridges.md`) and the end-plate backing. The input rule of Phase 118a takes the verdict from a case whose compared quantity rests on an input that is not printed or measured. Phase 137a′ applied it to `NR_PROP_TP2444`; it has not been applied to the other users of this trim.
+
+**Who uses it.** Cases that call `phase3_trim` (directly or through `noise_reduction_test_article_inputs`) and can still carry a verdict, according to `no_verdict_by_rule` on 2026-11-10:
+
+| Case | On the chart? | To check |
+|---|---|---|
+| `E14_LOSS` | yes (not met 7/18) | whether the loss factor it compares uses the facing/septum loss factor or the mechanical path (`_run_e14_loss`, η_lining = 0.5 from CR-3813 p. E-24) |
+| `E15_STRUCT_LOSS` | to check | same, for the structural loss factor (`_run_e15_struct_loss`, η_lining = 1.0) |
+| `GEXT_BOUND` | to check | whether the trim enters its compared quantity at all |
+| `H3_ATTRIB` | to check | same |
+
+Cases already without a verdict that use it (`E18_TONES`, `T1`, `T1_FROM_E12`, `T2`, `E21_E22_NR` and others) are not affected. The CR-172428 cases (`r172428_inputs`) use NASA's App. D deck trim (PF-105 deck table, 50.8 mm, 1.456 kg/m², η_T from the deck, no mechanical path), whose values are printed, and are not affected either.
+
+**Action.** For each case in the table: list which of the four guessed inputs enter its compared quantity (by reading the code path, or by one diagnostic run that changes the input and shows whether the result moves; a diagnostic is not a case and gets no test). A case whose compared quantity moves with a guessed input loses its verdict by the 118a rule, with its recorded outcome kept; a case whose quantity does not depend on them keeps its verdict and says so in its text. Author's decision, dated, before any flag changes.
+
+## ISSUE-036: Twelve source functions have no unit test, so the completeness check fails
+
+**Status:** open, not assigned to a phase. Recorded 2026-11-10 during Phase 137a. Tests only: no criterion, tolerance, data file or recorded result is involved.
+
+**Author (2026-11-10).** Asked whether to fix it inside Phase 137 or ticket it: "Open a ticket".
+
+**What is wrong.** `test/unit/test_zz_completeness.jl` ("every src function has a unit test") fails: 12 functions are not named in any unit test. It fails the same way on `cf49c38` with the Phase 137a changes stashed, so the cause is earlier work, not Phase 137a. Where git shows when they came in: `plot_coverage_chart`, `_parse_chain_span`, `_parse_reference` with Phase 134 (2026-11-05); `_e12_mean_curve`, `_r996_unscaled_line`, `_shade_trim_range!` with the overnight Phases 136–147 (`787b414`, 2026-11-10). The others were added the same way, as one-line definitions:
+
+| File | Functions |
+|---|---|
+| `cyl2d.jl` | `_cyl2d_default_NY`, `cyl2d_printed_NK` |
+| `gui_inputs.jl` | `gui_default_project_path` |
+| `validation_case_extras.jl` | `_e12_mean_curve`, `_r996_unscaled_line` |
+| `validation_causes.jl` | `_nasa_gate_cell` |
+| `validation_coverage.jl` | `coverage_figure_dir`, `plot_coverage_chart` |
+| `validation_map.jl` | `_parse_chain_span`, `_parse_reference`, `reference_label` |
+| `validation_plots.jl` | `_shade_trim_range!` |
+
+**Action.** For each one, a unit test that would fail if it were wrong (a hand value, a limit or an error path), or, where a test would only repeat another (CLAUDE.md, "Add a test ... only if it helps"), a dated entry in the check's exemption list with the reason. Then the check passes again.
+
 ## ISSUE-035: The summary file and §0 date from 2026-11-02 and do not show the changes since
 
 **Status:** open, not assigned to a phase. Recorded 2026-11-10 during Phase 136. Record only: re-running changes no criterion, tolerance or reference file.
@@ -96,6 +139,7 @@ A web search for reports that could settle open questions of these issues. The l
 - Phase 140 adopted NASA's printed grid rule; CYL2D_PRINTED's 57/168 in the file is from the old rule.
 - Phase 136e found no other complete PAIN run in CR-172428; §0 does not say so yet.
 - §0 still gives 18 independent comparisons; the chart gives 20 (Phase 135, family fix).
+- Phase 137a (2026-11-10) retired `NR_PROP_TP2444_BR`, `NR_PROP_TP2444_PF` and `E22_BR`; the file, §0 and NO_VERDICT_CASES.md still list them until the writer is run.
 
 **Action.** One full run of the writer, in the background. Each number that moves is recorded with its date, its before and after, and "post-hoc" where the earlier result was known. A case moved off the chart by rule keeps its earlier outcome as its recorded outcome, under "no verdict".
 
@@ -264,11 +308,11 @@ The two patterns are not the same, so one cause for both is not shown.
 | NR_TP1964_XOVER | not met 9/18 | Keep | the shipped path on an independent measured cylinder |
 | NR_TP1964 | not met 6/18 | Diagnostic | the same cylinder without the changeover, which is not how the tool runs |
 | NR_TP1964_REF2 | not met 6/18 | Diagnostic | as above, and the inputs behind NASA's curve are not established |
-| NR_TP1964_XOVER_REF2 | not met 8/18 | Check (Phase 138) | depends on what CR-159363 used for its curve |
+| NR_TP1964_XOVER_REF2 | not met 8/18 | Information (Phase 138 done) | CR-159363's curve rests on three choices not printed as numbers |
 | E21_E22_NR | not met 5/35 | Diagnostic | its NASA curve comes from the program before NASA's corrections; its measured part lies above the range NASA gives for the trim model |
 | E22_HF_CODE | not met 1/4 | Diagnostic | compared with the output of a routine NASA did not print |
 | E22_BR, NR_PROP_TP2444_BR, NR_PROP_TP2444_PF | not met | Retire | additions that are not part of the shipped tool, on assumed inputs |
-| NR_PROP_TP2444 | not met 1/7 | Diagnostic until Phase 137a′ | wrong trim; may come back as a new case on TP-2444's own trim |
+| NR_PROP_TP2444 | not met 1/7 | Information (Phase 137a′ done) | its lining's acoustic table is not printed; CR-172428's PF-105 does not match TP-2444's weight |
 | MRP_APPD | met 32/32 | Keep | needs its independence record |
 | FLIGHT_MODES | not met 197/221 | Keep | re-run on a checked reference file (Phase 142) |
 | CYL2D_C1, APPB_EPS_N, CABIN_FREQ_PRINTED | met | Keep | PAIN's own printed cabin modes |
@@ -432,7 +476,7 @@ Applied to the cases the open phases proposed:
 
 ## ISSUE-026: The high-frequency noise-reduction cases miss because of the method, three of them run on assumed inputs, and the chart shows none of this
 
-**Status:** open. Recorded 2026-11-09. Classification and labelling. Solution: Phase 137.
+**Status:** closed 2026-11-10 by Phase 137 (`COMPLETED_PHASES.md` §8ca): the three cases on additions are retired, `NR_PROP_TP2444` stays information with the missing input named, the method-limit mark and the 1 kHz range are on the chart and plots. Recorded 2026-11-09.
 
 **Summary.** `E22_BR` (0/4), `NR_PROP_TP2444` (1/7), `NR_PROP_TP2444_BR` (1/7), `NR_PROP_TP2444_PF` (1/7), `E21_E22_NR` (5/35) and `E22_HF_CODE` (1/4) are six of the nine not-met cases with the fewest points. The record's explanation is that PAIN itself misses here. Two things follow that the record has not acted on.
 
@@ -456,6 +500,10 @@ Applied to the cases the open phases proposed:
 - `NR_PROP_TP2444`: kept, without a verdict, until Phase 137 has checked whether the trim can be built from the printed values alone. If it can, it is registered again as a new case with complete inputs and a criterion fixed first; if not, it stays information.
 - `NR_PROP_TP2444_BR` and `NR_PROP_TP2444_PF`: retired as cases. They test two additions that are not part of the shipped tool, on inputs that are assumed. Their recorded outcomes stay in the phase reports.
 - `E22_BR`: goes through the chart rule in Phase 135f (the sound bridges are not the shipped default).
+
+**Done 2026-11-10 (Phase 137a).** `NR_PROP_TP2444_BR`, `NR_PROP_TP2444_PF` and `E22_BR` are retired as cases (author 2026-11-10: "Yes, delete them"): code, tests and §2.13 entries removed; their recorded outcomes stay in the phase reports. Open: 137a′.
+
+**Done 2026-11-10 (Phase 137a′).** TP-2444 does not name its fiberglass. CR-172428 §3.1.2 p. 16 describes the same cylinder's lining as PF-105, with the same layout, film and finish sheet, but 9.61 kg/m³ × 12.7 mm is 0.12 kg/m² per layer (about 0.19 with the film) against TP-2444's 0.27, and it adds a 120° vinyl patch. Author: CR-172428 may be used "only … if its valid", then "Yes, not valid". `NR_PROP_TP2444` stays information with no new case; its case text names the conflict in place of "no printed properties".
 
 **Read 2026-11-09: CR-165869 pp. 2–3** describe the linings of the Langley models of the same series: 0.0127 m (0.50 in.) PF-105 fiberglass covered with a 0.0000508 m (0.002 in.) vinyl film, and lead vinyl of 2.44 kg/m². TP-2444 p. 8 gives the same layer thickness (13 mm), the same film (0.05 mm) and the same lead-vinyl weight, without naming the fiberglass in the text read so far. If TP-2444 names PF-105 anywhere, its trim is the material the trim model already has a table for, and the missing input of `NR_PROP_TP2444` is found. To check in Phase 137a′; one thing does not fit yet: TP-2444 gives 0.27 kg/m² per layer, and 13 mm of PF-105 at 9.6 kg/m³ is 0.12 kg/m² before the film (my arithmetic).
 
@@ -552,7 +600,7 @@ The third column is arithmetic done today, not a run. The rule gives the NY that
 
 ## ISSUE-022: Three code-against-NASA cases are not met and are classed as a method limit, which cannot explain a difference from NASA's own program
 
-**Status:** open. Recorded 2026-11-09. Investigation. No criterion, tolerance, reference data or verdict changes. Solution: Phase 138.
+**Status:** closed 2026-11-10 by Phase 138 (`COMPLETED_PHASES.md` §8cb): the three cases carry no verdict under the input rule, so no cause class is needed (`phase138_ref2_inputs.md`). Recorded 2026-11-09.
 
 **Summary.** `NR_TP1964_REF2` (6/18 within ±3 dB), `NR_TP1964_XOVER_REF2` (8/18) and `E22_HF_CODE` (1/4) compare this code with NASA's printed predictions. Their recorded cause is M: "negative NR is a property of Eq. (18)" and "PAIN's high-frequency trim noise reduction exceeds the measurement". Both statements are about the method against measurement. If NASA's curve came from the same equations, the method is on both sides of the comparison and cancels. What is left is the inputs NASA used, the program NASA used, or this code.
 

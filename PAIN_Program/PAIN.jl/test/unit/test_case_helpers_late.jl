@@ -81,9 +81,6 @@ end
     @test PAIN.p48_exterior_bands(5000, obs, [1000.0]).total == PAIN.propeller_broadband_spectrum(PAIN.p48_propeller_cfg(5000), PAIN._p48_af(), obs; freqs=[1000.0]).total
     fl = PAIN._p48_run_floor("UNIT_FLOOR", :f14, 5000, obs, 1:2)
     @test length(fl.table) == 2
-    nr = PAIN.propeller_field_band_nr(inp, 400.0; n_freq=3)
-    @test nr.p2 ≈ sum(f -> PAIN.tone_mean_square_pressure(inp, nr.H, 2π * f), nr.fs) / 3 && nr.NR_dB ≈ 10log10(nr.p2_ref / nr.p2)
-    @test_throws ErrorException PAIN.propeller_field_band_nr(PAIN.noise_reduction_test_article_inputs(), 400.0)
 end
 @testset "iso62: printed-value comparison helpers" begin
     @test isfile(PAIN._p62_example("aircraft_scale_hartzell.json"))

@@ -12,6 +12,10 @@ Colour key in diagrams: green = check exists and passes as stated; orange = plan
 
 ## Status
 
+- **2026-11-10 (Phase 138 closed):** the two TP-1964 ref. 2 cases and `E22_HF_CODE` carry no verdict (inputs not printed); flow unchanged.
+- **2026-11-10 (Phase 137 closed):** ISSUE-026 closed; flow unchanged.
+- **2026-11-10 (Phase 137a′):** `NR_PROP_TP2444` stays information (TP-2444's lining has no printed acoustic table; CR-172428's PF-105 does not match its weight). Flow unchanged.
+- **2026-11-10 (Phase 137a):** `NR_PROP_TP2444_BR`, `NR_PROP_TP2444_PF` and `E22_BR` retired as cases (additions not shipped, on assumed inputs); `propeller_field_band_nr` removed. Flow unchanged: the bridge option stays off by default.
 - **2026-11-10 (Phase 147):** the block validation map is retired: the GUI tab, its canvas and §0's Mermaid map are gone; §5 below is now the coverage chart. Diagrams 1–4 are unchanged. Phase 140: CYL2D builds its grid by the rule NASA printed (CR-165869 pp. 60–62), grid size from the floor angle. Phase 143: the E-12 blocking reference is the mean of the two digitization passes.
 - **2026-10-24:** Closure register (`VALIDATION_GUIDELINE.md` §2.14): every not-met case mapped to its cause class; no open code defect.
 - **2026-10-24:** Phase 67: `POLAR_FIDELITY` on A_GEO (XFOIL vs TN 1546 measured c_l, not met 9/60), `F1A_CHORDWISE` on A_AMP (compact vs chordwise loading ≤ 0.27 dB): the Report 996 source misses come from the section polars.

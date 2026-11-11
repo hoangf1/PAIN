@@ -1,4 +1,6 @@
-# Phase 59 — Sharp sound bridges (NASA CR-172490) in Eq. (23): the source check and the three comparisons.
+# Phase 59 — Sharp sound bridges (NASA CR-172490) in Eq. (23): the source check and the T2 comparison.
+# NR_PROP_TP2444_BR (59c) and E22_BR (59d) were retired as cases in Phase 137a (2026-11-10): an option the tool
+# does not ship, on assumed connections. Their recorded outcomes (1/7, 0/4) are in phase59_60_bridges_modes.md.
 # Criteria and mapping fixed 2026-10-23 (COMPLETED_PHASES.md §8g Phase 59) before any run.
 
 const _P59_REPORT = "phase59_60_bridges_modes.md"
@@ -30,58 +32,6 @@ function _run_sharp_panel_d()
         "$n_ok/$n within 1 dB with ΔTL_M = 12 dB as stated; f₀ = $(round(sharp_f0(m, m, d); digits=1)) Hz (stated 142). " *
         "Post-hoc: the figure implies ΔTL_M = $(round(dTL_fig; digits=1)) dB, with which the construction is within $(round(maximum(abs, diag); digits=2)) dB",
         "V-UNIT", joinpath(_VAL_REPORT_DIR, _P59_REPORT))
-end
-
-function _run_nr_prop_tp2444_br()
-    fcs = [_p47_fc(k) for k in _P47C_K]
-    ext, _ = p47_band_levels(:ext, fcs)
-    intr, _ = p47_band_levels(:int, fcs)
-    inp = r172428_inputs(4000)
-    xo = volume_crossover_band(inp)
-    table = ValidationTableRow[]; meas = Float64[]; got = Float64[]; n_ok = 0
-    for (i, fc) in enumerate(fcs)
-        m = ext[i].L_bb - intr[i].L_bb
-        g = noise_reduction_band(inp, fc; crossover_fc=xo.fc_Hz, hf_model=:eq19, bridges=true).NR_dB
-        ok = abs(g - m) ≤ 5.0; n_ok += ok
-        push!(meas, m); push!(got, g)
-        push!(table, ValidationTableRow("NR fc=$(round(Int, fc))", fc, m, g, g - m, ok))
-    end
-    n = length(fcs)
-    series = [PlotSeries("measured NR (TP-2444 Fig. 17)", :reference_points, fcs, meas; panel=1),
-              PlotSeries("model with Sharp bridges (Eq. 23 bands only)", :computed, fcs, got; panel=1)]
-    return ValidationCaseResult("NR_PROP_TP2444_BR", _today_iso(),
-        (; criterion="within ±5 dB in ≥ 75 % of bands 315–1250 Hz", date="2026-10-23", NR_model=round.(got; digits=2),
-           NR_meas=round.(meas; digits=2), n_ok, n, bridge=bridge_tau(inp, 1259.92)),
-        table, series, n_ok / n ≥ 0.75 - 1e-12 ? :met : :not_met,
-        "$n_ok/$n bands within ±5 dB (bridges act in the Eq. 23 band, 1260 Hz)", "V-EXP (extension)",
-        joinpath(_VAL_REPORT_DIR, _P59_REPORT))
-end
-
-function _run_e22_br()
-    e22 = _read_csv_numeric_nan(_data_path("cr3813", "e22_noise_reduction_ci.csv"))
-    inp = noise_reduction_test_article_inputs(; η_lining=1.0)
-    table = ValidationTableRow[]; xs = Float64[]; mid = Float64[]; got = Float64[]; got0 = Float64[]; n_ok = 0; n = 0
-    for i in eachindex(e22[:band_Hz])
-        fc = e22[:band_Hz][i]
-        1250.0 ≤ fc ≤ 2500.0 || continue
-        lo, hi = e22[:low_dB][i], e22[:high_dB][i]
-        (isfinite(lo) && isfinite(hi)) || continue
-        g = hf_pressure_ratio(inp, fc; η_r_cap=0.15, bridges=true).NR_dB
-        g0 = hf_pressure_ratio(inp, fc; η_r_cap=0.15).NR_dB
-        ok = lo ≤ g ≤ hi; n += 1; n_ok += ok
-        push!(xs, fc); push!(mid, e22[:measured_mean_dB][i]); push!(got, g); push!(got0, g0)
-        push!(table, ValidationTableRow("NR fc=$(round(Int, fc)) [$(lo), $(hi)]", fc, e22[:measured_mean_dB][i], g,
-                                        g - e22[:measured_mean_dB][i], ok))
-    end
-    series = [PlotSeries("E-22 measured mean", :reference_points, xs, mid; panel=1),
-              PlotSeries("Eqs. 19–23 with Sharp bridges", :computed, xs, got; panel=1),
-              PlotSeries("Eqs. 19–23 as printed", :computed, xs, got0; panel=1)]
-    return ValidationCaseResult("E22_BR", _today_iso(),
-        (; criterion="inside the E-22 95 % interval in ≥ 75 % of bands 1250–2500 Hz", date="2026-10-23",
-           NR_bridges=round.(got; digits=2), NR_printed=round.(got0; digits=2), n_ok, n),
-        table, series, n > 0 && n_ok / n ≥ 0.75 - 1e-12 ? :met : :not_met,
-        "$n_ok/$n bands inside the E-22 interval with bridges (printed Eqs. 19–23: $(round.(got0; digits=1)) dB)",
-        "V-EXP (extension)", joinpath(_VAL_REPORT_DIR, _P59_REPORT))
 end
 
 function _run_t2_meas_ext_br()
@@ -164,13 +114,6 @@ function _iso59_validation_cases()
             PlotSpec(; xlabel="segment (1 below f₀, 2 rise, 3 above f_b)", ylabel="slope (dB/octave)",
                      panel_titles=["segment slopes"], error_mode=:absolute, error_tol=1.5,
                      error_ylabel="construction − figure (dB/octave)"), ""),
-        mk("NR_PROP_TP2444_BR", "TP-2444 NR with Sharp sound bridges in Eq. (23) (59c)",
-           [_data_path("tp2444", "tp2444_fig17_exterior_passA.csv"), _data_path("tp2444", "tp2444_fig17_interior_passA.csv")],
-           FigureRef("NASA TP-2444", "Fig. 17", 32), "Within ±5 dB in ≥ 75 % of the broadband bands 315–1250 Hz (as 47c).",
-           "V-EXP (extension)", _run_nr_prop_tp2444_br, "NR (dB)", 5.0),
-        mk("E22_BR", "E-22 reverberant NR with Sharp sound bridges, 1250–2500 Hz (59d)",
-           [_data_path("cr3813", "e22_noise_reduction_ci.csv")], FigureRef("CR-3813", "Fig. E-22", 150),
-           "Inside the E-22 95 % interval in ≥ 75 % of the bands 1250–2500 Hz.", "V-EXP (extension)", _run_e22_br, "NR (dB)", 3.0),
         mk("T2_MEAS_EXT_BR", "T2 with the measured exterior and Sharp sound bridges (59e)",
            [_data_path("tp2444", "tp2444_fig17_exterior_passA.csv"), _data_path("cr3813", "t2_third_octave_targets.csv")],
            FigureRef("CR-3813", "Fig. E-9", 132), "1250 Hz interior within ±3.5 dB of E-9 (51.0 dB); 1600/2000 Hz extrapolated.",

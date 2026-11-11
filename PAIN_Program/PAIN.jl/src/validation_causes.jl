@@ -114,7 +114,8 @@ function why_not_met_markdown(; rec::AbstractDict=recorded_case_errors())
     println(io, "### Why each case is not met\n")
     println(io, "| Case | Points | NASA's own printout on the same gate | Cause | Why | Tested in | What is left |\n",
             "|---|---|---|---|---|---|---|")
-    for id in sort([k for (k, r) in rec if r.verdict == "not_met" && !no_verdict_by_rule(k)])
+    for id in sort([k for (k, r) in rec if r.verdict == "not_met" && !no_verdict_by_rule(k) &&
+                     haskey(VALIDATION_CASES, k)])   # a retired case keeps its row in the file until it is rewritten (Phase 137a)
         c = case_cause(id)
         r = rec[id]
         pts = "$(r.n_within)/$(r.n_rows)"

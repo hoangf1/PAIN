@@ -13,7 +13,7 @@ Single source of truth for building this project without re-deriving context in 
 2. Data register and digitization instructions (status, procedure, one card per figure; §2.5 candidate sources found 2026-11-09)
 3. Current status and open work queue
 4. Architecture
-8ca–8co. Open phases 137–151 (planned 2026-11-09 from `ISSUES.md`; Phases 135 and 136 done 2026-11-10 and moved to `COMPLETED_PHASES.md`)
+8cc–8co. Open phases 139–151 (planned 2026-11-09 from `ISSUES.md`; Phases 135–138 done 2026-11-10 and moved to `COMPLETED_PHASES.md`)
 5–8ac, 11. *(in `COMPLETED_PHASES.md`, same section numbers, moved 2026-10-29)* every completed phase, the queue Q0–Q66 and the 2026-10-21 review
 9. Reference appendices (BBN evidence, Report 996 figures and data, Pereira polar specification, variables)
 10. Optional future work, key formulas, file checklist
@@ -247,14 +247,14 @@ Found by web search on 2026-11-09 for Phases 135–151. What is said of each com
 
 **Read 2026-11-09, D-24 (`references/NASA_CR_159668.pdf`, 96 pages; report pp. 13–15).** The measured blocking is Table VI and Fig. 21: semicylinder at 0.8 D against the same positions without it, averaged over ten harmonics and three speeds per microphone, against incidence angle. The report: "much scatter", "no clear trend is shown by the data"; the curve of Fig. 21 is "an exponential curve fit passing through 0 dB at 0 degrees and through 6 dB at 60 degrees". The first derivation (Tables III–V, against calculated levels) gave 4.1 to 18.8 dB and is called probably in error by its authors. No case is made from it (ISSUE-006, ISSUE-029).
 
-Already in `references/` and bearing on an open phase: `NASA_TP_2444.pdf` p. 8 prints the trim lining of the stiffened model (four fiberglass layers of 0.27 kg/m² and 13 mm each with a 0.05 mm vinyl film, a 0.81 mm epoxy-fiberglass finish trim, floor bare), read 2026-11-09 from the PDF text (Phase 137); `NACA_TN_1546.pdf` holds 24 sections, 6 to 30 % thick by its catalogue record, of which three are digitized (Phase 141d); `NASA_CR_159363.pdf` for the TP-1964 prediction inputs (Phase 138); `NASA_CR_172384.pdf` (stiffened cylinder analysis) for Phase 142.
+Already in `references/` and bearing on an open phase: `NACA_TN_1546.pdf` holds 24 sections, 6 to 30 % thick by its catalogue record, of which three are digitized (Phase 141d); `NASA_CR_172384.pdf` (stiffened cylinder analysis) for Phase 142.
 
 ---
 
 ## 3. Current status and work queue
 
 **Status of the validation cases:** `VALIDATION_GUIDELINE.md` §0 (the map: cases with a verdict) and `NO_VERDICT_CASES.md`
-(the cases without one). **Open issues:** `ISSUES.md` (001–029, each solved by one of the open phases 135–151 below; 030–035, recorded 2026-11-10, are not assigned to a phase, and 030 is on hold). **Completed phases** (§§5–8ac and §11, with the work queue Q0–Q66 and the 2026-10-21 review I-01–I-20)
+(the cases without one). **Open issues:** `ISSUES.md` (001–029, each solved by one of the open phases 135–151 below; 030–037, recorded 2026-11-10, are not assigned to a phase, and 030 is on hold). **Completed phases** (§§5–8ac and §11, with the work queue Q0–Q66 and the 2026-10-21 review I-01–I-20)
 are in `COMPLETED_PHASES.md` under the same section numbers; a reference such as "IMPLEMENTATION_PLAN.md §8b" in the code
 or the other documents points there. When a phase is done, mark it done and move its section to the bottom of
 `COMPLETED_PHASES.md` (`CLAUDE.md`).
@@ -263,8 +263,6 @@ or the other documents points there. When a phase is done, mark it done and move
 
 | Q | Item | Kind | Prerequisite | Output |
 |---|------|------|--------------|--------|
-| Q115 | Phase 137: high-frequency NR cases (ISSUE-026) | rule by kind, [AUTHOR] | Q114 (136f, done) | input rule applied; method-limit mark |
-| Q116 | Phase 138: TP-1964 ref. 2 and E22_HF_CODE (ISSUE-022) | investigation | — | input table from CR-159363; a cause, class U, or no verdict |
 | Q117 | Phase 139: trim loss term (ISSUE-023) | investigation, [AUTHOR] | — | ratio curves; hypothesis test; held-out check |
 | Q118 | Phase 140: CYL2D grid label and bound (ISSUE-025) | label, bound | — | shipped-grid row; level spread |
 | Q119 | Phase 141: source chain labels, unscaled replays, measured polars (ISSUE-001, 004, 027) | labels, new cases, [CONFIRM], [AUTHOR] | Q113 | labels; unscaled cases; TN 1546 coverage |
@@ -343,25 +341,6 @@ Each phase is the solution of one or more entries of `ISSUES.md`; the evidence i
 Rules common to all: no recorded verdict, criterion, tolerance or reference file changes unless the step names it; a result that moves is recorded with its date, its before and after, and "post-hoc" where the earlier result was known; targeted testsets only (not the full `Pkg.test()`); the five documents of R5 are updated in the phase that changes code or a recorded result.
 
 **Status 2026-11-10 (overnight, decided by Claude under the author's delegation of 2026-11-10).** Done: 136e, 136f, 137b, 137c, 137d, 138a/b/d, 139a/b/b′/d, 140c/d, 141a, 141c (Report 996 part; the Pereira PER_FIG8 line is open), 141d, 144a, 144b, 145d, 147, 150c/d. Decisions and outcomes: `validation_reports/phase135_151_decisions.md`. Open: 141c Pereira line, 141e, 142, 143b–d, 145a rest, 146b/c, 148, 149a, 150a/b/e, 151a/b, regenerating the summary CSV and §0. These changes were pushed without running the full test suite or /code-review, at the author's request (2026-11-10); the next session runs the affected testsets first.
-
-## 8ca. Phase 137 — the high-frequency noise-reduction cases (ISSUE-026)
-
-- [ ] **137a Input rule [DECIDED 2026-11-09].** `NR_PROP_TP2444`, `NR_PROP_TP2444_BR`, `NR_PROP_TP2444_PF` carry no verdict (author: "if all inputs arent available then it should not have a verdict"). `_BR` and `_PF` are retired as cases (two additions that are not the shipped tool, on assumed inputs); their outcomes stay in the phase reports. [CONFIRM] for the registry change.
-- [ ] **137a′ TP-2444's own trim.** `references/NASA_TP_2444.pdf` p. 8 prints the lining: four fiberglass layers of 0.27 kg/m² and 13 mm with a 0.05 mm vinyl film, a 0.81 mm epoxy-fiberglass finish trim, floor bare. List every input the App. A trim model needs beside what p. 8 and the rest of the report print. All printed → a new case with TP-2444's own trim, **[AUTHOR]** criterion fixed before it is run, with the disclosure that the old run on CR-172428's trim was seen. One missing (for example the blanket's acoustic material table) → `NR_PROP_TP2444` stays information and the case text names the missing input in place of "no printed properties". Lead (CR-165869 pp. 2–3, read 2026-11-09): the Langley models of this series were lined with PF-105 of the same 13 mm thickness and the same 0.05 mm vinyl film; check whether TP-2444 names its fiberglass, and settle the 0.27 kg/m² per layer against PF-105's 9.6 kg/m³ before treating them as the same material.
-- [ ] **137b `E22_BR`.** Read CR-172490 and CR-3813 App. E for the bridge connections of the CR-3813 article. If they are assumed, the same rule applies; if printed, the case stays and cites the page.
-- [ ] **137c Method-limit mark.** From 136f: a measurement case whose gate NASA's own printout also misses is drawn with a "method limit" mark on the chart and in §0. The verdict stays not met.
-- [ ] **137d Range statement.** METHODOLOGY states once the frequency above which the trim model is outside NASA's stated range (about 1 kHz, with the page), and the NR plots shade the bands above it.
-
-**Checks:** `test_validation_coverage.jl`, `test_zz_completeness.jl`, the NR testsets. **Done when:** every NR row on the chart shows whether NASA's PAIN meets the same gate.
-
-## 8cb. Phase 138 — the code-against-NASA misses with no cause: TP-1964 ref. 2 and E22_HF_CODE (ISSUE-022)
-
-- [ ] **138a Inputs of ref. 2.** Read `references/NASA_CR_159363.pdf` for the Phase I prediction of the TP-1964 cylinder: loss factors, mode sets, band rule, range of Eq. (18). Table: NASA's input, page, this code's input.
-- [ ] **138b Decision table, written before any re-run.** (i) An input differs and is printed → re-run `NR_TP1964_REF2` and `NR_TP1964_XOVER_REF2` with it, criterion unchanged, dated re-run. (ii) Inputs not printed → both fail the 118a rule and carry no verdict. (iii) Inputs equal → 138c.
-- [ ] **138c Band by band.** For each missing band, the terms of Eq. (18) (resonant modes in the band, joint acceptance, loss factors) against any intermediate value CR-159363 prints.
-- [ ] **138d `E22_HF_CODE`.** The same for Eqs. (19)–(23) with what CR-3813 prints. If nothing is printed, class U with the sign pattern recorded.
-
-**Stop:** a printed equation and the code disagree → §0.4. **Done when:** each of the three cases has a cause that can explain a code-against-NASA difference, or is class U, or carries no verdict under 118a.
 
 ## 8cc. Phase 139 — the trim loss term: E14_LOSS and R172428_ETA together (ISSUE-023)
 

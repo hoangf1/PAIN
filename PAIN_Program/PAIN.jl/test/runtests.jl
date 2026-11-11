@@ -3072,9 +3072,8 @@ _run_if("CR-3813 reproduction with NASA's pre-correction form (phase 61)") do
         n_checked += 1
     end
     @test n_checked == 80
-    # code-review fixes (2026-10-23): floor_sign checked where it is used; the propeller-field NR needs the App. B layout
+    # code-review fixes (2026-10-23): floor_sign checked where it is used
     @test_throws ErrorException PAIN.coupling_factor(inp.acoustic.modes[2], inp.structural.modes[1], PAIN._with_fields(inp; floor_sign=0.5))
-    @test_throws ErrorException PAIN.propeller_field_band_nr(PAIN._with_fields(inp; amplitudes=zeros(16, 10, 3)), 500.0)
     @test PAIN._p48_af() === PAIN._p48_af()
     @test_throws ErrorException PAIN.PainInputs(inp.fuse, inp.prop, inp.structural, inp.acoustic, inp.amplitudes, inp.phases,
                                                 inp.pts, inp.ΔA; floor_sign=0.5)
@@ -3467,10 +3466,8 @@ _run_if("Sharp sound bridges and the App. D mode extension (phases 59, 60)") do
     ml = PAIN.sharp_mass_law_TL(inp.m_wall + 1.456, fc; ρc1=inp.ρ_ext * inp.c_ext, ρc2=inp.ρ_int * inp.c_int)
     @test b.τ_B ≈ 10^(-ml / 10) * (10^(-b.ΔTL_pt / 10) + 10^(-b.ΔTL_ln / 10)) rtol = 1e-12
     @test on.den ≈ off.den + b.τ_B * off.A_t rtol = 1e-12
-    # 59c–59e recorded (not met)
-    for (id, check) in (("NR_PROP_TP2444_BR", rr -> rr.inputs_echo.n_ok == 1),
-                        ("E22_BR", rr -> rr.inputs_echo.n_ok == 0),
-                        ("T2_MEAS_EXT_BR", rr -> abs(rr.inputs_echo.interior_dB[1] - 30.13) < 0.01))   # 28.36 before Phase 93
+    # 59e recorded (not met); 59c and 59d were retired as cases in Phase 137a (2026-11-10)
+    for (id, check) in (("T2_MEAS_EXT_BR", rr -> abs(rr.inputs_echo.interior_dB[1] - 30.13) < 0.01),)   # 28.36 before Phase 93
         rr = run_validation_case(id)
         @test PAIN.underlying_verdict(rr) === :not_met && check(rr)   # T2_MEAS_EXT_BR has no verdict since Phase 118a
         png = plot_case(rr, VALIDATION_CASES[id].plot_spec; path=joinpath(TEST_OUT, "$(id).png"))
@@ -3485,21 +3482,9 @@ _run_if("Sharp sound bridges and the App. D mode extension (phases 59, 60)") do
     @test ratio(1000.0) > 2 && ratio(2000.0) < 0.5
 end
 
-_run_if("Propeller-field NR and open items (phases 50, 53, 56, 57)") do
-    # Criteria fixed 2026-10-23 (plan §8e Phase 50, §8f Phases 53, 56, 57) before these checks were run.
-    # 50b recorded result (first valid run 2026-10-23): not met 2/7
-    r = run_validation_case("NR_PROP_TP2444_PF")
-    @test r.verdict === :no_verdict && PAIN.underlying_verdict(r) === :not_met && r.inputs_echo.n_ok == 1   # 2 before the Phase 93 defaults; inputs incomplete since Phase 137a
-    @test all(abs.(r.inputs_echo.NR_model[1:5] .- r.inputs_echo.NR_meas[1:5]) .< 11.0)  # 315–800 Hz within 11 dB (7 before Phase 93)
-    png = plot_case(r, VALIDATION_CASES["NR_PROP_TP2444_PF"].plot_spec; path=joinpath(TEST_OUT, "NR_PROP_TP2444_PF.png"))
-    @test isfile(png) && filesize(png) > 0
-    # the propeller-field band NR reduces to the tone path at one frequency: n_freq = 1 at fc = H·BPF
-    inp = PAIN.r172428_inputs(4000)
-    one = PAIN.propeller_field_band_nr(inp, 400.0; n_freq=1)
-    @test one.fs[1] ≈ 400.0 rtol = 1e-12
-    @test one.p2 ≈ PAIN.tone_mean_square_pressure(inp, 2, 2π * 400.0) rtol = 1e-12
-    @test one.p2_ref ≈ inp.amplitudes[8, 10, 2]^2 / 2 rtol = 1e-12
-
+_run_if("Open items (phases 53, 56, 57)") do
+    # Criteria fixed 2026-10-23 (plan §8f Phases 53, 56, 57) before these checks were run.
+    # Phase 50 (NR_PROP_TP2444_PF and its propeller-field band NR) was retired in Phase 137a (2026-11-10).
     # 53b guard (off by default): the E-21 inputs at 400 Hz; off = production value, on = asymptotic branch
     inp_nr = PAIN.noise_reduction_test_article_inputs(; η_lining=1.0)
     off = PAIN.hf_pressure_ratio(inp_nr, 1000 * 2^(-4 / 3); η_r_cap=0.15)

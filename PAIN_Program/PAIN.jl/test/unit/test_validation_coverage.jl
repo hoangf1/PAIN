@@ -90,7 +90,7 @@ end
 end
 @testset "cause record per not-met case (Phase 145e)" begin
     rec = PAIN.recorded_case_errors()
-    notmet = [id for (id, r) in rec if r.verdict == "not_met" && !PAIN.no_verdict_by_rule(id)]
+    notmet = [id for (id, r) in rec if r.verdict == "not_met" && !PAIN.no_verdict_by_rule(id) && haskey(PAIN.VALIDATION_CASES, id)]
     missing_cause = [id for id in notmet if PAIN.case_cause(id) === nothing]
     isempty(missing_cause) || @info "not-met cases without a cause record" missing_cause
     @test isempty(missing_cause)                                                  # every not-met case on the chart says why
@@ -98,6 +98,14 @@ end
     @test all(c -> isfile(joinpath(PAIN._VAL_REPORT_DIR, c.source)), values(PAIN.CASE_CAUSES))   # each cites a report that exists
     md = PAIN.why_not_met_markdown(; rec)
     @test all(id -> occursin("| `$id` |", md), notmet) && !occursin("no cause recorded", md)
-    fake = merge(rec, Dict("NO_SUCH_CASE" => rec[first(notmet)]))
-    @test occursin("no cause recorded", PAIN.why_not_met_markdown(; rec=fake))     # a case without a record shows it
+    nocause = [id for id in sort(collect(keys(PAIN.VALIDATION_CASES))) if PAIN.case_cause(id) === nothing && !PAIN.no_verdict_by_rule(id)]
+    if isempty(nocause)
+        @info "every registered verdict case has a cause record; the missing-record row is not exercised"
+    else
+        fake = merge(rec, Dict(nocause[1] => rec[first(notmet)]))
+        @test occursin("| `$(nocause[1])` |", PAIN.why_not_met_markdown(; rec=fake)) &&
+              occursin("no cause recorded", PAIN.why_not_met_markdown(; rec=fake))  # a registered case without a record shows it
+    end
+    gone = merge(rec, Dict("NO_SUCH_CASE" => rec[first(notmet)]))
+    @test !occursin("NO_SUCH_CASE", PAIN.why_not_met_markdown(; rec=gone))      # a row of a retired case is left out (Phase 137a)
 end

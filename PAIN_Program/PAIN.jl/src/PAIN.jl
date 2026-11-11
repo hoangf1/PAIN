@@ -52,7 +52,6 @@ include("bpm_airfoil_noise.jl")      # phase 48 airfoil self-noise (NASA RP-1218
 include("prop_broadband.jl")         # phase 48 propeller broadband at a field point
 include("validation_case_iso47.jl")   # phase 47 T2 with the measured TP-2444 exterior
 include("validation_case_iso48.jl")   # phase 48 exterior broadband from RP-1218
-include("validation_case_iso50.jl")   # phase 50 propeller-field coupling for NR
 include("validation_case_iso59.jl")   # phase 59 Sharp sound bridges
 include("validation_case_iso61.jl")   # phase 61 CR-3813 reproduction with the pre-correction form
 include("validation_case_iso62.jl")   # phase 62 a proving case for every map block

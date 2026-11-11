@@ -76,7 +76,7 @@ end
     p118 = ["REPRO_18b", "E18_TONES", "T1", "T1_MEAS_DAMPING", "UNC_COVER", "T1_FROM_E12", "T1_F1A_FILL", "T2_EQ19",
             "T2_MEAS_EXT", "T2_MEAS_EXT_BR", "T2_PRED_BB", "PROP_BB_FIG14", "PROP_BB_FIG17", "BBN_CIRC",
             "AC_C695A_DBA", "AC_C695A_TONES", "AC_C695A_EXT", "AC_C695A_SEAT",   # Phases 121-125 (2026-11-03): assumed 695A blade and cabin section
-            "R996_PHASE", "E22_HF_CODE", "NR_TP1964_REF2", "NR_PROP_TP2444", "NR_PROP_TP2444_BR", "NR_PROP_TP2444_PF", "E22_BR",   # Phase 135f (2026-11-10)
+            "R996_PHASE", "E22_HF_CODE", "NR_TP1964_REF2", "NR_PROP_TP2444",   # Phase 135f (2026-11-10); _BR, _PF and E22_BR retired in Phase 137a
             "NR_TP1964_XOVER_REF2"]   # Phase 138b (2026-11-10): NASA's ref. 2 inputs not printed
     @test all(PAIN.input_incomplete, p118) && !PAIN.input_incomplete("CYL2D_WEYL") && !PAIN.input_incomplete("R172428_EXP")
     @test count(PAIN.input_incomplete, keys(PAIN.INFORMATION_ONLY_CASES)) == length(p118)

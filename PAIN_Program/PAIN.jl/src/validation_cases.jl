@@ -575,10 +575,7 @@ const INFORMATION_ONLY_CASES = Dict(
                         "and excluded (1,1) mode were chosen against the measurement and are not printed (Phase 138b)",
     "NR_TP1964_XOVER_REF2" => "inputs incomplete: NASA's ref. 2 curve is CR-159363 Fig. 34, whose mode spacing, radiation " *
                               "damping and excluded (1,1) mode were chosen against the measurement and are not printed (Phase 138b)",
-    "NR_PROP_TP2444" => "inputs incomplete: run on CR-172428's trim, not the lining TP-2444 prints (Phase 137a)",
-    "NR_PROP_TP2444_BR" => "inputs incomplete: sound bridges on assumed connections, an addition that is not the shipped tool (Phase 137a)",
-    "NR_PROP_TP2444_PF" => "inputs incomplete: CR-172428's trim and a separable propeller field, not the shipped tool (Phase 137a)",
-    "E22_BR" => "inputs incomplete: the sound-bridge connections are assumed, and bridges are not the default (Phase 137)",
+    "NR_PROP_TP2444" => "inputs incomplete: run on CR-172428's trim, whose fiberglass weight does not match the lining TP-2444 prints (Phase 137a′)",
 )
 
 """

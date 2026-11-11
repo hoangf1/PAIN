@@ -2747,7 +2747,7 @@ Outputs: interior SPL [dB] at 200/400/630 Hz; verdict ≤ 4 dB vs NASA E-18 pred
 **What it tests:** As NR_TP1964_XOVER, against NASA's predicted curve.
 **Why it is here:** It is a code comparison for the same path.
 **A pass means:** Within ±3 dB in ≥ 75 % of the bands 100–5000 Hz.
-**Not covered:** As NR_TP1964_XOVER.
+**Not covered:** As NR_TP1964_XOVER. NASA's curve is CR-159363's final Phase I prediction (Fig. 34, PDF pp. 140–146), and three of its inputs are not printed as numbers: the (1,1) structural mode left out, the closely coupled modes moved apart (no amount given) and the radiation damping raised at 630–1250 Hz (no value given). No verdict under the input rule (Phase 138b, 2026-11-10; `validation_reports/phase138_ref2_inputs.md`).
 **Recorded outcome:** **not_met**, 8/18 (first run 7/18 with the band-matching error); the Eq. (19) bands 3/4 within ±3 dB.
 **Explanation:** Shared with NR_TP1964_XOVER.
 Inputs: as NR_TP1964_XOVER.
@@ -3181,7 +3181,7 @@ Outputs: NR(band) [dB]; fraction within ±5 dB; verdict.
 **What it tests:** Same bare-cylinder NR computation vs NASA's printed predicted curve on Fig. 8 (V-CODE).
 **Why it is here:** Code-on-code check of the circular NR path against NASA's Phase I prediction on the same figure.
 **A pass means:** Within ±3 dB in ≥ 75 % of bands 100–5000 Hz vs NASA ref. 2.
-**Not covered:** Same geometry limits as NR_TP1964; not a measurement comparison.
+**Not covered:** Same geometry limits as NR_TP1964; not a measurement comparison. NASA's curve is CR-159363's final Phase I prediction (Fig. 34, PDF pp. 140–146), and three of its inputs are not printed as numbers: the (1,1) structural mode left out, the closely coupled modes moved apart (no amount given) and the radiation damping raised at 630–1250 Hz (no value given). No verdict under the input rule (Phase 138b, 2026-11-10; `validation_reports/phase138_ref2_inputs.md`).
 **Recorded outcome:** **not_met**, 6/18 (33.3%) within ±3 dB (2026-10-23; first run 2026-10-23 had NR = +Inf at 100–160 Hz from a 4× band mode window (code defect, fixed the same day: every computed mode enters each band sum; criteria unchanged); first run 4/18)
 **Explanation:** Identical computation to NR_TP1964; reference column is Fig. 8 dashed (NASA CR-159363 Phase I / ref. 2).
 Inputs: same CSVs as NR_TP1964.
@@ -3253,7 +3253,7 @@ Outputs: NR per band [dB].
 **What it tests:** The noise reduction of the test article under propeller excitation. Measured: exterior minus interior broadband 1/3-octave level, tones removed, B = 5 Hz assumed. Model: Eq. (18) below the card-10 changeover (1260 Hz band) and Eqs. (19)–(23) at and above it, with the CR-172428 App. B trim.
 **Why it is here:** It is the first test of the cabin transmission with this article's own measured exterior and interior.
 **A pass means:** Within ±5 dB in ≥ 75 % of the broadband bands 315–1250 Hz.
-**Not covered:** The TP-2444 fiberglass trim has no printed properties (the App. B trim is used); the microphone positions are not stated; B is assumed.
+**Not covered:** TP-2444 p. 8 prints the lining (four 13 mm fiberglass layers of 0.27 kg/m² with a 0.05 mm vinyl film, a 0.81 mm epoxy-fiberglass finish sheet, floor bare) but not the fiberglass's acoustic table. CR-172428 §3.1.2 p. 16 gives one for the same cylinder (PF-105), but its weight does not match: 9.61 kg/m³ × 12.7 mm is 0.12 kg/m² per layer, about 0.19 with the film, against TP-2444's 0.27; CR-172428 also has a 120° vinyl patch TP-2444 does not mention. So CR-172428's lining is not taken as TP-2444's (author 2026-11-10: "Yes, not valid"), and the run is on a lining that is not this test's. Fig. 17 is one "typical" sample, its microphone and propeller angle not stated, compared with a cabin-average model. B = 5 Hz is assumed (the same B reads both traces).
 **Recorded outcome:** **not_met**, 1/7 (2026-10-23). Measured NR is 30.0–36.0 dB in every band. The model gives 16.6, 13.5, 7.5, 5.0 and 8.7 dB at 315–800 Hz, 34.0 dB at 1000 Hz and 49.1 dB at 1260 Hz. The Phase III trim, reported with no criterion, gives 10.9–55.7 dB. Phase 93 default form (2026-10-29): not met, 1/7.
 **Explanation:** Experiment comparison. `narrowband_third_octave` converts the digitized traces (pass A). `noise_reduction_band` on `r172428_inputs(4000)` gives the model.
 Inputs: `data/tp2444/tp2444_fig17_*_passA.csv`; CR-172428 article and App. B trim.
@@ -3301,60 +3301,6 @@ Outputs: interior SPL at 1250/1600/2000 Hz [dB].
 Inputs: The 48b exterior; T2 inputs.
 Equations: Eqs. (19)–(23).
 Outputs: interior SPL [dB].
-
-### Case: NR_PROP_TP2444_PF
-**Title:** TP-2444 NR with propeller-field coupling (Eq. 8 band average) (50b)
-**Map / block:** total / P_MEAS
-**Category:** experiment
-**Kind:** runnable
-**Chain span:** Skin field → Bands and dB(A)
-**Compared with:** measurement
-**Source:** TP-2444 Fig. 17 (Phase 47 digitizing), CR-172428 App. B field; criterion and decisions fixed 2026-10-23
-**What it tests:** NR of the test article under propeller excitation with the coupling computed from the propeller's own blocked field (Eq. 8, as the tone path), instead of the diffuse coupling of Eq. (18).
-**Why it is here:** 47c found Eq. (18) 18–26 dB low below 1 kHz under propeller excitation.
-**A pass means:** Within ±5 dB in ≥ 75 % of the broadband bands 315–1250 Hz (as 47c).
-**Not covered:** The broadband field shape is taken from the nearest printed harmonic (V-ASSUMED); bands above 811 Hz have no resonant structural mode in the 32-mode set.
-**Recorded outcome:** **not_met**, 2/7 (2026-10-23). 315–800 Hz: 42.0, 37.7, 29.6, 36.8, 37.2 dB against 36.0, 31.8, 33.0, 30.0, 32.3 measured; 1000/1260 Hz: 63.6, 83.1 dB. Phase 93 default form (2026-10-29): not met, 1/7.
-**Explanation:** Experiment comparison. `propeller_field_band_nr` with `r172428_inputs(4000)`.
-Inputs: TP-2444 Fig. 17 pass A; App. B field.
-Equations: Eq. (8), band average.
-Outputs: NR per band [dB].
-
-### Case: NR_PROP_TP2444_BR
-**Title:** TP-2444 NR with Sharp sound bridges in Eq. (23) (59c)
-**Map / block:** total / P_MEAS
-**Category:** experiment
-**Kind:** runnable
-**Chain span:** Skin field → Bands and dB(A)
-**Compared with:** measurement
-**Source:** TP-2444 Fig. 17; NASA CR-172490; criterion fixed 2026-10-23
-**What it tests:** 47c with the bridge option in the Eq. (23) bands.
-**Why it is here:** It is the extension's test on this article.
-**A pass means:** Within ±5 dB in ≥ 75 % of the bands 315–1250 Hz.
-**Not covered:** Connections not documented for this article (V-ASSUMED); bridges act only at and above the changeover.
-**Recorded outcome:** **not_met**, 1/7 (2026-10-23); 1260 Hz 42.8 dB against 33.9 dB measured (49.0 without bridges). Phase 93 default form (2026-10-29): not met, 1/7.
-**Explanation:** Experiment comparison. `noise_reduction_band(...; bridges=true)`.
-Inputs: As 47c.
-Equations: Eqs. (18), (19)–(23) + τ_B.
-Outputs: NR [dB].
-
-### Case: E22_BR
-**Title:** E-22 reverberant NR with Sharp sound bridges, 1250–2500 Hz (59d)
-**Map / block:** total / P_MEAS
-**Category:** experiment
-**Kind:** runnable
-**Chain span:** Skin field → Bands and dB(A)
-**Compared with:** measurement
-**Source:** CR-3813 Fig. E-22; NASA CR-172490; criterion fixed 2026-10-23
-**What it tests:** Eqs. (19)–(23) with bridges against the measured reverberant NR of the CR-3813 article.
-**Why it is here:** This is NASA's own high-frequency NR test, which PAIN as printed misses by about 30–40 dB.
-**A pass means:** Inside the E-22 95 % interval in ≥ 75 % of the bands 1250–2500 Hz.
-**Not covered:** End-plate transmission (CR-3813 p. E-35) is outside the sidewall model.
-**Recorded outcome:** **not_met**, 0/4 (2026-10-23); about 53 dB against 19.5–32 dB (about 61 dB without bridges). Phase 93 default form (2026-10-29): not met, 0/4.
-**Explanation:** Experiment comparison. `hf_pressure_ratio(...; bridges=true)`, E-21 inputs.
-Inputs: E-22 data; E-21 inputs.
-Equations: Eqs. (19)–(23) + τ_B.
-Outputs: NR [dB].
 
 ### Case: T2_MEAS_EXT_BR
 **Title:** T2 with the measured exterior and Sharp sound bridges (59e)

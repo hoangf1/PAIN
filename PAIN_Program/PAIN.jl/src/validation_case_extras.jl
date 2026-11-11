@@ -2521,7 +2521,6 @@ function _finish_validation_registry!()
     append!(cases, _iso45_validation_cases())  # phase 45 T2 HF path on TP-1964
     append!(cases, _iso47_validation_cases())  # phase 47 T2 with the measured TP-2444 exterior
     append!(cases, _iso48_validation_cases())  # phase 48 exterior broadband from RP-1218
-    append!(cases, _iso50_validation_cases())  # phase 50 propeller-field coupling for NR
     append!(cases, _iso59_validation_cases())  # phase 59 Sharp sound bridges
     append!(cases, _iso61_validation_cases())  # phase 61 CR-3813 reproduction
     append!(cases, _iso62_validation_cases())  # phase 62 map-block cases
@@ -2637,8 +2636,8 @@ function _finish_validation_registry!()
         "REPRO_18b", "E18_TONES",
         "T1", "T1_FROM_E12", "T2", "T2_EQ19", "E21_E22_NR", "UNC_COVER",
         "T1_MEAS_DAMPING", "T1_APPB", "T1_MEAS_DAMPING_APPB", "H3_ATTRIB", "NR_TP1964", "NR_TP1964_REF2", "NR_TP1964_XOVER", "NR_TP1964_XOVER_REF2",
-        "NR_PROP_TP2444", "T2_MEAS_EXT", "BPM_RP1218", "PROP_BB_FIG14", "PROP_BB_FIG17", "T2_PRED_BB", "NR_PROP_TP2444_PF",
-        "SHARP_PANEL_D", "SHARP_PANEL_D_SHAPE", "NR_PROP_TP2444_BR", "E22_BR", "T2_MEAS_EXT_BR",
+        "NR_PROP_TP2444", "T2_MEAS_EXT", "BPM_RP1218", "PROP_BB_FIG14", "PROP_BB_FIG17", "T2_PRED_BB",
+        "SHARP_PANEL_D", "SHARP_PANEL_D_SHAPE", "T2_MEAS_EXT_BR",
         "REPRO_18b_PRE", "E21_PRE", "E22_HF_CODE", "E22_HF_DECK", "REPRO_18b_DECK", "T2_EQ19_DECK", "E21_PRE_DECK", "R172428_CODE_DECK", "R172428_EXP_DECK",
         "APPB_EPS_N", "APPB_ETA_N", "APPB_ETA_RPP", "Q0_REPRO_18b", "Q0_E18", "Q0_E21", "R172428_CODE_ETAN", "R996_FIG10_FLAT", "R996_FIG10_CIRC",
         "APPB_PAIRS", "APPB_PAIRS_Q0_ETAN", "R172428_CODE_Q0", "R172428_CODE_Q0_ETAN", "R172428_ETAT2", "APPB_ETA_N_T2", "APPB_ETA_N_BAND", "APPB_ETA_N_T2_BAND", "R172428_CODE_DEFAULT", "BAND_REPRO_18b", "BAND_E18", "R172428_TRIM_DECK", "FLIGHT_MODES", "FLIGHT_MODES_P2", "FLIGHT10_H234", "FLIGHT10_FLOOR_SIGN",
