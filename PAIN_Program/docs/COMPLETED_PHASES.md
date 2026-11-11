@@ -226,6 +226,7 @@ Not blockers (recorded so nobody stops on them): BBN tip geometry beyond 40 in. 
 | Q118 | Phase 140: CYL2D grid label and bound (ISSUE-025) | label, bound | — | shipped-grid row; level spread | · **done 2026-11-11**: printed grid rule shipped; User Manual §5.1 checked; two stale tests fixed; ISSUE-038 opened |
 | Q119 | Phase 141: source chain labels, unscaled replays, measured polars (ISSUE-001, 004, 027) | labels, new cases, [CONFIRM], [AUTHOR] | Q113 | labels; unscaled cases; TN 1546 coverage | · **done 2026-11-11**: labels; Report 996 unscaled second line (no verdict); no Pereira line (loads within 3.5 %); 141e/f carried by ISSUE-030 (on hold) |
 | Q120 | Phase 142: FLIGHT_MODES reference file and in-plane mass (ISSUE-024) | data, investigation, [AUTHOR] | — | blind transcription; one re-run | · **done 2026-11-11**: blind third transcription; mode 41's total corrected; FLIGHT_MODES met 200/221; FLIGHT_MODES_P2 retired; ISSUE-039 opened |
+| Q121 | Phase 143: E12_BLOCK one implementation (ISSUE-007) | [CONFIRM], re-run | — | one max error on record | · **done 2026-11-11**: one mean curve; 29/31, max 4.3 dB on record; k = 11 a reading error, k = 10 NASA's curve (N) |
 | Q58 | **Phase 79 — CYL2D** (§8w; 2026-10-28) | `case_error_summary`, `cyl2d.jl`, CYL2D_WEYL | Q57 | **done 2026-10-28**: information rows leave the pass count; refinement fixed (79b); CYL2D_GRID_CONV (NY 10 within 4.9 % of NY 60); Weyl + surface term 4/5; production NY = 10 kept (decided 2026-10-28) |
 | Q57 | **Phase 78 — structural modes** (§8v; 2026-10-28) | `mrp_appd.jl`, MRP_APPD criterion, map | Q53 | **done 2026-10-28**: App. D solver fixes J1–J6; MRP_APPD not met 2/32 (class I, floor stiffener model undocumented); MRP_D1/MRP_RITZ off the map |
 | Q56 | **Phase 77 — POLAR_FIDELITY as an equivalent angle** (§8u; 2026-10-28) | `src/validation_case_iso67.jl`, figure | Q52 | **done 2026-10-28**: Δα shown next to Δc_l, display only |
@@ -3553,3 +3554,16 @@ No run, no code. Each step replaces nothing in the record; it marks older values
 - 142d: mode 41, Phase 110's example of an in-plane difference, was the misread. For the 20 modes that still miss in mass the in-plane part differs with both signs (10 too large, 10 too small), so no single missing term is indicated. The term-by-term check of Eqs. (D.17)–(D.29) was not done and no source line changed: ISSUE-039.
 - 142e: two of the 21 (modes 164, 165) have a second candidate within 0.5 % in frequency; swapping makes both worse, so the pairing rule is not the cause.
 - Checks: phase 101 (5 pass), phases 110/142 (4), phase 102 (9), `test_case_helpers_late.jl` (87), `test_validation_framework.jl` (42), `test_validation_map.jl` (39), `test_validation_coverage.jl` (49) after the summary file was regenerated (ISSUE-035).
+
+## 8cg. Phase 143 — E12_BLOCK: one implementation of the registered comparison (ISSUE-007; done 2026-11-11) [CONFIRM]
+
+- [x] **143a** One mean-curve function (passes A and B), used by `scripts/run/e12_blocking.jl` and `_run_e12_block`. The runner today reads pass A only. **Done 2026-11-10.**
+- [x] **143b** Re-run, dated as a re-run; one max and median in `case_error_summary.csv`, VALIDATION_GUIDELINE and `e12_blocking.md`. **Done 2026-11-11**: 29/31, 4.3 dB, median 1.1 dB.
+- [x] **143c** Re-read the H3 aft segment (k = 10, 11) from pixels in both passes (procedure §2.2). The 3.41 dB tolerance and the 31 points do not change. **Done 2026-11-11**: k = 11 a reading error; k = 10 +4.9 dB from pixels.
+- [x] **143d** If NASA's drawn H3 aft step stays smaller than Eq. (43): class N with a dated note; no term is added. **Done 2026-11-11**: class N for k = 10, dated; no term added.
+
+**Done 2026-11-11** (143a on 2026-11-10 under the delegation of that day; 143b–d and the closing decided by Claude under the author's authority of 2026-11-10 and 2026-11-11 ("finish all open phases"); report `validation_reports/phase143_e12_h3_aft.md`):
+- 143a/b: one mean-curve function (`_e12_mean_curve`) for the script and the runner. Re-run (dated): 29/31, largest 4.3 dB, median 1.1 dB, now the same in `case_error_summary.csv`, §0, the case text and `e12_blocking.md`. The case carries no verdict since Phase 135f (it runs R1, not the shipped R2).
+- 143c: the H3 aft segment fitted to its pixels, seeded from each pass. k = 11 reads 88.2–88.4 dB (by eye 85.7): a straight-chord reading error; from pixels the point is within the tolerance. k = 10 reads 98.2 dB in both seedings (by eye 98.8), so the difference grows to +4.9 dB.
+- 143d: NASA's drawn step at H3 k = 10 is 2.3 dB against Eq. (43)'s 5.98 dB, while the step matches Eq. (43) within about 1.5 dB at every H1 and H2 station: NASA's printed curve, not explained by the documents (class N, dated). No term added, tolerance and reference files unchanged.
+- No source line changed in this closing; the testsets of the coverage, framework, map and plots pass.

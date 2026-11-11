@@ -12,6 +12,7 @@ Colour key in diagrams: green = check exists and passes as stated; orange = plan
 
 ## Status
 
+- **2026-11-11 (Phase 143 closed):** E12_BLOCK on one reference curve; flow unchanged.
 - **2026-11-11 (Phase 142 closed):** `FLIGHT_MODES` met on the settled reference file; flow unchanged.
 - **2026-11-11 (Phase 141 closed):** source-chain labels and the Report 996 unscaled second line; flow unchanged.
 - **2026-11-11 (Phase 140 closed):** CYL2D grid from the printed rule (NK from the floor angle); the small-cabin grid spread is a stated uncertainty; flow unchanged.

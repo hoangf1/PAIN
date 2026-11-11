@@ -52,7 +52,7 @@ The E-11 digitization gate (≤ 1.0 dB) is NOT met; the criterion is kept as wri
 | 14 | -0.698 | 49.3 | 5.77 | 1 | 107.9 | 106.5 | +1.3 | yes |
 | 15 | -0.814 | 53.6 | 5.67 | 1 | 103.5 | 102.4 | +1.1 | yes |
 
-**Result: 29 of 31 points within 3.41 dB; largest |difference| 4.3 dB.** FAIL (recorded, not tuned)
+**Result: 29 of 31 points within 3.41 dB; largest |difference| 4.3 dB.** FAIL (recorded, not tuned). Since Phase 143 (2026-11-11) the case runner gives the same numbers (median 1.1 dB); the two H3 aft points read from pixels: `phase143_e12_h3_aft.md`.
 
 ## Eq. (43) on the digitized E-11 measured line against measured E-12 (V-EXP, no pass mark)
 

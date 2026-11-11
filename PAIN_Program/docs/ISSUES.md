@@ -14,7 +14,7 @@ Two lists, newest first in each. **Not assigned to a phase**: issues to act on o
 | 038 | The uncertainty budget's nominal sample is not the pipeline's result (structural mode cut-off) | Tests, code | open |
 | 037 | The Phase III trim has guessed inputs; cases that use it may carry a verdict they should not | Input rule, investigation | open |
 | 036 | Twelve source functions have no unit test, so the completeness check fails | Tests | open |
-| 035 | The summary file and §0 date from 2026-11-02 and do not show the changes since | Record | open |
+| 035 | The summary file and §0 date from 2026-11-02 and do not show the changes since | Record | closed 2026-11-11 |
 | 034 | The shipped program form has no held-out test of all its parts; R172428_ETAT2 changes only the trim damping | Validity, investigation | open |
 | 033 | CYL2D at 62.6°: this code rejects NASA's grid where NASA's program solved it | Not met, investigation | open |
 | 032 | R172428_ETA and E14_LOSS: look for an error in the loss-factor method | Not met, investigation | open |
@@ -47,7 +47,7 @@ Two lists, newest first in each. **Not assigned to a phase**: issues to act on o
 | 010 | Coverage rows scattered; group by figure | Organisation | 146 |
 | 009 | R172428_EXP plot labels and comparison target | Readability | 136, 145 |
 | 008 | BLK_P68 tests R1, predictions use R2 | Not met | 144 |
-| 007 | E12_BLOCK 29/31; two max errors on record | Not met | 143 |
+| 007 | E12_BLOCK 29/31; two max errors on record | Not met | 143 (closed 2026-11-11) |
 | 006 | R2 and the circular wall have no criterion | Not met | 144 |
 | 005 | Too many Markdown files | Organisation | 148, 149 |
 | 004 | Pereira counts differ across the record | Readability, not met | 135, 141 (closed 2026-11-11) |
@@ -165,7 +165,7 @@ Cases already without a verdict that use it (`E18_TONES`, `T1`, `T1_FROM_E12`, `
 
 ## ISSUE-035: The summary file and §0 date from 2026-11-02 and do not show the changes since
 
-**Status:** open, not assigned to a phase. Recorded 2026-11-10 during Phase 136. Record only: re-running changes no criterion, tolerance or reference file.
+**Status:** closed 2026-11-11: `write_case_error_summary.jl` was run during Phase 142, so `case_error_summary.csv`, §0, NO_VERDICT_CASES.md and the coverage figures show the state of that day (147 cases). Recorded 2026-11-10 during Phase 136. Record only: re-running changes no criterion, tolerance or reference file.
 
 **Author (2026-11-10).** Asked whether to regenerate it inside Phase 136: "whichever option does not take time away and just bring this up as a new issue ticket".
 
@@ -174,6 +174,7 @@ Cases already without a verdict that use it (`E18_TONES`, `T1`, `T1_FROM_E12`, `
 - Phase 140 adopted NASA's printed grid rule; CYL2D_PRINTED's 57/168 in the file is from the old rule.
 - Phase 136e found no other complete PAIN run in CR-172428; §0 does not say so yet.
 - §0 still gives 18 independent comparisons; the chart gives 20 (Phase 135, family fix).
+- **Regenerated 2026-11-11** (during Phase 142): `case_error_summary.csv`, §0, NO_VERDICT_CASES.md and the coverage figures, by `write_case_error_summary.jl`.
 - Phase 137a (2026-11-10) retired `NR_PROP_TP2444_BR`, `NR_PROP_TP2444_PF` and `E22_BR`; the file, §0 and NO_VERDICT_CASES.md still list them until the writer is run.
 
 **Action.** One full run of the writer, in the background. Each number that moves is recorded with its date, its before and after, and "post-hoc" where the earlier result was known. A case moved off the chart by rule keeps its earlier outcome as its recorded outcome, under "no verdict".
@@ -1183,7 +1184,7 @@ This is raised as a question. No change is made.
 
 ## ISSUE-007: E12_BLOCK not met (29/31): Eq. (43) R1 is 3.8–4.3 dB above NASA's predicted H3 aft points, and the record gives two different max errors
 
-**Status:** open. Recorded 2026-11-09. Verdict stays **not met** as recorded (2026-10-20 run, criterion 3.41 dB). No code, criterion or recorded result has been changed.
+**Status:** closed 2026-11-11 by Phase 143 (`COMPLETED_PHASES.md` §8cg): one mean curve, one largest error (4.3 dB); k = 11 is a reading error, k = 10 is NASA's drawn line, not explained by the documents (`phase143_e12_h3_aft.md`). The case carries no verdict since Phase 135f. Recorded 2026-11-09.
 
 **Summary.** `E12_BLOCK` compares Eq. (43) R1 on ANOPP Table 8 (ℓ = 1 free field) plus ΔL, at the grid points of the test cylinder, against NASA's digitized predicted Fig. E-12 blocked SPL. 29 of 31 points are within δ_dig + 0.5 = 3.41 dB. The two failures are both on the H3 panel, aft of the plane of rotation: X3/D = −0.233 (k = 10, +4.3 dB) and X3/D = −0.349 (k = 11, +3.8 dB). In both, Eq. (43) predicts more blocked level than NASA's predicted curve shows. The cause is not established.
 

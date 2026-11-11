@@ -358,7 +358,7 @@ $$x_3 = \frac{\pi a}{18}\,(k_p - k), \qquad z_k = z_p - x_3, \qquad \theta_\ell 
 |------|---------------|-----|----------------|---------------|
 | `BLK_P68` | `blocking.jl` against the printed F(γ) and ΔL on p. 68 | Blocking scales every skin pressure | within 0.06 dB (V-UNIT) | met |
 | `ISO_BLOCKING` | `apply_blocking` on all 160 points equals F(γ)·A; phases unchanged | Isolates the full grid from the cabin chain | ≤ 1e-12 relative | met 960/960 (2026-10-23) |
-| `E12_BLOCK` | Eq. (43) R1 on Table 8 against NASA's predicted blocked curve on ℓ = 1 | Checks blocking on the measured line before GEXT | within δ_dig + 0.5 = 3.41 dB | **not met** 29/31: two H3 aft points fail (4.3, 3.8 dB) |
+| `E12_BLOCK` | Eq. (43) R1 on Table 8 against NASA's predicted blocked curve on ℓ = 1 | Checks blocking on the measured line before GEXT | within δ_dig + 0.5 = 3.41 dB | **not met** 29/31: two H3 aft points fail (4.3, 3.8 dB). No verdict since Phase 135f (R1, not the shipped R2). Phase 143 (2026-11-11): read from pixels, k = 11 is a reading error and k = 10 is NASA's drawn line, not explained by the documents (`phase143_e12_h3_aft.md`) |
 | `BLK_GAIN_MAP` | The blocked/free gain ΔL at every grid point, R1 and R2 | A rigid surface at most doubles the pressure | 0 ≤ ΔL ≤ 6.02 dB at every point | **not met** 1/2: R2 inside the bound; R1 reaches −49.3 dB where γ > 90° (Eq. 43 as printed) |
 
 **Implementation notes and claims.**

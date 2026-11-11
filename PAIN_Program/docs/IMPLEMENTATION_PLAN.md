@@ -13,7 +13,7 @@ Single source of truth for building this project without re-deriving context in 
 2. Data register and digitization instructions (status, procedure, one card per figure; §2.5 candidate sources found 2026-11-09)
 3. Current status and open work queue
 4. Architecture
-8cg–8co. Open phases 143–151 (planned 2026-11-09 from `ISSUES.md`; Phases 135–138 done 2026-11-10, 139–142 done 2026-11-11 and moved to `COMPLETED_PHASES.md`)
+8ch–8co. Open phases 144–151 (planned 2026-11-09 from `ISSUES.md`; Phases 135–138 done 2026-11-10, 139–143 done 2026-11-11 and moved to `COMPLETED_PHASES.md`)
 5–8ac, 11. *(in `COMPLETED_PHASES.md`, same section numbers, moved 2026-10-29)* every completed phase, the queue Q0–Q66 and the 2026-10-21 review
 9. Reference appendices (BBN evidence, Report 996 figures and data, Pereira polar specification, variables)
 10. Optional future work, key formulas, file checklist
@@ -263,7 +263,6 @@ or the other documents points there. When a phase is done, mark it done and move
 
 | Q | Item | Kind | Prerequisite | Output |
 |---|------|------|--------------|--------|
-| Q121 | Phase 143: E12_BLOCK one implementation (ISSUE-007) | [CONFIRM], re-run | — | one max error on record |
 | Q122 | Phase 144: blocking R2 (ISSUE-006, 008) | [AUTHOR], text | — | (P) case for R2, or information |
 | Q123 | Phase 145: summary writer (ISSUE-009, 018, 019, 020, 021) | [CONFIRM], [AUTHOR] | Q113 | verdict-row counts; first-run mark; families; causes |
 | Q124 | Phase 146: chart by figure, titles, glossary (ISSUE-010, 013, 018) | [CONFIRM], [AUTHOR] | Q123 | grouped chart; plain titles |
@@ -337,13 +336,6 @@ Each phase is the solution of one or more entries of `ISSUES.md`; the evidence i
 Rules common to all: no recorded verdict, criterion, tolerance or reference file changes unless the step names it; a result that moves is recorded with its date, its before and after, and "post-hoc" where the earlier result was known; targeted testsets only (not the full `Pkg.test()`); the five documents of R5 are updated in the phase that changes code or a recorded result.
 
 **Status 2026-11-10 (overnight, decided by Claude under the author's delegation of 2026-11-10).** Done: 136e, 136f, 137b, 137c, 137d, 138a/b/d, 139a/b/b′/d, 140c/d, 141a, 141c (Report 996 part; the Pereira PER_FIG8 line is open), 141d, 144a, 144b, 145d, 147, 150c/d. Decisions and outcomes: `validation_reports/phase135_151_decisions.md`. Open: 141c Pereira line, 141e, 142, 143b–d, 145a rest, 146b/c, 148, 149a, 150a/b/e, 151a/b, regenerating the summary CSV and §0. These changes were pushed without running the full test suite or /code-review, at the author's request (2026-11-10); the next session runs the affected testsets first.
-
-## 8cg. Phase 143 — E12_BLOCK: one implementation of the registered comparison (ISSUE-007) [CONFIRM]
-
-- [ ] **143a** One mean-curve function (passes A and B), used by `scripts/run/e12_blocking.jl` and `_run_e12_block`. The runner today reads pass A only.
-- [ ] **143b** Re-run, dated as a re-run; one max and median in `case_error_summary.csv`, VALIDATION_GUIDELINE and `e12_blocking.md`.
-- [ ] **143c** Re-read the H3 aft segment (k = 10, 11) from pixels in both passes (procedure §2.2). The 3.41 dB tolerance and the 31 points do not change.
-- [ ] **143d** If NASA's drawn H3 aft step stays smaller than Eq. (43): class N with a dated note; no term is added.
 
 ## 8ch. Phase 144 — blocking R2 (ISSUE-006, 008)
 
