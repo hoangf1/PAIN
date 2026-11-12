@@ -34,8 +34,6 @@ end
     @test co isa NamedTuple
     g = PAIN._iso43_f1a_grid(; n_harmonics=1)
     @test size(g.amplitudes) == (16, 10, 1) && g.source == :ccblade_f1a
-    out = PAIN.write_h3_attribution_report(joinpath(UNIT_OUT, "unit_h3.md"))
-    @test occursin("# H3 attribution", read(something(out, joinpath(UNIT_OUT, "unit_h3.md")), String))
 end
 @testset "iso44: CR-172428 App. B field" begin
     @test endswith(replace(PAIN._r172428_csv("x.csv"), '\\' => '/'), "data/cr172428/x.csv")
@@ -114,17 +112,11 @@ end
     @test PAIN._r996_fig10_gamma_deg(0.0) == 0.0
     @test PAIN._r996_fig10_gamma_deg(-0.25) ≈ rad2deg(atan(0.25 / 0.583)) && PAIN._r996_fig10_gamma_deg(0.25) == PAIN._r996_fig10_gamma_deg(-0.25)
 end
-@testset "iso92/94: App. B printed pairs, pair terms, Table 12" begin
-    @test abs(PAIN._dB_re20μPa(4e-10)) < 1e-12 && PAIN._dB_re20μPa(4e-8) ≈ 20
-    pp = PAIN._appb_printed_pairs()
-    @test length(pp) == 25 && count(r -> r.rpm == 4000, pp) == 15                   # 5 pairs at 4000 rpm H1–H3, 5000 rpm H1–H2
-    @test pp[1] == (rpm=4000, H=1, Q=2, I=0, st=13, η_r_hash=0.0, p2=1.5586e-2)        # p. 207, first row
-    on = PAIN._r172428_pair_terms(4000, 1); off = PAIN._r172428_pair_terms(4000, 1; q0_coupled=false)
-    @test any(t -> t.q == 0 && t.p2 > 0, on) && all(t -> t.q != 0 || t.p2 == 0, off)  # Eq. (57) q = 0 coupling switch
+@testset "iso94: Table 12" begin   # the iso92 pair helpers retired with their cases (Phase 150e)
     t12 = PAIN._r172428_table12()
     @test length(t12[:rpm]) == 12 && (t12[:rpm][1], t12[:H][1], t12[:nasa_pred_dB][1], t12[:measured_dB][1]) == (3000, 1, 62.1, 81.0)
 end
-@testset "iso96/99: η_n band-centre rule, pre-correction band form" begin
+@testset "iso96: η_n band-centre rule" begin
     inp = PAIN.r172428_inputs(4000); V = PAIN.cabin_volume(inp)
     ac = PAIN._acmode_by_I(inp, 1)
     ωn = 2π * PAIN.cabin_frequency_3d(ac, inp.fuse.a, inp.L_c, 1; c0=inp.c_int, c2d=inp.c_cyl2d)
@@ -135,9 +127,6 @@ end
     η(s, e) = PAIN._eta_n_nasa_admittance(inp, ac, 1, tr(s, e); V)
     @test η(ξ, ξe) ≈ PAIN._eta_n_default(inp, ac, 1; V) rtol = 1e-12                  # same admittance → same η_n
     @test η(0.0, 0.0) == 0 && η(2ξ, 0.0) ≈ 2η(ξ, 0.0) && η(ξ, ξe) > η(ξ, 0.0)         # Eq. (77) linear in ξ, ξ_e
-    b = PAIN._pre_correction_band(PAIN._with_fields(inp; floor_sign=1.0, η_r_trimmed_area=true, η_n_per_mode=false,
-                                                    η_n_band_omega=false))
-    @test b.floor_sign == -1.0 && !b.η_r_trimmed_area && b.q0_coupled && b.η_n_per_mode && b.η_n_band_omega
 end
 @testset "iso100/101: App. D PF-105 admittances, Merlin MRP deck, App. C mode list, mass parts" begin
     dk = PAIN._appb_admittance_rows(:deck); fg = PAIN._appb_admittance_rows(:fig_a2)
@@ -161,7 +150,7 @@ end
     @test m2.shell == 0
     @test m2.plate ≈ m1.plate / 2 rtol = 1e-6
 end
-@testset "iso102/105/108: flight run 10 field and inputs, printed 2-D lists, run 10 pair η_r″" begin
+@testset "iso102/105: flight run 10 field and inputs, printed 2-D lists" begin
     f = PAIN.r172428_flight10_field()
     @test size(f.amps) == (16, 19, 4) && all(iszero, f.amps[:, :, 1])               # H1 cut off in the scan
     @test f.amps[1, 1, 2] ≈ sqrt(2) * 20e-6 * 10^(108.9 / 20) && f.phases[1, 1, 2] ≈ deg2rad(-150.3)   # App. D p. 231, L 1, k 1
@@ -172,12 +161,8 @@ end
     @test (inp.fuse.L, inp.fuse.a, inp.fuse.theta0_deg, inp.m_wall, inp.L_c) == (9.27, 0.84, 50.0, 4.54, 7.89)
     @test (inp.ρ_ext, inp.c_ext, inp.ρ_int, inp.c_int) == (1.1012, 334.08, 1.204, 343.0)
     @test inp.floor_sign == -1.0 && !inp.trim_band_centre && length(inp.acoustic.modes) == 20
-    alt = PAIN._with_fields(inp; floor_sign=1.0)
     k = PAIN.r172428_flight10_inputs(; trim_band_centre=true, floor_sign=1.0)
     @test k.trim_band_centre && k.floor_sign == 1.0
-    a = PAIN._run10_pair_eta(inp, 2, 4, 3, 39); b = PAIN._run10_pair_eta(alt, 2, 4, 3, 39)   # App. D, H2 row 1
-    @test a > 0 && b > 0 && a != b                                                    # η_r″ carries the floor term
-    @test isnan(PAIN._run10_pair_eta(inp, 2, 99, 3, 39))                             # pair not in the sum
     s = PAIN._printed_2d_list("appC_smalldia_acoustic_modes.csv")
     @test s.Δ ≈ 14.91 rtol = 0.01                                                     # (1, 0) printed at 14.91 Hz
     @test s.eps00 == 0.96858 && s.eps00_printed                                       # ε(0, 0) printed

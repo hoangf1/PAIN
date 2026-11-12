@@ -237,8 +237,8 @@ The same case's recorded figure, and every other case's, is in the **Validation 
 ### 2.3 A diagnostic
 
 A diagnostic re-runs a case with one thing changed, to test a possible cause of its miss. It carries no verdict, but
-its outcome is kept: `underlying_verdict` returns it. `R172428_CODE_ETAN` re-runs `$(CASE_ID)` with each cabin mode's
-loss factor taken per mode (Phase 89). Diagnostics are listed, with what each one refuted, in
+its outcome is kept: `underlying_verdict` returns it. `R172428_CODE_DEFAULT` re-runs `$(CASE_ID)` with the code as it
+ships (Phase 96d). Diagnostics are listed, with what each one refuted, in
 [`NO_VERDICT_CASES.md`](NO_VERDICT_CASES.md).
 
 ### 2.4 Where to read more

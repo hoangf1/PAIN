@@ -95,98 +95,7 @@ function _run_appb_eta_rpp()
         "V-CODE", joinpath(_VAL_REPORT_DIR, _P87_REPORT))
 end
 
-const _P88_REPORT = "phase88_q0_held_out.md"
-
-"""88a: REPRO_18b_PRE (all three App. A changes reverted) with the q = 0 cabin modes uncoupled, against E-16's NASA prediction."""
-function _run_q0_repro_18b()
-    cols = _read_csv_numeric(_data_path("cr3813", "t1_interior_targets.csv"))
-    paths = default_e11_paths(); p3 = phase3_trim(; η_lining=0.5)
-    r = run_pain_pipeline(; source=:e11, e11_amp_csv=paths.anopp_spl, n_harmonics=3, bpf_Hz=200.0,
-                          blocking=R1, sidewall_trim_stack=p3.sidewall, end_trim_stack=p3.ends, mech=p3.mech)
-    pre = _pre_correction_form(r.inputs)
-    got = interior_spl(_with_fields(pre; q0_coupled=false); bpf_Hz=200.0, n_harmonics=3, broadband=false).harmonic_SPL_dB
-    base = interior_spl(pre; bpf_Hz=200.0, n_harmonics=3, broadband=false).harmonic_SPL_dB
-    table = ValidationTableRow[]; n_ok = 0; xs = Float64[]; nasa = Float64[]
-    for i in eachindex(cols[:harmonic])
-        H = Int(round(cols[:harmonic][i])); H ≤ 3 || continue
-        ref = cols[:nasa_pain_pred_dB][i]; band = cols[:band_Hz][i]
-        ok = abs(got[H] - ref) ≤ 4.0; n_ok += ok
-        push!(xs, band); push!(nasa, ref)
-        push!(table, ValidationTableRow("vs NASA PAIN H=$H (pre-correction form, q = 0 uncoupled)", band, ref, got[H], got[H] - ref, ok))
-    end
-    series = [PlotSeries("NASA PAIN (E-16)", :reference_points, xs, nasa; panel=1),
-              PlotSeries("pre-correction form, q = 0 uncoupled", :computed, xs, got[1:3]; panel=1),
-              PlotSeries("pre-correction form (REPRO_18b_PRE)", :computed, xs, base[1:3]; panel=1)]
-    r2 = x -> round.(x; digits=2)
-    return ValidationCaseResult("Q0_REPRO_18b", _today_iso(),
-        (; criterion="|Δ| ≤ 4 dB at H1–H3 vs E-16 NASA prediction (REPRO_18b's)", date="2026-10-29",
-           got=r2(got[1:3]), q0_coupled=r2(base[1:3]), nasa, n_ok),
-        table, series, n_ok == 3 ? :met : :not_met,
-        "$n_ok/3 within ±4 dB with q = 0 uncoupled: $(r2(got[1:3])) dB vs NASA $(nasa) (q = 0 coupled: $(r2(base[1:3])))",
-        "V-CODE", joinpath(_VAL_REPORT_DIR, _P88_REPORT))
-end
-
-"""88b: E18_TONES's run in the pre-correction form with the q = 0 cabin modes uncoupled, against E-18's NASA prediction."""
-function _run_q0_e18()
-    cols = _read_csv_numeric_nan(_data_path("cr3813", "e18_interior_pred_eta1.csv"))
-    nasa_of = Dict(cols[:band_Hz][i] => cols[:nasa_pred_dB][i] for i in eachindex(cols[:band_Hz]))
-    paths = default_e11_paths(); p3 = phase3_trim(; η_lining=1.0)
-    r = run_pain_pipeline(; source=:e11, e11_amp_csv=paths.anopp_spl, n_harmonics=3, bpf_Hz=200.0,
-                          blocking=R1, sidewall_trim_stack=p3.sidewall, end_trim_stack=p3.ends, mech=p3.mech)
-    pre = _pre_correction_form(r.inputs)
-    spl(inp) = interior_spl(inp; bpf_Hz=200.0, n_harmonics=3, broadband=false, tone_model=:eq8, η_r_cap=0.15).harmonic_SPL_dB
-    got = spl(_with_fields(pre; q0_coupled=false)); base = spl(pre)
-    table = ValidationTableRow[]; n_ok = 0; xs = Float64[]; ref = Float64[]
-    for (H, band) in ((1, 200.0), (2, 400.0), (3, 630.0))
-        nasa = get(nasa_of, band, NaN); isfinite(nasa) || continue
-        ok = abs(got[H] - nasa) ≤ 4.0; n_ok += ok
-        push!(xs, band); push!(ref, nasa)
-        push!(table, ValidationTableRow("vs NASA E-18 H=$H (pre-correction form, q = 0 uncoupled)", band, nasa, got[H], got[H] - nasa, ok))
-    end
-    n = length(xs)
-    series = [PlotSeries("NASA E-18 pred", :reference_points, xs, ref; panel=1),
-              PlotSeries("pre-correction form, q = 0 uncoupled", :computed, xs, got[1:n]; panel=1),
-              PlotSeries("pre-correction form, q = 0 coupled", :computed, xs, base[1:n]; panel=1)]
-    r2 = x -> round.(x; digits=2)
-    return ValidationCaseResult("Q0_E18", _today_iso(),
-        (; criterion="|Δ| ≤ 4 dB vs NASA E-18 prediction per harmonic (E18_TONES's)", date="2026-10-29",
-           got=r2(got[1:n]), q0_coupled=r2(base[1:n]), nasa=ref, n_ok, n),
-        table, series, n > 0 && n_ok == n ? :met : :not_met,
-        "$n_ok/$n within ±4 dB with q = 0 uncoupled: $(r2(got[1:n])) dB vs NASA $(ref) (q = 0 coupled: $(r2(base[1:n])))",
-        "V-CODE", joinpath(_VAL_REPORT_DIR, _P88_REPORT))
-end
-
-"""88c: E21_PRE with the q = 0 cabin modes uncoupled, against E-21's NASA prediction (E21_PRE's counted bands)."""
-function _run_q0_e21()
-    e21 = _read_csv_numeric_nan(_data_path("cr3813", "e21_noise_reduction_range.csv"))
-    bands = Float64.(e21[:band_Hz]); nasa = Float64.(e21[:nasa_pred_dB])
-    excluded = Set([80.0, 100.0, 125.0, 160.0])
-    pre = _pre_correction_form(noise_reduction_test_article_inputs(; η_lining=1.0))
-    q0 = noise_reduction_spectrum(_with_fields(pre; q0_coupled=false); bands, η_r_cap=0.15)
-    base = noise_reduction_spectrum(pre; bands, η_r_cap=0.15)
-    table = ValidationTableRow[]; n_ok = 0; n = 0; xs = Float64[]; ref = Float64[]; g1 = Float64[]; g0 = Float64[]
-    for i in eachindex(bands)
-        fc = bands[i]; isfinite(nasa[i]) || continue
-        g = q0.rows[i].NR_dB
-        counted = !(fc in excluded) && !q0.rows[i].above_crossover
-        ok = abs(g - nasa[i]) ≤ 3.0
-        counted && (n += 1; n_ok += ok)
-        push!(xs, fc); push!(ref, nasa[i]); push!(g1, g); push!(g0, base.rows[i].NR_dB)
-        push!(table, ValidationTableRow("NR fc=$(round(Int, fc))" * (counted ? "" : " (not counted)"), fc, nasa[i], g, g - nasa[i],
-                                        ok, counted ? "counted" : "not counted"))
-    end
-    series = [PlotSeries("NASA prediction (E-21)", :reference_points, xs, ref; panel=1),
-              PlotSeries("pre-correction form, q = 0 uncoupled", :computed, xs, g1; panel=1),
-              PlotSeries("pre-correction form (E21_PRE)", :computed, xs, g0; panel=1)]
-    return ValidationCaseResult("Q0_E21", _today_iso(),
-        (; criterion="|Δ| ≤ 3 dB of NASA's prediction in ≥ 75 % of counted bands (E21_PRE's)", date="2026-10-29", n_ok, n),
-        table, series, n > 0 && n_ok / n ≥ 0.75 - 1e-12 ? :met : :not_met,
-        "$n_ok/$n counted bands within ±3 dB of NASA with q = 0 uncoupled (pre-correction form)",
-        "V-CODE", joinpath(_VAL_REPORT_DIR, _P88_REPORT))
-end
-
-"""89b: R172428_CODE with η_n per cabin mode (trim per 1/3-octave band), the Phase 89 reading H1; diagnostic."""
-_run_r172428_code_etan() = _run_r172428_vs(:code; η_n_per_mode=true)
+# Phase 150e (2026-11-11): Q0_REPRO_18b, Q0_E18, Q0_E21 and R172428_CODE_ETAN retired (refuted, Phases 88, 89); reports kept.
 
 function _iso87_validation_cases()
     ac = _r172428_csv("appB_acoustic_modes.csv")
@@ -208,21 +117,5 @@ function _iso87_validation_cases()
            FigureRef("NASA CR-172428", "App. B pp. 197, 202", 207),
            "|η_r″/NASA − 1| ≤ 10 % at ≥ 80 % of the printed pairs with η_r″ ≥ 1e-4 (fixed 2026-10-29, before the run).",
            _run_appb_eta_rpp, "printed pair (4000 rpm, then 5000 rpm)", "η_r″", rel(10.0)),
-        mk("Q0_REPRO_18b", "q = 0 uncoupled, pre-correction form, vs E-16's NASA prediction (88a)", "88",
-           [_data_path("cr3813", "t1_interior_targets.csv")], FigureRef("CR-3813", "Fig. E-16 NASA PAIN pred", 142),
-           "|Δ| ≤ 4 dB at H1–H3 against E-16's NASA prediction (REPRO_18b's; fixed 2026-10-29, before the run).",
-           _run_q0_repro_18b, "band (Hz)", "SPL (dB)", abs3(4.0)),
-        mk("Q0_E18", "q = 0 uncoupled, pre-correction form, vs E-18's NASA prediction (88b)", "88",
-           [_data_path("cr3813", "e18_interior_pred_eta1.csv")], FigureRef("CR-3813", "Fig. E-18", 145),
-           "|Δ| ≤ 4 dB per harmonic against E-18's NASA prediction (E18_TONES's; fixed 2026-10-29, before the run).",
-           _run_q0_e18, "band (Hz)", "SPL (dB)", abs3(4.0)),
-        mk("Q0_E21", "q = 0 uncoupled, pre-correction form, vs E-21's NASA prediction (88c)", "88",
-           [_data_path("cr3813", "e21_noise_reduction_range.csv")], FigureRef("CR-3813", "Fig. E-21", 149),
-           "|Δ| ≤ 3 dB of NASA's prediction in ≥ 75 % of the counted bands (E21_PRE's; fixed 2026-10-29, before the run).",
-           _run_q0_e21, "band (Hz)", "NR (dB)", abs3(3.0)),
-        mk("R172428_CODE_ETAN", "CR-172428 reproduction with η_n per cabin mode vs NASA's printed predictions (89b)", "89",
-           [_r172428_csv("appB_predictions.csv"), ac], FigureRef("NASA CR-172428", "App. B pp. 196–212 / Table 10", 206),
-           "±3 dB of NASA's printed prediction at ≥ 7 of 9 points (R172428_CODE's; decision fixed 2026-10-29, before the run).",
-           _run_r172428_code_etan, "tone frequency (Hz)", "SPL (dB)", merge(abs3(3.0), (; error_ylabel="this code − NASA's printed prediction (dB)"))),
     ]
 end

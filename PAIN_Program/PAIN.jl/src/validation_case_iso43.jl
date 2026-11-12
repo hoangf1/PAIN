@@ -504,32 +504,3 @@ function _iso43_validation_cases()
     ]
 end
 
-"""
-    write_h3_attribution_report(path=docs/validation_reports/h3_attribution.md) -> path
-
-Runs `H3_ATTRIB` and writes its table as Markdown. Not called by the case or the test suite
-(the suite must not modify tracked docs); run it by hand to refresh the recorded report.
-"""
-function write_h3_attribution_report(path::AbstractString=joinpath(_VAL_REPORT_DIR, "h3_attribution.md"))
-    r = run_validation_case("H3_ATTRIB")
-    e = r.inputs_echo
-    labels = _H3_LABELS
-    spls = [e.baseline, e.eta_n, e.eta_r, e.both, e.e12]
-    open(path, "w") do io
-        println(io, "# H3 attribution on REPRO_18b (phase 43c)
-")
-        println(io, "Diagnostic only — no criterion. E-17 conditions: η_T = 0.5, no η_r′ cap, R1,")
-        println(io, "ANOPP Table 8 + GEXT. Swaps use NASA's printed intermediate values (no tuning).
-")
-        println(io, "| swap | H1 [dB] | H2 [dB] | H3 [dB] | ΔH1 | ΔH2 | ΔH3 |")
-        println(io, "|---|---:|---:|---:|---:|---:|---:|")
-        for (lab, s) in zip(labels, spls)
-            d = s .- e.baseline
-            println(io, "| $lab | $(round(s[1]; digits=2)) | $(round(s[2]; digits=2)) | $(round(s[3]; digits=2)) | " *
-                        "$(round(d[1]; digits=2)) | $(round(d[2]; digits=2)) | $(round(d[3]; digits=2)) |")
-        end
-        println(io, "
-Generated $(_today_iso()).")
-    end
-    return path
-end

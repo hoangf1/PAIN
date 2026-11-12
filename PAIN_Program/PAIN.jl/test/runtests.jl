@@ -1640,55 +1640,8 @@ _run_if("HF broadband Eqs. (19)–(23) (38c)") do
             @test a.notes == b.notes
         end
     end
-    @testset "T2_EQ19 case runs; table/series non-empty" begin
-        @test validation_case_runnable("T2_EQ19")
-        res = run_validation_case("T2_EQ19")
-        @test !isempty(res.table)
-        @test !isempty(res.series)
-        @test res.verdict === :no_verdict && PAIN.underlying_verdict(res) in (:met, :not_met)   # Phase 118a
-        @test occursin("Eq. (19)", res.label) || occursin("printed", res.label)
-        @test haskey(res.inputs_echo, :broadband_model)
-        @test res.inputs_echo.broadband_model === :eq19
-        println("38c T2_EQ19: ", res.reason)
-    end
-end
+    # Phase 150e (2026-11-11): T2_EQ19 retired as a case (exterior broadband not measured above 1250 Hz)
 
-# Plan phase 38d: Fig. E-18 tones (η_T = 1.0, η_r′ ≤ 0.15) vs NASA prediction.
-# V-UNIT: case runs; three harmonics; verdict follows |Δ| ≤ 4 dB on a synthetic reference.
-# ---------------------------------------------------------------------------------------------
-_run_if("E-18 tones η_T=1.0 (38d)") do
-    @testset "verdict follows |Δ| ≤ 4 dB on a synthetic reference" begin
-        # Same rule as _run_e18_tones: :met iff every harmonic with a NASA value is within 4 dB.
-        function e18_verdict(got, nasa; tol=4.0)
-            n = n_ok = 0
-            for (g, nref) in zip(got, nasa)
-                isfinite(nref) || continue
-                n += 1
-                n_ok += abs(g - nref) ≤ tol
-            end
-            return (n > 0 && n_ok == n) ? :met : :not_met
-        end
-        @test e18_verdict([88.0, 75.0, 67.0], [88.0, 75.0, 67.0]) === :met
-        @test e18_verdict([88.0, 75.0, 67.0], [88.0, 75.0, 67.0]; tol=4.0) === :met
-        @test e18_verdict([92.0, 75.0, 67.0], [88.0, 75.0, 67.0]) === :met   # |Δ|=4 exact
-        @test e18_verdict([92.1, 75.0, 67.0], [88.0, 75.0, 67.0]) === :not_met
-        @test e18_verdict([88.0, 75.0, 72.0], [88.0, 75.0, 67.0]) === :not_met  # H3 |Δ|=5
-    end
-    @testset "E18_TONES case runs; table has the three harmonics" begin
-        @test validation_case_runnable("E18_TONES")
-        res = run_validation_case("E18_TONES")
-        nasa_rows = filter(r -> startswith(r.quantity, "vs NASA E-18"), res.table)
-        @test length(nasa_rows) == 3
-        @test !isempty(res.series)
-        @test res.verdict === :no_verdict && PAIN.underlying_verdict(res) in (:met, :not_met)   # Phase 118a
-        @test res.inputs_echo.η_T == 1.0
-        @test res.inputs_echo.η_r_cap == 0.15
-        @test res.inputs_echo.tone_model === :eq8
-        @test res.inputs_echo.cap_reaches_tone === true
-        expect = (res.inputs_echo.n_ok == res.inputs_echo.n_nasa) && res.inputs_echo.n_nasa > 0
-        @test (res.verdict === :met) == expect
-        println("38d E18_TONES: ", res.reason)
-    end
 end
 
 # Plan phase 38e: Fig. E-15 total structural loss factor η_r′ (V-EXP info, no pass mark).
@@ -2334,10 +2287,7 @@ _run_if("Uncertainty budget (phase 31, V-UNIT)") do
     @test occursin("this report is the 31e coverage check", md)
     @test !occursin("working-example provenance", md)
 
-    # Registry has UNC_COVER with the pre-registered label
-    @test haskey(VALIDATION_CASES, "UNC_COVER")
-    @test occursin("pre-registered", VALIDATION_CASES["UNC_COVER"].label)
-    @test VALIDATION_CASES["UNC_COVER"].criterion_date == "2026-10-22"
+    @test !haskey(VALIDATION_CASES, "UNC_COVER")   # retired as a case in Phase 150e (2026-11-11); this report stays
 end
 
 _run_if("Validation map errors (V-UNIT)") do
@@ -2536,20 +2486,8 @@ _run_if("Validation map errors (V-UNIT)") do
     # Phase 141c: the unscaled-load second line (12 measured points) is drawn but leaves the table and the count
     @test fig14.inputs_echo.unscaled_n == 12 && count(s -> occursin("not scaled", s.name), fig14.series) == 3
 
-    unc = run_validation_case("UNC_COVER")
-    s_unc = case_error_summary(unc, VALIDATION_CASES["UNC_COVER"].plot_spec)
-    @test unc.verdict === :no_verdict && PAIN.underlying_verdict(unc) === :not_met   # Phase 118a
-    @test VALIDATION_CASES["UNC_COVER"].plot_spec.error_mode === :none
-    # 0/3 since 2026-10-28 (Phase 78d-4 App. D consistency fixes J1–J6: margins H1 −4.06, H2 −5.41, H3 −13.23 dB; post-hoc).
-    # Before: 1/3 (78d-3: +0.52, −0.11, −18.36; 78d F1/F2: +0.19, −2.09, −18.47).
-    @test s_unc.text == "no verdict · 0/3 within criterion · count only"   # recorded count kept, no verdict (Phase 118a)
-    @test s_unc.n_within == 0
-    @test s_unc.n_rows == 3
-    @test s_unc.unit == ""
-    @test isnan(s_unc.max_abs) && isnan(s_unc.median_abs)
-
     # Live no_verdict cases: no k/n in tol in the display text.
-    for id in ("GEXT_BOUND", "MRP_RITZ", "E15_STRUCT_LOSS", "BBN_LEVELS")
+    for id in ("E15_STRUCT_LOSS", "BBN_CIRC")   # GEXT_BOUND, MRP_RITZ, BBN_LEVELS retired in Phase 150e
         r = run_validation_case(id)
         @test r.verdict === :no_verdict
         s = case_error_summary(r, VALIDATION_CASES[id].plot_spec)
@@ -2590,7 +2528,7 @@ _run_if("Validation case registry (34d)") do
         @test haskey(CASE_INFO, id)
         @test get(block_hits, id, 0) == (CASE_INFO[id].map_id == "none" ? 0 : 1)
     end
-    @test sort([id for id in VALIDATION_CASE_ORDER if CASE_INFO[id].map_id == "none"]) == ["MRP_D1", "MRP_RITZ"]
+    @test sort([id for id in VALIDATION_CASE_ORDER if CASE_INFO[id].map_id == "none"]) == ["MRP_D1"]
     # Task F2 — §2.13 is the single source for CASE_INFO
     ut_ids = String[]
     for m in VALIDATION_MAPS
@@ -2617,7 +2555,7 @@ _run_if("Validation case registry (34d)") do
     @test !haskey(CASE_INFO, "R996_FIG8")
     # Every case Map / block points at total, except the off-map regression cases (Phase 78f, "none")
     for id in keys(CASE_INFO)
-        @test CASE_INFO[id].map_id == (id in ("MRP_D1", "MRP_RITZ") ? "none" : "total")
+        @test CASE_INFO[id].map_id == (id == "MRP_D1" ? "none" : "total")
     end
     # Temp-doc edit → case_info_json changes (single source)
     mktempdir() do tmp
@@ -2659,8 +2597,8 @@ _run_if("Validation case registry (34d)") do
         @test a.computed ≈ b.computed rtol=1e-9 atol=0
         @test a.reference == b.reference
     end
-    rr = run_validation_case("REPRO_18b")
-    @test rr.verdict === :no_verdict && PAIN.underlying_verdict(rr) === :not_met   # Phase 118a
+    # REPRO_18b retired as a case (Phase 150e, 2026-11-11); its runner stays and the regression of its levels is kept
+    rr = only(c for c in PAIN._make_registry() if c.id == "REPRO_18b").run()
     # regression at L = 1.83 m (I-22, 2026-10-22, post-hoc; earlier 1.803 m: see length_sensitivity.md)
     # Expected from length_sensitivity @ 1.83: 85.90, 78.35, 79.82; re-recorded 2026-10-23 after the
     # Phase 44 code-on-code fix of Eq. (83) (η_r'' with the bare f'): 85.93, 78.32, 79.57; and after the
@@ -2687,7 +2625,6 @@ _run_if("Validation case registry (34d)") do
     @test count(r -> r.within_tolerance, fig14.table) == 24
     @test length(fig14.table) == 24
     @test fig14.verdict === :met            # Phase 76 (2026-10-28): thickness on
-    @test run_validation_case("MRP_RITZ").verdict === :no_verdict
     @test PAIN.underlying_verdict(run_validation_case("BLK_P68")) === :met   # a unit check since Phase 144d
     f1a_gutin = run_validation_case("F1A_GUTIN")   # information since Phase 85 (2026-10-29); the check itself still holds
     @test f1a_gutin.verdict === :no_verdict && PAIN.underlying_verdict(f1a_gutin) === :met
@@ -2701,18 +2638,18 @@ _run_if("Validation case registry (34d)") do
     # Live in-process cross-checks with no digitized reference file:
     allowed_live_no_csv = ("F1A_GUTIN", "BBN_KIN", "UT_GRID",
         "ISO_BLOCKING", "ISO_FF_CONV", "ISO_GEXT_LINE", "ISO_TABLE8",
-        "ISO_CYL2D_EXACT", "ISO_CYL2D_BOUNDARY", "ISO_JOINT_ACC", "CYL2D_GRID_CONV", "MRP_COUPLED_LIMITS", "LOUDEST_PT_GRID",
+        "ISO_CYL2D_EXACT", "ISO_CYL2D_BOUNDARY", "ISO_JOINT_ACC", "CYL2D_GRID_CONV", "LOUDEST_PT_GRID",
         "ISO_MODAL_DENSITY", "ISO_BB_BAND", "ISO_SIL",
         "TRIM_CLOSED", "NR_BAND_HAND", "HF_MASSLAW", "BEMT_HAND", "F1A_INDEP",
         # Phase 62 live checks (hand formulas, bounds, pipeline echo; MRP/TRIM_INPUT_QA read appE_article_inputs.csv)
-        "F1A_PLANE_PEAK", "FF_E11_MAP", "SRC_PASSTHROUGH", "BLK_GAIN_MAP", "MRP_SHAPE_NORM",
-        "CABIN_GEOM_HAND", "CYL2D_WEYL", "TRIM_PASSIVITY", "PAIN_INPUT_ECHO", "AC_CABIN_DEMO",
+        "F1A_PLANE_PEAK", "SRC_PASSTHROUGH", "BLK_GAIN_MAP",
+        "CABIN_GEOM_HAND", "TRIM_PASSIVITY", "PAIN_INPUT_ECHO", "AC_CABIN_DEMO",
         # Phase 66 closed-form BEMT / F1A checks
         "BEMT_MOMENTUM", "BEMT_HAND_TIP", "BEMT_INTEGRALS", "BEMT_SIMILARITY",
         "F1A_GUTIN_ANGLES", "F1A_GW_FLIGHT", "F1A_THICKNESS", "F1A_PROPERTIES",
         "F1A_CHORDWISE")   # Phase 67 diagnostic (POLAR_FIDELITY reads its CSV/JSON references)
-    converted = ("PER_LOADS", "PER_FIG6", "PER_FIG7", "PER_FIG8", "PER_FIG9",
-                 "R996_FIG6", "R996_FIG7", "BBN_CIRC", "BBN_LONG", "BBN_LEVELS")
+    converted = ("PER_LOADS", "PER_FIG7", "PER_FIG8", "PER_FIG9",
+                 "R996_FIG6", "R996_FIG7", "BBN_CIRC")   # PER_FIG6, BBN_LONG, BBN_LEVELS retired in Phase 150e
     results_by_id = Dict{String,Any}()
     for id in VALIDATION_CASE_ORDER
         results_by_id[id] = run_validation_case(id)
@@ -2728,17 +2665,11 @@ _run_if("Validation case registry (34d)") do
     @test bbn.inputs_echo.n_ok == 134
     @test bbn.inputs_echo.n_tot == 168
     @test occursin("post-hoc", VALIDATION_CASES["BBN_CIRC"].label)
-    # BBN_LONG: Fig. 19 / Fig. 20 panels are built per pair (must differ)
-    blong = results_by_id["BBN_LONG"]
-    m1 = only(s for s in blong.series if s.panel == 1 && startswith(s.name, "measured"))
-    m2 = only(s for s in blong.series if s.panel == 2 && startswith(s.name, "measured"))
-    @test m1.y != m2.y || m1.x != m2.x
     # Pereira H1/H2 counts after peak_Pa_to_spl_dB (I-17 / F4 2026-10-21, post-hoc)
     per9 = results_by_id["PER_FIG9"]
     @test per9.inputs_echo.n1ok == 9 && per9.inputs_echo.n1 == 9   # Phase 74a (2026-10-28): Fig. 9 re-read from the PDF vectors (Phase 72: 0, before: 3)
     @test per9.inputs_echo.n2ok == 6 && per9.inputs_echo.n2 == 9
     @test results_by_id["R996_FIG6"].verdict === :no_verdict
-    @test results_by_id["GEXT_BOUND"].verdict === :no_verdict
     for id in VALIDATION_CASE_ORDER
         @test !isempty(results_by_id[id].series)
     end
@@ -2891,9 +2822,8 @@ end
 
 _run_if("Isolation of failing cases (phase 41)") do
     # Criteria fixed 2026-10-23 in IMPLEMENTATION_PLAN.md §8b. Assert recorded verdicts.
-    # T1_FROM_E12 first run: 2/3 (H3 fails) → cabin chain implicated, not source/blocking alone.
+    # T1_FROM_E12 (first run 2/3) retired in Phase 150e (2026-11-11).
     expected = (
-        ("T1_FROM_E12", :not_met),
         ("TRIM_CLOSED", :met),
         ("NR_BAND_HAND", :met),
         ("HF_MASSLAW", :met),
@@ -2920,19 +2850,14 @@ _run_if("T1/T2 root causes (phase 43)") do
     @test rep.band_Hz == containing_third_octave(rep.f_Hz, third_octave_centers())
     @test rep.t1_auto_new ≈ rep.t1_eq8 rtol = 1e-10
     @test rep.repro_auto_new[2] > 50  # volume rule: H2 stays on Eq. (8), not ~16 dB
-    @test "T1_MEAS_DAMPING" in only(b for b in VALIDATION_MAPS[1].blocks if b.id == "P_MEAS").cases
     @test "NR_TP1964" in only(b for b in VALIDATION_MAPS[1].blocks if b.id == "P_MEAS").cases
     # Analytic sub-checks for 43d (code-on-code)
     @test abs(besselj_prime_zeros(0, 1)[1] - 3.83170597) < 1e-5
     @test abs(besselj_prime_zeros(1, 1)[1] - 1.84118378) < 1e-5
     @test circular_acoustic_eps(0, 0.0, 1) ≈ 2.0 atol = 1e-12
     expected = (
-        ("T1_MEAS_DAMPING", :not_met),   # first run 2026-10-23: 2/3 (H3)
-        ("H3_ATTRIB", :no_verdict),
         ("NR_TP1964", :not_met),
         ("NR_TP1964_REF2", :not_met),
-        ("T1_F1A_FILL", :not_met),       # first run 2026-10-23: 2/3; 3/3 after the 44f sign fix (post-hoc); 2/3 with the Phase 93 defaults
-        ("T1_F1A_MEAS_DAMP", :no_verdict),
     )
     for (id, verd) in expected
         @test haskey(VALIDATION_CASES, id)
@@ -3082,48 +3007,12 @@ _run_if("CR-3813 reproduction with NASA's pre-correction form (phase 61)") do
     @test PAIN._p48_af() === PAIN._p48_af()
     @test_throws ErrorException PAIN.PainInputs(inp.fuse, inp.prop, inp.structural, inp.acoustic, inp.amplitudes, inp.phases,
                                                 inp.pts, inp.ΔA; floor_sign=0.5)
-    r = run_validation_case("REPRO_18b_PRE")
-    @test r.verdict === :no_verdict && PAIN.underlying_verdict(r) === :not_met && r.inputs_echo.n_ok == 1
-    @test r.inputs_echo.corrected ≈ round.(run_validation_case("REPRO_18b").table[i].computed for i in 1:3; digits=2) atol = 0.01
-    r2 = run_validation_case("E21_PRE")
-    @test r2.verdict === :no_verdict && PAIN.underlying_verdict(r2) === :not_met && r2.inputs_echo.n_ok == 1 && r2.inputs_echo.n == 4
+    # Phase 150e (2026-11-11): REPRO_18b_PRE and E21_PRE retired; report phase61_cr3813_reproduction.md kept
     r3 = run_validation_case("E22_HF_CODE")
     @test r3.verdict === :no_verdict && PAIN.underlying_verdict(r3) === :not_met && r3.inputs_echo.n_ok == 1   # inputs incomplete since Phase 135f
     @test all(r3.inputs_echo.nasa_minus_measured .> 30)              # NASA's own HF prediction misses by > 30 dB
     @test all(abs.(r3.inputs_echo.code .- r3.inputs_echo.nasa) .< 10) # within 10 dB of NASA (8 before the Phase 93 defaults)
-    for id in ("REPRO_18b_PRE", "E21_PRE", "E22_HF_CODE")
-        png = plot_case(run_validation_case(id), VALIDATION_CASES[id].plot_spec; path=joinpath(TEST_OUT, "$(id).png"))
-        @test isfile(png) && filesize(png) > 0
-    end
-end
-
-_run_if("NASA's 300-mode set in the HF path and the reproductions (phases 83, 84)") do
-    # Criteria fixed 2026-10-29 (plan §8aa) before any run. Recorded first-run results (all not met).
-    r = run_validation_case("E22_HF_DECK")
-    @test r.verdict === :no_verdict && PAIN.underlying_verdict(r) === :not_met && r.inputs_echo.n_ok == 0 && r.inputs_echo.n == 4
-    @test all(>(0), r.inputs_echo.resonant_modes_per_band)          # resonant modes in every band (none with Table D-1)
-    @test all(r.inputs_echo.code .< r.inputs_echo.table_d1 .- 5)     # the modes lower NR by > 5 dB in every band
-    @test r.inputs_echo.table_d1 ≈ run_validation_case("E22_HF_CODE").inputs_echo.code atol = 0.01
-    t2 = run_validation_case("T2_EQ19_DECK")
-    @test t2.verdict === :no_verdict && PAIN.underlying_verdict(t2) === :not_met && t2.inputs_echo.n_ok == 0
-    @test all(t2.inputs_echo.got .> t2.inputs_echo.measured)          # over the measurement now (Table D-1: under)
-    @test all(t2.inputs_echo.table_d1 .< t2.inputs_echo.measured)
-    rp = run_validation_case("REPRO_18b_DECK")
-    @test rp.verdict === :no_verdict && PAIN.underlying_verdict(rp) === :not_met && rp.inputs_echo.n_ok == 0   # 0 before Phase 93, 1 after; 0 after Phases 106–107 (post-hoc)
-    @test maximum(abs.(rp.inputs_echo.got .- rp.inputs_echo.table_d1)) < 0.75  # the tones hardly depend on the extra modes (0.67 dB)
-    # 83d: T2 compares a path fitted to E-9 with E-9, so it is information; its recorded outcome is kept
-    t = run_validation_case("T2")
-    @test t.verdict === :no_verdict && t.inputs_echo.original_verdict === :not_met
-    # Phase 84 (criteria fixed 2026-10-29, plan §8ab): CR-172428 and E-21 on the 300 modes, recorded first runs
-    rc, r0 = run_validation_case("R172428_CODE_DECK"), run_validation_case("R172428_CODE")
-    @test rc.verdict === :no_verdict && PAIN.underlying_verdict(rc) === :not_met && count(r -> r.within_tolerance, rc.table) == 4 && rc.inputs_echo.structural === :nasa300
-    @test maximum(abs.(rc.inputs_echo.ours .- r0.inputs_echo.ours)) < 4.2 && rc.inputs_echo.ours != r0.inputs_echo.ours   # 2.5 before Phases 106–107
-    re = run_validation_case("R172428_EXP_DECK")
-    @test re.verdict === :no_verdict && PAIN.underlying_verdict(re) === :not_met && count(r -> r.within_tolerance, re.table) == 5   # 3 before Phase 93, 4 after; 5 after Phases 106–107 (post-hoc)
-    e21 = run_validation_case("E21_PRE_DECK")
-    @test e21.verdict === :no_verdict && PAIN.underlying_verdict(e21) === :not_met && e21.inputs_echo.n_ok == 1 && e21.inputs_echo.n == 4
-    @test maximum(abs.(e21.inputs_echo.code .- e21.inputs_echo.table_d1)) > 20   # above the crossover the modes matter
-    for id in ("E22_HF_DECK", "T2_EQ19_DECK", "REPRO_18b_DECK", "E21_PRE_DECK", "R172428_CODE_DECK", "R172428_EXP_DECK")
+    for id in ("E22_HF_CODE",)
         png = plot_case(run_validation_case(id), VALIDATION_CASES[id].plot_spec; path=joinpath(TEST_OUT, "$(id).png"))
         @test isfile(png) && filesize(png) > 0
     end
@@ -3162,18 +3051,8 @@ _run_if("NASA's App. B per-mode values, the q = 0 hypothesis, η_n per mode (pha
     i4 = findfirst(r -> occursin("4000 rpm H2: cabin mode 19 × structural mode 6", r.quantity), p.table)
     i5 = findfirst(r -> occursin("5000 rpm H1: cabin mode 19 × structural mode 6", r.quantity), p.table)
     @test p.table[i4].reference == p.table[i5].reference && p.table[i5].computed > 5 * p.table[i4].computed
-    # 88 (diagnostics): the q = 0 hypothesis refuted on CR-3813's runs
-    for (id, k, n) in (("Q0_REPRO_18b", 2, 3), ("Q0_E18", 1, 3), ("Q0_E21", 1, 4))
-        r = run_validation_case(id)
-        @test r.verdict === :no_verdict && PAIN.underlying_verdict(r) === :not_met
-        @test r.inputs_echo.n_ok == k && get(r.inputs_echo, :n, 3) == n
-    end
-    q = run_validation_case("Q0_REPRO_18b")
-    @test all(q.inputs_echo.got .!= q.inputs_echo.q0_coupled)                                       # the option acts
-    # 89b (diagnostic): η_n per mode, 5/9, not adopted
-    r = run_validation_case("R172428_CODE_ETAN")
-    @test r.verdict === :no_verdict && PAIN.underlying_verdict(r) === :not_met && count(x -> x.within_tolerance, r.table) == 5
-    for id in ("APPB_EPS_N", "APPB_ETA_N", "APPB_ETA_RPP", "Q0_REPRO_18b", "R172428_CODE_ETAN")
+    # Phase 150e (2026-11-11): Q0_REPRO_18b, Q0_E18, Q0_E21, R172428_CODE_ETAN retired (refuted, Phases 88-89)
+    for id in ("APPB_EPS_N", "APPB_ETA_N", "APPB_ETA_RPP")
         png = plot_case(run_validation_case(id), VALIDATION_CASES[id].plot_spec; path=joinpath(TEST_OUT, "$(id).png"))
         @test isfile(png) && filesize(png) > 0
     end
@@ -3208,24 +3087,8 @@ _run_if("NASA's printed mode-pair contributions (phase 92)") do
     @test sum(t.p2 for t in terms) ≈ p2 rtol = 1e-12                              # the pair terms are the sum
     @test length(terms) > 100
     @test tone_mean_square_pressure(inp, 1, 2π * 200.0) == p2                     # collecting changes nothing
-    a = run_validation_case("APPB_PAIRS")
-    @test a.verdict === :no_verdict && a.inputs_echo.n == 25 && a.inputs_echo.n_ok == 21   # re-recorded after Phases 106–107 (2026-10-30, post-hoc)
-    @test occursin("4000:H1 94.9 %", a.reason)                                     # q = 0 dominates this code's H1 (92.4 % with Fig. A-2)
-    b = run_validation_case("APPB_PAIRS_Q0_ETAN")
-    @test b.verdict === :no_verdict && b.inputs_echo.n_ok == 22 && occursin("4000:H1 0.0 %", b.reason)   # re-recorded after Phases 106–107 (2026-10-30, post-hoc)
-    q = run_validation_case("R172428_CODE_Q0")                                     # 92b: 2/3 held out, not supported
-    @test q.verdict === :no_verdict && PAIN.underlying_verdict(q) === :met   # not met (2/3) before Phase 106; post-hoc
-    @test q.inputs_echo.n_ok == 3 && q.inputs_echo.n_held == 3
-    h3 = only(r for r in q.table if r.quantity == "3000 rpm H3")
-    @test 1.7 < h3.residual < 1.9                                                   # +3.09 before Phase 106 (missed by 0.09 dB)
-    @test count(r -> abs(r.residual) ≤ 3.0, q.table) == 9
-    c = run_validation_case("R172428_CODE_Q0_ETAN")
-    @test c.verdict === :no_verdict && all(r -> abs(r.residual) < 2.5, c.table)     # post-hoc, no criterion
+    # Phase 150e (2026-11-11): APPB_PAIRS, APPB_PAIRS_Q0_ETAN, R172428_CODE_Q0, R172428_CODE_Q0_ETAN retired; report phase92_appb_pairs.md kept
     @test !inp.q0_coupled && inp.η_n_per_mode                                      # Phase 93 defaults
-    for id in ("APPB_PAIRS", "APPB_PAIRS_Q0_ETAN", "R172428_CODE_Q0", "R172428_CODE_Q0_ETAN")
-        png = plot_case(run_validation_case(id), VALIDATION_CASES[id].plot_spec; path=joinpath(TEST_OUT, "$(id).png"))
-        @test isfile(png) && filesize(png) > 0
-    end
 end
 
 _run_if("CR-172428 program form as default; held-out Table 12 (phases 93, 94)") do
@@ -3340,9 +3203,8 @@ end
 
 _run_if("Run 10's floor-term sign on the printed H1/H5 pairs (phase 108)") do
     # Plan §8ax; test fixed 2026-10-30 before any H1/H5 pair was computed. Recorded first run: H_pre supported (8 vs 5).
-    r = run_validation_case("FLIGHT10_FLOOR_SIGN")
-    @test r.verdict === :no_verdict && r.inputs_echo.n == 10
-    @test r.inputs_echo.count_minus == 8 && r.inputs_echo.count_plus == 5 && r.inputs_echo.outcome == "supported"
+    # Phase 150e (2026-11-11): FLIGHT10_FLOOR_SIGN retired (answered); report phase108_run10_floor_sign.md kept. Its result is
+    # the run 10 input checked here.
     @test PAIN.r172428_flight10_inputs().floor_sign == -1.0 && PAIN.r172428_inputs(4000).floor_sign == 1.0   # run 10 only
 end
 
@@ -3438,19 +3300,6 @@ _run_if("Flight run 10, H2–H4, and the trim per band (phase 102)") do
     @test isfile(png) && filesize(png) > 0
 end
 
-_run_if("Band-centre η_n in CR-3813's program (phase 99)") do
-    # Plan §8ao; criteria and decision fixed 2026-10-30 before the run. Recorded first-run results (refuted).
-    pre = PAIN._pre_correction_band(r172428_inputs(4000))
-    @test pre.floor_sign == -1.0 && pre.q0_coupled && pre.η_n_per_mode && pre.η_n_band_omega && !pre.η_r_trimmed_area
-    for (id, k) in (("BAND_REPRO_18b", 1), ("BAND_E18", 2))
-        r = run_validation_case(id)
-        @test r.verdict === :no_verdict && PAIN.underlying_verdict(r) === :not_met && r.inputs_echo.n_ok == k
-        @test maximum(abs.(r.inputs_echo.got .- r.inputs_echo.tone_eta_n)) < 0.6     # the rule barely moves these runs
-        png = plot_case(r, VALIDATION_CASES[id].plot_spec; path=joinpath(TEST_OUT, "$(id).png"))
-        @test isfile(png) && filesize(png) > 0
-    end
-end
-
 _run_if("Sharp sound bridges and the App. D mode extension (phases 59, 60)") do
     # Criteria and mapping fixed 2026-10-23 (plan §8g) before any run. Recorded first-run results.
     # 59a pieces by hand: Eq. (5) at normal incidence, Eq. (22), Eqs. (23) and (25), and the Fig. 5 construction
@@ -3463,8 +3312,6 @@ _run_if("Sharp sound bridges and the App. D mode extension (phases 59, 60)") do
           PAIN.sharp_mass_law_TL(8.896, 2fb; ρc1=1.21 * 343, ρc2=1.21 * 343) + 12 atol = 1e-9
     @test PAIN.sharp_double_panel_TL(4.448, 4.448, 0.0826, fb * (1 - 1e-9); ΔTL_M=12.0) ≈
           PAIN.sharp_double_panel_TL(4.448, 4.448, 0.0826, fb * (1 + 1e-9); ΔTL_M=12.0) atol = 1e-6   # continuous at f_b
-    r = run_validation_case("SHARP_PANEL_D")       # information since Phase 82; its recorded outcome is kept
-    @test r.verdict === :no_verdict && r.inputs_echo.original_verdict === :not_met && r.inputs_echo.n_ok == 3
     # 59b: off leaves Eq. (23) unchanged; on adds τ_B by hand to the trimmed term
     inp = PAIN.r172428_inputs(4000)
     fc = 1000 * 2^(1 / 3)
@@ -3478,13 +3325,7 @@ _run_if("Sharp sound bridges and the App. D mode extension (phases 59, 60)") do
     ml = PAIN.sharp_mass_law_TL(inp.m_wall + 1.456, fc; ρc1=inp.ρ_ext * inp.c_ext, ρc2=inp.ρ_int * inp.c_int)
     @test b.τ_B ≈ 10^(-ml / 10) * (10^(-b.ΔTL_pt / 10) + 10^(-b.ΔTL_ln / 10)) rtol = 1e-12
     @test on.den ≈ off.den + b.τ_B * off.A_t rtol = 1e-12
-    # 59e recorded (not met); 59c and 59d were retired as cases in Phase 137a (2026-11-10)
-    for (id, check) in (("T2_MEAS_EXT_BR", rr -> abs(rr.inputs_echo.interior_dB[1] - 30.13) < 0.01),)   # 28.36 before Phase 93
-        rr = run_validation_case(id)
-        @test PAIN.underlying_verdict(rr) === :not_met && check(rr)   # T2_MEAS_EXT_BR has no verdict since Phase 118a
-        png = plot_case(rr, VALIDATION_CASES[id].plot_spec; path=joinpath(TEST_OUT, "$(id).png"))
-        @test isfile(png) && filesize(png) > 0
-    end
+    # 59e (T2_MEAS_EXT_BR) retired in Phase 150e (2026-11-11); 59c and 59d in Phase 137a
     # 60a recorded (not met: App. D count 2.3× the asymptotic density at 1000 Hz, 0.19× at 2000 Hz)
     ap = PAIN.appd_modes(PAIN.appd_test_article_geometry(); n_modes=5000, n_axial=7, n_circ=8, n_floor_max=5, f_max_Hz=3000.0)
     cω = PAIN.C_OMEGA_THIRD_OCTAVE
@@ -3578,13 +3419,7 @@ _run_if("Exterior broadband from RP-1218 (phase 48)") do
     @test a.s - c.s ≈ 20log10(2) atol = 1e-9
     @test PAIN.bpm_directivity(90.0, 90.0, 0.2)[1] ≈ 1.0 atol = 1e-12
     @test PAIN.bpm_directivity(0.0, 90.0, 0.2)[1] ≈ 0.0 atol = 1e-12        # no TE radiation straight downstream
-    # recorded results (first run 2026-10-23)
-    for (id, n_ok) in (("PROP_BB_FIG14", 3), ("PROP_BB_FIG17", 2), ("T2_PRED_BB", 0))
-        rr = run_validation_case(id)
-        @test rr.verdict === :no_verdict && PAIN.underlying_verdict(rr) === :not_met && rr.inputs_echo.n_ok == n_ok   # Phase 118a
-        png = plot_case(rr, VALIDATION_CASES[id].plot_spec; path=joinpath(TEST_OUT, "$(id).png"))
-        @test isfile(png) && filesize(png) > 0
-    end
+    # PROP_BB_FIG14, PROP_BB_FIG17 and T2_PRED_BB retired as cases in Phase 150e (2026-11-11)
 end
 
 _run_if("Trim and high-frequency inputs (phase 49)") do
@@ -3661,12 +3496,7 @@ _run_if("T2 with the measured TP-2444 exterior (phase 47)") do
     @test r.verdict === :no_verdict && PAIN.underlying_verdict(r) === :not_met && r.inputs_echo.n_ok == 1 && r.inputs_echo.n == 7   # Phase 137a
     @test r.inputs_echo.changeover_band_Hz ≈ 1000 * 2^(1 / 3)
     @test all(25 .< r.inputs_echo.NR_meas .< 40)
-    r2 = run_validation_case("T2_MEAS_EXT")
-    @test r2.verdict === :no_verdict && PAIN.underlying_verdict(r2) === :not_met   # Phase 118a
-    @test r2.inputs_echo.L_ext_1250_bb ≈ 85.42 atol = 0.01
-    @test r2.inputs_echo.interior_dB[1] ≈ 26.88 atol = 0.01            # 21.25 before the Phase 49 Eq. (20) reading correction; 21.55 before Phase 93
-    @test r2.inputs_echo.L_int_fig17_1250_bb ≈ 51.51 atol = 0.01
-    for (id, rr) in (("NR_PROP_TP2444", r), ("T2_MEAS_EXT", r2))
+    for (id, rr) in (("NR_PROP_TP2444", r),)   # T2_MEAS_EXT retired in Phase 150e
         png = plot_case(rr, VALIDATION_CASES[id].plot_spec; path=joinpath(TEST_OUT, "$(id).png"))
         @test isfile(png) && filesize(png) > 0
     end
@@ -3684,18 +3514,6 @@ _run_if("T2 HF path on TP-1964 (phase 45)") do
         png = plot_case(r, VALIDATION_CASES[id].plot_spec; path=joinpath(TEST_OUT, "$(id).png"))
         @test isfile(png) && filesize(png) > 0
     end
-end
-
-_run_if("Loudest point (phase 42)") do
-    # Criteria fixed 2026-10-23 (plan Phase 42); (a) recorded not met (interior point set), (b), (c) met.
-    r = run_validation_case("LOUDEST_PT")          # information since Phase 82; its recorded outcome is kept
-    @test r.verdict === :no_verdict && r.inputs_echo.original_verdict === :not_met
-    @test r.table[4].within_tolerance                       # (b) loudest ≥ average
-    @test r.table[5].within_tolerance                       # (c) single-mode φ² shape
-    @test all(abs.(r.inputs_echo.all_node_ratio_posthoc .- 1) .< 0.05)
-    @test r.inputs_echo.dBA_max > r.inputs_echo.dBA_avg
-    png = plot_case(r, VALIDATION_CASES["LOUDEST_PT"].plot_spec; path=joinpath(TEST_OUT, "LOUDEST_PT.png"))
-    @test isfile(png) && filesize(png) > 0
 end
 
 _run_if("CR-172428 reproduction (phase 44)") do
@@ -3781,7 +3599,7 @@ _run_if("CR-172428 reproduction (phase 44)") do
     @test length(f.pts) == 16 * 19 && f.n_missing == 16    # p. 204 row L = 1 below the page edge
     @test extrema(p.theta_deg for p in f.pts) == (0.0, 180.0)
     expected = (("R172428_CODE", :not_met), ("R172428_EXP", :not_met), ("R172428_ETA", :not_met),
-                ("R172428_TRIM", :no_verdict), ("R172428_PAIRS", :no_verdict))
+                ("R172428_TRIM", :no_verdict))   # R172428_PAIRS retired in Phase 150e
     for (id, verd) in expected
         r = run_validation_case(id)
         @test PAIN.underlying_verdict(r) === verd   # the check itself; verification cases carry no verdict since Phase 85

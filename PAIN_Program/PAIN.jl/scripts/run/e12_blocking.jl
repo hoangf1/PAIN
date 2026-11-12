@@ -1,5 +1,5 @@
 # Plan phase 14a: Fig. E-12 on-line blocking check (CR-3813 App. E, p. E-20).
-# Run from rea-work\PAIN.jl:  julia --project=. scripts/run/e12_blocking.jl
+# Run from PAIN_Program\PAIN.jl:  julia --project=. scripts/run/e12_blocking.jl
 using PAIN, Printf
 
 root = normpath(joinpath(@__DIR__, "..", "..", ".."))

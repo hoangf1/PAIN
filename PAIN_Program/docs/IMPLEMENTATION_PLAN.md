@@ -13,7 +13,7 @@ Single source of truth for building this project without re-deriving context in 
 2. Data register and digitization instructions (status, procedure, one card per figure; §2.5 candidate sources found 2026-11-09)
 3. Current status and open work queue
 4. Architecture
-8cn. Open phase 150 (planned 2026-11-09 from `ISSUES.md`; Phases 135–138 done 2026-11-10, 139–149 and 151 done 2026-11-11 and moved to `COMPLETED_PHASES.md`)
+8cg–8co. Phases 143–151 done (planned 2026-11-09 from `ISSUES.md`; Phases 135–138 done 2026-11-10, 139–151 done 2026-11-11; open remainders are tickets ISSUE-030 to 040 and moved to `COMPLETED_PHASES.md`)
 5–8ac, 11. *(in `COMPLETED_PHASES.md`, same section numbers, moved 2026-10-29)* every completed phase, the queue Q0–Q66 and the 2026-10-21 review
 9. Reference appendices (BBN evidence, Report 996 figures and data, Pereira polar specification, variables)
 10. Optional future work, key formulas, file checklist
@@ -263,7 +263,6 @@ or the other documents points there. When a phase is done, mark it done and move
 
 | Q | Item | Kind | Prerequisite | Output |
 |---|------|------|--------------|--------|
-| Q128 | Phase 150: source and test layout; the 111 no-verdict cases sorted (ISSUE-028, 029) | [CONFIRM] | Q125 | `src/cases/`, `test/cases/`; paths |
 | — | Phases 90–134 are done (2026-11-05; 118f: unit-test gaps; 112–116 merged from branch `heart`, numbered 100–104 there). Q113–Q129 were planned on 2026-11-09 from `ISSUES.md`; none is started. Author decisions of 2026-11-09 are in the steps; order confirmed: Q113, then Q114–Q122 (not-met cases), then Q123–Q129 | — | — | — |
 
 If a queue item is blocked on data, skip to the next unblocked item and say which data item blocks it.
@@ -329,14 +328,6 @@ Each phase is the solution of one or more entries of `ISSUES.md`; the evidence i
 Rules common to all: no recorded verdict, criterion, tolerance or reference file changes unless the step names it; a result that moves is recorded with its date, its before and after, and "post-hoc" where the earlier result was known; targeted testsets only (not the full `Pkg.test()`); the five documents of R5 are updated in the phase that changes code or a recorded result.
 
 **Status 2026-11-10 (overnight, decided by Claude under the author's delegation of 2026-11-10).** Done: 136e, 136f, 137b, 137c, 137d, 138a/b/d, 139a/b/b′/d, 140c/d, 141a, 141c (Report 996 part; the Pereira PER_FIG8 line is open), 141d, 144a, 144b, 145d, 147, 150c/d. Decisions and outcomes: `validation_reports/phase135_151_decisions.md`. Open: 141c Pereira line, 141e, 142, 143b–d, 145a rest, 146b/c, 148, 149a, 150a/b/e, 151a/b, regenerating the summary CSV and §0. These changes were pushed without running the full test suite or /code-review, at the author's request (2026-11-10); the next session runs the affected testsets first.
-
-## 8cn. Phase 150 — source and test layout by chain stage (ISSUE-028) [CONFIRM]
-
-- [ ] **150a** Mapping table old file and lines → new file, reviewed before the move.
-- [ ] **150b** One move commit: `src/cases/<stage>.jl` and `registry.jl`; `test/cases/<stage>.jl`; no edit inside a function. Testset counts and frozen baselines (R11) equal before and after.
-- [ ] **150c** `scripts/retired/` deleted.
-- [ ] **150d** `rea-work` → `PAIN_Program`; absolute paths → repository-relative; every `data\…` and `references\…` path in this file checked against the tree; `IMPLEMENTATION_PLAN.md §8…` comments → `COMPLETED_PHASES.md §8…`.
-- [ ] **150e The 111 cases without a verdict.** The case-by-case list is in ISSUE-029, **[DECIDED 2026-11-10]** (author: "Approve the list"): 44 stay as tests only, 14 stay visible as information, 6 are kept until Phases 136, 139, 144 or this one decides them, 47 are retired with their reports kept. The list comes from the case texts, so each row is checked against its runner first, and a row the code contradicts goes back to the author. Per case: *test* → its GUI entry, figure and guideline record go, its test stays; *show* → moved to one short "run, not judged" list; *retire* → runner and the tests that assert its old outcome removed in the same commit, with the report's path noted in the commit message. `NO_VERDICT_CASES.md` shrinks to the "run, not judged" list. The frozen-baseline regression test (R11) is not a case and stays.
 
 
 ---

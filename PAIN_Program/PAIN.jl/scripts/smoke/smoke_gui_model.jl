@@ -38,7 +38,8 @@ PAIN.select_validation_case_from_qml("MRP_D1")
 @assert obs["val_selected"][] == "MRP_D1" && obs["val_runnable"][]
 # Selection stays keyed by case id after a run (highlight root-cause fix).
 direct = run_validation_case("CYL2D_C1")
-gui_result = run_validation_gui!(obs, "CYL2D_C1")
+const _SMOKE_FIG_DIR = mktempdir()   # Phase 150 (2026-11-11): the smoke writes no figure into docs/
+gui_result = run_validation_gui!(obs, "CYL2D_C1"; figure_dir=_SMOKE_FIG_DIR)
 @assert gui_result !== nothing
 @assert obs["val_selected"][] == "CYL2D_C1"
 @assert gui_result.verdict === direct.verdict
@@ -49,9 +50,6 @@ for (a, b) in zip(gui_result.table, direct.table)
 end
 png = obs["val_plot_path"][]
 @assert isfile(png) && filesize(png) > 0 "expected non-empty PNG at $png"
-gext = run_validation_case("GEXT_BOUND")
-@assert gext.verdict === :no_verdict
-@assert occursin("diagnostic", gext.reason)
 
 # Phase 147 (2026-11-10): the block map is retired; the Coverage tab's JSON holds the nine chain stages and one row
 # per case, and the rows with a verdict are exactly the cases `has_verdict` keeps.
@@ -72,7 +70,7 @@ detail = JSON3.read(case_info_json("R996_FIG14"))
 @assert String(detail.id) == "R996_FIG14"
 @assert !isempty(String(detail.source))
 @assert haskey(detail, :explanation)
-replay = run_validation_gui!(obs, "R996_FIG14")
+replay = run_validation_gui!(obs, "R996_FIG14"; figure_dir=_SMOKE_FIG_DIR)
 @assert replay !== nothing
 @assert replay.verdict === :met  # after A_rms = A/√2 (I-17 / F4 2026-10-21, post-hoc)
 png14 = obs["val_plot_path"][]

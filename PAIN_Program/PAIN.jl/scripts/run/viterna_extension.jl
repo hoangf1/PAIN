@@ -1,5 +1,5 @@
 # Phase 11c: record the Viterna post-stall extension (CCBlade.viterna, pinned 1.0.0) for the XFOIL polar sets.
-# Run from rea-work\PAIN.jl:  julia --project=. scripts/run/viterna_extension.jl
+# Run from PAIN_Program\PAIN.jl:  julia --project=. scripts/run/viterna_extension.jl
 # Writes data/polars/viterna_extension.json. No Julia source under src/ is changed (wiring is phase 17c).
 #
 # Rule recorded (decided before any comparison, VALIDATION_GUIDELINE.md section 2.10):

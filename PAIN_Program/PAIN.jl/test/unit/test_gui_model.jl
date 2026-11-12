@@ -49,7 +49,7 @@ fc=1000.0 Hz  no level"
     lines = split(PAIN._format_val_case_list(), '\n')
     @test length(lines) == length(PAIN.validation_map_case_order())
     @test all(length(split(l, '\t')) == 5 for l in lines)
-    @test startswith(PAIN._criterion_for("T1"), "criterion (2026-10-20): ") && PAIN._criterion_for("NOPE") == ""
+    @test startswith(PAIN._criterion_for("R172428_EXP"), "criterion ($(PAIN.VALIDATION_CASES["R172428_EXP"].criterion_date)): ") && PAIN._criterion_for("NOPE") == ""
 end
 # Phase 114: the run-status boxes. `*_state` is the pill a Run button shows and `*_log` the verbose record of the
 # run behind it. These assert the states a user distinguishes: a recorded result read from disk, a run in progress,

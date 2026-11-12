@@ -60,11 +60,11 @@ end
     @test all(id -> haskey(PAIN.VALIDATION_CASES, id), keys(PAIN.INFORMATION_ONLY_CASES))   # no stale or misspelt ids
     row = PAIN.ValidationTableRow("x", 1.0, 1.0, 2.0, 1.0, false)
     mk(id, v) = PAIN.ValidationCaseResult(id, "2026-10-29", (; n_ok=0), [row], PAIN.PlotSeries[], v, "0/1", "V-UNIT", "")
-    r = PAIN._as_information_case(mk("CYL2D_WEYL", :not_met))
+    r = PAIN._as_information_case(mk("UT_GRID", :not_met))
     @test r.verdict === :no_verdict && r.inputs_echo.original_verdict === :not_met && r.inputs_echo.n_ok == 0
     @test occursin("not a pass: not met, 0/1", r.reason) && r.table == [row]
     @test PAIN._as_information_case(mk("R172428_EXP", :not_met)).verdict === :not_met     # a validation case is untouched
-    @test PAIN._as_information_case(mk("CYL2D_WEYL", :no_verdict)).reason == "0/1"
+    @test PAIN._as_information_case(mk("UT_GRID", :no_verdict)).reason == "0/1"
     # underlying_verdict: the recorded outcome of an information case, else the verdict
     @test PAIN.underlying_verdict(r) === :not_met && PAIN.underlying_verdict(mk("R172428_EXP", :met)) === :met
     # Phase 85: the met cases that keep a verdict compare with measurement (E) or reproduce a PAIN printout (P)
@@ -73,24 +73,27 @@ end
     @test all(id -> haskey(PAIN.INFORMATION_ONLY_CASES, id), ["UT_GRID", "MRP_INPUT_QA", "BPM_RP1218", "F1A_GUTIN", "ISO_SIL"])
     # Phase 118a: the 14 cases (18 since Phases 121-125) whose compared quantity rests on an input that is not printed or measured carry no verdict,
     # named by the rule; full-input cases on both sides of the map keep theirs
-    p118 = ["REPRO_18b", "E18_TONES", "T1", "T1_MEAS_DAMPING", "UNC_COVER", "T1_FROM_E12", "T1_F1A_FILL", "T2_EQ19",
-            "T2_MEAS_EXT", "T2_MEAS_EXT_BR", "T2_PRED_BB", "PROP_BB_FIG14", "PROP_BB_FIG17", "BBN_CIRC",
+    p118 = ["BBN_CIRC",   # the T1/T2 family and the propeller broadband cases retired in Phase 150e (2026-11-11)
             "AC_C695A_DBA", "AC_C695A_TONES", "AC_C695A_EXT", "AC_C695A_SEAT",   # Phases 121-125 (2026-11-03): assumed 695A blade and cabin section
             "R996_PHASE", "E22_HF_CODE", "NR_TP1964_REF2", "NR_PROP_TP2444",   # Phase 135f (2026-11-10); _BR, _PF and E22_BR retired in Phase 137a
             "NR_TP1964_XOVER_REF2"]   # Phase 138b (2026-11-10): NASA's ref. 2 inputs not printed
-    @test all(PAIN.input_incomplete, p118) && !PAIN.input_incomplete("CYL2D_WEYL") && !PAIN.input_incomplete("R172428_EXP")
+    @test all(PAIN.input_incomplete, p118) && !PAIN.input_incomplete("UT_GRID") && !PAIN.input_incomplete("R172428_EXP")
     @test count(PAIN.input_incomplete, keys(PAIN.INFORMATION_ONLY_CASES)) == length(p118)
     @test !any(id -> haskey(PAIN.INFORMATION_ONLY_CASES, id),
                ["R172428_EXP", "R172428_ETA", "E14_LOSS", "NR_TP1964_XOVER", "FLIGHT_MODES", "R996_LOADS", "PER_FIG8"])   # on the chart (Phase 135f)
-    r118 = PAIN._as_information_case(mk("T1", :not_met))
+    r118 = PAIN._as_information_case(mk("BBN_CIRC", :not_met))
     @test r118.verdict === :no_verdict && occursin("the 2026-11-02 input rule (inputs incomplete", r118.reason)
-    @test occursin("the 2026-10-29 rule", PAIN._as_information_case(mk("CYL2D_WEYL", :not_met)).reason)
+    @test occursin("the 2026-10-29 rule", PAIN._as_information_case(mk("UT_GRID", :not_met)).reason)
     # Phase 86: diagnostic re-runs carry no verdict; the case each re-runs keeps its verdict
     @test all(id -> haskey(PAIN.VALIDATION_CASES, id), keys(PAIN.DIAGNOSTIC_CASES))
     @test isempty(intersect(keys(PAIN.DIAGNOSTIC_CASES), keys(PAIN.INFORMATION_ONLY_CASES)))
-    d = PAIN._as_information_case(mk("R172428_CODE_DECK", :not_met))
+    d = PAIN._as_information_case(mk("R172428_CODE_DEFAULT", :not_met))
     @test d.verdict === :no_verdict && PAIN.underlying_verdict(d) === :not_met && startswith(d.reason, "diagnostic: ")
-    @test PAIN.no_verdict_by_rule("E21_PRE") && PAIN.no_verdict_by_rule("UT_GRID") && !PAIN.no_verdict_by_rule("R172428_EXP") && PAIN.no_verdict_by_rule("R172428_CODE")
+    @test PAIN.no_verdict_by_rule("APPB_ETA_N_BAND") && PAIN.no_verdict_by_rule("UT_GRID") && !PAIN.no_verdict_by_rule("R172428_EXP") && PAIN.no_verdict_by_rule("R172428_CODE")
     @test PAIN._as_information_case(mk("R172428_EXP", :not_met)).verdict === :not_met
     @test startswith(PAIN._as_information_case(mk("R172428_CODE", :not_met)).reason, "diagnostic: ")   # old program form (Phase 136a)
+    # Phase 150e (2026-11-11): a retired case is registered nowhere, and each names a report that exists
+    @test !isempty(PAIN.RETIRED_CASES) && all(id -> !haskey(PAIN.VALIDATION_CASES, id) && !(id in PAIN.VALIDATION_CASE_ORDER) &&
+              !haskey(PAIN.DIAGNOSTIC_CASES, id) && !haskey(PAIN.INFORMATION_ONLY_CASES, id) && !haskey(PAIN.CASE_INFO, id), keys(PAIN.RETIRED_CASES))
+    @test all(v -> isempty(v[2]) || isfile(joinpath(PAIN._VAL_REPORT_DIR, v[2])), values(PAIN.RETIRED_CASES))
 end

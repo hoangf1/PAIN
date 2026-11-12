@@ -360,7 +360,7 @@ end
     @test_throws ErrorException PAIN.noise_reduction_test_article_inputs(; structural_set=:ritz)
     # deck modes swapped into existing inputs, everything else kept (Phase 83 cases)
     inp = PAIN.noise_reduction_test_article_inputs()
-    sw = PAIN._with_deck_modes(inp)
+    sw = PAIN._with_fields(inp; structural=PAIN.nasa_deck_modes())   # what the retired Phase 83 cases did (Phase 150e)
     @test length(sw.structural.modes) == 300 && sw.sidewall === inp.sidewall && sw.m_wall == inp.m_wall
 end
 

@@ -2527,12 +2527,9 @@ function _finish_validation_registry!()
     append!(cases, _iso66_validation_cases())  # phase 66 BEMT / F1A code checks
     append!(cases, _iso67_validation_cases())  # phase 67 polars / compact chord
     append!(cases, _iso80_validation_cases())  # phase 80 App. D solver verification
-    append!(cases, _iso83_validation_cases())  # phase 83 NASA's 300-mode set
     append!(cases, _iso87_validation_cases())  # phases 87–89 App. B per-mode values; q = 0 held out; η_n per mode
-    append!(cases, _iso92_validation_cases())  # phase 92 App. B mode-pair contributions; q = 0 on 3000 rpm held out
     append!(cases, _iso94_validation_cases())  # phase 94 held-out CR-172428 Table 12 (η_T = 2.0)
     append!(cases, _iso96_validation_cases())  # phase 96 band-centre η_n rule
-    append!(cases, _iso99_validation_cases())  # phase 99 band-centre η_n in CR-3813's program
     append!(cases, _iso100_validation_cases()) # phase 100 NASA's per-band PF-105 table
     append!(cases, _iso101_validation_cases()) # phase 101 Merlin IVC modes vs App. C
     append!(cases, _iso102_validation_cases()) # phase 102 flight run 10, H2–H4 (diagnostic)
@@ -2543,7 +2540,6 @@ function _finish_validation_registry!()
     append!(cases, _iso122_validation_cases()) # phase 122 Commander 695A cabin tones vs CR-178004 App. B
     append!(cases, _iso123_validation_cases()) # phase 123 Commander 695A exterior tones vs CR-178004 App. A
     append!(cases, _iso125_validation_cases()) # phase 125 Commander 695A cabin tones at the mic seats
-    append!(cases, _iso108_validation_cases()) # phase 108 run 10 floor-term sign (diagnostic)
     append!(cases, _iso90_validation_cases())  # phase 90 Report 996 Fig. 10 reflecting walls
 
     # E21_E22_NR (38a), T2_EQ19 (38c), E18_TONES (38d), E15_STRUCT_LOSS (38e); no greyed placeholders.
@@ -2638,9 +2634,9 @@ function _finish_validation_registry!()
         "T1_MEAS_DAMPING", "T1_APPB", "T1_MEAS_DAMPING_APPB", "H3_ATTRIB", "NR_TP1964", "NR_TP1964_REF2", "NR_TP1964_XOVER", "NR_TP1964_XOVER_REF2",
         "NR_PROP_TP2444", "T2_MEAS_EXT", "BPM_RP1218", "PROP_BB_FIG14", "PROP_BB_FIG17", "T2_PRED_BB",
         "SHARP_PANEL_D", "SHARP_PANEL_D_SHAPE", "T2_MEAS_EXT_BR",
-        "REPRO_18b_PRE", "E21_PRE", "E22_HF_CODE", "E22_HF_DECK", "REPRO_18b_DECK", "T2_EQ19_DECK", "E21_PRE_DECK", "R172428_CODE_DECK", "R172428_EXP_DECK",
-        "APPB_EPS_N", "APPB_ETA_N", "APPB_ETA_RPP", "Q0_REPRO_18b", "Q0_E18", "Q0_E21", "R172428_CODE_ETAN", "R996_FIG10_FLAT", "R996_FIG10_CIRC",
-        "APPB_PAIRS", "APPB_PAIRS_Q0_ETAN", "R172428_CODE_Q0", "R172428_CODE_Q0_ETAN", "R172428_ETAT2", "APPB_ETA_N_T2", "APPB_ETA_N_BAND", "APPB_ETA_N_T2_BAND", "R172428_CODE_DEFAULT", "BAND_REPRO_18b", "BAND_E18", "R172428_TRIM_DECK", "FLIGHT_MODES", "FLIGHT10_H234", "FLIGHT10_FLOOR_SIGN",
+        "E22_HF_CODE", 
+        "APPB_EPS_N", "APPB_ETA_N", "APPB_ETA_RPP", "R996_FIG10_FLAT", "R996_FIG10_CIRC",
+        "R172428_ETAT2", "APPB_ETA_N_T2", "APPB_ETA_N_BAND", "APPB_ETA_N_T2_BAND", "R172428_CODE_DEFAULT", "R172428_TRIM_DECK", "FLIGHT_MODES", "FLIGHT10_H234", 
         "F1A_PLANE_PEAK", "FF_E11_MAP", "SRC_PASSTHROUGH", "BLK_GAIN_MAP", "MRP_INPUT_QA", "MRP_SHAPE_NORM",
         "CABIN_GEOM_HAND", "CYL2D_WEYL", "CYL2D_GRID_CONV", "TRIM_INPUT_QA", "TRIM_PASSIVITY", "PAIN_INPUT_ECHO", "AC_CABIN_DEMO", "AC_C695A_DBA", "AC_C695A_TONES", "AC_C695A_EXT", "AC_C695A_SEAT",
         "BEMT_MOMENTUM", "BEMT_HAND_TIP", "BEMT_INTEGRALS", "BEMT_SIMILARITY",
@@ -2654,6 +2650,11 @@ function _finish_validation_registry!()
         "R996_FIG6", "R996_FIG7", "BBN_KIN", "BBN_CIRC", "BBN_LONG", "R996_PHASE",
         "PER_FIG6", "PER_FIG7", "PER_FIG8", "PER_FIG9", "BBN_LEVELS",
     ]
+    # Phase 150e (2026-11-11): retired cases leave the registry and the case list (RETIRED_CASES)
+    for id in keys(RETIRED_CASES)
+        delete!(VALIDATION_CASES, id)
+    end
+    filter!(id -> !haskey(RETIRED_CASES, id), order)
     append!(VALIDATION_CASE_ORDER, order)
     return nothing
 end

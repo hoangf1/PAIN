@@ -757,24 +757,6 @@ Inputs: recorded `bbn_results.csv` from BBN script.
 Equations: F1A phase (replayed); criterion 23a.
 Outputs: phase [deg]; verdict on 80 % within 15°/35°.
 
-### Case: BBN_LONG
-**Title:** BBN longitudinal phase
-**Map / block:** total / A_PHASE
-**Category:** extrap
-**Kind:** replay
-**Chain span:** Blade and polars → Free field
-**Compared with:** measurement
-**Source:** CR-159124 Figs. 19, 20
-**What it tests:** F1A axial (longitudinal) phase pairs.
-**Why it is here:** Axial phase beside circumferential.
-**A pass means:** — (X-EXTRAP)
-**Not covered:** Assumed blade (no chord/twist data).
-**Recorded outcome:** X-EXTRAP; replay of bbn_results.csv
-**Explanation:** Replay of a recorded result: axial phase from CR-159124 Figs. 19–20. X-EXTRAP: BBN blade chord, twist and airfoil are not published, so an assumed blade is used.
-Inputs: recorded `bbn_results.csv`.
-Equations: F1A phase (replayed).
-Outputs: phase [deg]; no pass rule (X-EXTRAP).
-
 ### Case: R996_PHASE
 **Title:** Report 996 page-12 phase
 **Map / block:** total / A_PHASE
@@ -792,24 +774,6 @@ Outputs: phase [deg]; no pass rule (X-EXTRAP).
 Inputs: recorded `tr996_phase_values.csv`, `f1a_results.csv`.
 Equations: F1A phase (replayed).
 Outputs: phase difference [deg]; verdict within ±15° of 155°.
-
-### Case: PER_FIG6
-**Title:** Pereira Fig. 6 spectra
-**Map / block:** total / A_FWD
-**Category:** experiment
-**Kind:** replay
-**Chain span:** Blade and polars → Free field
-**Compared with:** measurement
-**Source:** Pereira et al. 2026 Fig. 6
-**What it tests:** F1A tones vs digitized Fig. 6 peaks (informational).
-**Why it is here:** Only forward-flight spectral figure (23d does not cover it).
-**A pass means:** Informational (23d does not cover Fig. 6).
-**Not covered:** Motor noise above H2; far field only; amplitude convention fixed 2026-10-21, post-hoc.
-**Recorded outcome:** replay of pereira_results.csv (amplitude convention fixed 2026-10-21, post-hoc)
-**Explanation:** Replay of a recorded result: forward-flight spectra vs digitized Pereira Fig. 6 peaks. Informational. Motor noise above H2; far field only. Amplitude convention fixed 2026-10-21, post-hoc.
-Inputs: recorded `pereira_results.csv`, `pereira_fig6_peaks.csv`.
-Equations: F1A (replayed).
-Outputs: SPL [dB] vs BPF harmonic; no 23d pass rule.
 
 ### Case: PER_FIG7
 **Title:** Pereira Fig. 7 waveform — loads scaled to measured thrust and torque
@@ -865,24 +829,6 @@ Inputs: recorded `pereira_results.csv`, `pereira_fig9_harmonics.csv`.
 Equations: F1A (replayed).
 Outputs: SPL [dB]; verdict on H1/H2 counts.
 
-### Case: BBN_LEVELS
-**Title:** BBN relative levels
-**Map / block:** total / A_SURF
-**Category:** extrap
-**Kind:** replay
-**Chain span:** Blade and polars → Free field
-**Compared with:** measurement
-**Source:** CR-158919 Tables 3, 4
-**What it tests:** Relative in-plane levels of microphones 3–6 vs mic 4.
-**Why it is here:** In-plane level shape on a fuselage-like ring.
-**A pass means:** ±3 dB on SPL_i − SPL_4 (23b) — reported X-EXTRAP.
-**Not covered:** Assumed blade.
-**Recorded outcome:** X-EXTRAP; replay of bbn_results.csv
-**Explanation:** Replay of a recorded result: relative levels SPL_i − SPL_4 (Tables 3–4, ±3 dB). X-EXTRAP for the same unpublished-blade reason as BBN_LONG.
-Inputs: recorded `bbn_results.csv`, `bbn_levels_table3.csv`.
-Equations: F1A levels (replayed); criterion 23b.
-Outputs: relative level [dB]; reported X-EXTRAP.
-
 ### Case: BPM_RP1218
 **Title:** Airfoil self-noise (BPM) vs NASA's printed code output, RP-1218 Tables D2/D3 (48a)
 **Map / block:** total / A_SURF
@@ -901,63 +847,9 @@ Inputs: `data/rp1218/rp1218_tableD2.csv`, `rp1218_tableD3.csv`.
 Equations: RP-1218 Eqs. 2–67, App. B directivity.
 Outputs: 1/3-octave SPL per mechanism [dB].
 
-### Case: PROP_BB_FIG14
-**Title:** Propeller broadband (BPM) vs CR-172428 Fig. 14 free field, 5000 rpm (48c)
-**Map / block:** total / A_SURF
-**Category:** experiment
-**Kind:** runnable
-**Chain span:** Blade and polars → Free field
-**Compared with:** measurement
-**Source:** CR-172428 Fig. 14 (microphone 1, run 8113), digitized in Phase 47; criterion and decisions fixed 2026-10-23
-**What it tests:** The blade-segment BPM sum (RP-1218 App. C procedure) at microphone 1 against the measured broadband floor.
-**Why it is here:** A physics prediction of the exterior broadband would replace T2's assumed f⁻² extrapolation.
-**A pass means:** Within ±5 dB in ≥ 75 % of the bands 315–2000 Hz.
-**Not covered:** The real blade (proprietary; the NACA 4-(5)(08)-03 planform is a stand-in); inflow-turbulence noise; the observer is in the near field.
-**Recorded outcome:** **not_met**, 3/9 (2026-10-23); BPM is 3–10 dB low. **Re-run 2026-10-28 (Phase 69, post-hoc: the earlier results were known; no criterion, tolerance or input was chosen from them):** 3/9 (unchanged count; max error 9.8 dB, was 12; median 7.5 dB, was 9.2); not met.
-**Explanation:** Experiment comparison. `propeller_broadband_spectrum` with `p48_propeller_cfg(5000)`.
-Inputs: Fig. 14 pass A; assumed blade; 23.8 m/s.
-Equations: RP-1218 §5 and App. C.
-Outputs: 1/3-octave SPL [dB].
-
-### Case: PROP_BB_FIG17
-**Title:** Propeller broadband (BPM) vs TP-2444 Fig. 17 exterior, 4000 rpm (48c)
-**Map / block:** total / A_SURF
-**Category:** experiment
-**Kind:** runnable
-**Chain span:** Blade and polars → Free field
-**Compared with:** measurement
-**Source:** TP-2444 Fig. 17 exterior, digitized in Phase 47; criterion and decisions fixed 2026-10-23
-**What it tests:** As PROP_BB_FIG14, at the fuselage surface in the propeller plane, 4000 rpm.
-**Why it is here:** This is the exterior that T2's cabin path receives.
-**A pass means:** Within ±5 dB in ≥ 75 % of the bands 315–1250 Hz.
-**Not covered:** As PROP_BB_FIG14; the microphone position is not stated (V-ASSUMED).
-**Recorded outcome:** **not_met**, 2/7 (2026-10-23); 1000 and 1250 Hz within 3.6 and 3.1 dB, 315–800 Hz 7–15 dB low. **Re-run 2026-10-28 (Phase 69, post-hoc: the earlier results were known; no criterion, tolerance or input was chosen from them):** 2/7 (unchanged); not met.
-**Explanation:** Experiment comparison. As PROP_BB_FIG14 at 4000 rpm.
-Inputs: Fig. 17 exterior pass A.
-Equations: RP-1218 §5 and App. C.
-Outputs: 1/3-octave SPL [dB].
-
 ### Chunk 2: Free field (`G_FF`)
 
 Blocks in map order: `P_FF` e11 free field → `X_SRC` Source select. Cases are listed block by block, in the order the map shows them.
-
-### Case: E11_FREEFIELD
-**Title:** Fig. E-11 free-field line
-**Map / block:** total / P_FF
-**Category:** input_qa
-**Kind:** runnable
-**Chain span:** Free field → Free field
-**Compared with:** verification
-**Source:** CR-3813 Fig. E-11, App. E p. E-19 / PDF p.135
-**What it tests:** Whether two independent digitizations of NASA's free-field microphone line agree within 1 dB (input quality only).
-**Why it is here:** That measured line (with ANOPP Table 8 for H3 and phases) drives every e11 cabin run.
-**A pass means:** The figure was read repeatably (digitization scatter δ_dig ≤ 1.0 dB). It does not mean the levels are physically right.
-**Not covered:** Physical accuracy of the free-field levels; H3 and all phases come from ANOPP Table 8, not from Fig. E-11.
-**Recorded outcome:** **Information since Phase 85 (2026-10-29): no verdict.** Verification, not a validation case under the meaningfulness rule (two digitizations of Fig. E-11 against each other: input repeatability, not the code). The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: met, δmax = 1.0 dB at the limit (e11_delta_dig.md)
-**Explanation:** Input QA: Fig. E-11 is sound-pressure level (SPL, dB re 20 µPa) of harmonics H1–H3 measured by NASA with microphones at free-field positions around the model propeller with the fuselage absent, along grid line ℓ = 1 (Fig. E-4), plotted against distance from the propeller plane X/D (forward positive, aft negative). NASA also plotted its ANOPP prediction. This case checks only that two independent digitizations (passes A and B) of that figure agree within 1 dB — not that the levels match physics or ANOPP. Axes: X3/D vs SPL; curves are pass A, pass B, and their mean (the input).
-Inputs: Digitized CSVs from `default_e11_paths()` (`e11_freefield_measured_A.csv`, `e11_freefield_measured_B.csv`); geometry for X3/D via `grid_points` on ℓ = 1 (L = test_article_length() = 1.83 m, a = 0.508 m, φ_p = 90°, r_p = 0.965 m, z_p = 0.662 m since Phase 65); D = 0.762 m.
-Equations: none (digitization comparison only); helper `delta_dig_dB`.
-Outputs: δ_dig [dB] per harmonic and station; verdict uses max δ_dig ≤ 1.0 dB.
 
 ### Case: ISO_FF_CONV
 **Title:** Free-field SPL↔Pa and e11 ℓ=1 loader
@@ -999,24 +891,6 @@ Outputs: max |Δ| of amplitude and phase arrays.
 
 Blocks in map order: `P_GRID` 160-point grid → `P_BLK` Blocking Eq. 43 → `X_BLK_OUT` Blocked pressures. Cases are listed block by block, in the order the map shows them.
 
-### Case: FF_E11_MAP
-**Title:** e11 free field: decay away from the measured line (62)
-**Map / block:** total / P_GRID
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Free field → Skin field
-**Compared with:** verification
-**Source:** CR-3813 Fig. E-11 (ℓ = 1 measured line); phase 62 criterion 2026-10-23
-**What it tests:** The digitized e11 free field after grid extension (GEXT): every off-line amplitude against the ℓ = 1 amplitude at the same k.
-**Why it is here:** Gives the free-field block a check with its own figure; the extension must not create a louder point than the measured line it starts from.
-**A pass means:** Every off-line amplitude ≤ the ℓ = 1 amplitude at the same k (48 (H, k) pairs). **Holds by construction (Phase 70 F1, 2026-10-28):** GEXT multiplies the ℓ = 1 amplitude by max(cos α, floor) ≤ 1, so this case checks the plumbing and draws the figure. It is not evidence about GEXT, which GEXT_BOUND and ISO_GEXT_LINE cover.
-**Not covered:** Whether GEXT is right (phase 32 importance bound); phases.
-**Recorded outcome:** **Information since Phase 85 (2026-10-29): no verdict.** Verification, not a validation case under the meaningfulness rule (holds by construction (GEXT multiplies by ≤ 1)). The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: **met**, 48/48 (first run 2026-10-23; `phase62_65_map_blocks_grid.md`)
-**Explanation:** Monotonicity check of the GEXT field: the source is on the propeller line, so amplitude falls off around the cylinder.
-Inputs: default_e11_paths(), H = 1–3.
-Equations: GEXT (`extend_line_to_grid`)
-Outputs: A(k, ℓ) / A(k, 1) per H.
-
 ### Case: UT_GRID
 **Title:** Skin grid vs User Manual Fig. 3 (with figure)
 **Map / block:** total / P_GRID
@@ -1034,24 +908,6 @@ Outputs: A(k, ℓ) / A(k, 1) per H.
 Inputs: `FuselageGeometry(L=1.83 m, a=0.508 m, θ0=56.6°)`, `PropellerPlacement(r_p=0.965 m, φ_p=90°, z_p=0.662 m)` (since Phase 65), `GridSpec()` (k_max=16, ell_max=10, k_p=8) — same family as the e11 path / Manual §5.2.
 Equations: User Manual Fig. 3 / §3: x1=(r_p−a)+a(1−cos α), x2=−a sin α, x3=(π a/18)(k_p−k), θ=φ_p+α; γ via `incidence_angle_deg` (CR-3813 §3.4). Code: `grid_points`, `incidence_angle_deg`.
 Outputs: x1,x2,x3 [m], θ [deg] vs formulas; figure γ [deg]; verdict on coordinate/azimuth residuals ≤ 1e-9.
-
-### Case: GEXT_BOUND
-**Title:** Grid-extension (GEXT) importance bound on T1
-**Map / block:** total / P_GRID
-**Category:** calibrated
-**Kind:** runnable
-**Chain span:** Free field → Interior tones
-**Compared with:** verification
-**Source:** derived (VALIDATION_GUIDELINE §2.2.1)
-**What it tests:** How much the tonal interior check T1 moves when assumed GEXT falloff/delay options change.
-**Why it is here:** GEXT fills 150 of 160 points from one measured line; no published data constrain that assumption.
-**A pass means:** None — diagnostic with verdict always no_verdict; shows T1 is not claimable when variants flip its gate.
-**Not covered:** Cannot validate GEXT (unfalsifiable by published data); amplitude convention fixed 2026-10-21, post-hoc.
-**Recorded outcome:** no_verdict (diagnostic); variants flip T1 → T1 not claimable (gext_importance_bound.md; amplitude convention fixed 2026-10-21, post-hoc) **Phase 44f knock-on (2026-10-23, Eq. (52) floor-term sign of NASA's corrected program; post-hoc):** 5/9 variant points inside the band (no criterion). **Phase 65 knock-on (2026-10-24, grid axial correction: code vs User Manual p. 9 / App. E p. E-8, z_k = z_p − x₃, z_p = 0.662 m; not a fit):** 5/9 variant points inside the band unchanged; nominal residuals −3.41, +0.02, +11.40 dB.
-**Explanation:** Diagnostic (no pass mark): grid extension (GEXT) copies the measured ℓ = 1 free-field amplitudes onto the other azimuth lines with an assumed cosine-style amplitude falloff and a geometric travel-time phase delay — not a measured distribution. T1 is the end-to-end tonal interior SPL check vs Fig. E-16/E-17. This case re-runs the e11 cabin chain under GEXT option variants and plots how far each harmonic residual to the measured mean moves; when variants flip T1's gate, T1 cannot be claimed. Amplitude convention fixed 2026-10-21 (I-17), post-hoc.
-Inputs: `default_e11_paths()` free-field/phase CSVs; `extend_line_to_grid` options `falloff_exponent`, `falloff_floor`, `delay_scale`; cabin via e11 pipe (L = test_article_length(), a = 0.508 m, blocking R2, BPF = 200 Hz); T1 means from `t1_interior_targets.csv`.
-Equations: assumed GEXT falloff/delay in `extend_line_to_grid` (V-ASSUMED); cabin chain same as T1 (`run_pain_pipeline` path).
-Outputs: T1 residual [dB] per harmonic H1–H3 per variant; verdict always `:no_verdict`.
 
 ### Case: ISO_GEXT_LINE
 **Title:** extend_line_to_grid identity on ℓ = 1
@@ -1183,24 +1039,6 @@ Inputs: Constant table `TABLE_D1_FULL` (n_keep = 32); L does not change the seed
 Equations: none (table load); code `structural_modes_from_table_d1`.
 Outputs: mode frequencies f [Hz] equal to Table D-1; verdict `:no_verdict`.
 
-### Case: MRP_RITZ
-**Title:** MRP raw Ritz vs Table D-1
-**Map / block:** none / P_MRP
-**Category:** calibrated
-**Kind:** runnable
-**Chain span:** Wall modes → Wall modes
-**Compared with:** NASA's printed prediction
-**Source:** CR-3813 Table D-1
-**What it tests:** Fit quality of the simplified (w-only) Ritz structural surrogate against Table D-1.
-**Why it is here:** The only check of the fitted structural surrogate (not Eq. D.25).
-**A pass means:** None — calibrated fit (k_scale, edge_factor, floor_scale fitted to this table); always no_verdict.
-**Not covered:** Not evidence; Eq. (D.25) not implemented in this path (w-only surrogate).
-**Recorded outcome:** 29/32 within 5 % at L = 1.83 m (I-22 re-record 2026-10-22, post-hoc; was 26/32 at 1.803 m); always no_verdict (calibrated surrogate) **Off the map 2026-10-28 (Phase 78f, author):** no verdict is possible (MRP_D1 is 0 by construction; MRP_RITZ is a calibrated fit to Table D-1), so the case is kept as a registered regression check and unit test but no longer shown on the Validation map ("none / P_MRP"; P_MRP keeps its figure folder).
-**Explanation:** Diagnostic / calibrated: raw `structural_modes` uses three scales fitted to Table D-1, not the printed App. D operator. Live count is reported; CLAUDE.md forbids quoting a calibrated path as a pass. Production uses Table D-1 (MRP_D1).
-Inputs: `FuselageGeometry(test_article_length(), 0.508, 56.6)`; hybrid=false; n_keep=48; tol_frac=0.05; scales already in code (not re-fit here).
-Equations: simplified Donnell/Ritz surrogate in `mrp.jl` (not Eq. D.25).
-Outputs: f [Hz] vs Table D-1; fraction within 5 %; verdict always `:no_verdict`.
-
 ### Case: MRP_APPD
 **Title:** App. D Eqs. (D.17)–(D.26) vs Table D-1
 **Map / block:** total / P_MRP
@@ -1218,42 +1056,6 @@ Outputs: f [Hz] vs Table D-1; fraction within 5 %; verdict always `:no_verdict`.
 Inputs: `appd_nasa_deck()` (NASA's MRP deck, User Manual pp. 42–43, from 2026-10-29; was `appd_test_article_geometry()`); n_modes=80, M 1–10, ns 0–12, np 0–5 (the deck's card 8; was 7, 8, 5); `floor_cross_terms=false` (NASA's form); tol_frac=0.05; MAC ≥ 0.9 shape pairing (`match_modes_by_shape`); count rule ≥75 % of 32.
 Equations: App. D (D.17)–(D.26); code `appd_modes` in `mrp_appd.jl`.
 Outputs: f [Hz] vs Table D-1; M_r vs Table D-1 TOTAL MASS (info); Fig. D-2 shape residuals (info); the count on derived App. E inputs (info); verdict on count rule.
-
-### Case: MRP_COUPLED_LIMITS
-**Title:** App. D coupled solve: vanishing floor and near-rigid shell limits (80a)
-**Map / block:** total / P_MRP
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Wall modes → Wall modes
-**Compared with:** verification
-**Source:** closed forms: the stiffened shell alone (App. D shell operator per harmonic) and the SS-C-SS-C orthotropic plate (Levy solution, Leissa); Phase 80a, criteria fixed 2026-10-29 before the first run
-**What it tests:** The coupled shell + floor + junction solve in its two limits. A floor scaled to 1e-4 must leave the shell's modes; a shell 1e4 times stiffer must leave the floor as a plate clamped on both long edges.
-**Why it is here:** Each part of `mrp_appd.jl` had its own closed-form check, but the coupled solve had none (Phase 80 plan).
-**A pass means:** Vanishing floor: the 10 lowest shell-dominated modes per (M, parity), M = 1–3, within 1 % of the shell alone. Near-rigid shell: the 3 lowest floor-bending modes per (M, parity), M = 1–3, within 2 % of the clamped plate. Production input and series (NASA's deck), NASA's floor form.
-**Not covered:** Intermediate stiffness ratios (80c, an independent solver, was not built; see the plan).
-**Recorded outcome:** **Information since Phase 82 (2026-10-29): no verdict.** Not a validation case under the meaningfulness rule (analytic limits of the Ritz energy, and PAIN's floor form is not that energy (it misses because the code works like PAIN); MRP_APPD reproduces Table D-1 32/32). The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: **not met, 66/78** (first run 2026-10-29): vanishing floor 60/60 (max 0.07 %); near-rigid shell 6/18 with NASA's floor form: the first floor mode per (M, parity) is within 0.7 %, the second and third are 50–78 % low. With the floor cross terms (information rows) all within 2 % except the third antisymmetric mode, +3.3 % (NASA's 5-term floor series). Class **M** (limitation of PAIN's method as printed): NASA's floor form keeps only the diagonal of each spanwise term although cos(pπy/Lp) of different parity are not orthogonal on the floor width; this is how NASA computed Table D-1 (MRP_APPD reproduces it only with that form). The spurious second floor mode of this limit is the Table D-1 family #2, 4, 7, 11, 24 (symmetric, floor term p = 1 dominant), which the exact Ritz energy moves to above 1 kHz. Post-hoc amendment 2026-10-29: in the vanishing-floor limit a test-only floor-mass factor (1e-4) was added after the first run, because the scaled floor kept its own modes at full frequency and one sat on a shell mode (896 Hz) and split it.
-**Explanation:** `_appd_family` with test-only factors `shell_kscale`, `floor_mscale` (production 1); references `_p80_shell_alone_Hz` and `_p80_clamped_plate_Hz` (validated against Leissa's square SS-C-SS-C λ = 28.95).
-Inputs: `appd_nasa_deck()`; floor ×1e-4 (t, mass, D′) and floor mass ×1e-4 more; shell stiffness ×1e4; ns 0–12, np 0–5.
-Equations: App. D (D.17)–(D.26); Levy plate D_y d⁴Y/dy⁴ − 2Hμ² d²Y/dy² + D_x μ⁴ Y = m ω² Y.
-Outputs: frequencies per limit against the references; error in %.
-
-### Case: MRP_SHAPE_NORM
-**Title:** Table D-1 shapes: max-normalized (62)
-**Map / block:** total / X_MRP_OUT
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Wall modes → Wall modes
-**Compared with:** verification
-**Source:** CR-3813 Table D-1 and p. D-10 (shapes normalized to unit maximum displacement); phase 62 criterion 2026-10-23
-**What it tests:** max |ψ| over the shell and floor of each of the 32 Table D-1 shapes as transcribed.
-**Why it is here:** Gives the structural output block a check with its own figure; the coupling bound |f′| ≤ 1 rests on max-normalized shapes.
-**A pass means:** max |ψ| ≤ 1 + 1e-6 for every mode.
-**Not covered:** Whether the printed coefficients are complete (Table D-1 prints the largest terms only).
-**Recorded outcome:** **Information since Phase 82 (2026-10-29): no verdict.** Not a validation case under the meaningfulness rule (it tests a property of NASA's printed Table D-1, not this code; MRP_TRUNC checks the solver against the printed shapes). The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: **not met**, 19/32 (first run 2026-10-23; `phase62_65_map_blocks_grid.md`): 13 shapes reach max |ψ| up to 1.245 **Transcription check 2026-10-28 (Phase 78e, two readings: the page scans of pp. D-13–D-16 and the PDF's OCR layer):** the coefficients of modes 4, 7, 11, 16, 21, 24 and 27 equal the printed values (the OCR layer misreads mode 21's .20494 as .20194; the scan reads .20494). The excess is in the printed table itself, which lists the five largest shell and three largest plate terms of each mode: recorded as a data limitation of the truncated print (§2.14 class I); criterion unchanged.
-**Explanation:** Quantified 2026-10-29 (Phase 80d, `MRP_TRUNC`): the solver on NASA's deck reproduces Table D-1, and its full shapes peak at exactly 1; cut to the 5 shell + 3 floor terms Table D-1 prints, they peak at 0.77–1.23, mode by mode within 0.02 of the printed table's own peaks (largest 1.228 vs 1.254). Table D-1 prints only the largest Fourier coefficients of each mode, so the truncated sum need not peak at exactly 1. The coupling factor checks |f′| ≤ 1 on every pair it uses and none exceeds it. Recorded as a property of the printed table; no coefficient was rescaled.
-Inputs: TABLE_D1_FULL / _D1_SHAPES.
-Equations: Eqs. (46)–(49)
-Outputs: max |ψ| per mode.
 
 ### Case: MRP_TRUNC
 **Title:** App. D solver shapes: unit maximum, and the Table D-1 print truncation (80d)
@@ -1348,24 +1150,6 @@ Outputs: f [Hz]; verdict on 2 % @ NY20 and error improvement.
 Inputs: `cyl2d_modes(56.6°; NY=10)`; a = 0.508 m, L = test_article_length(), q_max = 3.
 Equations: linear interpolate in θ; f_n = (c0/2π)√(λ_i/a² + (qπ/L)²).
 Outputs: φ, f; verdict ≤ 1e-9 / exact list.
-
-### Case: CYL2D_WEYL
-**Title:** Cabin mode count vs Weyl's law (62)
-**Map / block:** total / X_CYL_OUT
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Cabin modes → Cabin modes
-**Compared with:** verification
-**Source:** Weyl's law with the rigid-wall (Neumann) surface term, 4πVf³/(3c³) + πSf²/(4c²); criterion 2026-10-28 (Phase 79d, post-hoc); first criterion (leading term) 2026-10-23
-**What it tests:** The cumulative number of 3-D cabin modes (CYL2D × axial) below f at 500–1500 Hz on the production grid (NY = 10, 120 cross-section modes); the converged grid (NY = 40) as information.
-**Why it is here:** Gives the cabin-mode output block a check with its own figure; a mode count far from Weyl means missing or spurious modes.
-**A pass means:** The production count is within 25 % of Weyl's law with the surface term at every listed frequency (criterion dated 2026-10-28 after the counts were known, so a pass would be post-hoc; first run 2026-10-23: within 25 % of the leading term).
-**Not covered:** Mode shapes; the 2-D modes above the 20 PAIN uses.
-**Recorded outcome:** **Information since Phase 82 (2026-10-29): no verdict.** Not a validation case under the meaningfulness rule (Weyl's law is an asymptotic mode count, not a PAIN output or a measurement; CYL2D_C1 reproduces NASA's Table C-1). The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: **not met**, 0/5 (first run 2026-10-23; `phase62_65_map_blocks_grid.md`): N/W = 1.71, 1.59, 1.49, 1.56, 1.87. Post-hoc: with the Neumann surface term N/W = 0.99, 1.07, 1.10, 1.21, 1.51 **Phase 79b (2026-10-28):** refined App. C grids now solve (only the kept modes must be real), so the NY = 10 count can be compared with a converged grid (79c–79d, planned); this record is unchanged until then. **Re-run 2026-10-28 (Phase 79d, criterion with the surface term, post-hoc):** **not met, 4/5** (NY 10: N/W = 0.99, 1.07, 1.10, 1.21, 1.51; the 1500 Hz count fails). The converged grid NY = 40 (information) gives 0.99, 1.06, 1.03, 1.02, 1.02: the excess at 1250–1500 Hz is the NY = 10 grid, not missing physics.
-**Explanation:** Post-hoc diagnosis (2026-10-24, after the result): the App. C 5-point grid at NY = 10 has h = 0.2a, and its eigenvalues fall below the exact ones as kh grows (near-circle limit θ0 = 2°: k-th FD mode / k-th exact J′ zero = 0.98 at kh = 0.4, 0.80 at kh = 2.4, 0.73 at kh = 2.9; NY = 20: 0.93 at kh = 1.5). Frequencies computed too low put more modes below each f, which is the overcount that grows with f. This is a resolution limit of the App. C grid as printed (Fig. C-3 uses NY = 10), recorded as such; the criterion is unchanged.
-Inputs: θ0 = 56.6°, NY = 10 (n_modes = 120) and NY = 40 (n_modes = 52, information), a = 0.508 m, L = 1.83 m, q_max from 1600 Hz.
-Equations: Weyl N(f) = 4πVf³/(3c³) + πSf²/(4c²), S = curved wall + floor + two ends; leading term alone as information.
-Outputs: N(f) for NY 10 and NY 40; both Weyl curves.
 
 ### Case: CYL2D_GRID_CONV
 **Title:** CYL2D production grid (NY 10) vs converged grid (79c)
@@ -1663,24 +1447,6 @@ Inputs: bare cabin; m_wall = 8 kg/m²; one mode at 1000 Hz and one at 700 Hz.
 Equations: Eq. (20); printed τ_R; code `hf_transmission_coeffs`.
 Outputs: τ_f, τ_R, τ; verdict ≤ 1e-9 relative.
 
-### Case: SHARP_PANEL_D
-**Title:** Sharp double-panel construction vs CR-172490 Fig. 15, Panel D (59a)
-**Map / block:** total / P_EQ8
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Bands and dB(A) → Bands and dB(A)
-**Compared with:** verification
-**Source:** NASA CR-172490 Fig. 15 and Fig. A-7; criterion fixed 2026-10-23
-**What it tests:** The Sharp double-panel construction (Eqs. 5, 22, 23, 25; Fig. 5) against the source's own predicted curve for its Panel D.
-**Why it is here:** It checks the bridge model's implementation before the model is used in Eq. (23).
-**A pass means:** Within 1 dB at ≥ 90 % of the points 50–2000 Hz with ΔTL_M = 12 dB as stated.
-**Not covered:** The source states ΔTL_M only approximately ("on the order of 12 dB"); the figure implies 10.2 dB.
-**Recorded outcome:** **Information since Phase 82 (2026-10-29): no verdict.** Not a validation case under the meaningfulness rule (CR-172490's design figure is neither PAIN nor a measurement). The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: **not_met**, 3/13 (2026-10-23); the mass law is about 1 dB under the figure and the bridged line about 1.3 dB over it. **Phase 81c (2026-10-29):** class **N**. Fig. A-7 places the point connectors on support blocks at the longeron/frame crossings (longeron pitch 190 mm); Eq. (25) with e = 0.19 m and f_c = 7.9 kHz gives ΔTL_M = 12.6 dB, consistent with the text's "on the order of 12 dB", while the figure's curve lies 10.2 dB over its own mass line. No documented input reproduces the figure; 10.2 dB taken from it would be calibration. What the construction fixes is checked separately by `SHARP_PANEL_D_SHAPE` (met).
-**Explanation:** Code-on-source. `sharp_double_panel_TL`.
-Inputs: `data/cr172490/cr172490_fig15_panelD.csv`.
-Equations: CR-172490 Eqs. (5), (22), (23), (25).
-Outputs: TL [dB].
-
 ### Case: SHARP_PANEL_D_SHAPE
 **Title:** Sharp construction segment slopes vs CR-172490 Fig. 15, Panel D (81c)
 **Map / block:** total / P_EQ8
@@ -1717,24 +1483,6 @@ Inputs: stated octave and 1/3-octave dicts.
 Equations: `sil_dB`, `sil_from_third_octave`.
 Outputs: SIL [dB]; verdict ≤ 1e-9 dB.
 
-### Case: LOUDEST_PT
-**Title:** Interior level at the loudest point (42)
-**Map / block:** total / X_OUT
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Interior tones → Interior tones
-**Compared with:** verification
-**Source:** CR-3813 Eq. (8) and App. C (Eqs. C.9–C.11); criteria fixed 2026-10-23 (plan Phase 42)
-**What it tests:** The point form of Eq. (8). Acoustic modes add coherently at each interior point for every structural mode, and structural modes add in mean square. The checks: the volume average of the point values against the space average; the loudest point at or above the average; a single acoustic mode reproducing φ².
-**Why it is here:** PAIN reports a space average; the loudest point is what a passenger hears at the worst seat. It is a derived output with no experimental criterion (the E-16 means are space averages).
-**A pass means:** (a) the interior-node average is within 1 % of Eq. (8) for H1–H3; (b) loudest-point dB(A) ≥ space-average dB(A); (c) one mode alone gives ⟨p²⟩ ∝ φ_i² (spread ≤ 1e-9).
-**Not covered:** Measured point levels; broadband at points (taken as diffuse, space-average level everywhere); tones above the changeover under `:auto` (taken as diffuse). The loudest-point position depends on the sign convention of antisymmetric modes (open item 44f).
-**Recorded outcome:** **Information since Phase 82 (2026-10-29): no verdict.** Not a validation case under the meaningfulness rule (the point form against Eq. (8) is an internal consistency check; check (a)'s converged form is LOUDEST_PT_GRID). The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: **not_met** (first run 2026-10-23): (a) not met: 0.938 / 0.877 / 0.834. The point set excludes wall and floor nodes, where rigid-wall modes have antinodes; the ε_n normalization is exact over all nodes (ε·Φ_G/A = 1.000). (b) met: +4.6 dB. (c) met: 7e-16. Supplementary, labelled post-hoc: all nodes with the Eq. (C.10) weights give 1.027 / 1.004 / 0.986, the residual being the discrete orthogonality of the CYL2D eigenvectors. Test article: space average 79.1 dB(A), loudest point 83.7 dB(A) at X = −0.39 m, Y = −0.20 m, z = 0.92 m. Aircraft example (`aircraft_scale_hartzell.json`, X-EXTRAP): 93.8 dB(A) average, 98.4 dB(A) at the loudest point (z = 0, the forward end). **Phase 44f knock-on (2026-10-23, Eq. (52) floor-term sign of NASA's corrected program; post-hoc):** (a) 0.936 / 0.886 / 0.901 (all-node 1.011 / 0.995 / 0.978); test article 80.4 dB(A) average, 85.5 dB(A) at the loudest point. **Phase 65 knock-on (2026-10-24, grid axial correction: code vs User Manual p. 9 / App. E p. E-8, z_k = z_p − x₃, z_p = 0.662 m; not a fit):** test article 80.0 dB(A) space average, 84.3 dB(A) loudest point (was 80.4 / 85.5); (a) not met unchanged. **Phase 81d (2026-10-29):** on the converged grid NY = 40 the all-node Eq. (C.10)-weighted average equals Eq. (8) within 0.07 % (`LOUDEST_PT_GRID`, met), while the interior-node ratio is 0.98 / 0.98 / 0.97: the point form is right, and check (a) misses because its pre-registered point set leaves out the wall and floor nodes (class D, test design).
-**Explanation:** `cabin_interior_points`, `point_tone_p2`, `loudest_point` in `loudest_point.jl`; `cabin_quadrature_points` for the supplementary check.
-Inputs: T1 test-article inputs; aircraft example.
-Equations: Eq. (8) at points; φ_n = cos(qπz/L_c) φ_i(node) (Eq. C.9).
-Outputs: point tone levels, loudest-point and space-average dB(A), position.
-
 ### Case: LOUDEST_PT_GRID
 **Title:** Point form of Eq. (8) on the converged CYL2D grid, NY = 40 (81d)
 **Map / block:** total / X_OUT
@@ -1757,42 +1505,6 @@ Outputs: volume average / Eq. (8) per harmonic.
 
 Blocks in map order: `P_REPRO` vs NASA PAIN → `P_MEAS` vs measurement → `A_CABIN` Aircraft cabin. Cases are listed block by block, in the order the map shows them.
 
-### Case: REPRO_18b
-**Title:** PAIN reproduction (18b-r)
-**Map / block:** total / P_REPRO
-**Category:** calibrated
-**Kind:** runnable
-**Chain span:** Free field → Interior tones
-**Compared with:** NASA's printed prediction
-**Source:** CR-3813 Fig. E-16 NASA PAIN circles, p.142
-**What it tests:** Whole cabin chain on ANOPP Table 8 with R1 vs NASA's PAIN interior predictions.
-**Why it is here:** Shows whether this chain computes what NASA's program computed (code-on-code).
-**A pass means:** Code-to-code agreement within 4 dB per harmonic H1–H3.
-**Not covered:** η_T = 0.5 adopted after 19f showed the result (post-hoc); conditional on GEXT; amplitude convention fixed 2026-10-21, post-hoc.
-**Recorded outcome:** 18b-r not met 1/3: 85.90, 78.35, 79.82 dB at L = 1.83 m (I-22 re-record 2026-10-22, post-hoc; earlier 1.803 m: 85.74, 78.74, 80.06 — `length_sensitivity.md` / `pain_reproduction_e16.md`). Phase 38b `:auto` (report only, ten-mode crossover): 85.90, 16.81, 72.24 dB; H3 Δ=+4.24 (I-18 explains H3 = no); `phase38b_high_freq_tones.md`. **43a post-hoc re-run (2026-10-23):** Manual card 10 volume crossover default (f≈1299.6 Hz → band 1260 Hz); `:auto` H1–H3 = 85.90, 78.35, 79.82 dB (= `:eq8`; old ten-mode `:auto` kept above). Isolation case T1_FROM_E12 (41a) also not met (2/3, H3 fails) → cabin chain implicated, not source/blocking alone. **Phase 44 knock-on (2026-10-23, Eq. (83) bare f′):** 85.93, 78.32, 79.57 dB; 1/3, verdict unchanged. **Phase 44f knock-on (2026-10-23, Eq. (52) floor-term sign of NASA's corrected program; post-hoc):** 0/3 (89.03, 81.24, 77.06 dB). REPRO_18b compares with NASA's pre-correction CR-3813 run, which used the other sign. **Phase 65 knock-on (2026-10-24, grid axial correction: code vs User Manual p. 9 / App. E p. E-8, z_k = z_p − x₃, z_p = 0.662 m; not a fit):** 0/3 (88.20, 80.43, 78.21 dB; was 89.03, 81.24, 77.06). Phase 93 default form (2026-10-29): not met, 1/3. Phase 96 default (2026-10-30): not met, 1/3.
-**Explanation:** Code-on-code (against printed values): run the cabin chain on ANOPP Table 8 with blocking R1 and Phase III trim η_T = 0.5 (NASA's value) and compare interior SPL with NASA's PAIN circles on Fig. E-16 (±4 dB per harmonic). Axes: harmonic band vs SPL; NASA circles vs this code. η_T = 0.5 was adopted after 19f → post-hoc. Conditional on GEXT.
-Inputs: `default_e11_paths().anopp_spl`; `phase3_trim(; η_lining=0.5)`; blocking R1; BPF = 200 Hz; n_harmonics = 3; L = 1.83 m; targets `t1_interior_targets.csv` (NASA PAIN column).
-Equations: full cabin chain; tone Eq. (8) via `run_pain_pipeline` / `tone_mean_square_pressure`; blocking Eq. (43) R1.
-Outputs: interior SPL_H1..H3 [dB]; verdict |Δ| ≤ 4 dB vs NASA PAIN prediction.
-
-### Case: E18_TONES
-**Title:** Fig. E-18 tones (η_T=1)
-**Map / block:** total / P_REPRO
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Free field → Interior tones
-**Compared with:** NASA's printed prediction
-**Source:** CR-3813 Fig. E-18, p.E-29; e18_interior_pred_eta1.csv
-**What it tests:** Tones with η_T = 1.0 and η_r′ ≤ 0.15 vs NASA E-18 prediction.
-**Why it is here:** NASA's η_T = 1.0 / capped-η_r′ setting (same as E-21) on the tone path.
-**A pass means:** |computed − NASA E-18 prediction| ≤ 4 dB at each of H1–H3 (bands 200, 400, 630 Hz).
-**Not covered:** :auto and measured mean/low/high are secondary (V-EXP held out); no parameter from E-18.
-**Recorded outcome:** 2/3 within ±4 dB (88.67, 77.78, 77.55 dB) at L = 1.83 m (I-22 re-record 2026-10-22, post-hoc; earlier 1.803 m: 89.02, 78.14, 77.70); not met; e18_tones_eta1.md. **43a post-hoc re-run (2026-10-23):** volume crossover default; production `:eq8` unchanged 88.67, 77.78, 77.55; `:auto` old (ten-mode) 88.67, 13.18, 67.39 → new (volume) 88.67, 77.78, 77.55. **Phase 44 knock-on (2026-10-23, Eq. (83) bare f′):** 2/3 unchanged; `:auto` secondary 88.69, 77.76, 77.33 dB. **Phase 44f knock-on (2026-10-23, Eq. (52) floor-term sign of NASA's corrected program; post-hoc):** 1/3; `:auto` secondary 91.17, 80.44, 75.24 dB (E-18 is also a pre-correction run). **Phase 65 knock-on (2026-10-24, grid axial correction: code vs User Manual p. 9 / App. E p. E-8, z_k = z_p − x₃, z_p = 0.662 m; not a fit):** 1/3 unchanged; `:auto` secondary 90.35, 79.63, 76.56 dB (was 91.17, 80.44, 75.24). Phase 93 default form (2026-10-29): not met, 2/10. Phase 96 default (2026-10-30): not met, 2/10.
-**Explanation:** Code-on-code (against NASA prediction): same free-field/blocking/grid as 18b-r but Phase III trim η_T = 1.0 and η_r_cap = 0.15 on the tone path (`tone_model=:eq8`). H1–H3 map to 200, 400, 630 Hz (H3 at 3·BPF = 600 Hz → 630 Hz 1/3-octave band). Criterion dated 2026-10-21 (same ±4 dB as 18b).
-Inputs: `default_e11_paths()`; `phase3_trim(; η_lining=1.0)`; η_r_cap = 0.15; BPF = 200 Hz; L = 1.83 m; `e18_interior_pred_eta1.csv`.
-Equations: Eq. (8) tones; Eq. (82) capped η_r′; blocking as in pipeline.
-Outputs: interior SPL [dB] at 200/400/630 Hz; verdict ≤ 4 dB vs NASA E-18 prediction.
-
 ### Case: NR_TP1964_XOVER_REF2
 **Title:** TP-1964 NR with changeover vs NASA ref. 2 (45b)
 **Map / block:** total / P_REPRO
@@ -1811,60 +1523,6 @@ Inputs: as NR_TP1964_XOVER.
 Equations: as NR_TP1964_XOVER.
 Outputs: NR per band [dB].
 
-### Case: REPRO_18b_PRE
-**Title:** REPRO_18b with NASA's pre-correction Eq. (52) floor sign (61b)
-**Map / block:** total / P_REPRO
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Free field → Interior tones
-**Compared with:** NASA's printed prediction
-**Source:** CR-3813 Fig. E-16 NASA prediction; CR-172428 p. 178; criterion fixed 2026-10-23
-**What it tests:** The tone chain with the floor-term sign of NASA's program before its CR-172428 correction, against CR-3813's printed prediction.
-**Why it is here:** CR-3813's runs predate the correction; this tests whether that explains REPRO_18b's 6–10 dB.
-**A pass means:** |Δ| ≤ 4 dB at H1–H3.
-**Not covered:** Other undocumented differences in NASA's 1983 runs.
-**Recorded outcome:** **Diagnostic since Phase 86 (2026-10-29): no verdict, off the map** (`DIAGNOSTIC_CASES`). It re-runs another case with one program form or input set changed to test a documented cause of that case's miss; the case it re-runs carries the verdict. The run and its table are unchanged; the outcome before, kept as a record and not a pass: **not_met**, 1/3 (2026-10-23): 85.93, 78.32, 79.57 dB against 79.0, 75.5, 68.0 dB (corrected form 89.03, 81.24, 77.06). **Phase 65 knock-on (2026-10-24, grid axial correction: code vs User Manual p. 9 / App. E p. E-8, z_k = z_p − x₃, z_p = 0.662 m; not a fit):** 1/3 unchanged (85.11, 77.61, 81.85 dB; corrected form 88.20, 80.43, 78.21).
-**Explanation:** Code-on-code. `floor_sign = −1`.
-Inputs: As REPRO_18b.
-Equations: Eq. (8), Eq. (52).
-Outputs: SPL H1–H3 [dB].
-
-### Case: E21_PRE
-**Title:** E-21 NASA NR with NASA's pre-correction Eq. (52) floor sign (61c)
-**Map / block:** total / P_REPRO
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Skin field → Bands and dB(A)
-**Compared with:** NASA's printed prediction
-**Source:** CR-3813 Fig. E-21 NASA prediction; criterion fixed 2026-10-23
-**What it tests:** Eq. (18) with the pre-correction floor sign against NASA's printed NR prediction.
-**Why it is here:** It is the same question for the noise-reduction path.
-**A pass means:** |Δ| ≤ 3 dB in ≥ 75 % of the counted bands (38a).
-**Not covered:** As REPRO_18b_PRE.
-**Recorded outcome:** **Diagnostic since Phase 86 (2026-10-29): no verdict, off the map** (`DIAGNOSTIC_CASES`). It re-runs another case with one program form or input set changed to test a documented cause of that case's miss; the case it re-runs carries the verdict. The run and its table are unchanged; the outcome before, kept as a record and not a pass: **not_met**, 1/4 (2026-10-23); 400–630 Hz within 0.6–1.9 dB (not counted); 800–1000 Hz 6–18 dB above NASA.
-**Explanation:** Code-on-code. `floor_sign = −1`, E-21 inputs.
-Inputs: E-21 inputs.
-Equations: Eq. (18), Eq. (52).
-Outputs: NR [dB].
-
-### Case: E21_PRE_DECK
-**Title:** E-21 NR, pre-correction form, on NASA's 300 modes vs NASA's E-21 prediction (84c)
-**Map / block:** total / P_REPRO
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Skin field → Bands and dB(A)
-**Compared with:** NASA's printed prediction
-**Source:** CR-3813 Fig. E-21 NASA prediction; NASA's MRP deck; CR-172428 Table 6; criterion fixed 2026-10-29 before the run (plan §8ab)
-**What it tests:** E21_PRE (pre-correction floor sign, Phase III η_T = 1.0, η_r′ ≤ 0.15) with NASA's 300 structural modes in place of Table D-1's 32.
-**Why it is here:** Table D-1's modes stop at 811 Hz; the mode set was untested in the Eq. (18) path (Phase 84a).
-**A pass means:** |NR − NASA's E-21 prediction| ≤ 3 dB in ≥ 75 % of the counted bands (E21_PRE's criterion).
-**Not covered:** The end-plate allowance of ref. [7] (80–160 Hz, not counted).
-**Recorded outcome:** **Diagnostic since Phase 86 (2026-10-29): no verdict, off the map** (`DIAGNOSTIC_CASES`). It re-runs another case with one program form or input set changed to test a documented cause of that case's miss; the case it re-runs carries the verdict. The run and its table are unchanged; the outcome before, kept as a record and not a pass: **not_met**, 1/4 counted bands (2026-10-29, first run), the same as E21_PRE. The counted bands are those below E21_PRE's ten-mode crossover (400 Hz), where Table D-1 already has every mode, so they move < 0.4 dB; the 84a audit row expected the Eq. (18) bands to reach 1260 Hz, which holds for the volume crossover, not E21_PRE's (corrected 2026-10-29 after the run). Above the crossover the 300 modes lower NR by up to 27 dB (not counted).
-**Explanation:** Code-on-code; `noise_reduction_spectrum` on `noise_reduction_test_article_inputs(; structural_set=:deck)` with `floor_sign = −1`.
-Inputs: as E21_PRE; `nasa_deck_modes()`.
-Equations: Eqs. (17)–(18) below the crossover, (19)–(23) above.
-Outputs: NR [dB] per band, with the Table D-1 run beside it.
-
 ### Case: E22_HF_CODE
 **Title:** High-frequency NR, this code vs NASA's E-22 prediction (61d)
 **Map / block:** total / P_REPRO
@@ -1882,42 +1540,6 @@ Outputs: NR [dB] per band, with the Table D-1 run beside it.
 Inputs: E-22 data; E-21 inputs.
 Equations: Eqs. (19)–(23).
 Outputs: NR [dB].
-
-### Case: E22_HF_DECK
-**Title:** High-frequency NR on NASA's 300 modes vs NASA's E-22 prediction (83b)
-**Map / block:** total / P_REPRO
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Skin field → Bands and dB(A)
-**Compared with:** NASA's printed prediction
-**Source:** CR-3813 Fig. E-22 NASA prediction; NASA's MRP deck (User Manual pp. 42–43); CR-172428 Table 6 (300 structural modes); criterion fixed 2026-10-29 before the run (plan §8aa)
-**What it tests:** E22_HF_CODE with the structural modes NASA ran PAIN with: the App. D solver on NASA's deck, 300 modes to 3.7 kHz, in place of Table D-1's 32 (to 811 Hz). Every other input as E22_HF_CODE.
-**Why it is here:** With Table D-1 no structural mode is resonant at 1250–2500 Hz, so Eqs. (19)–(23) fall back to an asymptotic density; this was the one untested cause of the code-to-NASA difference (Phase 83a).
-**A pass means:** |Δ| ≤ 3 dB of NASA's prediction in ≥ 75 % of the bands 1250–2500 Hz (E22_HF_CODE's criterion).
-**Not covered:** NASA's 1983 high-frequency routine is not printed; CR-3813 does not state its own mode count for E-22.
-**Recorded outcome:** **Diagnostic since Phase 86 (2026-10-29): no verdict, off the map** (`DIAGNOSTIC_CASES`). It re-runs another case with one program form or input set changed to test a documented cause of that case's miss; the case it re-runs carries the verdict. The run and its table are unchanged; the outcome before, kept as a record and not a pass: **not_met**, 0/4 (2026-10-29, first run): code − NASA −5.7, −13.7, −18.2, −18.5 dB (Table D-1: +7.7, +2.1, −6.5, −5.6); 39–68 modes resonant per band. The resonant modes lower NR by 12–19 dB, past NASA's curve, so the mode set does not explain the difference; as fixed before the run, no other count is tried and the high-frequency cases keep Table D-1.
-**Explanation:** Code-on-code. `hf_pressure_ratio` on `noise_reduction_test_article_inputs(; structural_set=:deck)`.
-Inputs: E-22 data; E-21 inputs; `nasa_deck_modes()`.
-Equations: Eqs. (19)–(23).
-Outputs: NR [dB], with the Table D-1 run beside it.
-
-### Case: REPRO_18b_DECK
-**Title:** REPRO_18b on NASA's 300 modes vs E-16's NASA prediction (83e)
-**Map / block:** total / P_REPRO
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Free field → Interior tones
-**Compared with:** NASA's printed prediction
-**Source:** CR-3813 Fig. E-16 NASA PAIN circles; NASA's MRP deck; CR-172428 Table 6; criterion fixed 2026-10-29 before the run (plan §8aa)
-**What it tests:** REPRO_18b with NASA's 300 deck modes in place of Table D-1's 32; everything else as REPRO_18b.
-**Why it is here:** REPRO_18b_PRE already reverts all three CR-172428 App. A program changes; the mode set was the one input left (Phase 83a).
-**A pass means:** |Δ| ≤ 4 dB at H1–H3 against E-16's NASA prediction (REPRO_18b's criterion).
-**Not covered:** CR-3813 does not state the mode count of its E-16 run.
-**Recorded outcome:** **Diagnostic since Phase 86 (2026-10-29): no verdict, off the map** (`DIAGNOSTIC_CASES`). It re-runs another case with one program form or input set changed to test a documented cause of that case's miss; the case it re-runs carries the verdict. The run and its table are unchanged; the outcome before, kept as a record and not a pass: **not_met**, 0/3 (2026-10-29, first run): 88.15, 80.58, 78.33 dB against NASA's 79.0, 75.5, 68.0 (Table D-1: 88.20, 80.43, 78.21). The tones move < 0.2 dB, so the mode set is not the cause. **After Phase 106 (2026-10-30, post-hoc; 2-D cabin-mode part at 341 m/s):** 0/3 (88.57 / 79.58 / 78.91 dB).
-**Explanation:** Code-on-code. Tones of Eq. (8) via `interior_spl` on the REPRO_18b inputs with `nasa_deck_modes()`.
-Inputs: as REPRO_18b; `nasa_deck_modes()`.
-Equations: full cabin chain, Eq. (8).
-Outputs: SPL H1–H3 [dB], with the Table D-1 run beside it.
 
 ### Case: R172428_CODE
 **Title:** CR-172428 reproduction: NASA's inputs vs NASA's printed predictions (44d; CR-3813 printed form)
@@ -1973,134 +1595,6 @@ Inputs: as R172428_CODE.
 Equations: as R172428_CODE; L = 10 log₁₀ Σ_H 10^(L_H/10).
 Outputs: 3 tonal levels [dB] next to NASA's; verdict vs ±3 dB at each rpm.
 
-### Case: R172428_CODE_DECK
-**Title:** CR-172428 reproduction on NASA's 300 modes vs NASA's printed predictions (84b)
-**Map / block:** total / P_REPRO
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Skin field → Interior tones
-**Compared with:** NASA's printed prediction
-**Source:** NASA CR-172428 App. B / Table 10 (NASA's predictions), Table 6 (300 structural modes); NASA's MRP deck; criterion fixed 2026-10-29 before the run (plan §8ab)
-**What it tests:** R172428_CODE with NASA's 300 structural modes (`nasa_deck_modes()`) in place of 32; everything else as R172428_CODE.
-**Why it is here:** NASA's corrected-program runs used 300 structural and 400 acoustic modes; our acoustic list equals NASA's printed one, so the structural count was the one mode input left (Phase 84a).
-**A pass means:** ±3 dB of NASA's printed prediction at ≥ 7 of 9 points (R172428_CODE's criterion).
-**Not covered:** NASA's modes above Table D-1 are not printed, so the deck solve stands in for them.
-**Recorded outcome:** **Diagnostic since Phase 86 (2026-10-29): no verdict, off the map** (`DIAGNOSTIC_CASES`). It re-runs another case with one program form or input set changed to test a documented cause of that case's miss; the case it re-runs carries the verdict. The run and its table are unchanged; the outcome before, kept as a record and not a pass: **not_met**, 4/9 (2026-10-29, first run), the same count as R172428_CODE: 3000 rpm 70.84, 68.60, 61.66; 4000 rpm 102.41, 79.91, 71.94; 5000 rpm 90.15, 94.49, 80.58 dB (Table D-1: 71.07, 69.02, 62.66; 102.45, 80.05, 71.69; 90.35, 94.40, 78.40). The levels move ≤ 2.2 dB, so the mode count is not the cause. **After Phase 106 (2026-10-30, post-hoc; 2-D cabin-mode part at 341 m/s):** 4/9.
-**Explanation:** Code-on-code; `r172428_inputs(rpm; structural=:nasa300)`, tones of Eq. (8).
-Inputs: as R172428_CODE; `nasa_deck_modes()`.
-Equations: full cabin chain, Eq. (8).
-Outputs: SPL H1–H3 at 3000/4000/5000 rpm [dB].
-
-### Case: R172428_PAIRS
-**Title:** CR-172428 top modal contributions vs App. B (diagnostic)
-**Map / block:** total / P_REPRO
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Skin field → Interior tones
-**Compared with:** NASA's printed prediction
-**Source:** NASA CR-172428 App. B p. 207 (five largest acoustic × structural contributions per harmonic, 4000 rpm); no criterion
-**What it tests:** Our mean-square contribution for each pair NASA printed, as a ratio in dB, plus our own largest pair per harmonic.
-**Why it is here:** It localizes the R172428_CODE difference to individual mode pairs.
-**A pass means:** No criterion (always `:no_verdict`).
-**Not covered:** 3000 and 5000 rpm (not transcribed).
-**Recorded outcome:** diagnostic (2026-10-23): pairs with shell-dominated modes agree within 0.4–2.5 dB (e.g. (2,0)×6 −0.6 dB, (2,3)×21 −0.4 dB). Pairs with floor-dominated modes 1 and 2 are 10–12 dB low. Our largest H1 pair, (0,1) × mode 8 (antisymmetric), does not appear in NASA's list at all. Open item: the floor/antisymmetric coupling path. **Phase 44f knock-on (2026-10-23, Eq. (52) floor-term sign of NASA's corrected program; post-hoc):** 12 of NASA's 15 printed pairs within ±3.7 dB (was 4 within ±3 dB); the bare f′ implied by NASA's printed η_r″ matches |I_s + I_p| within 1.1 % for 9 of 10 further pairs at 5000 rpm (out of sample); remaining outliers H3 (2,8)×22 −9.7, (2,8)×17 −6.4 dB, and our H1 pair (0,1) × mode 8 (5.6 Pa²), absent from NASA's list. Our largest pairs at 4000 and 5000 rpm all have q = 0 cabin modes, and NASA's printed lists have none; dropping q = 0 (a diagnostic, not adopted: Eq. 57 and Ref. [3] give f₀M ≠ 0) would make R172428_CODE 8/9 (plan Q22).
-**Explanation:** `modal_tone_contributions` on `r172428_inputs(4000)`.
-Inputs: `appB_contributors_4000rpm.csv`.
-Equations: Eq. (8) per pair.
-Outputs: per-pair ratio [dB].
-
----
-
-### Case: UNC_COVER
-**Title:** Uncertainty coverage vs E-16 means (31e)
-**Map / block:** total / P_MEAS
-**Category:** experiment
-**Kind:** runnable
-**Chain span:** Free field → Interior tones
-**Compared with:** measurement
-**Source:** CR-3813 Fig. E-16 measured means; phase 31 pre-registration 2026-10-22
-**What it tests:** Whether the untuned parametric cabin Monte Carlo P5–P95 band (NASA free field, a-priori ranges) contains the measured E-16 mean at H1–H3.
-**Why it is here:** Coverage check on the test article before trusting the aircraft epistemic band; can fail without widening ranges in this run.
-**A pass means:** Measured mean at each of H1, H2, H3 lies inside the primary (uniform) MC P5–P95; `:met` only if all three.
-**Not covered:** Not a confidence interval; no E-16 envelope floor; no tuned value; scattering/refraction excluded (V-ASSUMED); aircraft source residuals not in this check.
-**Recorded outcome:** `:not_met` — H1 P5/P50/P95 88.95/89.87/91.06 vs mean 90 (inside, margin +1.05 dB); H2 85.46/91.3/92.86 vs 80 (miss −5.46); H3 73.09/74.78/77.59 vs 65 (miss −8.09); kept `freq_scale`, `eta_t`; `uncertainty_budget_testarticle.md` (first run 2026-10-22) **Phase 44 knock-on (2026-10-23, Eq. (83) bare f′):** 0/3 within criterion (H1 margin −0.86 dB, was +1.05; H2 −5.45, H3 −8.09); verdict unchanged (not_met). **Phase 44f knock-on (2026-10-23, Eq. (52) floor-term sign of NASA's corrected program; post-hoc):** 0/3 (margins −0.81, −5.87, −10.24 dB). **Phase 78d knock-on (2026-10-28, App. D stiffener inputs corrected; post-hoc):** 1/3 (margins +0.19, −2.09, −18.47 dB); verdict unchanged (not met). **Phase 78d-3 knock-on (2026-10-28, floor beams about the floor mid-plane; post-hoc):** 1/3 (margins +0.52, −0.11, −18.36 dB); not met. **Phase 78d-4 knock-on (2026-10-28, App. D consistency fixes J1–J6; post-hoc):** 0/3 (margins H1 −4.06, H2 −5.41, H3 −13.23 dB; band medians 95.3, 87.7, 80.2 dB against the measured 90, 80, 65); not met. **Phase 80 knock-on (2026-10-29, App. D solver on NASA's series limits, whole-shell normalization, exact M_r; post-hoc):** 0/3 (margins H1 −3.67, H2 −6.84, H3 −12.88 dB); not met.
-**Explanation:** Experiment comparison (V-EXP vs measured E-16 means; first run 2026-10-22; pre-registered): untuned `:parametric` chain on the NASA test article with the phase-31 a-priori budget; OAT keep (>3 dB); primary Monte Carlo N=4000 seed 20261022; plot P5–P95 band with measured means. Failure means a missing contributor or ranges too narrow — do not widen here.
-Inputs: `cabin_blocks=:parametric`, `source=:e11`, Phase III trim path with η_t in 0.01–0.10 (nominal 0.05), C 2–4, freq scale 0.95–1.05, discrete CYL2D/q_max/blocking/trim alternatives; `t1_interior_targets.csv` measured means 90/80/65 dB; L = 1.83 m.
-Equations: App. D modes + Eq. (8) tones; App. A trim; no E-16 envelope in the band.
-Outputs: P5/P50/P95 [dB] per H1–H3; per-harmonic inside/margin; verdict `:met`|`:not_met`.
-
-### Case: T1
-**Title:** Tonal interior SPL (T1)
-**Map / block:** total / P_MEAS
-**Category:** calibrated
-**Kind:** runnable
-**Chain span:** Free field → Interior tones
-**Compared with:** measurement
-**Source:** CR-3813 Fig. E-16/E-17, p.142
-**What it tests:** End-to-end tonal interior SPL on the e11 measured free-field path vs Fig. E-16/E-17.
-**Why it is here:** Only end-to-end tonal SPL check against measurement (still not claimable after GEXT_BOUND).
-**A pass means:** In-sample consistency (gate A mean ± 4 dB, or gate B envelope + NASA ± 4 dB).
-**Not covered:** No claim: GEXT variants flip it; H3 fails; amplitude convention fixed 2026-10-21, post-hoc.
-**Recorded outcome:** 84.21, 77.66, 78.06 dB at L = 1.83 m (H1 fail, H2 pass, H3 fail); t1_tonal.md (I-22 re-record 2026-10-22, post-hoc; earlier 1.803 m: 84.05, 78.01, 78.30). **43a post-hoc re-run (2026-10-23):** volume crossover default; production `:eq8` unchanged 84.21, 77.66, 78.06; `:auto` old (ten-mode) 84.21, 16.22, 70.54 → new (volume) 84.21, 77.66, 78.06. Isolation case T1_FROM_E12 (41a) also not met (2/3, H3 fails) → cabin chain implicated, not source/blocking alone. Related: T1_MEAS_DAMPING (43b), T1_F1A_FILL (43f). **Phase 44 knock-on (2026-10-23, code-on-code fix of Eq. (83): η_r″ uses the bare f′):** 84.24, 77.63, 77.80 dB; verdict unchanged. **Phase 44f knock-on (2026-10-23, Eq. (52) floor-term sign of NASA's corrected program; post-hoc):** 87.36, 81.02, 75.23 dB; H1 and H2 now within the gate, H3 fails (+10.2 dB); verdict not_met. **Phase 65 knock-on (2026-10-24, grid axial correction: code vs User Manual p. 9 / App. E p. E-8, z_k = z_p − x₃, z_p = 0.662 m; not a fit):** 86.59, 80.02, 76.39 dB (was 87.36, 81.02, 75.23); H1 and H2 within the gate, H3 fails (+11.4 dB); verdict not_met. Phase 93 default form (2026-10-29): not met, 3/6.
-**Explanation:** Experiment comparison (calibrated / in-sample): e11 free-field → GEXT → blocking R2 → modes → Eq. (8) → interior tonal SPL vs measured Fig. E-16/E-17. Gate A: |got − measured mean| ≤ 4 dB; gate B: inside measured envelope and |got − NASA PAIN| ≤ 4 dB. Axes: 1/3-octave band vs SPL. No claim after GEXT_BOUND.
-Inputs: `run_pain_pipeline(; source=:e11, n_harmonics=3, bpf_Hz=200, blocking=R2)`; η_T = 0.5 default path; `t1_interior_targets.csv`; L = 1.83 m.
-Equations: full chain; Eq. (8); GEXT; Eq. (43) R2.
-Outputs: SPL_H1..H3 [dB]; verdict on gates A/B (still labeled not claimable).
-
-### Case: T2
-**Title:** 1/3-octave (T2)
-**Map / block:** total / P_MEAS
-**Category:** calibrated
-**Kind:** runnable
-**Chain span:** Free field → Bands and dB(A)
-**Compared with:** measurement
-**Source:** CR-3813 Fig. E-9, p.132
-**What it tests:** Broadband 1/3-octave interior SPL (surrogate path) vs Fig. E-9 at 1.25–2 kHz.
-**Why it is here:** Tonal model puts no energy above 1 kHz; this covers three high bands (surrogate).
-**A pass means:** In-sample: |got − measured mean| ≤ tol_dB from CSV; bb_j2_scale = 0.5 was fitted earlier (stale).
-**Not covered:** Only 1.25–2 kHz; nothing above; amplitude convention fixed 2026-10-21, post-hoc. The exterior broadband input is modelled (V-ASSUMED). Phase 47 (2026-10-23) found a measured exterior for this article: the modelled one is 17 dB above it, and with the measured exterior this path gives 38.6 dB (Eqs. 19–23: 21.6 dB) against 51.0 dB at 1250 Hz. The surrogate's closeness to E-9 therefore rests on compensating errors. Phase 55 decision (2026-10-23): it stays the production default, labelled calibrated, because neither cabin path is validated above 1 kHz and switching would change the frozen baselines.
-**Recorded outcome:** **Information since Phase 83d (2026-10-29): no verdict.** Not a validation case under the meaningfulness rule: its broadband path uses `bb_j2_scale`, fitted to Fig. E-9, and is compared with Fig. E-9; T2_EQ19 is the printed-method T2. The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: 55.92, 53.56, 51.59 dB at L = 1.83 m (I-22 re-record 2026-10-22, post-hoc; earlier 1.803 m: 55.97, 53.63, 51.67); t2_third_octave.md. Isolation case HF_MASSLAW (41d); isolation passes: remaining miss attributed to model fidelity (method), not code.
-**Explanation:** Experiment comparison (calibrated): surrogate broadband path vs Fig. E-9 means at 1.25, 1.6, 2 kHz. bb_j2_scale = 0.5 fitted earlier → post-hoc. Printed Eqs. (19)–(23) are case T2_EQ19.
-Inputs: `run_pain_pipeline(; source=:e11, n_harmonics=5, bpf_Hz=200, blocking=R2)`; `t2_third_octave_targets.csv`; bb_j2_scale = 0.5; L = 1.83 m.
-Equations: surrogate broadband (not printed Eqs. 19–23); `evaluate_T2`.
-Outputs: 1/3-octave SPL [dB] at target bands; verdict vs CSV tol_dB.
-
-### Case: T2_EQ19
-**Title:** 1/3-octave Eq.(19) (T2_EQ19)
-**Map / block:** total / P_MEAS
-**Category:** experiment
-**Kind:** runnable
-**Chain span:** Free field → Bands and dB(A)
-**Compared with:** measurement
-**Source:** CR-3813 Fig. E-9, p.132; Eqs. (19)–(23) pp.23–25
-**What it tests:** Printed high-frequency broadband Eqs. (19)–(23) vs Fig. E-9.
-**Why it is here:** First printed-model run replacing the surrogate / stale bb_j2_scale path.
-**A pass means:** Same T2 criterion: |got − Fig. E-9 mean| ≤ 3.5 dB at 1.25, 1.6, 2 kHz (criterion unchanged).
-**Not covered:** Spbl ∝ f^−2 anchor remains V-ASSUMED; only three bands; no parameter chosen from E-9/E-21/E-22. Exterior broadband not measured for this article; the input is assumed (V-ASSUMED); the high-frequency transmission path is validated by NR_TP1964 (phase 43e, 2026-10-23).
-**Recorded outcome:** 0/3 PASS (38.56, 35.81, 34.87 dB vs 51/46/41.5) at L = 1.83 m (I-22 re-record 2026-10-22, post-hoc; earlier 1.803 m: 38.59, 35.87, 34.94); full-band E-21/E-22 V-CODE 1/13, V-EXP 0/15; phase38c_hf_broadband.md. Isolation case HF_MASSLAW (41d); isolation passes: remaining miss attributed to model fidelity (method), not code. **Phase 44f knock-on (2026-10-23, Eq. (52) floor-term sign of NASA's corrected program; post-hoc):** 0/3; full band V-CODE 0/13, V-EXP 1/15. **Phase 65 knock-on (2026-10-24, grid axial correction: code vs User Manual p. 9 / App. E p. E-8, z_k = z_p − x₃, z_p = 0.662 m; not a fit):** 0/3 (38.85, 35.94, 34.90 dB); full band V-CODE 0/13, V-EXP 1/15 unchanged. Phase 93 default form (2026-10-29): not met, 4/19.
-**Explanation:** Experiment comparison: interior 1/3-octave SPL with `broadband_model=:eq19` (printed τ_f, τ_R, ᾱ from Eq. 24/78, A_t/S/A′) vs Fig. E-9. Default `:surrogate` T2 path unchanged. First run not met; no parameter tuned.
-Inputs: same e11 geometry/blocking as T2; `broadband_model=:eq19` via T2_EQ19 runner; targets CSV; L = 1.83 m.
-Equations: Eqs. (19)–(23) in `hf_broadband.jl`; related Eq. (24)/(78) absorptions.
-Outputs: SPL [dB] at 1.25/1.6/2 kHz; verdict ±3.5 dB; E-21/E-22 full-band counts reported only.
-
-### Case: T2_EQ19_DECK
-**Title:** T2 with Eqs. (19)–(23) on NASA's 300 modes vs Fig. E-9 (83c)
-**Map / block:** total / P_MEAS
-**Category:** experiment
-**Kind:** runnable
-**Chain span:** Free field → Bands and dB(A)
-**Compared with:** measurement
-**Source:** CR-3813 Fig. E-9, p. 132; NASA's MRP deck; CR-172428 Table 6; criterion fixed 2026-10-29 before the run (plan §8aa)
-**What it tests:** T2_EQ19 with NASA's 300 deck modes in place of Table D-1's 32; everything else as T2_EQ19.
-**Why it is here:** Same cause as E22_HF_DECK, on the measurement (Phase 83a).
-**A pass means:** |got − Fig. E-9 mean| ≤ 3.5 dB at 1.25, 1.6, 2 kHz (T2_EQ19's criterion).
-**Not covered:** The exterior blocked continuum stays V-ASSUMED, as in T2_EQ19.
-**Recorded outcome:** **Diagnostic since Phase 86 (2026-10-29): no verdict, off the map** (`DIAGNOSTIC_CASES`). It re-runs another case with one program form or input set changed to test a documented cause of that case's miss; the case it re-runs carries the verdict. The run and its table are unchanged; the outcome before, kept as a record and not a pass: **not_met**, 0/3 (2026-10-29, first run): 54.89, 54.18, 48.96 dB against 51.0, 46.0, 41.5 (Table D-1: 38.85, 35.94, 34.90). With the modes the prediction is 4–8 dB over the measurement instead of 6–12 dB under it; not met, and not adopted (the outcome rule of §8aa ties adoption to E22_HF_DECK).
-**Explanation:** Experiment comparison; `interior_spl(...; broadband_model=:eq19)` on the T2_EQ19 inputs with `nasa_deck_modes()`.
-Inputs: as T2_EQ19; `nasa_deck_modes()`.
-Equations: Eqs. (19)–(23).
-Outputs: SPL [dB] at 1.25/1.6/2 kHz, with the Table D-1 run beside it.
-
 ### Case: E21_E22_NR
 **Title:** Figs. E-21 / E-22 NR
 **Map / block:** total / P_MEAS
@@ -2118,42 +1612,6 @@ Outputs: SPL [dB] at 1.25/1.6/2 kHz, with the Table D-1 run beside it.
 Inputs: `noise_reduction_test_article_inputs(; η_lining=1.0)`; η_r_cap = 0.15; CSVs `e21_noise_reduction_range.csv`, `e22_noise_reduction_ci.csv`; L = 1.83 m.
 Equations: Eqs. (17)–(18) via `noise_reduction_band` / `noise_reduction_spectrum`.
 Outputs: NR(band) [dB]; verdict on NASA and E-22 fraction rules.
-
-### Case: T1_FROM_E12
-**Title:** T1 from measured E-12 blocked pressures (41a)
-**Map / block:** total / P_MEAS
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Skin field → Interior tones
-**Compared with:** measurement
-**Source:** CR-3813 Fig. E-12 measured blocked SPL; T1 gate; phase 41a criterion 2026-10-23
-**What it tests:** Cabin tonal H1–H3 when ℓ = 1 uses measured E-12 blocked levels (phases from ANOPP Table 8; off-line GEXT as T1; blocking off) against the unchanged T1 gate.
-**Why it is here:** Isolates the cabin chain from predicted free field + blocking for the failing T1 / REPRO_18b cases.
-**A pass means:** Same T1 gate (±4 dB of measured E-16 mean, or gate B); a pass with T1 failing would attribute T1 to source/blocking.
-**Not covered:** E-12 does not cover all ℓ = 1 stations/harmonics (H3 span ≈ [−0.21, 0.22] X3/D); uncovered ℓ = 1 stations keep T1-blocked amplitudes (stated).
-**Recorded outcome:** **not_met**, 2/3 (H1–H3 = 81.66, 75.29, 77.89 dB; T1 = 84.21, 77.66, 78.06); H3 fails — cabin chain implicated (first run 2026-10-23) **Phase 44 knock-on (2026-10-23, Eq. (83) bare f′):** 81.70, 75.26, 77.64 dB (T1 84.24, 77.63, 77.80); 2/3 unchanged. **Phase 44f knock-on (2026-10-23, Eq. (52) floor-term sign of NASA's corrected program; post-hoc):** 1/3 (84.99, 79.27, 74.93 dB). **Phase 65 knock-on (2026-10-24, grid axial correction: code vs User Manual p. 9 / App. E p. E-8, z_k = z_p − x₃, z_p = 0.662 m; not a fit):** 1/3 unchanged (84.29, 78.56, 76.39 dB; was 84.99, 79.27, 74.93). **Map chip 2026-10-28 (Phase 79a, display only):** the three "T1 recorded path" rows and the three E-12 coverage notes are information rows ("(info)") and leave the chip count, which now reads 1/3 like the verdict (it read 7/9). Phase 93 default form (2026-10-29): not met, 1/3.
-**Explanation:** Isolation: replace predicted free field + blocking on ℓ = 1 with Fig. E-12 measured blocked SPL (digitization A) where covered; phases = ANOPP Table 8; GEXT off-line as T1; Phase III η_T = 0.5. Criterion unchanged from T1.
-Inputs: `e12_measured_A.csv`; Table-8 phases; T1 geometry/trim; `t1_interior_targets.csv`.
-Equations: Eq. (8) cabin chain; GEXT; no Eq. (43) on the E-12-covered line.
-Outputs: H1–H3 [dB]; verdict on T1 gate.
-
-### Case: T1_MEAS_DAMPING
-**Title:** T1 with measured η_n / η_r′ (43b)
-**Map / block:** total / P_MEAS
-**Category:** experiment
-**Kind:** runnable
-**Chain span:** Free field → Interior tones
-**Compared with:** measurement
-**Source:** CR-3813 Figs. E-13 / E-15 / E-16; η_n = c₀ S α/(4 ω V) p. E-21; criterion = T1 gate, dated 2026-10-23
-**What it tests:** T1 cabin tones with measured acoustic absorption (E-13 → η_n) and measured structural decay (E-15 all points → η_r′), everything else as T1.
-**Why it is here:** Separates the App. A / §3.8 damping model from the rest of the T1 miss.
-**A pass means:** Same T1 gate (±4 dB of measured E-16 mean at each of H1–H3).
-**Not covered:** Damping model itself (replaced by measured); GEXT and source path unchanged from T1.
-**Recorded outcome:** **not_met**, 2/3 (H1–H3 = 93.78, 80.06, 79.41 dB); η_n(200/400/600) = 0.0399, 0.0100, 0.0138; η_r′ = 0.0711, 0.0974, 0.0842; S = 5.353 m² (S_side + 2 S_e, Eq. 24 / hf_absorbing_areas); first run 2026-10-23 **Phase 44 knock-on (2026-10-23, Eq. (83) bare f′):** 93.75, 80.05, 79.16 dB; 2/3 unchanged. **Phase 44f knock-on (2026-10-23, Eq. (52) floor-term sign of NASA's corrected program; post-hoc):** 1/3 (98.57, 83.60, 76.20 dB). **Phase 65 knock-on (2026-10-24, grid axial correction: code vs User Manual p. 9 / App. E p. E-8, z_k = z_p − x₃, z_p = 0.662 m; not a fit):** 1/3 unchanged (97.79, 82.46, 77.88 dB; was 98.57, 83.60, 76.20). Phase 93 default form (2026-10-29): not met, 2/6.
-**Explanation:** T1 exactly except per-band η_n from Fig. E-13 α via η_n = c₀ S α/(4 ω V) and η_r′ from e15_structural_loss_measured_all.csv (log-log in f, ends held) through η_n_band / η_r_band with η_r_band_is_prime. S = sidewall + 2 end absorbing areas (same as hf_absorbing_areas; report near Eq. 24/78).
-Inputs: `e13_absorption_targets.csv`; `e15_structural_loss_measured_all.csv`; T1 geometry/trim/GEXT/R2; `t1_interior_targets.csv`.
-Equations: Eq. (8); η_n from p. E-21; measured η_r′ override.
-Outputs: H1–H3 [dB]; η at 200/400/600 Hz; verdict on T1 gate.
 
 ### Case: T1_APPB
 **Title:** T1 on CR-172428 App. B's printed field (119)
@@ -2191,24 +1649,6 @@ Inputs: as T1_APPB plus `e13_absorption_targets.csv`, `e15_structural_loss_measu
 Equations: Eq. (8); η_n from p. E-21; measured η_r′ override.
 Outputs: H1–H3 [dB]; verdict on T1's gate.
 
-### Case: H3_ATTRIB
-**Title:** H3 attribution on REPRO_18b (43c diagnostic)
-**Map / block:** total / P_MEAS
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Free field → Interior tones
-**Compared with:** verification
-**Source:** CR-3813 Figs. E-14 / E-15 / E-12; REPRO_18b conditions; no criterion (diagnostic), 2026-10-23
-**What it tests:** Shift of H1–H3 when one REPRO_18b block at a time is replaced by NASA's printed intermediate value (η_n E-14 calc, η_r′ E-15 calc, both, or ℓ=1 from measured E-12).
-**Why it is here:** Attributes the REPRO_18b / T1 H3 miss without tuning.
-**A pass means:** No criterion (always `:no_verdict`); table of shifts recorded.
-**Not covered:** Not a validation of any single block; swaps use NASA's printed curves only.
-**Recorded outcome:** diagnostic; baseline 85.90, 78.35, 79.82; ΔH3: η_n +0.45, η_r′ −1.70, both −1.24, E-12 −1.39 (`h3_attribution.md`); first run 2026-10-23 **Phase 44 knock-on (2026-10-23, Eq. (83) bare f′):** baseline 85.93, 78.32, 79.57 dB; ΔH3: η_n +0.45, η_r′ −1.67, both −1.19, E-12 −1.41 dB. **Phase 44f knock-on (2026-10-23, Eq. (52) floor-term sign of NASA's corrected program; post-hoc):** baseline 89.03, 81.24, 77.06 dB; ΔH3: η_n +0.06, η_r′ −1.76, both −1.70, E-12 −1.65 dB. **Phase 65 knock-on (2026-10-24, grid axial correction: code vs User Manual p. 9 / App. E p. E-8, z_k = z_p − x₃, z_p = 0.662 m; not a fit):** baseline 88.20, 80.43, 78.21 dB; ΔH3: η_n +0.38, η_r′ −1.87, both −1.47, E-12 −1.37 dB.
-**Explanation:** REPRO_18b (η_T = 0.5, no η_r′ cap, R1, ANOPP Table 8 + GEXT); four swaps with NASA E-14/E-15 calculated (η_T=0.5) and measured E-12 on ℓ=1.
-Inputs: `e14_acoustic_loss_calculated.csv`; `e15_structural_loss_calculated.csv`; E-12 measured curve; REPRO pipeline.
-Equations: Eq. (8) with per-band loss overrides or E-12 line replacement.
-Outputs: H1–H3 and Δ per swap; report `h3_attribution.md`; verdict `:no_verdict`.
-
 ### Case: NR_TP1964
 **Title:** TP-1964 bare-cylinder NR vs measured (43d)
 **Map / block:** total / P_MEAS
@@ -2245,42 +1685,6 @@ Inputs: same CSVs as NR_TP1964.
 Equations: Eqs. (17)–(18) via `noise_reduction_band_circular`.
 Outputs: NR(band) [dB]; fraction within ±3 dB; verdict.
 
-### Case: T1_F1A_FILL
-**Title:** T1 with F1A-relative off-line free field (43f)
-**Map / block:** total / P_MEAS
-**Category:** experiment
-**Kind:** runnable
-**Chain span:** Free field → Interior tones
-**Compared with:** measurement
-**Source:** CR-3813 Fig. E-16; F1A relative pattern as `compare_gext_vs_f1a_grid.jl`; T1 gate unchanged, dated 2026-10-23
-**What it tests:** T1 with ℓ = 1 kept as ANOPP Table-8/e11 line and off-line points filled by the relative F1A pattern of the same propeller (not GEXT).
-**Why it is here:** Replaces the V-ASSUMED GEXT falloff with a physics-based off-line field independent of E-16.
-**A pass means:** Same T1 gate (±4 dB of measured mean, H1–H3).
-**Not covered:** F1A absolute levels (only relative pattern); measured off-line free field.
-**Recorded outcome:** **not_met**, 2/3 (H1–H3 = 79.61, 71.19, 71.30 dB; T1 GEXT = 84.21, 77.66, 78.06); first run 2026-10-23 **Phase 44 knock-on (2026-10-23, Eq. (83) bare f′):** 79.65, 71.17, 71.06 dB (T1 84.24, 77.63, 77.80); 2/3 unchanged. **Phase 44f knock-on (2026-10-23, Eq. (52) floor-term sign of NASA's corrected program; post-hoc):** **met** 3/3 (82.12, 74.59, 66.95 dB), **post-hoc**: the sign was fixed after T1-family results had been seen, so this is not a pre-registered pass. **Phase 65 knock-on (2026-10-24, grid axial correction: code vs User Manual p. 9 / App. E p. E-8, z_k = z_p − x₃, z_p = 0.662 m; not a fit):** met 3/3 unchanged (81.13, 73.98, 67.32 dB; was 82.12, 74.59, 66.95); still post-hoc. Phase 93 default form (2026-10-29): not met, 3/6.
-**Explanation:** `grid_fill=:f1a_relative` on the e11 path (default remains `:gext`): A(k,ℓ)=A(k,1)·A_F1A(k,ℓ)/A_F1A(k,1), φ += Δφ_F1A; F1A from `aircraft_scale_hartzell.json` / `propeller_freefield_grid`.
-Inputs: e11/Table-8 line; F1A full grid; `t1_interior_targets.csv`.
-Equations: Eq. (8); F1A-relative fill in `freefield_digitized.jl`.
-Outputs: H1–H3 [dB] next to T1; verdict on T1 gate.
-
-### Case: T1_F1A_MEAS_DAMP
-**Title:** T1 F1A fill + measured damping (43b+43f diagnostic)
-**Map / block:** total / P_MEAS
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Free field → Interior tones
-**Compared with:** measurement
-**Source:** combination of 43b and 43f; no criterion (diagnostic), 2026-10-23
-**What it tests:** Diagnostic only: T1 with both measured η_n/η_r′ and F1A-relative off-line fill.
-**Why it is here:** Joint effect of the two T1 root-cause swaps; not a gated claim.
-**A pass means:** No criterion (always `:no_verdict`).
-**Not covered:** Same as 43b and 43f separately.
-**Recorded outcome:** diagnostic H1–H3 = 90.00, 73.46, 72.60 dB (first run 2026-10-23) **Phase 44 knock-on (2026-10-23, Eq. (83) bare f′):** 89.95, 73.45, 72.41 dB. **Phase 44f knock-on (2026-10-23, Eq. (52) floor-term sign of NASA's corrected program; post-hoc):** 94.08, 77.29, 67.78 dB.
-**Explanation:** Measured damping overrides of T1_MEAS_DAMPING plus `grid_fill=:f1a_relative` of T1_F1A_FILL.
-Inputs: E-13 / E-15 measured; F1A pattern; T1 geometry.
-Equations: Eq. (8); measured η; F1A-relative fill.
-Outputs: H1–H3 [dB]; verdict `:no_verdict`.
-
 ### Case: NR_TP1964_XOVER
 **Title:** TP-1964 bare-cylinder NR with PAIN's changeover to Eqs. (19)–(23) (45a)
 **Map / block:** total / P_MEAS
@@ -2316,66 +1720,6 @@ Outputs: NR per band [dB].
 Inputs: `data/tp2444/tp2444_fig17_*_passA.csv`; CR-172428 article and App. B trim.
 Equations: Eq. (18); Eqs. (19)–(23); 1/3-octave energy sum.
 Outputs: NR per band [dB].
-
-### Case: T2_MEAS_EXT
-**Title:** T2 with the measured TP-2444 exterior spectrum (47d)
-**Map / block:** total / P_MEAS
-**Category:** experiment
-**Kind:** runnable
-**Chain span:** Skin field → Bands and dB(A)
-**Compared with:** measurement
-**Source:** NASA TP-2444 Fig. 17 (exterior, 4000 rpm), CR-172428 Fig. 14 (slope to 2 kHz), CR-3813 Fig. E-9; criterion fixed 2026-10-23 before any run (plan Phase 47)
-**What it tests:** T2's cabin path, Eqs. (19)–(23) with the T2 inputs, fed with the measured exterior band level instead of the modelled one.
-**Why it is here:** T2 could not be checked end to end until a measured exterior of the article was found.
-**A pass means:** The 1250 Hz interior within ±3.5 dB of Fig. E-9 (51.0 dB). 1600 and 2000 Hz use the same gate, labelled extrapolated exterior.
-**Not covered:** The microphone is taken as the blocked surface pressure (position not stated); B = 5 Hz is assumed; the 1600/2000 Hz exterior is extrapolated.
-**Recorded outcome:** **not_met** (2026-10-23). Phase 93 default form (2026-10-29): not met, 0/4.
-- The measured exterior is 85.4 dB at 1250 Hz. It gives an interior of 21.3 dB against 51.0 dB.
-- 1600 and 2000 Hz give 19.7 and 19.9 dB against 46.0 and 41.5 dB.
-- The secondary comparison, against the Fig. 17 interior (51.5 dB), is not met.
-- The measured data agree with each other: 85.4 − 33.9 = 51.5 dB.
-- PAIN's high-frequency noise reduction is too high, and NASA's E-21/E-22 predictions show the same.
-- Post-hoc information: the production surrogate gives 38.6 dB, and T2's modelled exterior is 102.7 dB.
-**Explanation:** Experiment comparison. p_bl² from the measured band level goes into `hf_broadband_band_p2` with the T2 pipeline inputs.
-Inputs: `data/tp2444/tp2444_fig17_exterior_passA.csv`; `data/cr172428/cr172428_fig14_mic1_5000rpm_passA.csv`; E-9 targets.
-Equations: Eqs. (19)–(23); 1/3-octave energy sum.
-Outputs: interior SPL at 1250/1600/2000 Hz [dB].
-
-### Case: T2_PRED_BB
-**Title:** T2 fully predictive: BPM exterior → T2 cabin path → E-9 (48d)
-**Map / block:** total / P_MEAS
-**Category:** experiment
-**Kind:** runnable
-**Chain span:** Blade and polars → Bands and dB(A)
-**Compared with:** measurement
-**Source:** CR-3813 Fig. E-9; criterion fixed 2026-10-23
-**What it tests:** T2 with no measured input: the BPM exterior at the Fig. 17 point through T2's Eqs. (19)–(23).
-**Why it is here:** It is the end-to-end predictive form of T2.
-**A pass means:** ±3.5 dB of E-9 at 1250, 1600 and 2000 Hz.
-**Not covered:** As PROP_BB_FIG17.
-**Recorded outcome:** **not_met**, 0/3 (2026-10-23): 18.4, 17.4 and 17.9 dB against 51.0, 46.0 and 41.5 dB. The cabin path's noise reduction is the cause. **Re-run 2026-10-28 (Phase 69, post-hoc: the earlier results were known; no criterion, tolerance or input was chosen from them):** 0/3, interior 19.5, 18.9, 19.8 dB vs 51.0, 46.0, 41.5 dB; not met. The cabin path's noise reduction is still the cause. Phase 93 default form (2026-10-29): not met, 0/3.
-**Explanation:** Experiment comparison. `hf_broadband_band_p2` with the T2 pipeline inputs.
-Inputs: The 48b exterior; T2 inputs.
-Equations: Eqs. (19)–(23).
-Outputs: interior SPL [dB].
-
-### Case: T2_MEAS_EXT_BR
-**Title:** T2 with the measured exterior and Sharp sound bridges (59e)
-**Map / block:** total / P_MEAS
-**Category:** experiment
-**Kind:** runnable
-**Chain span:** Skin field → Bands and dB(A)
-**Compared with:** measurement
-**Source:** CR-3813 Fig. E-9; TP-2444 Fig. 17; NASA CR-172490; criterion fixed 2026-10-23
-**What it tests:** 47d with the bridge option.
-**Why it is here:** It is T2 with the one documented extension that adds a path around the trim.
-**A pass means:** 1250 Hz interior within ±3.5 dB of E-9 (51.0 dB).
-**Not covered:** As T2_MEAS_EXT; the connections are V-ASSUMED.
-**Recorded outcome:** **not_met** (2026-10-23): 28.4, 27.6 and 28.4 dB against 51.0, 46.0 and 41.5 dB (21.6 dB without bridges). Phase 93 default form (2026-10-29): not met, 0/3.
-**Explanation:** Experiment comparison. `hf_broadband_band_p2(...; bridges=true)`.
-Inputs: As T2_MEAS_EXT.
-Equations: Eqs. (19)–(23) + τ_B.
-Outputs: interior SPL [dB].
 
 ### Case: R172428_EXP
 **Title:** CR-172428 reproduction vs measured space averages (44e)
@@ -2430,24 +1774,6 @@ Outputs: 3 tonal dB(A) [dB(A)] vs measured; verdict vs ±4 dB(A) at each rpm.
 Inputs: as R172428_EXP.
 Equations: as R172428_DB_CODE.
 Outputs: 3 tonal levels [dB] vs measured; verdict vs ±4 dB at each rpm.
-
-### Case: R172428_EXP_DECK
-**Title:** CR-172428 reproduction on NASA's 300 modes vs measured space averages (84b)
-**Map / block:** total / P_MEAS
-**Category:** experiment
-**Kind:** runnable
-**Chain span:** Skin field → Interior tones
-**Compared with:** measurement
-**Source:** NASA CR-172428 Table 5 (measured space averages), Table 6 (300 structural modes); NASA's MRP deck; criterion fixed 2026-10-29 before the run (plan §8ab)
-**What it tests:** R172428_EXP with NASA's 300 structural modes in place of 32; everything else as R172428_EXP.
-**Why it is here:** As R172428_CODE_DECK, against the measurement.
-**A pass means:** ±4 dB of the measured space average at each of the 9 points (R172428_EXP's criterion).
-**Not covered:** As R172428_CODE_DECK.
-**Recorded outcome:** **Diagnostic since Phase 86 (2026-10-29): no verdict, off the map** (`DIAGNOSTIC_CASES`). It re-runs another case with one program form or input set changed to test a documented cause of that case's miss; the case it re-runs carries the verdict. The run and its table are unchanged; the outcome before, kept as a record and not a pass: **not_met**, 3/9 (2026-10-29, first run), the same count as R172428_EXP: 3000 rpm 70.84, 68.60, 61.66; 4000 rpm 102.41, 79.91, 71.94; 5000 rpm 90.15, 94.49, 80.58 dB (Table D-1: 71.07, 69.02, 62.66; 102.45, 80.05, 71.69; 90.35, 94.40, 78.40). **After Phase 106 (2026-10-30, post-hoc; 2-D cabin-mode part at 341 m/s):** 5/9.
-**Explanation:** Experiment comparison; `r172428_inputs(rpm; structural=:nasa300)`.
-Inputs: as R172428_EXP; `nasa_deck_modes()`.
-Equations: full cabin chain, Eq. (8).
-Outputs: SPL H1–H3 at 3000/4000/5000 rpm [dB].
 
 ### Case: AC_CABIN_DEMO
 **Title:** Aircraft cabin example: overall dB(A) (62)
@@ -2593,78 +1919,6 @@ Inputs: App. B pp. 195, 197, 202; CR-172428 inputs.
 Equations: Eq. (83).
 Outputs: η_r″ per pair, ratio to NASA.
 
-### Case: Q0_REPRO_18b
-**Title:** q = 0 uncoupled, pre-correction form, vs E-16's NASA prediction (88a)
-**Map / block:** total / P_REPRO
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Free field → Interior tones
-**Compared with:** NASA's printed prediction
-**Source:** CR-3813 Fig. E-16 NASA prediction; hypothesis and criterion fixed 2026-10-29 before the run (plan §8ae)
-**What it tests:** REPRO_18b_PRE (all three CR-172428 App. A changes reverted) with `q0_coupled = false`: the q = 0 cabin modes get no structural coupling.
-**Why it is here:** Held-out test of the q = 0 hypothesis: CR-3813's runs played no part in forming it, and none of the App. A changes concerns q = 0.
-**A pass means:** |Δ| ≤ 4 dB at H1–H3 (REPRO_18b's).
-**Not covered:** Other undocumented differences in NASA's 1983 runs.
-**Recorded outcome:** **Diagnostic (Phase 88, 2026-10-29): no verdict, off the map** (`DIAGNOSTIC_CASES`). It tests the q = 0 hypothesis on a CR-3813 run that played no part in forming it; the case it re-runs carries the verdict. The outcome, a record and not a pass: not met, 2/3 (2026-10-29): 75.86, 75.99, 80.93 dB against NASA 79.0, 75.5, 68.0 (q = 0 coupled: 85.11, 77.61, 81.85). H3 stays 13 dB high.
-**Explanation:** Diagnostic. `_with_fields(inputs; floor_sign=-1.0, q0_coupled=false)`.
-Inputs: As REPRO_18b.
-Equations: Eq. (8) with f₀M = 0.
-Outputs: SPL H1–H3 [dB].
-
-### Case: Q0_E18
-**Title:** q = 0 uncoupled, pre-correction form, vs E-18's NASA prediction (88b)
-**Map / block:** total / P_REPRO
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Free field → Interior tones
-**Compared with:** NASA's printed prediction
-**Source:** CR-3813 Fig. E-18 NASA prediction; hypothesis and criterion fixed 2026-10-29 before the run (plan §8ae)
-**What it tests:** E18_TONES's run (η_T = 1.0, η_r′ ≤ 0.15) in the pre-correction form with the q = 0 cabin modes uncoupled.
-**Why it is here:** Second held-out run for the q = 0 hypothesis.
-**A pass means:** |Δ| ≤ 4 dB per harmonic (E18_TONES's).
-**Not covered:** As Q0_REPRO_18b.
-**Recorded outcome:** **Diagnostic (Phase 88, 2026-10-29): no verdict, off the map** (`DIAGNOSTIC_CASES`). It tests the q = 0 hypothesis on a CR-3813 run that played no part in forming it; the case it re-runs carries the verdict. The outcome, a record and not a pass: not met, 1/3 (2026-10-29): 83.70, 75.44, 78.23 dB against NASA 88.0, 75.0, 67.0 (q = 0 coupled: 87.88, 77.06, 79.31). H1 moves away from NASA.
-**Explanation:** Diagnostic. As E18_TONES with `floor_sign = −1`, `q0_coupled = false`.
-Inputs: As E18_TONES.
-Equations: Eq. (8) with f₀M = 0.
-Outputs: SPL H1–H3 [dB].
-
-### Case: Q0_E21
-**Title:** q = 0 uncoupled, pre-correction form, vs E-21's NASA prediction (88c)
-**Map / block:** total / P_REPRO
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Skin field → Bands and dB(A)
-**Compared with:** NASA's printed prediction
-**Source:** CR-3813 Fig. E-21 NASA prediction; hypothesis and criterion fixed 2026-10-29 before the run (plan §8ae)
-**What it tests:** E21_PRE with the q = 0 cabin modes uncoupled.
-**Why it is here:** Third held-out run for the q = 0 hypothesis.
-**A pass means:** |Δ| ≤ 3 dB in ≥ 75 % of the counted bands (E21_PRE's).
-**Not covered:** As Q0_REPRO_18b.
-**Recorded outcome:** **Diagnostic (Phase 88, 2026-10-29): no verdict, off the map** (`DIAGNOSTIC_CASES`). It tests the q = 0 hypothesis on a CR-3813 run that played no part in forming it; the case it re-runs carries the verdict. The outcome, a record and not a pass: not met, 1/4 counted bands (2026-10-29), as E21_PRE.
-**Explanation:** Diagnostic. `noise_reduction_spectrum` with `floor_sign = −1`, `q0_coupled = false`.
-Inputs: As E21_PRE.
-Equations: Eqs. (17)–(18) with f₀M = 0.
-Outputs: NR [dB] per band.
-
-### Case: R172428_CODE_ETAN
-**Title:** CR-172428 reproduction with η_n per cabin mode vs NASA's printed predictions (89b)
-**Map / block:** total / P_REPRO
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Skin field → Interior tones
-**Compared with:** NASA's printed prediction
-**Source:** NASA CR-172428 App. B and Table 10; reading H1 from App. B pp. 195, 197, 202; decision fixed 2026-10-29 before the run (plan §8af)
-**What it tests:** R172428_CODE with `η_n_per_mode = true`: each cabin mode's N is Eq. (77) at its own frequency with the trim conductance at the centre of its 1/3-octave band, the same at every tone.
-**Why it is here:** Tests whether the per-mode loss factor App. B shows (87b, 87c) explains the reproduction's misses; the reading was formed from the per-mode tables, not from these levels.
-**A pass means:** ±3 dB of NASA's printed prediction at ≥ 7 of 9 points (R172428_CODE's).
-**Not covered:** H1 reproduces NASA's η_n only to 0.86–1.39 (post-hoc), so it is at most part of NASA's form.
-**Recorded outcome:** **Diagnostic (Phase 89, 2026-10-29): no verdict, off the map** (`DIAGNOSTIC_CASES`). The outcome, a record and not a pass: not met, 5/9 (R172428_CODE: 4/9). Levels move ≤ 3.9 dB (5000 rpm H1 90.35 → 94.29 dB). Per the decision fixed before the run, H1 is not adopted and stays an option. First run used a 1 Hz floor for the rigid mode's frequency (N ≠ 0, contrary to Eq. (77) at ω = ω_n); fixed to N = 0 and rerun: same 5/9, levels unchanged to 0.01 dB.
-**Explanation:** Diagnostic. `_run_r172428_vs(:code; η_n_per_mode=true)`; `acoustic_N_per_mode` in `pain_core.jl`.
-Inputs: As R172428_CODE.
-Equations: Eq. (8) and Eq. (83) with N from Eq. (77) per mode.
-Outputs: 9 interior tone levels [dB].
-
 ### Case: R996_FIG10_FLAT
 **Title:** Eq. (43) blocking vs Report 996 Fig. 10 flat wall (90b)
 **Map / block:** total / P_BLK
@@ -2700,78 +1954,6 @@ Outputs: wall increase [dB], measured and R1, per x/D.
 Inputs: Fig. 10 free-space and circular-wall p̄.
 Equations: Eq. (43).
 Outputs: wall increase [dB].
-
-### Case: APPB_PAIRS
-**Title:** This code's Eq. (8) pair terms vs NASA's printed largest contributors (92a)
-**Map / block:** total / P_REPRO
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Skin field → Interior tones
-**Compared with:** NASA's printed prediction
-**Source:** CR-172428 App. B pp. 207, 212 (`appB_contributors_4000rpm.csv`, `appB_contributors_5000rpm.csv`); plan §8ai, 2026-10-29
-**What it tests:** The 25 acoustic × structural pair terms NASA prints (five largest at 4000 rpm H1–H3, 5000 rpm H1–H2) against this code's same pairs, in dB re 20 μPa; the share of this code's tone total from q = 0 cabin modes.
-**Why it is here:** Locates which pairs of Eq. (8) differ from NASA's run.
-**A pass means:** No criterion (diagnostic); ±2 dB is a reading band.
-**Not covered:** Only NASA's five largest pairs per tone are printed.
-**Recorded outcome:** no verdict (2026-10-29): 15/25 within ±2 dB; q = 0 share 92.4 % (4000 H1), 75.9 % (5000 H1), 69.4 % (5000 H2); NASA prints no q = 0 pair. With the deck table (Phase 100): 15/25; q = 0 share 95.4 %, 75.7 %, 69.9 %. **After Phase 106 (2026-10-30, post-hoc; 2-D cabin-mode part at 341 m/s):** 21/25 within ±2 dB (was 15/25).
-**Explanation:** `_run_appb_pairs` in `validation_case_iso92.jl`; `tone_mean_square_pressure(...; terms)`.
-Inputs: `r172428_inputs(rpm)`.
-Equations: Eq. (8) per pair.
-Outputs: pair term [dB re 20 μPa].
-
-### Case: APPB_PAIRS_Q0_ETAN
-**Title:** Pair terms with q = 0 off and η_n per mode vs NASA's printed contributors (92c, post-hoc)
-**Map / block:** total / P_REPRO
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Skin field → Interior tones
-**Compared with:** NASA's printed prediction
-**Source:** as APPB_PAIRS; options chosen after APPB_PAIRS was seen (post-hoc)
-**What it tests:** APPB_PAIRS with `q0_coupled = false` and `η_n_per_mode = true`.
-**Why it is here:** Shows which pairs remain off once both inferred differences are applied.
-**A pass means:** No criterion (diagnostic, post-hoc).
-**Not covered:** As APPB_PAIRS.
-**Recorded outcome:** no verdict (2026-10-29): 16/25 within ±2 dB; the remaining large ones follow cabin-mode frequencies 0.5 % from NASA's near the tone (report). **After Phase 106 (2026-10-30, post-hoc; 2-D cabin-mode part at 341 m/s):** 22/25 (was 16/25).
-**Explanation:** `_run_appb_pairs(; q0_coupled=false, η_n_per_mode=true)`.
-Inputs: as APPB_PAIRS.
-Equations: Eq. (8) per pair.
-Outputs: pair term [dB re 20 μPa].
-
-### Case: R172428_CODE_Q0
-**Title:** CR-172428 reproduction with q = 0 off; 3000 rpm held out (92b)
-**Map / block:** total / P_REPRO
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Skin field → Interior tones
-**Compared with:** NASA's printed prediction
-**Source:** CR-172428 Table 10 / App. B p. 206; criterion fixed 2026-10-29 before the run (plan §8ai, commit fa7cfbe)
-**What it tests:** R172428_CODE's nine points with the q = 0 cabin modes uncoupled; the criterion counts the 3000 rpm points only, which were not run with q = 0 off before the criterion was fixed.
-**Why it is here:** Tests the q = 0 reading of APPB_PAIRS on points that did not form it.
-**A pass means:** ±3 dB of NASA's printed prediction at each of 3000 rpm H1–H3 (the outcome is recorded; the case carries no verdict).
-**Not covered:** The 4000/5000 rpm points are post-hoc.
-**Recorded outcome:** not met, 2/3 (2026-10-29): 63.40, 66.89, 62.59 dB against 63.3, 66.2, 59.5 (H3 +3.09 dB); all nine 8/9 within ±3 dB. **After Phase 106 (2026-10-30, post-hoc; 2-D cabin-mode part at 341 m/s):** held-out 3/3 (3000 rpm H3 +1.79 dB; was 2/3, +3.09).
-**Explanation:** `_run_r172428_code_q0()`.
-Inputs: `r172428_inputs(rpm)`, `q0_coupled = false`.
-Equations: Eq. (8).
-Outputs: SPL [dB].
-
-### Case: R172428_CODE_Q0_ETAN
-**Title:** CR-172428 reproduction with q = 0 off and η_n per mode (92c, post-hoc)
-**Map / block:** total / P_REPRO
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Skin field → Interior tones
-**Compared with:** NASA's printed prediction
-**Source:** as R172428_CODE_Q0; combination formed after APPB_PAIRS (post-hoc)
-**What it tests:** R172428_CODE with both inferred differences.
-**Why it is here:** How close this code comes to NASA's printed levels once the two differences found in NASA's output are applied.
-**A pass means:** No criterion (diagnostic, post-hoc).
-**Not covered:** Neither difference is documented by NASA.
-**Recorded outcome:** no verdict (2026-10-29): all nine within ±2.4 dB (largest +2.34 dB, 5000 rpm H3).
-**Explanation:** `_run_r172428_code_q0(; η_n_per_mode=true)`.
-Inputs: `r172428_inputs(rpm)`, `q0_coupled = false`, `η_n_per_mode = true`.
-Equations: Eq. (8).
-Outputs: SPL [dB].
 
 ### Case: R172428_ETAT2
 **Title:** CR-172428 η_T = 2.0 run: default form vs NASA's Table 12 (94a)
@@ -2863,42 +2045,6 @@ Inputs: `r172428_inputs(rpm)`, defaults.
 Equations: Eq. (8).
 Outputs: SPL [dB].
 
-### Case: BAND_REPRO_18b
-**Title:** Band-centre η_n, pre-correction form, vs E-16's NASA prediction (99a)
-**Map / block:** total / P_REPRO
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Free field → Interior tones
-**Compared with:** NASA's printed prediction
-**Source:** CR-3813 Fig. E-16 NASA prediction; criterion and decision fixed 2026-10-30 before the run (plan §8ao, commit 8f02a4a)
-**What it tests:** Whether the program behind CR-3813's printed runs already evaluated η_n at the nominal band centre (Phase 95), in the pre-correction form with q = 0 coupled.
-**Why it is here:** Held-out test of the Phase 95 rule on the earlier program (diagnostic).
-**A pass means:** ±4 dB per harmonic against E-16's NASA prediction (outcome recorded; the case carries no verdict).
-**Not covered:** The exterior field is the digitized E-11 data with the assumed grid extension.
-**Recorded outcome:** not met, 1/3 (2026-10-30): 84.56, 77.60, 81.58 dB against 79.0, 75.5, 68.0 (η_n at the tone: 85.11, 77.61, 81.85).
-**Explanation:** `_run_band_cr3813` in `validation_case_iso99.jl`.
-Inputs: Phase III trim, E-11 field, R1 blocking.
-Equations: Eq. (8).
-Outputs: SPL [dB].
-
-### Case: BAND_E18
-**Title:** Band-centre η_n, pre-correction form, vs E-18's NASA prediction (99b)
-**Map / block:** total / P_REPRO
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Free field → Interior tones
-**Compared with:** NASA's printed prediction
-**Source:** CR-3813 Fig. E-18 NASA prediction; criterion and decision fixed 2026-10-30 before the run (plan §8ao, commit 8f02a4a)
-**What it tests:** Whether the program behind CR-3813's printed runs already evaluated η_n at the nominal band centre (Phase 95), in the pre-correction form with q = 0 coupled.
-**Why it is here:** Held-out test of the Phase 95 rule on the earlier program (diagnostic).
-**A pass means:** ±4 dB per harmonic against E-18's NASA prediction (outcome recorded; the case carries no verdict).
-**Not covered:** The exterior field is the digitized E-11 data with the assumed grid extension.
-**Recorded outcome:** not met, 2/3 (2026-10-30): 87.63, 77.05, 78.96 dB against 88.0, 75.0, 67.0 (η_n at the tone: 87.88, 77.06, 79.31).
-**Explanation:** `_run_band_cr3813` in `validation_case_iso99.jl`.
-Inputs: Phase III trim, E-11 field, R1 blocking.
-Equations: Eq. (8).
-Outputs: SPL [dB].
-
 ### Case: R172428_TRIM_DECK
 **Title:** NASA's per-band PF-105 table (App. D deck) vs App. B trim admittances (100a)
 **Map / block:** total / P_TRIM
@@ -2970,24 +2116,6 @@ Outputs: 2-D frequency [Hz], ε(0,0).
 Inputs: `data/cr172428/appB_acoustic_modes.csv`, `appC_merlin_acoustic_modes.csv`, `appD_run10_pairs.csv`.
 Equations: App. C Eqs. (C.7), (C.12).
 Outputs: cabin-mode frequency [Hz].
-
-### Case: FLIGHT10_FLOOR_SIGN
-**Title:** Run 10's floor-term sign on the printed H1/H5 pairs (108)
-**Map / block:** total / P_REPRO
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Wall modes → Damping and trim
-**Compared with:** NASA's printed prediction
-**Source:** CR-172428 App. D pp. 235–236 (printed pairs); test fixed 2026-10-30 before any H1/H5 pair was computed (plan §8ax, commit 25f7acb)
-**What it tests:** Whether NASA's run 10 used the pre-correction Eq. (52) floor sign (H_pre), on the 10 printed H1/H5 pairs, whose η_r″ do not depend on the field.
-**Why it is here:** Phase 103 found run 10's H2–H4 η_r″ follow the floor term subtracted while App. B's follow it added (diagnostic).
-**A pass means:** No verdict; H_pre supported if ≥ 7/10 within [0.4, 2.5]× NASA's with the floor term subtracted and more than with it added, refuted in the mirror case.
-**Not covered:** H2–H4 pairs (seen in Phase 103).
-**Recorded outcome:** no verdict (2026-10-30): 8/10 subtracted, 5/10 added; H_pre supported.
-**Explanation:** `_run_flight10_floor_sign` in `validation_case_iso108.jl`.
-Inputs: `data/cr172428/appD_run10_pairs.csv`, `r172428_flight10_inputs()`.
-Equations: Eqs. (52), (83).
-Outputs: η_r″ ratio [-].
 
 ### Case: FLIGHT10_H234
 **Title:** CR-172428 flight run 10, H2–H4: as shipped and trim per band vs PAIN (102)

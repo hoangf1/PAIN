@@ -55,7 +55,7 @@ end
     @test isempty(noplain)
     @test !any(r -> occursin(r"\(\d+[a-z]?\)", r.title), vrows)
     @test PAIN.case_plain_title("R172428_EXP") == PAIN.PLAIN_TITLES["R172428_EXP"] != PAIN.CASE_INFO["R172428_EXP"].title
-    @test PAIN.case_plain_title("R172428_CODE_DECK") == "CR-172428 reproduction on NASA's 300 modes vs NASA's printed predictions"
+    @test PAIN.case_plain_title("R172428_CODE_DEFAULT") == "CR-172428 reproduction with the code as it ships"
     @test PAIN.case_plain_title("NO_SUCH_CASE") == "NO_SUCH_CASE"
 end
 @testset "NASA's own printout on the same gate (Phases 136f, 137c)" begin
@@ -70,7 +70,7 @@ end
         s = PAIN.nasa_printout_on_gate(id)
         @test (s.n_ok, s.n, s.met) == (1, 3, false)
     end
-    @test PAIN.nasa_printout_on_gate("T1") === nothing && !PAIN.method_limit("T1") && PAIN.method_limit("R172428_EXP")
+    @test PAIN.nasa_printout_on_gate("MRP_APPD") === nothing && !PAIN.method_limit("MRP_APPD") && PAIN.method_limit("R172428_EXP")
     rec = PAIN.recorded_case_errors()
     @test occursin("misses too: method limit", PAIN.why_not_met_markdown(; rec))
     rows = PAIN.coverage_rows(; rec)

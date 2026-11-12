@@ -10,6 +10,7 @@ Two lists, newest first in each. **Not assigned to a phase**: issues to act on o
 
 | Issue | Subject | Kind | State |
 |---|---|---|---|
+| 040 | The per-stage file layout and the 44 test-only cases (Phase 150b, 150e rest) | Organisation | open |
 | 039 | FLIGHT_MODES: twenty generalized masses differ in the in-plane part, with both signs | Investigation | open |
 | 038 | The uncertainty budget's nominal sample is not the pipeline's result (structural mode cut-off) | Tests, code | open |
 | 037 | The Phase III trim has guessed inputs; cases that use it may carry a verdict they should not | Input rule, investigation | open |
@@ -25,8 +26,8 @@ Two lists, newest first in each. **Not assigned to a phase**: issues to act on o
 
 | Issue | Subject | Kind | Phase |
 |---|---|---|---|
-| 029 | Which of the 43 chart cases to keep; a rule before any new case | Not met, organisation | 135, 150 |
-| 028 | Files named and grouped by phase number; old paths | Organisation | 150 |
+| 029 | Which of the 43 chart cases to keep; a rule before any new case | Not met, organisation | 135, 150 (closed 2026-11-11; the test-only move is ISSUE-040) |
+| 028 | Files named and grouped by phase number; old paths | Organisation | 150 (paths done; the per-stage move is ISSUE-040) |
 | 027 | Source loads: XFOIL drag; measured polars unused as input | Not met | 141 (closed 2026-11-11; continued in 030) |
 | 026 | High-frequency NR cases: method limit and assumed inputs | Not met | 137 (closed 2026-11-10) |
 | 025 | CYL2D_PRINTED judges a grid rule that was not adopted | Not met | 140 (closed 2026-11-11) |
@@ -88,6 +89,16 @@ Still open for the author: the new CLAUDE.md update list (Phase 148a), the plain
 A web search for reports that could settle open questions of these issues. The list, with what each may give and what to check first, is `IMPLEMENTATION_PLAN.md` §2.5 (D-23 to D-31). Two were then downloaded with the author's go-ahead and read in part the same day: CR-165869, which prints the cabin grid rule that Phase 111 could not find (ISSUE-025), and CR-159668, whose measured blocking data are too scattered to judge a case on (ISSUE-006). The others were not downloaded; what is said about them comes from catalogue records and abstracts. Two findings came from PDFs already in `references/`: TP-2444 p. 8 prints its trim lining (ISSUE-026), and TN 1546 holds 24 sections of which three are digitized (ISSUE-027).
 
 ---
+
+## ISSUE-040: The per-stage file layout, and the 44 test-only cases off the GUI list
+
+**Status:** open, not assigned to a phase. Recorded 2026-11-11 while closing Phase 150, by Claude under the author's authority of 2026-11-11. Organisation; no verdict, criterion or result is involved.
+
+**What is left.**
+1. Phase 150b: case runners in `src/cases/<stage>.jl` and testsets in `test/cases/<stage>.jl`, one move commit, no edit inside a function, testset counts and R11 baselines equal before and after. The mapping is in `validation_reports/phase150_layout_and_cases.md`; 13 of 26 files span more than one stage, so files are split function by function.
+2. The 44 cases ISSUE-029 marks "test": off the GUI list, the records and the CSV, with their tests kept. The registry rule "every registered case is listed" becomes "listed or test-only", and the unit tests that use these cases as stand-ins (MRP_D1, CABIN_GEOM_HAND, UT_GRID and others) are moved to other ids.
+
+**Why not in Phase 150.** Each needs its own full run of the affected testsets (about two hours here) and changes nothing a reader of the chart sees; the retirements, which do, were done first.
 
 ## ISSUE-039: FLIGHT_MODES: twenty generalized masses differ from NASA's in the in-plane part
 
@@ -317,7 +328,7 @@ The two patterns are not the same, so one cause for both is not shown.
 
 ## ISSUE-029: Which of the 43 chart cases are worth keeping, and a rule before any new case is added
 
-**Status:** open. Recorded 2026-11-09. Raised by the author ("i created many validation cases that arent met and arent useful im not even sure if i should be keeping those cases"). The sorting below was approved by the author on 2026-11-09 ("Yes, use it"). It comes from the case records; nothing has been moved yet. Solution: Phase 135f, then the phase that owns each case.
+**Status:** closed 2026-11-11 by Phase 150 (`COMPLETED_PHASES.md` §8cn; `phase150_layout_and_cases.md`): 48 cases retired as listed; the move of the 44 test-only cases off the GUI list is ISSUE-040. Recorded 2026-11-09. Raised by the author ("i created many validation cases that arent met and arent useful im not even sure if i should be keeping those cases"). The sorting below was approved by the author on 2026-11-09 ("Yes, use it"). It comes from the case records; nothing has been moved yet. Solution: Phase 135f, then the phase that owns each case.
 
 **Summary.** Sorted by the chart rule decided on 2026-11-09 (runs the shipped code; every input printed or measured; compared with a measurement or with NASA's program output), 18 of the 43 cases weigh on the tool's validity, 2 more are sums that belong inside one of them, 5 need one fact checked, and 18 do not. Of the 27 not-met rows, 7 stay on the chart. So most of the red on the chart today is not about the tool.
 
@@ -458,7 +469,7 @@ Applied to the cases the open phases proposed:
 
 ## ISSUE-028: Source, test and script files are named and grouped by phase number, and old paths remain
 
-**Status:** open. Recorded 2026-11-09. Code organisation. No behaviour changes. Solution: Phase 150.
+**Status:** partly closed 2026-11-11 by Phase 150: old paths fixed (`.gitignore`, script comments); the per-stage layout is ISSUE-040. Recorded 2026-11-09. Code organisation. No behaviour changes. Solution: Phase 150.
 
 **Evidence.**
 - **Case files named by phase.** 29 files from `src/validation_case_iso40.jl` to `validation_case_iso121.jl`, and test helpers `test/unit/test_case_helpers_iso66.jl`, `_iso67`, `_iso119`, `_iso121`, `_late`. To find R172428_EXP one has to know it was Phase 44.

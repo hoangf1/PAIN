@@ -16,7 +16,7 @@ println("wrote ", write_no_verdict_cases())       # docs/NO_VERDICT_CASES.md: th
 println("wrote ", join(write_coverage_figures(), ", "))   # Phase 134: the chain coverage figures §0 and that file show
 rec = recorded_case_errors(path)
 println("cases=", length(rec))
-for id in ("R996_LOADS", "R996_FIG14", "T1", "UNC_COVER", "BBN_CIRC", "POLAR_R996")
+for id in ("R996_LOADS", "R996_FIG14", "R172428_EXP", "BBN_CIRC", "POLAR_R996")
     haskey(rec, id) || continue
     s = rec[id]
     println(id, ": ", s.text)

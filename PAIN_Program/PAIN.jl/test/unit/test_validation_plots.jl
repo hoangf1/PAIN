@@ -100,13 +100,13 @@ end
     @test g.error_source == "recorded 2026-10-23" && g.error_snapshot == "snapshot 2026-10-24"
     @test PAIN._case_error_json_fields("Z").error == ""
     @test endswith(replace(PAIN.case_error_summary_path(), '\\' => '/'), "docs/validation_reports/case_error_summary.csv")
-    @test endswith(replace(PAIN.validation_figure_path("T1"), '\\' => '/'), "figures/vs_measurement/T1.png")
+    @test endswith(replace(PAIN.validation_figure_path("R172428_EXP"), '\\' => '/'), "figures/vs_measurement/R172428_EXP.png")
     @test endswith(replace(PAIN.validation_figure_path("R996_FIG14"), '\\' => '/'), "figures/F1A_amplitude/R996_FIG14.png")
     @test endswith(replace(PAIN.validation_figure_path("NO_SUCH_CASE"), '\\' => '/'), "figures/NO_SUCH_CASE.png")
     froot = PAIN._validation_figures_root()
     @test isabspath(froot) && isdir(froot) && endswith(replace(froot, '\\' => '/'), "docs/validation_reports/figures")
     @test PAIN.validation_figure_dir("NO_SUCH_CASE") == froot                     # unregistered id: the root
-    @test PAIN.validation_figure_dir("T1") == joinpath(froot, "vs_measurement")    # registered id: its block's folder
+    @test PAIN.validation_figure_dir("R172428_EXP") == joinpath(froot, "vs_measurement")    # registered id: its block's folder
     @test isdir(PAIN.validation_figure_dir("R996_FIG14"))
     # every map block has a figure folder, and no two blocks share one
     block_ids = [b.id for m in PAIN.VALIDATION_MAPS for b in m.blocks]
@@ -161,12 +161,12 @@ end
     @test PAIN._md_cell("a|b") == "a\\|b"
     @test PAIN._mermaid_text("say \"x\" | y") == "say 'x' / y"
     @test PAIN._scoreboard_points(nothing) == "—" && PAIN._scoreboard_points((; n_within=3, n_rows=7)) == "3/7"
-    @test PAIN._scoreboard_verdict((; verdict="not_met"), "T1") == "not met"
+    @test PAIN._scoreboard_verdict((; verdict="not_met"), "R172428_EXP") == "not met"
     @test PAIN._scoreboard_unrun("NO_SUCH_CASE") == "not in snapshot"
     @test PAIN._scoreboard_verdict(nothing, "NO_SUCH_CASE") == "not in snapshot"
-    # a synthetic snapshot: every case of block P_MRP met except one, which must be listed in the not-met table with its
+    # a synthetic snapshot: every case of block P_CYL met except one, which must be listed in the not-met table with its
     # points and an escaped error text; a met case is not (Phase 147: the block map and its colours are retired)
-    b = first(b for b in PAIN._map_by_id("total").blocks if b.id == "P_MRP")
+    b = first(b for b in PAIN._map_by_id("total").blocks if b.id == "P_CYL")   # P_MRP has one case left since Phase 150e
     row(v, k, n, t) = (; run_date="2000-01-01", source_date="2000-01-01", verdict=v, n_within=k, n_rows=n,
                        max_abs=1.0, median_abs=1.0, unit="%", text=t, chip_text=t)
     rec = Dict(id => row("met", 3, 3, "3/3") for id in b.cases)
@@ -180,19 +180,19 @@ end
     # Phase 86: only cases with a verdict are on the map; a met information case and an unrun case are listed elsewhere
     info = first(id for id in b.cases if PAIN.no_verdict_by_rule(id))
     @test !occursin("(`$info`) |", md) && !occursin("| `$info` ", md) && !PAIN.on_validation_map(info; rec) && PAIN.on_validation_map(bad; rec)
-    @test !occursin("(`T1`) |", md) && !PAIN.on_validation_map("T1"; rec)                # not in this snapshot
+    @test !occursin("(`R172428_EXP`) |", md) && !PAIN.on_validation_map("R172428_EXP"; rec)                # not in this snapshot
     nv = PAIN.no_verdict_cases_markdown(; rec)
-    @test occursin("| `$info` ", nv) && occursin("| `T1` ", nv) && !occursin("| `$bad` ", nv)
+    @test occursin("| `$info` ", nv) && occursin("| `R172428_EXP` ", nv) && !occursin("| `$bad` ", nv)
     @test occursin("## Information and verification under the meaningfulness rule", nv)
     @test occursin("Pkg.test only", nv) || !any(i -> PAIN.CASE_INFO[i].kind === :pkgtest, keys(PAIN.CASE_INFO))
-    rec2 = merge(rec, Dict("R172428_CODE_DECK" => row("not_met", 4, 9, "4/9"), "R172428_EXP" => row("not_met", 4, 9, "4/9")))
+    rec2 = merge(rec, Dict("R172428_CODE_DEFAULT" => row("not_met", 4, 9, "4/9"), "R172428_EXP" => row("not_met", 4, 9, "4/9")))
     nv2 = PAIN.no_verdict_cases_markdown(; rec=rec2)
-    @test occursin("## Diagnostic re-runs", nv2) && occursin("| `R172428_CODE_DECK` ", nv2) && !occursin("| `R172428_EXP` ", nv2)
+    @test occursin("## Diagnostic re-runs", nv2) && occursin("| `R172428_CODE_DEFAULT` ", nv2) && !occursin("| `R172428_EXP` ", nv2)
     @test sort(PAIN._no_verdict_case_ids(; rec=rec2)) == sort([id for id in keys(PAIN.CASE_INFO) if !PAIN.on_validation_map(id; rec=rec2)])
-    @test PAIN._no_verdict_kind("E21_PRE", nothing)[1] == "Diagnostic re-runs" && PAIN._no_verdict_kind("NO_SUCH", nothing)[1] == "Not in the snapshot"
+    @test PAIN._no_verdict_kind("APPB_ETA_N_BAND", nothing)[1] == "Diagnostic re-runs" && PAIN._no_verdict_kind("NO_SUCH", nothing)[1] == "Not in the snapshot"
     @test PAIN._no_verdict_kind("R172428_EXP", row("no_verdict", 0, 0, ""))[1] == "No criterion (displays and records)"
-    @test startswith(PAIN._no_verdict_kind("T1", nothing)[1], "Inputs not printed or measured")    # Phase 118a
-    @test PAIN._no_verdict_kind("CYL2D_WEYL", nothing)[1] == "Information and verification under the meaningfulness rule"
+    @test startswith(PAIN._no_verdict_kind("BBN_CIRC", nothing)[1], "Inputs not printed or measured")    # Phase 118a
+    @test PAIN._no_verdict_kind("UT_GRID", nothing)[1] == "Information and verification under the meaningfulness rule"
     @test endswith(PAIN.no_verdict_cases_path(), joinpath("docs", "NO_VERDICT_CASES.md"))
     pn = joinpath(UNIT_OUT, "no_verdict.md")
     PAIN.write_no_verdict_cases(pn; rec); sn = read(pn, String); rm(pn)

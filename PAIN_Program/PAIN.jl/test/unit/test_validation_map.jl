@@ -87,16 +87,16 @@ end
     @test_throws ErrorException PAIN.load_validation_docs!(joinpath(UNIT_OUT, "absent.md"))
     @test PAIN._map_by_id("total").id == "total"
     @test_throws ErrorException PAIN._map_by_id("nope")
-    @test PAIN._case_info_or_missing("NOPE").title == PAIN._MISSING_DOC && PAIN._case_info_or_missing("T1").id == "T1"
-    ci = PAIN.JSON3.read(PAIN.case_info_json("T1"; recorded_errors=Dict{String,NamedTuple}()))
-    @test ci.in_registry && ci.criterion_text == PAIN.VALIDATION_CASES["T1"].criterion_text
+    @test PAIN._case_info_or_missing("NOPE").title == PAIN._MISSING_DOC && PAIN._case_info_or_missing("R172428_EXP").id == "R172428_EXP"
+    ci = PAIN.JSON3.read(PAIN.case_info_json("R172428_EXP"; recorded_errors=Dict{String,NamedTuple}()))
+    @test ci.in_registry && ci.criterion_text == PAIN.VALIDATION_CASES["R172428_EXP"].criterion_text
     order = PAIN.validation_map_case_order()
     @test all(haskey(PAIN.VALIDATION_CASES, id) for id in order)
     @test sort(order) == sort(PAIN.VALIDATION_CASE_ORDER) && "MRP_D1" in order          # off-block cases too (Validation tab)
     # Phase 147a (2026-11-10): `has_verdict` is the rule the coverage chart uses; the old name is an alias
     @test PAIN.on_validation_map === PAIN.has_verdict
     rec = PAIN.recorded_case_errors()
-    @test !PAIN.has_verdict("T1"; rec=Dict{String,NamedTuple}())                          # no snapshot, no verdict
+    @test !PAIN.has_verdict("R172428_EXP"; rec=Dict{String,NamedTuple}())                          # no snapshot, no verdict
     @test !any(id -> PAIN.has_verdict(id; rec), keys(PAIN.DIAGNOSTIC_CASES))
     @test !any(id -> PAIN.has_verdict(id; rec), keys(PAIN.INFORMATION_ONLY_CASES))
     @test any(id -> PAIN.has_verdict(id; rec), keys(PAIN.CASE_INFO))

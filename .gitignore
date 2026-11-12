@@ -15,11 +15,11 @@ Thumbs.db
 *~
 
 # Local scratch / caches
-rea-work/data/_scratch/
+PAIN_Program/data/_scratch/
 **/__pycache__/
 *.pyc
 .ipynb_checkpoints/
-rea-work/PAIN.jl/gui/cache/
+PAIN_Program/PAIN.jl/gui/cache/
 
-# Generated methodology website (rea-work/site/build_site.jl)
-rea-work/site/out/
+# Generated methodology website (PAIN_Program/site/build_site.jl)
+PAIN_Program/site/out/

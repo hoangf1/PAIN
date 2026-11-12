@@ -58,18 +58,14 @@ include("validation_case_iso62.jl")   # phase 62 a proving case for every map bl
 include("validation_case_iso66.jl")   # phase 66 further BEMT / F1A code checks
 include("validation_case_iso67.jl")   # phase 67 attribution of the source-block misses
 include("validation_case_iso80.jl")   # phase 80 App. D structural solver verification
-include("validation_case_iso83.jl")   # phase 83 high-frequency NR and reproduction on NASA's 300-mode set
 include("validation_case_iso87.jl")   # phases 87–89 NASA's App. B per-mode values; q = 0 held out; η_n per mode
-include("validation_case_iso92.jl")   # phase 92 NASA's printed mode-pair contributions; q = 0 on 3000 rpm held out
 include("validation_case_iso94.jl")   # phase 94 held-out CR-172428 Table 12 (η_T = 2.0)
 include("validation_case_iso96.jl")   # phase 96 band-centre η_n rule
-include("validation_case_iso99.jl")   # phase 99 band-centre η_n in CR-3813's program (held out)
 include("validation_case_iso100.jl")  # phase 100 NASA's per-band PF-105 table (App. D deck)
 include("validation_case_iso101.jl")  # phase 101 Merlin IVC modes vs App. C (flight run 10)
 include("validation_case_iso102.jl")  # phase 102 flight run 10, H2–H4 (diagnostic)
 include("validation_case_iso105.jl")  # phase 105 CYL2D grid rule vs printed cabin modes
 include("validation_case_iso106.jl")  # phase 106 cabin-mode frequency, 2-D part at 341 m/s
-include("validation_case_iso108.jl")  # phase 108 run 10 floor-term sign (diagnostic)
 include("validation_case_iso119.jl")  # phase 119 the T1 family on App. B's printed field
 include("validation_case_iso121.jl")  # phase 121 Commander 695A cabin dB(A) vs CR-178004 flight 3
 include("validation_case_iso90.jl")   # phase 90 Eq. (43) blocking vs Report 996 Fig. 10 (measured)
@@ -127,7 +123,6 @@ export
     volume_crossover_frequency_Hz, volume_crossover_band,
     tp1964_hf_inputs, cabin_interior_points, cabin_quadrature_points, point_tone_p2, point_volume_average, loudest_point,
     trimmed_modal_mass, app_a_modal_mass_per_area, r172428_appb_field, r172428_inputs,
-    write_h3_attribution_report,
     w_in_reverberant, noise_reduction_band, noise_reduction_spectrum,
     noise_reduction_test_article_inputs,
     CircularAcousticMode, circular_cavity_modes, besselj_prime_zeros,

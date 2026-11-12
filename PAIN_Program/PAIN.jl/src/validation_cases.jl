@@ -494,18 +494,11 @@ These compare with something else, so they run unchanged but carry no verdict (i
 recorded is kept in `inputs_echo.original_verdict` and in the reason text. Never a pass.
 """
 const INFORMATION_ONLY_CASES = Dict(
-    "LOUDEST_PT" => "the point form against Eq. (8) is an internal consistency check",
     "BLK_GAIN_MAP" => "a 0–6.02 dB gain range is a property of Eq. (43), not a PAIN output or a measurement",
-    "MRP_SHAPE_NORM" => "it tests a property of NASA's printed Table D-1, not this code",
-    "CYL2D_WEYL" => "Weyl's law is an asymptotic mode count, not a PAIN output or a measurement",
-    "MRP_COUPLED_LIMITS" => "analytic limits of the Ritz energy; PAIN's floor form is not that energy",
     "F1A_GUTIN_ANGLES" => "Gutin's far-field formula is a different method, not a measurement",
-    "SHARP_PANEL_D" => "CR-172490's design figure is neither PAIN nor a measurement",
     # Phase 83d (2026-10-29): a path calibrated to the data it is compared with (CLAUDE.md); T2_EQ19 is the printed-method T2
-    "T2" => "its broadband path uses `bb_j2_scale`, fitted to Fig. E-9, and is compared with Fig. E-9; T2_EQ19 carries the printed-method T2",
     # Phase 85 (Q63, 2026-10-29): the met cases audited with the same rule. Each compares with an identity, a hand or closed
     # form, a property, another method or code, or checks inputs rather than reproducing a PAIN output: verification.
-    "E11_FREEFIELD" => "two digitizations of Fig. E-11 against each other: input repeatability, not the code",
     "ISO_FF_CONV" => "SPL↔Pa round trip and loader against a hand conversion: identity",
     "ISO_TABLE8" => "the Table 8 calibration is the identity on its own peaks: identity",
     "UT_GRID" => "grid coordinates against the User Manual's formulas: an input check, not a PAIN output",
@@ -525,7 +518,6 @@ const INFORMATION_ONLY_CASES = Dict(
     "BPM_RP1218" => "NASA's BPM code is not PAIN, and RP-1218's tables are its output, not a measurement",
     "SHARP_PANEL_D_SHAPE" => "CR-172490's design figure is neither PAIN nor a measurement",
     "F1A_PLANE_PEAK" => "where the peak lies is a property of the field, not a PAIN output or a measurement",
-    "FF_E11_MAP" => "holds by construction (GEXT multiplies by ≤ 1)",
     "SRC_PASSTHROUGH" => "the stored inputs against the source grid: plumbing identity",
     "MRP_INPUT_QA" => "structural inputs against App. E's printed values: an input check, not a PAIN output",
     "CABIN_GEOM_HAND" => "cabin geometry against hand formulas",
@@ -546,19 +538,6 @@ const INFORMATION_ONLY_CASES = Dict(
     "BBN_KIN" => "the phase step m·B·Δψ is kinematics, not a PAIN output or a measurement",
     # Phase 118a (2026-11-02): input completeness. An input that enters the compared quantity is filled by an assumption,
     # an extrapolation or a stand-in rather than printed or measured for that comparison, so the outcome cannot be judged.
-    "REPRO_18b" => "inputs incomplete: PAIN's grid field for CR-3813's run is not printed; E-11's line + GEXT stand in",
-    "E18_TONES" => "inputs incomplete: PAIN's grid field for CR-3813's run is not printed; E-11's line + GEXT stand in",
-    "T1" => "inputs incomplete: the off-line field is GEXT's assumed extension of E-11's line",
-    "T1_MEAS_DAMPING" => "inputs incomplete: the off-line field is GEXT's assumed extension of E-11's line",
-    "UNC_COVER" => "inputs incomplete: the off-line field is GEXT's assumed extension of E-11's line",
-    "T1_FROM_E12" => "inputs incomplete: the off-line field is GEXT's assumed extension of the E-12 line",
-    "T1_F1A_FILL" => "inputs incomplete: the off-line field is filled from F1A on an assumed blade (the real one is proprietary)",
-    "T2_EQ19" => "inputs incomplete: the exterior broadband continuum is an assumed f⁻² shape on the E-11 + GEXT field",
-    "T2_MEAS_EXT" => "inputs incomplete: the exterior at 1600 and 2000 Hz is extrapolated with Fig. 14's slope",
-    "T2_MEAS_EXT_BR" => "inputs incomplete: the exterior at 1600 and 2000 Hz is extrapolated with Fig. 14's slope",
-    "T2_PRED_BB" => "inputs incomplete: the BPM exterior runs on an assumed blade (the real one is proprietary)",
-    "PROP_BB_FIG14" => "inputs incomplete: BPM runs on an assumed blade (the real one is proprietary)",
-    "PROP_BB_FIG17" => "inputs incomplete: BPM runs on an assumed blade (the real one is proprietary)",
     "BBN_CIRC" => "inputs incomplete: the Aero Commander blade geometry is assumed",
     # Phase 121 (2026-11-03): Commander 695A run from the inputs CR-178004 prints plus assumed ones
     "AC_C695A_DBA" => "inputs incomplete: the 695A blade, cabin cross-section and stiffener sections are not printed (assumed)",
@@ -579,6 +558,64 @@ const INFORMATION_ONLY_CASES = Dict(
 )
 
 """
+Cases retired in Phase 150e (2026-11-11; the author's list of 2026-11-10 in ISSUE-029): their question is answered or
+their inputs can never be completed. Each is unregistered, with its runner, its record and the tests of its old outcome;
+the report named here (none for a few) stays in `docs/validation_reports/`. `(why, report)` per id. The first group
+(diagnostic re-runs) had its runners removed; for the rest the registry drops the case and its runner stays where other
+code or the frozen-baseline regression (R11) still calls it.
+"""
+const RETIRED_CASES = Dict{String,Tuple{String,String}}(
+    "REPRO_18b_PRE" => ("re-runs REPRO_18b with the pre-correction Eq. (52) floor sign (Phase 61b): refuted", "phase61_cr3813_reproduction.md"),
+    "E21_PRE" => ("re-runs the E-21 NASA comparison with the pre-correction Eq. (52) floor sign (Phase 61c): refuted", "phase61_cr3813_reproduction.md"),
+    "REPRO_18b_DECK" => ("re-runs REPRO_18b_PRE on NASA's 300 MRP-deck modes (Phase 83e): refuted", "phase83_deck_modes.md"),
+    "E21_PRE_DECK" => ("re-runs E21_PRE on NASA's 300 MRP-deck modes (Phase 84c): refuted", "phase83_deck_modes.md"),
+    "E22_HF_DECK" => ("re-runs E22_HF_CODE on NASA's 300 MRP-deck modes (Phase 83b): refuted", "phase83_deck_modes.md"),
+    "T2_EQ19_DECK" => ("re-runs T2_EQ19 on NASA's 300 MRP-deck modes (Phase 83c): refuted", "phase83_deck_modes.md"),
+    "R172428_CODE_DECK" => ("re-runs R172428_CODE on NASA's 300 MRP-deck modes (Phase 84b): refuted", "phase83_deck_modes.md"),
+    "R172428_EXP_DECK" => ("re-runs R172428_EXP on NASA's 300 MRP-deck modes (Phase 84b): refuted", "phase83_deck_modes.md"),
+    "Q0_REPRO_18b" => ("re-runs REPRO_18b_PRE with the q = 0 cabin modes uncoupled (Phase 88a)", "phase88_q0_held_out.md"),
+    "Q0_E18" => ("re-runs E18_TONES in the pre-correction form with the q = 0 cabin modes uncoupled (Phase 88b)", "phase88_q0_held_out.md"),
+    "Q0_E21" => ("re-runs E21_PRE with the q = 0 cabin modes uncoupled (Phase 88c)", "phase88_q0_held_out.md"),
+    "R172428_CODE_ETAN" => ("re-runs R172428_CODE with η_n per cabin mode, trim per 1/3-octave band (Phase 89b)", "phase87_appb_per_mode.md"),
+    "APPB_PAIRS" => ("sets this code's Eq. (8) pair terms against NASA's printed largest contributors (Phase 92a)", "phase92_appb_pairs.md"),
+    "APPB_PAIRS_Q0_ETAN" => ("re-runs APPB_PAIRS with q = 0 off and η_n per cabin mode, post-hoc (Phase 92c)", "phase92_appb_pairs.md"),
+    "R172428_CODE_Q0" => ("re-runs R172428_CODE with the q = 0 cabin modes uncoupled; 3000 rpm held out (Phase 92b)", "phase92_appb_pairs.md"),
+    "R172428_CODE_Q0_ETAN" => ("re-runs R172428_CODE with q = 0 off and η_n per cabin mode, post-hoc (Phase 92c)", "phase92_appb_pairs.md"),
+    "BAND_REPRO_18b" => ("re-runs REPRO_18b_PRE with the band-centre η_n of Phase 95 (Phase 99a)", "phase99_band_rule_cr3813.md"),
+    "BAND_E18" => ("re-runs E18_TONES in the pre-correction form with the band-centre η_n (Phase 99b)", "phase99_band_rule_cr3813.md"),
+    "FLIGHT10_FLOOR_SIGN" => ("tests on the printed H1/H5 pairs whether run 10 used the pre-correction floor-term sign (Phase 108)", "phase108_run10_floor_sign.md"),
+    "E11_FREEFIELD" => ("two digitizations against each other: a data check, recorded in the data file's header", "e11_delta_dig.md"),
+    "FF_E11_MAP" => ("holds by construction, which CLAUDE.md step 6 does not allow as a test", "phase62_65_map_blocks_grid.md"),
+    "MRP_SHAPE_NORM" => ("tests a property of NASA's printed table, not this code", "phase62_65_map_blocks_grid.md"),
+    "CYL2D_WEYL" => ("missed through its own design; ISO_CYL2D_EXACT and CYL2D_GRID_CONV cover the same ground", "phase62_65_map_blocks_grid.md"),
+    "LOUDEST_PT" => ("missed through its own design; LOUDEST_PT_GRID covers the same ground", ""),
+    "SHARP_PANEL_D" => ("a design figure that is neither PAIN nor a measurement, for an option that is not the default", "phase59_60_bridges_modes.md"),
+    "T2" => ("a fitted path compared with the data it was fitted to", "t2_third_octave.md"),
+    "REPRO_18b" => ("CR-3813's run on an off-line field that is not printed; T1_APPB on the printed field replaced it", "pain_reproduction_e16.md"),
+    "E18_TONES" => ("CR-3813's run on an off-line field that is not printed; T1_APPB on the printed field replaced it", "e18_tones_eta1.md"),
+    "UNC_COVER" => ("CR-3813's run on an off-line field that is not printed; T1_APPB on the printed field replaced it", "uncertainty_budget_testarticle.md"),
+    "T1" => ("CR-3813's run on an off-line field that is not printed; T1_APPB on the printed field replaced it", "t1_tonal.md"),
+    "T1_FROM_E12" => ("CR-3813's run on an off-line field that is not printed; T1_APPB on the printed field replaced it", "t1_tonal.md"),
+    "T1_MEAS_DAMPING" => ("CR-3813's run on an off-line field that is not printed; T1_MEAS_DAMPING_APPB replaced it", "h3_attribution.md"),
+    "T1_F1A_FILL" => ("CR-3813's run on an off-line field that is not printed; T1_APPB on the printed field replaced it", ""),
+    "T2_EQ19" => ("the test article's exterior broadband is not measured above 1250 Hz", "phase38c_hf_broadband.md"),
+    "T2_MEAS_EXT" => ("the test article's exterior broadband is not measured above 1250 Hz", "t2_measured_exterior.md"),
+    "T2_MEAS_EXT_BR" => ("the test article's exterior broadband is not measured above 1250 Hz", "phase59_60_bridges_modes.md"),
+    "T2_PRED_BB" => ("the test article's exterior broadband is not measured above 1250 Hz", "phase48_exterior_broadband.md"),
+    "PROP_BB_FIG14" => ("broadband on an assumed blade", "phase48_exterior_broadband.md"),
+    "PROP_BB_FIG17" => ("broadband on an assumed blade", "phase48_exterior_broadband.md"),
+    "GEXT_BOUND" => ("belongs to the retired T1 family", "gext_importance_bound.md"),
+    "H3_ATTRIB" => ("belongs to the retired T1 family", "h3_attribution.md"),
+    "T1_F1A_MEAS_DAMP" => ("belongs to the retired T1 family", ""),
+    "BBN_LONG" => ("no criterion and an assumed blade", "bbn_phase.md"),
+    "BBN_LEVELS" => ("no criterion and an assumed blade", "bbn_phase.md"),
+    "PER_FIG6" => ("spectra that Figs. 8 and 9 already cover", "pereira_forward_flight.md"),
+    "MRP_RITZ" => ("the fitted surrogate that the App. D solver replaced", "mrp_ritz_vs_d1.md"),
+    "MRP_COUPLED_LIMITS" => ("12 of 78 rows miss by design (NASA's floor form is not the exact energy); decided in Phase 150", ""),
+    "R172428_PAIRS" => ("used to state the share of the largest mode pair (Phase 136, done)", ""),
+)
+
+"""
 Diagnostic runs (author 2026-10-29: "these diagnostics shouldnt be included in a validation map"): a re-run of another
 case with one program form or input set changed to test a documented cause of that case's miss. The case they re-run
 carries the verdict; the diagnostic answers whether the cause holds, so it carries no verdict and stays off the map.
@@ -586,36 +623,14 @@ Its recorded outcome is kept in `inputs_echo.original_verdict`, like an informat
 to every such re-run whatever its outcome.
 """
 const DIAGNOSTIC_CASES = Dict(
-    "REPRO_18b_PRE" => "re-runs REPRO_18b with the pre-correction Eq. (52) floor sign (Phase 61b): refuted",
-    "E21_PRE" => "re-runs the E-21 NASA comparison with the pre-correction Eq. (52) floor sign (Phase 61c): refuted",
-    "REPRO_18b_DECK" => "re-runs REPRO_18b_PRE on NASA's 300 MRP-deck modes (Phase 83e): refuted",
-    "E21_PRE_DECK" => "re-runs E21_PRE on NASA's 300 MRP-deck modes (Phase 84c): refuted",
-    "E22_HF_DECK" => "re-runs E22_HF_CODE on NASA's 300 MRP-deck modes (Phase 83b): refuted",
-    "T2_EQ19_DECK" => "re-runs T2_EQ19 on NASA's 300 MRP-deck modes (Phase 83c): refuted",
-    "R172428_CODE_DECK" => "re-runs R172428_CODE on NASA's 300 MRP-deck modes (Phase 84b): refuted",
-    "R172428_EXP_DECK" => "re-runs R172428_EXP on NASA's 300 MRP-deck modes (Phase 84b): refuted",
-    # Phase 88 (2026-10-29): the q = 0 hypothesis on CR-3813's printed runs, held out
-    "Q0_REPRO_18b" => "re-runs REPRO_18b_PRE with the q = 0 cabin modes uncoupled (Phase 88a)",
-    "Q0_E18" => "re-runs E18_TONES in the pre-correction form with the q = 0 cabin modes uncoupled (Phase 88b)",
-    "Q0_E21" => "re-runs E21_PRE with the q = 0 cabin modes uncoupled (Phase 88c)",
-    "R172428_CODE_ETAN" => "re-runs R172428_CODE with η_n per cabin mode, trim per 1/3-octave band (Phase 89b)",
-    # Phase 92 (2026-10-29): NASA's printed mode-pair contributions; q = 0 off on the held-out 3000 rpm points
-    "APPB_PAIRS" => "sets this code's Eq. (8) pair terms against NASA's printed largest contributors (Phase 92a)",
-    "APPB_PAIRS_Q0_ETAN" => "re-runs APPB_PAIRS with q = 0 off and η_n per cabin mode, post-hoc (Phase 92c)",
-    "R172428_CODE_Q0" => "re-runs R172428_CODE with the q = 0 cabin modes uncoupled; 3000 rpm held out (Phase 92b)",
-    "R172428_CODE_Q0_ETAN" => "re-runs R172428_CODE with q = 0 off and η_n per cabin mode, post-hoc (Phase 92c)",
     # Phase 96 (2026-10-30): the band-centre η_n rule read from App. B (post-hoc on those values)
     "APPB_ETA_N_BAND" => "sets the default η_n rule against the App. B values it was read from, post-hoc (Phase 96a)",
     "R172428_CODE_DEFAULT" => "re-runs R172428_CODE with the code as it ships, post-hoc (Phase 96d)",
-    # Phase 99 (2026-10-30): the band-centre η_n in the program behind CR-3813's printed runs, held out
-    "BAND_REPRO_18b" => "re-runs REPRO_18b_PRE with the band-centre η_n of Phase 95 (Phase 99a)",
-    "BAND_E18" => "re-runs E18_TONES in the pre-correction form with the band-centre η_n (Phase 99b)",
     # Phase 100 (2026-10-30): NASA's per-band PF-105 table against the App. B admittances (selects the insulation input)
     "R172428_TRIM_DECK" => "sets NASA's App. D PF-105 deck table against App. B's trim admittances; selects the input (Phase 100a)",
     # Phase 102 (2026-10-30): flight run 10, H2–H4; no criterion was fixed for it (FLIGHT_MODES was not met then; met since
     # Phase 142, 2026-11-11, on the settled reference file; whether this case may carry a verdict is ISSUE-034)
     "FLIGHT10_H234" => "sets the code as it ships and the trim per band against PAIN's printed run 10 levels (Phase 102)",
-    "FLIGHT10_FLOOR_SIGN" => "tests on the printed H1/H5 pairs whether run 10 used the pre-correction floor-term sign (Phase 108)",
     # Phase 135f / 136a (2026-11-10; the author's sorting of 2026-11-09): runs a program form or option that is not the
     # shipped default, or repeats another case's measurement. By kind, whatever the outcome.
     "R172428_CODE" => "runs CR-3813's printed program form, not the shipped default; R172428_CODE_DEFAULT runs the shipped form on the " *
