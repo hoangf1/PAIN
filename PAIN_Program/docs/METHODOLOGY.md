@@ -365,11 +365,11 @@ $$x_3 = \frac{\pi a}{18}\,(k_p - k), \qquad z_k = z_p - x_3, \qquad \theta_\ell 
 
 
 Blocked amplitude = F(γ) × free-field amplitude, with F(γ) = 10^(0.3 − 0.000224·e^(0.08γ)) (about 6 dB at γ = 0 and 0 dB at 90°).
-R2 limits the maximum to about 4 dB. Phases are unchanged.
+R2 limits the maximum to about 4 dB (information: 20 log₁₀ 1.6 = 4.06 dB; no criterion tests it, Phase 144c). Phases are unchanged.
 
 **Why R2 is the default (2026-11-10, Phase 144c).** R2 (0.8 × F, not below 1; CR-172428 §5.3.2) is the blocking of the program NASA ran for CR-172428, the latest PAIN release, and the defaults are that program (Phase 93); it was not chosen from a comparison.
 
-**Where the curve's shape comes from (added 2026-11-10, Phase 144e).** NASA CR-159668 (Magliozzi and Brooks, 1979, report pp. 13–15, Table VI and Fig. 21) measured the pressure doubling on a rigid semicylinder beside a model prop-fan at 21 microphones. The report says "There is much scatter in this data" and "no clear trend is shown by the data", and that its curve is an exponential fit through 0 dB at 0° and 6 dB at 60°. It is cited here as the source of the curve's shape only: no case is built on it, because the scatter is as large as the effect, and it gives no support for a 4 dB maximum, so the default R2 rests on CR-172428 §5.3.2 alone. Eq. (43) as printed against that fit is a figure still to be drawn (document against document, no verdict).
+**Where the curve's shape comes from (added 2026-11-10, Phase 144e).** NASA CR-159668 (Magliozzi and Brooks, 1979, report pp. 13–15, Table VI and Fig. 21) measured the pressure doubling on a rigid semicylinder beside a model prop-fan at 21 microphones. The report says "There is much scatter in this data" and "no clear trend is shown by the data", and that its curve is an exponential fit through 0 dB at 0° and 6 dB at 60°. It is cited here as the source of the curve's shape only: no case is built on it, because the scatter is as large as the effect, and it gives no support for a 4 dB maximum, so the default R2 rests on CR-172428 §5.3.2 alone. **Drawn 2026-11-11 (Phase 144e):** the fit is printed on Fig. 21 as ΔdB = 6[1 − exp(−0.08φ)], φ from the wall; with γ = 90° − φ it is Eq. (43) exactly (6 e^(−7.2)/20 = 0.000224), within 0.0006 dB over 0–90°. So Eq. (43) R1 is that fit; R2's 4 dB maximum is not in it (`validation_reports/phase144_blocking_r2.md`, document against document, no verdict).
 
 **Claim: V-UNIT / V-CODE.** The implementation matches the CR-172428 p.68 narrative within 0.06 dB (R1; R2 maximum about 4 dB, information).
 Caveat from the same report: scale-model blocked measurements show 3–4 dB near the propeller plane and the reflection dies away

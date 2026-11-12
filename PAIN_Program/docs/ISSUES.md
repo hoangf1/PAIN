@@ -46,9 +46,9 @@ Two lists, newest first in each. **Not assigned to a phase**: issues to act on o
 | 011 | Cabin-mode animation does not play | Readability | 151 |
 | 010 | Coverage rows scattered; group by figure | Organisation | 146 |
 | 009 | R172428_EXP plot labels and comparison target | Readability | 136, 145 |
-| 008 | BLK_P68 tests R1, predictions use R2 | Not met | 144 |
+| 008 | BLK_P68 tests R1, predictions use R2 | Not met | 144 (closed 2026-11-11) |
 | 007 | E12_BLOCK 29/31; two max errors on record | Not met | 143 (closed 2026-11-11) |
-| 006 | R2 and the circular wall have no criterion | Not met | 144 |
+| 006 | R2 and the circular wall have no criterion | Not met | 144 (closed 2026-11-11) |
 | 005 | Too many Markdown files | Organisation | 148, 149 |
 | 004 | Pereira counts differ across the record | Readability, not met | 135, 141 (closed 2026-11-11) |
 | 003 | Fig. 13a recorded as FAIL and PASS | Readability | 135 |
@@ -1147,7 +1147,7 @@ This is raised as a question. No change is made.
 
 ## ISSUE-008: BLK_P68 tests only R1, but the predictions use R2 by default; the R2 curve has no criterion
 
-**Status:** open. Recorded 2026-11-09. Raised by the user ("why is there an r2 if we only compare against r1, and if it is valid for r1, why use r2 for predictions"). No code, criterion or recorded result has been changed.
+**Status:** closed 2026-11-11 by Phase 144 (`COMPLETED_PHASES.md` §8ch): `BLK_P68` is a unit check of Eq. (43), off the chart; R2 stays information, its default reason is in METHODOLOGY §Blocking. Recorded 2026-11-09. Raised by the user ("why is there an r2 if we only compare against r1, and if it is valid for r1, why use r2 for predictions"). No code, criterion or recorded result has been changed.
 
 **Summary.** `BLK_P68` compares Eq. (43) R1 with six narrative ΔL values from CR-172428 p. 68 (tolerance 0.06 dB). The same function also computes R2 (0.8 × F, floored at 1, CR-172428 §5.3.2) and plots it as a reference curve labelled `R2`. Nothing compares R2 with any data. Yet R2 is the default blocking variant for the pipeline and for most chain cases, so the predictions use the one variant the blocking case does not test. The 0.8 factor is therefore untested in the record.
 
@@ -1217,7 +1217,7 @@ This is raised as a question. No change is made.
 
 ## ISSUE-006: R2 blocking variant needs its own validation case and criterion; the circular wall needs its own criterion
 
-**Status:** open. Recorded 2026-11-09. No verdict changed. No code or criterion has been changed.
+**Status:** closed 2026-11-11 by Phase 144 (`COMPLETED_PHASES.md` §8ch): no case for R2 (run 10's field stays a unit test; the Fig. 10 R2 rows are shown, not judged); the circular wall is information. CR-159668 Fig. 21 prints the fit that Eq. (43) is, and gives no support for R2's 4 dB (`phase144_blocking_r2.md`). Recorded 2026-11-09.
 
 **Summary.** `_run_r996_fig10` in `validation_case_iso90.jl` computes two blocking variants for both walls: R1 (Eq. 43) and R2 (0.8 × Eq. 43, CR-172428 §5.3.2). The only verdict, `R996_FIG10_FLAT`, uses R1. R2 is plotted and reported as "information" with no criterion, so it is not validated against the Fig. 10 measurements. The variable named `r2` in that file is this R2 array, not a wall radius. Two gaps follow:
 - **R2 needs its own validation case and its own criterion**, registered and dated before any comparison. It is not covered by the R1 verdict.
