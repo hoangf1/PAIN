@@ -3301,8 +3301,9 @@ _run_if("Flight run 10, H2–H4, and the trim per band (phase 102)") do
     # in Phase 103. Phase 102 recorded 98.30 / 89.76 / 79.19 and 98.68 / 89.77 / 79.17; Phase 104 96.80 / 88.85 / 80.67.
     # After Phases 106 (2-D part at 341 m/s) and 107 (5 shell / 3 floor terms): post-hoc; Phase 105 gave 97.13 / 89.37 / 81.34.
     # After Phase 108 (run 10's pre-correction floor-term sign, post-hoc): Phases 106–107 gave 97.33 / 89.00 / 82.86.
-    @test r.inputs_echo.as_shipped ≈ [94.60, 87.44, 83.89] atol = 0.01
-    @test r.inputs_echo.band ≈ [94.99, 87.47, 83.91] atol = 0.01
+    # After ISSUE-032 (2026-11-12, post-hoc: a card η_r is η_r^struc only, radiation added): Phase 108 gave 94.60 / 87.44 / 83.89
+    @test r.inputs_echo.as_shipped ≈ [94.21, 86.29, 82.64] atol = 0.01
+    @test r.inputs_echo.band ≈ [94.60, 86.31, 82.74] atol = 0.01
     png = plot_case(r, VALIDATION_CASES["FLIGHT10_H234"].plot_spec; path=joinpath(TEST_OUT, "FLIGHT10_H234.png"))
     @test isfile(png) && filesize(png) > 0
 end
@@ -3605,7 +3606,9 @@ _run_if("CR-172428 reproduction (phase 44)") do
     f = r172428_appb_field(4000)
     @test length(f.pts) == 16 * 19 && f.n_missing == 16    # p. 204 row L = 1 below the page edge
     @test extrema(p.theta_deg for p in f.pts) == (0.0, 180.0)
-    expected = (("R172428_CODE", :not_met), ("R172428_EXP", :not_met), ("R172428_ETA", :not_met),
+    # R172428_ETA: 17/32 not met until ISSUE-032 (2026-11-12); 32/32 since, post-hoc, and without a verdict (the miss was
+    # located by comparing with App. B, the case's own data: the author's independence rule of 2026-11-09)
+    expected = (("R172428_CODE", :not_met), ("R172428_EXP", :not_met), ("R172428_ETA", :met),
                 ("R172428_TRIM", :no_verdict))   # R172428_PAIRS retired in Phase 150e
     for (id, verd) in expected
         r = run_validation_case(id)

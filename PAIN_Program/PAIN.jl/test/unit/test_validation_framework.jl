@@ -81,10 +81,13 @@ end
     @test all(PAIN.input_incomplete, p118) && !PAIN.input_incomplete("UT_GRID") && !PAIN.input_incomplete("R172428_EXP")
     @test count(PAIN.input_incomplete, keys(PAIN.INFORMATION_ONLY_CASES)) == length(p118)
     @test !any(id -> haskey(PAIN.INFORMATION_ONLY_CASES, id),
-               ["R172428_EXP", "R172428_ETA", "NR_TP1964_XOVER", "FLIGHT_MODES", "R996_LOADS", "PER_FIG8"])   # on the chart (Phase 135f)
+               ["R172428_EXP", "NR_TP1964_XOVER", "FLIGHT_MODES", "R996_LOADS", "PER_FIG8"])   # on the chart (Phase 135f)
     r118 = PAIN._as_information_case(mk("BBN_CIRC", :not_met))
     @test r118.verdict === :no_verdict && occursin("the 2026-11-02 input rule (inputs incomplete", r118.reason)
     @test occursin("the 2026-10-29 rule", PAIN._as_information_case(mk("UT_GRID", :not_met)).reason)
+    # 2026-11-12: a result reached after a change located with the case's own data names the independence rule
+    @test PAIN.independence_rule("R172428_ETA") && !PAIN.independence_rule("UT_GRID") && !PAIN.input_incomplete("R172428_ETA")
+    @test occursin("the 2026-11-09 independence rule", PAIN._as_information_case(mk("R172428_ETA", :met)).reason)
     # Phase 86: diagnostic re-runs carry no verdict; the case each re-runs keeps its verdict
     @test all(id -> haskey(PAIN.VALIDATION_CASES, id), keys(PAIN.DIAGNOSTIC_CASES))
     @test isempty(intersect(keys(PAIN.DIAGNOSTIC_CASES), keys(PAIN.INFORMATION_ONLY_CASES)))

@@ -10,6 +10,7 @@ Two lists, newest first in each. **Not assigned to a phase**: issues to act on o
 
 | Issue | Subject | Kind | State |
 |---|---|---|---|
+| 041 | Held-out test of the ISSUE-032 fix: the Merlin IVC loss factors of CR-172428 App. C | Validity, data | open |
 | 040 | The per-stage file layout and the 44 test-only cases (Phase 150b, 150e rest) | Organisation | open |
 | 039 | FLIGHT_MODES: twenty generalized masses differ in the in-plane part, with both signs | Investigation | closed 2026-11-12: no error found; about half are near pairs |
 | 038 | The uncertainty budget's nominal sample is not the pipeline's result (structural mode cut-off) | Tests, code | closed 2026-11-12 |
@@ -18,7 +19,7 @@ Two lists, newest first in each. **Not assigned to a phase**: issues to act on o
 | 035 | The summary file and §0 date from 2026-11-02 and do not show the changes since | Record | closed 2026-11-11 |
 | 034 | The shipped program form has no held-out test of all its parts; R172428_ETAT2 changes only the trim damping | Validity, investigation | closed 2026-11-12: answered, a stated limit |
 | 033 | CYL2D at 62.6°: this code rejects NASA's grid where NASA's program solved it | Not met, investigation | closed 2026-11-12: NASA's grid is solved; a common factor of 0.3 % stays unexplained |
-| 032 | R172428_ETA and E14_LOSS: look for an error in the loss-factor method | Not met, investigation | open (R172428_ETA only since 2026-11-12; E14_LOSS has no verdict, ISSUE-037) |
+| 032 | R172428_ETA and E14_LOSS: look for an error in the loss-factor method | Not met, investigation | closed 2026-11-12: error found and fixed (card η_r is η_r^struc only) |
 | 031 | Not-met cases where a published prediction misses the same way: a separate look on the chart | Readability | closed 2026-11-12 |
 | 030 | R996_LOADS: the fix needs more measured section data or CFD | Not met | on hold (author 2026-11-10) |
 
@@ -89,6 +90,17 @@ Still open for the author: the new CLAUDE.md update list (Phase 148a), the plain
 A web search for reports that could settle open questions of these issues. The list, with what each may give and what to check first, is `IMPLEMENTATION_PLAN.md` §2.5 (D-23 to D-31). Two were then downloaded with the author's go-ahead and read in part the same day: CR-165869, which prints the cabin grid rule that Phase 111 could not find (ISSUE-025), and CR-159668, whose measured blocking data are too scattered to judge a case on (ISSUE-006). The others were not downloaded; what is said about them comes from catalogue records and abstracts. Two findings came from PDFs already in `references/`: TP-2444 p. 8 prints its trim lining (ISSUE-026), and TN 1546 holds 24 sections of which three are digitized (ISSUE-027).
 
 ---
+
+## ISSUE-041: Held-out test of the ISSUE-032 fix: the Merlin IVC loss factors of CR-172428 App. C
+
+**Status:** open, not assigned to a phase. Recorded 2026-11-12 while closing ISSUE-032, by Claude, under the author's authority of 2026-11-11 ("fix all the issues"; "make decisions logically like i do").
+
+**Why.** The ISSUE-032 fix (a card structural loss factor is η_r^struc; radiation is added) was located with App. B's η_r′, so R172428_ETA cannot test it. CR-172428 App. C prints a LOSS FACTOR column beside the Merlin IVC's 221 structural modes (PDF pp. 223–226), from a different deck (App. D, flight run 10: η_r = 2/f per band, its own trim). It has not been transcribed.
+
+**Steps.**
+1. Fix and date the criterion before any value is read: η_r′ of this code within ±25 % of the printed loss factor for at least 75 % of the listed modes (the R172428_ETA tolerance; a count rule because the twenty near-pair modes of ISSUE-039 may differ in shell share).
+2. Transcribe the LOSS FACTOR column blind (as Phase 142: tiles of that column only, two passes, disagreements read at 600 dpi), without this code's values in view.
+3. One run. A case that carries a verdict under the (P) rule if every input of run 10's deck is printed (it is: App. D pp. 229–237).
 
 ## ISSUE-040: The per-stage file layout, and the 44 test-only cases off the GUI list
 
@@ -282,7 +294,17 @@ Both change only the damping. Nothing held out tests the q = 0 choice or the for
 
 ## ISSUE-032: R172428_ETA and E14_LOSS: the loss factors disagree with NASA's by up to a factor of two; look for an error in the method
 
-**Status:** open, not assigned to a phase. Recorded 2026-11-10. Investigation. No criterion, tolerance or verdict changes. Follows ISSUE-023, whose phase (139) ended with no cause found.
+**Status:** closed 2026-11-12 (Claude, under the author's authority of 2026-11-11 ("fix all the issues"; "make decisions logically like i do"); report `validation_reports/issue032_structural_loss_card.md`).
+
+**Cause found and fixed.** A per-band structural loss factor from cards 12–14 is η_r^struc of CR-3813 Eq. (79): "either a measured value or an estimate" (p. 42), with Eq. (80) the estimate when none is given; the external radiation loss of Eq. (81) is added to it. The User Manual (§5.4.3) prints the input structural and the external radiation loss factors as separate items. This code let the card replace the radiation loss too, so shell modes, whose η_r is mostly radiation above 470 Hz, came out at 0.51–0.80 of NASA's. Eqs. (82), (A.8), (A.10), (A.11) and the ETASTR change (CR-172428 p. 178) were checked against the pages first and match.
+
+**Results (post-hoc).** R172428_ETA 32/32 within ±25 %, all within 6 % (was 17/32). It carries no verdict now: the place of the error was found by comparing with App. B, the case's own data (independence rule, ISSUE-021); the first run, not met 17/32, stays on record. The shipped tones against NASA's printout: 8 of 9 closer, 5000 rpm H3 −1.88 dB (was −0.76). R172428_EXP stays not met 5/9; R172428_ETAT2 stays met 9/9 (largest 1.7 → 1.3 dB, closer to NASA). The chart now has 18 cases with a verdict: 13 met, 5 not met.
+
+**E14_LOSS** carries no verdict since ISSUE-037 (inputs not printed). This fix does not touch its acoustic loss factor.
+
+**Held-out test:** ISSUE-041.
+
+Was: open, not assigned to a phase. Recorded 2026-11-10. Investigation. No criterion, tolerance or verdict changes. Follows ISSUE-023, whose phase (139) ended with no cause found.
 
 **Author (2026-11-10).** "there must be something wrong with this function methodlogical wise this needs further investigation".
 
@@ -319,7 +341,7 @@ The two patterns are not the same, so one cause for both is not shown.
 
 **The two questions, decided as the author's words of 2026-11-10 lead.**
 1. NR_TP1964_XOVER: **no mark.** Its NASA curve is CR-159363's earlier model with three choices not printed, this code does not reproduce it, and it scores better (12/18) than this code (9/18). The author's "limitation of the code itself" holds only where the code reproduces the prediction. The table still shows the curve's count, with "no mark".
-2. PER_FIG8: **marked.** Pereira's CFD, computed from the digitized Fig. 8 on the same gate: H1 7/7 within ±1.7 dB, H2 5/7 within ±3 dB (−3.9 dB at −20°, −3.1 dB at −10°), so 12/14: it misses too. This code: 10/14. The author: "if we are getting the same results as CFD which is higher fidelity thats just a limitation of the code".
+2. PER_FIG8: **marked.** Pereira's CFD, computed from the digitized Fig. 8 on the same gate: H1 7/7 within ±1.7 dB, H2 5/7 within ±3 dB (−3.9 dB at −20°, −3.1 dB at −10°), so 12/14: it misses too. The −3.1 dB point is within the digitization's ±0.3 dB of the gate (data file header); the −3.9 dB point is clear of it, so the mark does not rest on reading error alone (code review, 2026-11-12). This code: 10/14. The author: "if we are getting the same results as CFD which is higher fidelity thats just a limitation of the code".
 
 **On the chart.** A marked bar is drawn half as strong with a black outline, and its text reads "prediction misses too". The status page counts these apart (2 of the 6 not-met cases: R172428_EXP, PER_FIG8). The "why not met" table names the prediction it used.
 

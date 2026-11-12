@@ -46,9 +46,7 @@ const CASE_CAUSES = Dict{String,CaseCause}(
         "The narrow body (61/61) and the Merlin (51/51) are reproduced. At 62.6°, on NASA's own grid (solved on the real parts since 2026-11-12, ISSUE-033), ε(0,0) and all 53 mode types equal NASA's and every frequency is 0.30–0.31 % low: one common factor, which a cabin radius or sound speed that is not printed for this aircraft would give.",
         "Phases 103, 105, 140; ISSUE-033", "the common factor 1.00305 (no printed input gives it; none is chosen from the result)", "issue033_cyl2d_small_diameter.md"),
     # Phase 139d (2026-11-10): the band-centre hypothesis was not supported (15/32), so both are unexplained
-    "R172428_ETA" => CaseCause("unexplained (no documented cause survived its test)",
-        "Up to 470 Hz every mode is within 12 % of NASA's; above it the modes with almost no shell motion (share under 0.05) agree within 6 % and every other mode is 0.51–0.80 of NASA's. Every cause tested so far was ruled out, the band-centre rule included.",
-        "Phases 82c, 118, 139", "look for an error in the loss-factor method (ISSUE-032)", "phase139b_band_centre.md"),
+    # R172428_ETA: no verdict since 2026-11-12 (ISSUE-032: 32/32 after the fix, post-hoc), so no cause record
     # E14_LOSS: no verdict since 2026-11-12 (ISSUE-037, inputs incomplete), so no cause record
 )
 

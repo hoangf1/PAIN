@@ -556,6 +556,8 @@ const INFORMATION_ONLY_CASES = Dict(
                               "damping and excluded (1,1) mode were chosen against the measurement and are not printed (Phase 138b)",
     "E14_LOSS" => "inputs incomplete: the side the facing sits on and the end-plate backing are not printed, and the " *
                   "compared loss factor moves with them by up to 8.5 % and 43 % (tolerance 25 %; ISSUE-037, 2026-11-12)",
+    "R172428_ETA" => "post-hoc: met 32/32 only after the ISSUE-032 fix (2026-11-12), whose place was found by comparing " *
+                     "with App. B, this case's own data; first run not met 17/32",
     "NR_PROP_TP2444" => "inputs incomplete: run on CR-172428's trim, whose fiberglass weight does not match the lining TP-2444 prints (Phase 137a′)",
 )
 
@@ -657,6 +659,10 @@ const DIAGNOSTIC_CASES = Dict(
 """True for an information case whose reason is the Phase 118a input-completeness rule (an unprinted input)."""
 input_incomplete(id::AbstractString) = startswith(get(INFORMATION_ONLY_CASES, id, ""), "inputs incomplete")
 
+"""True for a case whose result was reached after a change located with its own compared data (the author's independence
+rule of 2026-11-09, ISSUE-021): its `INFORMATION_ONLY_CASES` reason starts with "post-hoc:" (2026-11-12)."""
+independence_rule(id::AbstractString) = startswith(get(INFORMATION_ONLY_CASES, id, ""), "post-hoc:")
+
 """True for a case that carries no verdict by rule: an information case or a diagnostic run."""
 no_verdict_by_rule(id::AbstractString) = haskey(INFORMATION_ONLY_CASES, id) || haskey(DIAGNOSTIC_CASES, id)
 
@@ -668,7 +674,8 @@ function _as_information_case(r::ValidationCaseResult)
     info = get(INFORMATION_ONLY_CASES, r.id, nothing)
     diag = get(DIAGNOSTIC_CASES, r.id, nothing)
     (info === nothing && diag === nothing || r.verdict === :no_verdict) && return r
-    rule = input_incomplete(r.id) ? "the 2026-11-02 input rule" : "the 2026-10-29 rule"
+    rule = input_incomplete(r.id) ? "the 2026-11-02 input rule" :
+           independence_rule(r.id) ? "the 2026-11-09 independence rule" : "the 2026-10-29 rule"
     head = info !== nothing ? "information: not a validation case under $rule ($info)" :
            "diagnostic: $diag; the case it re-runs carries the verdict"
     reason = "$head; recorded outcome unchanged, not a pass: $(replace(String(r.verdict), "_" => " ")), $(r.reason)"

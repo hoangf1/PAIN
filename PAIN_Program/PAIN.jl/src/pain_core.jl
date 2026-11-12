@@ -829,7 +829,10 @@ loss_factor_override(inp::PainInputs, which::Symbol, f_Hz::Real; c_ω::Real=c_om
 
 """
 η_r of Eqs. (79)–(81) for mode `st`, then η_r′ (Eq. 82) when trim is present.
-Card 11–14 non-zero override replaces Eqs. 79–81; trim / η_r_cap still apply.
+A non-zero card 12–14 value is η_r^struc of Eq. (79) and replaces the estimate of Eq. (80) only; the external radiation
+loss of Eq. (81) is always added (ISSUE-032, 2026-11-12: CR-3813 p. 42, "η_r^struc is either a measured value or an
+estimate"; User Manual §5.4.3 prints the input structural and the external radiation loss factors as separate items).
+Until 2026-11-12 the card replaced the radiation loss too. Trim / η_r_cap still apply.
 """
 function structural_η_r_prime(inp::PainInputs, st::StructuralMode, ωr::Real;
                               η_r_cap::Union{Nothing,Float64}=nothing,
@@ -842,7 +845,9 @@ function structural_η_r_prime(inp::PainInputs, st::StructuralMode, ωr::Real;
         # Measured / card total η_r′ (phase 43b): do not re-apply Eq. (82) trim.
         return apply_η_r_cap(ov, η_r_cap)
     end
-    ηr = ov !== nothing ? ov :
+    ηr = ov !== nothing ?
+         ov + radiation_loss_factor(structural_joint_acceptance(st, ωr; a, L, c0=inp.c_ext), ωr;
+                                    Abar=Ab, m=inp.m_wall, ρ0=inp.ρ_ext, c0=inp.c_ext) :
          structural_loss_total(st, ωr; a, L, m=inp.m_wall, C=inp.C_struc,
                                ρ0=inp.ρ_ext, c0=inp.c_ext, Abar=Ab)
     if has_trim(inp)

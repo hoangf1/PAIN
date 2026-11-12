@@ -193,6 +193,7 @@ end
     @test PAIN._no_verdict_kind("R172428_EXP", row("no_verdict", 0, 0, ""))[1] == "No criterion (displays and records)"
     @test startswith(PAIN._no_verdict_kind("BBN_CIRC", nothing)[1], "Inputs not printed or measured")    # Phase 118a
     @test PAIN._no_verdict_kind("UT_GRID", nothing)[1] == "Information and verification under the meaningfulness rule"
+    @test startswith(PAIN._no_verdict_kind("R172428_ETA", nothing)[1], "Reached after a change located with the case's own data")
     @test endswith(PAIN.no_verdict_cases_path(), joinpath("docs", "NO_VERDICT_CASES.md"))
     pn = joinpath(UNIT_OUT, "no_verdict.md")
     PAIN.write_no_verdict_cases(pn; rec); sn = read(pn, String); rm(pn)

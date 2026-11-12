@@ -205,3 +205,21 @@ end
     bare = PAIN._with_fields(inp; sidewall=nothing, endplates=nothing, mech=nothing)
     @test N(bare, 200.0) ≈ bare.η_n_bare * ωn^2                                        # bare cabin: η_n ω_n² whatever the flag
 end
+
+@testset "a card structural loss factor is η_r^struc; radiation is added (ISSUE-032, 2026-11-12)" begin
+    inp = PAIN.r172428_inputs(4000); fuse = inp.fuse
+    st = only(m for m in inp.structural.modes if m.index == 13)                 # 502 Hz, shell share 0.44
+    ω = 2π * st.f_Hz; Ab = PAIN.cylinder_surface_area(fuse.a, fuse.L)
+    card = PAIN.loss_factor_override(inp, :η_r, st.f_Hz)
+    @test card ≈ 2 / 500                                                         # the deck's 2/f in the 500 Hz band
+    rad = PAIN.radiation_loss_factor(PAIN.structural_joint_acceptance(st, ω; a=fuse.a, L=fuse.L, c0=inp.c_ext), ω;
+                                     Abar=Ab, m=inp.m_wall, ρ0=inp.ρ_ext, c0=inp.c_ext)
+    @test rad > 5card                                                            # radiation dominates this shell mode
+    Cw = PAIN.trim_Cw(inp.sidewall, PAIN._trim_ω(inp, ω)); m82 = PAIN.app_a_modal_mass_per_area(st, fuse, inp.m_wall)
+    @test PAIN.structural_η_r_prime(inp, st, ω) ≈ PAIN.structural_loss_with_trim(card + rad, ω, m82, Cw) rtol = 1e-12
+    @test PAIN.structural_η_r_prime(inp, st, ω) > PAIN.structural_loss_with_trim(card, ω, m82, Cw)   # the old form was lower
+    # without a card the computed Eq. (80) estimate stands in for the card, as before
+    bare = PAIN._with_fields(inp; η_r_band=nothing)
+    @test PAIN.structural_η_r_prime(bare, st, ω) ≈ PAIN.structural_loss_with_trim(PAIN.structural_loss_vacuo(st.f_Hz; C=bare.C_struc) + rad,
+                                                                                  ω, m82, Cw) rtol = 1e-12
+end

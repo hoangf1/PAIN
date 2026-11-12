@@ -206,8 +206,10 @@ function cabin_modes_open_window_from_qml()
     obs === nothing && return nothing
     mode = clamp(Int(round(Float64(obs["cm_mode"][]))), 0, 19)
     q = max(0, Int(round(Float64(obs["cm_q"][]))))
-    open_mode_window(mode, q)
-    gui_log!(obs, "cm", "opening mode $mode (q = $q) in its own window (GLMakie; the first opening compiles for a while)")
+    log = joinpath(mode_animation_cache_dir(), "mode_window.log")
+    open_mode_window(mode, q; log)
+    gui_log!(obs, "cm", "opening mode $mode (q = $q) in its own window (GLMakie; the first opening compiles for a while); " *
+                        "if no window appears, see $log")
     return nothing
 end
 

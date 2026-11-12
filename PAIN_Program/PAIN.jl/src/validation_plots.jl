@@ -331,13 +331,14 @@ end
 
 const _NO_VERDICT_KIND_ORDER = ("Diagnostic re-runs", "Information and verification under the meaningfulness rule",
                                 "Inputs not printed or measured (input-completeness rule, Phase 118)",
-                                "No criterion (displays and records)", "Not in the snapshot")
+                                "No criterion (displays and records)", "Not in the snapshot",
+                                "Reached after a change located with the case's own data (independence rule, 2026-11-09)")
 
 """Why a case is off the map, as (kind, reason): the diagnostic and information lists first, then the snapshot."""
 function _no_verdict_kind(id::AbstractString, r)
     haskey(DIAGNOSTIC_CASES, id) && return (_NO_VERDICT_KIND_ORDER[1], DIAGNOSTIC_CASES[id])
     haskey(INFORMATION_ONLY_CASES, id) &&
-        return (_NO_VERDICT_KIND_ORDER[input_incomplete(id) ? 3 : 2], INFORMATION_ONLY_CASES[id])
+        return (_NO_VERDICT_KIND_ORDER[input_incomplete(id) ? 3 : independence_rule(id) ? 6 : 2], INFORMATION_ONLY_CASES[id])
     r === nothing && return (_NO_VERDICT_KIND_ORDER[5], _scoreboard_unrun(id))
     return (_NO_VERDICT_KIND_ORDER[4], "the case registers no pass criterion")
 end

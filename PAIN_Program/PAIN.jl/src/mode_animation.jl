@@ -430,8 +430,11 @@ does not wait on it."""
 mode_window_cmd(mode::Integer, q::Integer=0) =
     `$(Base.julia_cmd()) --project=$(normpath(joinpath(@__DIR__, ".."))) $(mode_window_script()) $(mode) $(q)`
 
-"""Open cabin mode `mode` in its own window (display only). Returns the started process."""
-open_mode_window(mode::Integer, q::Integer=0) = run(mode_window_cmd(mode, q); wait=false)
+"""Open cabin mode `mode` in its own window (display only). The process's output goes to `log` (by default
+`mode_window.log` in the mode cache), so a failure to open a window (no OpenGL, for example) is on record (code review
+2026-11-12). Returns the started process."""
+open_mode_window(mode::Integer, q::Integer=0; log::AbstractString=joinpath(mode_animation_cache_dir(), "mode_window.log")) =
+    run(pipeline(mode_window_cmd(mode, q); stdout=log, stderr=log); wait=false)
 
 """Cache directory for Cabin modes panel PNGs/GIFs (not under validation figure paths)."""
 function mode_animation_cache_dir()
