@@ -3675,3 +3675,14 @@ if !isempty(_TESTSETS_FAILED)
     end
     error("$(length(_TESTSETS_FAILED)) testset(s) failed: " * join(_TESTSETS_FAILED, "; "))
 end
+
+_run_if("Merlin IVC loss factors, held-out test of ISSUE-032 (ISSUE-041)") do
+    # Criterion fixed and committed 2026-11-12 (d0f6a07) before the column was read. Recorded first run: met, 218/221.
+    r = run_validation_case("FLIGHT_ETA")
+    @test r.verdict === :met && r.inputs_echo.n == 221 && r.inputs_echo.n_ok == 218
+    rows = [split(l, ",") for l in eachline(PAIN._r172428_csv("appC_merlin_loss_factors.csv")) if !startswith(l, "#")][2:end]
+    lf = Dict(parse(Int, r[1]) => parse(Float64, r[4]) for r in rows)
+    @test length(rows) == 221 && lf[13] == 0.54897 && lf[188] == 0.03076          # the two cells the passes disagreed on
+    png = plot_case(r, VALIDATION_CASES["FLIGHT_ETA"].plot_spec; path=joinpath(TEST_OUT, "FLIGHT_ETA.png"))
+    @test isfile(png) && filesize(png) > 0
+end

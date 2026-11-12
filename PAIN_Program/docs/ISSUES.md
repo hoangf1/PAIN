@@ -10,7 +10,7 @@ Two lists, newest first in each. **Not assigned to a phase**: issues to act on o
 
 | Issue | Subject | Kind | State |
 |---|---|---|---|
-| 041 | Held-out test of the ISSUE-032 fix: the Merlin IVC loss factors of CR-172428 App. C | Validity, data | open |
+| 041 | Held-out test of the ISSUE-032 fix: the Merlin IVC loss factors of CR-172428 App. C | Validity, data | closed 2026-11-12: FLIGHT_ETA met 218/221 |
 | 040 | The per-stage file layout and the 44 test-only cases (Phase 150b, 150e rest) | Organisation | open |
 | 039 | FLIGHT_MODES: twenty generalized masses differ in the in-plane part, with both signs | Investigation | closed 2026-11-12: no error found; about half are near pairs |
 | 038 | The uncertainty budget's nominal sample is not the pipeline's result (structural mode cut-off) | Tests, code | closed 2026-11-12 |
@@ -93,7 +93,7 @@ A web search for reports that could settle open questions of these issues. The l
 
 ## ISSUE-041: Held-out test of the ISSUE-032 fix: the Merlin IVC loss factors of CR-172428 App. C
 
-**Status:** open, not assigned to a phase. Recorded 2026-11-12 while closing ISSUE-032, by Claude, under the author's authority of 2026-11-11 ("fix all the issues"; "make decisions logically like i do").
+**Status:** closed 2026-11-12 (Claude, under the author's authority of 2026-11-11; report `validation_reports/issue041_merlin_loss_factors.md`). The column was transcribed after the criterion below was committed (d0f6a07), in two passes, 8 against 0 settled by glyph shape against the page's known digits. New case `FLIGHT_ETA`, one run: **met, 218/221** within ±25 % (median 8.3 %). The form before ISSUE-032 gives 64/221 on the same modes, so the test separates the two. Was: open, not assigned to a phase. Recorded 2026-11-12 while closing ISSUE-032, by Claude, under the author's authority of 2026-11-11 ("fix all the issues"; "make decisions logically like i do").
 
 **Why.** The ISSUE-032 fix (a card structural loss factor is η_r^struc; radiation is added) was located with App. B's η_r′, so R172428_ETA cannot test it. CR-172428 App. C prints a LOSS FACTOR column beside the Merlin IVC's 221 structural modes (PDF pp. 223–226), from a different deck (App. D, flight run 10: η_r = 2/f per band, its own trim). It has not been transcribed.
 

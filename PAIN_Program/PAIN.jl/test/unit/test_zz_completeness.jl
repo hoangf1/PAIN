@@ -5,7 +5,7 @@
 const _UNIT_EXEMPT_FILES = Dict(
     "gui_main.jl" => "QML bindings: they need a running Qt engine; exercised by scripts/smoke/smoke_qml_load.jl",
 )
-_unit_exempt_name(n) = startswith(n, "_run_") || occursin(r"^_iso\d+_validation_cases$", n)   # covered by run_validation_case
+_unit_exempt_name(n) = startswith(n, "_run_") || occursin(r"^_\w+_validation_cases$", n)   # covered by run_validation_case
 # ISSUE-036 (2026-11-12): starts a separate GUI process; the command it runs is tested through `mode_window_cmd`
 const _UNIT_EXEMPT_NAMES = ("open_mode_window",)
 

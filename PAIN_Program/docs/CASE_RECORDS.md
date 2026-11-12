@@ -2081,6 +2081,24 @@ Inputs: `data/cr172428/appC_merlin_mrp_deck.csv`, `data/cr172428/appC_merlin_str
 Equations: App. D Eqs. (D.17)–(D.29).
 Outputs: f_r [Hz], generalized mass [kg].
 
+### Case: FLIGHT_ETA
+**Title:** Structural-mode loss factors of the flight aircraft against PAIN's printout (CR-172428, App. C)
+**Map / block:** total / P_TRIM
+**Category:** verification
+**Kind:** runnable
+**Chain span:** Wall modes → Damping and trim
+**Compared with:** NASA's printed prediction
+**Source:** CR-172428 App. C pp. 213–216 (PAIN's printed LOSS FACTOR column of the Merlin IVC's 221 modes), App. C pp. 204–205 (NASA's MRP deck) and App. D pp. 229–237 (run 10's deck); criterion fixed 2026-11-12 and committed (d0f6a07) before the column was read (ISSUE-041)
+**What it tests:** η_r′ of Eq. (82) for each listed Merlin mode, from run 10's printed deck (η_r = 2/f per band, PF-105 0.055 m trim with 1.95 kg/m² and η = 2.0), each printed mode paired with the solver mode of the same symmetry and axial order nearest in frequency (FLIGHT_MODES' rule).
+**Why it is here:** The held-out test of the ISSUE-032 fix (a card structural loss factor is η_r^struc; the radiation loss is added), on an aircraft and a deck the fix was not found on.
+**A pass means:** η_r′ within ±25 % of PAIN's printed loss factor for ≥ 75 % of the listed modes.
+**Not covered:** Modes 47–52, 111–121, 182–185 and 243–250 (cut off in the scan). Mode 1 (39.6 Hz) lies below the trim table's 50 Hz start and uses its end-segment extrapolation.
+**Recorded outcome:** **met**, 218/221 (first run 2026-11-12): median |difference| 8.3 %, largest 29.7 %; this code is 0.92 of PAIN's value at the median. The form before the fix gives 64/221 on the same modes (`issue041_merlin_loss_factors.md`).
+**Explanation:** `_run_flight_eta` in `validation_case_merlin_loss.jl`; `r172428_flight10_inputs()`.
+Inputs: `data/cr172428/appC_merlin_loss_factors.csv` (two passes; 8 against 0 settled by glyph shape against the page's known digits), `data/cr172428/appC_merlin_structural_modes_checked.csv`.
+Equations: Eqs. (79)–(82), (A.8).
+Outputs: η_r′ (loss factor).
+
 ### Case: CYL2D_PRINTED
 **Title:** CYL2D grid rule vs PAIN's printed cabin modes of three CR-172428 aircraft (105)
 **Map / block:** total / P_CYL

@@ -51,6 +51,7 @@ const PLAIN_TITLES = Dict{String,String}(
     "R172428_ETAT2" => "Cabin tone levels with trim loss factor 2.0 against NASA's printed prediction (CR-172428, Table 12)",
     "NR_TP1964_XOVER" => "Noise reduction of a bare cylinder against measurement (TP-1964, Fig. 8)",
     "FLIGHT_MODES" => "Structural modes of the flight aircraft against NASA's printed mode list (CR-172428, App. C)",
+    "FLIGHT_ETA" => "Structural-mode loss factors of the flight aircraft against NASA's printout (CR-172428, App. C)",
     "MRP_APPD" => "Fuselage structural modes against NASA's printed Table D-1 (CR-3813)",
     "R172428_ETA" => "Structural-mode loss factors against NASA's printout (CR-172428, App. B)",
     "APPB_EPS_N" => "Cabin-mode factor ε_n against NASA's printout (CR-172428, App. B)",

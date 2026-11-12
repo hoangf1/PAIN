@@ -2537,6 +2537,7 @@ function _finish_validation_registry!()
     append!(cases, _iso106_validation_cases()) # phase 106 cabin-mode frequency vs printed lists
     append!(cases, _iso119_validation_cases()) # phase 119 the T1 family on App. B's printed field
     append!(cases, _iso121_validation_cases()) # phase 121 Commander 695A cabin dB(A) vs CR-178004
+    append!(cases, _merlin_loss_validation_cases())   # ISSUE-041 Merlin IVC loss factors
     append!(cases, _iso122_validation_cases()) # phase 122 Commander 695A cabin tones vs CR-178004 App. B
     append!(cases, _iso123_validation_cases()) # phase 123 Commander 695A exterior tones vs CR-178004 App. A
     append!(cases, _iso125_validation_cases()) # phase 125 Commander 695A cabin tones at the mic seats
@@ -2636,7 +2637,7 @@ function _finish_validation_registry!()
         "SHARP_PANEL_D", "SHARP_PANEL_D_SHAPE", "T2_MEAS_EXT_BR",
         "E22_HF_CODE", 
         "APPB_EPS_N", "APPB_ETA_N", "APPB_ETA_RPP", "R996_FIG10_FLAT", "R996_FIG10_CIRC",
-        "R172428_ETAT2", "APPB_ETA_N_T2", "APPB_ETA_N_BAND", "APPB_ETA_N_T2_BAND", "R172428_CODE_DEFAULT", "R172428_TRIM_DECK", "FLIGHT_MODES", "FLIGHT10_H234", 
+        "R172428_ETAT2", "APPB_ETA_N_T2", "APPB_ETA_N_BAND", "APPB_ETA_N_T2_BAND", "R172428_CODE_DEFAULT", "R172428_TRIM_DECK", "FLIGHT_MODES", "FLIGHT_ETA", "FLIGHT10_H234", 
         "F1A_PLANE_PEAK", "FF_E11_MAP", "SRC_PASSTHROUGH", "BLK_GAIN_MAP", "MRP_INPUT_QA", "MRP_SHAPE_NORM",
         "CABIN_GEOM_HAND", "CYL2D_WEYL", "CYL2D_GRID_CONV", "TRIM_INPUT_QA", "TRIM_PASSIVITY", "PAIN_INPUT_ECHO", "AC_CABIN_DEMO", "AC_C695A_DBA", "AC_C695A_TONES", "AC_C695A_EXT", "AC_C695A_SEAT",
         "BEMT_MOMENTUM", "BEMT_HAND_TIP", "BEMT_INTEGRALS", "BEMT_SIMILARITY",

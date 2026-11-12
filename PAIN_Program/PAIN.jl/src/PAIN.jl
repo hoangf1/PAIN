@@ -68,6 +68,7 @@ include("validation_case_iso105.jl")  # phase 105 CYL2D grid rule vs printed cab
 include("validation_case_iso106.jl")  # phase 106 cabin-mode frequency, 2-D part at 341 m/s
 include("validation_case_iso119.jl")  # phase 119 the T1 family on App. B's printed field
 include("validation_case_iso121.jl")  # phase 121 Commander 695A cabin dB(A) vs CR-178004 flight 3
+include("validation_case_merlin_loss.jl")  # ISSUE-041 Merlin IVC loss factors, held-out test of ISSUE-032
 include("validation_case_iso90.jl")   # phase 90 Eq. (43) blocking vs Report 996 Fig. 10 (measured)
 include("validation_case_extras.jl")
 include("validation_map.jl")
