@@ -834,7 +834,7 @@ Outputs: 9 interior tone levels [dB] next to NASA's printed values; verdict vs �
 **A pass means:** Within ±3 dB(A) of NASA's printed sum at each of the 3 rpm (±3 dB copied unchanged from R172428_CODE). Disclosure: the H1–H3 levels were seen in R172428_CODE (2026-10-23 onward); the dB(A) sums were not computed before this case.
 **Not covered:** H4+ (NASA prints them at 4000 rpm only) and broadband; the mode truncation of R172428_CODE.
 **Recorded outcome:** **not_met**, 0/3 (first run 2026-11-04). This code − NASA PAIN: 3000 rpm +3.2 (64.2 vs 61.0), 4000 rpm +12.4 (94.2 vs 81.8), 5000 rpm +4.2 dB(A) (92.6 vs 88.4); the 4000 rpm H1 of the CR-3813 tone sum is 13 dB over NASA's. Post-hoc, no verdict: the code's default form (R172428_DBA_EXP's run) is within 0.9 dB(A) of NASA's printout at all 3 rpm (61.9 / 82.0 / 88.7); that form was inferred from these printouts (Phase 93), so the agreement is not independent.
-**Explanation:** `_run_r172428_dba(:code)` and `tonal_dBA` in `validation_case_iso44.jl`, on `_r172428_levels` (shared with R172428_CODE).
+**Explanation:** `_run_r172428_dba(:code)` and `tonal_dBA` in `cases_cr172428_test_article.jl`, on `_r172428_levels` (shared with R172428_CODE).
 Inputs: as R172428_CODE; `data/cr172428/appB_predictions.csv`.
 Equations: as R172428_CODE; dB(A) = 10 log₁₀ Σ_H 10^((L_H + A(f_H))/10).
 Outputs: 3 tonal dB(A) [dB(A)] next to NASA's; verdict vs ±3 dB(A) at each rpm.
@@ -852,7 +852,7 @@ Outputs: 3 tonal dB(A) [dB(A)] next to NASA's; verdict vs ±3 dB(A) at each rpm.
 **A pass means:** Within ±3 dB of NASA's printed sum at each of the 3 rpm (±3 dB copied unchanged from R172428_CODE). Disclosure: the H1–H3 levels and this phase's dB(A) sums were seen first.
 **Not covered:** As R172428_DBA_CODE.
 **Recorded outcome:** **not_met**, 0/3 (first run 2026-11-04). This code − NASA PAIN: 3000 rpm +4.8 (73.4 vs 68.6), 4000 rpm +13.0 (105.0 vs 91.9), 5000 rpm +4.3 dB (96.7 vs 92.5). Post-hoc, no verdict: the default form is within 0.7 dB of NASA's sum (69.3 / 92.0 / 92.7; inferred from these printouts in Phase 93).
-**Explanation:** `_run_r172428_dba(:code; weighted=false)` in `validation_case_iso44.jl`.
+**Explanation:** `_run_r172428_dba(:code; weighted=false)` in `cases_cr172428_test_article.jl`.
 Inputs: as R172428_CODE.
 Equations: as R172428_CODE; L = 10 log₁₀ Σ_H 10^(L_H/10).
 Outputs: 3 tonal levels [dB] next to NASA's; verdict vs ±3 dB at each rpm.
@@ -888,7 +888,7 @@ Outputs: NR(band) [dB]; verdict on NASA and E-22 fraction rules.
 **A pass means:** T1's gate unchanged (2026-10-20): each of H1–H3 within ±4 dB of the E-16 measured mean (gate A), or inside the envelope and within ±4 dB of NASA's E-16 prediction (gate B).
 **Not covered:** Not held out in full: CR-172428's 4000 rpm measurements are E-16's means, and R172428_EXP has set App. B's field against them with CR-172428's cabin. Gate B compares with NASA's E-16 prediction, whose own field is not printed.
 **Recorded outcome:** **met** 3/3 (first run 2026-11-02): H1–H3 = 88.51, 75.32, 65.36 dB against 90.0, 80.0, 65.0 dB; H1 and H3 by gate A (−1.49, +0.36 dB); H2 by gate B only (−4.68 dB from the measured mean, −0.18 dB from NASA's 75.5 dB). On E-11 + GEXT (T1, no verdict) H3 is 77.0 dB.
-**Explanation:** `_run_t1_appb` in `validation_case_iso119.jl`: `t1_appb_inputs(inp)` swaps amplitudes, phases, points and ΔA for App. B's (`r172428_appb_field(4000)`, both quarters as printed, no blocking applied); everything else is T1's.
+**Explanation:** `_run_t1_appb` in `cases_t1_appb.jl`: `t1_appb_inputs(inp)` swaps amplitudes, phases, points and ΔA for App. B's (`r172428_appb_field(4000)`, both quarters as printed, no blocking applied); everything else is T1's.
 Inputs: `data/cr172428/appB_4000rpm_H1–H3.csv`; `t1_interior_targets.csv`; T1's cabin and trim.
 Equations: Eq. (8), (42).
 Outputs: H1–H3 [dB]; verdict on T1's gate.
@@ -906,7 +906,7 @@ Outputs: H1–H3 [dB]; verdict on T1's gate.
 **A pass means:** T1's gate unchanged, as T1_APPB.
 **Not covered:** As T1_APPB.
 **Recorded outcome:** **met** 3/3 (first run 2026-11-02): H1–H3 = 90.06, 78.74, 65.80 dB, all three by gate A (+0.06, −1.26, +0.80 dB from the measured mean). On E-11 + GEXT (T1_MEAS_DAMPING, no verdict) H3 is 78.6 dB.
-**Explanation:** `_run_t1_meas_damping_appb` in `validation_case_iso119.jl`.
+**Explanation:** `_run_t1_meas_damping_appb` in `cases_t1_appb.jl`.
 Inputs: as T1_APPB plus `e13_absorption_targets.csv`, `e15_structural_loss_measured_all.csv`.
 Equations: Eq. (8); η_n from p. E-21; measured η_r′ override.
 Outputs: H1–H3 [dB]; verdict on T1's gate.
@@ -1014,7 +1014,7 @@ Outputs: 9 levels [dB] vs measured; verdict vs ±4 dB at each point.
 **A pass means:** Within ±4 dB(A) of the measured sum at each of the 3 rpm (±4 dB copied unchanged from R172428_EXP). Disclosure: the H1–H3 levels were seen in R172428_EXP; the dB(A) sums were not computed before this case.
 **Not covered:** As R172428_DBA_CODE.
 **Recorded outcome:** **not_met**, 1/3 (first run 2026-11-04). This code − measured: 3000 rpm −6.4 (61.9 vs 68.3), 4000 rpm +1.0 (82.0 vs 81.0), 5000 rpm −4.6 dB(A) (88.7 vs 93.2). NASA's own printout − measured: −7.2 / +0.8 / −4.8 dB(A), so NASA's PAIN would also meet this gate at 1/3.
-**Explanation:** `_run_r172428_dba(:exp)` in `validation_case_iso44.jl`.
+**Explanation:** `_run_r172428_dba(:exp)` in `cases_cr172428_test_article.jl`.
 Inputs: as R172428_EXP.
 Equations: as R172428_DBA_CODE.
 Outputs: 3 tonal dB(A) [dB(A)] vs measured; verdict vs ±4 dB(A) at each rpm.
@@ -1032,7 +1032,7 @@ Outputs: 3 tonal dB(A) [dB(A)] vs measured; verdict vs ±4 dB(A) at each rpm.
 **A pass means:** Within ±4 dB of the measured sum at each of the 3 rpm (±4 dB copied unchanged from R172428_EXP). Disclosure: the H1–H3 levels and this phase's dB(A) sums were seen first.
 **Not covered:** As R172428_DBA_CODE.
 **Recorded outcome:** **not_met**, 1/3 (first run 2026-11-04). This code − measured: 3000 rpm −12.0 (69.3 vs 81.3), 4000 rpm +1.3 (92.0 vs 90.7), 5000 rpm −8.0 dB (92.7 vs 100.8). NASA's own printout − measured: −12.7 / +1.2 / −8.3 dB (1/3 on the same gate); the misses are H1's (3000 and 5000 rpm), which NASA's PAIN misses by the same amount.
-**Explanation:** `_run_r172428_dba(:exp; weighted=false)` in `validation_case_iso44.jl`.
+**Explanation:** `_run_r172428_dba(:exp; weighted=false)` in `cases_cr172428_test_article.jl`.
 Inputs: as R172428_EXP.
 Equations: as R172428_DB_CODE.
 Outputs: 3 tonal levels [dB] vs measured; verdict vs ±4 dB at each rpm.
@@ -1050,7 +1050,7 @@ Outputs: 3 tonal levels [dB] vs measured; verdict vs ±4 dB at each rpm.
 **A pass means:** No verdict (input-completeness rule, Phase 118: the blade, cabin section and stiffener sections are not printed). Recorded against the form fixed 2026-11-03: the measured dB(A) inside PAIN's stated ±3.5 dB (1σ, `overall_dBA`) band at ≥ 68 % of the 36 points (18 conditions × mics 3 and 6), dB(A) over 63–5000 Hz for both, A-weighting at PAIN's band centres.
 **Not covered:** Sources PAIN does not model (turbulent boundary layer, engine and structure-borne paths, cabin systems); flight 4 (treated: PAIN has no input for the 2-in fiberglass batts); a verdict. Disclosure: Cabin_Noise's own V8 (a different program, reverted 2026-11-03) had run on the same measurements before this form was written (it predicted high, mean +6.5 dB); no PAIN input was chosen from it.
 **Recorded outcome:** No verdict (information). First run 2026-11-03 (superseded by the rerun below): 0/36 within ±3.5 dB; PAIN − measured = −18.2 to −12.9 dB, mean −15.4 dB (PAIN 78.5–84.7 dB(A), measured 92.2–100.4 dB(A)). Post-hoc look at the bands (condition 1, mic 3, no change made): the BPF and 2×BPF tones are 6 dB under the measured bands (100.5 vs 106.5 dB at 79 Hz); the measured dB(A) is set by broadband at 250 Hz–2 kHz (85–91 dB(A) per band), where PAIN has only its tones below 1 kHz and its propeller-driven Eq. (19) broadband, 13–24 dB under the measurement, above. Record: `validation_reports/phase121_c695a_dba.md`. **Rerun after the Phase 123 mode fix (2026-11-04, post-hoc; the fix was found from the exterior/interior split, not fitted):** 35/36 within ±3.5 dB; PAIN − measured −1.6 to +3.8 dB, mean +0.7 dB(A). Partly compensation: H2 is about 8 dB high, H1 5.5 dB low, and the 250 Hz–2 kHz broadband is still missing. Record: `validation_reports/phase123_c695a_exterior.md`.
-**Explanation:** `_run_ac_c695a_dba` in `validation_case_iso121.jl`: `c695a_conditions` (Table 4), `c695a_operating_point` (ISA pressure, OAT, IAS = EAS; cabin air at the printed cabin altitude and 293.15 K), `c695a_pitch_for_power`, `c695a_condition_spectrum` (port rotation +1, starboard −1), `c695a_measured_dBA`.
+**Explanation:** `_run_ac_c695a_dba` in `cases_commander695a.jl`: `c695a_conditions` (Table 4), `c695a_operating_point` (ISA pressure, OAT, IAS = EAS; cabin air at the printed cabin altitude and 293.15 K), `c695a_pitch_for_power`, `c695a_condition_spectrum` (port rotation +1, starboard −1), `c695a_measured_dBA`.
 Inputs: `data/cr178004/table4_flight3_conditions.csv`, `data/cr178004/appE_flight3_interior_third_octave.csv`, `examples/commander695a_cr178004.json`; H = 1–10.
 Equations: the aircraft chain (CCBlade, F1A, Eq. (43), App. C/D, Eq. (8), Eqs. (19)–(23)); overall_dBA's sum.
 Outputs: overall dB(A) per condition and mic [dB(A)].
@@ -1068,7 +1068,7 @@ Outputs: overall dB(A) per condition and mic [dB(A)].
 **A pass means:** No verdict (input-completeness rule, Phase 118: the blade, cabin section and stiffener sections are assumed). Recorded against the form fixed 2026-11-03: each level within ±4 dB (T1's gate width, 2026-10-20) at ≥ 68 % of the points. PAIN's level is the cabin space average; App. B's is at the microphone.
 **Not covered:** The rotation sign of each engine in PAIN's convention (port +1, starboard −1 assumed; in PAIN the sign also sets which quarter of the fuselage the grid covers); conditions with both propellers at the same rpm (tones not separable). Disclosure: the App. B values were seen when they were transcribed for Cabin_Noise's V7 (2026-11-02), whose different program predicted them high (mean +17.9 dB); no PAIN input was chosen from them.
 **Recorded outcome:** No verdict (information). First run 2026-11-03: 27/108 within ±4 dB; PAIN − measured = −18.3 to +12.2 dB, mean −6.7 dB (H1 −5.7, H2 −7.4, H3 −7.0 dB; port engine −8.8, starboard −4.6 dB). Post-hoc diagnostic (no change to the case): with the two rotation signs swapped, 30/108 and the same mean −6.7 dB; the port/starboard difference follows the sign, the overall shortfall does not. Record: `validation_reports/phase122_c695a_tones.md`. **Rerun after the Phase 123 mode fix (2026-11-04, post-hoc):** 32/108 within ±4 dB; PAIN − measured −17.1 to +22.1 dB, mean +2.0 dB (H1 −5.5, H2 +8.2, H3 +3.4 dB).
-**Explanation:** `_run_ac_c695a_tones` in `validation_case_iso121.jl`: `c695a_measured_tones`, `c695a_condition_spectrum` (each engine's `harmonics_dB`).
+**Explanation:** `_run_ac_c695a_tones` in `cases_commander695a.jl`: `c695a_measured_tones`, `c695a_condition_spectrum` (each engine's `harmonics_dB`).
 Inputs: `data/cr178004/appB_flight3_cabin_harmonics.csv`, `data/cr178004/table4_flight3_conditions.csv`, `examples/commander695a_cr178004.json`.
 Equations: the aircraft chain (CCBlade, F1A, Eq. (43), App. C/D, Eq. (8)).
 Outputs: cabin tone level per condition, mic, engine and harmonic [dB].
@@ -1086,7 +1086,7 @@ Outputs: cabin tone level per condition, mic, engine and harmonic [dB].
 **A pass means:** No verdict (input-completeness rule, Phase 118: the blade is assumed). Recorded against the form fixed 2026-11-03: each tone within ±4 dB (T1's gate width) at ≥ 68 % of the points.
 **Not covered:** Thickness noise (the assumed blade has t/c = 0); the microphone sits about 5 cm below the spinner centre line, PAIN's line ℓ = 1 at the propeller azimuth.
 **Recorded outcome:** No verdict (information). First run 2026-11-03 (before the Phase 123 mode fix, which does not change the exterior field): 53/101 within ±4 dB; PAIN − measured −2.0 to +8.8 dB, mean +4.0 dB (H1 +6.5, H2 +3.3, H3 +2.2 dB). The source is high, not low, so the cabin shortfall was in transmission: it led to the App. D mode-truncation fix (32 modes ended at 105 Hz on the 5.33 m cabin).
-**Explanation:** `_run_ac_c695a_ext`, `c695a_flush_mic_dB`, `c695a_measured_exterior` in `validation_case_iso121.jl`.
+**Explanation:** `_run_ac_c695a_ext`, `c695a_flush_mic_dB`, `c695a_measured_exterior` in `cases_commander695a.jl`.
 Inputs: `data/cr178004/appA_flight3_exterior_harmonics.csv` (copied unchanged from Cabin_Noise V5), `data/cr178004/table4_flight3_conditions.csv`, `examples/commander695a_cr178004.json`.
 Equations: CCBlade, F1A, Eq. (43) blocking.
 Outputs: exterior tone level per condition, engine and harmonic [dB].
@@ -1104,7 +1104,7 @@ Outputs: exterior tone level per condition, engine and harmonic [dB].
 **A pass means:** No verdict (input-completeness rule, Phase 118). Recorded against AC_C695A_TONES' form: within ±4 dB at ≥ 68 % of the points. Disclosure: the seat position values were those of the 2026-11-03/04 condition-1 diagnostics, chosen before any seat level was seen; condition 1's seat levels were then seen.
 **Not covered:** PAIN's point field is left–right symmetric (each structural mode drives cabin modes of one symmetry only), so the near and far mic get the same PAIN level; PAIN's cabin is circular (a = 0.725 m, 1.19 m high) where the real one is 1.45 m high, so the ear height is taken from PAIN's floor.
 **Recorded outcome:** No verdict (information). First run 2026-11-04: 43/108 within ±4 dB (space average: 32/108); PAIN − measured mean −0.2 / +9.3 / +7.3 dB at H1 / H2 / H3 (port +4.1 dB H2, starboard +14.4 dB H2); the seat is +5.3 / +1.1 / +3.8 dB above the space average. Post-hoc diagnostic (condition 1, no change): NASA's lower-quarter grid (I-18) evens the two engines but raises the port H2 by about 8 dB, so it is not the cause of the high H2. Record: `validation_reports/phase125_c695a_seat.md`.
-**Explanation:** `_run_ac_c695a_seat`, `c695a_seat_dB` in `validation_case_iso121.jl`; `c695a_condition_spectrum(row; seat=true)`.
+**Explanation:** `_run_ac_c695a_seat`, `c695a_seat_dB` in `cases_commander695a.jl`; `c695a_condition_spectrum(row; seat=true)`.
 Inputs: as AC_C695A_TONES.
 Equations: the aircraft chain; Eq. (8) point form (coherent over cabin modes, mean square over structural modes).
 Outputs: cabin tone level at the mic seat per condition, mic, engine and harmonic [dB].
@@ -1176,7 +1176,7 @@ Outputs: η_r″ per pair, ratio to NASA.
 **A pass means:** |20 log₁₀ F_R1 − 20 log₁₀(p_flat/p_free)| ≤ 1.5 dB at ≥ 4 of the 5 points.
 **Not covered:** γ spans only 0–23°, where F is close to 2: the near-normal doubling is tested, not the fall-off toward grazing incidence. Total pressure (all harmonics), not per harmonic. Eq. (43) is Magliozzi's curve fitted to prop-fan fuselage data (J. Aircraft 1980, not in hand); whether Report 996 was among its data is not known.
 **Recorded outcome:** **met**, 5/5 (first run 2026-10-29): measured 4.56, 6.07, 6.00, 6.27, 7.30 dB against R1 5.97–6.00 dB. R2 (CR-172428's revision, information) 4.03–4.06 dB, 2 dB under the flat-wall measurement.
-**Explanation:** E case. `_run_r996_fig10("flat_wall")` in `validation_case_iso90.jl`; `delta_L_blocking_dB`.
+**Explanation:** E case. `_run_r996_fig10("flat_wall")` in `cases_wall_reflection.jl`; `delta_L_blocking_dB`.
 Inputs: Fig. 10 free-space and flat-wall p̄; d/D = 0.083.
 Equations: Eq. (43); γ as CR-3813 p. 31 for a plane wall.
 Outputs: wall increase [dB], measured and R1, per x/D.
@@ -1212,7 +1212,7 @@ Outputs: wall increase [dB].
 **A pass means:** Within ±3 dB of Table 12 at ≥ 7 of 9 points.
 **Not covered:** Same test article as the η_T = 0.13 run the form was inferred from, so held out in inputs and outputs but not independent of the article.
 **Recorded outcome:** **met**, 9/9 (first run 2026-10-29): 62.31, 66.72, 58.12; 91.68, 75.13, 69.09; 92.64, 88.74, 74.95 dB against 62.1, 65.5, 56.9; 91.2, 73.8, 67.4; 92.9, 89.6, 74.0 (largest |Δ| 1.69 dB). Phase 96 default (2026-10-30): met, 9/9. Phase 100 deck table (2026-10-30, held out): met, 9/9, largest |Δ| 2.12 dB. **After Phase 106 (2026-10-30, post-hoc; 2-D cabin-mode part at 341 m/s):** met, 9/9, largest 1.73 dB.
-**Explanation:** P case. `_run_r172428_etat2` in `validation_case_iso94.jl`.
+**Explanation:** P case. `_run_r172428_etat2` in `cases_cr172428_eta_t2.jl`.
 Inputs: `r172428_inputs(rpm; η_T=2.0)`.
 Equations: Eq. (8) in the default form.
 Outputs: SPL [dB].
@@ -1230,7 +1230,7 @@ Outputs: SPL [dB].
 **A pass means:** Within ±10 % at all three modes.
 **Not covered:** Three modes (237–271 Hz), all near the trim resonance of the η_T = 0.13 case.
 **Recorded outcome:** **met**, 3/3 (first run 2026-10-29): 0.0877, 0.0782, 0.0829 against 0.088, 0.077, 0.081. With the trim at the band centre, as the tone sum uses it (information): 0.0852, 0.0798, 0.0899. With the deck table (Phase 100, held out): met, 0.0876, 0.0779, 0.0827. **After Phase 106 (2026-10-30, post-hoc; 2-D cabin-mode part at 341 m/s):** met, 3/3: 0.0884, 0.0787, 0.0833.
-**Explanation:** P case. `_run_appb_eta_n_t2` in `validation_case_iso94.jl`.
+**Explanation:** P case. `_run_appb_eta_n_t2` in `cases_cr172428_eta_t2.jl`.
 Inputs: `r172428_inputs(4000; η_T=2.0)`.
 Equations: Eq. (77).
 Outputs: η_n.
@@ -1248,7 +1248,7 @@ Outputs: η_n.
 **A pass means:** No criterion (diagnostic, post-hoc: the rule was read from these values).
 **Not covered:** Modes below 100 Hz (outside Fig. A-2).
 **Recorded outcome:** no verdict (2026-10-30): 42/46 within ±10 %, 0/46 within ±2 %; 45/46 within ±2 % with NASA's admittance. With the deck table (Phase 100): 45/46 within ±10 %, 44/46 within ±2 %. **After Phase 106 (2026-10-30, post-hoc; 2-D cabin-mode part at 341 m/s):** 46/46 within 10 %, 43/46 within 2 %.
-**Explanation:** `_run_appb_eta_n_band` in `validation_case_iso96.jl`.
+**Explanation:** `_run_appb_eta_n_band` in `cases_band_centre.jl`.
 Inputs: `r172428_inputs(4000)`.
 Equations: Eq. (77).
 Outputs: η_n.
@@ -1302,7 +1302,7 @@ Outputs: SPL [dB].
 **A pass means:** f_r within 2 % and generalized mass within 10 % for ≥ 90 % of the listed modes up to 1 kHz, each printed mode paired with the solver mode of the same symmetry and axial order nearest in frequency.
 **Not covered:** Modes 47–52, 111–121, 182–185 and 243–250 (cut off at the page bottoms of the scan); mode shapes (not printed). The outcome of the re-run could be told from Phase 110's 199/221; the verdict rests on the reference file being settled against the page, not on the count being new.
 **Recorded outcome:** **met**, 200/221 (90.5 %) (re-run 2026-11-11, Phase 142, on the settled transcription; criterion unchanged; it carries the verdict by the author's decision of 2026-11-09): frequencies 220/221 within 2 %. First run 2026-10-30: not met, 197/221, on the first-pass file, which had three misreads (mode 41's total 1002.69 for 1802.69, mode 174's total, mode 230's M); it stays on record. Of the 21 modes outside the rule, one misses in frequency (mode 29, −5.2 %) and 20 in mass, by 10–113 %, in the in-plane part (ISSUE-039). Report: `validation_reports/phase142_flight_modes.md`.
-**Explanation:** `_run_flight_modes` in `validation_case_iso101.jl`; `merlin_mrp_deck()`.
+**Explanation:** `_run_flight_modes` in `cases_flight_modes.jl`; `merlin_mrp_deck()`.
 Inputs: `data/cr172428/appC_merlin_mrp_deck.csv`, `data/cr172428/appC_merlin_structural_modes_checked.csv` (three transcription passes; the third blind, Phase 142).
 Equations: App. D Eqs. (D.17)–(D.29).
 Outputs: f_r [Hz], generalized mass [kg].
@@ -1320,7 +1320,7 @@ Outputs: f_r [Hz], generalized mass [kg].
 **A pass means:** η_r′ within ±25 % of PAIN's printed loss factor for ≥ 75 % of the listed modes.
 **Not covered:** Modes 47–52, 111–121, 182–185 and 243–250 (cut off in the scan). Mode 1 (39.6 Hz) lies below the trim table's 50 Hz start and uses its end-segment extrapolation.
 **Recorded outcome:** **met**, 218/221 (first run 2026-11-12): median |difference| 8.3 %, largest 29.7 %; this code is 0.92 of PAIN's value at the median. The form before the fix gives 64/221 on the same modes (`issue041_merlin_loss_factors.md`).
-**Explanation:** `_run_flight_eta` in `validation_case_merlin_loss.jl`; `r172428_flight10_inputs()`.
+**Explanation:** `_run_flight_eta` in `cases_flight_loss_factors.jl`; `r172428_flight10_inputs()`.
 Inputs: `data/cr172428/appC_merlin_loss_factors.csv` (two passes; 8 against 0 settled by glyph shape against the page's known digits), `data/cr172428/appC_merlin_structural_modes_checked.csv`.
 Equations: Eqs. (79)–(82), (A.8).
 Outputs: η_r′ (loss factor).
@@ -1338,7 +1338,7 @@ Outputs: η_r′ (loss factor).
 **A pass means:** For each held-out aircraft, ε(0,0) within 0.02 %, every printed 2-D frequency within 0.1 % of CYL2D's at 341 m/s / a, every type equal; met if both pass.
 **Not covered:** Modes between the printed blocks; the narrow body's ε(0,0) is not printed (ε(1,0)/2 used); the Merlin list (50°) is recorded alongside, post-hoc.
 **Recorded outcome:** **not met** (first run 2026-10-30): the rule gives NY = 12 at both angles; 2-D frequencies 0/53 and 5/61 within 0.1 %; Merlin (seen) 51/51. Diagnostic: NASA's narrow-body grid is NY = 8; no grid fits the small-diameter list (best 2 %). **Re-run 2026-11-12 (ISSUE-033, post-hoc; NASA's 62.6° grid solved on the real parts):** not met. Small diameter: ε(0,0) 0.96858 as printed, types 53/53, every frequency 0.30–0.31 % low (0/53 within 0.1 %); narrow body 61/61; summary 63/116 (`issue033_cyl2d_small_diameter.md`).
-**Explanation:** `_run_cyl2d_printed` in `validation_case_iso105.jl`.
+**Explanation:** `_run_cyl2d_printed` in `cases_cyl2d_printed.jl`.
 Inputs: `data/cr172428/appC_smalldia_acoustic_modes.csv`, `appC_narrowbody_acoustic_modes.csv`, `appC_merlin_acoustic_modes.csv`.
 Equations: App. C Eqs. (C.1)–(C.12).
 Outputs: 2-D frequency [Hz], ε(0,0).
@@ -1356,7 +1356,7 @@ Outputs: 2-D frequency [Hz], ε(0,0).
 **A pass means:** |ours − printed| ≤ 0.02 Hz or 0.02 % (the larger) at every printed App. B cabin mode with f > 0.
 **Not covered:** The Merlin list and run 10's printed pairs are recorded alongside, seen (post-hoc).
 **Recorded outcome:** **met** (first run 2026-10-30): 47/47 (6/47 with both parts at 343 m/s, the form before Phase 106); seen, post-hoc: 80/81 (the miss, run 10's Q4 I3, prints 219.4 where the glyph may be 218.4). **Display (2026-11-11, Phase 145a):** the seen rows are shown, not judged, so the summary reads 47/47 (+ 81 shown, not judged); before, it counted all 128 rows (127/128). The verdict was always on the 47.
-**Explanation:** `_run_cabin_freq_printed` in `validation_case_iso106.jl`; `cabin_frequency_3d(...; c2d=CYL2D_C0)`.
+**Explanation:** `_run_cabin_freq_printed` in `cases_cabin_frequency.jl`; `cabin_frequency_3d(...; c2d=CYL2D_C0)`.
 Inputs: `data/cr172428/appB_acoustic_modes.csv`, `appC_merlin_acoustic_modes.csv`, `appD_run10_pairs.csv`.
 Equations: App. C Eqs. (C.7), (C.12).
 Outputs: cabin-mode frequency [Hz].
@@ -1374,7 +1374,7 @@ Outputs: cabin-mode frequency [Hz].
 **A pass means:** No verdict (FLIGHT_MODES not met); per tone, which form is closer to PAIN's printed level is recorded.
 **Not covered:** H1 and H5; the mode list of NASA's file (lowest 400 used); CYL2D at NY = 11 (assumption).
 **Recorded outcome:** no verdict (2026-10-30): as shipped 98.30 / 89.76 / 79.19 dB, trim per band 98.68 / 89.77 / 79.17 dB, PAIN 96.59 / 88.06 / 83.92 dB; the trim per band is closer at 0/3 (not supported). **Re-run after Phase 104 (2026-10-30, post-hoc; θ as printed, from the bottom):** as shipped 96.80 / 88.85 / 80.67 dB, trim per band 97.14 / 88.87 / 80.64 dB; still 0/3. **After Phase 105 (post-hoc; NASA's printed Merlin grid, NY = 11, 0.45h):** 97.13 / 89.37 / 81.34 dB, trim per band 97.47 / 89.40 / 81.31 dB; 0/3. **After Phases 106–107 (post-hoc):** 97.33 / 89.00 / 82.86 dB, trim per band 97.66 / 89.02 / 82.80 dB; 0/3. **After Phase 108 (post-hoc; run 10's pre-correction floor sign):** 94.60 / 87.44 / 83.89 dB, trim per band 94.99 / 87.47 / 83.91 dB; closer at 3/3 (by ≤ 0.4 dB).
-**Explanation:** `r172428_flight10_inputs()` and `_run_flight10_h234` in `validation_case_iso102.jl`.
+**Explanation:** `r172428_flight10_inputs()` and `_run_flight10_h234` in `cases_flight_run10.jl`.
 Inputs: `data/cr172428/appD_run10_H{2,3,4}.csv`, `merlin_mrp_deck()`, App. D deck values.
 Equations: Eq. (8).
 Outputs: SPL [dB re 20 μPa].

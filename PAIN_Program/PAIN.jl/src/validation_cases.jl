@@ -469,11 +469,11 @@ function _make_registry()
         "",
     ))
 
-    # Filled by `_finish_validation_registry!` in validation_case_extras.jl after extra runners load.
+    # Filled by `_finish_validation_registry!` in cases_core.jl after extra runners load.
     return cases
 end
 
-# Populated at the end of validation_case_extras.jl
+# Populated at the end of cases_core.jl
 const VALIDATION_CASES = Dict{String,ValidationCase}()
 const VALIDATION_CASE_ORDER = String[]
 

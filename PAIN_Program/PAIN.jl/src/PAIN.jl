@@ -42,35 +42,35 @@ include("loudest_point.jl")          # phase 42 interior level at the loudest po
 include("printed_outputs.jl")
 include("validation_report.jl")
 include("validation_cases.jl")
-include("validation_case_iso40.jl")   # before extras: registry finish calls _iso40_validation_cases
-include("validation_case_iso41.jl")   # phase 41 isolation of failing cases
-include("validation_case_iso43.jl")   # phase 43 T1/T2 root causes + TP-1964
-include("validation_case_iso44.jl")   # phase 44 CR-172428 reproduction (App. A / App. B)
-include("validation_case_iso45.jl")   # phase 45 T2 HF path on TP-1964
+include("cases_isolation.jl")                    # isolation checks: free field, grid, blocking, cabin
+include("cases_isolation_hand.jl")               # hand calculations behind the failing cases
+include("cases_tp1964.jl")                       # TP-1964 bare cylinder, and the T1 root-cause helpers
+include("cases_cr172428_test_article.jl")        # CR-172428 test article (App. A / App. B)
+include("cases_tp1964_crossover.jl")             # TP-1964 with PAIN's changeover
 include("sharp_bridges.jl")          # phase 59 Sharp sound bridges (CR-172490), option
 include("bpm_airfoil_noise.jl")      # phase 48 airfoil self-noise (NASA RP-1218)
 include("prop_broadband.jl")         # phase 48 propeller broadband at a field point
-include("validation_case_iso47.jl")   # phase 47 T2 with the measured TP-2444 exterior
-include("validation_case_iso48.jl")   # phase 48 exterior broadband from RP-1218
-include("validation_case_iso59.jl")   # phase 59 Sharp sound bridges
-include("validation_case_iso61.jl")   # phase 61 CR-3813 reproduction with the pre-correction form
-include("validation_case_iso62.jl")   # phase 62 a proving case for every map block
-include("validation_case_iso66.jl")   # phase 66 further BEMT / F1A code checks
-include("validation_case_iso67.jl")   # phase 67 attribution of the source-block misses
-include("validation_case_iso80.jl")   # phase 80 App. D structural solver verification
-include("validation_case_iso87.jl")   # phases 87–89 NASA's App. B per-mode values; q = 0 held out; η_n per mode
-include("validation_case_iso94.jl")   # phase 94 held-out CR-172428 Table 12 (η_T = 2.0)
-include("validation_case_iso96.jl")   # phase 96 band-centre η_n rule
-include("validation_case_iso100.jl")  # phase 100 NASA's per-band PF-105 table (App. D deck)
-include("validation_case_iso101.jl")  # phase 101 Merlin IVC modes vs App. C (flight run 10)
-include("validation_case_iso102.jl")  # phase 102 flight run 10, H2–H4 (diagnostic)
-include("validation_case_iso105.jl")  # phase 105 CYL2D grid rule vs printed cabin modes
-include("validation_case_iso106.jl")  # phase 106 cabin-mode frequency, 2-D part at 341 m/s
-include("validation_case_iso119.jl")  # phase 119 the T1 family on App. B's printed field
-include("validation_case_iso121.jl")  # phase 121 Commander 695A cabin dB(A) vs CR-178004 flight 3
-include("validation_case_merlin_loss.jl")  # ISSUE-041 Merlin IVC loss factors, held-out test of ISSUE-032
-include("validation_case_iso90.jl")   # phase 90 Eq. (43) blocking vs Report 996 Fig. 10 (measured)
-include("validation_case_extras.jl")
+include("cases_tp2444.jl")                       # TP-2444 measured exterior
+include("cases_broadband.jl")                    # propeller broadband (BPM, RP-1218)
+include("cases_sound_bridges.jl")                # Sharp sound bridges
+include("cases_cr3813_high_frequency.jl")        # CR-3813 high-frequency noise reduction
+include("cases_input_checks.jl")                 # inputs and plumbing checks
+include("cases_bemt_f1a.jl")                     # BEMT and F1A closed-form checks
+include("cases_polars.jl")                       # section polars and the chordwise check
+include("cases_mrp.jl")                          # App. D structural solver checks
+include("cases_appb_per_mode.jl")                # NASA's App. B per-mode values
+include("cases_cr172428_eta_t2.jl")              # CR-172428 Table 12 (η_T = 2.0)
+include("cases_band_centre.jl")                  # the band-centre η_n rule
+include("cases_pf105_deck.jl")                   # NASA's per-band PF-105 table
+include("cases_flight_modes.jl")                 # Merlin IVC structural modes
+include("cases_flight_run10.jl")                 # flight run 10, H2–H4
+include("cases_cyl2d_printed.jl")                # CYL2D against PAIN's printed cabin modes
+include("cases_cabin_frequency.jl")              # cabin-mode frequency (2-D part at 341 m/s)
+include("cases_t1_appb.jl")                      # T1 on App. B's printed field
+include("cases_commander695a.jl")                # Commander 695A cabin against CR-178004
+include("cases_flight_loss_factors.jl")          # Merlin IVC loss factors (ISSUE-041)
+include("cases_wall_reflection.jl")              # Eq. (43) blocking against Report 996 Fig. 10
+include("cases_core.jl")                         # the original cases and the registry's finish
 include("validation_map.jl")
 include("validation_plots.jl")
 include("validation_coverage.jl")     # phase 134 chain coverage chart

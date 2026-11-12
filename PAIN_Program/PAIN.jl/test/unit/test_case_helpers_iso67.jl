@@ -1,4 +1,4 @@
-# Unit tests: Phase 67 helpers (src/validation_case_iso67.jl).
+# Unit tests: Phase 67 helpers (src/cases_polars.jl).
 @testset "TN 1546 Reynolds number and XFOIL lookup" begin
     # Phase 77: equivalent Δα = Δc_l/(2π/√(1−M²)): one degree of thin-airfoil lift at M = 0 gives 1°; factor 0.8 at M 0.6
     @test PAIN._p67_equiv_dalpha_deg(2π * deg2rad(1.0), 0.0) ≈ 1.0

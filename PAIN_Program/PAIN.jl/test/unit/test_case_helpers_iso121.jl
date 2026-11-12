@@ -1,4 +1,4 @@
-# Unit tests: src/validation_case_iso121.jl (Phase 121, Commander 695A cabin dB(A) vs CR-178004 flight 3).
+# Unit tests: src/cases_commander695a.jl (Phase 121, Commander 695A cabin dB(A) vs CR-178004 flight 3).
 @testset "iso121: air, conditions and operating point" begin
     @test isfile(PAIN._p121_conditions_csv()) && isfile(PAIN._p121_measured_csv())
     # ISA sea level 288.15 K: ρ = 1.2250 kg/m3, c = 340.29 m/s; 10 000 ft: p = 69.68 kPa (ISA table)

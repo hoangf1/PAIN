@@ -1,4 +1,4 @@
-# Unit tests: helpers in src/validation_case_extras.jl (Phase 64). The case runners themselves run in
+# Unit tests: helpers in src/cases_core.jl (Phase 64). The case runners themselves run in
 # runtests.jl; these test the readers, converters and series builders they are made of.
 @testset "readers and converters" begin
     @test PAIN._csv_split_row("a,\"b,c\",\"d\"\"e\",") == ["a", "b,c", "d\"e", ""]

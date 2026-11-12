@@ -10,9 +10,9 @@ function _run_flight_eta()
     ms = inp.structural.modes
     table = ValidationTableRow[]; n_ok = 0
     xs = Float64[]; ref = Float64[]; got = Float64[]
+    M = _appc_mode_rows("appC_merlin_structural_modes_checked.csv")   # axial order M of each printed mode
     for r in rows
         mode = parse(Int, r[1]); f = parse(Float64, r[2]); sym = r[3] == "S"; η = parse(Float64, r[4])
-        M = _appc_mode_rows("appC_merlin_structural_modes_checked.csv")
         i = findfirst(==(mode), M.mode)
         cand = [x for x in ms if x.symmetric == sym && x.M_axial == M.M[i]]
         x = cand[argmin([abs(y.f_Hz - f) for y in cand])]               # FLIGHT_MODES' pairing rule

@@ -1,4 +1,4 @@
-# Unit tests: Phase 66 helpers (src/validation_case_iso66.jl) and the shared CCBlade / F1A steps
+# Unit tests: Phase 66 helpers (src/cases_bemt_f1a.jl) and the shared CCBlade / F1A steps
 # (`_ccblade_setup`, `_f1a_harmonics` in src/propeller_ccblade.jl).
 @testset "configs, spans, induction" begin
     c = PAIN._p66_hartzell(; V=30.0, rpm=3000.0, tc=0.1, B=4, nsec=7)

@@ -11,7 +11,7 @@ Two lists, newest first in each. **Not assigned to a phase**: issues to act on o
 | Issue | Subject | Kind | State |
 |---|---|---|---|
 | 041 | Held-out test of the ISSUE-032 fix: the Merlin IVC loss factors of CR-172428 App. C | Validity, data | closed 2026-11-12: FLIGHT_ETA met 218/221 |
-| 040 | The per-stage file layout and the 44 test-only cases (Phase 150b, 150e rest) | Organisation | open |
+| 040 | The per-stage file layout and the 44 test-only cases (Phase 150b, 150e rest) | Organisation | closed 2026-11-12 |
 | 039 | FLIGHT_MODES: twenty generalized masses differ in the in-plane part, with both signs | Investigation | closed 2026-11-12: no error found; about half are near pairs |
 | 038 | The uncertainty budget's nominal sample is not the pipeline's result (structural mode cut-off) | Tests, code | closed 2026-11-12 |
 | 037 | The Phase III trim has guessed inputs; cases that use it may carry a verdict they should not | Input rule, investigation | closed 2026-11-12: E14_LOSS carries no verdict |
@@ -28,7 +28,7 @@ Two lists, newest first in each. **Not assigned to a phase**: issues to act on o
 | Issue | Subject | Kind | Phase |
 |---|---|---|---|
 | 029 | Which of the 43 chart cases to keep; a rule before any new case | Not met, organisation | 135, 150 (closed 2026-11-11; the test-only move is ISSUE-040) |
-| 028 | Files named and grouped by phase number; old paths | Organisation | 150 (paths done; the per-stage move is ISSUE-040) |
+| 028 | Files named and grouped by phase number; old paths | Organisation | 150 (closed 2026-11-12: paths fixed; case files named by subject, ISSUE-040) |
 | 027 | Source loads: XFOIL drag; measured polars unused as input | Not met | 141 (closed 2026-11-11; continued in 030) |
 | 026 | High-frequency NR cases: method limit and assumed inputs | Not met | 137 (closed 2026-11-10) |
 | 025 | CYL2D_PRINTED judges a grid rule that was not adopted | Not met | 140 (closed 2026-11-11) |
@@ -104,7 +104,12 @@ A web search for reports that could settle open questions of these issues. The l
 
 ## ISSUE-040: The per-stage file layout, and the 44 test-only cases off the GUI list
 
-**Status:** open, not assigned to a phase. Recorded 2026-11-11 while closing Phase 150, by Claude under the author's authority of 2026-11-11. Organisation; no verdict, criterion or result is involved.
+**Status:** closed 2026-11-12 (Claude, under the author's authority of 2026-11-11 ("fix all the issues"; "make decisions logically like i do")).
+
+1. **Test-only cases.** The 43 that ISSUE-029 names (its 44 less the three `UT_*` that were already tests only, plus BPM_RP1218 and SHARP_PANEL_D_SHAPE whose code still ships) are in `TEST_ONLY_CASES`: still registered, so their tests run them, but off the GUI's case list, the case records, the summary file and the figures. `BLK_P68` is not on that list (ISSUE-029 keeps it as a unit check that the GUI's self-test and the smoke scripts drive). The case list has 57 entries (was 100), `NO_VERDICT_CASES.md` shrank to the shown cases.
+2. **File names.** The per-stage split would cut 13 of 26 files apart function by function and change no behaviour, so it was not done. The original complaint (ISSUE-028: "to find R172428_EXP one has to know it was Phase 44") is answered by naming each case file by its subject, in place in `src/` (`phase150b_file_names.md` lists old and new names). No line inside a function changed.
+
+Was: open, not assigned to a phase. Recorded 2026-11-11 while closing Phase 150, by Claude under the author's authority of 2026-11-11. Organisation; no verdict, criterion or result is involved.
 
 **What is left.**
 1. Phase 150b: case runners in `src/cases/<stage>.jl` and testsets in `test/cases/<stage>.jl`, one move commit, no edit inside a function, testset counts and R11 baselines equal before and after. The mapping is in `validation_reports/phase150_layout_and_cases.md`; 13 of 26 files span more than one stage, so files are split function by function.
@@ -534,7 +539,7 @@ Applied to the cases the open phases proposed:
 
 ## ISSUE-028: Source, test and script files are named and grouped by phase number, and old paths remain
 
-**Status:** partly closed 2026-11-11 by Phase 150: old paths fixed (`.gitignore`, script comments); the per-stage layout is ISSUE-040. Recorded 2026-11-09. Code organisation. No behaviour changes. Solution: Phase 150.
+**Status:** closed 2026-11-12: old paths fixed (Phase 150d); the case files are named by subject (ISSUE-040, `phase150b_file_names.md`); the per-stage split was decided against (it changes no behaviour). Earlier: partly closed 2026-11-11 by Phase 150: old paths fixed (`.gitignore`, script comments); the per-stage layout is ISSUE-040. Recorded 2026-11-09. Code organisation. No behaviour changes. Solution: Phase 150.
 
 **Evidence.**
 - **Case files named by phase.** 29 files from `src/validation_case_iso40.jl` to `validation_case_iso121.jl`, and test helpers `test/unit/test_case_helpers_iso66.jl`, `_iso67`, `_iso119`, `_iso121`, `_late`. To find R172428_EXP one has to know it was Phase 44.

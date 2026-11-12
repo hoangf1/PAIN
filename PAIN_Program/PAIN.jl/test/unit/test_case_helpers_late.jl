@@ -1,4 +1,4 @@
-# Unit tests: helpers of the isolation and closing cases (src/validation_case_iso43.jl … iso62.jl) (Phase 64).
+# Unit tests: helpers of the isolation and closing cases (src/cases_tp1964.jl … iso62.jl) (Phase 64).
 @testset "iso43: loss-factor inputs, T1 gates, TP-1964 setup" begin
     @test isfile(PAIN._iso43_data("cr3813", "t1_interior_targets.csv"))
     fuse = PAIN.FuselageGeometry(1.83, 0.508, 56.6)

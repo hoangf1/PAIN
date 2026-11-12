@@ -1,4 +1,4 @@
-# Unit tests: src/validation_case_iso119.jl (Phase 119, the T1 family on CR-172428 App. B's printed field).
+# Unit tests: src/cases_t1_appb.jl (Phase 119, the T1 family on CR-172428 App. B's printed field).
 @testset "iso119: App. B field swapped into T1's inputs" begin
     r = PAIN.run_pain_pipeline(; source=:e11, n_harmonics=3, bpf_Hz=200.0, blocking=PAIN.R2)
     inp = PAIN.t1_appb_inputs(r.inputs)

@@ -1,5 +1,5 @@
-# Unit tests: independent-reference helpers of the isolation cases (src/validation_case_iso40.jl,
-# src/validation_case_iso41.jl) (Phase 64). These references must themselves be right, so each is
+# Unit tests: independent-reference helpers of the isolation cases (src/cases_isolation.jl,
+# src/cases_isolation_hand.jl) (Phase 64). These references must themselves be right, so each is
 # checked against a tabulated value, an exact solution or a second route.
 @testset "iso40: Bessel, J′ zeros, quadrature" begin
     @test PAIN._iso_besselj(0, 1.0) ≈ 0.7651976865579666 atol = 1e-14            # A&S Table 9.1
