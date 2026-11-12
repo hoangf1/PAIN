@@ -1221,7 +1221,7 @@ Outputs: matrix determinants, passivity, quadrature residuals in Pkg.test; no re
 **Why it is here:** Only NASA-calculated loss curve available for the acoustic-loss path.
 **A pass means:** Within ±25 % of NASA's calculated η̄.
 **Not covered:** E-13 has no calculated curve; not tuned when criterion fails.
-**Recorded outcome:** 7/18 bands, not met (trim_loss_e13_e14_e15.md). Isolation case TRIM_CLOSED (41b); isolation passes: remaining miss attributed to model fidelity (method), not code.
+**Recorded outcome:** 7/18 bands, not met (trim_loss_e13_e14_e15.md). Isolation case TRIM_CLOSED (41b); isolation passes: remaining miss attributed to model fidelity (method), not code. **No verdict since 2026-11-12 (ISSUE-037, input rule):** the side the facing sits on and the end-plate backing are not printed, and the loss factor moves with them by up to 8.5 % and 43 %; the outcome 7/18 is kept on record.
 **Explanation:** Code-on-code (against NASA calculated curve): Eq. (78) band-average loss with App. A trim conductance ξ vs digitized NASA calculated Fig. E-14. Axes: band Hz (log) vs loss factor (log). Recorded 7/18 within ±25 % — often not met; not tuned.
 Inputs: `e14_acoustic_loss_calculated.csv`; `phase3_trim(; η_lining=0.5)`; a = 0.508 m, L = 1.83 m, θ0 = 56.6°; c0 = 340 m/s, ρ0 = 1.225.
 Equations: Eq. (78) via `acoustic_loss_average`; trim conductance via `trim_conductance`.

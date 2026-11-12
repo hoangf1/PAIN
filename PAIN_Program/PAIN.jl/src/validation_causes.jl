@@ -49,9 +49,7 @@ const CASE_CAUSES = Dict{String,CaseCause}(
     "R172428_ETA" => CaseCause("unexplained (no documented cause survived its test)",
         "Up to 470 Hz every mode is within 12 % of NASA's; above it the modes with almost no shell motion (share under 0.05) agree within 6 % and every other mode is 0.51–0.80 of NASA's. Every cause tested so far was ruled out, the band-centre rule included.",
         "Phases 82c, 118, 139", "look for an error in the loss-factor method (ISSUE-032)", "phase139b_band_centre.md"),
-    "E14_LOSS" => CaseCause("unexplained (no documented cause survived its test)",
-        "0.47–2.29 times NASA's loss factor, a pattern unlike R172428_ETA's; the one cause tested (NASA's per-band PF-105 table) was refuted (6/18 against 7/18).",
-        "Phases 100, 118, 139", "look for an error in the loss-factor method (ISSUE-032)", "phase139b_band_centre.md"),
+    # E14_LOSS: no verdict since 2026-11-12 (ISSUE-037, inputs incomplete), so no cause record
 )
 
 """Cause record of `id`, or `nothing`."""

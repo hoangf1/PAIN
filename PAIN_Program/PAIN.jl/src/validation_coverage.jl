@@ -59,7 +59,6 @@ const PLAIN_TITLES = Dict{String,String}(
     "CYL2D_PRINTED" => "Cabin acoustic modes of two more aircraft against NASA's printed lists (CR-172428, App. C)",
     "APPB_ETA_N_T2_BAND" => "Cabin-mode loss factors with trim loss factor 2.0 against NASA's printout (CR-172428, p. 85)",
     "APPB_ETA_RPP" => "Loss factors of structure–cabin mode pairs against NASA's printout (CR-172428, App. B)",
-    "E14_LOSS" => "Cabin band-average loss factor against NASA's calculated curves (CR-3813, Fig. E-14)",
 )
 
 """Plain title of a case (Phase 146c): `PLAIN_TITLES`, else the registry title with a trailing phase tag such as "(44e)"

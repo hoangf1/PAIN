@@ -76,11 +76,12 @@ end
     p118 = ["BBN_CIRC",   # the T1/T2 family and the propeller broadband cases retired in Phase 150e (2026-11-11)
             "AC_C695A_DBA", "AC_C695A_TONES", "AC_C695A_EXT", "AC_C695A_SEAT",   # Phases 121-125 (2026-11-03): assumed 695A blade and cabin section
             "R996_PHASE", "E22_HF_CODE", "NR_TP1964_REF2", "NR_PROP_TP2444",   # Phase 135f (2026-11-10); _BR, _PF and E22_BR retired in Phase 137a
-            "NR_TP1964_XOVER_REF2"]   # Phase 138b (2026-11-10): NASA's ref. 2 inputs not printed
+            "NR_TP1964_XOVER_REF2",   # Phase 138b (2026-11-10): NASA's ref. 2 inputs not printed
+            "E14_LOSS"]   # ISSUE-037 (2026-11-12): facing side and end-plate backing not printed
     @test all(PAIN.input_incomplete, p118) && !PAIN.input_incomplete("UT_GRID") && !PAIN.input_incomplete("R172428_EXP")
     @test count(PAIN.input_incomplete, keys(PAIN.INFORMATION_ONLY_CASES)) == length(p118)
     @test !any(id -> haskey(PAIN.INFORMATION_ONLY_CASES, id),
-               ["R172428_EXP", "R172428_ETA", "E14_LOSS", "NR_TP1964_XOVER", "FLIGHT_MODES", "R996_LOADS", "PER_FIG8"])   # on the chart (Phase 135f)
+               ["R172428_EXP", "R172428_ETA", "NR_TP1964_XOVER", "FLIGHT_MODES", "R996_LOADS", "PER_FIG8"])   # on the chart (Phase 135f)
     r118 = PAIN._as_information_case(mk("BBN_CIRC", :not_met))
     @test r118.verdict === :no_verdict && occursin("the 2026-11-02 input rule (inputs incomplete", r118.reason)
     @test occursin("the 2026-10-29 rule", PAIN._as_information_case(mk("UT_GRID", :not_met)).reason)

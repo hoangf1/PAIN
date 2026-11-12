@@ -13,12 +13,12 @@ Two lists, newest first in each. **Not assigned to a phase**: issues to act on o
 | 040 | The per-stage file layout and the 44 test-only cases (Phase 150b, 150e rest) | Organisation | open |
 | 039 | FLIGHT_MODES: twenty generalized masses differ in the in-plane part, with both signs | Investigation | open |
 | 038 | The uncertainty budget's nominal sample is not the pipeline's result (structural mode cut-off) | Tests, code | closed 2026-11-12 |
-| 037 | The Phase III trim has guessed inputs; cases that use it may carry a verdict they should not | Input rule, investigation | open |
+| 037 | The Phase III trim has guessed inputs; cases that use it may carry a verdict they should not | Input rule, investigation | closed 2026-11-12: E14_LOSS carries no verdict |
 | 036 | Twelve source functions have no unit test, so the completeness check fails | Tests | closed 2026-11-12 |
 | 035 | The summary file and §0 date from 2026-11-02 and do not show the changes since | Record | closed 2026-11-11 |
-| 034 | The shipped program form has no held-out test of all its parts; R172428_ETAT2 changes only the trim damping | Validity, investigation | open |
+| 034 | The shipped program form has no held-out test of all its parts; R172428_ETAT2 changes only the trim damping | Validity, investigation | closed 2026-11-12: answered, a stated limit |
 | 033 | CYL2D at 62.6°: this code rejects NASA's grid where NASA's program solved it | Not met, investigation | open |
-| 032 | R172428_ETA and E14_LOSS: look for an error in the loss-factor method | Not met, investigation | open |
+| 032 | R172428_ETA and E14_LOSS: look for an error in the loss-factor method | Not met, investigation | open (R172428_ETA only since 2026-11-12; E14_LOSS has no verdict, ISSUE-037) |
 | 031 | Not-met cases where a published prediction misses the same way: a separate look on the chart | Readability | open, two questions for the author |
 | 030 | R996_LOADS: the fix needs more measured section data or CFD | Not met | on hold (author 2026-11-10) |
 
@@ -135,7 +135,22 @@ A web search for reports that could settle open questions of these issues. The l
 
 ## ISSUE-037: The Phase III trim has guessed inputs; cases that use it may carry a verdict they should not
 
-**Status:** open, not assigned to a phase. Recorded 2026-11-10 during Phase 137a′. Record only: no case, flag or number has been changed.
+**Status:** closed 2026-11-12 (Claude, under the author's authority of 2026-11-11 ("fix all the issues"; "make decisions logically like i do")).
+
+**Result (one diagnostic run, 2026-11-12; script not kept, rule of 2026-11-10).** `E14_LOSS` compares the band-average loss factor built from the trim's sidewall and end-plate conductances. Each guessed input was changed alone and the loss factor compared with the shipped one:
+
+| Guessed input | Changed to | Largest change of the loss factor | Count within ±25 % |
+|---|---|---|---|
+| as shipped | | | 7/18 |
+| side the facing sits on | skin side | 8.5 % | 5/18 |
+| end-plate backing | the wall mass, not rigid | 43 % | 7/18 |
+| both | | 44 % | 5/18 |
+| G-10 wavespeed | 2000 m/s | 0 | 7/18 |
+| mechanical connections | 18 screws, 4 lines | 0 | 7/18 |
+
+The facing/septum loss factor is not guessed here: it is the 0.5 of the curve the case compares with (CR-3813 p. E-24). Two inputs that are not printed move the compared quantity by a third of the tolerance and by more than the tolerance. So by the input rule (Phase 118a; author: "if all inputs arent available then it should not have a verdict") **`E14_LOSS` carries no verdict since 2026-11-12**; its recorded outcome (7/18) is kept. No variant passes, so nothing was chosen to pass. `E15_STRUCT_LOSS` has no criterion and no verdict; `GEXT_BOUND` and `H3_ATTRIB` were retired in Phase 150e. The chart has 19 cases with a verdict: 13 met, 6 not met.
+
+Was: open, not assigned to a phase. Recorded 2026-11-10 during Phase 137a′. Record only: no case, flag or number has been changed.
 
 **Author (2026-11-10).** Found while checking TP-2444's lining; the author asked for a ticket instead of following it inside Phase 137 ("write as issue ticket").
 
@@ -196,7 +211,16 @@ Cases already without a verdict that use it (`E18_TONES`, `T1`, `T1_FROM_E12`, `
 
 ## ISSUE-034: The shipped program form has no held-out test of all its parts; R172428_ETAT2 changes only the trim damping
 
-**Status:** open, not assigned to a phase. Recorded 2026-11-10 during Phase 136b. Investigation. No criterion, tolerance or verdict changes; R172428_ETAT2 keeps its verdict.
+**Status:** closed 2026-11-12 as answered (Claude, under the author's authority of 2026-11-11 ("fix all the issues"; "make decisions logically like i do")): the three questions have answers from the record, and what is left is a stated limit, not an open task.
+
+**Answers.**
+1. `FLIGHT10_H234` cannot carry a verdict. No pass criterion was fixed before its first run (its record: "what is compared fixed 2026-10-30", and "A pass means: No verdict"), and it was re-run four times after changes, one of which (run 10's floor-term sign, Phase 108) was read from run 10's own printed pairs. A criterion written now would be post-hoc. It stays shown as information: the shipped form on a second printout, within 2.0 dB at H2–H4.
+2. No other printout exists in the documents: CR-172428 prints one complete scale-model run, the η_T = 2.0 table and flight run 10 (Phase 136e); CR-3813's runs predate NASA's correction; the User Manual prints no sample output.
+3. The q = 0 and band-centre re-runs of CR-3813's runs were on the pre-correction program, so they say nothing about the shipped form (they were retired in Phase 150e; reports kept).
+
+**What stands.** The shipped form's q = 0 choice has no held-out test. METHODOLOGY says so (limits register, 2026-11-12). A held-out test needs a PAIN printout that is not in the documents; if one is found, it is a new case with its criterion fixed first.
+
+Was: open, not assigned to a phase. Recorded 2026-11-10 during Phase 136b. Investigation. No criterion, tolerance or verdict changes; R172428_ETAT2 keeps its verdict.
 
 **Author (2026-11-10).** "the test carries a verdict but an issue ticket needs to be created to encompass the full form independently".
 
