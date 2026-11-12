@@ -52,3 +52,21 @@ Generated from `git ls-files`: path, lines, date of the last commit that touched
 | `docs/specs/total_flowchart.md` | 31 | 2026-11-02 | Task — one total flowchart in the Validation map tab (aircraft path + PAIN path + all validation comparisons), |
 | `references/SOURCES.md` | 60 | 2026-11-10 | Reference sources added 2026-10-22 |
 | `site/README.md` | 109 | 2026-11-02 | The methodology website |
+
+## Proposal (2026-11-11, Phase 149a)
+
+Decided by Claude under the author's authority of 2026-11-10 and 2026-11-11. Each file below was checked for what it duplicates, not just by its heading.
+
+| Files | Proposal | Why |
+|---|---|---|
+| `README.md`, `docs/METHODOLOGY.md`, `docs/VALIDATION_GUIDELINE.md`, `docs/IMPLEMENTATION_PLAN.md`, `docs/COMPLETED_PHASES.md`, `docs/ISSUES.md`, `docs/flowchart.md`, `docs/NO_VERDICT_CASES.md` | keep | the documents CLAUDE.md names, or generated from the case records |
+| `docs/CASE_ID_GLOSSARY.md`, `docs/INPUTS_AND_SETTINGS.md`, `docs/WALKTHROUGH.md`, `docs/METHODOLOGY_STRUCTURE.md`, `site/README.md` | keep | each is the one place for its subject (IDs, inputs, the read-through, the chunk layout, the website) and is linked from the README |
+| `data/**/README.md`, `data/polars/phase69_ncrit_fit.md`, `references/SOURCES.md` | keep | each records where a data file or reference came from, beside the file |
+| `data/report996/MEASURED_NOTES.md` and `data/report996/naca_4-5-08-03/measured/NOTES.md` | keep both | byte-identical, but the first is the copy Phase 25f made beside `MEASURED_CHECKSUMS.txt` (COMPLETED_PHASES §25f), and the second sits with the digitized files it describes |
+| `docs/specs/*.md` (16) | keep | the task specs of completed phases; COMPLETED_PHASES cites them, and the equation specs (38a–38c) hold the transcriptions the code was written from |
+| `docs/extracted/*.md` (3) | keep | text extracted from the three NASA reports, searched when a page is checked |
+| `PAIN.jl/scripts/README.md`, `PAIN.jl/scripts/devtools/README.md`, `PAIN.jl/test/README.md` | keep | how to run the scripts and the tests |
+
+No file is merged, archived or deleted: none repeats another one without a reason recorded for it. The one structural change, the guideline split, is Phase 148.
+
+**Added by Phase 148 (2026-11-11):** `docs/VALIDATION.md` (the generated status page), `docs/CASE_RECORDS.md` (the case records) and `docs/VALIDATION_HISTORY.md` (the phase notes of §2.14–§2.56), all split from `VALIDATION_GUIDELINE.md`, which now holds the criteria only.

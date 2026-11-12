@@ -232,6 +232,7 @@ Not blockers (recorded so nobody stops on them): BBN tip geometry beyond 40 in. 
 | Q124 | Phase 146: chart by figure, titles, glossary (ISSUE-010, 013, 018) | [CONFIRM], [AUTHOR] | Q123 | grouped chart; plain titles | · **done 2026-11-11**: source figures, figure order, plain titles, glossary; tests |
 | Q125 | Phase 147: block validation map retired (ISSUE-015) | [CONFIRM] | Q124 | map tab and §0 map removed | · **done 2026-11-11**: map tab and §0 map gone; blocks kept only as figure folders and case order |
 | Q126 | Phase 148: VALIDATION_GUIDELINE split (ISSUE-016, 005) | [CONFIRM], [AUTHOR] | Q125 | `VALIDATION.md`; case data file; criteria file | · **done 2026-11-11**: status page, case records and phase notes out of the guideline; criteria unchanged |
+| Q127 | Phase 149: Markdown inventory; README (ISSUE-005, 012) | documents, [AUTHOR] | Q126 | inventory; README GUI step | · **done 2026-11-11**: inventory with a keep proposal for every file; README links all resolve |
 | Q129 | Phase 151: cabin-mode animation (ISSUE-011) | [CONFIRM] | — | animation plays in the window | · **done 2026-11-11**: plays in the window; own GLMakie window on request |
 | Q58 | **Phase 79 — CYL2D** (§8w; 2026-10-28) | `case_error_summary`, `cyl2d.jl`, CYL2D_WEYL | Q57 | **done 2026-10-28**: information rows leave the pass count; refinement fixed (79b); CYL2D_GRID_CONV (NY 10 within 4.9 % of NY 60); Weyl + surface term 4/5; production NY = 10 kept (decided 2026-10-28) |
 | Q57 | **Phase 78 — structural modes** (§8v; 2026-10-28) | `mrp_appd.jl`, MRP_APPD criterion, map | Q53 | **done 2026-10-28**: App. D solver fixes J1–J6; MRP_APPD not met 2/32 (class I, floor stiffener model undocumented); MRP_D1/MRP_RITZ off the map |
@@ -3671,3 +3672,12 @@ No run, no code. Each step replaces nothing in the record; it marks older values
 - 148d: the criteria (§1 – §2.12) stay in `VALIDATION_GUIDELINE.md`, word for word (the diff of that range is empty).
 - 148e: §2.14 – §2.56 moved word for word to `docs/VALIDATION_HISTORY.md` under their old numbers. They were not checked one by one against COMPLETED_PHASES.md; the new file says that where the two differ, the phase section is the record.
 - The guideline goes from 4,271 to 745 lines.
+
+## 8cm. Phase 149 — Markdown inventory and the README (ISSUE-005, 012; documents only; done 2026-11-11)
+
+- [x] **149a** (inventory of the 48 files outside `validation_reports/` written: `docs/MARKDOWN_INVENTORY.md`, 2026-11-10; no keep / merge / archive / delete proposal yet) Inventory of the 138 `.md` files: purpose, last change, what it duplicates; keep / merge / archive / delete. Validation reports are kept in place. **[AUTHOR]** approves any deletion. **Done 2026-11-11**: keep every file.
+- [x] **149b** README: "(optional)" off the GUI step and its contents line; the four tab paragraphs → a short list and two links; every remaining link resolves. **Done 2026-11-11.**
+
+**Done 2026-11-11** (inventory on 2026-11-10; proposal, README check and closing decided by Claude under the author's authority of 2026-11-10 and 2026-11-11 ("you do not need my permission until all phases are done")):
+- 149a: `docs/MARKDOWN_INVENTORY.md` gives each file outside `validation_reports/` a proposal: every one is kept. Two Report 996 notes are byte-identical; both are kept, one as the Phase 25f copy beside its checksums and one beside the digitized files. The task specs of `docs/specs/` are cited by COMPLETED_PHASES. No file is deleted; the guideline split is Phase 148.
+- 149b: the README's GUI step carries no "(optional)", its five tabs are one short table, and every relative link and anchor in it resolves (checked 2026-11-11 by a one-off script, not kept).

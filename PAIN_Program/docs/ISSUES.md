@@ -42,14 +42,14 @@ Two lists, newest first in each. **Not assigned to a phase**: issues to act on o
 | 015 | Retire the block validation map | Organisation | 147 (closed 2026-11-11) |
 | 014 | R172428_CODE not met 5/9 | Not met | 136 (closed 2026-11-10) |
 | 013 | Case names and abbreviations unexplained | Readability | 146 (closed 2026-11-11) |
-| 012 | README treats the GUI as optional | Readability | 149 |
+| 012 | README treats the GUI as optional | Readability | 149 (closed 2026-11-11) |
 | 011 | Cabin-mode animation does not play | Readability | 151 (closed 2026-11-11) |
 | 010 | Coverage rows scattered; group by figure | Organisation | 146 (closed 2026-11-11) |
 | 009 | R172428_EXP plot labels and comparison target | Readability | 136, 145 (closed 2026-11-11) |
 | 008 | BLK_P68 tests R1, predictions use R2 | Not met | 144 (closed 2026-11-11) |
 | 007 | E12_BLOCK 29/31; two max errors on record | Not met | 143 (closed 2026-11-11) |
 | 006 | R2 and the circular wall have no criterion | Not met | 144 (closed 2026-11-11) |
-| 005 | Too many Markdown files | Organisation | 148, 149 |
+| 005 | Too many Markdown files | Organisation | 148, 149 (closed 2026-11-11) |
 | 004 | Pereira counts differ across the record | Readability, not met | 135, 141 (closed 2026-11-11) |
 | 003 | Fig. 13a recorded as FAIL and PASS | Readability | 135 |
 | 002 | Report 996 page-12 phase stated three ways | Readability | 135 |
@@ -985,7 +985,7 @@ Single cases: R996_PHASE, E12_BLOCK, CYL2D_PRINTED, FLIGHT_MODES, E14_LOSS, R172
 
 ## ISSUE-012: README treats opening the GUI as optional and carries verbose tab text
 
-**Status:** open. Recorded 2026-11-09. Documentation only. No verdict, criterion or recorded result changes. No code changed.
+**Status:** closed 2026-11-11 by Phases 148 and 149 (`COMPLETED_PHASES.md` §8cl, §8cm). Recorded 2026-11-09. Documentation only. No verdict, criterion or recorded result changes. No code changed.
 
 **Problem.** Opening the GUI is the main way to use PAIN, not an optional step, but `PAIN_Program/README.md` labels it "(optional)" and then repeats long paragraphs about every tab. Those paragraphs are too verbose for a README and duplicate `docs/INPUTS_AND_SETTINGS.md` and `docs/VALIDATION_GUIDELINE.md` §2.13.
 
@@ -1261,7 +1261,7 @@ This is raised as a question. No change is made.
 
 ## ISSUE-005: Too many Markdown files; documentation is duplicated and hard to keep in step
 
-**Status:** open. Recorded 2026-11-09. Inventory only; no file has been moved, merged or deleted.
+**Status:** closed 2026-11-11 by Phases 148 and 149 (`COMPLETED_PHASES.md` §8cl, §8cm). Recorded 2026-11-09. Inventory only; no file has been moved, merged or deleted.
 
 **Summary.** The repository holds a very large number of Markdown files. Many cover the same content, and each code change must update several of them, so the documents drift apart. ISSUE-002 and ISSUE-004 are examples: the same Pereira and Report 996 numbers appear in several files, and they now disagree.
 
