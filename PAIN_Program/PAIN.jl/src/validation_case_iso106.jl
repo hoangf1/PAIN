@@ -35,7 +35,8 @@ function _run_cabin_freq_printed()
             ours = cabin_frequency_3d(only(m for m in ac50.modes if m.index == I), 0.84, Lc, q; c0=343.0)
             tol = lab == "run 10 printed pairs" ? 0.051 : max(0.02, 2e-4 * f)         # run 10 prints 0.1 Hz
             g = abs(ours - f) ≤ tol; m_ok += g; m_n += 1
-            push!(table, ValidationTableRow("$lab (Q=$q, I=$I) (Hz)", I, f, ours, ours - f, g, "$lab (seen, post-hoc)"))
+            push!(table, ValidationTableRow("$lab (Q=$q, I=$I) (Hz)", I, f, ours, ours - f, g, "$lab (seen, post-hoc)";
+                                          in_verdict=false))   # Phase 145a: seen rows are shown, not judged
         end
     end
     series = [PlotSeries("PAIN, App. B p. 185", :reference_points, xs, ref; panel=1),

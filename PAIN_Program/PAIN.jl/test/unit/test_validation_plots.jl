@@ -18,7 +18,7 @@ _res(id, rows; verdict=:met, series=PAIN.PlotSeries[]) =
     @test c1 != c2 && PAIN._color_for_alpha!(cols, ord, 2.0) == c1 && ord == [2.0, 4.0]
     @test PAIN._unit_in_parens("SPL (dB) re (20 µPa)") == "20 µPa" && PAIN._unit_in_parens("x ()") === nothing && PAIN._unit_in_parens("") === nothing
     @test PAIN._unit_in_parens("this code − NASA PAIN (dB(A))") == "dB(A)" && PAIN._unit_in_parens("level (dB) (dB(A))") == "dB(A)"   # Phase 124: one nesting level
-    @test PAIN._absolute_error_unit(PAIN.PlotSpec(; ylabel="f (Hz)")) == "Hz" && PAIN._absolute_error_unit(PAIN.PlotSpec()) == "abs"
+    @test PAIN._absolute_error_unit(PAIN.PlotSpec(; ylabel="f (Hz)")) == "Hz" && PAIN._absolute_error_unit(PAIN.PlotSpec()) == ""
     @test PAIN._legend_kw("") == (;) && PAIN._legend_kw("a") == (; label="a")
     @test PAIN._percentile([1.0, 2.0, 3.0, 4.0], 0.5) ≈ 2.5 && PAIN._percentile([7.0], 0.9) == 7 && isnan(PAIN._percentile(Float64[], 0.5))
     lims, clipped = PAIN._error_ylims([0.1, -0.2, 50.0], 1.0)
@@ -26,6 +26,13 @@ _res(id, rows; verdict=:met, series=PAIN.PlotSeries[]) =
     @test PAIN._error_ylims([NaN], nothing) == (nothing, false)
     @test PAIN._fmt_err_sig(0.012345) == "0.012"
     @test PAIN._fmt_err_sig(42.2) == "42.2" && PAIN._fmt_err_sig(12.43) == "12.4" && PAIN._fmt_err_sig(850.0) == "850.0"   # Phase 145b
+    # Phase 145b (2026-11-11): "dimensionless" is not a unit; the rule beside a fractional count comes from the criterion text
+    @test PAIN._absolute_error_unit(PAIN.PlotSpec(; error_ylabel="Δc_l (dimensionless)")) == ""
+    @test PAIN._count_rule("±3 dB of NASA's Table 12 prediction at ≥ 7 of 9 points (fixed 2026-10-29)") == "needs ≥ 7 of 9"
+    @test PAIN._count_rule("|η_r″/NASA − 1| ≤ 10 % at ≥ 80 % of the printed pairs") == "needs ≥ 80 %"
+    @test PAIN._count_rule("≥ 75 % of 32 modes within 5 %") == "needs ≥ 75 %"
+    @test PAIN._count_rule("Within ±4 dB of the measured space average at each of the 9 points.") == ""
+    @test PAIN._case_count_rule("APPB_ETA_RPP") == "needs ≥ 80 %" && PAIN._case_count_rule("NO_SUCH_CASE") == ""
 end
 @testset "error roll-up (case_error_summary)" begin
     rows = [PAIN.ValidationTableRow("a", 1, 100, 101, 1, true), PAIN.ValidationTableRow("b", 2, 100, 97, -3, false)]
@@ -34,10 +41,10 @@ end
     s = PAIN.case_error_summary(_res("X", rows; verdict=:not_met), PAIN.PlotSpec(; ylabel="f (Hz)"))
     @test s.n_within == 1 && s.n_rows == 2 && s.max_abs == 3 && s.median_abs == 2 && s.unit == "Hz"
     @test s.text == "1/2 in tol · max |err| 3.0 Hz · med 2.0 Hz" && s.chip_text == "1/2 · 3.0 Hz max"
-    @test PAIN.case_error_summary(_res("X", rows; verdict=:no_verdict), PAIN.PlotSpec()).chip_text == "no verdict · 3.0 abs max"
+    @test PAIN.case_error_summary(_res("X", rows; verdict=:no_verdict), PAIN.PlotSpec()).chip_text == "no verdict · 3.0 max"
     @test PAIN.case_error_summary(_res("X", PAIN.ValidationTableRow[]), PAIN.PlotSpec()).text == "no criterion"
     n = PAIN.case_error_summary(_res("X", rows), PAIN.PlotSpec(; error_mode=:none))
-    @test n.text == "1/2 within criterion" && isnan(n.max_abs)
+    @test n.text == "1/2 within criterion · count only" && n.chip_text == "1/2 within criterion" && isnan(n.max_abs)
     @test PAIN._error_chip_text(; text="no criterion", n_within=0, n_rows=0, max_abs=NaN, unit="") == "no criterion"
     @test PAIN._error_chip_text(; text="x", n_within=2, n_rows=3, max_abs=NaN, unit="") == "2/3"
     @test PAIN._is_info_row(PAIN.ValidationTableRow("x (info)", 1, 1, 1, 0, true)) && !PAIN._is_info_row(rows[1])
@@ -48,7 +55,7 @@ end
     @test si.n_within == 2 && si.n_rows == 2 && si.max_abs == 1
     # Phase 145a: the information row is counted apart, as every row outside the verdict is
     @test PAIN.case_error_summary(_res("X", info), PAIN.PlotSpec(; error_mode=:none)).text ==
-          "2/2 within criterion (+ 1 shown, not judged)"
+          "2/2 within criterion (+ 1 shown, not judged) · count only"
     grp = [PAIN.ValidationTableRow("η f=1", 1, 1, 2, 1, false, "V-EXP η (info)")]                  # info by group; only info rows
     @test PAIN.case_error_summary(_res("X", grp; verdict=:no_verdict), PAIN.PlotSpec()).n_rows == 1
     # Phase 145a: a row shown but not judged (in_verdict = false) leaves the count and the worst error, counted apart
@@ -56,6 +63,8 @@ end
           PAIN.ValidationTableRow("fit point", 2, 100, 150, 50, false; in_verdict=false)]
     sj = PAIN.case_error_summary(_res("X", nj; verdict=:met), PAIN.PlotSpec(; ylabel="f (Hz)"))
     @test sj.n_within == 1 && sj.n_rows == 1 && sj.max_abs == 1 && occursin("(+ 1 shown, not judged)", sj.text)
+    sr = PAIN.case_error_summary(_res("APPB_ETA_RPP", rows; verdict=:met), PAIN.PlotSpec(; ylabel="f (Hz)"))   # a registered fractional rule
+    @test sr.text == "1/2 in tol (needs ≥ 80 %) · max |err| 3.0 Hz · med 2.0 Hz"
     @test nj[1].in_verdict && !nj[2].in_verdict && PAIN._is_info_row(nj[2])
     @test PAIN.ValidationTableRow("q", 1, 2, 3, 4, false, "g"; in_verdict=false).group == "g"
     # Phase 145f: a case names its reference and computed columns in the printed table
@@ -166,12 +175,12 @@ end
     md = PAIN.validation_scoreboard_markdown(; rec)
     @test occursin("latest run 2000-01-01", md)
     notmet = split(split(md, "### Not met (fewest points within criterion first)")[end], "### Verdicts reached")[1]
-    @test occursin("| `$bad` ", notmet) && occursin("| 1/4 | 1/4 · max \\|err\\| 9 % |", notmet)
-    @test length(shown) > 1 && !occursin("| `$(shown[1])` ", notmet)
+    @test occursin("(`$bad`) |", notmet) && occursin("| $(PAIN.case_plain_title(bad)) (`$bad`) |", notmet) && occursin("| 1/4 | 1/4 · max \\|err\\| 9 % |", notmet)
+    @test length(shown) > 1 && !occursin("(`$(shown[1])`) |", notmet)
     # Phase 86: only cases with a verdict are on the map; a met information case and an unrun case are listed elsewhere
     info = first(id for id in b.cases if PAIN.no_verdict_by_rule(id))
-    @test !occursin("| `$info` ", md) && !PAIN.on_validation_map(info; rec) && PAIN.on_validation_map(bad; rec)
-    @test !occursin("| `T1` ", md) && !PAIN.on_validation_map("T1"; rec)                # not in this snapshot
+    @test !occursin("(`$info`) |", md) && !occursin("| `$info` ", md) && !PAIN.on_validation_map(info; rec) && PAIN.on_validation_map(bad; rec)
+    @test !occursin("(`T1`) |", md) && !PAIN.on_validation_map("T1"; rec)                # not in this snapshot
     nv = PAIN.no_verdict_cases_markdown(; rec)
     @test occursin("| `$info` ", nv) && occursin("| `T1` ", nv) && !occursin("| `$bad` ", nv)
     @test occursin("## Information and verification under the meaningfulness rule", nv)

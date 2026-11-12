@@ -97,11 +97,11 @@ function _iso96_validation_cases()
     return [
         mk("APPB_ETA_N_BAND", "Cabin-mode η_n by the band-centre rule vs App. B (96a, post-hoc)", [ac, _r172428_csv("appB_trim.csv")],
            FigureRef("NASA CR-172428", "App. B pp. 195, 197", 195), "None (diagnostic, post-hoc).", _run_appb_eta_n_band,
-           "App. B cabin mode number", "η_n", :absolute, nothing),
+           "App. B cabin mode number", "η_n (loss factor)", :absolute, nothing),
         mk("APPB_ETA_N_T2_BAND", "Cabin-mode η_n at η_T = 2.0 by the band-centre rule vs CR-172428 p. 85 (96b)", [t12, ac],
            FigureRef("NASA CR-172428", "p. 85", 85),
            "|η_n/NASA − 1| ≤ 10 % at App. B modes 6, 7 and 8 (fixed 2026-10-30, before the run).", _run_appb_eta_n_t2_band,
-           "App. B cabin mode number", "η_n", :absolute, nothing),
+           "App. B cabin mode number", "η_n (loss factor)", :absolute, nothing),
         mk("R172428_CODE_DEFAULT", "CR-172428 reproduction with the code as it ships (96d, post-hoc)",
            [_r172428_csv("appB_predictions.csv"), ac], FigureRef("NASA CR-172428", "App. B pp. 196–212 / Table 10", 206),
            "None (diagnostic, post-hoc).", _run_r172428_code_default, "tone frequency (Hz)", "SPL (dB)", :absolute, 3.0),

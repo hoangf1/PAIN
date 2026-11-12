@@ -33,19 +33,19 @@ Two lists, newest first in each. **Not assigned to a phase**: issues to act on o
 | 024 | FLIGHT_MODES is two modes short on a file with two misreads | Not met | 142 (closed 2026-11-11: met on the settled file) |
 | 023 | E14_LOSS and R172428_ETA: the trim loss term | Not met | 139 (closed 2026-11-11; continued in 032) |
 | 022 | Code-against-NASA misses classed as a method limit | Not met | 138 (closed 2026-11-10) |
-| 021 | Post-hoc verdicts are not marked on the chart | Readability | 145 |
-| 020 | Points and error text count rows outside the verdict | Readability | 145 |
-| 019 | No single current statement of why a case is not met | Not met, readability | 135, 145 |
-| 018 | 27 not-met rows are about 14 comparisons | Readability | 145, 146 |
+| 021 | Post-hoc verdicts are not marked on the chart | Readability | 145 (closed 2026-11-11) |
+| 020 | Points and error text count rows outside the verdict | Readability | 145 (closed 2026-11-11) |
+| 019 | No single current statement of why a case is not met | Not met, readability | 135, 145 (closed 2026-11-11) |
+| 018 | 27 not-met rows are about 14 comparisons | Readability | 145, 146 (closed 2026-11-11) |
 | 017 | Four not-met verdicts are on a superseded program form | Not met | 136 (closed 2026-11-10) |
 | 016 | VALIDATION_GUIDELINE.md is 4,566 lines | Organisation | 148 |
 | 015 | Retire the block validation map | Organisation | 147 |
 | 014 | R172428_CODE not met 5/9 | Not met | 136 (closed 2026-11-10) |
-| 013 | Case names and abbreviations unexplained | Readability | 146 |
+| 013 | Case names and abbreviations unexplained | Readability | 146 (closed 2026-11-11) |
 | 012 | README treats the GUI as optional | Readability | 149 |
 | 011 | Cabin-mode animation does not play | Readability | 151 |
-| 010 | Coverage rows scattered; group by figure | Organisation | 146 |
-| 009 | R172428_EXP plot labels and comparison target | Readability | 136, 145 |
+| 010 | Coverage rows scattered; group by figure | Organisation | 146 (closed 2026-11-11) |
+| 009 | R172428_EXP plot labels and comparison target | Readability | 136, 145 (closed 2026-11-11) |
 | 008 | BLK_P68 tests R1, predictions use R2 | Not met | 144 (closed 2026-11-11) |
 | 007 | E12_BLOCK 29/31; two max errors on record | Not met | 143 (closed 2026-11-11) |
 | 006 | R2 and the circular wall have no criterion | Not met | 144 (closed 2026-11-11) |
@@ -660,7 +660,7 @@ The third column is arithmetic done today, not a run. The rule gives the NY that
 
 ## ISSUE-021: A verdict reached after a post-hoc change looks the same on the chart as a first-run verdict
 
-**Status:** open. Recorded 2026-11-09. Labels. No verdict changes. Solution: Phase 145. Related: ISSUE-001.
+**Status:** closed 2026-11-11 by Phase 145 (`COMPLETED_PHASES.md` §8ci; `phase145_summary_writer.md`, `phase145_independence_records.md`). Recorded 2026-11-09. Labels. No verdict changes. Solution: Phase 145. Related: ISSUE-001.
 
 **Summary.** CLAUDE.md: "any value chosen after seeing a result makes that result post-hoc (calibrated), not a pass." The case texts keep this distinction; §0, the CSV and the chart drop it.
 
@@ -693,7 +693,7 @@ Each change above was a documented defect fix or a documented input, not a fit, 
 
 ## ISSUE-020: The Points and Error columns count rows that are not in the verdict, and some labels do not say what the number is
 
-**Status:** open. Recorded 2026-11-09. Labels (CLAUDE.md step 7). No verdict changes. Solution: Phase 145.
+**Status:** closed 2026-11-11 by Phase 145 (`COMPLETED_PHASES.md` §8ci; `phase145_summary_writer.md`, `phase145_independence_records.md`). Recorded 2026-11-09. Labels (CLAUDE.md step 7). No verdict changes. Solution: Phase 145.
 
 **Evidence** (`case_error_summary.csv`, §0).
 - **Rows outside the verdict are counted.** `POLAR_FIDELITY` shows 40/61; the verdict is on the held-out 16-312 section, 13/26. The other 27/35 are the two sections N_crit was fitted to. `CYL2D_PRINTED` shows 57/168; the two held-out aircraft are 0/53 and 5/61, and 51 of the 57 are the Merlin list, which the case text calls "seen" and "post-hoc".
@@ -719,7 +719,7 @@ Each change above was a documented defect fix or a documented input, not a fit, 
 
 ## ISSUE-019: There is no single current statement of why each case is not met; the three that exist disagree
 
-**Status:** open. Recorded 2026-11-09. Documentation. No verdict changes. Solution: Phases 135 and 145.
+**Status:** closed 2026-11-11 by Phase 145 (`COMPLETED_PHASES.md` §8ci; `phase145_summary_writer.md`, `phase145_independence_records.md`). Recorded 2026-11-09. Documentation. No verdict changes. Solution: Phases 135 and 145.
 
 **Summary.** The cause of a not-met case is written in §2.14 (2026-10-24, amended four times), in `validation_reports/phase118_full_input_misses.md` (points from the 2026-10-30 snapshot) and inside each case's "Recorded outcome". They differ, and four current not-met cases are in none of the tables.
 
@@ -755,7 +755,7 @@ Each change above was a documented defect fix or a documented input, not a fit, 
 
 ## ISSUE-018: 27 not-met rows are about 14 separate comparisons; variants and sums of one comparison each count as a case
 
-**Status:** open. Recorded 2026-11-09. Presentation only. No verdict changes. Solution: Phases 145 and 146.
+**Status:** closed 2026-11-11 by Phases 145 and 146: one family per comparison, 20 cases with a verdict and 20 independent comparisons. Phase 145d done 2026-11-11: families and parents in `CASE_FAMILIES`. Recorded 2026-11-09. Presentation only. No verdict changes. Solution: Phases 145 and 146.
 
 **Summary.** The chart and §0 count every registered variant as its own case. A reader sees 16 not-met rows in "Validation comparisons" and takes them for 16 failures.
 
@@ -941,7 +941,7 @@ Single cases: R996_PHASE, E12_BLOCK, CYL2D_PRINTED, FLIGHT_MODES, E14_LOSS, R172
 
 ## ISSUE-013: Validation case names and document abbreviations are not explained where they are used (T1, T2, T1_MEAS_DAMPING, T2_EQ19 and similar)
 
-**Status:** open. Recorded 2026-11-09. Documentation and labelling only. No verdict, criterion or recorded result changes. No code changed.
+**Status:** closed 2026-11-11 by Phase 146 (`COMPLETED_PHASES.md` §8cj; `phase146_plain_titles.md`). Recorded 2026-11-09. Documentation and labelling only. No verdict, criterion or recorded result changes. No code changed.
 
 **Problem.** Short labels such as `T1`, `T2`, `T1_APPB`, `T1_MEAS_DAMPING`, `T2_EQ19`, `T2_MEAS_EXT`, `E12_BLOCK`, `R996_FIG14` and `APPB_ETA_N_T2_BAND` are used in the GUI, the validation map, the coverage tab, the case IDs and the documents without a definition at the point of use. The reader has to search `docs/METHODOLOGY.md` and `docs/VALIDATION_GUIDELINE.md` to learn what each one is, and even the author cannot read some of them without searching. For example, `T1` is the whole-chain cabin noise check against measurement, `T2` is the high-frequency (broadband) check, and `T1_MEAS_DAMPING` is `T1` run with measured damping.
 
@@ -1059,7 +1059,7 @@ Single cases: R996_PHASE, E12_BLOCK, CYL2D_PRINTED, FLIGHT_MODES, E14_LOSS, R172
 
 ## ISSUE-010: Coverage tab and chart are sorted by chain stage, so cases from one figure are scattered; group them by figure and relation
 
-**Status:** open. Recorded 2026-11-09. Presentation only. No verdict, criterion or recorded result changes. No code changed.
+**Status:** closed 2026-11-11 by Phase 146 (`COMPLETED_PHASES.md` §8cj; `phase146_plain_titles.md`). Recorded 2026-11-09. Presentation only. No verdict, criterion or recorded result changes. No code changed.
 
 **Problem.** To check one figure, the reader has to open many separate cases. The Coverage tab (`PAIN.jl/gui/main.qml`, Coverage page from about line 2193) and the chain coverage chart (`PAIN.jl/src/validation_coverage.jl`) order rows by first stage, last stage, comparison type and then case ID (line 21). Cases from the same source figure end up in different places. R172428 is an example: its EXP, CODE, DECK, DBA, DB and ETA cases are spread across the chart by chain span.
 
@@ -1097,7 +1097,7 @@ Single cases: R996_PHASE, E12_BLOCK, CYL2D_PRINTED, FLIGHT_MODES, E14_LOSS, R172
 
 ## ISSUE-009: R172428_EXP plot labels and comparison target (NASA points vs measured)
 
-**Status:** open. Recorded 2026-11-09. Labelling and documentation only. The recorded verdict (not met, 5/9 within ±4 dB, max |err| 18.0 dB) is not changed. No code, criterion or recorded result has been changed.
+**Status:** closed 2026-11-11 by Phase 145 (`COMPLETED_PHASES.md` §8ci; `phase145_summary_writer.md`, `phase145_independence_records.md`). Recorded 2026-11-09. Labelling and documentation only. The recorded verdict (not met, 5/9 within ±4 dB, max |err| 18.0 dB) is not changed. No code, criterion or recorded result has been changed.
 
 **Figure.** CR-172428 Table 5 with Table 10 (App. B), page 89 in the report. The plot has nine points: 3000, 4000 and 5000 rpm at H1–H3. It shows three series: NASA's printed prediction, the measured space average, and this code.
 

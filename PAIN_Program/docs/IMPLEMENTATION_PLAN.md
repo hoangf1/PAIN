@@ -13,7 +13,7 @@ Single source of truth for building this project without re-deriving context in 
 2. Data register and digitization instructions (status, procedure, one card per figure; §2.5 candidate sources found 2026-11-09)
 3. Current status and open work queue
 4. Architecture
-8ci–8co. Open phases 145–151 (planned 2026-11-09 from `ISSUES.md`; Phases 135–138 done 2026-11-10, 139–144 done 2026-11-11 and moved to `COMPLETED_PHASES.md`)
+8ck–8co. Open phases 147–151 (planned 2026-11-09 from `ISSUES.md`; Phases 135–138 done 2026-11-10, 139–146 done 2026-11-11 and moved to `COMPLETED_PHASES.md`)
 5–8ac, 11. *(in `COMPLETED_PHASES.md`, same section numbers, moved 2026-10-29)* every completed phase, the queue Q0–Q66 and the 2026-10-21 review
 9. Reference appendices (BBN evidence, Report 996 figures and data, Pereira polar specification, variables)
 10. Optional future work, key formulas, file checklist
@@ -263,8 +263,6 @@ or the other documents points there. When a phase is done, mark it done and move
 
 | Q | Item | Kind | Prerequisite | Output |
 |---|------|------|--------------|--------|
-| Q123 | Phase 145: summary writer (ISSUE-009, 018, 019, 020, 021) | [CONFIRM], [AUTHOR] | Q113 | verdict-row counts; first-run mark; families; causes |
-| Q124 | Phase 146: chart by figure, titles, glossary (ISSUE-010, 013, 018) | [CONFIRM], [AUTHOR] | Q123 | grouped chart; plain titles |
 | Q125 | Phase 147: block validation map retired (ISSUE-015) | [CONFIRM] | Q124 | map tab and §0 map removed |
 | Q126 | Phase 148: VALIDATION_GUIDELINE split (ISSUE-016, 005) | [CONFIRM], [AUTHOR] | Q125 | `VALIDATION.md`; case data file; criteria file |
 | Q127 | Phase 149: Markdown inventory; README (ISSUE-005, 012) | documents, [AUTHOR] | Q126 | inventory; README GUI step |
@@ -335,25 +333,6 @@ Each phase is the solution of one or more entries of `ISSUES.md`; the evidence i
 Rules common to all: no recorded verdict, criterion, tolerance or reference file changes unless the step names it; a result that moves is recorded with its date, its before and after, and "post-hoc" where the earlier result was known; targeted testsets only (not the full `Pkg.test()`); the five documents of R5 are updated in the phase that changes code or a recorded result.
 
 **Status 2026-11-10 (overnight, decided by Claude under the author's delegation of 2026-11-10).** Done: 136e, 136f, 137b, 137c, 137d, 138a/b/d, 139a/b/b′/d, 140c/d, 141a, 141c (Report 996 part; the Pereira PER_FIG8 line is open), 141d, 144a, 144b, 145d, 147, 150c/d. Decisions and outcomes: `validation_reports/phase135_151_decisions.md`. Open: 141c Pereira line, 141e, 142, 143b–d, 145a rest, 146b/c, 148, 149a, 150a/b/e, 151a/b, regenerating the summary CSV and §0. These changes were pushed without running the full test suite or /code-review, at the author's request (2026-11-10); the next session runs the affected testsets first.
-
-## 8ci. Phase 145 — the summary writer says what each number is (ISSUE-009, 018, 019, 020, 021) [CONFIRM]
-
-- [ ] **145a `in_verdict`** on `ValidationTableRow`; counts and worst error over those rows; "+ n shown, not judged". Gate cases count tones. Before / after table for every CSV row that moves (POLAR_FIDELITY 40/61 → 13/26, CYL2D_PRINTED, T1_APPB, T1_MEAS_DAMPING_APPB at least); no verdict moves.
-- [ ] **145b Error text.** The rule beside a fractional count; no NaN; an error size or "count only"; units from the case's definition; one decimal.
-- [ ] **145c Independence record [DECIDED 2026-11-09].** Author: "this needs to be proven that its not circular somehow on the coverage map or somewhere accessible by the reader". Per case whose verdict was reached after a change: `first_run` (date, verdict, count); each change since, with the document page or independent check it rests on; and "was the compared data used to choose it" (yes / no, with the evidence). All "no" → the verdict stands and the record opens from the chart row and is listed on the short validation page. Any "yes", or a change with no stated basis → the case carries no verdict. Written first for APPB_ETA_RPP, R996_FIG12, R996_FIG13A, R996_FIG14, PER_FIG7, MRP_APPD, R996_LOADS; **[AUTHOR]** reads the seven records before any verdict is kept or dropped on their strength.
-- [ ] **145d `family` and `derived_from`** per case (list in ISSUE-018, **[AUTHOR]** check). **Fix 2026-11-10:** two pairs had the parent and the variant the wrong way round after 135f (NR_TP1964_XOVER and APPB_ETA_N_T2_BAND keep the verdict but were marked derived from cases that lost theirs); swapped in `CASE_FAMILIES`, so the chart counts 20 cases with a verdict and 20 independent comparisons, and the two bars are no longer drawn thinner. `test_validation_coverage.jl` 48/48. §0 states cases and independent comparisons.
-- [ ] **145e `cause`** fields from 135d; generated "why not met" table; a test that fails if a not-met case has none.
-- [ ] **145f R172428 plot labels** (ISSUE-009 steps 1–4): `error_ylabel` names both series and the unit; the series that carries the criterion is marked; table headers traced and named.
-
-**Checks:** `test_validation_plots.jl`, `test_validation_coverage.jl`, `test_validation_framework.jl`; `write_case_error_summary.jl`; both smoke scripts and a look at the window.
-
-## 8cj. Phase 146 — the coverage chart as the one view: figures, families, plain titles (ISSUE-010, 013, 018) [CONFIRM]
-
-- [ ] **146a `figure` field** (document, figure, PDF page) per case, from `FigureRef` where it exists.
-- [ ] **146b Grouping.** Toggle "by chain stage" / "by figure"; inside a figure: measurement, NASA's printed prediction, verification; families of 145d drawn as one group, derived cases smaller.
-- [ ] **146c Titles.** A plain title per verdict case (43 first), each checked against the case's criterion text; title first, ID in brackets; phase tags out of titles. **[AUTHOR]** reviews the list before it is merged.
-- [ ] **146d Glossary** of ID prefixes and suffixes, one place, linked.
-- [ ] **146e Tests:** a verdict case without figure or title fails; sort order by figure then relation.
 
 ## 8ck. Phase 147 — the block validation map is retired (ISSUE-015) [CONFIRM]
 

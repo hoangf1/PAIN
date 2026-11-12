@@ -49,6 +49,14 @@ end
     @test PAIN._coverage_figure("NOPE") == ""
     @test PAIN._coverage_figure("R172428_EXP") == "NASA CR-172428, Table 5 / Table 10, PDF p. 89"
     @test occursin("\"figure\":\"NASA CR-172428, Table 5 / Table 10, PDF p. 89\"", PAIN.coverage_json(; rec))
+    # Phase 146c (2026-11-11): every verdict case has its own plain title, with no phase tag such as "(44e)"
+    noplain = [r.id for r in vrows if !haskey(PAIN.PLAIN_TITLES, r.id)]
+    isempty(noplain) || @info "verdict cases without a plain title" noplain
+    @test isempty(noplain)
+    @test !any(r -> occursin(r"\(\d+[a-z]?\)", r.title), vrows)
+    @test PAIN.case_plain_title("R172428_EXP") == PAIN.PLAIN_TITLES["R172428_EXP"] != PAIN.CASE_INFO["R172428_EXP"].title
+    @test PAIN.case_plain_title("R172428_CODE_DECK") == "CR-172428 reproduction on NASA's 300 modes vs NASA's printed predictions"
+    @test PAIN.case_plain_title("NO_SUCH_CASE") == "NO_SUCH_CASE"
 end
 @testset "NASA's own printout on the same gate (Phases 136f, 137c)" begin
     # hand count from the data files (2026-11-10): NASA App. B / Table 10 within ±4 dB of measured at 5 of 9 tones;

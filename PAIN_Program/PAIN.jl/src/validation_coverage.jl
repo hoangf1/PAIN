@@ -36,6 +36,40 @@ const CASE_FAMILIES = Dict{String,NamedTuple{(:family, :derived_from),Tuple{Stri
     "CABIN_FREQ_PRINTED" => (family="CYL2D cabin modes", derived_from=""),
 )
 
+# Phase 146c (2026-11-11, decided by Claude under the author's authority of 2026-11-10 and 2026-11-11): a plain title per
+# case with a verdict, in words, each read against the case's criterion text: what is compared, with what, and where it is
+# printed. No phase tags and no letter codes. Shown title first, ID in brackets.
+const PLAIN_TITLES = Dict{String,String}(
+    "R996_LOADS" => "Propeller thrust and power coefficients against measurement (NACA RM L8H25a)",
+    "PER_FIG7" => "Propeller tone phase shift in forward flight against Pereira's measurement (Fig. 7)",
+    "PER_FIG8" => "Propeller tone levels in forward flight against Pereira's measurement (Fig. 8)",
+    "R996_FIG12" => "Static propeller tone levels along the axis against measurement (Report 996, Fig. 12)",
+    "R996_FIG13A" => "Static first propeller tone along the axis against measurement (Report 996, Fig. 13a)",
+    "R996_FIG14" => "Static propeller tone levels against tip Mach number, against measurement (Report 996, Fig. 14a)",
+    "R996_FIG10_FLAT" => "Level increase at a flat wall beside a propeller against measurement (Report 996, Fig. 10)",
+    "R172428_EXP" => "Cabin tone levels of the test article against the measured space averages (CR-172428)",
+    "R172428_ETAT2" => "Cabin tone levels with trim loss factor 2.0 against NASA's printed prediction (CR-172428, Table 12)",
+    "NR_TP1964_XOVER" => "Noise reduction of a bare cylinder against measurement (TP-1964, Fig. 8)",
+    "FLIGHT_MODES" => "Structural modes of the flight aircraft against NASA's printed mode list (CR-172428, App. C)",
+    "MRP_APPD" => "Fuselage structural modes against NASA's printed Table D-1 (CR-3813)",
+    "R172428_ETA" => "Structural-mode loss factors against NASA's printout (CR-172428, App. B)",
+    "APPB_EPS_N" => "Cabin-mode factor ε_n against NASA's printout (CR-172428, App. B)",
+    "CABIN_FREQ_PRINTED" => "Cabin acoustic mode frequencies against NASA's printed list (CR-172428, App. B)",
+    "CYL2D_C1" => "Cabin acoustic modes of the floored cylinder against NASA's Table C-1 (CR-3813)",
+    "CYL2D_PRINTED" => "Cabin acoustic modes of two more aircraft against NASA's printed lists (CR-172428, App. C)",
+    "APPB_ETA_N_T2_BAND" => "Cabin-mode loss factors with trim loss factor 2.0 against NASA's printout (CR-172428, p. 85)",
+    "APPB_ETA_RPP" => "Loss factors of structure–cabin mode pairs against NASA's printout (CR-172428, App. B)",
+    "E14_LOSS" => "Cabin band-average loss factor against NASA's calculated curves (CR-3813, Fig. E-14)",
+)
+
+"""Plain title of a case (Phase 146c): `PLAIN_TITLES`, else the registry title with a trailing phase tag such as "(44e)"
+removed."""
+function case_plain_title(id::AbstractString)
+    haskey(PLAIN_TITLES, id) && return PLAIN_TITLES[id]
+    t = haskey(CASE_INFO, id) ? CASE_INFO[id].title : haskey(VALIDATION_CASES, id) ? VALIDATION_CASES[id].title : String(id)
+    return strip(replace(t, r"\s*\((?:\d+[a-z]?(?:[/,–-]\s*\d*[a-z]?)*)(?:,\s*post-hoc)?\)\s*$" => ""))
+end
+
 """Family and parent of `id` (Phase 145d): `(family, derived_from)`, both `""` for a case in no family."""
 case_family(id::AbstractString) = get(CASE_FAMILIES, String(id), (family="", derived_from=""))
 
@@ -55,7 +89,7 @@ function coverage_rows(; rec::AbstractDict=recorded_case_errors(), verdict_only:
         on = has_verdict(id; rec)
         verdict_only && !on && continue
         r = get(rec, id, nothing)
-        push!(rows, (; id, title=info.title, from=info.span_from, to=info.span_to, reference=info.reference,
+        push!(rows, (; id, title=case_plain_title(id), from=info.span_from, to=info.span_to, reference=info.reference,
                      figure=_coverage_figure(id), method_limit=on && method_limit(id),   # Phase 137c
                      family=case_family(id).family, derived_from=case_family(id).derived_from,   # Phase 145d
                      verdict=on ? replace(r.verdict, "_" => " ") : "no verdict",
@@ -154,8 +188,8 @@ function coverage_markdown(; rec::AbstractDict=recorded_case_errors())
     println(io, "![Chain coverage](validation_reports/figures/coverage/chain_coverage_verdict.png)\n")
     println(io, "| Chain span | Compared with | Case | Verdict | Points |\n|---|---|---|---|---|")
     for r in rows
-        println(io, "| ", CHAIN_STAGES[r.from], " → ", CHAIN_STAGES[r.to], " | ", reference_label(r.reference), " | `",
-                r.id, "` ", _md_cell(r.title), " | ", r.verdict, r.method_limit ? " (method limit)" : "", " | ",
+        println(io, "| ", CHAIN_STAGES[r.from], " → ", CHAIN_STAGES[r.to], " | ", reference_label(r.reference), " | ",
+                _md_cell(r.title), " (`", r.id, "`) | ", r.verdict, r.method_limit ? " (method limit)" : "", " | ",
                 r.points, " |")
     end
     println(io)

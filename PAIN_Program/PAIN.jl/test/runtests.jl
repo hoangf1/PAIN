@@ -2363,7 +2363,7 @@ _run_if("Validation map errors (V-UNIT)") do
     @test s_abs.chip_text == "2/3 · 5.0 dB max"
 
     s_abs_unit = case_error_summary(r_abs, PlotSpec(; error_mode=:absolute, error_tol=3.0))
-    @test s_abs_unit.unit == "abs"
+    @test s_abs_unit.unit == ""   # Phase 145b: no "abs" pseudo-unit
     # T1-style: unit from last (...) of ylabel when error_ylabel has none / is empty.
     s_t1_unit = case_error_summary(r_abs, PlotSpec(; error_mode=:absolute, error_tol=3.0,
                                                    ylabel="SPL (dB)"))
@@ -2419,7 +2419,7 @@ _run_if("Validation map errors (V-UNIT)") do
     # :none + :no_verdict → no criterion (even with a non-empty table).
     s_none = case_error_summary(r_abs, PlotSpec(; error_mode=:none))
     # r_abs verdict is :met → coverage-style text, not "no criterion".
-    @test s_none.text == "2/3 within criterion"
+    @test s_none.text == "2/3 within criterion · count only"
     @test s_none.n_within == 2
     @test s_none.n_rows == 3
     @test s_none.unit == ""
@@ -2433,7 +2433,7 @@ _run_if("Validation map errors (V-UNIT)") do
     r_none_nm = ValidationCaseResult("SYN_NONE_NM", "2026-10-22", (;), rows_cover, PlotSeries[],
                                      :not_met, "1 of 3 inside band", "", "")
     s_none_nm = case_error_summary(r_none_nm, PlotSpec(; error_mode=:none))
-    @test s_none_nm.text == "1/3 within criterion"
+    @test s_none_nm.text == "1/3 within criterion · count only"
     @test s_none_nm.n_within == 1
     @test s_none_nm.n_rows == 3
     @test s_none_nm.unit == ""
@@ -2446,7 +2446,7 @@ _run_if("Validation map errors (V-UNIT)") do
     r_none_info = ValidationCaseResult("SYN_NONE_INFO", "2026-10-22", (; original_verdict=:not_met), rows_cover, PlotSeries[],
                                        :no_verdict, "information", "", "")
     s_info = case_error_summary(r_none_info, PlotSpec(; error_mode=:none))
-    @test s_info.text == "no verdict · 1/3 within criterion" && s_info.n_rows == 3
+    @test s_info.text == "no verdict · 1/3 within criterion · count only" && s_info.n_rows == 3
 
     r_empty = ValidationCaseResult("SYN_EMPTY", "2026-10-22", (;), ValidationTableRow[],
                                    PlotSeries[], :met, "x", "", "")
@@ -2542,7 +2542,7 @@ _run_if("Validation map errors (V-UNIT)") do
     @test VALIDATION_CASES["UNC_COVER"].plot_spec.error_mode === :none
     # 0/3 since 2026-10-28 (Phase 78d-4 App. D consistency fixes J1–J6: margins H1 −4.06, H2 −5.41, H3 −13.23 dB; post-hoc).
     # Before: 1/3 (78d-3: +0.52, −0.11, −18.36; 78d F1/F2: +0.19, −2.09, −18.47).
-    @test s_unc.text == "no verdict · 0/3 within criterion"   # recorded count kept, no verdict (Phase 118a)
+    @test s_unc.text == "no verdict · 0/3 within criterion · count only"   # recorded count kept, no verdict (Phase 118a)
     @test s_unc.n_within == 0
     @test s_unc.n_rows == 3
     @test s_unc.unit == ""
@@ -3355,6 +3355,10 @@ _run_if("Cabin-mode frequency: CYL2D's 2-D part at 341 m/s (phase 106)") do
     r = run_validation_case("CABIN_FREQ_PRINTED")
     @test r.verdict === :met && r.inputs_echo.n_ok == r.inputs_echo.n == 47 && r.inputs_echo.n_old == 6
     @test r.inputs_echo.m_ok == 80 && r.inputs_echo.m_n == 81
+    # Phase 145a (2026-11-11): the seen lists are shown, not judged, so the summary counts the 47 held-out rows only
+    @test count(t -> t.in_verdict, r.table) == 47 && count(t -> !t.in_verdict, r.table) == 81
+    s = PAIN.case_error_summary(r, VALIDATION_CASES["CABIN_FREQ_PRINTED"].plot_spec)
+    @test s.n_within == 47 && s.n_rows == 47 && occursin("(+ 81 shown, not judged)", s.text)
 end
 
 _run_if("MRPMOD's 5 shell / 3 floor terms on the solver path (phase 107)") do

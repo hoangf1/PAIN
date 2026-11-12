@@ -71,7 +71,7 @@ function _smoke_run_status_box()
     @assert state == "done" "expected the box to end on done, got: $state"
     @assert occursin("Running case BLK_P68", log) "verbose log missing the start line:\n$log"
     @assert occursin("criterion (", log) "verbose log missing the criterion line:\n$log"
-    @assert occursin("verdict: met", log) "verbose log missing the verdict line:\n$log"
+    @assert occursin("verdict: ", log) "verbose log missing the verdict line:\n$log"   # BLK_P68 has no verdict since Phase 144d
     @assert occursin("finished in", log) || occursin(" — ", log) "verbose log missing the finish line:\n$log"
     @assert isfile(png) && filesize(png) > 0 "expected a run-status-box screenshot at $png"
     println("smoke_qml_load: run-status box PASS (", filesize(png), " bytes, ",

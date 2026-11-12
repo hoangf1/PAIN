@@ -228,6 +228,8 @@ Not blockers (recorded so nobody stops on them): BBN tip geometry beyond 40 in. 
 | Q120 | Phase 142: FLIGHT_MODES reference file and in-plane mass (ISSUE-024) | data, investigation, [AUTHOR] | — | blind transcription; one re-run | · **done 2026-11-11**: blind third transcription; mode 41's total corrected; FLIGHT_MODES met 200/221; FLIGHT_MODES_P2 retired; ISSUE-039 opened |
 | Q121 | Phase 143: E12_BLOCK one implementation (ISSUE-007) | [CONFIRM], re-run | — | one max error on record | · **done 2026-11-11**: one mean curve; 29/31, max 4.3 dB on record; k = 11 a reading error, k = 10 NASA's curve (N) |
 | Q122 | Phase 144: blocking R2 (ISSUE-006, 008) | [AUTHOR], text | — | (P) case for R2, or information | · **done 2026-11-11**: no new case; Eq. (43) is CR-159668's printed fit; R2 rests on CR-172428 §5.3.2 alone |
+| Q123 | Phase 145: summary writer (ISSUE-009, 018, 019, 020, 021) | [CONFIRM], [AUTHOR] | Q113 | verdict-row counts; first-run mark; families; causes | · **done 2026-11-11**: rule beside the count; no pseudo-units; CABIN_FREQ_PRINTED counts its 47 held-out rows; seven independence records, all "no" |
+| Q124 | Phase 146: chart by figure, titles, glossary (ISSUE-010, 013, 018) | [CONFIRM], [AUTHOR] | Q123 | grouped chart; plain titles | · **done 2026-11-11**: source figures, figure order, plain titles, glossary; tests |
 | Q58 | **Phase 79 — CYL2D** (§8w; 2026-10-28) | `case_error_summary`, `cyl2d.jl`, CYL2D_WEYL | Q57 | **done 2026-10-28**: information rows leave the pass count; refinement fixed (79b); CYL2D_GRID_CONV (NY 10 within 4.9 % of NY 60); Weyl + surface term 4/5; production NY = 10 kept (decided 2026-10-28) |
 | Q57 | **Phase 78 — structural modes** (§8v; 2026-10-28) | `mrp_appd.jl`, MRP_APPD criterion, map | Q53 | **done 2026-10-28**: App. D solver fixes J1–J6; MRP_APPD not met 2/32 (class I, floor stiffener model undocumented); MRP_D1/MRP_RITZ off the map |
 | Q56 | **Phase 77 — POLAR_FIDELITY as an equivalent angle** (§8u; 2026-10-28) | `src/validation_case_iso67.jl`, figure | Q52 | **done 2026-10-28**: Δα shown next to Δc_l, display only |
@@ -3584,3 +3586,39 @@ No run, no code. Each step replaces nothing in the record; it marks older values
 - 144d: `BLK_P68` off the coverage chart, a unit check of Eq. (43).
 - 144e: CR-159668 Fig. 21 prints its fit as 6[1 − exp(−0.08φ)]; with γ = 90° − φ that is Eq. (43) exactly (within 0.0006 dB). R1 is the fit; nothing in CR-159668 supports R2's 4 dB maximum. Figure `figures/phase144_eq43_cr159668.png`, no verdict.
 - No source line changed in this closing.
+
+## 8ci. Phase 145 — the summary writer says what each number is (ISSUE-009, 018, 019, 020, 021; done 2026-11-11) [CONFIRM]
+
+- [x] **145a `in_verdict`** on `ValidationTableRow`; counts and worst error over those rows; "+ n shown, not judged". Gate cases count tones. Before / after table for every CSV row that moves (POLAR_FIDELITY 40/61 → 13/26, CYL2D_PRINTED, T1_APPB, T1_MEAS_DAMPING_APPB at least); no verdict moves. **Done 2026-11-11.**
+- [x] **145b Error text.** The rule beside a fractional count; no NaN; an error size or "count only"; units from the case's definition; one decimal. **Done 2026-11-11.**
+- [x] **145c Independence record [DECIDED 2026-11-09].** Author: "this needs to be proven that its not circular somehow on the coverage map or somewhere accessible by the reader". Per case whose verdict was reached after a change: `first_run` (date, verdict, count); each change since, with the document page or independent check it rests on; and "was the compared data used to choose it" (yes / no, with the evidence). All "no" → the verdict stands and the record opens from the chart row and is listed on the short validation page. Any "yes", or a change with no stated basis → the case carries no verdict. Written first for APPB_ETA_RPP, R996_FIG12, R996_FIG13A, R996_FIG14, PER_FIG7, MRP_APPD, R996_LOADS; **[AUTHOR]** reads the seven records before any verdict is kept or dropped on their strength. **Done 2026-11-10**: all seven "no".
+- [x] **145d `family` and `derived_from`** per case (list in ISSUE-018, **[AUTHOR]** check). **Fix 2026-11-10:** two pairs had the parent and the variant the wrong way round after 135f (NR_TP1964_XOVER and APPB_ETA_N_T2_BAND keep the verdict but were marked derived from cases that lost theirs); swapped in `CASE_FAMILIES`, so the chart counts 20 cases with a verdict and 20 independent comparisons, and the two bars are no longer drawn thinner. `test_validation_coverage.jl` 48/48. §0 states cases and independent comparisons. **Done 2026-11-10.**
+- [x] **145e `cause`** fields from 135d; generated "why not met" table; a test that fails if a not-met case has none. **Done 2026-11-10.**
+- [x] **145f R172428 plot labels** (ISSUE-009 steps 1–4): `error_ylabel` names both series and the unit; the series that carries the criterion is marked; table headers traced and named. **Done 2026-11-10.**
+
+**Checks:** `test_validation_plots.jl`, `test_validation_coverage.jl`, `test_validation_framework.jl`; `write_case_error_summary.jl`; both smoke scripts and a look at the window.
+
+**Done 2026-11-11** (145a in part, 145b in part, 145c–f on 2026-11-10 under the delegation of that day, `phase135_151_decisions.md`; the rest and the closing decided by Claude under the author's authority of 2026-11-10 and 2026-11-11 ("finish all open phases"); reports `validation_reports/phase145_summary_writer.md` and `phase145_independence_records.md`):
+- 145a: `CABIN_FREQ_PRINTED`'s seen rows (Merlin list, run 10) are shown, not judged: the summary reads 47/47 (+ 81), was 127/128; verdict unchanged. The gate cases (T1_APPB, T1_MEAS_DAMPING_APPB) carry no verdict since 135f and show no count, so no change. Before / after table in the report.
+- 145b: the rule beside a fractional count, read from the case's own criterion text (`_count_rule`): "16/19 in tol (needs ≥ 80 %)"; no "abs" or "dimensionless" pseudo-unit; the η_n cases say "loss factor"; a count-only case says "count only".
+- 145c: the seven independence records: every answer "no", the seven verdicts stand; linked from §0.
+- 145d: families and parents in `CASE_FAMILIES`; 20 cases with a verdict, 20 independent comparisons.
+- 145e: `CASE_CAUSES`, the generated "why not met" table, and a test that fails if a not-met case has no cause.
+- 145f: the R172428 error axes name both series and the unit; the series the criterion is on is marked; the table headers come from `reference_name`.
+- Checks: see the commit; `case_error_summary.csv`, §0 and NO_VERDICT_CASES.md regenerated.
+
+## 8cj. Phase 146 — the coverage chart as the one view: figures, families, plain titles (ISSUE-010, 013, 018; done 2026-11-11) [CONFIRM]
+
+- [x] **146a `figure` field** (document, figure, PDF page) per case, from `FigureRef` where it exists. **Done 2026-11-10.**
+- [x] **146b Grouping.** Toggle "by chain stage" / "by figure"; inside a figure: measurement, NASA's printed prediction, verification; families of 145d drawn as one group, derived cases smaller. **Done 2026-11-10.**
+- [x] **146c Titles.** A plain title per verdict case (43 first), each checked against the case's criterion text; title first, ID in brackets; phase tags out of titles. **[AUTHOR]** reviews the list before it is merged. **Done 2026-11-11**: 20 plain titles.
+- [x] **146d Glossary** of ID prefixes and suffixes, one place, linked. **Done 2026-11-10.**
+- [x] **146e Tests:** a verdict case without figure or title fails; sort order by figure then relation. **Done 2026-11-11.**
+
+**Done 2026-11-11** (146a, b, d on 2026-11-10 under the delegation of that day; 146c, e and the closing decided by Claude under the author's authority of 2026-11-10 and 2026-11-11 ("you do not need my permission until all phases are done"); report `validation_reports/phase146_plain_titles.md`):
+- 146a: each case's source figure (document, figure, PDF page) from its `FigureRef`, in the coverage rows and JSON.
+- 146b: the GUI's Coverage tab orders by chain stage or by source figure; families of 145d drawn as one group.
+- 146c: a plain title for each of the 20 cases with a verdict (`PLAIN_TITLES`), read against its criterion; title first, ID in brackets in the status page; phase tags out. The author's review of the list was covered by the authority of 2026-11-11.
+- 146d: `docs/CASE_ID_GLOSSARY.md`, linked from the README.
+- 146e: a verdict case without a source figure or a plain title, or with a phase tag in its title, fails `test_validation_coverage.jl`. The figure order is drawn in QML and is not reached by a Julia test.
+- `case_error_summary.csv`, the status page and NO_VERDICT_CASES.md regenerated (with Phase 145's display changes).

@@ -107,14 +107,31 @@ function _unit_in_parens(label::AbstractString)
     return isempty(u) ? nothing : u
 end
 
-"""Unit for `:absolute` error chips: last `(...)` of `error_ylabel`, else of `ylabel`, else `abs`."""
+"""Unit for `:absolute` error chips: last `(...)` of `error_ylabel`, else of `ylabel`, else none. "dimensionless" is not a
+unit and gives none either (Phase 145b, 2026-11-11: a pure number is printed without a unit word, not "abs")."""
 function _absolute_error_unit(spec::PlotSpec)
-    u = _unit_in_parens(spec.error_ylabel)
-    u !== nothing && return u
-    u = _unit_in_parens(spec.ylabel)
-    u !== nothing && return u
-    return "abs"
+    for lab in (spec.error_ylabel, spec.ylabel)
+        u = _unit_in_parens(lab)
+        u === nothing && continue
+        return u == "dimensionless" ? "" : u
+    end
+    return ""
 end
+
+"""
+    _count_rule(criterion_text) -> String
+
+The count a fractional criterion needs, read from the case's own dated criterion text: "needs ≥ 4 of 5" or "needs ≥ 80 %";
+"" when the criterion asks for every point (Phase 145b, 2026-11-11). Display only: the verdict is the runner's.
+"""
+function _count_rule(criterion::AbstractString)
+    m = match(r"≥\s*(\d+)\s+of\s+(?:the\s+)?(\d+)", criterion)
+    m !== nothing && return "needs ≥ $(m.captures[1]) of $(m.captures[2])"
+    m = match(r"≥\s*(\d+(?:\.\d+)?)\s*%", criterion)
+    m !== nothing && return "needs ≥ $(m.captures[1]) %"
+    return ""
+end
+_case_count_rule(id::AbstractString) = (c = get(VALIDATION_CASES, String(id), nothing); c === nothing ? "" : _count_rule(c.criterion_text))
 
 """Short chip label from a full error summary (fits ~130 px with a date line below)."""
 function _error_chip_text(; text::AbstractString, n_within::Int, n_rows::Int,
@@ -153,15 +170,16 @@ function case_error_summary(result::ValidationCaseResult, spec::PlotSpec)
     rows = isempty(crit) ? result.table : crit
     # Phase 145a: rows shown but not judged are counted apart ("+ n shown, not judged")
     n_shown = isempty(crit) ? 0 : length(result.table) - length(crit)
-    shown = n_shown == 0 ? "" : " (+ $(n_shown) shown, not judged)"
+    rule = _case_count_rule(result.id)   # Phase 145b: the rule beside a fractional count
+    shown = (isempty(rule) ? "" : " ($(rule))") * (n_shown == 0 ? "" : " (+ $(n_shown) shown, not judged)")
     # :none with a met/not_met outcome and a non-empty table → coverage-style count only (an information case keeps its
     # recorded count, labelled as carrying no verdict).
     if spec.error_mode === :none
         if !isempty(rows) && underlying_verdict(result) in (:met, :not_met)
             n_within = count(r -> r.within_tolerance, rows)
             n_rows = length(rows)
-            text = (result.verdict === :no_verdict ? "no verdict · " : "") * "$(n_within)/$(n_rows) within criterion" * shown
-            chip_text = text
+            chip_text = (result.verdict === :no_verdict ? "no verdict · " : "") * "$(n_within)/$(n_rows) within criterion" * shown
+            text = chip_text * " · count only"   # Phase 145b: no error size, said so
             return (; n_within, n_rows, max_abs=NaN, median_abs=NaN, unit="", text, chip_text)
         end
         return (; n_within=0, n_rows=0, max_abs=NaN, median_abs=NaN, unit="",
@@ -186,14 +204,15 @@ function case_error_summary(result::ValidationCaseResult, spec::PlotSpec)
     end
     max_abs = isempty(errs) ? NaN : maximum(abs, errs)
     med_abs = isempty(errs) ? NaN : Statistics.median(abs.(errs))
+    su = isempty(unit) ? "" : " $(unit)"
     text = if isempty(result.table)
         "no criterion"
     elseif isempty(errs)   # Phase 145b: no "NaN" in the summary
         (result.verdict === :no_verdict ? "no verdict · " : "$(n_within)/$(n_rows) in tol$(shown) · ") * "no error size (count only)"
     elseif result.verdict === :no_verdict
-        "no verdict · max |err| $(_fmt_err_sig(max_abs)) $(unit) · med $(_fmt_err_sig(med_abs)) $(unit)"
+        "no verdict · max |err| $(_fmt_err_sig(max_abs))$(su) · med $(_fmt_err_sig(med_abs))$(su)"
     else
-        "$(n_within)/$(n_rows) in tol$(shown) · max |err| $(_fmt_err_sig(max_abs)) $(unit) · med $(_fmt_err_sig(med_abs)) $(unit)"
+        "$(n_within)/$(n_rows) in tol$(shown) · max |err| $(_fmt_err_sig(max_abs))$(su) · med $(_fmt_err_sig(med_abs))$(su)"
     end
     chip_text = _error_chip_text(; text, n_within, n_rows, max_abs, unit)
     return (; n_within, n_rows, max_abs, median_abs=med_abs, unit, text, chip_text)
@@ -269,7 +288,7 @@ function validation_scoreboard_markdown(; map_id::AbstractString="total",
                                         rec::AbstractDict=recorded_case_errors())
     get_rec(id) = get(rec, id, nothing)
     snap = isempty(rec) ? "none" : maximum(r.run_date for r in values(rec))
-    title(id) = haskey(CASE_INFO, id) ? CASE_INFO[id].title : id
+    title(id) = case_plain_title(id)   # Phase 146c
     n_off = length(_no_verdict_case_ids(map_id; rec))
     rows = coverage_rows(; rec, verdict_only=true)
     io = IOBuffer()
@@ -290,7 +309,7 @@ function validation_scoreboard_markdown(; map_id::AbstractString="total",
     sort!(notmet; by=r -> (get_rec(r.id).n_rows == 0 ? 0.0 : get_rec(r.id).n_within / get_rec(r.id).n_rows, r.id))
     for r in notmet
         rr = get_rec(r.id)
-        println(io, "| `", r.id, "` ", _md_cell(title(r.id)), " | ", CHAIN_STAGES[r.from], " → ", CHAIN_STAGES[r.to], " | ",
+        println(io, "| ", _md_cell(title(r.id)), " (`", r.id, "`) | ", CHAIN_STAGES[r.from], " → ", CHAIN_STAGES[r.to], " | ",
                 reference_label(r.reference), " | ", _scoreboard_points(rr), " | ", _md_cell(rr.text), " |")
     end
     println(io)
