@@ -368,8 +368,7 @@ function _run_pain_pipeline(;
     # Phase 123 (2026-11-03): computed App. D modes are kept up to twice the highest tone of the run (series converged
     # there; at least 32); the 32 lowest alone ended at 105 Hz on a 5.33 m cabin. Table D-1 / Ritz unchanged. The cutoff
     # is rounded up to the next 100 Hz (only adds modes), so runs at nearby rpm share one cached mode set.
-    f_cut = solver === :appd ? st.appd_cut_round_Hz *
-            ceil(st.appd_cut_factor * min(n_harmonics, size(bl.amplitudes, 3)) * bl.bpf_Hz / st.appd_cut_round_Hz) : nothing
+    f_cut = solver === :appd ? appd_cut_frequency(min(n_harmonics, size(bl.amplitudes, 3)), bl.bpf_Hz; settings=st) : nothing
     structural = build_structural_modes(fuse; structural_solver=solver, n_keep=st.n_struct_modes,
                                         appd_geometry=appd_g, f_cut_Hz=f_cut)
 

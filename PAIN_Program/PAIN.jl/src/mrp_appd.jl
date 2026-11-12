@@ -818,6 +818,15 @@ appd_modes(fuse::FuselageGeometry; kwargs...) =
     appd_modes(AppDGeometry(fuse); kwargs...)
 
 """
+    appd_cut_frequency(n_harmonics, bpf_Hz; settings=pain_settings()) -> Float64
+
+The frequency up to which computed App. D modes are kept (Phase 123 rule: `appd_cut_factor` × the highest tone, rounded
+up to the next `appd_cut_round_Hz`). One function for the pipeline and the uncertainty cache (ISSUE-038, 2026-11-12).
+"""
+appd_cut_frequency(n_harmonics::Integer, bpf_Hz::Real; settings=pain_settings()) =
+    settings.appd_cut_round_Hz * ceil(settings.appd_cut_factor * n_harmonics * bpf_Hz / settings.appd_cut_round_Hz)
+
+"""
     appd_modes_to_cutoff(geometry, f_cut_Hz; n_min=32, n_axial=10, n_circ=12, max_terms=640)
         -> (; modes::StructuralModes, n_axial, n_circ, n_below)
 

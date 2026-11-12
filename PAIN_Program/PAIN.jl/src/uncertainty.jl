@@ -228,7 +228,10 @@ function build_testarticle_cache(; n_harmonics::Int=3, bpf_Hz::Float64=200.0,
     ff = freefield_from_e11_csv(paths.A, paths.phases, fuse, prop, GridSpec();
                                 bpf_Hz=bpf_Hz, n_harmonics=nH,
                                 anopp_spl_csv=paths.anopp_spl, broadband_clip_dB=10.0)
-    structural0 = build_structural_modes(fuse; structural_solver=:appd, n_keep=32)
+    # ISSUE-038 (2026-11-12): the pipeline's mode cut-off (Phase 123), so the nominal sample is the pipeline's result;
+    # before, the 32 lowest modes only
+    structural0 = build_structural_modes(fuse; structural_solver=:appd, n_keep=pain_settings().n_struct_modes,
+                                         f_cut_Hz=appd_cut_frequency(nH, bpf_Hz))
     acoustic_by_tol = Dict{Float64,Cyl2DResult}()
     for t in node_tols
         acoustic_by_tol[Float64(t)] = cyl2d_modes(56.6; n_modes=20, NY=10, c0=340.0, node_tol=Float64(t), rule=:threshold)   # the inferred rule's window (13a a); the printed rule has no node choice (Phase 140)

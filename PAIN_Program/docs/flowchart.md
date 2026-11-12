@@ -12,6 +12,7 @@ Colour key in diagrams: green = check exists and passes as stated; orange = plan
 
 ## Status
 
+- **2026-11-11 (ISSUE-036, 038 closed):** uncertainty cache on the pipeline's mode cut-off; flow unchanged.
 - **2026-11-11 (Phase 150 closed):** 48 cases retired; flow unchanged.
 - **2026-11-11 (Phase 149 closed):** documents only; flow unchanged.
 - **2026-11-11 (Phase 148 closed):** documents split; flow unchanged.

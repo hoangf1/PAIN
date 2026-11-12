@@ -12,9 +12,9 @@ Two lists, newest first in each. **Not assigned to a phase**: issues to act on o
 |---|---|---|---|
 | 040 | The per-stage file layout and the 44 test-only cases (Phase 150b, 150e rest) | Organisation | open |
 | 039 | FLIGHT_MODES: twenty generalized masses differ in the in-plane part, with both signs | Investigation | open |
-| 038 | The uncertainty budget's nominal sample is not the pipeline's result (structural mode cut-off) | Tests, code | open |
+| 038 | The uncertainty budget's nominal sample is not the pipeline's result (structural mode cut-off) | Tests, code | closed 2026-11-12 |
 | 037 | The Phase III trim has guessed inputs; cases that use it may carry a verdict they should not | Input rule, investigation | open |
-| 036 | Twelve source functions have no unit test, so the completeness check fails | Tests | open |
+| 036 | Twelve source functions have no unit test, so the completeness check fails | Tests | closed 2026-11-12 |
 | 035 | The summary file and §0 date from 2026-11-02 and do not show the changes since | Record | closed 2026-11-11 |
 | 034 | The shipped program form has no held-out test of all its parts; R172428_ETAT2 changes only the trim damping | Validity, investigation | open |
 | 033 | CYL2D at 62.6°: this code rejects NASA's grid where NASA's program solved it | Not met, investigation | open |
@@ -123,7 +123,7 @@ A web search for reports that could settle open questions of these issues. The l
 
 ## ISSUE-038: The uncertainty budget's nominal sample is not the pipeline's result
 
-**Status:** open, not assigned to a phase. Recorded 2026-11-11 while closing Phase 140. No criterion, tolerance or data file is involved; no case with a verdict uses the budget.
+**Status:** closed 2026-11-12 (Claude, under the author's authority of 2026-11-11, "fix all the issues"): the cause was confirmed by the fix. `appd_cut_frequency` is the one cut-off rule for the pipeline and for `build_testarticle_cache`; the testset passes 55/55 (was 52/55). No case uses the budget (UNC_COVER retired in Phase 150e); its report carries a dated note. Was: open, not assigned to a phase. Recorded 2026-11-11 while closing Phase 140. No criterion, tolerance or data file is involved; no case with a verdict uses the budget.
 
 **Decided as a ticket** by Claude under the author's authority of 2026-11-10 ("make the same logical choices ive made"), following the author's "Open a ticket" for the failing completeness check (ISSUE-036): the failure is outside the phase being closed.
 
@@ -156,7 +156,7 @@ Cases already without a verdict that use it (`E18_TONES`, `T1`, `T1_FROM_E12`, `
 
 ## ISSUE-036: Twelve source functions have no unit test, so the completeness check fails
 
-**Status:** open, not assigned to a phase. Recorded 2026-11-10 during Phase 137a. Tests only: no criterion, tolerance, data file or recorded result is involved.
+**Status:** closed 2026-11-12 (Claude, under the author's authority of 2026-11-11): `test/unit/test_issue036_gaps.jl` tests the twelve (hand values, limits, error paths; 25 checks); `open_mode_window` (Phase 151) is exempt by name with its reason, since it starts a GUI process and its command is tested. The completeness check passes. Was: open, not assigned to a phase. Recorded 2026-11-10 during Phase 137a. Tests only: no criterion, tolerance, data file or recorded result is involved.
 
 **Author (2026-11-10).** Asked whether to fix it inside Phase 137 or ticket it: "Open a ticket".
 

@@ -2,6 +2,8 @@
 
 **Phase 31. Pre-registration fixed 2026-10-22 (before this run).**
 
+**Note 2026-11-12 (ISSUE-038).** The numbers below were computed on the 32 lowest App. D structural modes. Since 2026-11-12 the budget's cache keeps the modes up to twice the highest tone, as the pipeline does since Phase 123, so a re-run differs (nominal H1–H3 with η_T = 0.5: 86.996 / 83.093 / 75.627 dB, was 86.977 / 83.065 / 75.426). This report was not re-run; no case uses it.
+
 ## Required statements (31f)
 
 These statements apply to the aircraft band (`uncertainty_aircraft_band.md`); this report is the 31e coverage check on the NASA test article (diameter 1.016 m, NASA free field).

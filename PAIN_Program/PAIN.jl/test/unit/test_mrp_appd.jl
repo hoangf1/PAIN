@@ -392,3 +392,10 @@ end
     @test length(g2.modes) == c.n_below
     @test length(PAIN.build_structural_modes(FuselageGeometry(5.33, 0.725, 50.0); structural_solver=:appd, appd_geometry=gl).modes) == 32
 end
+@testset "App. D cut-off frequency (ISSUE-038, 2026-11-12)" begin
+    s = PAIN.pain_settings()
+    @test PAIN.appd_cut_frequency(3, 200.0) == s.appd_cut_round_Hz * ceil(s.appd_cut_factor * 600 / s.appd_cut_round_Hz)
+    @test PAIN.appd_cut_frequency(3, 200.0) == 1200.0                      # twice the highest tone (Phase 123 defaults)
+    @test PAIN.appd_cut_frequency(3, 201.0) == 1300.0                      # rounded up to the next 100 Hz, never down
+    @test PAIN.appd_cut_frequency(1, 200.0) < PAIN.appd_cut_frequency(3, 200.0)
+end
