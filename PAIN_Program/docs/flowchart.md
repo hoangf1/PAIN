@@ -12,6 +12,7 @@ Colour key in diagrams: green = check exists and passes as stated; orange = plan
 
 ## Status
 
+- **2026-11-11 (Phase 148 closed):** documents split; flow unchanged.
 - **2026-11-11 (Phase 147 closed):** map retired; flow unchanged.
 - **2026-11-11 (Phase 151 closed):** display only; flow unchanged.
 - **2026-11-11 (Phase 146 closed):** plain titles; flow unchanged.

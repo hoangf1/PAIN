@@ -3,7 +3,7 @@
 Julia reimplementation of NASA **Propeller Aircraft Interior Noise (PAIN)**: propeller noise at the
 fuselage skin -> blocking by the fuselage -> cabin and structure modes -> interior SPL.
 
-Other docs: [validation guideline](docs/VALIDATION_GUIDELINE.md), [methodology and claims](docs/METHODOLOGY.md) ([chunk layout](docs/METHODOLOGY_STRUCTURE.md)),
+Other docs: [validation status](docs/VALIDATION.md), [validation criteria](docs/VALIDATION_GUIDELINE.md), [case records](docs/CASE_RECORDS.md), [methodology and claims](docs/METHODOLOGY.md) ([chunk layout](docs/METHODOLOGY_STRUCTURE.md)),
 [plan](docs/IMPLEMENTATION_PLAN.md) ([completed phases](docs/COMPLETED_PHASES.md)), [cases without a verdict](docs/NO_VERDICT_CASES.md), [case ID glossary](docs/CASE_ID_GLOSSARY.md), [walk-through](docs/WALKTHROUGH.md), [flowcharts](docs/flowchart.md).
 
 **The read-through:** `julia --project=PAIN_Program/PAIN.jl PAIN_Program/site/build_site.jl` builds the methodology
@@ -62,6 +62,7 @@ The [flowcharts](docs/flowchart.md) show the total program overview (diagram 1),
 | Phase 73 Report 996 section-polar fidelity (2026-10-28) | **Done. 73e decided 2026-10-28: TN 1546 c_d level not adopted** (chosen only after its effect on Report 996 torque was seen, so it could not count as a pass; production keeps XFOIL c_d; torque misses stay class A). Section c_l at the measured XFOIL − TN 1546 level moves thrust ≤ 7.9 % and the scaled-load levels ≤ 0.19 dB: not the cause. XFOIL c_d is about 25 % below TN 1546 and accounts for about half the torque gap (`docs/validation_reports/phase73_polar_sensitivity.md`). |
 | Phase 76 thickness noise in the experimental source comparisons (2026-10-28) | **Done.** The Report 996 and Pereira measurements contain thickness noise; the runs were loading-only. Thickness term on, A/c² per station from the section coordinates (no fitting). Post-hoc: R996_FIG14 met 24/24 (was 14/24), R996_FIG12 met 32/40 (was 13/40), PER_FIG7 met 3/3; totals 44 met, 42 not met. |
 | Phase 127 (2026-11-04) | **Done.** Every input and every run-path constant is a GUI field. The Run tab has one tab per group (propeller, flight, placement, cabin, structure, damping and trim, broadband and bands) plus seven Numerics tabs. Those tabs hold the 59 constants that were literals in the code, as `PainSettings` (`src/pain_settings.jl`), each defaulting to its old value: grid, F1A source, Eq. (43), CYL2D, App. D cutoff, coupling options, broadband. A project file is only an optional Open / Save. The default run is bit-identical to the run before this phase (default Hartzell, e11 test article, Commander 695A). The printed-outputs tab now uses the run's own BPF instead of the 150 Hz field. Inventory: `docs/INPUTS_AND_SETTINGS.md`. |
+| Phase 148 closed (2026-11-11) | **Done (documents; the parser reads a new path).** The validation guideline is split by job: the status page is `docs/VALIDATION.md` (generated), the case records are `docs/CASE_RECORDS.md`, the phase notes are `docs/VALIDATION_HISTORY.md`, and `VALIDATION_GUIDELINE.md` keeps the criteria, word for word. Same 150 cases and verdicts. |
 | Phase 147 closed (2026-11-11) | **Done (display only).** The block validation map is retired: no map tab, no map in the status page; the coverage chart is the one view. The block records stay only as each case's figure folder and the Validation tab's order. |
 | Phase 151 closed (2026-11-11) | **Done (display only).** The Cabin modes animation plays: Play now starts it in the tab, and **Open in new window** shows the mode in a window of its own (GLMakie) with Play / Pause, a frame slider and a speed slider. GLMakie is a new package dependency. Report: `phase151_cabin_animation.md`. |
 | Phase 146 closed (2026-11-11) | **Done (display only).** Each of the 20 cases with a verdict has a plain title that says what is compared with what and where it is printed (title first, ID in brackets), its source figure, and a place in the Coverage tab's order by figure. Glossary of IDs: `docs/CASE_ID_GLOSSARY.md`. Report: `phase146_plain_titles.md`. |
@@ -300,11 +301,11 @@ no network are needed: open the file again whenever you like, or hand the `out/`
 
 It is deliberately short. Only cases with a met / not-met verdict are on it — under the rule of 2026-10-29 nothing
 else can carry one, and the identities, hand checks, diagnostics and displays that make up the rest of the register
-verify the code rather than the method. They stay in `docs/VALIDATION_GUIDELINE.md` §2.13 and
+verify the code rather than the method. They stay in `docs/CASE_RECORDS.md` and
 `docs/NO_VERDICT_CASES.md`. The other documents are linked at the foot of the page, not copied onto it, and this
 README is not on it at all.
 
-Each stage's flowchart is generated from `docs/VALIDATION_GUIDELINE.md` §2.13 — the same fields the GUI's Coverage
+Each stage's flowchart is generated from `docs/CASE_RECORDS.md` — the same fields the GUI's Coverage
 tab reads — so the diagrams cannot drift from the chart. Building the site **runs nothing**: it renders the documents
 and the recorded snapshot in `docs/validation_reports/case_error_summary.csv` as they stand, so it can never change a
 verdict. To refresh what it shows, regenerate first (`scripts/run/regenerate_case_figures.jl` for a case,
@@ -327,7 +328,7 @@ Five tabs. Cases are read-only: fixed inputs and criteria, not a calibration too
 | Cabin modes | The cabin's acoustic modes, animated (mode, axial order, play, pause, speed); **Open in new window** plays the selected mode in a window of its own (GLMakie). Display only: no criterion, no verdict. |
 | Coverage | One row per case over the program stages it runs, coloured by what it is compared with; by default only the cases with a verdict. Click a row to open the case. |
 
-The block validation map tab was retired in Phase 147 (2026-11-10); the Coverage tab is the one chart. Case texts come from [`VALIDATION_GUIDELINE.md` §2.13](docs/VALIDATION_GUIDELINE.md).
+The block validation map tab was retired in Phase 147 (2026-11-10); the Coverage tab is the one chart. Case texts come from [`CASE_RECORDS.md`](docs/CASE_RECORDS.md).
 
 **Run-status box (phase 114).** Every Run button has one above its results, so you never have to guess whether what
 you are looking at was just computed:

@@ -35,7 +35,7 @@ again whenever you like, or hand the `out/` folder to someone else.
 compares with experimental data, or checks that the code does what PAIN did on PAIN's own inputs. The rest of the
 register — identities, hand and closed forms, independent re-implementations, diagnostics, displays and
 `Pkg.test`-only checks, about two thirds of it — verifies that the code does what it says, which is not the same as
-showing the method matches reality. Those stay in `docs/VALIDATION_GUIDELINE.md` §2.13 and
+showing the method matches reality. Those stay in `docs/CASE_RECORDS.md` and
 `docs/NO_VERDICT_CASES.md`.
 
 **The documents are not copied onto the page.** The README, the plan, the completed phases, the full case register
@@ -59,7 +59,7 @@ they scale instead of pixelating.
 
 ### The stage flowcharts
 
-Each stage's diagram is generated from the `**Chain span:**` fields of `docs/VALIDATION_GUIDELINE.md` §2.13 — the
+Each stage's diagram is generated from the `**Chain span:**` fields of `docs/CASE_RECORDS.md` — the
 same fields the coverage chart reads (Phase 147b, 2026-11-10) — so the picture cannot drift from the chart. The nine
 chain stages run left to right; the ones this stage covers are highlighted and carry the met / not-met count of the
 cases that end there. A case is shown under the stage of the last chain stage it reaches; a case that runs from the

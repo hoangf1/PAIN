@@ -388,7 +388,7 @@ function render_stage(state, st::Stage, rec, method)
     end
 
     diag = diagram_html(stage_diagram(st.chain, cases, rec),
-                        "generated from VALIDATION_GUIDELINE.md §2.13 — the chain spans the coverage chart reads")
+                        "generated from CASE_RECORDS.md — the chain spans the coverage chart reads")
 
     cards = isempty(cases) ? """
       <p class="note">No case ending at this stage carries a verdict. The checks here compare with another method,

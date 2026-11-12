@@ -13,7 +13,7 @@ Single source of truth for building this project without re-deriving context in 
 2. Data register and digitization instructions (status, procedure, one card per figure; §2.5 candidate sources found 2026-11-09)
 3. Current status and open work queue
 4. Architecture
-8cl–8cn. Open phases 148–150 (planned 2026-11-09 from `ISSUES.md`; Phases 135–138 done 2026-11-10, 139–147 and 151 done 2026-11-11 and moved to `COMPLETED_PHASES.md`)
+8cm–8cn. Open phases 149–150 (planned 2026-11-09 from `ISSUES.md`; Phases 135–138 done 2026-11-10, 139–148 and 151 done 2026-11-11 and moved to `COMPLETED_PHASES.md`)
 5–8ac, 11. *(in `COMPLETED_PHASES.md`, same section numbers, moved 2026-10-29)* every completed phase, the queue Q0–Q66 and the 2026-10-21 review
 9. Reference appendices (BBN evidence, Report 996 figures and data, Pereira polar specification, variables)
 10. Optional future work, key formulas, file checklist
@@ -263,7 +263,6 @@ or the other documents points there. When a phase is done, mark it done and move
 
 | Q | Item | Kind | Prerequisite | Output |
 |---|------|------|--------------|--------|
-| Q126 | Phase 148: VALIDATION_GUIDELINE split (ISSUE-016, 005) | [CONFIRM], [AUTHOR] | Q125 | `VALIDATION.md`; case data file; criteria file |
 | Q127 | Phase 149: Markdown inventory; README (ISSUE-005, 012) | documents, [AUTHOR] | Q126 | inventory; README GUI step |
 | Q128 | Phase 150: source and test layout; the 111 no-verdict cases sorted (ISSUE-028, 029) | [CONFIRM] | Q125 | `src/cases/`, `test/cases/`; paths |
 | — | Phases 90–134 are done (2026-11-05; 118f: unit-test gaps; 112–116 merged from branch `heart`, numbered 100–104 there). Q113–Q129 were planned on 2026-11-09 from `ISSUES.md`; none is started. Author decisions of 2026-11-09 are in the steps; order confirmed: Q113, then Q114–Q122 (not-met cases), then Q123–Q129 | — | — | — |
@@ -331,14 +330,6 @@ Each phase is the solution of one or more entries of `ISSUES.md`; the evidence i
 Rules common to all: no recorded verdict, criterion, tolerance or reference file changes unless the step names it; a result that moves is recorded with its date, its before and after, and "post-hoc" where the earlier result was known; targeted testsets only (not the full `Pkg.test()`); the five documents of R5 are updated in the phase that changes code or a recorded result.
 
 **Status 2026-11-10 (overnight, decided by Claude under the author's delegation of 2026-11-10).** Done: 136e, 136f, 137b, 137c, 137d, 138a/b/d, 139a/b/b′/d, 140c/d, 141a, 141c (Report 996 part; the Pereira PER_FIG8 line is open), 141d, 144a, 144b, 145d, 147, 150c/d. Decisions and outcomes: `validation_reports/phase135_151_decisions.md`. Open: 141c Pereira line, 141e, 142, 143b–d, 145a rest, 146b/c, 148, 149a, 150a/b/e, 151a/b, regenerating the summary CSV and §0. These changes were pushed without running the full test suite or /code-review, at the author's request (2026-11-10); the next session runs the affected testsets first.
-
-## 8cl. Phase 148 — VALIDATION_GUIDELINE.md split (ISSUE-016, 005) [CONFIRM]
-
-- [ ] **148a [AUTHOR]** The new CLAUDE.md update list, approved before any file is split.
-- [ ] **148b** Case records → data file(s); the GUI and site read them. Same 154 cases, same fields, same verdicts: `case_error_summary.csv` equal apart from its date line. "Recorded outcome" → `current` + `history`.
-- [ ] **148c** `VALIDATION.md`, generated: chart, one row per verdict case, the why-not-met table, the independence records of 145c. **[DECIDED 2026-11-09]** mostly chart and tables, little text, no letter codes, so a reader can find a case and its cause quickly.
-- [ ] **148d** Criteria (§1 – §2.12) stay in `VALIDATION_GUIDELINE.md`, wording and dates unchanged (diff empty).
-- [ ] **148e** §2.14 – §2.56: each checked against COMPLETED_PHASES.md; what is missing there is moved; then removed here.
 
 ## 8cm. Phase 149 — Markdown inventory and the README (ISSUE-005, 012; documents only)
 

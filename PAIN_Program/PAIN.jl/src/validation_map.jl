@@ -1,6 +1,6 @@
 # Per-case metadata from §2.13 for the GUI (Validation and Coverage tabs). The block map these records once drew was
 # retired in Phase 147 (2026-11-10); the blocks stay as figure folders and as the Validation tab's case order.
-# Texts and map structure come from docs/VALIDATION_GUIDELINE.md §2.13 (single source of truth).
+# Texts and map structure come from docs/CASE_RECORDS.md (single source of truth).
 
 struct CaseInfo
     id::String
@@ -29,19 +29,19 @@ reference_label(r::Symbol) = only(k for (k, v) in CASE_REFERENCES if v === r)
 
 function _parse_chain_span(s::AbstractString; id::AbstractString="")
     p = split(strip(String(s)), r"\s*(?:→|->)\s*")
-    length(p) == 2 || error("VALIDATION_GUIDELINE.md §2.13: Case $id bad Chain span: $s (want <stage> → <stage>)")
+    length(p) == 2 || error("CASE_RECORDS.md: Case $id bad Chain span: $s (want <stage> → <stage>)")
     idx = map(p) do t
         i = findfirst(==(lowercase(strip(t))), lowercase.(CHAIN_STAGES))
-        i === nothing && error("VALIDATION_GUIDELINE.md §2.13: Case $id unknown chain stage: $t")
+        i === nothing && error("CASE_RECORDS.md: Case $id unknown chain stage: $t")
         i
     end
-    idx[1] <= idx[2] || error("VALIDATION_GUIDELINE.md §2.13: Case $id Chain span runs backwards: $s")
+    idx[1] <= idx[2] || error("CASE_RECORDS.md: Case $id Chain span runs backwards: $s")
     return idx[1], idx[2]
 end
 
 function _parse_reference(s::AbstractString; id::AbstractString="")
     i = findfirst(p -> p.first == strip(String(s)), CASE_REFERENCES)
-    i === nothing && error("VALIDATION_GUIDELINE.md §2.13: Case $id bad Compared with: $s " *
+    i === nothing && error("CASE_RECORDS.md: Case $id bad Compared with: $s " *
                            "(want measurement, NASA's printed prediction or verification)")
     return CASE_REFERENCES[i].second
 end
@@ -73,17 +73,24 @@ end
 const CASE_INFO = Dict{String,CaseInfo}()
 const VALIDATION_MAPS = ValidationMap[]
 
-const _MISSING_DOC = "(missing in VALIDATION_GUIDELINE.md §2.13)"
+const _MISSING_DOC = "(missing in CASE_RECORDS.md)"
 
 """Resolve path to `docs/VALIDATION_GUIDELINE.md` relative to the package."""
 function validation_guideline_path()
     return normpath(joinpath(@__DIR__, "..", "..", "docs", "VALIDATION_GUIDELINE.md"))
 end
 
+"""Path of `docs/CASE_RECORDS.md`: the case records (the old §2.13), moved out of the guideline in Phase 148b
+(2026-11-11) word for word. The parser, the GUI and the website read the records here."""
+case_records_path() = normpath(joinpath(@__DIR__, "..", "..", "docs", "CASE_RECORDS.md"))
+
+"""Path of `docs/VALIDATION.md`: the generated status page (the old §0), Phase 148c (2026-11-11)."""
+validation_status_path() = normpath(joinpath(@__DIR__, "..", "..", "docs", "VALIDATION.md"))
+
 function _field_value(fields::Dict{String,String}, key::AbstractString; required::Bool=true, id::AbstractString="")
     v = get(fields, key, "")
     if required && isempty(strip(v))
-        error("VALIDATION_GUIDELINE.md §2.13: missing or empty **$key:** for $id")
+        error("CASE_RECORDS.md: missing or empty **$key:** for $id")
     end
     return v
 end
@@ -114,7 +121,7 @@ function _parse_position(s::AbstractString; id::AbstractString="")
     t = strip(String(s))
     isempty(t) && return (0, 0)
     m = match(r"^(-?\d+)\s*,\s*(-?\d+)$", t)
-    m === nothing && error("VALIDATION_GUIDELINE.md §2.13: Block $id bad Position: $t (want col,row)")
+    m === nothing && error("CASE_RECORDS.md: Block $id bad Position: $t (want col,row)")
     return (parse(Int, m.captures[1]), parse(Int, m.captures[2]))
 end
 
@@ -161,7 +168,7 @@ function parse_validation_guideline_section(md::AbstractString)
         role = strip(get(bfields, "Role", ""))
         group_title = strip(get(bfields, "Group title", ""))
         if !isempty(role) && !(role in ("input", "function", "output", "check"))
-            error("VALIDATION_GUIDELINE.md §2.13: Block $bid bad Role: $role")
+            error("CASE_RECORDS.md: Block $bid bad Role: $role")
         end
         push!(cur_blocks, MapBlock(bid, title, code, note, what, String[], col, row, feeds, group, role, group_title))
         return nothing
@@ -177,7 +184,7 @@ function parse_validation_guideline_section(md::AbstractString)
             cur_map_fields = _parse_bold_fields(mm.captures[2])
             empty!(cur_blocks)
         elseif (mm = match(r"(?ms)^#### Block:\s*(\S+)\s*\n(.*)$", part)) !== nothing
-            isempty(cur_map_id) && error("VALIDATION_GUIDELINE.md §2.13: Block $(mm.captures[1]) before any Map")
+            isempty(cur_map_id) && error("CASE_RECORDS.md: Block $(mm.captures[1]) before any Map")
             finish_block!(String(mm.captures[1]), _parse_bold_fields(mm.captures[2]))
         elseif (mm = match(r"(?ms)^### Case:\s*(\S+)\s*\n(.*)$", part)) !== nothing
             id = String(mm.captures[1])
@@ -185,15 +192,15 @@ function parse_validation_guideline_section(md::AbstractString)
             title = _field_value(fields, "Title"; id="Case: $id")
             map_block = _field_value(fields, "Map / block"; id="Case: $id")
             parts_mb = split(map_block, r"\s*/\s*"; limit=2)
-            length(parts_mb) == 2 || error("VALIDATION_GUIDELINE.md §2.13: Case $id bad Map / block: $map_block")
+            length(parts_mb) == 2 || error("CASE_RECORDS.md: Case $id bad Map / block: $map_block")
             map_id = String(strip(parts_mb[1]))
             block_id = String(strip(parts_mb[2]))
             cat = Symbol(_field_value(fields, "Category"; id="Case: $id"))
             kind = Symbol(_field_value(fields, "Kind"; id="Case: $id"))
             cat in (:verification, :experiment, :calibrated, :input_qa, :extrap, :deferred, :display) ||
-                error("VALIDATION_GUIDELINE.md §2.13: Case $id bad Category: $cat")
+                error("CASE_RECORDS.md: Case $id bad Category: $cat")
             kind in (:runnable, :replay, :report, :pkgtest, :deferred) ||
-                error("VALIDATION_GUIDELINE.md §2.13: Case $id bad Kind: $kind")
+                error("CASE_RECORDS.md: Case $id bad Kind: $kind")
             cases[id] = CaseInfo(
                 id, title, cat, kind,
                 _field_value(fields, "Source"; id="Case: $id"),
@@ -225,7 +232,7 @@ function parse_validation_guideline_section(md::AbstractString)
         info.map_id == "none" && continue
         key = (info.map_id, info.block_id)
         haskey(block_index, key) ||
-            error("VALIDATION_GUIDELINE.md §2.13: Case $id Map / block $(info.map_id) / $(info.block_id) not found")
+            error("CASE_RECORDS.md: Case $id Map / block $(info.map_id) / $(info.block_id) not found")
         push!(block_index[key].cases, id)
     end
 
@@ -237,7 +244,7 @@ function parse_validation_guideline_section(md::AbstractString)
         has_layout || continue
         for b in m.blocks
             for f in b.feeds
-                f in ids || error("VALIDATION_GUIDELINE.md §2.13: Map $(m.id) Block $(b.id) Feeds unknown id: $f")
+                f in ids || error("CASE_RECORDS.md: Map $(m.id) Block $(b.id) Feeds unknown id: $f")
             end
         end
         # Cycle detection (DFS).
@@ -246,7 +253,7 @@ function parse_validation_guideline_section(md::AbstractString)
         function visit(u)
             color[u] = GRAY
             for v in by_id[u].feeds
-                color[v] == GRAY && error("VALIDATION_GUIDELINE.md §2.13: Map $(m.id) cycle at $u → $v")
+                color[v] == GRAY && error("CASE_RECORDS.md: Map $(m.id) cycle at $u → $v")
                 color[v] == WHITE && visit(v)
             end
             color[u] = BLACK
@@ -263,7 +270,7 @@ function parse_validation_guideline_section(md::AbstractString)
             end
         end
         roots = [id for id in ids if incoming[id] == 0]
-        isempty(roots) && error("VALIDATION_GUIDELINE.md §2.13: Map $(m.id) has no root blocks")
+        isempty(roots) && error("CASE_RECORDS.md: Map $(m.id) has no root blocks")
         seen = Set{String}()
         stack = copy(roots)
         while !isempty(stack)
@@ -275,15 +282,16 @@ function parse_validation_guideline_section(md::AbstractString)
             end
         end
         missing = setdiff(ids, seen)
-        isempty(missing) || error("VALIDATION_GUIDELINE.md §2.13: Map $(m.id) unreachable blocks: $(join(sort!(collect(missing)), ", "))")
+        isempty(missing) || error("CASE_RECORDS.md: Map $(m.id) unreachable blocks: $(join(sort!(collect(missing)), ", "))")
     end
 
     return maps, cases
 end
 
-"""Load §2.13 into CASE_INFO and VALIDATION_MAPS. Raises on missing required fields."""
-function load_validation_docs!(path::AbstractString=validation_guideline_path())
-    isfile(path) || error("VALIDATION_GUIDELINE.md not found at $path")
+"""Load the case records (§2.13, in `CASE_RECORDS.md` since Phase 148b) into CASE_INFO and VALIDATION_MAPS. Raises on
+missing required fields."""
+function load_validation_docs!(path::AbstractString=case_records_path())
+    isfile(path) || error("case records not found at $path")
     md = read(path, String)
     maps, cases = parse_validation_guideline_section(md)
     empty!(CASE_INFO)

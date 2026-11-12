@@ -40,7 +40,7 @@ function main(args)
     end
     write(path, join(lines, "\n") * "\n")
     println("updated ", path)
-    println("updated ", PAIN.write_validation_scoreboard())   # §0 of VALIDATION_GUIDELINE.md from the updated rows
+    println("updated ", PAIN.write_validation_scoreboard())   # the status page docs/VALIDATION.md from the updated rows (Phase 148c)
     println("updated ", PAIN.write_no_verdict_cases())       # docs/NO_VERDICT_CASES.md
 end
 

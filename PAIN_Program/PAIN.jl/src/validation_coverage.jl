@@ -1,5 +1,5 @@
 # Phase 134 (2026-11-05): the chain coverage chart. Each case drawn as a bar over the stages of the program chain it
-# runs (its `**Chain span:**` in VALIDATION_GUIDELINE.md §2.13), coloured by what it is compared with (`**Compared
+# runs (its `**Chain span:**` in CASE_RECORDS.md), coloured by what it is compared with (`**Compared
 # with:**`), with its recorded verdict. Display only: no criterion or verdict is computed here.
 
 const _COVERAGE_REF_ORDER = (:measurement, :nasa, :verification)

@@ -2,7 +2,7 @@
 
 *Generated 2026-10-30 by `PAIN.jl/scripts/run/write_walkthrough.jl`. Display only: every number below is what the
 code produces on the inputs named here, with no criterion attached. The checks that do carry a criterion are the
-registered cases of [`VALIDATION_GUIDELINE.md`](VALIDATION_GUIDELINE.md) §2.13.*
+registered cases of [`CASE_RECORDS.md`](CASE_RECORDS.md).*
 
 This page replaces the two Pluto notebooks of Phase 91 (retired 2026-10-30). It walks the pipeline stage by stage on
 NASA's fuselage test article — the article CR-3813 App. E and CR-172428 describe — and then reads one registered case
@@ -159,7 +159,7 @@ loss factor taken per mode (Phase 89). Diagnostics are listed, with what each on
 
 ### 2.4 Where to read more
 
-* [`VALIDATION_GUIDELINE.md`](VALIDATION_GUIDELINE.md) §2.13 — the record of every case: what it tests, why, and its
+* [`CASE_RECORDS.md`](CASE_RECORDS.md) — the record of every case: what it tests, why, and its
   recorded outcome.
 * [`VALIDATION_GUIDELINE.md`](VALIDATION_GUIDELINE.md) §2.14 — why each not-met case misses (classes M, A, I, N, D).
 * [`COMPLETED_PHASES.md`](COMPLETED_PHASES.md) — how each check was planned, with its criteria dated before the run.

@@ -2621,8 +2621,8 @@ _run_if("Validation case registry (34d)") do
     end
     # Temp-doc edit → case_info_json changes (single source)
     mktempdir() do tmp
-        src = validation_guideline_path()
-        dst = joinpath(tmp, "VALIDATION_GUIDELINE.md")
+        src = PAIN.case_records_path()   # Phase 148b: the records left the guideline
+        dst = joinpath(tmp, "CASE_RECORDS.md")
         md = read(src, String)
         md2 = replace(md,
             "**Explanation:** Code-on-code (against printed values): ANOPP/PAIN gives propeller pressure in free space;" =>

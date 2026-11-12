@@ -176,7 +176,7 @@ export
     no_verdict_cases_markdown, no_verdict_cases_path, write_no_verdict_cases, has_verdict, on_validation_map,
     VALIDATION_SOURCE_FIGURE_FALLBACKS,
     CaseInfo, MapBlock, ValidationMap, CASE_INFO, VALIDATION_MAPS,
-    validation_guideline_path, parse_validation_guideline_section,
+    validation_guideline_path, case_records_path, validation_status_path, parse_validation_guideline_section,
     load_validation_docs!, reload_validation_docs!,
     coverage_rows, coverage_json, plot_coverage_chart, write_coverage_figures, CHAIN_STAGES,
     case_info_json, validation_map_case_order,

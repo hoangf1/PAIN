@@ -39,8 +39,9 @@ PAIN_Program\docs\flowchart.md
 PAIN_Program\docs\IMPLEMENTATION_PLAN.md
 Once task is completed mark as done and move the completed phase to the bottom of PAIN_Program\docs\COMPLETED_PHASES.md with the rest of the other phases (its queue row to that file's §3); IMPLEMENTATION_PLAN.md keeps only the rules, the open queue and the references.
 PAIN_Program\docs\METHODOLOGY.md
-PAIN_Program\docs\VALIDATION_GUIDELINE.md
-Cases without a verdict (information, verification, diagnostic re-runs, displays) stay off the validation map; PAIN_Program\docs\NO_VERDICT_CASES.md lists them and is regenerated with §0 (scripts\run\write_case_error_summary.jl or regenerate_case_figures.jl).
+PAIN_Program\docs\VALIDATION_GUIDELINE.md (the criteria)
+PAIN_Program\docs\CASE_RECORDS.md (one record per case; split from the guideline 2026-11-11, Phase 148)
+Cases without a verdict (information, verification, diagnostic re-runs, displays) stay off the validation map; PAIN_Program\docs\NO_VERDICT_CASES.md lists them and is regenerated with the status page PAIN_Program\docs\VALIDATION.md (scripts\run\write_case_error_summary.jl or regenerate_case_figures.jl).
 
 A PAIN validation case is meaningful, and may carry a met / not-met verdict, only if it (E) compares with experimental data, or (P) checks that the code works exactly like PAIN: given PAIN's own inputs (from PAIN's sources: CR-3813, the User Manual, CR-172428 and the reports they cite for their data) or experimental inputs, it reproduces what PAIN printed. A check against anything else (an analytic limit, a law, a different method or report, a property of a printed table, internal consistency) is verification: it may stay as an information case (no verdict) or a unit test, never a verdict on the validation map (rule 2026-10-29, Phase 82; list in PAIN.jl\src\validation_cases.jl INFORMATION_ONLY_CASES). A case that runs a program form or option that is not what the tool ships (for example CR-3813's printed form) has no verdict and stays off the coverage map, whatever its result (author 2026-11-09; wording approved 2026-11-10, Phase 136c; list in DIAGNOSTIC_CASES).
 

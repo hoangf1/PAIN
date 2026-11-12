@@ -45,6 +45,11 @@ Inputs: foo
     @test_throws ErrorException PAIN._parse_position("3;1")
     @test PAIN._parse_feeds(" A, B ,C") == ["A", "B", "C"] && isempty(PAIN._parse_feeds(""))
     @test isfile(PAIN.validation_guideline_path())
+    # Phase 148 (2026-11-11): the records and the status page left the guideline; the guideline keeps the criteria only
+    @test isfile(PAIN.case_records_path()) && isfile(PAIN.validation_status_path())
+    g = read(PAIN.validation_guideline_path(), String)
+    @test !occursin("### Case:", g) && !occursin("scoreboard:start (generated", g)
+    @test length(PAIN.parse_validation_guideline_section(read(PAIN.case_records_path(), String))[2]) == length(PAIN.CASE_INFO)
 end
 @testset "parse_validation_guideline_section on a synthetic §2.13" begin
     maps, cases = PAIN.parse_validation_guideline_section(_MD_OK)

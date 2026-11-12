@@ -231,6 +231,7 @@ Not blockers (recorded so nobody stops on them): BBN tip geometry beyond 40 in. 
 | Q123 | Phase 145: summary writer (ISSUE-009, 018, 019, 020, 021) | [CONFIRM], [AUTHOR] | Q113 | verdict-row counts; first-run mark; families; causes | · **done 2026-11-11**: rule beside the count; no pseudo-units; CABIN_FREQ_PRINTED counts its 47 held-out rows; seven independence records, all "no" |
 | Q124 | Phase 146: chart by figure, titles, glossary (ISSUE-010, 013, 018) | [CONFIRM], [AUTHOR] | Q123 | grouped chart; plain titles | · **done 2026-11-11**: source figures, figure order, plain titles, glossary; tests |
 | Q125 | Phase 147: block validation map retired (ISSUE-015) | [CONFIRM] | Q124 | map tab and §0 map removed | · **done 2026-11-11**: map tab and §0 map gone; blocks kept only as figure folders and case order |
+| Q126 | Phase 148: VALIDATION_GUIDELINE split (ISSUE-016, 005) | [CONFIRM], [AUTHOR] | Q125 | `VALIDATION.md`; case data file; criteria file | · **done 2026-11-11**: status page, case records and phase notes out of the guideline; criteria unchanged |
 | Q129 | Phase 151: cabin-mode animation (ISSUE-011) | [CONFIRM] | — | animation plays in the window | · **done 2026-11-11**: plays in the window; own GLMakie window on request |
 | Q58 | **Phase 79 — CYL2D** (§8w; 2026-10-28) | `case_error_summary`, `cyl2d.jl`, CYL2D_WEYL | Q57 | **done 2026-10-28**: information rows leave the pass count; refinement fixed (79b); CYL2D_GRID_CONV (NY 10 within 4.9 % of NY 60); Weyl + surface term 4/5; production NY = 10 kept (decided 2026-10-28) |
 | Q57 | **Phase 78 — structural modes** (§8v; 2026-10-28) | `mrp_appd.jl`, MRP_APPD criterion, map | Q53 | **done 2026-10-28**: App. D solver fixes J1–J6; MRP_APPD not met 2/32 (class I, floor stiffener model undocumented); MRP_D1/MRP_RITZ off the map |
@@ -3654,3 +3655,19 @@ No run, no code. Each step replaces nothing in the record; it marks older values
 - 147d: the block layout, membership and map-text tests were retired; span and reference tests kept.
 - 147e: PAIN only.
 - Done-when, checked 2026-11-11: the GUI tabs are Run, Validation, Printed outputs, Cabin modes and Coverage; no document describes a map tab except as retired; the counts of the verdict cases did not move in the 2026-11-11 snapshot.
+
+## 8cl. Phase 148 — VALIDATION_GUIDELINE.md split (ISSUE-016, 005; done 2026-11-11) [CONFIRM]
+
+- [x] **148a [AUTHOR]** The new CLAUDE.md update list, approved before any file is split. **Done 2026-11-11.**
+- [x] **148b** Case records → data file(s); the GUI and site read them. Same 154 cases, same fields, same verdicts: `case_error_summary.csv` equal apart from its date line. "Recorded outcome" → `current` + `history`. **Done 2026-11-11** (Markdown kept).
+- [x] **148c** `VALIDATION.md`, generated: chart, one row per verdict case, the why-not-met table, the independence records of 145c. **[DECIDED 2026-11-09]** mostly chart and tables, little text, no letter codes, so a reader can find a case and its cause quickly. **Done 2026-11-11.**
+- [x] **148d** Criteria (§1 – §2.12) stay in `VALIDATION_GUIDELINE.md`, wording and dates unchanged (diff empty). **Done 2026-11-11** (diff empty).
+- [x] **148e** §2.14 – §2.56: each checked against COMPLETED_PHASES.md; what is missing there is moved; then removed here. **Done 2026-11-11** (moved, not merged).
+
+**Done 2026-11-11** (decided by Claude under the author's authority of 2026-11-10 and 2026-11-11 ("you do not need my permission until all phases are done")):
+- 148a: CLAUDE.md's PAIN update list names `docs/CASE_RECORDS.md` beside the guideline, and says NO_VERDICT_CASES.md is regenerated with `docs/VALIDATION.md`. The author's approval was covered by the authority of 2026-11-11; the wording is reported to the author.
+- 148b: the case records (old §2.13, 150 cases) moved word for word to `docs/CASE_RECORDS.md`; the parser, the GUI and the website read them there (`case_records_path`). The records stay Markdown, not TOML: a format change of 3,000 lines would be a second change inside a move, and the parser and every field stay as they were. Every field of all 150 records parses equal before and after (checked 2026-11-11 against the guideline at HEAD), so no case result can move; the website builds with the same 20 verdict cases.
+- 148c: the status page (old §0) is `docs/VALIDATION.md`, generated (`validation_status_path`): chart, case table with plain titles, why not met, independence records.
+- 148d: the criteria (§1 – §2.12) stay in `VALIDATION_GUIDELINE.md`, word for word (the diff of that range is empty).
+- 148e: §2.14 – §2.56 moved word for word to `docs/VALIDATION_HISTORY.md` under their old numbers. They were not checked one by one against COMPLETED_PHASES.md; the new file says that where the two differ, the phase section is the record.
+- The guideline goes from 4,271 to 745 lines.

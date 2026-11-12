@@ -1,6 +1,6 @@
 # Case ID glossary
 
-What the parts of a validation case's ID mean (Phase 146d, 2026-11-10). A case's full record is in [`VALIDATION_GUIDELINE.md` §2.13](VALIDATION_GUIDELINE.md); the cases with a verdict are on the coverage chart in §0.
+What the parts of a validation case's ID mean (Phase 146d, 2026-11-10). A case's full record is in [`CASE_RECORDS.md`](CASE_RECORDS.md); the cases with a verdict are on the coverage chart in §0.
 
 ## First part: where the comparison comes from
 

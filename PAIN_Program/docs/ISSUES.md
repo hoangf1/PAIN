@@ -38,7 +38,7 @@ Two lists, newest first in each. **Not assigned to a phase**: issues to act on o
 | 019 | No single current statement of why a case is not met | Not met, readability | 135, 145 (closed 2026-11-11) |
 | 018 | 27 not-met rows are about 14 comparisons | Readability | 145, 146 (closed 2026-11-11) |
 | 017 | Four not-met verdicts are on a superseded program form | Not met | 136 (closed 2026-11-10) |
-| 016 | VALIDATION_GUIDELINE.md is 4,566 lines | Organisation | 148 |
+| 016 | VALIDATION_GUIDELINE.md is 4,566 lines | Organisation | 148 (closed 2026-11-11) |
 | 015 | Retire the block validation map | Organisation | 147 (closed 2026-11-11) |
 | 014 | R172428_CODE not met 5/9 | Not met | 136 (closed 2026-11-10) |
 | 013 | Case names and abbreviations unexplained | Readability | 146 (closed 2026-11-11) |
@@ -820,7 +820,7 @@ Single cases: R996_PHASE, E12_BLOCK, CYL2D_PRINTED, FLIGHT_MODES, E14_LOSS, R172
 
 ## ISSUE-016: VALIDATION_GUIDELINE.md is 4,566 lines and mixes four jobs; rebuild it around the coverage chart
 
-**Status:** open. Recorded 2026-11-09. Raised by the user ("i dont like my validation guideline either its lengthy and ive only been looking at the coverage map"). Documentation only. No verdict, criterion or recorded result changes. Solution: Phase 148.
+**Status:** closed 2026-11-11 by Phase 148 (`COMPLETED_PHASES.md` §8cl): `VALIDATION.md` (status page), `CASE_RECORDS.md` (case records), `VALIDATION_HISTORY.md` (phase notes); the guideline keeps the criteria. Recorded 2026-11-09. Raised by the user ("i dont like my validation guideline either its lengthy and ive only been looking at the coverage map"). Documentation only. No verdict, criterion or recorded result changes. Solution: Phase 148.
 
 **Summary.** One file is the generated status page, the pre-registered criteria, the machine-readable case records the GUI parses, and a diary of phases. The part that is read (the chart and its table) is 50 lines of it.
 
