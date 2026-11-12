@@ -80,3 +80,7 @@ What the table shows:
 **Not done in this phase.** The term-by-term check of the floor's in-plane terms, Eqs. (D.17)–(D.29), against `mrp_appd.jl`, and the comparison with Peterson and Boyd (1978), which is not in the repository. No term was found, so no unit test was added and no source line changed. The case is met, so this no longer stands between the case and its rule. It is ISSUE-039.
 
 The runner of this table was a one-off script, run once and not kept (rule of 2026-11-10).
+
+## Follow-up 2026-11-12 (ISSUE-039)
+
+The generalized-mass terms are the ones `MRP_APPD` checks against Table D-1 (median 0.11 %), so the twenty are not a missing term. They sit closer to a same-type printed neighbour than the passing modes do (median 4.0 % against 8.7 %). For 9 of them the pair's summed mass matches NASA's within 8 %: the two programs split a near pair's mass differently. The other 11 are not explained by the documents. Nothing in the code changed.

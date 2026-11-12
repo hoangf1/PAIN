@@ -11,7 +11,7 @@ Two lists, newest first in each. **Not assigned to a phase**: issues to act on o
 | Issue | Subject | Kind | State |
 |---|---|---|---|
 | 040 | The per-stage file layout and the 44 test-only cases (Phase 150b, 150e rest) | Organisation | open |
-| 039 | FLIGHT_MODES: twenty generalized masses differ in the in-plane part, with both signs | Investigation | open |
+| 039 | FLIGHT_MODES: twenty generalized masses differ in the in-plane part, with both signs | Investigation | closed 2026-11-12: no error found; about half are near pairs |
 | 038 | The uncertainty budget's nominal sample is not the pipeline's result (structural mode cut-off) | Tests, code | closed 2026-11-12 |
 | 037 | The Phase III trim has guessed inputs; cases that use it may carry a verdict they should not | Input rule, investigation | closed 2026-11-12: E14_LOSS carries no verdict |
 | 036 | Twelve source functions have no unit test, so the completeness check fails | Tests | closed 2026-11-12 |
@@ -102,7 +102,16 @@ A web search for reports that could settle open questions of these issues. The l
 
 ## ISSUE-039: FLIGHT_MODES: twenty generalized masses differ from NASA's in the in-plane part
 
-**Status:** open, not assigned to a phase. Recorded 2026-11-11 while closing Phase 142. Investigation. FLIGHT_MODES is met (200/221) and its criterion does not change.
+**Status:** closed 2026-11-12 (Claude, under the author's authority of 2026-11-11 ("fix all the issues"; "make decisions logically like i do")). FLIGHT_MODES stays met (200/221); nothing changed in the code.
+
+**Answers.**
+1. **The in-plane terms are already tested.** `MRP_APPD` runs the same generalized-mass code (`mrp_appd.jl`) on NASA's own MRP deck and reproduces Table D-1: 32/32 frequencies, generalized masses median 0.11 %. A missing or wrong term would show there. So no term-by-term check is needed to rule out an error in the terms; none was found.
+2. **About half are near pairs** (one diagnostic run, 2026-11-12; script not kept). The twenty sit closer to a printed neighbour of the same symmetry and axial order than the modes that pass do: median 4.0 % apart in frequency, against 8.7 % for the passing modes above 400 Hz. Where two such modes share their mass, the pair's total is what a solver fixes, and the split depends on the last digits of the matrices. For 9 of the 20 the pair's summed mass agrees with NASA's within 8 % (for example modes 164 + 165: −0.9 %, alone +18 % and −11.5 %; modes 101 + 110: −1.6 %). For the other 11 (for example 208, 225, 187/194, 212/223) the pair sum differs by 16–75 %, and the cause is not explained by the documents.
+3. Peterson and Boyd (1978) is not in the repository. It would be a check against another method, which is verification and could not change the verdict.
+
+**Recorded as** NASA's printout, not explained by the documents, for 11 of the 21 modes outside the rule. The case is met, and its rule allows 10 % of the modes to miss.
+
+Was: open, not assigned to a phase. Recorded 2026-11-11 while closing Phase 142. Investigation. FLIGHT_MODES is met (200/221) and its criterion does not change.
 
 **Decided as a ticket** by Claude under the author's authority of 2026-11-10 and 2026-11-11, following the author's choice for R172428_ETA after Phase 139 (ISSUE-032): the phase's test found no cause, and the search goes on outside it.
 
