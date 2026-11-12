@@ -11,7 +11,7 @@ MRP_D1,2026-11-11,2026-11-11,no_verdict,32,32,0.0,0.0,"Hz","no verdict · max |e
 MRP_APPD,2026-11-11,2026-11-11,met,32,32,0.012,0.0029,"%","32/32 in tol (needs ≥ 75 %) (+ 33 shown, not judged) · max |err| 0.012 % · med 0.0029 %"
 MRP_TRUNC,2026-11-11,2026-11-11,no_verdict,32,32,1.9e-8,1.9e-10,"","no verdict · max |err| 1.9e-8 · med 1.9e-10"
 CYL2D_C1,2026-11-11,2026-11-11,met,59,59,0.0013,0.0001,"%","59/59 in tol · max |err| 0.0013 % · med 0.0001 %"
-CYL2D_PRINTED,2026-11-11,2026-11-11,not_met,62,116,3.2,0.0091,"%","62/116 in tol (+ 52 shown, not judged) · max |err| 3.2 % · med 0.0091 %"
+CYL2D_PRINTED,2026-11-12,2026-11-12,not_met,63,116,0.31,0.0088,"%","63/116 in tol (+ 52 shown, not judged) · max |err| 0.31 % · med 0.0088 %"
 CABIN_FREQ_PRINTED,2026-11-11,2026-11-11,met,47,47,0.014,0.0033,"%","47/47 in tol (+ 81 shown, not judged) · max |err| 0.014 % · med 0.0033 %"
 ISO_CYL2D_EXACT,2026-11-11,2026-11-11,no_verdict,11,11,74.8,1.1,"%","no verdict · max |err| 74.8 % · med 1.1 %"
 ISO_CYL2D_BOUNDARY,2026-11-11,2026-11-11,no_verdict,173,173,0.0,0.0,"","no verdict · max |err| 0.0 · med 0.0"

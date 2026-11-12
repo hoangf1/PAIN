@@ -2093,7 +2093,7 @@ Outputs: f_r [Hz], generalized mass [kg].
 **Why it is here:** CYL2D's only input is θ₀; reproduces PAIN's output from PAIN's input at floor angles other than the test article's.
 **A pass means:** For each held-out aircraft, ε(0,0) within 0.02 %, every printed 2-D frequency within 0.1 % of CYL2D's at 341 m/s / a, every type equal; met if both pass.
 **Not covered:** Modes between the printed blocks; the narrow body's ε(0,0) is not printed (ε(1,0)/2 used); the Merlin list (50°) is recorded alongside, post-hoc.
-**Recorded outcome:** **not met** (first run 2026-10-30): the rule gives NY = 12 at both angles; 2-D frequencies 0/53 and 5/61 within 0.1 %; Merlin (seen) 51/51. Diagnostic: NASA's narrow-body grid is NY = 8; no grid fits the small-diameter list (best 2 %).
+**Recorded outcome:** **not met** (first run 2026-10-30): the rule gives NY = 12 at both angles; 2-D frequencies 0/53 and 5/61 within 0.1 %; Merlin (seen) 51/51. Diagnostic: NASA's narrow-body grid is NY = 8; no grid fits the small-diameter list (best 2 %). **Re-run 2026-11-12 (ISSUE-033, post-hoc; NASA's 62.6° grid solved on the real parts):** not met. Small diameter: ε(0,0) 0.96858 as printed, types 53/53, every frequency 0.30–0.31 % low (0/53 within 0.1 %); narrow body 61/61; summary 63/116 (`issue033_cyl2d_small_diameter.md`).
 **Explanation:** `_run_cyl2d_printed` in `validation_case_iso105.jl`.
 Inputs: `data/cr172428/appC_smalldia_acoustic_modes.csv`, `appC_narrowbody_acoustic_modes.csv`, `appC_merlin_acoustic_modes.csv`.
 Equations: App. C Eqs. (C.1)–(C.12).

@@ -17,7 +17,7 @@ Two lists, newest first in each. **Not assigned to a phase**: issues to act on o
 | 036 | Twelve source functions have no unit test, so the completeness check fails | Tests | closed 2026-11-12 |
 | 035 | The summary file and §0 date from 2026-11-02 and do not show the changes since | Record | closed 2026-11-11 |
 | 034 | The shipped program form has no held-out test of all its parts; R172428_ETAT2 changes only the trim damping | Validity, investigation | closed 2026-11-12: answered, a stated limit |
-| 033 | CYL2D at 62.6°: this code rejects NASA's grid where NASA's program solved it | Not met, investigation | open |
+| 033 | CYL2D at 62.6°: this code rejects NASA's grid where NASA's program solved it | Not met, investigation | closed 2026-11-12: NASA's grid is solved; a common factor of 0.3 % stays unexplained |
 | 032 | R172428_ETA and E14_LOSS: look for an error in the loss-factor method | Not met, investigation | open (R172428_ETA only since 2026-11-12; E14_LOSS has no verdict, ISSUE-037) |
 | 031 | Not-met cases where a published prediction misses the same way: a separate look on the chart | Readability | open, two questions for the author |
 | 030 | R996_LOADS: the fix needs more measured section data or CFD | Not met | on hold (author 2026-11-10) |
@@ -246,7 +246,7 @@ Both change only the damping. Nothing held out tests the q = 0 choice or the for
 
 ## ISSUE-033: CYL2D at 62.6°: this code rejects NASA's grid where NASA's program solved it
 
-**Status:** open, not assigned to a phase. Recorded 2026-11-10. Investigation. No criterion, tolerance, threshold or verdict changes.
+**Status:** closed 2026-11-12 (Claude, under the author's authority of 2026-11-11; report `validation_reports/issue033_cyl2d_small_diameter.md`). The diagnostic of question 3 was run: on NASA's 10-interval grid, with the real parts taken, ε(0,0) is NASA's 0.96858, all 53 mode types are NASA's, and every frequency is 0.30–0.31 % low. So the check was what kept the code off NASA's grid. Since NASA's program has no such rejection (User Manual §5.1, EIGRF) and printed modes for this grid, the code now uses the real parts on NASA's printed grid; the 0.001 threshold is unchanged and still applies to every other grid. `CYL2D_PRINTED` stays not met (0.30 % against 0.1 %); the common factor is not explained by the documents, and no input was chosen from it. Was: open, not assigned to a phase. Recorded 2026-11-10. Investigation. No criterion, tolerance, threshold or verdict changes.
 
 **Author (2026-11-10).** On CYL2D_PRINTED's cause: "i guess it would be both create a new issue ticket for this case since our code isnt relating to nasas in this aspect". The cause record (Phase 135d) is "approximation in this recreation", with the unexplained part stated in its sentence.
 

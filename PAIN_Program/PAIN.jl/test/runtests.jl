@@ -246,7 +246,10 @@ _run_if("CYL2D vs Table C-1 and Fig. C-3 (App. C scheme, V-CODE, criteria fixed 
     # a singular or non-real grid is an error that names the grid (no pseudo-inverse)
     @test_throws ErrorException cyl2d_modes(90.0; NY=10)
     @test_throws ErrorException cyl2d_modes(56.6; NY=9, rule=:threshold)   # the earlier node rule (0.40h)
-    @test_throws ErrorException cyl2d_modes(62.6; NY=10)   # shipped (printed) rule: NASA's own 62.6° grid fails the real-eigenvalue check (ISSUE-033)
+    # ISSUE-033 (2026-11-12): NASA's own 62.6° grid (NK = 10) is solved on the real parts, as NASA's program printed modes for
+    # it; the same grid under the earlier node rule, and any grid that is not NASA's for its angle, still fails the check
+    @test cyl2d_modes(62.6; NY=10).NY == 10 && cyl2d_modes(62.6).NY == 10
+    @test_throws ErrorException cyl2d_modes(62.6; NY=10, rule=:threshold)
     # search for another θ0: the next valid NY must agree within the stated change or the call errors
     @test_throws ErrorException cyl2d_modes_search(56.6; NY0=8)   # NY = 8 and 10 differ by more than 1 %
 end
@@ -3249,11 +3252,15 @@ _run_if("CYL2D grid rule vs PAIN's printed cabin modes (phase 105)") do
     @test isapprox(sd.Δ, 14.913; atol=0.001) && isapprox(nb.Δ, 8.1667; atol=0.001)                # the prints' own axial spacing
     r = run_validation_case("CYL2D_PRINTED")
     # Re-run 2026-11-10 on the shipped (printed) rule, both lists seen before: not met. The narrow body is reproduced on
-    # NASA's NK = 8; at 62.6° this code's App. C eigenproblem fails its own real-eigenvalue check on NK = 10 (|Im|/|Re|
-    # 0.0012 > 0.001), so NY = 12 is used and misses
+    # NASA's NK = 8. Re-run 2026-11-12 (ISSUE-033, post-hoc): at 62.6° NASA's NK = 10 grid is solved on the real parts (was
+    # NY = 12, 0/53 frequencies, 37/53 types); ε(0,0) and every mode type now equal NASA's, and every frequency is 0.30–0.31 %
+    # low, one common factor, so the case stays not met
     @test r.verdict === :not_met
     @test occursin("narrow body (θ₀ 73.7°, NY 8)", r.reason) && occursin("2-D f 61/61", r.reason)
-    @test occursin("small diameter (θ₀ 62.6°, NY 12)", r.reason) && occursin("2-D f 51/51", r.reason)  # Merlin (seen) reproduced
+    @test occursin("small diameter (θ₀ 62.6°, NY 10)", r.reason) && occursin("2-D f 51/51", r.reason)  # Merlin (seen) reproduced
+    sdr = [t for t in r.table if startswith(t.quantity, "small diameter") && occursin("2-D frequency", t.quantity)]
+    @test length(sdr) == 53 && all(t -> 0.0029 < 1 - t.computed / t.reference < 0.0032, sdr)        # the uniform offset
+    @test only(t for t in r.table if startswith(t.quantity, "small diameter: ε(0,0)")).within_tolerance
     # Diagnostic (after the verdict): NASA's narrow-body grid is NY = 8 with 0.45h
     cy = PAIN.cyl2d_modes(73.7; NY=8, c0=341.0, node_tol=0.45)
     @test cy.modes[1].eps_n ≈ nb.eps00 rtol = 2e-4

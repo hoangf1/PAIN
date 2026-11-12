@@ -170,7 +170,7 @@ _θnode(g::_CylGrid, m::Int, n::Int) = atan(m * g.h, -(g.yfloor + n * g.h))   # 
 const _NEIGH = ((1, 0), (-1, 0), (0, 1), (0, -1))
 
 """Half-cabin nodes (m ≥ 0) in cabin; centerline nodes are dropped for antisymmetric modes."""
-function _solve_parity(g::_CylGrid, symmetric::Bool, nmax::Int)
+function _solve_parity(g::_CylGrid, symmetric::Bool, nmax::Int; check_real::Bool=true)
     θ0 = g.θ0
     # kept nodes
     nodes = Tuple{Int,Int}[]
@@ -301,9 +301,12 @@ function _solve_parity(g::_CylGrid, symmetric::Bool, nmax::Int)
     # eigenvalues come in complex pairs; only the kept modes must be real (|Im|/|Re| ≤ 1e-3, rule fixed before the
     # convergence run). Until 2026-10-28 any complex eigenvalue, kept or not, rejected the grid.
     im_rel = maximum(abs(imag(ev.values[k])) / max(abs(real(ev.values[k])), 1e-12) for k in order[2:end]; init=0.0)
-    im_rel ≤ 1e-3 ||
+    # ISSUE-033 (2026-11-12): on NASA's printed grid (`check_real = false`) the check does not reject. It is this
+    # recreation's own (Phase 79b); NASA's program used IMSL EIGRF (User Manual §5.1), has no such rejection, and printed
+    # modes for the 62.6° grid, where the worst kept mode has |Im|/|Re| = 0.0012. The real parts are used there.
+    (im_rel ≤ 1e-3 || !check_real) ||
         error("CYL2D: complex eigenvalues among the kept modes (max |Im|/|Re| = $(im_rel)) for θ0=$(rad2deg(θ0))°, NY=$(g.NY)")
-    return (nodes=nodes, id=id, isbnd=isbnd, λ=λ[order], V=real.(ev.vectors[:, order]))
+    return (nodes=nodes, id=id, isbnd=isbnd, λ=λ[order], V=real.(ev.vectors[:, order]), im_rel=im_rel)
 end
 
 """
@@ -318,12 +321,14 @@ function cyl2d_modes(theta0_deg::Real; n_modes::Int=20, NY::Int=0, c0::Float64=3
     θ0 = deg2rad(float(theta0_deg))
     NY = NY > 0 ? NY : _cyl2d_default_NY(theta0_deg, rule)   # 0: the printed NK (Phase 140)
     g = _build_grid(θ0, NY; node_tol=node_tol, rule=rule)
+    nasa_grid = rule === :printed && NY == cyl2d_printed_NK(theta0_deg)   # ISSUE-033: NASA's own grid for this floor angle
     h = g.h
     A_cab = π - θ0 + cos(θ0) * sin(θ0)         # V/(a²L), Eq. (C.11)
 
     entries = NamedTuple[]
     for sym in (true, false)
-        sol = _solve_parity(g, sym, n_modes + 2)
+        sol = _solve_parity(g, sym, n_modes + 2; check_real=!nasa_grid)
+        sol.im_rel > 1e-3 && @warn "CYL2D: NASA's printed grid at θ0 = $(theta0_deg)° has nearly real kept eigenvalues (max |Im|/|Re| = $(round(sol.im_rel; sigdigits=2))); their real parts are used (ISSUE-033)" maxlog = 1
         nodes, isbnd = sol.nodes, sol.isbnd
         for k in eachindex(sol.λ)
             λ = sol.λ[k] < 0 && sol.λ[k] > -1e-8 ? 0.0 : sol.λ[k]

@@ -42,9 +42,9 @@ const CASE_CAUSES = Dict{String,CaseCause}(
     "NR_TP1964_XOVER" => CaseCause("PAIN's method misses the measurement",
         "The misses are the Eq. (18) bands, where a negative noise reduction is a property of the equation (CR-159363 p. 138); the Eq. (19) bands agree within 2.5 dB.",
         "Phases 53, 138", "chart label (ISSUE-031)", "phase50_58_closeout.md"),
-    "CYL2D_PRINTED" => CaseCause("approximation in this recreation",
-        "On NASA's printed grid rule the narrow body (61/61) and the Merlin (51/51) are reproduced; at 62.6° this code's eigenproblem fails its own real-eigenvalue check on NASA's grid (|Im|/|Re| 0.0012 against 0.001, a check set in Phase 79b), so the fallback grid of Q60 is used and misses. Why NASA's program solves that grid is not explained by the documents.",
-        "Phases 103, 105, 140", "why the 62.6° grid gives complex eigenvalues here and not in NASA's program (ISSUE-033)", "phase140_cyl2d_printed_rule.md"),
+    "CYL2D_PRINTED" => CaseCause("NASA's printout or the measurement, not explained by the documents",
+        "The narrow body (61/61) and the Merlin (51/51) are reproduced. At 62.6°, on NASA's own grid (solved on the real parts since 2026-11-12, ISSUE-033), ε(0,0) and all 53 mode types equal NASA's and every frequency is 0.30–0.31 % low: one common factor, which a cabin radius or sound speed that is not printed for this aircraft would give.",
+        "Phases 103, 105, 140; ISSUE-033", "the common factor 1.00305 (no printed input gives it; none is chosen from the result)", "issue033_cyl2d_small_diameter.md"),
     # Phase 139d (2026-11-10): the band-centre hypothesis was not supported (15/32), so both are unexplained
     "R172428_ETA" => CaseCause("unexplained (no documented cause survived its test)",
         "Up to 470 Hz every mode is within 12 % of NASA's; above it the modes with almost no shell motion (share under 0.05) agree within 6 % and every other mode is 0.51–0.80 of NASA's. Every cause tested so far was ruled out, the band-centre rule included.",

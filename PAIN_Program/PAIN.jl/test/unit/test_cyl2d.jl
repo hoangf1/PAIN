@@ -40,18 +40,23 @@ end
     r1, ch, NY2 = PAIN.cyl2d_modes_search(56.6; n_modes=10, max_change=0.05)
     @test ch ≤ 0.05 && NY2 > r1.NY
     @test_throws ErrorException PAIN.cyl2d_modes_search(56.6; n_modes=10, max_change=1e-9)
-    # Q60: production grid for other floors. θ0 = 56.6° keeps NY = 10; θ0 = 45.3° has no App. C solution at NY 10
-    # or 11 with the 20 production modes (complex eigenvalues among them), so the next solvable grid (12) is used, with a warning; none in 10:11 is an error.
+    # Q60 and ISSUE-033 (2026-11-12): θ0 = 56.6° keeps NK = 10. At 45.3° NASA's grid is NK = 11; its kept eigenvalues are
+    # not exactly real (|Im|/|Re| 0.0015), and since ISSUE-033 the real parts are used there, with a warning, as NASA's
+    # program had no such rejection. A grid that is not NASA's for its angle (NY = 10 here) still fails the check, and the
+    # search then moves on to the next grid that solves.
     s56 = PAIN.cyl2d_modes_solvable(56.6; n_modes=20)
     @test s56.NY == 10 && [m.f_Hz_unit for m in s56.modes] == [m.f_Hz_unit for m in PAIN.cyl2d_modes(56.6; n_modes=20).modes]
     @test_throws ErrorException PAIN.cyl2d_modes(45.3; NY=10, n_modes=20)
-    @test_throws ErrorException PAIN.cyl2d_modes(45.3; NY=11, n_modes=20)
-    s45 = @test_logs (:warn, r"using NY = 12") PAIN.cyl2d_modes_solvable(45.3; n_modes=20)
-    @test s45.NY == 12 && [m.f_Hz_unit for m in s45.modes] == [m.f_Hz_unit for m in PAIN.cyl2d_modes(45.3; NY=12, n_modes=20).modes]
-    @test_throws ErrorException PAIN.cyl2d_modes_solvable(45.3; NY=10, NY_max=11, n_modes=20)
-    # the pipeline no longer stops for such a floor (it errored at NY = 10 before Q60)
+    g45 = PAIN._build_grid(deg2rad(45.3), 11; rule=:printed)
+    @test_throws ErrorException PAIN._solve_parity(g45, false, 22)                        # the check itself is unchanged
+    off = PAIN._solve_parity(g45, false, 22; check_real=false)
+    @test 1e-3 < off.im_rel < 0.01 && all(isfinite, off.λ)
+    s45 = @test_logs (:warn, r"real parts are used") match_mode = :any PAIN.cyl2d_modes_solvable(45.3; n_modes=20)
+    @test s45.NY == 11 && issorted([m.f_Hz_unit for m in s45.modes]) && s45.modes[1].f_Hz_unit < 0.01   # rigid mode, CYL2D_C1's bound
+    s10 = PAIN.cyl2d_modes_solvable(45.3; NY=10, n_modes=20)                              # NY 10 fails, NASA's 11 solves
+    @test s10.NY == 11
     rp = PAIN.run_pain_pipeline(; source=:synthetic, use_synthetic=true, n_harmonics=1, bpf_Hz=150.0, theta0_deg=45.3)
-    @test rp.acoustic.NY == 12 && all(isfinite, rp.spectrum.harmonic_SPL_dB)
+    @test rp.acoustic.NY == 11 && all(isfinite, rp.spectrum.harmonic_SPL_dB)
     # _solve_parity: antisymmetric modes vanish on the centreline
     m_a = first(m for m in c.modes if !m.symmetric)
     @test all(v == 0 for ((mm, n), v) in m_a.phi_nodes if mm == 0)
