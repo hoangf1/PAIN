@@ -52,8 +52,8 @@ Two lists, newest first in each. **Not assigned to a phase**: issues to act on o
 | 006 | R2 and the circular wall have no criterion | Not met | 144 (closed 2026-11-11) |
 | 005 | Too many Markdown files | Organisation | 148, 149 (closed 2026-11-11) |
 | 004 | Pereira counts differ across the record | Readability, not met | 135, 141 (closed 2026-11-11) |
-| 003 | Fig. 13a recorded as FAIL and PASS | Readability | 135 |
-| 002 | Report 996 page-12 phase stated three ways | Readability | 135 |
+| 003 | Fig. 13a recorded as FAIL and PASS | Readability | 135 (closed 2026-11-12) |
+| 002 | Report 996 page-12 phase stated three ways | Readability | 135 (closed 2026-11-12) |
 | 001 | Report 996 acoustic verdicts run on loads scaled to the measured loads | Not met | 141 (closed 2026-11-11) |
 
 ## Author decisions (2026-11-09 and 2026-11-10)
@@ -1380,7 +1380,7 @@ This is raised as a question. No change is made.
 
 ## ISSUE-003: Report 996 Fig. 13a scaled 23c verdict is recorded as both FAIL and PASS
 
-**Status:** open. Recorded 2026-11-09. Documentation conflict only; the current record is 14/14 pass, but the older FAIL row has not been marked as superseded.
+**Status:** closed 2026-11-12: done in Phase 135b (2026-11-10), where COMPLETED_PHASES row 27 was split per figure (the 5/24 is Fig. 14's, marked superseded); the ticket's status was not closed then. Recorded 2026-11-09.
 
 **Summary.** `COMPLETED_PHASES.md` (phase 27) still reads "23c scaled ±2 dB **FAIL** (5/24)" for Fig. 13a. The 2026-10-28 re-run in `report996_acoustics.md` (line 72) gives 14/14 within ±2 dB. Both are about the scaled Fig. 13a load path, so the older FAIL is not visibly superseded.
 
@@ -1404,7 +1404,7 @@ This is raised as a question. No change is made.
 
 ## ISSUE-002: Report 996 page-12 phase value is stated three different ways
 
-**Status:** open. Recorded 2026-11-09. Documentation conflict only; no verdict has been changed.
+**Status:** closed 2026-11-12: done in Phase 135a (2026-11-10), where the older values carry "superseded; current 112.8°"; the ticket's status was not closed then. Recorded 2026-11-09.
 
 **Summary.** The page-12 (Fig. 12) phase check for Report 996 is recorded with three different computed phase values, so the reported miss from the 155° reference is not consistent across the record.
 
