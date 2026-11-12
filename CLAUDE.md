@@ -31,6 +31,12 @@ Before a code change is accepted or built on, whoever made it (any agent or sess
 8. Before commit: run /code-review on the diff and fix or explicitly skip each finding; no stray helper scripts, regenerated figures, or machine-specific paths remain; tests write only to the temp output dir.
 A failed check is fixed before the next task starts; one writer at a time on the checkout, counting every agent and Claude session.
 
+## Working through phases and issues (author 2026-11-11)
+
+Continue through the open phases and issues without asking for permission until all are done. The author is away: decide as the author does (a verdict only when every input is printed or measured in a valid source; no tuning; criteria fixed and dated before any comparison; anything outside the task becomes an issue ticket), and record each decision as decided under this authority, with its date.
+
+Compact the context after every phase or issue: close it, update the documents, commit and push first, so nothing is lost. Claude cannot run /compact itself; automatic compaction does it, so each closing must stand on its own (what was done, what is open, the next item).
+
 ## PAIN_Program (paused)
 
 For every PAIN code change update all documents:
