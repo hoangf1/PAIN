@@ -63,3 +63,10 @@ end
     rm(d; recursive=true)
     @test isdir(PAIN.mode_animation_cache_dir())
 end
+@testset "own-window player command (Phase 151, 2026-11-11)" begin
+    c = PAIN.mode_window_cmd(7, 2)
+    @test isfile(PAIN.mode_window_script()) && endswith(PAIN.mode_window_script(), "cabin_mode_window.jl")
+    @test c.exec[end-2:end] == [PAIN.mode_window_script(), "7", "2"]          # the script, then mode and axial order
+    @test any(startswith(a, "--project=") && isfile(joinpath(a[11:end], "Project.toml")) for a in c.exec)
+    @test occursin("using GLMakie", read(PAIN.mode_window_script(), String))
+end

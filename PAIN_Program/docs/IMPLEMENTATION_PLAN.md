@@ -13,7 +13,7 @@ Single source of truth for building this project without re-deriving context in 
 2. Data register and digitization instructions (status, procedure, one card per figure; §2.5 candidate sources found 2026-11-09)
 3. Current status and open work queue
 4. Architecture
-8ck–8co. Open phases 147–151 (planned 2026-11-09 from `ISSUES.md`; Phases 135–138 done 2026-11-10, 139–146 done 2026-11-11 and moved to `COMPLETED_PHASES.md`)
+8ck–8cn. Open phases 147–150 (planned 2026-11-09 from `ISSUES.md`; Phases 135–138 done 2026-11-10, 139–146 and 151 done 2026-11-11 and moved to `COMPLETED_PHASES.md`)
 5–8ac, 11. *(in `COMPLETED_PHASES.md`, same section numbers, moved 2026-10-29)* every completed phase, the queue Q0–Q66 and the 2026-10-21 review
 9. Reference appendices (BBN evidence, Report 996 figures and data, Pereira polar specification, variables)
 10. Optional future work, key formulas, file checklist
@@ -267,7 +267,6 @@ or the other documents points there. When a phase is done, mark it done and move
 | Q126 | Phase 148: VALIDATION_GUIDELINE split (ISSUE-016, 005) | [CONFIRM], [AUTHOR] | Q125 | `VALIDATION.md`; case data file; criteria file |
 | Q127 | Phase 149: Markdown inventory; README (ISSUE-005, 012) | documents, [AUTHOR] | Q126 | inventory; README GUI step |
 | Q128 | Phase 150: source and test layout; the 111 no-verdict cases sorted (ISSUE-028, 029) | [CONFIRM] | Q125 | `src/cases/`, `test/cases/`; paths |
-| Q129 | Phase 151: cabin-mode animation (ISSUE-011) | [CONFIRM] | — | animation plays in the window |
 | — | Phases 90–134 are done (2026-11-05; 118f: unit-test gaps; 112–116 merged from branch `heart`, numbered 100–104 there). Q113–Q129 were planned on 2026-11-09 from `ISSUES.md`; none is started. Author decisions of 2026-11-09 are in the steps; order confirmed: Q113, then Q114–Q122 (not-met cases), then Q123–Q129 | — | — | — |
 
 If a queue item is blocked on data, skip to the next unblocked item and say which data item blocks it.
@@ -365,12 +364,6 @@ Rules common to all: no recorded verdict, criterion, tolerance or reference file
 - [ ] **150d** `rea-work` → `PAIN_Program`; absolute paths → repository-relative; every `data\…` and `references\…` path in this file checked against the tree; `IMPLEMENTATION_PLAN.md §8…` comments → `COMPLETED_PHASES.md §8…`.
 - [ ] **150e The 111 cases without a verdict.** The case-by-case list is in ISSUE-029, **[DECIDED 2026-11-10]** (author: "Approve the list"): 44 stay as tests only, 14 stay visible as information, 6 are kept until Phases 136, 139, 144 or this one decides them, 47 are retired with their reports kept. The list comes from the case texts, so each row is checked against its runner first, and a row the code contradicts goes back to the author. Per case: *test* → its GUI entry, figure and guideline record go, its test stays; *show* → moved to one short "run, not judged" list; *retire* → runner and the tests that assert its old outcome removed in the same commit, with the report's path noted in the commit message. `NO_VERDICT_CASES.md` shrinks to the "run, not judged" list. The frozen-baseline regression test (R11) is not a case and stays.
 
-## 8co. Phase 151 — the cabin-mode animation plays in the window (ISSUE-011) [CONFIRM]
-
-- [ ] **151a** Run the GUI and record which of the three points fails today (no frames until Refresh; the play flag; the per-frame disk load).
-- [ ] **151b** Check that the Qt build has the GIF plugin. Yes → `AnimatedImage` on `cm_gif_path` with play, pause and speed. No → frames preloaded once and shown by index.
-- [ ] **151c** Frames built when the tab opens.
-- [ ] **151d** Tests: frame count and node values equal `mode_animation_frames`; smoke grabs two frames at different times and they differ. A look at the window: the mode is seen moving.
 
 ---
 

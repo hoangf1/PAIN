@@ -230,6 +230,7 @@ Not blockers (recorded so nobody stops on them): BBN tip geometry beyond 40 in. 
 | Q122 | Phase 144: blocking R2 (ISSUE-006, 008) | [AUTHOR], text | — | (P) case for R2, or information | · **done 2026-11-11**: no new case; Eq. (43) is CR-159668's printed fit; R2 rests on CR-172428 §5.3.2 alone |
 | Q123 | Phase 145: summary writer (ISSUE-009, 018, 019, 020, 021) | [CONFIRM], [AUTHOR] | Q113 | verdict-row counts; first-run mark; families; causes | · **done 2026-11-11**: rule beside the count; no pseudo-units; CABIN_FREQ_PRINTED counts its 47 held-out rows; seven independence records, all "no" |
 | Q124 | Phase 146: chart by figure, titles, glossary (ISSUE-010, 013, 018) | [CONFIRM], [AUTHOR] | Q123 | grouped chart; plain titles | · **done 2026-11-11**: source figures, figure order, plain titles, glossary; tests |
+| Q129 | Phase 151: cabin-mode animation (ISSUE-011) | [CONFIRM] | — | animation plays in the window | · **done 2026-11-11**: plays in the window; own GLMakie window on request |
 | Q58 | **Phase 79 — CYL2D** (§8w; 2026-10-28) | `case_error_summary`, `cyl2d.jl`, CYL2D_WEYL | Q57 | **done 2026-10-28**: information rows leave the pass count; refinement fixed (79b); CYL2D_GRID_CONV (NY 10 within 4.9 % of NY 60); Weyl + surface term 4/5; production NY = 10 kept (decided 2026-10-28) |
 | Q57 | **Phase 78 — structural modes** (§8v; 2026-10-28) | `mrp_appd.jl`, MRP_APPD criterion, map | Q53 | **done 2026-10-28**: App. D solver fixes J1–J6; MRP_APPD not met 2/32 (class I, floor stiffener model undocumented); MRP_D1/MRP_RITZ off the map |
 | Q56 | **Phase 77 — POLAR_FIDELITY as an equivalent angle** (§8u; 2026-10-28) | `src/validation_case_iso67.jl`, figure | Q52 | **done 2026-10-28**: Δα shown next to Δc_l, display only |
@@ -3622,3 +3623,15 @@ No run, no code. Each step replaces nothing in the record; it marks older values
 - 146d: `docs/CASE_ID_GLOSSARY.md`, linked from the README.
 - 146e: a verdict case without a source figure or a plain title, or with a phase tag in its title, fails `test_validation_coverage.jl`. The figure order is drawn in QML and is not reached by a Julia test.
 - `case_error_summary.csv`, the status page and NO_VERDICT_CASES.md regenerated (with Phase 145's display changes).
+
+## 8co. Phase 151 — the cabin-mode animation plays in the window (ISSUE-011; done 2026-11-11) [CONFIRM]
+
+- [x] **151a** Run the GUI and record which of the three points fails today (no frames until Refresh; the play flag; the per-frame disk load). **Done 2026-11-11.**
+- [x] **151b** Check that the Qt build has the GIF plugin. Yes → `AnimatedImage` on `cm_gif_path` with play, pause and speed. No → frames preloaded once and shown by index. **Done 2026-11-11**: QML play flag; own window (GLMakie).
+- [x] **151c** Frames built when the tab opens. **Done 2026-11-10.**
+- [x] **151d** Tests: frame count and node values equal `mode_animation_frames`; smoke grabs two frames at different times and they differ. A look at the window: the mode is seen moving. **Done 2026-11-11.**
+
+**Done 2026-11-11** (151c on 2026-11-10; the rest decided by Claude under the author's authority of 2026-11-10 and 2026-11-11; the own window at the author's request of 2026-11-11; report `validation_reports/phase151_cabin_animation.md`):
+- 151a: the frames were built and preloaded, but Play did nothing: the timer's binding on `pain.cm_playing` was not re-evaluated after QML wrote that property, so the timer never started.
+- 151b: the play flag is a QML property (`root.cmPlaying`); no GIF plugin is needed (PNG frames shown by index). An "Open in new window" button runs `scripts/run/cabin_mode_window.jl` (GLMakie, separate process) with Play / Pause, frame and speed sliders. GLMakie 0.13.16 added; no existing package version moved.
+- 151d: QML smoke cabin child PASS (frames 0 and 2); the window run once (frame 6 of 48 saved); `test_mode_animation.jl` 35, `test_gui_model.jl` 84.

@@ -422,6 +422,17 @@ function render_structural_mode_png(path::AbstractString, disp)
     return abspath(path)
 end
 
+"""Script that opens one cabin mode in its own window (Phase 151, 2026-11-11): GLMakie, Play / Pause and a frame slider."""
+mode_window_script() = normpath(joinpath(@__DIR__, "..", "scripts", "run", "cabin_mode_window.jl"))
+
+"""The command that opens cabin mode `mode` (axial order `q`) in its own window, in a separate Julia process so the GUI
+does not wait on it."""
+mode_window_cmd(mode::Integer, q::Integer=0) =
+    `$(Base.julia_cmd()) --project=$(normpath(joinpath(@__DIR__, ".."))) $(mode_window_script()) $(mode) $(q)`
+
+"""Open cabin mode `mode` in its own window (display only). Returns the started process."""
+open_mode_window(mode::Integer, q::Integer=0) = run(mode_window_cmd(mode, q); wait=false)
+
 """Cache directory for Cabin modes panel PNGs/GIFs (not under validation figure paths)."""
 function mode_animation_cache_dir()
     d = joinpath(@__DIR__, "..", "gui", "cache", "mode_anim")

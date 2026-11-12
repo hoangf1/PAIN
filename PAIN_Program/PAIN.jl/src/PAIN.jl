@@ -93,7 +93,7 @@ export
     extend_line_to_grid,
     cyl2d_modes, cyl2d_modes_search, cyl2d_modes_solvable, Cyl2DResult, AcousticMode, CYL2D_C0, TABLE_C1_FREQ_HZ, TABLE_C1_GENMASS, TABLE_C1_SYMMETRIC, TABLE_C1_C0,
     cabin_frequency_3d, cabin_eps_3d, axial_truncation, cabin_modes_3d,
-    mode_animation_frames, render_mode_animation, render_mode_frame_pngs, axial_factor,
+    mode_animation_frames, render_mode_animation, render_mode_frame_pngs, axial_factor, open_mode_window, mode_window_cmd,
     FIG_C3_PRINTED_ROWS, CYL2D_C1_DISPLAY_INPUTS, cyl2d_c1_for_display, mode_animation_cache_dir,
     structural_mode_display, coupling_display, render_structural_mode_png,
     structural_mode_frames, render_structural_frame_pngs,

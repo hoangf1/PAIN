@@ -200,6 +200,17 @@ function set_cabin_struct_from_qml(r)
     return nothing
 end
 
+"""Open the selected cabin mode in its own window (GLMakie, separate process; Phase 151, 2026-11-11)."""
+function cabin_modes_open_window_from_qml()
+    obs = _GUI_OBS[]
+    obs === nothing && return nothing
+    mode = clamp(Int(round(Float64(obs["cm_mode"][]))), 0, 19)
+    q = max(0, Int(round(Float64(obs["cm_q"][]))))
+    open_mode_window(mode, q)
+    gui_log!(obs, "cm", "opening mode $mode (q = $q) in its own window (GLMakie; the first opening compiles for a while)")
+    return nothing
+end
+
 """Advance / set the displayed frame index (play Timer or scrubber)."""
 function cabin_modes_step_frame_from_qml(delta)
     obs = _GUI_OBS[]
@@ -313,6 +324,7 @@ function main(args=ARGS; smoke_ms::Real=0, smoke_case::AbstractString="",
     @qmlfunction set_cabin_q_from_qml
     @qmlfunction set_cabin_struct_from_qml
     @qmlfunction cabin_modes_step_frame_from_qml
+    @qmlfunction cabin_modes_open_window_from_qml
     @qmlfunction mark_gui_closed_from_qml
     @qmlfunction set_gui_input_from_qml
     @qmlfunction open_project_from_qml

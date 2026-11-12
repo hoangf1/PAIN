@@ -43,7 +43,7 @@ Two lists, newest first in each. **Not assigned to a phase**: issues to act on o
 | 014 | R172428_CODE not met 5/9 | Not met | 136 (closed 2026-11-10) |
 | 013 | Case names and abbreviations unexplained | Readability | 146 (closed 2026-11-11) |
 | 012 | README treats the GUI as optional | Readability | 149 |
-| 011 | Cabin-mode animation does not play | Readability | 151 |
+| 011 | Cabin-mode animation does not play | Readability | 151 (closed 2026-11-11) |
 | 010 | Coverage rows scattered; group by figure | Organisation | 146 (closed 2026-11-11) |
 | 009 | R172428_EXP plot labels and comparison target | Readability | 136, 145 (closed 2026-11-11) |
 | 008 | BLK_P68 tests R1, predictions use R2 | Not met | 144 (closed 2026-11-11) |
@@ -1018,7 +1018,7 @@ Single cases: R996_PHASE, E12_BLOCK, CYL2D_PRINTED, FLIGHT_MODES, E14_LOSS, R172
 
 ## ISSUE-011: Cabin mode and structural mode animations cannot be seen in the GUI; import a library animator
 
-**Status:** open. Recorded 2026-11-09. Display only. No verdict, criterion or recorded result changes. No code changed.
+**Status:** closed 2026-11-11 by Phase 151 (`COMPLETED_PHASES.md` §8co; `phase151_cabin_animation.md`): the animation plays in the tab, and in a window of its own (GLMakie). Recorded 2026-11-09. Display only. No verdict, criterion or recorded result changes. No code changed.
 
 **Problem.** The cabin mode animations (CYL2D App. C mode shapes on the Cabin modes tab, and the structural mode ψ animated with them) do not play in the GUI, so the user cannot see them. The animation is built as offscreen PNG frames and a GIF under `gui/cache/mode_anim/`, and the tab shows only "Press Refresh to build frames" until Refresh has run. The frames are stepped by a timer in QML, and the playback path has not yet been traced to the point where it fails.
 

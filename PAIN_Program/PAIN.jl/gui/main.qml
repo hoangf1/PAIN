@@ -189,6 +189,9 @@ ApplicationWindow {
     // Cache case rows so the ListView model is not a fresh JS array on every
     // pain.* Observable notify (that reset currentIndex and cleared the highlight).
     property var valCaseRows: []
+    // Phase 151 (2026-11-11): the play flag lives in QML. A binding on pain.cm_playing was not re-evaluated after QML
+    // wrote that property itself, so the play Timer never started; Julia gets a copy for the log.
+    property bool cmPlaying: false
     readonly property string valCasesWatch: pain.val_cases
     onValCasesWatchChanged: rebuildValCaseRows()
     function rebuildValCaseRows() {
@@ -374,6 +377,7 @@ ApplicationWindow {
                 step = 1
             } else if (step === 1) {
                 if (pain.cm_frame_path.length > 0 && !pain.busy) {
+                    root.cmPlaying = true
                     pain.cm_playing = true
                     step = 2
                 } else if (elapsedMs >= 150000) {
@@ -1156,9 +1160,15 @@ ApplicationWindow {
                             onValueModified: pain.cm_speed = value
                         }
                         Button {
-                            text: pain.cm_playing ? "Pause" : "Play"
+                            text: root.cmPlaying ? "Pause" : "Play"
                             enabled: pain.cm_frame_path.length > 0
-                            onClicked: pain.cm_playing = !pain.cm_playing
+                            onClicked: { root.cmPlaying = !root.cmPlaying; pain.cm_playing = root.cmPlaying }
+                        }
+                        Button {
+                            text: "Open in new window"
+                            ToolTip.visible: hovered
+                            ToolTip.text: "Plays the selected mode in a window of its own, with Play / Pause and a frame slider"
+                            onClicked: Julia.cabin_modes_open_window_from_qml()
                         }
                         Button {
                             text: pain.busy ? "Building…" : "Refresh"
@@ -1178,7 +1188,7 @@ ApplicationWindow {
 
                 Timer {
                     interval: Math.max(40, Math.round(120 / Math.max(1, pain.cm_speed)))
-                    running: !!pain.cm_playing && pain.cm_frame_path.length > 0
+                    running: root.cmPlaying && pain.cm_frame_path.length > 0
                     repeat: true
                     onTriggered: Julia.cabin_modes_step_frame_from_qml(1)
                 }

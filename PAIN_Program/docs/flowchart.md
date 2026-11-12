@@ -12,6 +12,7 @@ Colour key in diagrams: green = check exists and passes as stated; orange = plan
 
 ## Status
 
+- **2026-11-11 (Phase 151 closed):** display only; flow unchanged.
 - **2026-11-11 (Phase 146 closed):** plain titles; flow unchanged.
 - **2026-11-11 (Phase 145 closed):** summary text only; flow unchanged.
 - **2026-11-11 (Phase 144 closed):** Eq. (43) traced to CR-159668's printed fit; flow unchanged.
