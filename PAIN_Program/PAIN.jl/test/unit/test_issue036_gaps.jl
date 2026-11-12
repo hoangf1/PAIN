@@ -27,7 +27,7 @@ end
 @testset "NASA's printout on the gate: table cell" begin
     @test PAIN._nasa_gate_cell("MRP_APPD") == "not printed"
     g = PAIN.nasa_printout_on_gate("R172428_EXP")
-    @test PAIN._nasa_gate_cell("R172428_EXP") == "$(g.n_ok)/$(g.n) (misses too: method limit)" && !g.met
+    @test PAIN._nasa_gate_cell("R172428_EXP") == "$(g.n_ok)/$(g.n), NASA's PAIN printout (misses too: method limit)" && !g.met
 end
 @testset "chain span and reference parsing" begin
     @test PAIN._parse_chain_span("Skin field → Interior tones") == (4, 8)

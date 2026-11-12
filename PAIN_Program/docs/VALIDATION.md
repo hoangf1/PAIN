@@ -11,7 +11,7 @@ Snapshot of the recorded case results (`docs/validation_reports/case_error_summa
 
 Each bar spans the part of the program chain a case runs: from the stage its given input enters at to the stage of the quantity it compares (`**Chain span:**`, §2.13); its colour is what it is compared with (`**Compared with:**`). The cases without a verdict are drawn in `NO_VERDICT_CASES.md`; the GUI's Coverage tab shows both.
 
-**19 cases with a verdict, 19 independent comparisons** (the sums and variants of a case carry no verdict since Phase 135f); met 13, not met 6. 7 families group the cases that share one run or one printout (Phase 145d; GUI Coverage tab, "Order by source figure").
+**19 cases with a verdict, 19 independent comparisons** (the sums and variants of a case carry no verdict since Phase 135f); met 13, not met 6 (of these, 2 where a published prediction misses the same gate: black outline). 7 families group the cases that share one run or one printout (Phase 145d; GUI Coverage tab, "Order by source figure").
 
 ![Chain coverage](validation_reports/figures/coverage/chain_coverage_verdict.png)
 
@@ -19,14 +19,14 @@ Each bar spans the part of the program chain a case runs: from the stage its giv
 |---|---|---|---|---|
 | Blade and polars → Blade loads | measurement | Propeller thrust and power coefficients against measurement (NACA RM L8H25a) (`R996_LOADS`) | not met | 24/32 |
 | Blade and polars → Free field | measurement | Propeller tone phase shift in forward flight against Pereira's measurement (Fig. 7) (`PER_FIG7`) | met | 3/3 |
-| Blade and polars → Free field | measurement | Propeller tone levels in forward flight against Pereira's measurement (Fig. 8) (`PER_FIG8`) | not met | 10/14 |
+| Blade and polars → Free field | measurement | Propeller tone levels in forward flight against Pereira's measurement (Fig. 8) (`PER_FIG8`) | not met (a published prediction misses too) | 10/14 |
 | Blade loads → Free field | measurement | Static propeller tone levels along the axis against measurement (Report 996, Fig. 12) (`R996_FIG12`) | met | 32/40 |
 | Blade loads → Free field | measurement | Static first propeller tone along the axis against measurement (Report 996, Fig. 13a) (`R996_FIG13A`) | met | 14/14 |
 | Blade loads → Free field | measurement | Static propeller tone levels against tip Mach number, against measurement (Report 996, Fig. 14a) (`R996_FIG14`) | met | 24/24 |
 | Free field → Skin field | measurement | Level increase at a flat wall beside a propeller against measurement (Report 996, Fig. 10) (`R996_FIG10_FLAT`) | met | 5/5 |
-| Skin field → Interior tones | measurement | Cabin tone levels of the test article against the measured space averages (CR-172428) (`R172428_EXP`) | not met (method limit) | 5/9 |
+| Skin field → Interior tones | measurement | Cabin tone levels of the test article against the measured space averages (CR-172428) (`R172428_EXP`) | not met (a published prediction misses too) | 5/9 |
 | Skin field → Interior tones | NASA's printed prediction | Cabin tone levels with trim loss factor 2.0 against NASA's printed prediction (CR-172428, Table 12) (`R172428_ETAT2`) | met | 9/9 |
-| Skin field → Bands and dB(A) | measurement | Noise reduction of a bare cylinder against measurement (TP-1964, Fig. 8) (`NR_TP1964_XOVER`) | not met (method limit) | 9/18 |
+| Skin field → Bands and dB(A) | measurement | Noise reduction of a bare cylinder against measurement (TP-1964, Fig. 8) (`NR_TP1964_XOVER`) | not met | 9/18 |
 | Wall modes → Wall modes | NASA's printed prediction | Structural modes of the flight aircraft against NASA's printed mode list (CR-172428, App. C) (`FLIGHT_MODES`) | met | 200/221 |
 | Wall modes → Wall modes | NASA's printed prediction | Fuselage structural modes against NASA's printed Table D-1 (CR-3813) (`MRP_APPD`) | met | 32/32 |
 | Wall modes → Damping and trim | NASA's printed prediction | Structural-mode loss factors against NASA's printout (CR-172428, App. B) (`R172428_ETA`) | not met | 17/32 |
@@ -39,16 +39,16 @@ Each bar spans the part of the program chain a case runs: from the stage its giv
 
 ### Why each case is not met
 
-| Case | Points | NASA's own printout on the same gate | Cause | Why | Tested in | What is left |
+| Case | Points | A published prediction on the same gate | Cause | Why | Tested in | What is left |
 |---|---|---|---|---|---|---|
 | `CYL2D_PRINTED` | 63/116 | not printed | NASA's printout or the measurement, not explained by the documents | The narrow body (61/61) and the Merlin (51/51) are reproduced. At 62.6°, on NASA's own grid (solved on the real parts since 2026-11-12, ISSUE-033), ε(0,0) and all 53 mode types equal NASA's and every frequency is 0.30–0.31 % low: one common factor, which a cabin radius or sound speed that is not printed for this aircraft would give. (`issue033_cyl2d_small_diameter.md`) | Phases 103, 105, 140; ISSUE-033 | the common factor 1.00305 (no printed input gives it; none is chosen from the result) |
-| `NR_TP1964_XOVER` | 9/18 | 12/18 (misses too: method limit) | PAIN's method misses the measurement | The misses are the Eq. (18) bands, where a negative noise reduction is a property of the equation (CR-159363 p. 138); the Eq. (19) bands agree within 2.5 dB. (`phase50_58_closeout.md`) | Phases 53, 138 | chart label (ISSUE-031) |
-| `PER_FIG8` | 10/14 | not printed | PAIN's method misses the measurement | Pereira's own CFD misses at the same angles by similar amounts (VALIDATION_GUIDELINE §2.14), and the loads are within 1 % of the measured thrust. (`pereira_forward_flight.md`) | Phases 69, 72, 74, 76 | chart label (ISSUE-031) |
+| `NR_TP1964_XOVER` | 9/18 | 12/18, NASA's earlier model (CR-159363), not PAIN (misses; no mark) | PAIN's method misses the measurement | The misses are the Eq. (18) bands, where a negative noise reduction is a property of the equation (CR-159363 p. 138); the Eq. (19) bands agree within 2.5 dB. (`phase50_58_closeout.md`) | Phases 53, 138 | chart label (ISSUE-031) |
+| `PER_FIG8` | 10/14 | 12/14, Pereira's CFD (Fig. 8, Numerical) (misses too: method limit) | PAIN's method misses the measurement | Pereira's own CFD misses at the same angles by similar amounts (VALIDATION_GUIDELINE §2.14), and the loads are within 1 % of the measured thrust. (`pereira_forward_flight.md`) | Phases 69, 72, 74, 76 | chart label (ISSUE-031) |
 | `R172428_ETA` | 17/32 | not printed | unexplained (no documented cause survived its test) | Up to 470 Hz every mode is within 12 % of NASA's; above it the modes with almost no shell motion (share under 0.05) agree within 6 % and every other mode is 0.51–0.80 of NASA's. Every cause tested so far was ruled out, the band-centre rule included. (`phase139b_band_centre.md`) | Phases 82c, 118, 139 | look for an error in the loss-factor method (ISSUE-032) |
-| `R172428_EXP` | 5/9 | 5/9 (misses too: method limit) | PAIN's method misses the measurement | The code matches NASA's printout (9/9 within 1.19 dB, post-hoc), and NASA's printout misses the measurement the same way (5/9). (`phase106_cabin_freq_printed.md`) | Phases 54, 84, 88, 137c | chart label (ISSUE-031) |
+| `R172428_EXP` | 5/9 | 5/9, NASA's PAIN printout (misses too: method limit) | PAIN's method misses the measurement | The code matches NASA's printout (9/9 within 1.19 dB, post-hoc), and NASA's printout misses the measurement the same way (5/9). (`phase106_cabin_freq_printed.md`) | Phases 54, 84, 88, 137c | chart label (ISSUE-031) |
 | `R996_LOADS` | 24/32 | not printed | approximation in this recreation | XFOIL's section drag is about 25 % below TN 1546's measured drag and accounts for about half the torque gap (VALIDATION_GUIDELINE §2.14); section lift is not the cause (thrust moves at most 7.9 %). (`phase73_polar_sensitivity.md`) | Phases 67, 69, 73, 141d | on hold: more measured section data or CFD (ISSUE-030) |
 
-NASA's own printout: NASA's printed prediction put on the case's own measured points, tolerance and rule (Phase 136f); information about NASA's program, not a verdict. "Method limit": NASA's program misses the same gate, so the miss is in PAIN's method as NASA ran it (Phase 137c); the case's verdict stays.
+A published prediction on the same gate: NASA's printed prediction, or Pereira's CFD for `PER_FIG8`, put on the case's own measured points, tolerance and rule (Phase 136f; ISSUE-031, 2026-11-12); information, not a verdict. "Method limit": PAIN's own printout or a method of higher fidelity misses the same gate, so the miss is not this code's alone; the case's verdict stays not met. An earlier NASA model that is not PAIN gives no mark.
 
 ### Not met (fewest points within criterion first)
 

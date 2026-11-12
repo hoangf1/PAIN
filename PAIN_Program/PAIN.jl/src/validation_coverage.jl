@@ -128,17 +128,20 @@ function plot_coverage_chart(path::AbstractString; rec::AbstractDict=recorded_ca
     fig = Figure(size=(1250, 120 + 17 * max(n, 1)), fontsize=12)
     ax = Axis(fig[1, 1]; yreversed=true, xaxisposition=:top, xticks=(1:ns, collect(CHAIN_STAGES)),
               xticklabelrotation=0.0, xticklabelsize=11, yticks=(1:n, [r.id for r in rows]), yticklabelsize=10,
-              xgridvisible=false, ygridvisible=false, limits=((0.5, ns + 2.4), (0.3, n + 0.7)))
+              xgridvisible=false, ygridvisible=false, limits=((0.5, ns + 2.9), (0.3, n + 0.7)))
     vlines!(ax, 0.5:1:(ns + 0.5); color=(:gray, 0.35), linewidth=0.5)
     for (i, r) in enumerate(rows)
         c = parse(Makie.Colors.Colorant, _COVERAGE_COLOURS[r.reference])
         pale = r.verdict == "no verdict"
         h = isempty(r.derived_from) ? 0.64 : 0.36                 # Phase 145d: a derived case is drawn thinner
+        # ISSUE-031 (2026-11-12): a not-met bar whose gate a published prediction also misses is drawn half as strong
+        # with a black outline, apart from the bars this code alone misses
+        ml = r.method_limit
         poly!(ax, Rect(r.from - 0.45, i - h / 2, r.to - r.from + 0.9, h);
-              color=(c, pale ? 0.25 : 0.85), strokecolor=c, strokewidth=pale ? 0.8 : 0.0,
+              color=(c, pale ? 0.25 : ml ? 0.45 : 0.85), strokecolor=ml ? :black : c, strokewidth=pale ? 0.8 : ml ? 1.6 : 0.0,
               linestyle=pale ? :dash : :solid)
         text!(ax, ns + 0.6, i; text=r.verdict * (isempty(r.points) ? "" : " " * r.points) *
-                                    (r.method_limit ? " · method limit" : ""), align=(:left, :center),
+                                    (ml ? " · prediction misses too" : ""), align=(:left, :center),
               fontsize=10, color=r.verdict == "met" ? :darkgreen : (r.verdict == "not met" ? :firebrick : :gray40))
     end
     hideydecorations!(ax; ticklabels=false)
@@ -151,8 +154,9 @@ function plot_coverage_chart(path::AbstractString; rec::AbstractDict=recorded_ca
     end
     Legend(fig[2, 1], elems, labels, "Compared with"; orientation=:horizontal, framevisible=false, titleposition=:left)
     Label(fig[3, 1], "Right: recorded verdict; n/N = rows within the case's own criterion (recorded snapshot; for a case " *
-          "without a verdict, not a pass). Method limit: NASA's own printout misses the same gate. Thin bar: computed " *
-          "from another case (a sum or a variant)."; fontsize=11,
+          "without a verdict, not a pass).
+Black outline: a published prediction (PAIN's printout or a higher-fidelity " *
+          "method) misses the same gate. Thin bar: computed from another case (a sum or a variant)."; fontsize=11,
           color=:gray30, tellwidth=false)
     mkpath(dirname(path))
     save(path, fig)
@@ -182,13 +186,14 @@ function coverage_markdown(; rec::AbstractDict=recorded_case_errors())
             nind == length(rows) ? " (the sums and variants of a case carry no verdict since Phase 135f)" :
             " ($(length(rows) - nind) computed from another case, drawn thinner)",
             "; met ", count(r -> r.verdict == "met", rows), ", not met ", count(r -> r.verdict == "not met", rows),
+            " (of these, ", count(r -> r.method_limit, rows), " where a published prediction misses the same gate: black outline)",
             ". ", nfam, " families group the cases that share one run or one printout (Phase 145d; GUI Coverage tab, ",
             "\"Order by source figure\").\n")
     println(io, "![Chain coverage](validation_reports/figures/coverage/chain_coverage_verdict.png)\n")
     println(io, "| Chain span | Compared with | Case | Verdict | Points |\n|---|---|---|---|---|")
     for r in rows
         println(io, "| ", CHAIN_STAGES[r.from], " → ", CHAIN_STAGES[r.to], " | ", reference_label(r.reference), " | ",
-                _md_cell(r.title), " (`", r.id, "`) | ", r.verdict, r.method_limit ? " (method limit)" : "", " | ",
+                _md_cell(r.title), " (`", r.id, "`) | ", r.verdict, r.method_limit ? " (a published prediction misses too)" : "", " | ",
                 r.points, " |")
     end
     println(io)

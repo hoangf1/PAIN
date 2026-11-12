@@ -76,7 +76,17 @@ end
     rows = PAIN.coverage_rows(; rec)
     @test only(r for r in rows if r.id == "R172428_EXP").method_limit
     @test !any(r -> r.method_limit, filter(r -> r.verdict == "no verdict", rows))     # the mark is for verdict cases only
-    @test count(r -> r.method_limit, rows) == 2     # R172428_EXP, NR_TP1964_XOVER: the others carry no verdict (135f)
+    # ISSUE-031 (2026-11-12): the mark needs PAIN's own printout or a higher-fidelity method. NR_TP1964_XOVER's NASA curve
+    # is an earlier model (CR-159363): shown, no mark. PER_FIG8: Pereira's CFD against the measured points, hand count
+    # from pereira_fig8_directivity.csv: H1 7/7 within ±1.7 dB, H2 5/7 within ±3 dB (−3.9 dB at −20°, −3.1 dB at −10°)
+    @test sort([r.id for r in rows if r.method_limit]) == ["PER_FIG8", "R172428_EXP"]
+    p = PAIN.published_prediction_on_gate("PER_FIG8")
+    @test (p.n_ok, p.n, p.met) == (12, 14, false) && occursin("CFD", p.source)
+    x = PAIN.published_prediction_on_gate("NR_TP1964_XOVER")
+    @test (x.n_ok, x.n) == (12, 18) && !PAIN.method_limit("NR_TP1964_XOVER") && occursin("not PAIN", x.source)
+    @test PAIN.published_prediction_on_gate("MRP_APPD") === nothing
+    md = PAIN.why_not_met_markdown(; rec)
+    @test occursin("12/14, Pereira's CFD (Fig. 8, Numerical) (misses too: method limit)", md) && occursin("(misses; no mark)", md)
 end
 @testset "families and derived cases (Phase 145d)" begin
     @test all(id -> haskey(PAIN.VALIDATION_CASES, id), keys(PAIN.CASE_FAMILIES))            # no stale or misspelt ids

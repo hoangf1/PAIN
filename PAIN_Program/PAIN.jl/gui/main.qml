@@ -1489,7 +1489,7 @@ ApplicationWindow {
                                     x: coveragePage.labelW + coveragePage.stages.length * coveragePage.colW + 8
                                     anchors.verticalCenter: parent.verticalCenter
                                     text: modelData.verdict + (modelData.points.length > 0 ? " " + modelData.points : "")
-                                          + (modelData.method_limit ? " · method limit" : "")
+                                          + (modelData.method_limit ? " · prediction misses too" : "")
                                     font.pixelSize: 10
                                     color: coveragePage.verdictColour(modelData.verdict)
                                 }
@@ -1507,7 +1507,7 @@ ApplicationWindow {
                                                   + (modelData.figure && modelData.figure.length > 0 ? "\nsource: " + modelData.figure : "")
                                                   + (modelData.family && modelData.family.length > 0 ? "\nfamily: " + modelData.family : "")
                                                   + (modelData.derived_from && modelData.derived_from.length > 0 ? " (computed from " + modelData.derived_from + ")" : "")
-                                                  + (modelData.method_limit ? "\nmethod limit: NASA's own printout misses the same gate" : "")
+                                                  + (modelData.method_limit ? "\na published prediction (PAIN's printout or a higher-fidelity method) misses the same gate" : "")
                                     onClicked: {
                                         Julia.select_validation_case_from_qml(modelData.id)
                                         tabs.currentIndex = 1

@@ -19,7 +19,7 @@ Two lists, newest first in each. **Not assigned to a phase**: issues to act on o
 | 034 | The shipped program form has no held-out test of all its parts; R172428_ETAT2 changes only the trim damping | Validity, investigation | closed 2026-11-12: answered, a stated limit |
 | 033 | CYL2D at 62.6°: this code rejects NASA's grid where NASA's program solved it | Not met, investigation | closed 2026-11-12: NASA's grid is solved; a common factor of 0.3 % stays unexplained |
 | 032 | R172428_ETA and E14_LOSS: look for an error in the loss-factor method | Not met, investigation | open (R172428_ETA only since 2026-11-12; E14_LOSS has no verdict, ISSUE-037) |
-| 031 | Not-met cases where a published prediction misses the same way: a separate look on the chart | Readability | open, two questions for the author |
+| 031 | Not-met cases where a published prediction misses the same way: a separate look on the chart | Readability | closed 2026-11-12 |
 | 030 | R996_LOADS: the fix needs more measured section data or CFD | Not met | on hold (author 2026-11-10) |
 
 ### Assigned to a phase
@@ -304,7 +304,17 @@ The two patterns are not the same, so one cause for both is not shown.
 
 ## ISSUE-031: Not-met cases where a published prediction misses the same way: R172428_EXP, NR_TP1964_XOVER and PER_FIG8 should look different on the coverage chart
 
-**Status:** open, not assigned to a phase. Recorded 2026-11-10. Labels. No verdict changes: a case that misses its gate stays not met.
+**Status:** closed 2026-11-12 (Claude, under the author's authority of 2026-11-11 ("fix all the issues"; "make decisions logically like i do")). Verdicts unchanged: a case that misses its gate stays not met.
+
+**Rule (written 2026-11-12, before Pereira's CFD was put on the gate).** A not-met case is marked when a published prediction of the same quantity at the same points, put on the case's own tolerance and rule, also misses, and that prediction is either PAIN's own printed output or a method of higher fidelity (`published_prediction_on_gate`, `method_limit` in `validation_causes.jl`).
+
+**The two questions, decided as the author's words of 2026-11-10 lead.**
+1. NR_TP1964_XOVER: **no mark.** Its NASA curve is CR-159363's earlier model with three choices not printed, this code does not reproduce it, and it scores better (12/18) than this code (9/18). The author's "limitation of the code itself" holds only where the code reproduces the prediction. The table still shows the curve's count, with "no mark".
+2. PER_FIG8: **marked.** Pereira's CFD, computed from the digitized Fig. 8 on the same gate: H1 7/7 within ±1.7 dB, H2 5/7 within ±3 dB (−3.9 dB at −20°, −3.1 dB at −10°), so 12/14: it misses too. This code: 10/14. The author: "if we are getting the same results as CFD which is higher fidelity thats just a limitation of the code".
+
+**On the chart.** A marked bar is drawn half as strong with a black outline, and its text reads "prediction misses too". The status page counts these apart (2 of the 6 not-met cases: R172428_EXP, PER_FIG8). The "why not met" table names the prediction it used.
+
+Was: open, not assigned to a phase. Recorded 2026-11-10. Labels. No verdict changes: a case that misses its gate stays not met.
 
 **Author (2026-11-10).** On R172428_EXP and NR_TP1964_XOVER: "This really explains the limitation of the code itself and should be labeled differently on the coverage map". On PER_FIG8: "if we are getting the same results as CFD which is higher fidelity thats just a limitation of the code".
 

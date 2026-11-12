@@ -94,20 +94,60 @@ function nasa_printout_on_gate(id::AbstractString)
     return (; n_ok, n=length(d), met=n_ok / length(d) ≥ 0.75 - 1e-12, rule="±5 dB in at least 75 % of the bands")
 end
 
-"""True when NASA's own printout also misses case `id`'s gate (Phase 137c "method limit")."""
-function method_limit(id::AbstractString)
+# ISSUE-031 (rule written 2026-11-12, before Pereira's CFD was put on the gate; decided by Claude under the author's
+# authority of 2026-11-11, from the author's words of 2026-11-10): a not-met case is marked "a published prediction
+# misses too" when a published prediction of the same quantity at the same points, put on the case's own tolerance and
+# rule, also misses, and that prediction is either PAIN's own printed output or a method of higher fidelity. An earlier
+# NASA model that is not PAIN (TP-1964's ref. 2 curve, CR-159363; this code does not reproduce it) is shown in the table
+# but gives no mark. The verdict stays not met.
+"""Cases whose published prediction is not PAIN's printout or a higher-fidelity method: shown, no mark (ISSUE-031)."""
+const NO_MARK_PREDICTIONS = Dict("NR_TP1964" => "NASA's earlier model (CR-159363), not PAIN",
+                                 "NR_TP1964_XOVER" => "NASA's earlier model (CR-159363), not PAIN")
+
+"""
+    published_prediction_on_gate(id) -> (; n_ok, n, met, rule, source) or `nothing`
+
+A published prediction of case `id`'s quantity on the case's own points, tolerance and rule (ISSUE-031): NASA's printout
+(`nasa_printout_on_gate`), or for `PER_FIG8` Pereira's CFD ("Numerical" in Fig. 8, `pereira_fig8_directivity.csv`)
+against the measured points, H1 within ±1.7 dB and H2 within ±3 dB at every microphone.
+"""
+function published_prediction_on_gate(id::AbstractString)
     g = nasa_printout_on_gate(id)
+    g !== nothing && return (; g..., source=get(NO_MARK_PREDICTIONS, String(id), "NASA's PAIN printout"))
+    id == "PER_FIG8" || return nothing
+    hdr, rows = _read_csv_rows(_data_path("pereira", "pereira_fig8_directivity.csv"))
+    col = Dict(h => i for (i, h) in enumerate(hdr))
+    n = n_ok = 0
+    for r in rows
+        H = tryparse(Int, r[col["BPF"]]); (H === nothing || H > 2) && continue
+        num = tryparse(Float64, r[col["Numerical_dB"]]); ex = tryparse(Float64, r[col["Experimental_dB"]])
+        (num === nothing || ex === nothing) && continue
+        n += 1; n_ok += abs(num - ex) ≤ (H == 1 ? 1.7 : 3.0)
+    end
+    return (; n_ok, n, met=n > 0 && n_ok == n, rule="H1 within ±1.7 dB and H2 within ±3 dB at every microphone",
+            source="Pereira's CFD (Fig. 8, Numerical)")
+end
+
+"""True when a published prediction (PAIN's printout or a higher-fidelity method) also misses case `id`'s gate
+(Phase 137c "method limit"; widened by ISSUE-031, 2026-11-12)."""
+function method_limit(id::AbstractString)
+    haskey(NO_MARK_PREDICTIONS, id) && return false
+    g = published_prediction_on_gate(id)
     return g !== nothing && !g.met
 end
 
-_nasa_gate_cell(id) = (g = nasa_printout_on_gate(id); g === nothing ? "not printed" :
-                       "$(g.n_ok)/$(g.n)" * (g.met ? " (meets the gate)" : " (misses too: method limit)"))
+function _nasa_gate_cell(id)
+    g = published_prediction_on_gate(id)
+    g === nothing && return "not printed"
+    return "$(g.n_ok)/$(g.n), $(g.source)" * (g.met ? " (meets the gate)" :
+           haskey(NO_MARK_PREDICTIONS, id) ? " (misses; no mark)" : " (misses too: method limit)")
+end
 
 """Markdown table: why each not-met case on the chart is not met, generated from `CASE_CAUSES` and the snapshot."""
 function why_not_met_markdown(; rec::AbstractDict=recorded_case_errors())
     io = IOBuffer()
     println(io, "### Why each case is not met\n")
-    println(io, "| Case | Points | NASA's own printout on the same gate | Cause | Why | Tested in | What is left |\n",
+    println(io, "| Case | Points | A published prediction on the same gate | Cause | Why | Tested in | What is left |\n",
             "|---|---|---|---|---|---|---|")
     for id in sort([k for (k, r) in rec if r.verdict == "not_met" && !no_verdict_by_rule(k) &&
                      haskey(VALIDATION_CASES, k)])   # a retired case keeps its row in the file until it is rewritten (Phase 137a)
@@ -122,9 +162,10 @@ function why_not_met_markdown(; rec::AbstractDict=recorded_case_errors())
                     c.tested_in, " | ", c.left, " |")
         end
     end
-    println(io, "\nNASA's own printout: NASA's printed prediction put on the case's own measured points, tolerance and ",
-            "rule (Phase 136f); information about NASA's program, not a verdict. \"Method limit\": NASA's program misses ",
-            "the same gate, so the miss is in PAIN's method as NASA ran it (Phase 137c); the case's verdict stays.")
+    println(io, "\nA published prediction on the same gate: NASA's printed prediction, or Pereira's CFD for `PER_FIG8`, put on ",
+            "the case's own measured points, tolerance and rule (Phase 136f; ISSUE-031, 2026-11-12); information, not a ",
+            "verdict. \"Method limit\": PAIN's own printout or a method of higher fidelity misses the same gate, so the miss ",
+            "is not this code's alone; the case's verdict stays not met. An earlier NASA model that is not PAIN gives no mark.")
     println(io)
     return String(take!(io))
 end
