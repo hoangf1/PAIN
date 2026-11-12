@@ -620,6 +620,57 @@ const RETIRED_CASES = Dict{String,Tuple{String,String}}(
 )
 
 """
+Cases kept as tests only (ISSUE-029, the author's list of 2026-11-10; done 2026-11-12, ISSUE-040): checks of the code
+against a formula, an identity or another method. They stay registered, so their tests run them, but leave the GUI's
+case list, the case records, the summary file and the figures. `NO_VERDICT_CASES.md` no longer lists them.
+"""
+const TEST_ONLY_CASES = Set([
+    "BEMT_HAND",
+    "BEMT_MOMENTUM",
+    "BEMT_HAND_TIP",
+    "BEMT_INTEGRALS",
+    "BEMT_SIMILARITY",
+    "F1A_INDEP",
+    "F1A_PLANE_PEAK",
+    "F1A_GUTIN",
+    "F1A_GUTIN_ANGLES",
+    "F1A_GW_FLIGHT",
+    "F1A_THICKNESS",
+    "F1A_PROPERTIES",
+    "BBN_KIN",
+    "ISO_TABLE8",
+    "ISO_FF_CONV",
+    "SRC_PASSTHROUGH",
+    "UT_GRID",
+    "ISO_GEXT_LINE",
+    "ISO_BLOCKING",
+    "BLK_GAIN_MAP",
+    "MRP_INPUT_QA",
+    "MRP_TRUNC",
+    "CABIN_GEOM_HAND",
+    "ISO_CYL2D_EXACT",
+    "ISO_CYL2D_BOUNDARY",
+    "TRIM_INPUT_QA",
+    "ISO_JOINT_ACC",
+    "TRIM_CLOSED",
+    "TRIM_PASSIVITY",
+    "PAIN_INPUT_ECHO",
+    "ISO_MODAL_DENSITY",
+    "ISO_BB_BAND",
+    "NR_BAND_HAND",
+    "HF_MASSLAW",
+    "ISO_SIL",
+    "LOUDEST_PT_GRID",
+    "AC_CABIN_DEMO",
+    "R172428_TRIM_DECK",
+    "F1A_CHORDWISE",
+    "CYL2D_GRID_CONV",
+    "MRP_D1",
+    "BPM_RP1218",
+    "SHARP_PANEL_D_SHAPE"
+])
+
+"""
 Diagnostic runs (author 2026-10-29: "these diagnostics shouldnt be included in a validation map"): a re-run of another
 case with one program form or input set changed to test a documented cause of that case's miss. The case they re-run
 carries the verdict; the diagnostic answers whether the cause holds, so it carries no verdict and stays off the map.

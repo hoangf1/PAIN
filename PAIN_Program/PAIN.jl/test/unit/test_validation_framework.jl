@@ -11,7 +11,9 @@
     @test PAIN._verdict_all(true, 3, 3, "ok", "no") == (:met, "ok") && PAIN._verdict_all(false, 1, 3, "ok", "no") == (:not_met, "no")
     @test occursin(r"^\d{4}-\d{2}-\d{2}$", PAIN._today_iso())
     ids = [c.id for c in PAIN.list_validation_cases()]
-    @test allunique(ids) && Set(ids) == Set(keys(PAIN.VALIDATION_CASES))              # every registered case is ordered
+    @test allunique(ids) && union(Set(ids), PAIN.TEST_ONLY_CASES) == Set(keys(PAIN.VALIDATION_CASES))   # listed, or test-only (ISSUE-040)
+    @test isempty(intersect(Set(ids), PAIN.TEST_ONLY_CASES)) && all(id -> !haskey(PAIN.CASE_INFO, id), PAIN.TEST_ONLY_CASES)
+    @test all(id -> haskey(PAIN.VALIDATION_CASES, id), PAIN.TEST_ONLY_CASES) && length(PAIN.TEST_ONLY_CASES) == 43
     @test [c.id for c in PAIN._make_registry()] == ["CYL2D_C1", "MRP_D1", "T1", "T2", "REPRO_18b"]
     @test !PAIN.validation_case_runnable("NO_SUCH_CASE") && PAIN.validation_case_runnable("CYL2D_C1")
     @test_throws ErrorException PAIN.run_validation_case("NO_SUCH_CASE")

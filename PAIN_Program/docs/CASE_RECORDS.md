@@ -379,168 +379,6 @@ Inputs: recorded `pereira_results.csv` / `pereira_tables3_4.csv` from the Pereir
 Equations: BEMT (replayed); not re-solved in the GUI case.
 Outputs: T, Q; verdict `:no_verdict`.
 
-### Case: BEMT_HAND
-**Title:** CCBlade wrapper vs hand BEM (41e)
-**Map / block:** total / A_LOADS
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Blade and polars → Blade loads
-**Compared with:** verification
-**Source:** CCBlade residual (F=1); phase 41e criterion 2026-10-23
-**What it tests:** Project BEMT wrapper thrust/torque for constant-chord, constant-twist blade with cl = 2π α, cd = 0, tip loss off, against a hand blade-element/momentum solution written in the case.
-**Why it is here:** Isolates BEMT integration for failing R996_LOADS.
-**A pass means:** T and Q within 1 %.
-**Not covered:** Real XFOIL polars; Prandtl tip loss (off here); experimental loads.
-**Recorded outcome:** **Information since Phase 85 (2026-10-29): no verdict.** Verification, not a validation case under the meaningfulness rule (the BEMT wrapper against a hand BEM). The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: **met**, 2/2 (first run 2026-10-23)
-**Explanation:** Isolated analytic check: hand residual matches CCBlade `residual_and_outputs` with F = 1; trapz pad at hub/tip as `thrusttorque`; compared via `evaluate_propeller_source(...; use_tip_correction=false)`.
-Inputs: Rtip = 1 m, Rhub = 0.2 m, B = 2, chord = 0.1 m, twist = 15°, Vinf = 20 m/s, rpm = 1200.
-Equations: BEM induction residual (CCBlade form); hand trapz.
-Outputs: T [N], Q [N·m]; verdict within 1 %.
-
-### Case: BEMT_MOMENTUM
-**Title:** BEMT: momentum = blade element at every station (66a)
-**Map / block:** total / A_LOADS
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Blade and polars → Blade loads
-**Compared with:** verification
-**Source:** closed form / identity (plan §8j Phase 66; criterion and readings 2026-10-24, before any run)
-**What it tests:** Our CCBlade wrapper's converged sections: blade-element thrust and torque per unit span against the momentum values, at every station of three operating points.
-**Why it is here:** Shows the wrapper's sections are converged solutions of the BEM equations as we set them up (stations, inflow, rpm), not only that integrated loads look plausible.
-**A pass means:** Relative difference ≤ 1e-8 at every station.
-**Not covered:** Polar accuracy; the empirical (k < −2/3) region; experiment.
-**Recorded outcome:** **Information since Phase 85 (2026-10-29): no verdict.** Verification, not a validation case under the meaningfulness rule (BEM momentum = blade element: identity of the converged solution). The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: **met**, 72/72 stations, worst 1.1e-11 (first run 2026-10-24; `phase66_bemt_f1a.md`)
-**Explanation:** CCBlade applies the tip/hub loss to the loads and reports u, v rescaled by an effective G; the identity is checked with the raw induction a = k/(1−k), a′ = k′/(1+k′) from the section outputs, B N′ = 4πrρV²F a(1+a), B T′ = 4πrρV(1+a)Ωr F a′, and in CCBlade's G form B N′ = 4πrρ(V+u)u, B T′ = 4πrρ(V+u)v (reading fixed before the run).
-Inputs: Hartzell example at 20 m/s / 4000 rpm and 40 m/s / 3000 rpm; Report 996 blade β₇₅ = 15°, M_t = 0.6, 20 m/s.
-Equations: BEM momentum balance
-Outputs: per-station relative difference
-
-### Case: BEMT_HAND_TIP
-**Title:** BEMT: hand BEM with tip loss, drag, nonlinear polar (66b)
-**Map / block:** total / A_LOADS
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Blade and polars → Blade loads
-**Compared with:** verification
-**Source:** closed form / identity (plan §8j Phase 66; criterion and readings 2026-10-24, before any run)
-**What it tests:** Our wrapper's T and Q against a hand BEM written in the case (Prandtl tip and hub loss in the textbook form, c_d ≠ 0, c_l = 2πα − 4α³), solved by bisection on φ without CCBlade code.
-**Why it is here:** Extends BEMT_HAND (linear lift, no drag, no tip loss) to the features the production path uses.
-**A pass means:** T and Q within 1 %.
-**Not covered:** Experimental loads; Mach/Reynolds effects in the polar.
-**Recorded outcome:** **Information since Phase 85 (2026-10-29): no verdict.** Verification, not a validation case under the meaningfulness rule (the BEMT wrapper against a hand BEM). The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: **met**, 4/4 (re-run 2026-10-24 after a fix of the hand reference; the first run, 0/4, bisected across the k = 1 pole near the tip — a sign change of the residual that is not a root; `phase66_bemt_f1a.md`)
-**Explanation:** With the pole excluded the hand solution equals the wrapper to five digits at both speeds, and CCBlade's φ zeroes the hand residual at every station (|R| ≤ 6e-13). The wrapper and CCBlade were not changed.
-Inputs: Hartzell blade (10 stations) at 20 and 40 m/s, 4000 rpm.
-Equations: BEM residual sin φ/(1+a) − V/(Ωr)·cos φ/(1−a′) = 0
-Outputs: T [N], Q [N m]
-
-### Case: BEMT_INTEGRALS
-**Title:** BEMT: integrals, Froude bound, station spacing (66c)
-**Map / block:** total / A_LOADS
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Blade and polars → Blade loads
-**Compared with:** verification
-**Source:** closed form / identity (plan §8j Phase 66; criterion and readings 2026-10-24, before any run)
-**What it tests:** B∫N′dr = T and P = ΩQ from our own trapezoid; propulsive efficiency against the Froude ideal η_i; T when the station spacing is halved.
-**Why it is here:** Checks how we integrate and report the loads, and that the station count we use is converged.
-**A pass means:** Integrals within 1e-10; η ≤ η_i; ΔT < 0.5 % on halving the spacing.
-**Not covered:** Absolute accuracy of the loads.
-**Recorded outcome:** **Information since Phase 85 (2026-10-29): no verdict.** Verification, not a validation case under the meaningfulness rule (integrals, the Froude bound and station convergence: internal consistency). The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: **met**, 7/7 (first run 2026-10-24; `phase66_bemt_f1a.md`; information rows kept out of the count): η = 0.593 ≤ 0.919 (Hartzell), 0.626 ≤ 0.774 (Report 996); ΔT = −0.07 % (20 → 39 stations). Information: the thrust F1A radiates with AcousticAnalogies' midpoint spans is 0.997 (Hartzell) and 1.0004 (Report 996) of CCBlade's trapezoid T
-**Explanation:** η = TV/(ΩQ); η_i = 2/(1 + √(1 + T/(½ρV²A))) (actuator disk). The span-weight difference is a property of the two packages' quadratures as we combine them, 0.3 % here.
-Inputs: Hartzell and Report 996 blades at 20 m/s.
-Equations: trapezoid with zero hub/tip loads; Froude
-Outputs: T, P, η, ΔT
-
-### Case: BEMT_SIMILARITY
-**Title:** BEMT: C_T, C_P unchanged at fixed J (66d)
-**Map / block:** total / A_LOADS
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Blade and polars → Blade loads
-**Compared with:** verification
-**Source:** closed form / identity (plan §8j Phase 66; criterion and readings 2026-10-24, before any run)
-**What it tests:** C_T and C_P of our wrapper when rpm and V scale together (×0.5, ×2, ×3) with a Re- and M-independent polar.
-**Why it is here:** Non-dimensional consistency of the wrapper's coefficients (n, D definitions, unit handling).
-**A pass means:** Within 1e-6 relative.
-**Not covered:** Reynolds and Mach effects (real polars break similarity).
-**Recorded outcome:** **Information since Phase 85 (2026-10-29): no verdict.** Verification, not a validation case under the meaningfulness rule (coefficients at fixed J: similarity identity). The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: **met**, 6/6 (first run 2026-10-24; `phase66_bemt_f1a.md`)
-**Explanation:** With c_l, c_d independent of Re and M the BEM equations depend on J = V/(nD) only.
-Inputs: Hartzell blade, J = 20/(66.7 × 0.762).
-Equations: C_T = T/(ρn²D⁴), C_P = 2πQ/(ρn²D⁵)
-Outputs: C_T, C_P
-
-### Case: F1A_INDEP
-**Title:** Independent Farassat 1A vs AcousticAnalogies (41f)
-**Map / block:** total / X_F1A
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Blade loads → Free field
-**Compared with:** verification
-**Source:** Farassat 1A loading; Report 996 Fig. 12 / page-12 observers; phase 41f criterion 2026-10-23
-**What it tests:** Same CCBlade section loads through an independent time-domain compact-source F1A (plain Julia, thickness off) vs `evaluate_propeller_source` at x/D = −0.125 and the ±0.125 phase pair.
-**Why it is here:** Isolates AcousticAnalogies wiring for failing R996_FIG12/13A, R996_PHASE, BBN_CIRC, PER_FIG7/8/9.
-**A pass means:** Amplitude within 0.5 dB; phase within 2°.
-**Not covered:** Experimental agreement; thickness noise; real Report 996 polars (linear cl = 2π α used to isolate F1A).
-**Recorded outcome:** **Information since Phase 85 (2026-10-29): no verdict.** Verification, not a validation case under the meaningfulness rule (an independent F1A implementation is another code, not a measurement). The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: **met**, 3/3 (max |ΔdB| ≈ 0.005, |Δφ| ≈ 0.02°) (first run 2026-10-23)
-**Explanation:** Code-on-code: independent retarded-time Farassat 1A loading dipole written in the case; identical Np, Tp from CCBlade; compared to AcousticAnalogies path.
-Inputs: Fig. 12-like β = 10°, M_t = 0.75, B = 2; observers x/D = ±0.125, d/D = 0.083.
-Equations: Farassat 1A loading; FFT harmonics as in `evaluate_propeller_source`.
-Outputs: ΔdB, Δφ [deg]; verdict 0.5 dB / 2°.
-
-### Case: F1A_PLANE_PEAK
-**Title:** F1A free field: H1 peak on the propeller line (62)
-**Map / block:** total / X_FF
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Blade loads → Free field
-**Compared with:** verification
-**Source:** User Manual Fig. 3 grid; phase 62 criterion 2026-10-23
-**What it tests:** Where the F1A free field of the aircraft example puts its largest H1 amplitude on the 160-point grid.
-**Why it is here:** Gives the F1A block a check with its own figure (amplitude vs k on each ℓ line); a sign or axis error in the observer mapping moves the peak off the propeller line.
-**A pass means:** The H1 maximum lies on ℓ = 1 within ±1 station of k_p.
-**Not covered:** Absolute level (F1A_GUTIN, R996_*); phase.
-**Recorded outcome:** **Information since Phase 85 (2026-10-29): no verdict.** Verification, not a validation case under the meaningfulness rule (where the peak lies is a property of the field, not a PAIN output or a measurement). The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: **met**, 1/1 (first run 2026-10-23; `phase62_65_map_blocks_grid.md`)
-**Explanation:** Code check on the source block: the loudest point of the free field is the grid point closest to the propeller plane.
-Inputs: examples/aircraft_scale_hartzell.json, H = 1–2.
-Equations: —
-Outputs: argmax (k, ℓ) of A_H1; plot of A_H1(k) per ℓ.
-
-### Case: ISO_TABLE8
-**Title:** apply_table8_calibration identity
-**Map / block:** total / X_FF
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Free field → Free field
-**Compared with:** verification
-**Source:** phase 40d criterion 2026-10-23
-**What it tests:** That `apply_table8_calibration` is the identity when ℓ = 1 peaks already equal the Table-8 peaks.
-**Why it is here:** Calibration helper was untested in isolation.
-**A pass means:** ≤ 1e-12 relative on all amplitudes; scales = 1.
-**Not covered:** Non-identity scaling behaviour (clamped ±20 dB path).
-**Recorded outcome:** **Information since Phase 85 (2026-10-29): no verdict.** Verification, not a validation case under the meaningfulness rule (the Table 8 calibration is the identity on its own peaks: identity). The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: **met**, 483/483 (first run 2026-10-23)
-**Explanation:** Isolated analytic check: grid filled with Table-8 peak amplitudes; after calibration every point and every scale must match the input within 1e-12.
-Inputs: ANOPP Table 8 SPL CSV; synthetic grid at Table-8 peaks.
-Equations: scale = peak_Table8 / peak_ℓ1 (identity ⇒ 1).
-Outputs: amplitudes and scales; verdict ≤ 1e-12.
-
-### Case: F1A_GUTIN
-**Title:** F1A vs Gutin (far field)
-**Map / block:** total / A_AMP
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Blade loads → Free field
-**Compared with:** verification
-**Source:** Gutin far-field closed form
-**What it tests:** F1A loading-noise wiring vs Gutin's closed form on identical loads (far field).
-**Why it is here:** Catches coding errors in the F1A path before any experiment.
-**A pass means:** F1A = Gutin within 1 dB on identical loads (V-CODE-like).
-**Not covered:** Not experimental; far field only; thickness off.
-**Recorded outcome:** **Information since Phase 85 (2026-10-29): no verdict.** Verification, not a validation case under the meaningfulness rule (Gutin's far-field formula is a different method, not a measurement). The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: **met**, Δ = 0.03 dB (re-run 2026-10-24 after a code-on-code fix of the Gutin reference; criterion unchanged). Earlier record Δ = 0.31 dB (2026-10-21/23) compared F1A with a wrong closed form and is withdrawn.
-**Explanation:** Code-on-code: Farassat F1A (AcousticAnalogies.jl) vs Gutin's far-field loading-noise tone in the rotor plane, on the same BEMT loads. Fix of 2026-10-24 (found by the Phase 64 unit test of the independent F1A): the reference used (mBΩ/(2πc₀r))(Q/R_tip)·J_mB(mB·M_tip), which is low by √2·M against Gutin's p_rms = (mBΩ/(2√2πc₀r))·Qc₀/(ΩR²)·J_mB(mBΩR/c₀) (Goldstein; Hubbard RP-1258) and was evaluated at the tip radius; the two errors nearly cancelled for this rotor, so the old 0.31 dB agreement was accidental. A single-radius rotating source, Gutin's exact setting, gives the independent F1A of F1A_INDEP = Gutin within 0.03 %. The reference now sums Gutin annulus by annulus over the BEMT sections (trapezoid weights of `thrusttorque`; Σ dQ = Q to 1e-15).
-Inputs: examples/aircraft_scale_hartzell.json made static, thickness off; observer at 100 R_tip in the rotor plane; first harmonic H1.
-Equations: F1A (AcousticAnalogies); Gutin per annulus; comparison in `_run_f1a_gutin`.
-Outputs: SPL [dB]; verdict |Δ| ≤ 1 dB.
-
 ### Case: R996_FIG14
 **Title:** Report 996 Fig. 14(a) — loads scaled to measured thrust and torque
 **Map / block:** total / A_AMP
@@ -630,114 +468,6 @@ Outputs: total rms [dyne/cm²]; no pass rule.
 Inputs: recorded `f1a_results.csv`, `tr996_fig7_blade_loading_pc_over_CP_vs_xD.csv`.
 Equations: F1A (replayed).
 Outputs: p_c/C_P [-]; no pass rule.
-
-### Case: F1A_GUTIN_ANGLES
-**Title:** F1A vs Gutin off the rotor plane, thrust and torque (66e)
-**Map / block:** total / A_AMP
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Blade loads → Free field
-**Compared with:** verification
-**Source:** closed form / identity (plan §8j Phase 66; criterion and readings 2026-10-24, before any run)
-**What it tests:** Our F1A path (BEMT loads → AcousticAnalogies → FFT) against Gutin summed annulus by annulus with thrust and torque, at θ = 30°–150° from the flight direction, static, 100 R_tip: H1 level and phase relative to θ = 90°.
-**Why it is here:** F1A_GUTIN checks the rotor plane only, where thrust does not radiate; off the plane the thrust term and its sign enter.
-**A pass means:** Within 0.5 dB and 5° at each of five angles.
-**Not covered:** Near field; flight (66f); thickness (66g).
-**Recorded outcome:** **Information since Phase 82 (2026-10-29): no verdict.** Not a validation case under the meaningfulness rule (Gutin's far-field formula is a different method, not a measurement; R996_FIG12/FIG14 compare F1A with measurement). The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: **not met**, 4/5 (first run 2026-10-24; `phase66_bemt_f1a.md`): levels within 0.26 dB at all five angles; phase at θ = 60° 165.4° against 180° (14.6° off), others within 3.5°. Post-hoc: at 60° the thrust and torque terms cancel to 0.057 of their sum (a near-null), and at 400 R_tip the 60° phase is 176.3° (3.7° off)
-**Explanation:** Frame from the AcousticAnalogies source (rotor translates along +X): θ from +X, Gutin bracket −dT cos θ + dQ c₀/(ΩR²), sections weighted by AcousticAnalogies' spans (readings fixed before the run). The 60° miss is a near-null where the residual phase is set by the O(1/r²) near-field remainder at 100 R; it moves toward 180° with distance. Criterion unchanged.
-Inputs: Hartzell example, static, thickness off.
-Equations: Gutin per annulus
-Outputs: H1 SPL [dB], phase [deg]
-
-### Case: F1A_GW_FLIGHT
-**Title:** F1A vs Garrick–Watkins in flight (66f)
-**Map / block:** total / A_AMP
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Blade loads → Free field
-**Compared with:** verification
-**Source:** closed form / identity (plan §8j Phase 66; criterion and readings 2026-10-24, before any run)
-**What it tests:** Our F1A path in forward flight (observers moving with the propeller) against the Garrick–Watkins tone on the same BEMT loads, M_x = 0.1 and 0.2, θ = 60°, 90°, 120°, 100 R_tip.
-**Why it is here:** Report 996 and Pereira are flight cases; Gutin covers only static rotors.
-**A pass means:** Within 1 dB at every point.
-**Not covered:** Non-uniform inflow; installation effects.
-**Recorded outcome:** **Information since Phase 85 (2026-10-29): no verdict.** Verification, not a validation case under the meaningfulness rule (Garrick–Watkins is a different method, not a measurement). The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: **met**, 6/6, worst 0.07 dB (first run 2026-10-24; `phase66_bemt_f1a.md`)
-**Explanation:** Garrick–Watkins (x positive forward): p_rms = (mBΩ/(2√2πc₀S₀))|−dT(M_x + x/S₀)/β² + dQ c₀/(ΩR²)| J_mB(mBΩRy/(c₀S₀)), S₀ = √(x² + β²y²); reduces to Gutin at M_x = 0 (reading fixed before the run).
-Inputs: Hartzell example at 34 and 68 m/s, 4000 rpm.
-Equations: Garrick–Watkins per annulus
-Outputs: H1 SPL [dB]
-
-### Case: F1A_THICKNESS
-**Title:** F1A thickness noise vs the compact far field (66g)
-**Map / block:** total / A_AMP
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Blade loads → Free field
-**Compared with:** verification
-**Source:** closed form / identity (plan §8j Phase 66; criterion and readings 2026-10-24, before any run)
-**What it tests:** Our F1A thickness noise alone (loads scaled to zero, t/c = 0.12) against the compact far-field monopole form, H1–H3, θ = 60°, 90°, 120°, static.
-**Why it is here:** No other case checks the thickness term (the production default is loading only).
-**A pass means:** Within 1 dB at every point.
-**Not covered:** Non-compact chord effects at high harmonics (Hanson's chordwise factors → 1 in the compact limit).
-**Recorded outcome:** **Information since Phase 85 (2026-10-29): no verdict.** Verification, not a validation case under the meaningfulness rule (the compact monopole form is a different method, not a measurement). The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: **met**, 9/9, worst 0.002 dB (first run 2026-10-24; `phase66_bemt_f1a.md`)
-**Explanation:** Peak amplitude ρ₀(mBΩ)²B ΣA_i Δr_i J_mB(mBΩr_i sin θ/c₀)/(2πr), A = (t/c)c² (AcousticAnalogies' area_over_chord2), from ρ₀/(4πr) ∂²/∂t²[V/(1−M_r)]; Hanson's far field in the compact-chord limit.
-Inputs: Hartzell blade, static.
-Equations: compact monopole far field
-Outputs: SPL [dB] per harmonic
-
-### Case: F1A_PROPERTIES
-**Title:** F1A exact properties and convergence (66h)
-**Map / block:** total / A_AMP
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Blade loads → Free field
-**Compared with:** verification
-**Source:** closed form / identity (plan §8j Phase 66; criterion and readings 2026-10-24, before any run)
-**What it tests:** Blade-count scaling on identical prescribed loads (B = 4 H1 = 2 × B = 2 H2 at 4Ω), 1/r in the far field, and convergence in source time step and blade stations.
-**Why it is here:** Shows our F1A set-up (blade replication, reception window, sampling, station count) is consistent and converged.
-**A pass means:** B scaling and 1/r within 1 %; < 0.1 dB between successive halvings.
-**Not covered:** Absolute level (66e–66g, F1A_GUTIN).
-**Recorded outcome:** **Information since Phase 85 (2026-10-29): no verdict.** Verification, not a validation case under the meaningfulness rule (blade-count and 1/r scaling and convergence: internal consistency). The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: **met**, 5/5 (first run 2026-10-24; `phase66_bemt_f1a.md`): ratios 2.000, 2.000, 2.0002; 64 → 128 source times −4e-6 dB; 20 → 39 stations 0.025 dB
-**Explanation:** The blade-count check feeds the same CCBlade section loads to a 2- and a 4-blade rotor through `_f1a_harmonics` (the production F1A step), because BEMT loads change with B (reading fixed before the run).
-Inputs: Hartzell example, static.
-Equations: coherent sum of identical blades; spherical spreading
-Outputs: ratios, dB changes
-
-### Case: F1A_CHORDWISE
-**Title:** F1A near field: compact vs chordwise loading at Report 996 geometry (67b)
-**Map / block:** total / A_AMP
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Blade loads → Free field
-**Compared with:** verification
-**Source:** independent F1A (F1A_INDEP kinematics) with chordwise load points; rule 2026-10-24, before the run
-**What it tests:** At the Report 996 Fig. 14 microphone geometry (d/D = 0.083, x/D = −0.125 … 0.5, B = 2, β₇₅ = 10°, M_t 0.45–0.90, static), the tone with each section's load spread over the chord (thin-airfoil loading, 8 points along the chord line at the section pitch) against the same load at the quarter chord.
-**Why it is here:** The microphones are under two chords from the tip; the compact-chord F1A is verified only in the far field, so this tests whether compactness explains the near-field misses.
-**A pass means:** Diagnostic: a point where |chordwise − compact| > 2 dB would be outside the compact-chord claim.
-**Not covered:** Chordwise thickness distribution; unsteady loading; the loads themselves (POLAR_FIDELITY).
-**Recorded outcome:** no verdict (diagnostic): 0/60 points beyond 2 dB, largest 0.27 dB (first run 2026-10-24; `phase67_source_attribution.md`). The compact-chord approximation does not explain the Report 996 near-field misses.
-**Explanation:** With one chord point the routine reproduces the F1A_INDEP implementation (7.5e-5); spreading the load over the chord changes H1–H3 by 0.02–0.27 dB at this geometry.
-Inputs: Report 996 blade, BEMT loads (clamped-linear polar; the loads are the same for both arrangements), AcousticAnalogies spans.
-Equations: F1A loading term at each chord point.
-Outputs: chordwise − compact [dB] per harmonic and x/D.
-
-### Case: BBN_KIN
-**Title:** BBN kinematic Δφ
-**Map / block:** total / A_PHASE
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Blade loads → Free field
-**Compared with:** verification
-**Source:** kinematics (23a′)
-**What it tests:** F1A phase difference on a hub ring equals m·B·Δψ within 0.5°.
-**Why it is here:** Phase between grid points drives joint acceptance Ψ_G.
-**A pass means:** Δφ = m·B·Δψ within 0.5°; reverse rotation flips sign.
-**Not covered:** Sign convention is a free gauge; no measurement.
-**Recorded outcome:** **Information since Phase 85 (2026-10-29): no verdict.** Verification, not a validation case under the meaningfulness rule (the phase step m·B·Δψ is kinematics, not a PAIN output or a measurement). The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: PASS
-**Explanation:** Unit test: kinematic check that F1A phase difference on a hub ring equals m·B·Δψ within 0.5°, and reverse rotation flips the sign. Coding check of phase wiring for Ψ_G — no measurement.
-Inputs: synthetic hub-ring observers; blade count B; harmonics m; rotation ±1 (runner `_run_bbn_kin`).
-Equations: rigid-rotation kinematic Δφ = m·B·Δψ; F1A phase extraction.
-Outputs: Δφ [deg]; verdict |Δφ − m·B·Δψ| ≤ 0.5°.
 
 ### Case: BBN_CIRC
 **Title:** BBN circumferential phase
@@ -829,103 +559,13 @@ Inputs: recorded `pereira_results.csv`, `pereira_fig9_harmonics.csv`.
 Equations: F1A (replayed).
 Outputs: SPL [dB]; verdict on H1/H2 counts.
 
-### Case: BPM_RP1218
-**Title:** Airfoil self-noise (BPM) vs NASA's printed code output, RP-1218 Tables D2/D3 (48a)
-**Map / block:** total / A_SURF
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Blade and polars → Free field
-**Compared with:** verification
-**Source:** NASA RP-1218 App. D Tables D2 and D3 (printed output of NASA's prediction code); criterion fixed 2026-10-23
-**What it tests:** The Julia port of the Brooks–Pope–Marcolini airfoil self-noise model (TBL-TE pressure and suction side, separation, LBL-VS, tip vortex) against NASA's own printed code output for two test cases.
-**Why it is here:** Phase 48 predicts the propeller exterior broadband from this model.
-**A pass means:** Within 1 dB at ≥ 90 % of the printed points.
-**Not covered:** Trailing-edge bluntness noise (not ported); the rotor application.
-**Recorded outcome:** **Information since Phase 85 (2026-10-29): no verdict.** Verification, not a validation case under the meaningfulness rule (NASA's BPM code is not PAIN, and RP-1218's tables are its output, not a measurement). The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: **met**, 270/270 (max 0.19 dB; first run 2026-10-23).
-**Explanation:** Code-on-code. `bpm_spectrum` is run with the App. D inputs.
-Inputs: `data/rp1218/rp1218_tableD2.csv`, `rp1218_tableD3.csv`.
-Equations: RP-1218 Eqs. 2–67, App. B directivity.
-Outputs: 1/3-octave SPL per mechanism [dB].
-
 ### Chunk 2: Free field (`G_FF`)
 
 Blocks in map order: `P_FF` e11 free field → `X_SRC` Source select. Cases are listed block by block, in the order the map shows them.
 
-### Case: ISO_FF_CONV
-**Title:** Free-field SPL↔Pa and e11 ℓ=1 loader
-**Map / block:** total / P_FF
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Free field → Free field
-**Compared with:** verification
-**Source:** I-17 amplitude convention; Fig. E-11 / Table 8 CSVs; phase 40b criterion 2026-10-23
-**What it tests:** SPL → peak Pa → SPL round-trip after I-17, and the ℓ = 1 line of `freefield_from_e11_csv` against a hand conversion of the CSV.
-**Why it is here:** Conversions and the e11 loader had no isolated check (audit NONE).
-**A pass means:** ≤ 1e-12 relative on every conversion and ℓ = 1 amplitude/phase row.
-**Not covered:** Off-line GEXT values; broadband clip policy beyond matching the loader's written rule.
-**Recorded outcome:** **Information since Phase 85 (2026-10-29): no verdict.** Verification, not a validation case under the meaningfulness rule (SPL↔Pa round trip and loader against a hand conversion: identity). The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: **met**, 111/111 (first run 2026-10-23)
-**Explanation:** Isolated analytic check: hand formulas A = √2·20μPa·10^(SPL/20) and the inverse; ℓ = 1 from the loader vs the same hand conversion of the digitized CSV (with the loader's ANOPP H≥3 / clip rule written in the case).
-Inputs: synthetic SPL values; `default_e11_paths()` amp/phase/ANOPP CSVs; test-article geometry.
-Equations: I-17 peak convention; `spl_dB_to_peak_Pa` / `peak_Pa_to_spl_dB` / `freefield_from_e11_csv`.
-Outputs: Pa and dB; verdict ≤ 1e-12 relative.
-
-### Case: SRC_PASSTHROUGH
-**Title:** Source select: the chosen field reaches the cabin unchanged (62)
-**Map / block:** total / X_SRC
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Free field → Skin field
-**Compared with:** verification
-**Source:** PAIN.jl `run_pain_pipeline`; phase 62 criterion 2026-10-23
-**What it tests:** The amplitudes and phases stored in PainInputs against the blocked source grid, for :e11, :synthetic and (since 2026-10-28, Phase 70 F7) :aircraft, the F1A field of the working example.
-**Why it is here:** Gives the source-select block a check with its own figure; a transposed or re-indexed grid would pass every downstream check silently.
-**A pass means:** PainInputs amplitudes and phases identical to the blocked source grid.
-**Not covered:** The physics of any source.
-**Recorded outcome:** **Information since Phase 85 (2026-10-29): no verdict.** Verification, not a validation case under the meaningfulness rule (the stored inputs against the source grid: plumbing identity). The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: **met**, 2/2 (first run 2026-10-23; `phase62_65_map_blocks_grid.md`) **Re-run 2026-10-28 (Phase 69, post-hoc: the earlier results were known; no criterion, tolerance or input was chosen from them):** **met, 3/3**: the aircraft-path row (`aircraft_scale_hartzell.json`, 2 harmonics, R2) was added to the E-11 and synthetic rows (Phase 70); bit-exact (0.0 Pa).
-**Explanation:** Plumbing check: what the cabin chain reads is what the source block produced (bit-identical).
-Inputs: :e11 and :synthetic (H = 1–3), :aircraft with `examples/aircraft_scale_hartzell.json` (H = 1–2), blocking R2.
-Equations: —
-Outputs: max |Δ| of amplitude and phase arrays.
-
 ### Chunk 3: Grid and blocking (`G_GRID`)
 
 Blocks in map order: `P_GRID` 160-point grid → `P_BLK` Blocking Eq. 43 → `X_BLK_OUT` Blocked pressures. Cases are listed block by block, in the order the map shows them.
-
-### Case: UT_GRID
-**Title:** Skin grid vs User Manual Fig. 3 (with figure)
-**Map / block:** total / P_GRID
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Skin field → Skin field
-**Compared with:** verification
-**Source:** User Manual Fig. 3
-**What it tests:** That the 160 fuselage-skin grid points match the User Manual Fig. 3 coordinate and azimuth formulas, with a γ-coloured plot.
-**Why it is here:** Every observer, incidence angle γ, and panel area comes from this grid.
-**A pass means:** Sampled coordinates and azimuth agree with Fig. 3 formulas within 1e-9 (unit test with visualization).
-**Not covered:** Acoustics at the points; GEXT; how γ enters blocking physics.
-**Recorded outcome:** **Information since Phase 85 (2026-10-29): no verdict.** Verification, not a validation case under the meaningfulness rule (grid coordinates against the User Manual's formulas: an input check, not a PAIN output). The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: runnable unit test with figure (`docs/validation_reports/figures/UT_GRID.png`); Pkg.test "Grid geometry" / "Grid azimuth" remain. Error-panel x label is sample index (`PlotSpec.error_xlabel`), not axial z. **Phase 65 knock-on (2026-10-24, grid axial correction: code vs User Manual p. 9 / App. E p. E-8, z_k = z_p − x₃, z_p = 0.662 m; not a fit):** the grid z of every point is now checked against z_k = z_p − x₃ by hand: **met** 35/35 (was 28/28 without the z rows).
-**Explanation:** Unit test with visualization: the PAIN/ANOPP skin grid is 16 axial stations (k) × 10 azimuth lines (ℓ) = 160 points on the unrolled cylinder. Line ℓ = 1 sits at the propeller azimuth φ_p; α = (ℓ−1)·10° is the unsigned angle from that line. Incidence angle γ is the angle between the surface→hub direction and the outward normal (γ = 0 head-on). Figure: axial z vs α, points coloured by γ, with the propeller plane z = z_p and ℓ = 1 marked. Table: Manual Fig. 3 x1, x2, x3, θ at a handful of (k, ℓ); error panel x is the sample index, not z. No acoustics.
-Inputs: `FuselageGeometry(L=1.83 m, a=0.508 m, θ0=56.6°)`, `PropellerPlacement(r_p=0.965 m, φ_p=90°, z_p=0.662 m)` (since Phase 65), `GridSpec()` (k_max=16, ell_max=10, k_p=8) — same family as the e11 path / Manual §5.2.
-Equations: User Manual Fig. 3 / §3: x1=(r_p−a)+a(1−cos α), x2=−a sin α, x3=(π a/18)(k_p−k), θ=φ_p+α; γ via `incidence_angle_deg` (CR-3813 §3.4). Code: `grid_points`, `incidence_angle_deg`.
-Outputs: x1,x2,x3 [m], θ [deg] vs formulas; figure γ [deg]; verdict on coordinate/azimuth residuals ≤ 1e-9.
-
-### Case: ISO_GEXT_LINE
-**Title:** extend_line_to_grid identity on ℓ = 1
-**Map / block:** total / P_GRID
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Free field → Skin field
-**Compared with:** verification
-**Source:** phase 40c criterion 2026-10-23
-**What it tests:** On ℓ = 1 the extension returns its input (falloff 1, delay 0) for every harmonic and option set.
-**Why it is here:** On-line identity is the only GEXT check with a reference; off-line stays V-ASSUMED.
-**A pass means:** ≤ 1e-12 on ℓ = 1 amplitudes and phases for all exercised options.
-**Not covered:** Off-line falloff/delay physics (no reference).
-**Recorded outcome:** **Information since Phase 85 (2026-10-29): no verdict.** Verification, not a validation case under the meaningfulness rule (grid extension returns its input on ℓ = 1: identity). The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: **met**, 480/480 (first run 2026-10-23)
-**Explanation:** Isolated analytic check: synthetic line amplitudes/phases; for each importance-bound option set, every ℓ = 1 point must equal the line input.
-Inputs: synthetic line_amps/phases; `grid_points`; option sets (n, floor, delay_scale).
-Equations: GEXT on-line identity (α = 0 ⇒ falloff = 1, R = R0 ⇒ delay = 0).
-Outputs: A, φ on ℓ = 1; verdict ≤ 1e-12.
 
 ### Case: BLK_P68
 **Title:** Blocking Eq. (43) vs printed p.68 values
@@ -963,81 +603,9 @@ Inputs: ANOPP Table 8 CSV; `e12_predicted_A/B.csv`; geometry as E11 (a = 0.508 m
 Equations: Eq. (43) via `delta_L_blocking_dB`; γ via `incidence_angle_deg`; blocked SPL = free-field SPL + ΔL.
 Outputs: blocked SPL [dB] H1–H3; verdict |Δ| ≤ 3.41 dB vs digitized NASA prediction.
 
-### Case: ISO_BLOCKING
-**Title:** apply_blocking full grid vs F(γ)·A
-**Map / block:** total / P_BLK
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Skin field → Skin field
-**Compared with:** verification
-**Source:** CR-3813 Eq. (43); phase 40a criterion 2026-10-23
-**What it tests:** That `apply_blocking` on all 160 points equals F(γ)·A from `blocking_factor` and the geometry's γ, with phases unchanged.
-**Why it is here:** Isolates full-grid blocking from the cabin chain (BLK_P68 only checks F at given γ).
-**A pass means:** Max relative difference ≤ 1e-12 on amplitudes and phases (V-UNIT).
-**Not covered:** Physical correctness of Eq. (43); γ from geometry is used but not separately gated here.
-**Recorded outcome:** **Information since Phase 85 (2026-10-29): no verdict.** Verification, not a validation case under the meaningfulness rule (full-grid blocking against the same Eq. (43) factor: identity). The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: **met**, 960/960 (first run 2026-10-23)
-**Explanation:** Isolated analytic check: synthetic free-field amplitudes/phases on the 160-point grid; reference is F(γ)·A with γ from `incidence_angle_deg` and F from `blocking_factor` (same Eq. 43, not `apply_blocking`). Phases must be identical to the input.
-Inputs: synthetic A, φ on `grid_points` (test-article geometry); variant R1.
-Equations: Eq. (43) via `blocking_factor`; `apply_blocking` under test.
-Outputs: A_bl, φ_bl; verdict every row ≤ 1e-12 relative (phases absolute near zero).
-
-### Case: BLK_GAIN_MAP
-**Title:** Blocked pressures: gain within 0–6.02 dB (62)
-**Map / block:** total / X_BLK_OUT
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Skin field → Skin field
-**Compared with:** verification
-**Source:** CR-172428 Eq. (43) (R1) and CR-3813 Eq. (43) as used (R2); phase 62 criterion 2026-10-23
-**What it tests:** The blocked/free gain ΔL at every grid point for both blocking variants.
-**Why it is here:** Gives the blocking output a check with its own figure (ΔL vs incidence γ); a rigid surface at most doubles the pressure, so 0 ≤ ΔL ≤ 20 log10 2.
-**A pass means:** 0 ≤ ΔL ≤ 6.02 dB at every grid point for R1 and R2.
-**Not covered:** Diffraction around the cylinder; which variant NASA used (R2 is the production default).
-**Recorded outcome:** **Information since Phase 82 (2026-10-29): no verdict.** Not a validation case under the meaningfulness rule (a 0–6.02 dB gain range is a property of Eq. (43), not a PAIN output or a measurement; E12_BLOCK compares the blocked field with measurement). The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: **not met**, 1/2 (first run 2026-10-23; `phase62_65_map_blocks_grid.md`): R2 within the bound; R1 reaches −49.3 dB at the grid points with γ > 90° (Eq. 43 as printed in CR-172428 goes negative there)
-**Explanation:** The production variant R2 satisfies the physical bound. R1 is kept as the printed alternative; the case records that it leaves the bound behind the cylinder, which is why R2 is the default. No change made.
-Inputs: e11 field, H = 1; γ from `incidence_angle_deg`.
-Equations: Eq. (43) R1 / R2
-Outputs: ΔL(γ) per variant.
-
 ### Chunk 4: Structural modes (`G_MRP`)
 
 Blocks in map order: `X_MRP_IN` Structure inputs → `P_MRP` Structural modes → `X_MRP_OUT` Modes f_r, ψ_r. Cases are listed block by block, in the order the map shows them.
-
-### Case: MRP_INPUT_QA
-**Title:** Structure inputs vs CR-3813 App. E (62)
-**Map / block:** total / X_MRP_IN
-**Category:** input_qa
-**Kind:** runnable
-**Chain span:** Wall modes → Wall modes
-**Compared with:** verification
-**Source:** CR-3813 App. E pp. E-1–E-8 (`data/cr3813/appE_article_inputs.csv`, page and printed digits per value); phase 62 criterion 2026-10-23
-**What it tests:** Every structural and propeller-placement value the code uses for the test article against the printed value, rounded to the printed digits.
-**Why it is here:** Gives the structural input block a check with its own figure; input transcription errors are invisible to code-on-code checks. This case found the grid axial-sign and z_p errors fixed in Phase 65.
-**A pass means:** Every code value equals the printed value to its printed digits.
-**Not covered:** Values CR-3813 does not print (V-ASSUMED register items).
-**Recorded outcome:** **Information since Phase 85 (2026-10-29): no verdict.** Verification, not a validation case under the meaningfulness rule (structural inputs against App. E's printed values: an input check, not a PAIN output). The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: **met**, 13/13 (2026-10-23, after Phase 65; `phase62_65_map_blocks_grid.md`). Before Phase 65 the z_p row failed (0.90 m in code, 0.662 m printed on p. E-8).
-**Explanation:** Input QA against the printed page. Not a fit: the printed value is the reference and nothing is chosen from a result.
-Inputs: appE_article_inputs.csv; MRP_* constants; PropellerPlacement used by the cases.
-Equations: —
-Outputs: code / printed per quantity.
-
-### Case: MRP_D1
-**Title:** MRP Table D-1 seed
-**Map / block:** none / P_MRP
-**Category:** input_qa
-**Kind:** runnable
-**Chain span:** Wall modes → Wall modes
-**Compared with:** verification
-**Source:** CR-3813 Table D-1, p.113
-**What it tests:** That production structural modes load Table D-1 frequencies exactly (transcription).
-**Why it is here:** Production structural modes come from Table D-1, not from the raw Ritz solve.
-**A pass means:** Residual 0 by construction — transcription only; verdict always no_verdict.
-**Not covered:** Says nothing about the Ritz or App. D solvers.
-**Recorded outcome:** by construction, no verdict **Off the map 2026-10-28 (Phase 78f, author):** no verdict is possible (MRP_D1 is 0 by construction; MRP_RITZ is a calibrated fit to Table D-1), so the case is kept as a registered regression check and unit test but no longer shown on the Validation map ("none / P_MRP"; P_MRP keeps its figure folder).
-**Explanation:** Input QA: production `structural_modes_from_table_d1` copies CR-3813 Table D-1 frequencies and modal masses. Residual is 0 by construction. Always `:no_verdict`. See MRP_RITZ / MRP_APPD for solvers.
-Inputs: Constant table `TABLE_D1_FULL` (n_keep = 32); L does not change the seed frequencies.
-Equations: none (table load); code `structural_modes_from_table_d1`.
-Outputs: mode frequencies f [Hz] equal to Table D-1; verdict `:no_verdict`.
 
 ### Case: MRP_APPD
 **Title:** App. D Eqs. (D.17)–(D.26) vs Table D-1
@@ -1057,45 +625,9 @@ Inputs: `appd_nasa_deck()` (NASA's MRP deck, User Manual pp. 42–43, from 2026-
 Equations: App. D (D.17)–(D.26); code `appd_modes` in `mrp_appd.jl`.
 Outputs: f [Hz] vs Table D-1; M_r vs Table D-1 TOTAL MASS (info); Fig. D-2 shape residuals (info); the count on derived App. E inputs (info); verdict on count rule.
 
-### Case: MRP_TRUNC
-**Title:** App. D solver shapes: unit maximum, and the Table D-1 print truncation (80d)
-**Map / block:** total / X_MRP_OUT
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Wall modes → Wall modes
-**Compared with:** verification
-**Source:** CR-3813 p. D-10 (shapes normalized to unit maximum displacement), Table D-1 (5 shell + 3 plate terms printed); NASA's MRP deck; Phase 80d, criteria fixed 2026-10-29 before the first run
-**What it tests:** (1) The solver's full shapes (NASA's deck, the 32 lowest modes) peak at 1 over the whole shell and the floor, checked on a dense grid independent of the solver's own peak search. (2) Diagnostic: the same shapes cut to the printed 5 + 3 terms, against the printed table's own peaks.
-**Why it is here:** The shape output of the structural block had only the printed-table check (MRP_SHAPE_NORM), which tests the print, not the solver.
-**A pass means:** max |w| = 1 within 1e-6 for all 32 full shapes. The truncation reading of MRP_SHAPE_NORM counts as supported if the cut shapes exceed 1 in at least a third of the modes and the largest lies in [1.05, 1.5] (rule fixed before the run).
-**Not covered:** NASA's own peak search on its 36-point output grid (its printed coefficients are up to 2.3 % larger than a continuous maximum gives).
-**Recorded outcome:** **Information since Phase 85 (2026-10-29): no verdict.** Verification, not a validation case under the meaningfulness rule (a property of the solver's shapes (unit maximum), not a PAIN output or a measurement). The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: **met, 32/32** (first run 2026-10-29; largest deviation 1.9e-8). Diagnostic: cut to 5 + 3 terms, 16/32 exceed 1, largest 1.228 (printed 1.254): **supported**; the cut solver shapes match the printed peaks mode by mode within about 0.02.
-**Explanation:** Normalization over the whole shell (until 2026-10-29 over the cabin arc only, which scaled Table D-1 mode 14, peaking below the floor, 1.26× too large). `_appd_shape_peak` (grid + golden section) in the solver; `_p80_dense_peak` (200,001-point grid via `shell_circumferential`) in the check.
-Inputs: `appd_nasa_deck()`, ns 0–12, np 0–5, NASA's floor form.
-Equations: (D.26)–(D.29); p. D-10 normalization.
-Outputs: max |w| per mode for the full shape, the 5 + 3 cut and the printed table.
-
 ### Chunk 5: CYL2D (`G_CYL`)
 
 Blocks in map order: `X_CYL_IN` Cabin geometry → `P_CYL` CYL2D → `X_CYL_OUT` Modes Φ_G. Cases are listed block by block, in the order the map shows them.
-
-### Case: CABIN_GEOM_HAND
-**Title:** Cabin geometry by hand (62)
-**Map / block:** total / X_CYL_IN
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Cabin modes → Cabin modes
-**Compared with:** verification
-**Source:** CR-3813 App. C/D geometry (Fig. D-1); phase 62 criterion 2026-10-23
-**What it tests:** Cabin volume, coupling area, absorbing area and floor width against the hand formulas.
-**Why it is here:** Gives the cabin geometry input block a check with its own figure (the cross-section drawn from the same numbers).
-**A pass means:** Each within 1e-12 of the hand formula.
-**Not covered:** Whether the test article is a cylinder with a flat floor (it is, App. E).
-**Recorded outcome:** **Information since Phase 85 (2026-10-29): no verdict.** Verification, not a validation case under the meaningfulness rule (cabin geometry against hand formulas). The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: **met**, 4/4 (first run 2026-10-23; re-run 2026-10-24 after the code review replaced the floor-width row, which compared 2a sin θ0 with itself, by the floor width the App. D plate uses; `phase62_65_map_blocks_grid.md`)
-**Explanation:** Hand formulas: V = a²L(π − θ0 + cosθ0 sinθ0), A = L(Lp + 2a(π − θ0)), S = S_side + 2V/L, Lp = 2a sinθ0.
-Inputs: a = 0.508 m, L = 1.83 m, θ0 = 56.6°.
-Equations: App. C Eq. (C.11) area
-Outputs: V, A, S, Lp.
 
 ### Case: CYL2D_C1
 **Title:** CYL2D vs Table C-1 / Fig. C-3
@@ -1115,81 +647,9 @@ Inputs: θ0 = 56.6°, NY = 10, c0 = TABLE_C1_C0 = 341 m/s, n_modes = 20.
 Equations: App. C scheme in `cyl2d.jl` (`cyl2d_modes`).
 Outputs: f [Hz], f/f1 [-], Φ_G [-], symmetry flags; verdict on ratios ≤0.1 %, Φ_G ≤0.1 %, symmetry equal.
 
-### Case: ISO_CYL2D_EXACT
-**Title:** cyl2d_modes vs exact circle J′ zeros
-**Map / block:** total / P_CYL
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Cabin modes → Cabin modes
-**Compared with:** verification
-**Source:** Neumann circular duct; phase 40e criterion 2026-10-23
-**What it tests:** Floorless circular section (θ0 = 0°) against f = c·j′_{m,s}/(2πa) from independent J′ zeros.
-**Why it is here:** CYL2D_C1 only compares to App. C tables of the same report.
-**A pass means:** First 10 modes within 2 % at NY = 20, and max relative error at NY = 20 smaller than at NY = 10.
-**Not covered:** Floored cabin (θ0 = 56.6°); Φ_G / shapes.
-**Recorded outcome:** **Information since Phase 85 (2026-10-29): no verdict.** Verification, not a validation case under the meaningfulness rule (an analytic circular duct, not a PAIN output or a measurement). The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: **met**, max |e| NY20 = 0.966 %, NY10 = 6.676 % (first run 2026-10-23) **Map chip 2026-10-28 (Phase 79a, display only):** the NY = 10 rows are labelled "(info, production grid)" and stay in the table and figure but leave the chip count, which now reads 11/11 like the verdict (it read 12/21 because nine information rows were counted as failures).
-**Explanation:** Isolated analytic check: θ0 = 0° makes the floor width zero (floor at y = −1, wall-tangent). Reference frequencies from scan+bisection zeros of J′_m (series Bessel written in the case). NY = 10 and NY = 20 both reported; pass uses the 2026-10-23 gate.
-Inputs: θ0 = 0°, c0 = 340 m/s, a = 1 (unit), n_modes = 10, NY = 10 and 20.
-Equations: f = c0·j′/(2π); `cyl2d_modes`.
-Outputs: f [Hz]; verdict on 2 % @ NY20 and error improvement.
-
-### Case: ISO_CYL2D_BOUNDARY
-**Title:** acoustic_boundary_value and cabin_modes_3d list
-**Map / block:** total / P_CYL
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Cabin modes → Cabin modes
-**Compared with:** verification
-**Source:** App. C; phase 40j criterion 2026-10-23
-**What it tests:** Boundary φ reconstructed from stored node values; (q, i) list complete and sorted.
-**Why it is here:** Boundary interpolation and 3-D mode enumeration had no isolated gate.
-**A pass means:** ≤ 1e-9 on reconstructed φ; list length/completeness/sort exact; f matches Eq. (C.7)/(C.12).
-**Not covered:** Absolute CYL2D eigenvalues (see ISO_CYL2D_EXACT / CYL2D_C1).
-**Recorded outcome:** **Information since Phase 85 (2026-10-29): no verdict.** Verification, not a validation case under the meaningfulness rule (boundary values and mode list against the code's own nodes: internal consistency). The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: **met**, 173/173 (first run 2026-10-23)
-**Explanation:** Isolated analytic check: at each stored wall angle, `acoustic_boundary_value` must return the stored φ; `cabin_modes_3d` must list every (q,i) once, sorted by frequency, with f from the printed formula written in the case.
-Inputs: `cyl2d_modes(56.6°; NY=10)`; a = 0.508 m, L = test_article_length(), q_max = 3.
-Equations: linear interpolate in θ; f_n = (c0/2π)√(λ_i/a² + (qπ/L)²).
-Outputs: φ, f; verdict ≤ 1e-9 / exact list.
-
-### Case: CYL2D_GRID_CONV
-**Title:** CYL2D production grid (NY 10) vs converged grid (79c)
-**Map / block:** total / X_CYL_OUT
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Cabin modes → Cabin modes
-**Compared with:** verification
-**Source:** CR-3813 App. C Fig. C-3 (NY = 10 grid); Phase 79c, 2026-10-28 (author: a separate figure for the grid error)
-**What it tests:** The per-mode error of the App. C NY = 10 grid on the real floored section (θ0 = 56.6°) against a converged NY = 60 grid, modes paired by parity and order; NY = 40 against NY = 60 shows that the reference has converged.
-**Why it is here:** CYL2D_C1 reproduces NASA's Table C-1 on NY = 10, but that says nothing about how far NY = 10 is from the continuous cabin; refined grids became solvable in Phase 79b.
-**A pass means:** No criterion (information, no verdict): the error is the discretization error of the paper's grid.
-**Not covered:** Mode shapes and generalized masses; whether production should move to a finer grid (decided 2026-10-28: production stays NY = 10, the grid App. C prints and NASA ran; this error is a stated limitation of the cabin modes).
-**Recorded outcome:** **no verdict** (first run 2026-10-28): 19 modes, NY = 10 at most 4.94 % from NY = 60; NY 40 against NY 60 at most 0.21 %.
-**Explanation:** Same `cyl2d_modes` on three grids (Phase 79b guard: only the kept modes must be real). Rows "NY40 vs NY60 (info)" stay out of the chip roll-up.
-Inputs: θ0 = 56.6°, NY = 10, 40, 60, n_modes = 20 per grid, c = 340 m/s, a = 1 m.
-Equations: App. C (C.3)–(C.6).
-Outputs: f per mode on each grid; error of NY 10 (and NY 40, information) against NY 60 in %.
-
 ### Chunk 6: Trim and loss (`G_TRIM`)
 
 Blocks in map order: `X_TRIM_IN` Trim stack → `P_TRIM` Trim and loss → `X_TRIM_OUT` τ, η. Cases are listed block by block, in the order the map shows them.
-
-### Case: TRIM_INPUT_QA
-**Title:** Phase III trim vs CR-3813 p. E-9 (62)
-**Map / block:** total / X_TRIM_IN
-**Category:** input_qa
-**Kind:** runnable
-**Chain span:** Damping and trim → Damping and trim
-**Compared with:** verification
-**Source:** CR-3813 App. E p. E-8/E-9 (`appE_article_inputs.csv`); phase 62 criterion 2026-10-23
-**What it tests:** Every Phase III trim value the code uses (layer count and thickness, fiberglass density, facing and septum masses) against the printed value.
-**Why it is here:** Gives the trim input block a check with its own figure.
-**A pass means:** Every code value equals the printed value to its printed digits.
-**Not covered:** Values CR-3813 does not give (facing side, G-10 wavespeed, connection count: register f).
-**Recorded outcome:** **Information since Phase 85 (2026-10-29): no verdict.** Verification, not a validation case under the meaningfulness rule (trim inputs against App. E's printed values: an input check, not a PAIN output). The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: **met**, 7/7 (first run 2026-10-23; `phase62_65_map_blocks_grid.md`)
-**Explanation:** Input QA against the printed page; nothing chosen from a result.
-Inputs: phase3_trim() defaults; appE_article_inputs.csv.
-Equations: —
-Outputs: code / printed per quantity.
 
 ### Case: UT_TRIM
 **Title:** Trim / loss (Pkg.test)
@@ -1245,42 +705,6 @@ Inputs: `e15_structural_loss_targets.csv`; `phase3_trim` with η_lining = 1.0; �
 Equations: Eq. (82) η_r′ in `trim_loss.jl` / structural-loss helpers.
 Outputs: η_r′ [-] vs measured; info counts within CSV tol_frac; verdict `:no_verdict`.
 
-### Case: ISO_JOINT_ACC
-**Title:** structural_joint_acceptance vs quadrature
-**Map / block:** total / P_TRIM
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Wall modes → Damping and trim
-**Compared with:** verification
-**Source:** CR-3813 Eqs. (63)–(73); phase 40g criterion 2026-10-23
-**What it tests:** `structural_joint_acceptance` against direct numerical quadrature of the joint-acceptance integral for three Table D-1 modes.
-**Why it is here:** Previously only self-consistency / coarse unit-test quadrature.
-**A pass means:** ≤ 1e-4 relative (mode-normalized and printed forms).
-**Not covered:** End-to-end η_r vs Fig. E-15.
-**Recorded outcome:** **Information since Phase 85 (2026-10-29): no verdict.** Verification, not a validation case under the meaningfulness rule (joint acceptance against numerical quadrature of the same integral). The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: **met**, 6/6, max rel ≈ 2.7e-5 (first run 2026-10-23)
-**Explanation:** Isolated analytic check: independent ring and axial sinc-kernel quadratures written in the case; product compared to `structural_joint_acceptance` at ω = ω_r for three modes.
-Inputs: Table D-1 modes 1, 4, 8; a = 0.508 m, L = test_article_length(), c0 = 340 m/s.
-Equations: Eqs. (63)–(73) via quadrature; code `structural_joint_acceptance`.
-Outputs: j²; verdict ≤ 1e-4 relative.
-
-### Case: TRIM_CLOSED
-**Title:** Two-layer trim vs closed-form transfer matrix (41b)
-**Map / block:** total / P_TRIM
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Damping and trim → Damping and trim
-**Compared with:** verification
-**Source:** CR-3813 App. A; Fig. A-2; phase 41b criterion 2026-10-23
-**What it tests:** `trim_tau` / `trim_conductance` of limp septum on a porous layer against the closed-form 2×2 product written in the case.
-**Why it is here:** Isolates App. A stack algebra for failing E14_LOSS / E15.
-**A pass means:** ≤ 1e-9 relative at the six Fig. A-2 frequencies.
-**Not covered:** Full Phase III multi-layer stack; mechanical path.
-**Recorded outcome:** **Information since Phase 85 (2026-10-29): no verdict.** Verification, not a validation case under the meaningfulness rule (the trim stack against a closed-form transfer matrix: hand form). The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: **met**, 12/12 (first run 2026-10-23)
-**Explanation:** Isolated analytic check: M = M_limp·M_ins written from Eqs. (A.10)–(A.11) in the case (independent of `stack_matrix`); τ = |a11|⁻² and ξ = Re β compared to `trim_tau` / `trim_conductance`.
-Inputs: PF-105 Fig. A-2 table; thick = 0.051 m; m_sept = 0.5 kg/m²; η = 0.05; m_wall = 5 kg/m².
-Equations: App. A (A.10)–(A.16).
-Outputs: τ, ξ; verdict ≤ 1e-9 relative.
-
 ### Case: R172428_ETA
 **Title:** CR-172428 structural loss factors η_r′ vs App. B (44c/44d)
 **Map / block:** total / P_TRIM
@@ -1317,45 +741,9 @@ Inputs: App. B p. 197.
 Equations: App. A trim matrices.
 Outputs: trim factor [dB] and admittance per band.
 
-### Case: TRIM_PASSIVITY
-**Title:** Phase III trim is passive: ξ ≥ 0, η_n ≥ 0 (62)
-**Map / block:** total / X_TRIM_OUT
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Damping and trim → Damping and trim
-**Compared with:** verification
-**Source:** CR-3813 App. A (energy: a passive wall absorbs); phase 62 criterion 2026-10-23
-**What it tests:** The wall conductance ξ, the end-plate conductance, η_n of Eq. (77) and τ_t of Eq. (A.22) at every 1/3-octave band 100–6300 Hz.
-**Why it is here:** Gives the trim output block a check with its own figure (τ_t and ξ vs f); a sign error in the transfer matrices shows up as negative absorption.
-**A pass means:** ξ ≥ 0 and η_n ≥ 0 at every band, τ_t > 0.
-**Not covered:** The size of τ_t (no measured trim transmission for the article).
-**Recorded outcome:** **Information since Phase 85 (2026-10-29): no verdict.** Verification, not a validation case under the meaningfulness rule (passivity is a physical bound, not a PAIN output or a measurement). The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: **met**, 17/17 (first run 2026-10-23; `phase62_65_map_blocks_grid.md`)
-**Explanation:** Physical bound on the App. A outputs; independent of any measurement.
-Inputs: phase3_trim(), m_wall smeared; bands 100–6300 Hz.
-Equations: Eqs. (A.10)–(A.22), (77)
-Outputs: ξ, ξ_e, η_n, τ_t per band.
-
 ### Chunk 7: PAIN main (`G_PAIN`)
 
 Blocks in map order: `X_PAIN_IN` Cabin inputs → `P_EQ8` Coupling / Eq. 8 → `X_OUT` Interior SPL. Cases are listed block by block, in the order the map shows them.
-
-### Case: PAIN_INPUT_ECHO
-**Title:** Resolved cabin inputs vs their documented formulas (62)
-**Map / block:** total / X_PAIN_IN
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Interior tones → Interior tones
-**Compared with:** verification
-**Source:** User Manual cards 2, 9 and the grid relation (pp. 8–9); PainInputs docstring; phase 62 criterion 2026-10-23
-**What it tests:** The inputs the PAIN core resolves for the T1 run (grid cell area, wall mass, cavity length, interior sound speed and density) against the formulas the documents give.
-**Why it is here:** Gives the PAIN input block a check with its own figure; defaults resolved in the wrong place change every result without an error.
-**A pass means:** Each within 1e-12 relative.
-**Not covered:** Whether the documented defaults are right for an aircraft (X-EXTRAP).
-**Recorded outcome:** **Information since Phase 85 (2026-10-29): no verdict.** Verification, not a validation case under the meaningfulness rule (resolved inputs against the User Manual's formulas: an input check, not a PAIN output). The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: **met**, 5/5 (first run 2026-10-23; re-run 2026-10-24 with m_wall built from the printed App. E dimensions instead of the MRP_* constants PainInputs uses, code review; `phase62_65_map_blocks_grid.md`)
-**Explanation:** Echo check: ΔA = (πa/18)², m_wall = ρ(t + A_s/d_s + A_f/ℓ_f), L_c = L, c_int = c0 = 340 m/s, ρ_int = ρ0 = 1.225 kg/m³.
-Inputs: T1 pipeline inputs.
-Equations: card 2, 9 rules; ΔA of the grid
-Outputs: code / documented per quantity.
 
 ### Case: UT_EQ8
 **Title:** Eq. (8) coupling + HF tones (Pkg.test)
@@ -1374,132 +762,6 @@ Outputs: code / documented per quantity.
 Inputs: synthetic / baseline cases inside Pkg.test; not a registry GUI run.
 Equations: Eqs. (8), (11)–(16), (41)–(42), (52) in `pain_core.jl`, `high_freq_tones.jl`.
 Outputs: Pkg.test residuals only; no registry verdict.
-
-### Case: ISO_MODAL_DENSITY
-**Title:** structural_modal_density and band_joint_acceptance
-**Map / block:** total / P_EQ8
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Wall modes → Wall modes
-**Compared with:** verification
-**Source:** phase 40h criterion 2026-10-23
-**What it tests:** Modal density equals the count of modes in each 1/3-octave band / Δω; band-average joint acceptance matches an independent discrete average.
-**Why it is here:** Broadband helpers were untested in isolation (audit NONE).
-**A pass means:** Count exact; band JA ≤ 1e-6 relative.
-**Not covered:** Asymptotic fallback when a band is empty; experimental broadband levels.
-**Recorded outcome:** **Information since Phase 85 (2026-10-29): no verdict.** Verification, not a validation case under the meaningfulness rule (modal density against a count of the same modes: internal consistency). The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: **met**, 12/12 (first run 2026-10-23) **Phase 65 knock-on (2026-10-24, grid axial correction: code vs User Manual p. 9 / App. E p. E-8, z_k = z_p − x₃, z_p = 0.662 m; not a fit):** met 12/12 unchanged (round-off only). **Phase 81b (2026-10-29, post-hoc re-record):** in the 250 Hz and 397 Hz bands the raw band joint acceptance was below the code's 1e-6 floor and the reference applied the same floor, so 2 of the 12 rows passed by construction. A row at the floor now counts as not met; the pre-registered redesign (1 + the band modes' shapes) gave **10/12** (those bands hold floor-dominated modes, shell coefficients ~0.01); amended the same day, post-hoc, to a pressure matched to the band (|Σψ|, phase 0 or π): **met, 12/12**, every band ⟨j²⟩ between 2.9e-5 and 0.07, max residual 1e-15.
-**Explanation:** Isolated analytic check: for bands that contain Table D-1 modes, `structural_modal_density` must equal n_count/Δω; `band_joint_acceptance` must equal the mean of j² from Eq. 42 sums and the j² formula written in the case (mode-shaped blocked field; reference applies the same 1e-6 clamp floor as the function).
-Inputs: Table D-1 modes; blocked grid A = 1 + ψ_1; test-article geometry.
-Equations: third-octave Δf/f = 0.2316; discrete Ψ and j² as in §3.5–3.6.
-Outputs: n(ω), ⟨j²⟩; verdict count exact / ≤ 1e-6.
-
-### Case: ISO_BB_BAND
-**Title:** blocked_broadband_band_p2 vs closed-form band integral
-**Map / block:** total / P_EQ8
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Bands and dB(A) → Bands and dB(A)
-**Compared with:** verification
-**Source:** phase 40i criterion 2026-10-23
-**What it tests:** Band integral of S ∝ f^(−α) over exact 1/3-octave limits against the closed form (not the band-centre rectangle).
-**Why it is here:** Band integral helper was untested (and previously compared to the same rectangle the code used, so it passed by construction).
-**A pass means:** ≤ 1e-9 relative.
-**Not covered:** Cabin broadband ⟨p²⟩ path / Fig. E-9.
-**Recorded outcome:** **Information since Phase 85 (2026-10-29): no verdict.** Verification, not a validation case under the meaningfulness rule (band integral against its closed form). The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: **met**, 8/8 (reference corrected 2026-10-23; code fixed to the exact integral the same day — code-on-code). First registration had compared the rectangle to itself (4/4, void as evidence).
-**Explanation:** Isolated analytic check: Spbl_a from the H = 3 tone spatial mean spread by Δω_a = 0.232·2π·f_a (same anchor as `blocked_broadband_band_p2` in `pain_core.jl`); reference = ∫_{f1}^{f2} Spbl_a (f_a/f)^α · 2π df with f1 = fc·2^(−1/6), f2 = fc·2^(1/6) (α = 1 uses the log form). Compared to `blocked_broadband_band_p2` after the 2026-10-23 integral fix (was Spbl(fc)·0.232·2π·fc).
-Inputs: synthetic blocked amplitudes; α ∈ {2.0, 1.5}; bpf = 200 Hz; fc ∈ {1000,1250,1600,2000} Hz.
-Equations: closed-form power-law band integral; code `blocked_broadband_band_p2`.
-Outputs: ⟨p²⟩_bl [Pa²]; verdict ≤ 1e-9 relative. Dependent recorded results that multiply this ⟨p²⟩_bl (T2 / T2_EQ19 / parametric HF bands, default α = 2) shift by −0.0082 dB at 1.25/1.6/2 kHz — not re-recorded here.
-
-### Case: NR_BAND_HAND
-**Title:** One-band NR vs hand Eqs. (17)–(18) (41c)
-**Map / block:** total / P_EQ8
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Bands and dB(A) → Bands and dB(A)
-**Compared with:** verification
-**Source:** CR-3813 Eqs. (17)–(18); phase 41c criterion 2026-10-23
-**What it tests:** One band of `noise_reduction_band` (one structural mode, one acoustic mode, stated η) against a hand evaluation of Eq. (18) with brace arithmetic written in the case.
-**Why it is here:** Isolates the NR band assembly for failing E21_E22_NR.
-**A pass means:** ≤ 1e-9 dB.
-**Not covered:** Full multi-mode spectrum; HF Eqs. (19)–(23).
-**Recorded outcome:** **Information since Phase 85 (2026-10-29): no verdict.** Verification, not a validation case under the meaningfulness rule (one NR band against a hand evaluation of Eqs. (17)–(18)). The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: **met**, residual 0 dB (first run 2026-10-23)
-**Explanation:** Isolated analytic check: brace/ln/arctan/D_nr written in the case (not `nr_*`); same η_n / η_r′+η_r'' path as the function; compared to `noise_reduction_band`.
-Inputs: bare cabin; fc = 400 Hz; η_n_band = 0.05; η_r_band = 0.08; q_max = 0; one mode each.
-Equations: Eq. (18) hand brace; code `noise_reduction_band`.
-Outputs: NR [dB]; verdict ≤ 1e-9 dB.
-
-### Case: HF_MASSLAW
-**Title:** hf_transmission_coeffs vs hand Eq. (20) (41d)
-**Map / block:** total / P_EQ8
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Bands and dB(A) → Bands and dB(A)
-**Compared with:** verification
-**Source:** CR-3813 Eq. (20) / p. 24; phase 41d criterion 2026-10-23
-**What it tests:** `hf_transmission_coeffs` against the documented field-incidence Eq. (20) τ_f plus the printed τ_R (not the normal-incidence mass law). It uses one limp wall mode in the band (τ_R) and one below it (τ_f). Eq. (20) sums the modes resonant below the band (CR-3813 p. 24); the in-band reading was corrected on 2026-10-23 (Phase 49).
-**Why it is here:** Isolates HF transmission for failing T2 / T2_EQ19.
-**A pass means:** ≤ 1e-9 relative.
-**Not covered:** Normal-incidence τ = 1/(1+(ωm/2ρc)²) — the function documents field-incidence Eq. (20).
-**Recorded outcome:** **Information since Phase 85 (2026-10-29): no verdict.** Verification, not a validation case under the meaningfulness rule (HF transmission against a hand evaluation of Eq. (20)). The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: **met**, 3/3 (first run 2026-10-23; re-run 2026-10-23 after the Phase 49 correction, met) **Phase 81a (2026-10-29, display only):** the normal-incidence comparison row is labelled "(info)", so the map chip no longer shows its 250 % difference beside the pass.
-**Explanation:** Isolated analytic check: hand Eq. (20) and printed τ_R at fc = 1000 Hz against `hf_transmission_coeffs`.
-Inputs: bare cabin; m_wall = 8 kg/m²; one mode at 1000 Hz and one at 700 Hz.
-Equations: Eq. (20); printed τ_R; code `hf_transmission_coeffs`.
-Outputs: τ_f, τ_R, τ; verdict ≤ 1e-9 relative.
-
-### Case: SHARP_PANEL_D_SHAPE
-**Title:** Sharp construction segment slopes vs CR-172490 Fig. 15, Panel D (81c)
-**Map / block:** total / P_EQ8
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Bands and dB(A) → Bands and dB(A)
-**Compared with:** verification
-**Source:** NASA CR-172490 Fig. 5 (construction) and Fig. 15 (Panel D); criterion fixed 2026-10-29 before the run
-**What it tests:** The slopes of the three segments of the Fig. 5 construction (mass law below f₀, the 18 dB/octave rise, mass law + ΔTL_M above f_b) against the digitized Fig. 15 curve, each a least-squares slope in dB/octave.
-**Why it is here:** SHARP_PANEL_D cannot pass because the source's figure and its stated ΔTL_M disagree (class N); the slopes are what the construction itself fixes, independent of ΔTL_M and of the mass-law offset.
-**A pass means:** Each segment slope of the construction (63–125 Hz, 160–250 Hz, 500–1000 Hz) within ±1.5 dB/octave of the figure's.
-**Not covered:** The absolute level (SHARP_PANEL_D).
-**Recorded outcome:** **Information since Phase 85 (2026-10-29): no verdict.** Verification, not a validation case under the meaningfulness rule (CR-172490's design figure is neither PAIN nor a measurement). The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: **met, 3/3** (first run 2026-10-29): figure 5.9, 17.9, 5.8 dB/octave; construction 6.0, 18.0, 6.0.
-**Explanation:** `_run_sharp_panel_d_shape` in `validation_case_iso59.jl`; the construction's slopes come from `sharp_double_panel_TL` at the figure's band centres, so a wrong segment slope in the code fails the check.
-Inputs: `data/cr172490/cr172490_fig15_panelD.csv`; Panel D 1.6 mm aluminium skins, 82.6 mm cavity, ΔTL_M = 12 dB.
-Equations: CR-172490 Eqs. (5), (22); Fig. 5.
-Outputs: slope per segment [dB/octave].
-
-### Case: ISO_SIL
-**Title:** sil_dB / sil_from_third_octave hand spectrum
-**Map / block:** total / X_OUT
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Bands and dB(A) → Bands and dB(A)
-**Compared with:** verification
-**Source:** phase 40k criterion 2026-10-23
-**What it tests:** Hand-computed SIL from a known octave / 1/3-octave spectrum.
-**Why it is here:** SIL helpers had only finite-value checks.
-**A pass means:** ≤ 1e-9 dB.
-**Not covered:** A-weighting / overall dB(A) (separate unit tests).
-**Recorded outcome:** **Information since Phase 85 (2026-10-29): no verdict.** Verification, not a validation case under the meaningfulness rule (SIL against a hand evaluation). The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: **met**, 2/2 (first run 2026-10-23)
-**Explanation:** Isolated analytic check: SIL = mean of 500/1000/2000/4000 Hz octave SPLs; 1/3-octave path energy-sums bands into those octaves then averages — both formulas written in the case.
-Inputs: stated octave and 1/3-octave dicts.
-Equations: `sil_dB`, `sil_from_third_octave`.
-Outputs: SIL [dB]; verdict ≤ 1e-9 dB.
-
-### Case: LOUDEST_PT_GRID
-**Title:** Point form of Eq. (8) on the converged CYL2D grid, NY = 40 (81d)
-**Map / block:** total / X_OUT
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Interior tones → Interior tones
-**Compared with:** verification
-**Source:** CR-3813 Eq. (8) and App. C (Eqs. C.9–C.11); criterion fixed 2026-10-29 before the run
-**What it tests:** The volume average of the point values of Eq. (8), over all CYL2D nodes with the Eq. (C.10) weights, against Eq. (8) itself, on the converged grid NY = 40 (79b).
-**Why it is here:** LOUDEST_PT check (a) misses because of its point set (wall and floor nodes left out); this checks the point form itself.
-**A pass means:** Within 1 % of Eq. (8) for H1–H3.
-**Not covered:** The production grid NY = 10 (LOUDEST_PT); measured point levels.
-**Recorded outcome:** **Information since Phase 85 (2026-10-29): no verdict.** Verification, not a validation case under the meaningfulness rule (the point form against Eq. (8): internal consistency). The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: **met, 3/3** (first run 2026-10-29): 1.0004, 1.0001, 0.9993; interior nodes only (information) 0.982, 0.976, 0.965.
-**Explanation:** `_run_loudest_pt_grid` in `loudest_point.jl`: the T1 test-article pipeline with `NY = 40`, `cabin_quadrature_points`, `point_tone_p2`, `point_volume_average`.
-Inputs: T1 test-article inputs (e11 source, R2 blocking, BPF 200 Hz), NY = 40.
-Equations: Eq. (8) at points; φ_n = cos(qπz/L_c) φ_i(node) (Eq. C.9); weights Eq. (C.10).
-Outputs: volume average / Eq. (8) per harmonic.
 
 ### Chunk 8: Validation comparisons (`G_VAL`)
 
@@ -1775,24 +1037,6 @@ Inputs: as R172428_EXP.
 Equations: as R172428_DB_CODE.
 Outputs: 3 tonal levels [dB] vs measured; verdict vs ±4 dB at each rpm.
 
-### Case: AC_CABIN_DEMO
-**Title:** Aircraft cabin example: overall dB(A) (62)
-**Map / block:** total / A_CABIN
-**Category:** display
-**Kind:** runnable
-**Chain span:** Blade and polars → Bands and dB(A)
-**Compared with:** verification
-**Source:** PAIN.jl examples/aircraft_scale_hartzell_cabin_full.json; IEC 61672 A-weighting; phase 62 criterion 2026-10-23
-**What it tests:** The aircraft example's interior band spectrum, its A-weighted version and the overall dB(A) the program reports.
-**Why it is here:** Gives the aircraft cabin hand-off block a case with its own figure. The number is X-EXTRAP: there is no aircraft interior measurement.
-**A pass means:** Overall dB(A) equals the energy sum of the A-weighted bands within 1e-9 dB (arithmetic only).
-**Not covered:** Any claim about the aircraft level (no measurement; the uncertainty band of phase 31 is not a validation).
-**Recorded outcome:** **Information since Phase 85 (2026-10-29): no verdict.** Verification, not a validation case under the meaningfulness rule (the dB(A) sum against its own bands: arithmetic). The run and its table are unchanged; the outcome before the rule, kept as a record and not a pass: **met**, 1/1 (2026-10-24; `phase62_65_map_blocks_grid.md`): 91.6 dB(A) (X-EXTRAP, not validated). The first run listed eight IEC A-weight rows as passing table rows (9/9); they carry no criterion and moved to the inputs echo on 2026-10-24 (code review). The example's grid has 80 of 160 points off its assumed 1.83 m cabin (a = 1.32 m): Q45, closed (demonstration only) **Phase 78d-4 knock-on (2026-10-28):** the App. D modes of the parametric cabin changed (J1–J6); the energy-sum check is unchanged (met, 1/1) and the figure was regenerated.
-**Explanation:** Display of the aircraft result with an arithmetic check of the overall level; the A-weights are printed against the IEC table as information.
-Inputs: aircraft_scale_hartzell_cabin_full.json (cabin and trim from the JSON), H = 1–3.
-Equations: overall_dBA, a_weight_dB
-Outputs: band SPL, A-weighted SPL, overall dB(A).
-
 ### Case: AC_C695A_DBA
 **Title:** Commander 695A cabin dB(A) vs CR-178004 flight 3 (121)
 **Map / block:** total / A_CABIN
@@ -2044,24 +1288,6 @@ Outputs: η_n.
 Inputs: `r172428_inputs(rpm)`, defaults.
 Equations: Eq. (8).
 Outputs: SPL [dB].
-
-### Case: R172428_TRIM_DECK
-**Title:** NASA's per-band PF-105 table (App. D deck) vs App. B trim admittances (100a)
-**Map / block:** total / P_TRIM
-**Category:** verification
-**Kind:** runnable
-**Chain span:** Damping and trim → Damping and trim
-**Compared with:** NASA's printed prediction
-**Source:** CR-172428 App. D p. 229 (input deck, cards 22–33) and App. B p. 197; predictions fixed 2026-10-30 before the run (plan §8ap, commit 1ddabd9)
-**What it tests:** Whether NASA's App. B runs used the per-band PF-105 table printed in the App. D input deck, as printed (λ = 0.01 m at 1600 Hz included).
-**Why it is here:** It selects the insulation input of the CR-172428 reproductions (diagnostic; the held-out verdicts are R172428_ETAT2 and APPB_ETA_N_T2_BAND).
-**A pass means:** Predictions: sidewall Re β at 200 Hz within 10 % and end-cap Im β at 1600 Hz within 15 % of App. B (outcome recorded; the case carries no verdict).
-**Not covered:** Whether NASA used the same table in CR-3813's runs (that deck is not printed).
-**Recorded outcome:** no verdict, both predictions hold (2026-10-30): +2.7 % and +1.7 %; 84/84 admittance values within ±10 % at 50–5000 Hz (Fig. A-2 markers: 49/72).
-**Explanation:** `_run_r172428_trim_deck` in `validation_case_iso100.jl`.
-Inputs: App. D deck table, App. B trim (Table 6).
-Equations: App. A Eqs. (A.10)–(A.22).
-Outputs: trim admittance β [-].
 
 ### Case: FLIGHT_MODES
 **Title:** MRP solver on NASA's Merlin IVC deck vs PAIN's printed mode list (101a)

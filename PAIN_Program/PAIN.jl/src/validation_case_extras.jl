@@ -2656,6 +2656,7 @@ function _finish_validation_registry!()
         delete!(VALIDATION_CASES, id)
     end
     filter!(id -> !haskey(RETIRED_CASES, id), order)
+    filter!(id -> !(id in TEST_ONLY_CASES), order)            # ISSUE-040: tests only, off the case list
     append!(VALIDATION_CASE_ORDER, order)
     return nothing
 end

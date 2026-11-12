@@ -2509,7 +2509,7 @@ _run_if("Validation map errors (V-UNIT)") do
 end
 
 _run_if("Validation case registry (34d)") do
-    @test Set(keys(VALIDATION_CASES)) == Set(VALIDATION_CASE_ORDER)
+    @test Set(keys(VALIDATION_CASES)) == union(Set(VALIDATION_CASE_ORDER), PAIN.TEST_ONLY_CASES)   # ISSUE-040
     for id in VALIDATION_CASE_ORDER
         @test haskey(VALIDATION_CASES, id)
         c = VALIDATION_CASES[id]
@@ -2531,7 +2531,7 @@ _run_if("Validation case registry (34d)") do
         @test haskey(CASE_INFO, id)
         @test get(block_hits, id, 0) == (CASE_INFO[id].map_id == "none" ? 0 : 1)
     end
-    @test sort([id for id in VALIDATION_CASE_ORDER if CASE_INFO[id].map_id == "none"]) == ["MRP_D1"]
+    @test sort([id for id in VALIDATION_CASE_ORDER if CASE_INFO[id].map_id == "none"]) == String[]   # MRP_D1, the one off-block case, is test-only since ISSUE-040
     # Task F2 — §2.13 is the single source for CASE_INFO
     ut_ids = String[]
     for m in VALIDATION_MAPS
@@ -2558,7 +2558,7 @@ _run_if("Validation case registry (34d)") do
     @test !haskey(CASE_INFO, "R996_FIG8")
     # Every case Map / block points at total, except the off-map regression cases (Phase 78f, "none")
     for id in keys(CASE_INFO)
-        @test CASE_INFO[id].map_id == (id == "MRP_D1" ? "none" : "total")
+        @test CASE_INFO[id].map_id == "total"
     end
     # Temp-doc edit → case_info_json changes (single source)
     mktempdir() do tmp
@@ -2657,7 +2657,8 @@ _run_if("Validation case registry (34d)") do
     for id in VALIDATION_CASE_ORDER
         results_by_id[id] = run_validation_case(id)
     end
-    @test results_by_id["UT_GRID"].verdict === :no_verdict && PAIN.underlying_verdict(results_by_id["UT_GRID"]) === :met   # information since Phase 85
+    ut = run_validation_case("UT_GRID")   # test-only since ISSUE-040 (off the case list), still registered
+    @test ut.verdict === :no_verdict && PAIN.underlying_verdict(ut) === :met   # information since Phase 85
     for id in converted
         r = results_by_id[id]
         @test !isempty(r.series)

@@ -92,7 +92,7 @@ end
     @test ci.in_registry && ci.criterion_text == PAIN.VALIDATION_CASES["R172428_EXP"].criterion_text
     order = PAIN.validation_map_case_order()
     @test all(haskey(PAIN.VALIDATION_CASES, id) for id in order)
-    @test sort(order) == sort(PAIN.VALIDATION_CASE_ORDER) && "MRP_D1" in order          # off-block cases too (Validation tab)
+    @test sort(order) == sort(PAIN.VALIDATION_CASE_ORDER) && !("MRP_D1" in order)       # test-only cases are off the Validation tab (ISSUE-040)
     # Phase 147a (2026-11-10): `has_verdict` is the rule the coverage chart uses; the old name is an alias
     @test PAIN.on_validation_map === PAIN.has_verdict
     rec = PAIN.recorded_case_errors()

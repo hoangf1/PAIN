@@ -6,7 +6,7 @@ Every case, with and without a verdict, on the program chain (pale dashed bars: 
 
 ![Chain coverage, every case](validation_reports/figures/coverage/chain_coverage_all.png)
 
-## Diagnostic re-runs (17)
+## Diagnostic re-runs (16)
 
 | Case | Chain span | Why it has no verdict | Recorded result |
 |---|---|---|---|
@@ -15,7 +15,6 @@ Every case, with and without a verdict, on the program chain (pale dashed bars: 
 | `APPB_ETA_N` Cabin-mode η_n vs NASA's App. B printout (87b; CR-3813 printed damping form) | Cabin modes → Damping and trim | runs CR-3813's printed damping form, not the shipped default; APPB_ETA_N_BAND sets the shipped rule against the same printout (post-hoc), APPB_ETA_N_T2_BAND tests it held out (Phase 136a, 136b) | 12/46 rows within the band (not a pass); no verdict · max \|err\| 175.3 % · med 4.7 % |
 | `APPB_ETA_N_T2` Cabin-mode η_n at η_T = 2.0 vs CR-172428 p. 85 (94b) | Cabin modes → Damping and trim | η_n with the trim at the mode frequency (the Phase 93 form); APPB_ETA_N_T2_BAND carries the shipped rule | 3/3 rows within the band (not a pass); no verdict · max \|err\| 2.8 % · med 2.2 % |
 | `APPB_ETA_N_BAND` Cabin-mode η_n by the band-centre rule vs App. B (96a, post-hoc) | Cabin modes → Damping and trim | sets the default η_n rule against the App. B values it was read from, post-hoc (Phase 96a) | 46/46 rows within the band (not a pass); no verdict · max \|err\| 0.0099 loss factor · med 0.00026 loss factor |
-| `R172428_TRIM_DECK` NASA's per-band PF-105 table (App. D deck) vs App. B trim admittances (100a) | Damping and trim → Damping and trim | sets NASA's App. D PF-105 deck table against App. B's trim admittances; selects the input (Phase 100a) | 84/84 rows within the band (not a pass); no verdict · no error size (count only) |
 | `R172428_CODE` CR-172428 reproduction: NASA's inputs vs NASA's printed predictions (44d; CR-3813 printed form) | Skin field → Interior tones | runs CR-3813's printed program form, not the shipped default; R172428_CODE_DEFAULT runs the shipped form on the same printout (post-hoc), R172428_ETAT2 tests it held out (Phase 136a, 136b) | 5/9 rows within the band (not a pass); no verdict · max \|err\| 13.2 dB · med 2.6 dB |
 | `R172428_DBA_CODE` CR-172428 tonal dB(A): NASA's inputs vs NASA's printed predictions (124; CR-3813 printed form) | Skin field → Bands and dB(A) | runs CR-3813's printed program form, not the shipped default; the shipped form on the same tones is R172428_CODE_DEFAULT; no separate test of the total (ISSUE-034; Phase 136a, 136b) | 1/3 rows within the band (not a pass); no verdict · max \|err\| 12.3 dB(A) · med 4.0 dB(A) |
 | `R172428_DB_CODE` CR-172428 tonal dB (unweighted): NASA's inputs vs NASA's printed predictions (124; CR-3813 printed form) | Skin field → Bands and dB(A) | runs CR-3813's printed program form, not the shipped default; the shipped form on the same tones is R172428_CODE_DEFAULT; no separate test of the total (ISSUE-034; Phase 136a, 136b) | 0/3 rows within the band (not a pass); no verdict · max \|err\| 13.0 dB · med 4.7 dB |
@@ -28,51 +27,12 @@ Every case, with and without a verdict, on the program chain (pale dashed bars: 
 | `R172428_DBA_EXP` CR-172428 tonal dB(A) vs measured space averages (124) | Skin field → Bands and dB(A) | the dB(A) sum of R172428_EXP's tones: a row of that case, not a case of its own | 1/3 rows within the band (not a pass); no verdict · max \|err\| 6.5 dB(A) · med 4.7 dB(A) |
 | `R172428_DB_EXP` CR-172428 tonal dB (unweighted) vs measured space averages (124) | Skin field → Bands and dB(A) | the dB sum of R172428_EXP's tones: a row of that case, not a case of its own | 1/3 rows within the band (not a pass); no verdict · max \|err\| 12.1 dB · med 8.2 dB |
 
-## Information and verification under the meaningfulness rule (41)
+## Information and verification under the meaningfulness rule (2)
 
 | Case | Chain span | Why it has no verdict | Recorded result |
 |---|---|---|---|
 | `POLAR_FIDELITY` Section polars: XFOIL vs NACA TN 1546 measured c_l (67a) | Blade and polars → Blade and polars | it tests the section data that the Report 996 cases are fed, an input rather than the tool | 13/26 rows within the band (not a pass); no verdict · max \|err\| 0.19 · med 0.049 |
-| `BEMT_HAND` CCBlade wrapper vs hand BEM (41e) | Blade and polars → Blade loads | the BEMT wrapper against a hand BEM | 2/2 rows within the band (not a pass); no verdict · max \|err\| 3.6e-10 % · med 2.9e-10 % |
-| `BEMT_MOMENTUM` BEMT: momentum = blade element at every station (66a) | Blade and polars → Blade loads | BEM momentum = blade element: identity of the converged solution | 72/72 rows within the band (not a pass); no verdict · max \|err\| 1.1e-11 · med 3.1e-15 |
-| `BEMT_HAND_TIP` BEMT: hand BEM with tip loss, drag, nonlinear polar (66b) | Blade and polars → Blade loads | the BEMT wrapper against a hand BEM | 4/4 rows within the band (not a pass); no verdict · max \|err\| 9.2e-11 N \| N m · med 3.4e-11 N \| N m |
-| `BEMT_INTEGRALS` BEMT: integrals, Froude bound, station spacing (66c) | Blade and polars → Blade loads | integrals, the Froude bound and station convergence: internal consistency | 7/7 rows within the band (not a pass); no verdict · max \|err\| 0.33 N \| W \| - · med 0.0 N \| W \| - |
-| `BEMT_SIMILARITY` BEMT: C_T, C_P unchanged at fixed J (66d) | Blade and polars → Blade loads | coefficients at fixed J: similarity identity | 6/6 rows within the band (not a pass); no verdict · max \|err\| 1.7e-17 · med 0.0 |
-| `F1A_INDEP` Independent Farassat 1A vs AcousticAnalogies (41f) | Blade loads → Free field | an independent F1A implementation is another code, not a measurement | 3/3 rows within the band (not a pass); no verdict · max \|err\| 0.021 dB · med 0.0074 dB |
-| `F1A_PLANE_PEAK` F1A free field: H1 peak on the propeller line (62) | Blade loads → Free field | where the peak lies is a property of the field, not a PAIN output or a measurement | 1/1 rows within the band (not a pass); no verdict · max \|err\| 0.0 stations · med 0.0 stations |
-| `ISO_TABLE8` apply_table8_calibration identity | Free field → Free field | the Table 8 calibration is the identity on its own peaks: identity | 483/483 rows within the band (not a pass); no verdict · max \|err\| 0.0 % · med 0.0 % |
-| `F1A_GUTIN` F1A vs Gutin (far field) | Blade loads → Free field | Gutin's far-field formula is a different method, not a measurement | 1/1 rows within the band (not a pass); no verdict · max \|err\| 0.029 dB · med 0.029 dB |
-| `F1A_GUTIN_ANGLES` F1A vs Gutin off the rotor plane, thrust and torque (66e) | Blade loads → Free field | Gutin's far-field formula is a different method, not a measurement | 9/10 rows within the band (not a pass); no verdict · max \|err\| 14.6 dB \| deg · med 0.14 dB \| deg |
-| `F1A_GW_FLIGHT` F1A vs Garrick–Watkins in flight (66f) | Blade loads → Free field | Garrick–Watkins is a different method, not a measurement | 6/6 rows within the band (not a pass); no verdict · max \|err\| 0.071 dB · med 0.0014 dB |
-| `F1A_THICKNESS` F1A thickness noise vs the compact far field (66g) | Blade loads → Free field | the compact monopole form is a different method, not a measurement | 9/9 rows within the band (not a pass); no verdict · max \|err\| 0.0014 dB · med 0.0012 dB |
-| `F1A_PROPERTIES` F1A exact properties and convergence (66h) | Blade loads → Free field | blade-count and 1/r scaling and convergence: internal consistency | 5/5 rows within the band (not a pass); no verdict · max \|err\| 0.025 ratio \| dB · med 2.6e-5 ratio \| dB |
-| `BBN_KIN` BBN kinematic Δφ | Blade loads → Free field | the phase step m·B·Δψ is kinematics, not a PAIN output or a measurement | 9/9 rows within the band (not a pass); no verdict · max \|err\| 0.025 deg · med 0.0072 deg |
-| `BPM_RP1218` Airfoil self-noise (BPM) vs NASA's printed code output, RP-1218 Tables D2/D3 (48a) | Blade and polars → Free field | NASA's BPM code is not PAIN, and RP-1218's tables are its output, not a measurement | 270/270 rows within the band (not a pass); no verdict · max \|err\| 0.19 dB · med 0.0055 dB |
-| `ISO_FF_CONV` Free-field SPL↔Pa and e11 ℓ=1 loader | Free field → Free field | SPL↔Pa round trip and loader against a hand conversion: identity | 111/111 rows within the band (not a pass); no verdict · max \|err\| 2.0e-14 % · med 0.0 % |
-| `SRC_PASSTHROUGH` Source select: the chosen field reaches the cabin unchanged (62) | Free field → Skin field | the stored inputs against the source grid: plumbing identity | 3/3 rows within the band (not a pass); no verdict · max \|err\| 0.0 Pa · med 0.0 Pa |
-| `UT_GRID` Skin grid vs User Manual Fig. 3 (with figure) | Skin field → Skin field | grid coordinates against the User Manual's formulas: an input check, not a PAIN output | 35/35 rows within the band (not a pass); no verdict · max \|err\| 0.0 deg · med 0.0 deg |
-| `ISO_GEXT_LINE` extend_line_to_grid identity on ℓ = 1 | Free field → Skin field | grid extension returns its input on ℓ = 1: identity | 480/480 rows within the band (not a pass); no verdict · max \|err\| 0.0 % · med 0.0 % |
 | `BLK_P68` Blocking Eq. (43) vs printed p.68 values | Skin field → Skin field | Eq. (43) against its own printed narrative (CR-172428 p. 68): a unit check of the equation (Phase 144d) | 6/6 rows within the band (not a pass); no verdict · max \|err\| 0.056 dB · med 0.0049 dB |
-| `ISO_BLOCKING` apply_blocking full grid vs F(γ)·A | Skin field → Skin field | full-grid blocking against the same Eq. (43) factor: identity | 960/960 rows within the band (not a pass); no verdict · max \|err\| 0.0 % · med 0.0 % |
-| `BLK_GAIN_MAP` Blocked pressures: gain within 0–6.02 dB (62) | Skin field → Skin field | a 0–6.02 dB gain range is a property of Eq. (43), not a PAIN output or a measurement | 2/2 rows within the band (not a pass); no verdict · max \|err\| 2.0 dB · med 0.99 dB |
-| `MRP_INPUT_QA` Structure inputs vs CR-3813 App. E (62) | Wall modes → Wall modes | structural inputs against App. E's printed values: an input check, not a PAIN output | 13/13 rows within the band (not a pass); no verdict · max \|err\| 0.0018 · med 0.0 |
-| `MRP_TRUNC` App. D solver shapes: unit maximum, and the Table D-1 print truncation (80d) | Wall modes → Wall modes | a property of the solver's shapes (unit maximum), not a PAIN output or a measurement | 32/32 rows within the band (not a pass); no verdict · max \|err\| 1.9e-8 · med 1.9e-10 |
-| `CABIN_GEOM_HAND` Cabin geometry by hand (62) | Cabin modes → Cabin modes | cabin geometry against hand formulas | 4/4 rows within the band (not a pass); no verdict · max \|err\| 0.0 m³ \| m² \| m · med 0.0 m³ \| m² \| m |
-| `ISO_CYL2D_EXACT` cyl2d_modes vs exact circle J′ zeros | Cabin modes → Cabin modes | an analytic circular duct, not a PAIN output or a measurement | 11/11 rows within the band (not a pass); no verdict · max \|err\| 74.8 % · med 1.1 % |
-| `ISO_CYL2D_BOUNDARY` acoustic_boundary_value and cabin_modes_3d list | Cabin modes → Cabin modes | boundary values and mode list against the code's own nodes: internal consistency | 173/173 rows within the band (not a pass); no verdict · max \|err\| 0.0 · med 0.0 |
-| `TRIM_INPUT_QA` Phase III trim vs CR-3813 p. E-9 (62) | Damping and trim → Damping and trim | trim inputs against App. E's printed values: an input check, not a PAIN output | 7/7 rows within the band (not a pass); no verdict · max \|err\| 7.0e-5 · med 0.0 |
-| `ISO_JOINT_ACC` structural_joint_acceptance vs quadrature | Wall modes → Damping and trim | joint acceptance against numerical quadrature of the same integral | 6/6 rows within the band (not a pass); no verdict · max \|err\| 0.0027 % · med 0.0023 % |
-| `TRIM_CLOSED` Two-layer trim vs closed-form transfer matrix (41b) | Damping and trim → Damping and trim | the trim stack against a closed-form transfer matrix: hand form | 12/12 rows within the band (not a pass); no verdict · max \|err\| 0.0 % · med 0.0 % |
-| `TRIM_PASSIVITY` Phase III trim is passive: ξ ≥ 0, η_n ≥ 0 (62) | Damping and trim → Damping and trim | passivity is a physical bound, not a PAIN output or a measurement | 17/17 rows within the band (not a pass); no verdict · max \|err\| 0.21 · med 0.023 |
-| `PAIN_INPUT_ECHO` Resolved cabin inputs vs their documented formulas (62) | Interior tones → Interior tones | resolved inputs against the User Manual's formulas: an input check, not a PAIN output | 5/5 rows within the band (not a pass); no verdict · max \|err\| 0.0 · med 0.0 |
-| `ISO_MODAL_DENSITY` structural_modal_density and band_joint_acceptance | Wall modes → Wall modes | modal density against a count of the same modes: internal consistency | 12/12 rows within the band (not a pass); no verdict · max \|err\| 9.8e-14 % · med 0.0 % |
-| `ISO_BB_BAND` blocked_broadband_band_p2 vs closed-form band integral | Bands and dB(A) → Bands and dB(A) | band integral against its closed form | 8/8 rows within the band (not a pass); no verdict · max \|err\| 0.0 % · med 0.0 % |
-| `NR_BAND_HAND` One-band NR vs hand Eqs. (17)–(18) (41c) | Bands and dB(A) → Bands and dB(A) | one NR band against a hand evaluation of Eqs. (17)–(18) | 2/2 rows within the band (not a pass); no verdict · max \|err\| 0.0 dB · med 0.0 dB |
-| `HF_MASSLAW` hf_transmission_coeffs vs hand Eq. (20) (41d) | Bands and dB(A) → Bands and dB(A) | HF transmission against a hand evaluation of Eq. (20) | 3/3 rows within the band (not a pass); no verdict · max \|err\| 0.0 % · med 0.0 % |
-| `SHARP_PANEL_D_SHAPE` Sharp construction segment slopes vs CR-172490 Fig. 15, Panel D (81c) | Bands and dB(A) → Bands and dB(A) | CR-172490's design figure is neither PAIN nor a measurement | 3/3 rows within the band (not a pass); no verdict · max \|err\| 0.27 dB/octave · med 0.12 dB/octave |
-| `ISO_SIL` sil_dB / sil_from_third_octave hand spectrum | Bands and dB(A) → Bands and dB(A) | SIL against a hand evaluation | 2/2 rows within the band (not a pass); no verdict · max \|err\| 0.0 dB · med 0.0 dB |
-| `LOUDEST_PT_GRID` Point form of Eq. (8) on the converged CYL2D grid, NY = 40 (81d) | Interior tones → Interior tones | the point form against Eq. (8): internal consistency | 3/3 rows within the band (not a pass); no verdict · max \|err\| 0.054 % · med 0.018 % |
-| `AC_CABIN_DEMO` Aircraft cabin example: overall dB(A) (62) | Blade and polars → Bands and dB(A) | the dB(A) sum against its own bands: arithmetic | 1/1 rows within the band (not a pass); no verdict · max \|err\| 0.0 dB · med 0.0 dB |
 
 ## Inputs not printed or measured (input-completeness rule, Phase 118) (11)
 
@@ -90,7 +50,7 @@ Every case, with and without a verdict, on the program chain (pale dashed bars: 
 | `AC_C695A_EXT` Commander 695A exterior tones vs CR-178004 App. A (123) | Blade and polars → Skin field | inputs incomplete: the 695A blade is not printed (assumed) | 53/101 rows within the band (not a pass); no verdict · max \|err\| 8.8 dB · med 4.0 dB |
 | `AC_C695A_SEAT` Commander 695A cabin tones at the mic seats vs CR-178004 App. B (125) | Blade and polars → Interior tones | inputs incomplete: the 695A blade, cabin cross-section and stiffener sections are not printed (assumed) | 34/108 rows within the band (not a pass); no verdict · max \|err\| 24.8 dB · med 7.0 dB |
 
-## No criterion (displays and records) (11)
+## No criterion (displays and records) (8)
 
 | Case | Chain span | Why it has no verdict | Recorded result |
 |---|---|---|---|
@@ -99,12 +59,9 @@ Every case, with and without a verdict, on the program chain (pale dashed bars: 
 | `PER_LOADS` Pereira Table 3 loads | Blade and polars → Blade loads | the case registers no pass criterion | no criterion |
 | `R996_FIG6` Report 996 Fig. 6 | Blade and polars → Free field | the case registers no pass criterion | no criterion |
 | `R996_FIG7` Report 996 Fig. 7 | Blade and polars → Free field | the case registers no pass criterion | no criterion |
-| `F1A_CHORDWISE` F1A near field: compact vs chordwise loading at Report 996 geometry (67b) | Blade loads → Free field | the case registers no pass criterion | 60/60 rows within the band (not a pass); no verdict · max \|err\| 0.27 dB · med 0.083 dB |
 | `R996_FIG10_CIRC` Eq. (43) blocking vs Report 996 Fig. 10 circular wall, information (90c) | Free field → Skin field | the case registers no pass criterion | 1/5 rows within the band (not a pass); no verdict · max \|err\| 5.3 dB · med 1.8 dB |
-| `CYL2D_GRID_CONV` CYL2D production grid (NY 10) vs converged grid (79c) | Cabin modes → Cabin modes | the case registers no pass criterion | 19/19 rows within the band (not a pass); no verdict · max \|err\| 4.9 % · med 1.6 % |
 | `E15_STRUCT_LOSS` Fig. E-15 η_r′ (struct. loss) | Wall modes → Damping and trim | the case registers no pass criterion | 4/8 rows within the band (not a pass); no verdict · max \|err\| 150.0 % · med 57.5 % |
 | `R172428_TRIM` CR-172428 trim factor / admittance vs App. B (diagnostic) | Damping and trim → Damping and trim | the case registers no pass criterion | no criterion |
-| `MRP_D1` MRP Table D-1 seed | Wall modes → Wall modes | the case registers no pass criterion | 32/32 rows within the band (not a pass); no verdict · max \|err\| 0.0 Hz · med 0.0 Hz |
 
 ## Not in the snapshot (3)
 

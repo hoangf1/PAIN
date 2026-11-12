@@ -54,5 +54,5 @@ end
     PAIN._finish_validation_registry!()                                                 # rebuild is idempotent
     @test length(PAIN.VALIDATION_CASE_ORDER) == n0 && allunique(PAIN.VALIDATION_CASE_ORDER)
     @test all(haskey(PAIN.VALIDATION_CASES, id) for id in PAIN.VALIDATION_CASE_ORDER)
-    @test "F1A_PLANE_PEAK" in PAIN.VALIDATION_CASE_ORDER && "BEMT_HAND" in PAIN.VALIDATION_CASE_ORDER
+    @test all(id -> haskey(PAIN.VALIDATION_CASES, id) && id in PAIN.TEST_ONLY_CASES && !(id in PAIN.VALIDATION_CASE_ORDER), ("F1A_PLANE_PEAK", "BEMT_HAND"))
 end

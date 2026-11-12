@@ -164,9 +164,9 @@ end
     @test PAIN._scoreboard_verdict((; verdict="not_met"), "R172428_EXP") == "not met"
     @test PAIN._scoreboard_unrun("NO_SUCH_CASE") == "not in snapshot"
     @test PAIN._scoreboard_verdict(nothing, "NO_SUCH_CASE") == "not in snapshot"
-    # a synthetic snapshot: every case of block P_CYL met except one, which must be listed in the not-met table with its
+    # a synthetic snapshot: every case of block P_MEAS met except one, which must be listed in the not-met table with its
     # points and an escaped error text; a met case is not (Phase 147: the block map and its colours are retired)
-    b = first(b for b in PAIN._map_by_id("total").blocks if b.id == "P_CYL")   # P_MRP has one case left since Phase 150e
+    b = first(b for b in PAIN._map_by_id("total").blocks if b.id == "P_MEAS")   # verdict and information cases both (ISSUE-040)
     row(v, k, n, t) = (; run_date="2000-01-01", source_date="2000-01-01", verdict=v, n_within=k, n_rows=n,
                        max_abs=1.0, median_abs=1.0, unit="%", text=t, chip_text=t)
     rec = Dict(id => row("met", 3, 3, "3/3") for id in b.cases)
@@ -180,9 +180,9 @@ end
     # Phase 86: only cases with a verdict are on the map; a met information case and an unrun case are listed elsewhere
     info = first(id for id in b.cases if PAIN.no_verdict_by_rule(id))
     @test !occursin("(`$info`) |", md) && !occursin("| `$info` ", md) && !PAIN.on_validation_map(info; rec) && PAIN.on_validation_map(bad; rec)
-    @test !occursin("(`R172428_EXP`) |", md) && !PAIN.on_validation_map("R172428_EXP"; rec)                # not in this snapshot
+    @test !occursin("(`MRP_APPD`) |", md) && !PAIN.on_validation_map("MRP_APPD"; rec)                # not in this snapshot
     nv = PAIN.no_verdict_cases_markdown(; rec)
-    @test occursin("| `$info` ", nv) && occursin("| `R172428_EXP` ", nv) && !occursin("| `$bad` ", nv)
+    @test occursin("| `$info` ", nv) && occursin("| `MRP_APPD` ", nv) && !occursin("| `$bad` ", nv)
     @test occursin("## Information and verification under the meaningfulness rule", nv)
     @test occursin("Pkg.test only", nv) || !any(i -> PAIN.CASE_INFO[i].kind === :pkgtest, keys(PAIN.CASE_INFO))
     rec2 = merge(rec, Dict("R172428_CODE_DEFAULT" => row("not_met", 4, 9, "4/9"), "R172428_EXP" => row("not_met", 4, 9, "4/9")))

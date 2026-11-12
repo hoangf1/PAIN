@@ -34,8 +34,8 @@ for id in VALIDATION_CASE_ORDER
 end
 @assert haskey(obs, "val_runnable")
 PAIN._GUI_OBS[] = obs
-PAIN.select_validation_case_from_qml("MRP_D1")
-@assert obs["val_selected"][] == "MRP_D1" && obs["val_runnable"][]
+PAIN.select_validation_case_from_qml("CYL2D_C1")
+@assert obs["val_selected"][] == "CYL2D_C1" && obs["val_runnable"][]
 # Selection stays keyed by case id after a run (highlight root-cause fix).
 direct = run_validation_case("CYL2D_C1")
 const _SMOKE_FIG_DIR = mktempdir()   # Phase 150 (2026-11-11): the smoke writes no figure into docs/
