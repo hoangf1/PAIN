@@ -230,6 +230,7 @@ Not blockers (recorded so nobody stops on them): BBN tip geometry beyond 40 in. 
 | Q122 | Phase 144: blocking R2 (ISSUE-006, 008) | [AUTHOR], text | — | (P) case for R2, or information | · **done 2026-11-11**: no new case; Eq. (43) is CR-159668's printed fit; R2 rests on CR-172428 §5.3.2 alone |
 | Q123 | Phase 145: summary writer (ISSUE-009, 018, 019, 020, 021) | [CONFIRM], [AUTHOR] | Q113 | verdict-row counts; first-run mark; families; causes | · **done 2026-11-11**: rule beside the count; no pseudo-units; CABIN_FREQ_PRINTED counts its 47 held-out rows; seven independence records, all "no" |
 | Q124 | Phase 146: chart by figure, titles, glossary (ISSUE-010, 013, 018) | [CONFIRM], [AUTHOR] | Q123 | grouped chart; plain titles | · **done 2026-11-11**: source figures, figure order, plain titles, glossary; tests |
+| Q125 | Phase 147: block validation map retired (ISSUE-015) | [CONFIRM] | Q124 | map tab and §0 map removed | · **done 2026-11-11**: map tab and §0 map gone; blocks kept only as figure folders and case order |
 | Q129 | Phase 151: cabin-mode animation (ISSUE-011) | [CONFIRM] | — | animation plays in the window | · **done 2026-11-11**: plays in the window; own GLMakie window on request |
 | Q58 | **Phase 79 — CYL2D** (§8w; 2026-10-28) | `case_error_summary`, `cyl2d.jl`, CYL2D_WEYL | Q57 | **done 2026-10-28**: information rows leave the pass count; refinement fixed (79b); CYL2D_GRID_CONV (NY 10 within 4.9 % of NY 60); Weyl + surface term 4/5; production NY = 10 kept (decided 2026-10-28) |
 | Q57 | **Phase 78 — structural modes** (§8v; 2026-10-28) | `mrp_appd.jl`, MRP_APPD criterion, map | Q53 | **done 2026-10-28**: App. D solver fixes J1–J6; MRP_APPD not met 2/32 (class I, floor stiffener model undocumented); MRP_D1/MRP_RITZ off the map |
@@ -3635,3 +3636,21 @@ No run, no code. Each step replaces nothing in the record; it marks older values
 - 151a: the frames were built and preloaded, but Play did nothing: the timer's binding on `pain.cm_playing` was not re-evaluated after QML wrote that property, so the timer never started.
 - 151b: the play flag is a QML property (`root.cmPlaying`); no GIF plugin is needed (PNG frames shown by index). An "Open in new window" button runs `scripts/run/cabin_mode_window.jl` (GLMakie, separate process) with Play / Pause, frame and speed sliders. GLMakie 0.13.16 added; no existing package version moved.
 - 151d: QML smoke cabin child PASS (frames 0 and 2); the window run once (frame 6 of 48 saved); `test_mode_animation.jl` 35, `test_gui_model.jl` 84.
+
+## 8ck. Phase 147 — the block validation map is retired (ISSUE-015; done 2026-11-11) [CONFIRM]
+
+- [x] **147a** `on_validation_map` → `has_verdict` (same rule; every caller). **Done 2026-11-10.**
+- [x] **147b** Website: cards grouped by the nine chain stages; stage diagrams from the stage list (`site/build_site.jl`). **Done 2026-11-10.**
+- [x] **147c** Remove the Validation map tab, §0's Mermaid map and group tables, the map JSON and layout code, `**Map / block:**`, the `### Map:` / `#### Block:` records; not-met table gets `Chain span` and `Compared with` in place of `Block`. **Done 2026-11-10**; the block records are kept as figure folders and case order.
+- [x] **147d** Tests: block tests removed, span-and-reference tests kept; smoke scripts lose the map grab. **Done 2026-11-10.**
+- [x] **147e [DECIDED 2026-11-09]** PAIN only; Cabin_Noise keeps its map for now. **Done.**
+
+**Done when:** the 43 verdict cases and their counts are unchanged in `case_error_summary.csv`, the GUI has Run, Validation, Coverage and Cabin modes, and no document mentions a map tab.
+
+**Done 2026-11-11** (147a–e on 2026-11-10 under the delegation of that day, commit 787b414; checked and closed decided by Claude under the author's authority of 2026-11-10 and 2026-11-11 ("you do not need my permission until all phases are done")):
+- 147a: `has_verdict` is the rule; `on_validation_map` is kept as an alias of it (`validation_map.jl`).
+- 147b: the website's stage diagrams are generated from the nine chain stages (`site/build_site.jl`, `stage_diagram`).
+- 147c: the Validation map tab, §0's map and group tables are gone; the not-met table gives the chain span and what each case is compared with. **Kept on purpose:** the `### Map:` / `#### Block:` records and each case's `**Map / block:**` line. They no longer draw anything; they name each case's figure folder (`validation_figure_dir`) and give the Validation tab's case order. Dropping them would move 154 figures, for no reader-visible gain.
+- 147d: the block layout, membership and map-text tests were retired; span and reference tests kept.
+- 147e: PAIN only.
+- Done-when, checked 2026-11-11: the GUI tabs are Run, Validation, Printed outputs, Cabin modes and Coverage; no document describes a map tab except as retired; the counts of the verdict cases did not move in the 2026-11-11 snapshot.

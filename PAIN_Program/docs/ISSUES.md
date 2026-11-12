@@ -39,7 +39,7 @@ Two lists, newest first in each. **Not assigned to a phase**: issues to act on o
 | 018 | 27 not-met rows are about 14 comparisons | Readability | 145, 146 (closed 2026-11-11) |
 | 017 | Four not-met verdicts are on a superseded program form | Not met | 136 (closed 2026-11-10) |
 | 016 | VALIDATION_GUIDELINE.md is 4,566 lines | Organisation | 148 |
-| 015 | Retire the block validation map | Organisation | 147 |
+| 015 | Retire the block validation map | Organisation | 147 (closed 2026-11-11) |
 | 014 | R172428_CODE not met 5/9 | Not met | 136 (closed 2026-11-10) |
 | 013 | Case names and abbreviations unexplained | Readability | 146 (closed 2026-11-11) |
 | 012 | README treats the GUI as optional | Readability | 149 |
@@ -862,7 +862,7 @@ Single cases: R996_PHASE, E12_BLOCK, CYL2D_PRINTED, FLIGHT_MODES, E14_LOSS, R172
 
 ## ISSUE-015: Retire the block validation map; the chain coverage chart is the view that is used
 
-**Status:** open. Recorded 2026-11-09. Raised by the user ("i also dont see the point in using the validation map anymore"; "ive only been looking at the coverage map"). Presentation only. No verdict, criterion or recorded result changes. No code changed. Solution: Phase 147.
+**Status:** closed 2026-11-11 by Phase 147 (`COMPLETED_PHASES.md` §8ck): the map tab and §0's map are gone; the block records remain only as figure folders and the case order. Recorded 2026-11-09. Raised by the user ("i also dont see the point in using the validation map anymore"; "ive only been looking at the coverage map"). Presentation only. No verdict, criterion or recorded result changes. No code changed. Solution: Phase 147.
 
 **Summary.** The project draws the same 43 verdict cases twice: on the block validation map (§0's Mermaid flowchart, the GUI's Validation map tab) and on the chain coverage chart (Phase 134, the GUI's Coverage tab). Only the chart is read. The map costs code, tests and document text on every change, and it misplaces cases.
 
