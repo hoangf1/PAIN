@@ -397,6 +397,12 @@ Was: open, not assigned to a phase. Recorded 2026-11-10. Labels. No verdict chan
 - **Reading error:** each value is located by script on a 300 dpi render calibrated on labelled gridlines, read a second time by a different method, and must agree within 2 % of the value; a point that does not is re-read, and dropped with a note if it still does not.
 - **One run.** The result is recorded whatever it is. No polar, option or point is changed after it.
 
+**Digitized 2026-11-14 (153c), before any load was computed.** 38 points: Mach 0.165–0.675, blade angles 30°–60° (`data/report996/naca_4-5-08-03/measured/wind_tunnel/`). Three things differ from the wording above, each decided from the figure alone:
+
+1. *Second reading.* Pass B uses its own calibration (the grid lines next to the point) and its own estimator (a line fit on the raw ink); it starts from pass A's position, so it is not blind. The independent check is the report's own efficiency curve: J·C_T/C_P must agree with it within 0.015.
+2. *Points dropped as unreadable.* Blade angles 20° and 25°, and the shallow part of every curve at low advance ratio: the script cannot tell the crossing curves apart there with certainty. The kept points therefore lie at and above the advance ratio of best efficiency, the lightly loaded side.
+3. *Efficiency in the point rule* is J·C_T/C_P from the two read values.
+
 **Cautions.** The sibling repository's k_cl and k_cd were fitted to RM L9G06a; they are not used here and stay unused. The criterion, the points and the Mach numbers are fixed and dated before any load is computed. It does not fix `R996_LOADS`.
 
 ---
