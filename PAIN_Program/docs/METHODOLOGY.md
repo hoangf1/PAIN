@@ -198,7 +198,7 @@ cases, settings fixed first) apply to all of them.
 | `BEMT_SIMILARITY` (66d) | C_T, C_P at fixed J when rpm and V scale together | Unit and n, D handling | 1e-6 relative | met 6/6 (2026-10-24) |
 | `R996_LOADS` | C_T, C_P against RM L8H25a, Fig. 14 table and Fig. 7 legend | Load error swamps acoustic error | within ±15 % (23c) | **not met** 6/32; criterion registered after the loads were computed (post-hoc label) |
 | `PER_LOADS` | T, Q against Pereira Table 3 | Forward-flight loads beside the acoustic cases | none (23d has no load tolerance) | no verdict |
-| (no case) NACA Report 1012 Fig. 5, 2026-11-14 | C_T, C_P of the Report 996 blade in forward flight, 38 points | The only other forward-flight loads data found | ±15 % at every row, fixed first | no verdict and not registered: the points lie where the unprinted tunnel air state moves the result by up to 24 %; the code is high at every point, about 3 % in advance ratio (`phase153_forward_flight_loads.md`, ISSUE-043) |
+| (no case) NACA Report 1012 Fig. 5, 2026-11-14 | C_T, C_P of the Report 996 blade in forward flight, 38 points | The only other forward-flight loads data found | ±15 % at every row, fixed first | no verdict and not registered: the points lie where the unprinted tunnel air state moves the result by up to 24 %; the code is high at every point, about 3 % in advance ratio (`phase153_forward_flight_loads.md`, ISSUE-043); on 23 loaded-side points, where the air state hardly matters, C_T is +11 % and C_P +15 % at the median (`issue043_loaded_side.md`) |
 
 *F1A amplitude (`A_AMP`): are the pressures right?*
 

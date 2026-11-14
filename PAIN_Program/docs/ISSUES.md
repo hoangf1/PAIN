@@ -10,7 +10,7 @@ Two lists, newest first in each. **Not assigned to a phase**: issues to act on o
 
 | Issue | Subject | Kind | State |
 |---|---|---|---|
-| 043 | Forward-flight loads: the computed thrust and power curves lie about 3 % higher in advance ratio than Report 1012's | Investigation | open, not assigned (needs the loaded part of the curves read by hand) |
+| 043 | Forward-flight loads: the computed thrust and power curves lie about 3 % higher in advance ratio than Report 1012's | Investigation | open, not assigned: the loaded side is read and shows the same displacement (C_T +11 %, C_P +15 %); the cause is not found |
 | 042 | Forward-flight thrust and power of the Report 996 blade (NACA Report 1012): a second test of the blade loads | Validity, data | closed 2026-11-14: compared once, no verdict (input rule); not registered as a case |
 | 041 | Held-out test of the ISSUE-032 fix: the Merlin IVC loss factors of CR-172428 App. C | Validity, data | closed 2026-11-12: FLIGHT_ETA met 218/221 |
 | 040 | The per-stage file layout and the 44 test-only cases (Phase 150b, 150e rest) | Organisation | closed 2026-11-12 |
@@ -381,7 +381,7 @@ Was: open, not assigned to a phase. Recorded 2026-11-10. Labels. No verdict chan
 
 ## ISSUE-043: forward-flight loads lie about 3 % higher in advance ratio than NACA Report 1012's
 
-**Status:** open, not assigned to a phase. Recorded 2026-11-14 by Claude from Phase 153. No verdict, criterion or code changes.
+**Status:** open, not assigned to a phase. Recorded 2026-11-14 by Claude from Phase 153. No verdict, criterion or code changes. **The diagnostic's answer (2026-11-14, `validation_reports/issue043_loaded_side.md`): present on the loaded side too.** On 23 loaded-side points C_T is a median 11.1 % high and C_P 14.6 %. The advance-ratio displacement is the same as on the falling part (3.6 % against 3.1 %), and the air state does not explain it there (Reynolds ±20 % moves values by under 2.5 % at 21 of 23 points). What is still open is the cause.
 
 **What was seen.** On 38 points of Report 1012 Fig. 5 (Mach 0.165–0.675, blade angles 30°–60°), this code's C_T and C_P are both high at every point, and the efficiency stays close (median 0.897 against 0.913). The code gives the measured C_T at an advance ratio 0.5 % to 4.9 % higher (median 3.1 %), roughly one degree of blade angle. On the falling part of the curves that is +7 % to +83 % in C_T.
 

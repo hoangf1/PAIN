@@ -12,6 +12,7 @@ Colour key in diagrams: green = check exists and passes as stated; orange = plan
 
 ## Status
 
+- **2026-11-14 (ISSUE-043 diagnostic):** loaded side of Report 1012 read and compared once; flow unchanged.
 - **2026-11-14 (Phase 153 closed):** forward-flight loads data added and compared once; no case, no code change; flow unchanged.
 - **2026-11-14 (Phase 152 closed):** search and scan only; flow unchanged.
 - **2026-11-11 (ISSUE-036, 038 closed):** uncertainty cache on the pipeline's mode cut-off; flow unchanged.
