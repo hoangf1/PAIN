@@ -1809,7 +1809,7 @@ end
 
 # Phase 69 (2026-10-28): free transition, N_crit 8 fitted to TN 1546; the forced-transition set stays in polars_forced_merged.json.
 const _R996_POLAR_PATH = joinpath("report996", "polars_phase69_ncrit8.json")
-const _R996_BLADE_FORM = joinpath("report996", "naca_4-5-08-03", "blade_form.csv")
+const _R996_BLADE_FORM = joinpath("report996", "naca_4-5-08-03", "blade_form_r996_fig3c.csv")   # Phase 154: β from Report 996 Fig. 3(c)
 # Representative section for polar display: exact TN 1546 match nearest 0.75 R.
 # n16_507 is at r/R = 0.75 but has no TN 1546 digitization; among TN matches,
 # n16_506 (blade-form t/c≈0.06 → r/R≈0.87) is nearer 0.75 than n16_509 (r/R≈0.60).

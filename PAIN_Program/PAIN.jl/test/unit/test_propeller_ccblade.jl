@@ -112,6 +112,14 @@ end
     @test maximum(bf.radii_m) ≤ 0.995 * bf.R + 1e-12
     @test bf.twist_deg .+ 42.64 .- 15.0 ≈ [PAIN._read_csv_numeric(joinpath(@__DIR__, "..", "..", "..", "data", "report996", "naca_4-5-08-03", "blade_form.csv"))[:beta_deg][i] for i in 1:length(bf.twist_deg)] atol = 1e-9
     @test_throws Exception PAIN.blade_form_geometry(_HARTZELL)
+    # Phase 154: the design β₇₅ is the file's own β at r/R 0.75 (the Fig. 3(c) file has 42.668°, not the table's 42.64°),
+    # so the set blade angle lands exactly at 0.75 R; an explicit design angle still overrides it.
+    f3 = joinpath(@__DIR__, "..", "..", "..", "data", "report996", "naca_4-5-08-03", "blade_form_r996_fig3c.csv")
+    g3 = PAIN.blade_form_geometry(f3; beta75_target_deg=20.0)
+    i75 = findfirst(r -> abs(r / g3.R - 0.75) < 1e-9, g3.radii_m)
+    @test isapprox(g3.twist_deg[i75], 20.0; atol=1e-9)
+    @test abs(g3.beta75_design_deg - 42.64) > 0.01
+    @test PAIN.blade_form_geometry(f3; beta75_target_deg=20.0, beta75_design_deg=42.64).twist_deg[i75] ≈ 20.0 + g3.beta75_design_deg - 42.64 atol = 1e-9
     o0 = (; Np=[1.0, 2.0], Tp=[3.0, 4.0])
     o = PAIN._scale_outputs(o0, 2.0, 3.0)
     @test o.Np == [2.0, 4.0] && o.Tp == [9.0, 12.0] && o0.Np == [1.0, 2.0]          # copy, not in place

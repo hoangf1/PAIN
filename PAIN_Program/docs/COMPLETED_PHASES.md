@@ -3734,3 +3734,20 @@ One new case, `R1012_LOADS`, chain span Blade and polars → Blade loads, compar
 - [x] **153e Documents** (R5), `/code-review`, commit, push. **Done 2026-11-14.** Finding recorded as ISSUE-043.
 
 **Outcome.** The comparison cannot carry a verdict (input rule fixed beforehand), so `R1012_LOADS` was not registered and no code in `PAIN.jl/src` changed. Kept: the 38 digitized points, the digitizer, the report. Queue row: | Q130 | Phase 153: forward-flight loads of the Report 996 blade against NACA Report 1012 (ISSUE-042) | new data, one new case | — | `R1012_LOADS` with its verdict | · **done 2026-11-14**
+
+## 8cr. Phase 154 — the Report 996 blade angle from Report 996 Fig. 3(c) (ISSUE-044; done 2026-11-14) [CONFIRM given]
+
+**Decision (Claude, under the author's authority of 2026-11-14 ("do thats right", read as "do what's right" on the ISSUE-044 question)).**
+
+- **Blade angle.** The Report 996 cases take the blade-angle distribution from their own report's Fig. 3(c), the primary source.
+- **The table.** The CR-196702 table (a 1996 tabulation of the NACA curves) stays in the repository unchanged. Its chord, thickness and design lift are kept if Fig. 3(c) agrees with them within the reading error.
+- **Blade root.** It stays at the table's r/R 0.271: no document in `references/` prints the static rig's spinner. Moving it to Report 1012's 0.331 changes the static C_T at 10° by about 3 % (`issue043_cause.md`), under a third of the ±15 % tolerance, so the input rule does not remove the verdict.
+- **Labels.** Every re-run is post-hoc: the results with the table are known. The earlier results stay on record. No criterion, tolerance or measured file changes.
+- **Independence rule.** The difference was found on Report 1012's data, not on any Report 996 case's own compared data, so the rule of 2026-11-09 does not apply.
+
+- [x] **154a Digitize** Report 996 Fig. 3(c) (β, b/D, h/b) by §2.2: script, calibration on labelled gridlines, QA overlay, sidecar, two passes, spot check. **Done 2026-11-14:** `measured/geometry/tr996_fig3c_blade_form.csv`; β passes within 0.12° (one flagged crossing at r/R 0.70). Fig. 3(c) has about 0.2° less pitch at r/R 0.5–0.65 and 0.26°–0.39° less beyond 0.95 than the table; its b/D is about 1 % below the table (the table matches the designation's solidity), so chord and thickness stay the table's.
+- [x] **154b Blade input.** A new file with the table's stations, chord, thickness and design lift and Fig. 3(c)'s β (below r/R 0.30, which the figure does not print, the table's β joined continuously). `blade_form_geometry` takes the 0.75 R design angle from the file it reads instead of the fixed 42.64° (unchanged for the table, whose β at 0.75 R is 42.64°). **Done 2026-11-14:** `blade_form_r996_fig3c.csv` (β at 0.75 R 42.668°); `blade_form_geometry` takes the design angle from the file; unit test added.
+- [x] **154c Re-run** the Report 996 loads, acoustics and unscaled acoustics scripts on it; regenerate the rows and figures of the cases that replay them. **Done 2026-11-14:** loads, acoustics and unscaled acoustics re-run; rows and figures of R996_LOADS, FIG12, FIG13A, FIG14, FIG6, FIG7, PHASE, POLAR_R996 regenerated. No verdict changes (`phase154_r996_blade_angle.md`).
+- [x] **154d Tests and documents** (R5), `/code-review`, commit, push. **Done 2026-11-14.**
+
+Queue row: | Q131 | Phase 154: the Report 996 blade angle from Report 996 Fig. 3(c) (ISSUE-044) | data, src, re-run | — | Report 996 cases re-run (post-hoc) | · **done 2026-11-14**: no verdict changes; report `phase154_r996_blade_angle.md`

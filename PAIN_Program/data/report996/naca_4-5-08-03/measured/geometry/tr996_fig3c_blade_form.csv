@@ -1,0 +1,21 @@
+# Source: NACA Report 996 (Hicks, Hubbard 1947), Fig. 3(c) NACA 4-(5)(08)-03 propeller, PDF p. 9 (printed p. 5); references/NASA Report 996.pdf
+# Method: script, 600 dpi; grid fitted to all 15 x 21 grid lines (residual 2.1 / 2.1 px; one cell 0.05 r/R = 125.9 px, 0.01 = 126.3 px). Pass A: curve followed column by column, read beside each gridline. Pass B: independent, from the table value, line fit on raw ink, local grid lines
+# Uncertainty: passes A and B differ by at most 0.12 deg in beta, 0.0011 in h/b, 0.0027 in b/D (delta_dig, without the flagged pass-B readings); one pixel is 0.016 deg of beta. beta_deg is pass A
+# Digitized 2026-11-14 by Claude; script data/digitizers/dig_r996_fig3c.py; no value typed by hand. Phase 154a
+# Conventions: r/R blade station; beta_deg section blade angle at the design setting (right axis of the figure); b/D blade width over diameter; h/b thickness over width. The fall of b/D and h/b at the tip (r/R > 0.95) is not read
+r_over_R,beta_deg,beta_deg_passB,h_over_b,h_over_b_passB,b_over_D,b_over_D_passB,note
+0.30,66.088,65.970,0.1294,0.1299,0.0928,0.0901,-
+0.35,62.726,62.830,0.1218,0.1222,0.0893,0.0894,-
+0.40,59.631,59.739,0.1147,0.1149,0.0858,0.0860,-
+0.45,56.652,56.733,0.1082,0.1086,0.0824,0.0825,-
+0.50,53.918,54.000,0.1019,0.1021,0.0789,0.0791,-
+0.55,51.349,51.431,0.0959,0.0962,0.0755,0.0756,-
+0.60,48.851,48.879,0.0903,0.0903,0.0719,0.0720,-
+0.65,46.583,46.627,0.0848,0.0850,0.0685,0.0687,-
+0.70,44.596,45.054,0.0794,0.0796,0.0653,0.0689,pass B took the b/D stroke where the two lines cross; pass A kept; pass B took the beta stroke where the two lines cross
+0.75,42.668,42.699,0.0741,0.0740,0.0617,0.0618,-
+0.80,40.873,40.884,0.0689,0.0700,0.0583,0.0583,-
+0.85,39.154,39.131,0.0634,0.0634,0.0549,0.0550,-
+0.90,37.510,37.485,0.0572,0.0572,0.0515,0.0515,-
+0.95,35.995,35.989,0.0480,0.0474,0.0473,0.0484,-
+1.00,34.647,34.630,-,-,-,-,-

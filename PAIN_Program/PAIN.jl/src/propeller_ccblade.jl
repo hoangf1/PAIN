@@ -697,15 +697,17 @@ end
 """
     blade_form_geometry(csv_path; D, beta75_target_deg, r_tip_frac=0.995) -> NamedTuple
 
-Report 996 / phase 25b: read `blade_form.csv` (r/R, c/R, t/c, β_design, …),
-shift twist so β(0.75R) = `beta75_target_deg` using design β₇₅ = 42.64°,
-truncate at `r_tip_frac` (chord → 0 at tip). Returns radii_m, chord_m, twist_deg, t_over_c.
+Report 996 / phase 25b: read a blade-form file (r/R, c/R, t/c, β_design, …),
+shift twist so β(0.75R) = `beta75_target_deg`, truncate at `r_tip_frac` (chord → 0 at tip).
+Returns radii_m, chord_m, twist_deg, t_over_c. The design β₇₅ is the file's own β at r/R 0.75 (linear between
+stations) unless given; Phase 154 (2026-11-14): it was fixed at 42.64°, the value of `blade_form.csv`, which the
+Fig. 3(c) blade file does not share.
 """
 function blade_form_geometry(csv_path::AbstractString;
                              D::Float64=1.2192,
                              beta75_target_deg::Float64=15.0,
                              r_tip_frac::Float64=0.995,
-                             beta75_design_deg::Float64=42.64)
+                             beta75_design_deg::Union{Nothing,Float64}=nothing)
     R = D / 2
     rows = NamedTuple[]
     for raw in eachline(csv_path)
@@ -723,6 +725,12 @@ function blade_form_geometry(csv_path::AbstractString;
         ))
     end
     isempty(rows) && error("no blade_form rows in $csv_path")
+    if beta75_design_deg === nothing
+        rr = [r.r_over_R for r in rows]; i = searchsortedlast(rr, 0.75)
+        (1 <= i < length(rr)) || error("blade-form file $csv_path does not span r/R 0.75")
+        t = (0.75 - rr[i]) / (rr[i+1] - rr[i])
+        beta75_design_deg = rows[i].beta_deg + t * (rows[i+1].beta_deg - rows[i].beta_deg)
+    end
     # β(r) = β75_target + (β_design(r) − β75_design)
     twist = [r.beta_deg - beta75_design_deg + beta75_target_deg for r in rows]
     return (

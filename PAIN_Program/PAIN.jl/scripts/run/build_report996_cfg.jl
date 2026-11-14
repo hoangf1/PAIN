@@ -4,7 +4,7 @@ using PAIN
 using JSON3
 
 const ROOT = joinpath(@__DIR__, "..", "..", "..")
-const BF = joinpath(ROOT, "data", "report996", "naca_4-5-08-03", "blade_form.csv")
+const BF = joinpath(ROOT, "data", "report996", "naca_4-5-08-03", "blade_form_r996_fig3c.csv")   # Phase 154: β from Report 996 Fig. 3(c)
 const OUTDIR = joinpath(@__DIR__, "..", "..", "examples")
 
 function rpm_from_Mt(Mt; D=1.2192, a=340.3)
@@ -17,7 +17,7 @@ function write_cfg(; beta75, Mt, B, name)
     # tip thickness from last station (for thickness-on sensitivity); production default 0
     t_over_c = 0.0
     cfg = Dict(
-        "description" => "Report 996 NACA 4-(5)(08)-03; β75=$(beta75)°; Mt=$(Mt); B=$(B); from blade_form.csv (25b)",
+        "description" => "Report 996 NACA 4-(5)(08)-03; β75=$(beta75)°; Mt=$(Mt); B=$(B); from blade_form_r996_fig3c.csv (25b; Phase 154)",
         "propeller" => Dict(
             "num_blades" => B,
             "tip_radius_m" => g.R,

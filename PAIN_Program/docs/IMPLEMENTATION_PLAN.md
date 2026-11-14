@@ -13,7 +13,7 @@ Single source of truth for building this project without re-deriving context in 
 2. Data register and digitization instructions (status, procedure, one card per figure; §2.5 candidate sources found 2026-11-09)
 3. Current status and open work queue
 4. Architecture
-Phases 152–153 (planned and done 2026-11-14): no phase is open.
+Phases 152–154 (planned and done 2026-11-14): no phase is open.
 8cg–8co. Phases 143–151 done (planned 2026-11-09 from `ISSUES.md`; Phases 135–138 done 2026-11-10, 139–151 done 2026-11-11; open remainders are tickets ISSUE-030 to 040 and moved to `COMPLETED_PHASES.md`)
 5–8ac, 11. *(in `COMPLETED_PHASES.md`, same section numbers, moved 2026-10-29)* every completed phase, the queue Q0–Q66 and the 2026-10-21 review
 9. Reference appendices (BBN evidence, Report 996 figures and data, Pereira polar specification, variables)
@@ -255,7 +255,7 @@ Already in `references/` and bearing on an open phase: `NACA_TN_1546.pdf` holds 
 ## 3. Current status and work queue
 
 **Status of the validation cases:** `VALIDATION_GUIDELINE.md` §0 (the map: cases with a verdict) and `NO_VERDICT_CASES.md`
-(the cases without one). **Open issues:** `ISSUES.md` (001–043 are closed; 044 is Phase 154). **Completed phases** (§§5–8ac and §11, with the work queue Q0–Q66 and the 2026-10-21 review I-01–I-20)
+(the cases without one). **Open issues:** `ISSUES.md` (001–044 are closed). **Completed phases** (§§5–8ac and §11, with the work queue Q0–Q66 and the 2026-10-21 review I-01–I-20)
 are in `COMPLETED_PHASES.md` under the same section numbers; a reference such as "IMPLEMENTATION_PLAN.md §8b" in the code
 or the other documents points there. When a phase is done, mark it done and move its section to the bottom of
 `COMPLETED_PHASES.md` (`CLAUDE.md`).
@@ -264,7 +264,6 @@ or the other documents points there. When a phase is done, mark it done and move
 
 | Q | Item | Kind | Prerequisite | Output |
 |---|------|------|--------------|--------|
-| Q131 | Phase 154: the Report 996 blade angle from Report 996 Fig. 3(c) (ISSUE-044) | data, src, re-run | — | Report 996 cases re-run (post-hoc) |
 | — | Phases 90–134 are done (2026-11-05; 118f: unit-test gaps; 112–116 merged from branch `heart`, numbered 100–104 there). Q113–Q129 were planned on 2026-11-09 from `ISSUES.md`; none is started. Author decisions of 2026-11-09 are in the steps; order confirmed: Q113, then Q114–Q122 (not-met cases), then Q123–Q129 | — | — | — |
 
 If a queue item is blocked on data, skip to the next unblocked item and say which data item blocks it.
@@ -317,26 +316,11 @@ The diagram matches the code (phases 21–22 done 2026-10-21): `propeller_ccblad
 
 ---
 
-## Phases 152–153 (planned and done 2026-11-14 from a scan of the coverage chart; in `COMPLETED_PHASES.md` §8cp, §8cq)
+## Phases 152–154 (planned and done 2026-11-14; in `COMPLETED_PHASES.md` §8cp–§8cr)
 
 *(Author 2026-11-14: "do another scan of the coverage map for all the cases and see what needs to be fixed list solutions to these cases into phases in the implementation plan"; "if its not the exact data then just say inputs couldnt be found and move on".)*
 
 The scan is `validation_reports/phase152_coverage_scan.md`. Of the five not-met cases, none can be fixed with published data: three are limits of PAIN's own method, one needs section data that is not published (ISSUE-030, closed), and one differs from NASA's printout by a factor no printed input gives. The one gap for which data was found, forward-flight blade loads, was compared in Phase 153 (done 2026-11-14: no verdict, ISSUE-043). **No phase is open.** The rules of Phases 137–151 hold (`COMPLETED_PHASES.md`): criteria fixed and dated before any comparison, no tuning, targeted testsets only.
-
-### Phase 154: the Report 996 blade angle from Report 996 Fig. 3(c) (ISSUE-044) [CONFIRM given]
-
-**Decision (Claude, under the author's authority of 2026-11-14 ("do thats right", read as "do what's right" on the ISSUE-044 question)).**
-
-- **Blade angle.** The Report 996 cases take the blade-angle distribution from their own report's Fig. 3(c), the primary source.
-- **The table.** The CR-196702 table (a 1996 tabulation of the NACA curves) stays in the repository unchanged. Its chord, thickness and design lift are kept if Fig. 3(c) agrees with them within the reading error.
-- **Blade root.** It stays at the table's r/R 0.271: no document in `references/` prints the static rig's spinner. Moving it to Report 1012's 0.331 changes the static C_T at 10° by about 3 % (`issue043_cause.md`), under a third of the ±15 % tolerance, so the input rule does not remove the verdict.
-- **Labels.** Every re-run is post-hoc: the results with the table are known. The earlier results stay on record. No criterion, tolerance or measured file changes.
-- **Independence rule.** The difference was found on Report 1012's data, not on any Report 996 case's own compared data, so the rule of 2026-11-09 does not apply.
-
-- [ ] **154a Digitize** Report 996 Fig. 3(c) (β, b/D, h/b) by §2.2: script, calibration on labelled gridlines, QA overlay, sidecar, two passes, spot check.
-- [ ] **154b Blade input.** A new file with the table's stations, chord, thickness and design lift and Fig. 3(c)'s β (below r/R 0.30, which the figure does not print, the table's β joined continuously). `blade_form_geometry` takes the 0.75 R design angle from the file it reads instead of the fixed 42.64° (unchanged for the table, whose β at 0.75 R is 42.64°).
-- [ ] **154c Re-run** the Report 996 loads, acoustics and unscaled acoustics scripts on it; regenerate the rows and figures of the cases that replay them.
-- [ ] **154d Tests and documents** (R5), `/code-review`, commit, push.
 
 ---
 
@@ -477,7 +461,7 @@ Digitization method: raster figures were extracted from the PDFs at 300 ppi, the
 | Number of blades B | 2 (4 for Fig. 6) | CCBlade rotor, F1A source elements, BPF | `CCBlade.Rotor(Rhub, Rtip, B)`; `bpf = B*rpm/60` |
 | Diameter D / tip radius R | Report models | CCBlade rotor; observer radial position | `Rtip`; observer `x1 = R + d` |
 | Hub radius | `blade_form.csv` (root 0.271R) | CCBlade rotor | `Rhub` |
-| Chord, thickness, twist vs r/R | `blade_form.csv` (Fig. 3 itself is not in the data folder) | CCBlade sections; F1A thickness term | `CCBlade.Section(r, chord, theta, af)`; `area_over_chord2` |
+| Chord, thickness, twist vs r/R | `blade_form_r996_fig3c.csv`: chord and thickness from `blade_form.csv`, β from Report 996 Fig. 3(c) (Phase 154) | CCBlade sections; F1A thickness term | `CCBlade.Section(r, chord, theta, af)`; `area_over_chord2` |
 | Blade angle at 0.75R (8°, 10°, 15°, 20°) | Figs. 6-7, 13-14 | Section pitch angle | `twist_deg` shifted by β₇₅,target − 42.64° (set through `pitch_offset_deg`) → `theta` |
 | Tip Mach M_t | 0.45–1.00 | Rotation speed | `Omega = M_t*c0/R`; `rpm`; `OperatingPoint(Vinf, Omega*r, rho; asound=c0)` |
 | Forward speed | 0 (static) | CCBlade operating point; observer velocity | `Vinf` (values below 1 m/s are replaced by 20 m/s today; phase 25a decides); `v_obs = [Vinf,0,0]` |
@@ -581,7 +565,9 @@ data/NASA_CR-158919/, data/NASA_CR-159124/                   (D-01–D-08, D-21,
 docs/validation_reports/bbn_phase.md                         (24)
 data/report996/naca_4-5-08-03/CHECKSUMS.txt                  (D-07)
 data/report996/{scale_factors.csv,f1a_results.csv}          (26, 27)
-data/report996/tr996_fig3_blade_form.csv                     (D-19, C-12)
+data/report996/tr996_fig3_blade_form.csv                     (D-19, C-12; hand reading, superseded by Phase 154a)
+data/report996/naca_4-5-08-03/measured/geometry/tr996_fig3c_blade_form.csv   (D-19, Phase 154a, script)
+data/report996/naca_4-5-08-03/blade_form_r996_fig3c.csv      (Phase 154b, the Report 996 blade input)
 docs/validation_reports/report996_{setup,loads,acoustics}.md (25–27)
 data/pereira/pereira_{fig6_peaks,fig8_directivity,fig9_harmonics,tables3_4}.csv  (D-10–D-13, C-01–C-04)
 docs/validation_reports/pereira_forward_flight.md            (28)

@@ -100,3 +100,7 @@ Distances in feet for Report 1079 use D = 47 in. = 3.917 ft (7.5 D = 29.4 ft, th
   separated from its neighbours and is linearly interpolated between the two symbols.
 * TR 996 fig. 8: line slopes to +-0.003; the dashed-line ends are where the drawn dashes stop (B=4 Mt 1.00
   runs off the frame top at CP ~0.054).
+
+## Report 996 Fig. 3(c), by script (Phase 154a, 2026-11-14)
+
+`geometry/tr996_fig3c_blade_form.csv`: β, h/b and b/D of the NACA 4-(5)(08)-03 panel at r/R 0.30–1.00 (b/D and h/b to 0.95), two passes (`data/digitizers/dig_r996_fig3c.py`; pass A traces each curve, pass B starts from the table value and reads against the local grid lines). The passes differ by at most 0.12° in β. At r/R 0.70 the β and b/D lines cross and pass B took the other stroke; that is flagged in the file and pass A is used. QA in `geometry/qa/`: overlay, pixel sidecar, 600 dpi spot check (β at 0.95 and 0.60, h/b at 0.80; each mark on its curve at the gridline). This supersedes the hand reading `data/report996/tr996_fig3_blade_form.csv` (C-12, 2026-10-21), whose b/D was another curve (I-11). The blade input built from it is `naca_4-5-08-03/blade_form_r996_fig3c.csv` (`build_r996_blade_fig3c.py`).

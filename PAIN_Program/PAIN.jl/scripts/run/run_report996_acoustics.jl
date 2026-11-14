@@ -5,7 +5,7 @@ using Dates
 
 const ROOT = joinpath(@__DIR__, "..", "..", "..")
 const DATA = joinpath(ROOT, "data", "report996")
-const BF = joinpath(DATA, "naca_4-5-08-03", "blade_form.csv")
+const BF = joinpath(DATA, "naca_4-5-08-03", "blade_form_r996_fig3c.csv")   # Phase 154 (2026-11-14): β from Report 996 Fig. 3(c)
 const POLAR = joinpath(DATA, "polars_phase69_ncrit8.json")  # Phase 69: free transition, N_crit 8
 const SCALES = joinpath(DATA, "scale_factors.csv")
 const DIG = joinpath(DATA, "tr996_fig12_13a_14_digitized.csv")
@@ -314,6 +314,7 @@ function main()
         println(io)
         println(io, "Re-recorded 2026-10-21 after the amplitude-convention fix (I-17; sources cited); result known in advance in direction, therefore post-hoc.")
         println(io, "Generated $(Dates.today()) by `scripts/run/run_report996_acoustics.jl`.")
+        println(io, "Blade: `blade_form_r996_fig3c.csv`, β from Report 996 Fig. 3(c) (Phase 154, 2026-11-14; re-run post-hoc; the results on `blade_form.csv` are compared in `phase154_r996_blade_angle.md`).")
         println(io, "**Re-run after plan I-01/I-02/I-08 ($(Dates.today())).** Criterion: VALIDATION_GUIDELINE §2.12 / 23c frozen 2026-10-21.")
         println(io, "x_sign=R996_X_SIGN = +1 (report x/D positive ahead → AA +X, the direction the rotor travels; Phase 72, was −1). Thickness on (Phase 76; A/c² per station from the NACA 16 section contours). Harmonic A vs measured: A_rms = A_Pa/√2 (Report 996 p.10 rms).")
         println(io)
