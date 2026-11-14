@@ -255,7 +255,7 @@ Already in `references/` and bearing on an open phase: `NACA_TN_1546.pdf` holds 
 ## 3. Current status and work queue
 
 **Status of the validation cases:** `VALIDATION_GUIDELINE.md` §0 (the map: cases with a verdict) and `NO_VERDICT_CASES.md`
-(the cases without one). **Open issues:** `ISSUES.md` (001–042 are closed; 043, recorded 2026-11-14, is open and not assigned to a phase). **Completed phases** (§§5–8ac and §11, with the work queue Q0–Q66 and the 2026-10-21 review I-01–I-20)
+(the cases without one). **Open issues:** `ISSUES.md` (001–043 are closed; 044, recorded 2026-11-14, is open and waits for the author's decision). **Completed phases** (§§5–8ac and §11, with the work queue Q0–Q66 and the 2026-10-21 review I-01–I-20)
 are in `COMPLETED_PHASES.md` under the same section numbers; a reference such as "IMPLEMENTATION_PLAN.md §8b" in the code
 or the other documents points there. When a phase is done, mark it done and move its section to the bottom of
 `COMPLETED_PHASES.md` (`CLAUDE.md`).

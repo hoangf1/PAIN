@@ -10,7 +10,8 @@ Two lists, newest first in each. **Not assigned to a phase**: issues to act on o
 
 | Issue | Subject | Kind | State |
 |---|---|---|---|
-| 043 | Forward-flight loads: the computed thrust and power curves lie about 3 % higher in advance ratio than Report 1012's | Investigation | open, not assigned: the loaded side is read and shows the same displacement (C_T +11 %, C_P +15 %); the cause is not found |
+| 044 | The Report 996 blade input: blade root at 0.271 R and the tabulated tip twist, where the NACA figures print less tip pitch (and, for Report 1012, the spinner at 0.331 R) | Input, decision | open, not assigned (moves cases with a verdict: the author's decision) |
+| 043 | Forward-flight loads: the computed thrust and power curves lie about 3 % higher in advance ratio than Report 1012's | Investigation | closed 2026-11-14: mostly two inputs that differ from Report 1012 Fig. 2 (blade root at the spinner, tip twist); a 1–1.5 % remainder is unexplained |
 | 042 | Forward-flight thrust and power of the Report 996 blade (NACA Report 1012): a second test of the blade loads | Validity, data | closed 2026-11-14: compared once, no verdict (input rule); not registered as a case |
 | 041 | Held-out test of the ISSUE-032 fix: the Merlin IVC loss factors of CR-172428 App. C | Validity, data | closed 2026-11-12: FLIGHT_ETA met 218/221 |
 | 040 | The per-stage file layout and the 44 test-only cases (Phase 150b, 150e rest) | Organisation | closed 2026-11-12 |
@@ -379,9 +380,23 @@ Was: open, not assigned to a phase. Recorded 2026-11-10. Labels. No verdict chan
 
 ---
 
+## ISSUE-044: the Report 996 blade input differs from the NACA blade-form figures near the root and the tip
+
+**Status:** open, not assigned to a phase. Recorded 2026-11-14 by Claude from ISSUE-043. A decision for the author: it would change the inputs of cases with a verdict after the results below were seen, so any re-run is post-hoc.
+
+**What differs.** The Report 996 cases build the blade from `blade_form.csv` (CR-196702 App. B-1, a 1996 tabulation of the NACA blade-form curves) from r/R 0.271, with a spinner radius of 0.1651 m that `propeller.yaml` calls an approximation.
+- Report 1012 Fig. 2 and Report 996 Fig. 3(c) both draw the blade angle straight to the tip. By script on Report 1012 Fig. 2, the table has more pitch beyond r/R 0.9: +0.44° at 0.95 R and +0.84° at the tip, relative to 0.75 R. Elsewhere the two agree within 0.25°.
+- Report 1012 Fig. 2 marks the spinner of the forward-flight tests at r/R 0.331. The static tests' spinner is not printed in the documents in `references/` (Report 996 Fig. 4 shows a small hub).
+
+**What it would move (diagnostic runs of 2026-11-14, `issue043_cause.md`).** Report 1012 forward flight: most of the displacement of ISSUE-043. Static Report 996 loads at 10°: C_T from −2.4 % to −6.1 % with both inputs, still inside ±15 %; at 20° from −30.4 % to −32.0 %. The acoustic cases run on loads scaled to the measured thrust and torque, so they would move only through the load distribution (not run).
+
+**What a decision needs.** (1) Whether the tip twist follows the NACA figures (the primary source) or the table; (2) which root radius the static tests had. RM L8H25a (not in `references/`) may print the static rig. (3) Whether any case is re-run on the result, with its post-hoc label.
+
+---
+
 ## ISSUE-043: forward-flight loads lie about 3 % higher in advance ratio than NACA Report 1012's
 
-**Status:** open, not assigned to a phase. Recorded 2026-11-14 by Claude from Phase 153. No verdict, criterion or code changes. **The diagnostic's answer (2026-11-14, `validation_reports/issue043_loaded_side.md`): present on the loaded side too.** On 23 loaded-side points C_T is a median 11.1 % high and C_P 14.6 %. The advance-ratio displacement is the same as on the falling part (3.6 % against 3.1 %), and the air state does not explain it there (Reynolds ±20 % moves values by under 2.5 % at 21 of 23 points). What is still open is the cause.
+**Status:** closed 2026-11-14 (Claude, at the author's request of 2026-11-14 ("Yes, look for it"); report `validation_reports/issue043_cause.md`). **Most of the displacement comes from two inputs in which the code's blade differs from the blade Report 1012 prints in its Fig. 2, not from the loads model.** (1) The code integrates the blade from r/R 0.271; Fig. 2 marks the spinner at r/R 0.331. (2) Beyond r/R 0.9 Fig. 2 has less pitch than the CR-196702 table (−0.44° at 0.95 R, −0.84° at the tip, relative to 0.75 R). With both as Fig. 2 prints them, the shift in J falls from 3.6 % to 1.0 % on the loaded side and from 3.1 % to 1.4 % on the falling side. It no longer grows with blade angle, and C_T is +4.4 % (loaded) and +11.1 % (falling) at the median. Unexplained: a uniform 1–1.5 % shift (about 0.3°) and an efficiency about 0.01–0.015 low. Nothing was changed or adopted. Whether the Report 996 cases should take these inputs is ISSUE-044. Was: open, not assigned to a phase. Recorded 2026-11-14 by Claude from Phase 153. No verdict, criterion or code changes. **The diagnostic's answer (2026-11-14, `validation_reports/issue043_loaded_side.md`): present on the loaded side too.** On 23 loaded-side points C_T is a median 11.1 % high and C_P 14.6 %. The advance-ratio displacement is the same as on the falling part (3.6 % against 3.1 %), and the air state does not explain it there (Reynolds ±20 % moves values by under 2.5 % at 21 of 23 points). What is still open is the cause.
 
 **What was seen.** On 38 points of Report 1012 Fig. 5 (Mach 0.165–0.675, blade angles 30°–60°), this code's C_T and C_P are both high at every point, and the efficiency stays close (median 0.897 against 0.913). The code gives the measured C_T at an advance ratio 0.5 % to 4.9 % higher (median 3.1 %), roughly one degree of blade angle. On the falling part of the curves that is +7 % to +83 % in C_T.
 
