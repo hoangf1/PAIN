@@ -389,6 +389,14 @@ Was: open, not assigned to a phase. Recorded 2026-11-10. Labels. No verdict chan
 
 **What is not known.** The cause. Candidates, none tested: the reference line of the printed blade angle; blade twist under load; the zero-lift angle of the XFOIL polars; the tunnel Mach correction. Whether the same shift is present where the tool is used (Pereira's loads are within 1 % of the measured thrust at one condition, `PER_LOADS`).
 
+**The diagnostic (fixed 2026-11-14 by Claude at the author's request "can you read it", before any point of the loaded part was read or any load computed there).**
+
+- **Question.** On the loaded side of the curves, is the code high by a similar amount, or is the difference confined to the falling part near zero thrust?
+- **Points.** The gridline points that ISSUE-042's committed point rule selects (efficiency ≥ 0.70, helical tip Mach ≤ 0.90, blade angles 30°–60°) and that are not among the 38 already read.
+- **Reading.** The script locates every value in the pixels. The eye only accepts or rejects a point's curve identity on the overlay, recorded in the script (as for Report 996's symbol identities, `data/report996/naca_4-5-08-03/measured/NOTES.md`). Each point also passes the efficiency check (J·C_T/C_P within 0.015 of the drawn efficiency curve) and the second pass (within 2 %).
+- **How the answer is decided.** From the median relative difference of C_T and of C_P over the new points: both within ±7.5 % (half the tolerance) → *confined to the falling part*; both above +7.5 % → *present on the loaded side too*; anything else → *mixed*. Also reported: the efficiency difference, the Reynolds ±20 % sensitivity at each point, and the advance-ratio shift where it is well defined (|d ln C_T / d ln J| ≥ 1 on the code's curve).
+- **No verdict, no case.** The falling-part result is known, and the comparison as committed already failed its input check. A verdict on a subset chosen now would be post-hoc. The result goes in a report; the runner is not kept.
+
 **What it needs.** The loaded part of Fig. 5 (advance ratios below best efficiency) read by hand, which `IMPLEMENTATION_PLAN.md` §2.2 allows for a pass by the author; then a comparison with its criterion fixed first. Choosing a blade-angle offset from this result would be tuning.
 
 ---
