@@ -10,6 +10,7 @@ Two lists, newest first in each. **Not assigned to a phase**: issues to act on o
 
 | Issue | Subject | Kind | State |
 |---|---|---|---|
+| 042 | Forward-flight thrust and power of the Report 996 blade (NACA Report 1012): a second test of the blade loads | Validity, data | Phase 153 (planned 2026-11-14) |
 | 041 | Held-out test of the ISSUE-032 fix: the Merlin IVC loss factors of CR-172428 App. C | Validity, data | closed 2026-11-12: FLIGHT_ETA met 218/221 |
 | 040 | The per-stage file layout and the 44 test-only cases (Phase 150b, 150e rest) | Organisation | closed 2026-11-12 |
 | 039 | FLIGHT_MODES: twenty generalized masses differ in the in-plane part, with both signs | Investigation | closed 2026-11-12: no error found; about half are near pairs |
@@ -21,7 +22,7 @@ Two lists, newest first in each. **Not assigned to a phase**: issues to act on o
 | 033 | CYL2D at 62.6°: this code rejects NASA's grid where NASA's program solved it | Not met, investigation | closed 2026-11-12: NASA's grid is solved; a common factor of 0.3 % stays unexplained |
 | 032 | R172428_ETA and E14_LOSS: look for an error in the loss-factor method | Not met, investigation | closed 2026-11-12: error found and fixed (card η_r is η_r^struc only) |
 | 031 | Not-met cases where a published prediction misses the same way: a separate look on the chart | Readability | closed 2026-11-12 |
-| 030 | R996_LOADS: the fix needs more measured section data or CFD | Not met | on hold (author 2026-11-10) |
+| 030 | R996_LOADS: the fix needs more measured section data or CFD | Not met | closed 2026-11-14: the inputs could not be found |
 
 ### Assigned to a phase
 
@@ -377,9 +378,21 @@ Was: open, not assigned to a phase. Recorded 2026-11-10. Labels. No verdict chan
 
 ---
 
+## ISSUE-042: forward-flight thrust and power of the Report 996 blade, a second test of the blade loads
+
+**Status:** open, Phase 153. Recorded 2026-11-14 by Claude (found while searching for ISSUE-030's data).
+
+**What is missing.** The blade loads are tested against measurement once, statically (`R996_LOADS`, not met 24/32). In forward flight, where the tool is used, the loads are shown at Pereira's one condition without a criterion (`PER_LOADS`).
+
+**What was found.** NACA Report 1012 (Delano 1951, NTRS 19930092067) Fig. 5: C_T, C_P and efficiency of the NACA 4-(5)(08)-03 two-blade propeller against advance ratio, blade angles 20° to 60° at 0.75 R, forward Mach numbers 0.165 to 0.725. The blade is the one already in `data/report996/`. NACA RM L9G06a (NTRS 19930085929) extends it to Mach 0.925.
+
+**Cautions.** The sibling repository's k_cl and k_cd were fitted to RM L9G06a; they are not used here and stay unused. The criterion, the points and the Mach numbers are fixed and dated before any load is computed. It does not fix `R996_LOADS`.
+
+---
+
 ## ISSUE-030: R996_LOADS (24/32) misses because XFOIL's section drag is low; the fix needs more measured section data or CFD
 
-**Status:** on hold, not assigned to a phase (author 2026-11-10: "hold off on creating a phase plan as this requires further cfd/digitization"). Recorded 2026-11-10. No criterion, tolerance or verdict changes.
+**Status:** closed 2026-11-14 (Claude, under the author's authority of 2026-11-14 ("if its not the exact data then just say inputs couldnt be found and move on")): **the inputs could not be found.** Searched: TN 1546 (nothing under 6 % thick or below Mach 0.3), TN 976, Korkan's data bank (a fit, not measurements), RM L9G06a and Report 1012 (propeller loads, not section data); no CFD polars are published. `R996_LOADS` stays not met 24/32 with its recorded cause. Report: `validation_reports/phase152_coverage_scan.md`. The forward-flight loads are a new test, ISSUE-042. Was: on hold, not assigned to a phase (author 2026-11-10: "hold off on creating a phase plan as this requires further cfd/digitization"). Recorded 2026-11-10. No criterion, tolerance or verdict changes.
 
 **What is wrong.** `R996_LOADS` is not met: 24/32 within ±15 % (thrust 11/14, power 13/18), worst 39 %. Section lift is not the cause: a lift shift of the size measured moves thrust by at most 7.9 % (Phase 73). XFOIL's drag is about 25 % below NACA TN 1546's measured drag and accounts for about half the torque gap (ISSUE-027). It is the only not-met case on the chart that traces to the polars.
 

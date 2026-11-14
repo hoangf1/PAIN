@@ -12,6 +12,7 @@ Colour key in diagrams: green = check exists and passes as stated; orange = plan
 
 ## Status
 
+- **2026-11-14 (Phase 152 closed):** search and scan only; flow unchanged.
 - **2026-11-11 (ISSUE-036, 038 closed):** uncertainty cache on the pipeline's mode cut-off; flow unchanged.
 - **2026-11-11 (ISSUE-034, 037 closed):** E14_LOSS without a verdict (input rule); flow unchanged.
 - **2026-11-11 (ISSUE-033 closed):** CYL2D runs on NASA's printed grid at every floor angle; flow unchanged.

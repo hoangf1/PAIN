@@ -3698,3 +3698,29 @@ No run, no code. Each step replaces nothing in the record; it marks older values
 - 150d: `.gitignore` named `rea-work/`, so the GUI cache, the site output and the scratch folder were not ignored since the rename; fixed, and 16 committed cache frames untracked. Two script comments fixed. The GUI model smoke writes its figures to a temp folder.
 - 150e: 48 cases retired (`RETIRED_CASES`, each with its reason and kept report): the 19 refuted diagnostic re-runs with their runners (four files gone); the T1/T2 family, the unmeasured broadband and assumed-blade cases and ten checks that hold by construction or repeat others, unregistered with their records, CSV rows, figures and outcome tests (runners kept where `run_pain.jl`, the R11 baselines or the REPRO_18b level regression call them). MRP_COUPLED_LIMITS and R172428_PAIRS retired; E15_STRUCT_LOSS, R172428_TRIM and R996_FIG10_CIRC kept as shown information. The 44 "test only" cases are not yet moved off the GUI list: ISSUE-040. Registry 147 → 99 cases; the 20 verdicts unchanged.
 - Checks: registry testset 2,578 pass; map errors 84; the remaining affected testsets and unit tests (see the commit); the uncertainty testset still fails 3 checks (ISSUE-038, unchanged).
+
+## 8cp. Phase 152 — the coverage chart scanned; ISSUE-030 closed, inputs not found (done 2026-11-14)
+
+Done by Claude, under the author's authority of 2026-11-14 ("if its not the exact data then just say inputs couldnt be found and move on"). Report: `validation_reports/phase152_coverage_scan.md`.
+
+- [x] **152a** Searched for measured section data for `R996_LOADS`: none exists for the sections under 6 % thick or below Mach 0.3. ISSUE-030 closed as inputs not found; the case stays not met 24/32.
+- [x] **152b** Scanned the 19 cases with a verdict and the 41 without. No not-met case can be fixed with published data. Three out-of-date "what is left" entries corrected (`validation_causes.jl`); `VALIDATION.md` regenerated.
+- [x] **152c** One gap can be filled: forward-flight blade loads from NACA Report 1012 (ISSUE-042, Phase 153).
+
+The text this section replaced in `IMPLEMENTATION_PLAN.md` (the introduction to Phases 137–151, all done) follows.
+
+### Introduction to Phases 137–151, as planned (planned 2026-11-09 from `ISSUES.md`; Phases 135 and 136 are in `COMPLETED_PHASES.md`)
+
+*(Author 2026-11-09: "continue finding issues based off the validation coverage map"; "i mainly want to target issues as to why current validation tests arent met and fixing a lot of the readability and organizing wise"; "some of the issues have open questions and needed solutions as well which i want you to create"; "create the solutions into phases".)*
+
+Each phase is the solution of one or more entries of `ISSUES.md`; the evidence is there and is not repeated here. Order: the record first (135), then the not-met cases with the fewest points (136–144), then presentation and organisation (145–151). 145–151 do not depend on 136–144 and may run first if the author prefers. Nothing below has been run, and writing this section changed no code, test or data file (author 2026-11-09: "you are only creating detailed plans and phases right now not editting any internal code"). The author's decisions of 2026-11-09 are written into the steps as **[DECIDED 2026-11-09]**, with the full table in `ISSUES.md`; a line still marked **[AUTHOR]** needs the author's value or decision, with its date, before the step that uses it (R3). Every phase that edits `PAIN.jl/src/` is marked **[CONFIRM]** (R1). Candidate sources are in §2.5 (D-23 to D-31).
+
+**The chart rule [DECIDED 2026-11-09].** A case is on the coverage chart only if it weighs on the validity of the tool as shipped: it runs the shipped code, every input that enters its compared quantity is printed or measured, and it is compared with a measurement or with NASA's program output. A case that fails is kept, with its results, in a list of diagnostics and checks. Applied by kind to all 43 cases in 135f, whatever each case's outcome.
+
+**The rule for new cases [DECIDED 2026-11-10: in CLAUDE.md, "Rules for all code in this repo"; first proposed 2026-11-09 after the author's caution: "i created many validation cases that arent met and arent useful"; ISSUE-029].** A case is registered only if it passes the chart rule, answers a question no kept case answers, has an outcome that cannot be told in advance from the kept cases, and rests on data whose own scatter or reading error is clearly smaller than the tolerance. Every step below that adds a case is read with this rule; the table in ISSUE-029 applies it to each proposed case.
+
+Rules common to all: no recorded verdict, criterion, tolerance or reference file changes unless the step names it; a result that moves is recorded with its date, its before and after, and "post-hoc" where the earlier result was known; targeted testsets only (not the full `Pkg.test()`); the five documents of R5 are updated in the phase that changes code or a recorded result.
+
+**Status 2026-11-10 (overnight, decided by Claude under the author's delegation of 2026-11-10).** Done: 136e, 136f, 137b, 137c, 137d, 138a/b/d, 139a/b/b′/d, 140c/d, 141a, 141c (Report 996 part; the Pereira PER_FIG8 line is open), 141d, 144a, 144b, 145d, 147, 150c/d. Decisions and outcomes: `validation_reports/phase135_151_decisions.md`. Open: 141c Pereira line, 141e, 142, 143b–d, 145a rest, 146b/c, 148, 149a, 150a/b/e, 151a/b, regenerating the summary CSV and §0. These changes were pushed without running the full test suite or /code-review, at the author's request (2026-11-10); the next session runs the affected testsets first.
+
+
