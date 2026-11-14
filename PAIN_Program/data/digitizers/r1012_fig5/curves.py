@@ -108,6 +108,7 @@ def assemble(P, betas, verbose=False, Mach=0.0):
     if verbose: print('assigned', [(b, round(p[0]['J1'], 3)) for b, p in assigned])
     for beta, (ta, tb) in assigned:
         for name, t in (('CT', ta), ('CP', tb)):
+            t['beta'], t['name'] = beta, name                         # the loaded-side follower starts from these traces
             pts = {}
             Js = [round(0.1 * k, 1) for k in range(1, 57)]
             for J in Js:

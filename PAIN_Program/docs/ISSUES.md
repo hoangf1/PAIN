@@ -397,6 +397,8 @@ Was: open, not assigned to a phase. Recorded 2026-11-10. Labels. No verdict chan
 - **How the answer is decided.** From the median relative difference of C_T and of C_P over the new points: both within ±7.5 % (half the tolerance) → *confined to the falling part*; both above +7.5 % → *present on the loaded side too*; anything else → *mixed*. Also reported: the efficiency difference, the Reynolds ±20 % sensitivity at each point, and the advance-ratio shift where it is well defined (|d ln C_T / d ln J| ≥ 1 on the code's curve).
 - **No verdict, no case.** The falling-part result is known, and the comparison as committed already failed its input check. A verdict on a subset chosen now would be post-hoc. The result goes in a report; the runner is not kept.
 
+**Read 2026-11-14, before any load was computed at these points.** 23 points on the loaded part: panels (a)–(d), Mach 0.165–0.43, blade angles 40°–60° (`naca_report1012_fig5_ct_cp_loaded.csv`). Panels (e)–(j) gave no point that passes the checks, and nothing at 30° or 35° survived. Four candidates were rejected by eye for curve identity, each with its reason in `run_loaded.py`; one of them also fails the 8 px rule. Caution: on the loaded side every efficiency curve lies near 0.9, so the efficiency check confirms the reading but not the blade angle; identity rests on the eye check of the overlays.
+
 **What it needs.** The loaded part of Fig. 5 (advance ratios below best efficiency) read by hand, which `IMPLEMENTATION_PLAN.md` §2.2 allows for a pass by the author; then a comparison with its criterion fixed first. Choosing a blade-angle offset from this result would be tuning.
 
 ---
