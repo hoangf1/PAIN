@@ -386,6 +386,17 @@ Was: open, not assigned to a phase. Recorded 2026-11-10. Labels. No verdict chan
 
 **What was found.** NACA Report 1012 (Delano 1951, NTRS 19930092067) Fig. 5: C_T, C_P and efficiency of the NACA 4-(5)(08)-03 two-blade propeller against advance ratio, blade angles 20° to 60° at 0.75 R, forward Mach numbers 0.165 to 0.725. The blade is the one already in `data/report996/`. NACA RM L9G06a (NTRS 19930085929) extends it to Mach 0.925.
 
+**Criterion (fixed 2026-11-14 by Claude under the author's authority of that day, before any value was read from the figure and before any load was computed).**
+
+- **Case:** `R1012_LOADS`. **Compared:** C_T and C_P of this code against the measured curves of NACA Report 1012 Fig. 5 (the NACA 4-(5)(08)-03 two-blade propeller).
+- **Tolerance and pass rule:** those of `R996_LOADS`, unchanged: |computed / measured − 1| ≤ 0.15, and the case is met only if every row is within it.
+- **Panels:** every panel of Fig. 5 (tunnel Mach 0.165 to 0.725), every blade angle the panel prints.
+- **Points, chosen from the measurement alone:** on each blade-angle curve, the advance ratios on the figure's labelled grid (J = 0.2, 0.4, 0.6, …) at which (i) the measured efficiency read on the same gridline is at least 0.70, and (ii) the helical tip Mach number M √(1 + (π/J)²), from the printed M and J, is at most 0.90, the top of the polar set's Mach grid. Each point gives two rows, C_T and C_P.
+- **Inputs:** blade form `data/report996/naca_4-5-08-03/blade_form.csv` set to the printed blade angle at 0.75 R; two blades; D = 1.2192 m; polar set `polars_phase69_ncrit8.json`, primary, as `R996_LOADS` uses it; the code as shipped, no load scaling.
+- **Two inputs the report does not print, fixed here:** (a) the free-stream Mach number is taken as the tunnel-datum Mach number (the report's Fig. 4 puts the difference at 2 % or less; J is already corrected); (b) the air state is standard sea-level stagnation (288.15 K, 101 325 Pa; the tunnel is atmospheric), which enters only through the Reynolds number. One extra run with the Reynolds number changed by ±20 % is reported; if it moves any compared value by more than a third of the tolerance (5 %), the case carries no verdict (input rule).
+- **Reading error:** each value is located by script on a 300 dpi render calibrated on labelled gridlines, read a second time by a different method, and must agree within 2 % of the value; a point that does not is re-read, and dropped with a note if it still does not.
+- **One run.** The result is recorded whatever it is. No polar, option or point is changed after it.
+
 **Cautions.** The sibling repository's k_cl and k_cd were fitted to RM L9G06a; they are not used here and stay unused. The criterion, the points and the Mach numbers are fixed and dated before any load is computed. It does not fix `R996_LOADS`.
 
 ---
