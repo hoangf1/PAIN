@@ -13,7 +13,7 @@ Single source of truth for building this project without re-deriving context in 
 2. Data register and digitization instructions (status, procedure, one card per figure; §2.5 candidate sources found 2026-11-09)
 3. Current status and open work queue
 4. Architecture
-Open phases 152–153 (planned 2026-11-14): Phase 152 done, Phase 153 open.
+Phases 152–153 (planned and done 2026-11-14): no phase is open.
 8cg–8co. Phases 143–151 done (planned 2026-11-09 from `ISSUES.md`; Phases 135–138 done 2026-11-10, 139–151 done 2026-11-11; open remainders are tickets ISSUE-030 to 040 and moved to `COMPLETED_PHASES.md`)
 5–8ac, 11. *(in `COMPLETED_PHASES.md`, same section numbers, moved 2026-10-29)* every completed phase, the queue Q0–Q66 and the 2026-10-21 review
 9. Reference appendices (BBN evidence, Report 996 figures and data, Pereira polar specification, variables)
@@ -255,7 +255,7 @@ Already in `references/` and bearing on an open phase: `NACA_TN_1546.pdf` holds 
 ## 3. Current status and work queue
 
 **Status of the validation cases:** `VALIDATION_GUIDELINE.md` §0 (the map: cases with a verdict) and `NO_VERDICT_CASES.md`
-(the cases without one). **Open issues:** `ISSUES.md` (001–041 are closed; 030 closed 2026-11-14 as inputs not found; 042 is Phase 153 below). **Completed phases** (§§5–8ac and §11, with the work queue Q0–Q66 and the 2026-10-21 review I-01–I-20)
+(the cases without one). **Open issues:** `ISSUES.md` (001–042 are closed; 043, recorded 2026-11-14, is open and not assigned to a phase). **Completed phases** (§§5–8ac and §11, with the work queue Q0–Q66 and the 2026-10-21 review I-01–I-20)
 are in `COMPLETED_PHASES.md` under the same section numbers; a reference such as "IMPLEMENTATION_PLAN.md §8b" in the code
 or the other documents points there. When a phase is done, mark it done and move its section to the bottom of
 `COMPLETED_PHASES.md` (`CLAUDE.md`).
@@ -264,7 +264,6 @@ or the other documents points there. When a phase is done, mark it done and move
 
 | Q | Item | Kind | Prerequisite | Output |
 |---|------|------|--------------|--------|
-| Q130 | Phase 153: forward-flight loads of the Report 996 blade against NACA Report 1012 (ISSUE-042) | new data, one new case | — | `R1012_LOADS` with its verdict |
 | — | Phases 90–134 are done (2026-11-05; 118f: unit-test gaps; 112–116 merged from branch `heart`, numbered 100–104 there). Q113–Q129 were planned on 2026-11-09 from `ISSUES.md`; none is started. Author decisions of 2026-11-09 are in the steps; order confirmed: Q113, then Q114–Q122 (not-met cases), then Q123–Q129 | — | — | — |
 
 If a queue item is blocked on data, skip to the next unblocked item and say which data item blocks it.
@@ -317,21 +316,11 @@ The diagram matches the code (phases 21–22 done 2026-10-21): `propeller_ccblad
 
 ---
 
-## Open phases 152–153 (planned 2026-11-14 from a scan of the coverage chart)
+## Phases 152–153 (planned and done 2026-11-14 from a scan of the coverage chart; in `COMPLETED_PHASES.md` §8cp, §8cq)
 
 *(Author 2026-11-14: "do another scan of the coverage map for all the cases and see what needs to be fixed list solutions to these cases into phases in the implementation plan"; "if its not the exact data then just say inputs couldnt be found and move on".)*
 
-The scan is `validation_reports/phase152_coverage_scan.md`. Of the five not-met cases, none can be fixed with published data: three are limits of PAIN's own method, one needs section data that is not published (ISSUE-030, closed), and one differs from NASA's printout by a factor no printed input gives. One gap can be filled with data that was found: forward-flight blade loads (Phase 153). The rules of Phases 137–151 hold (`COMPLETED_PHASES.md`): criteria fixed and dated before any comparison, no tuning, targeted testsets only.
-
-### Phase 153: forward-flight loads of the Report 996 blade against NACA Report 1012 (ISSUE-042)
-
-One new case, `R1012_LOADS`, chain span Blade and polars → Blade loads, compared with measurement. It passes the rule for new cases: it runs the shipped loads model, every input is printed (the blade in `data/report996/`, the blade angle, advance ratio and Mach number on the figure), no existing case tests forward-flight loads with a criterion, and its outcome cannot be told from `R996_LOADS` (static, where the drag error weighs most).
-
-- [x] **153a Source.** Put NACA Report 1012 in `references/` with its checksum in `SOURCES.md`. Identify the Fig. 5 panels of the 4-(5)(08)-03 blade. **Done 2026-11-14:** `references/NACA_Report_1012.pdf` (SHA-256 in `SOURCES.md`). Fig. 5 is PDF pp. 8–17, panels (a) to (j): Mach 0.165, 0.23, 0.35, 0.43, 0.53, 0.60, 0.65, 0.675, 0.70, 0.725 (Table I).
-- [x] **153b Criterion, fixed and dated before any load is computed.** Quantity, tolerance and pass rule are `R996_LOADS`'s, unchanged. The panels, blade angles and advance ratios are chosen from the figure alone, by a written rule, and committed before the first run. **Done 2026-11-14:** the criterion is in ISSUE-042, committed before any value was read or any load computed. Pass rule as `R996_LOADS`: every row within ±15 %. Points: gridline advance ratios with measured efficiency ≥ 0.70 and helical tip Mach ≤ 0.90.
-- [x] **153c Digitize** the chosen curves by §2.2 (script, calibration on labelled gridlines, QA overlay, second pass, spot check). The reading error must be clearly below the tolerance. **Done 2026-11-14:** 38 points kept (Mach 0.165–0.675, 30°–60°); two passes agree within 0.80 %; every point agrees with the report's efficiency curve within 0.015. Blade angles 20° and 25° and the shallow parts of the curves are not read (ISSUE-042 lists why). Script `data/digitizers/r1012_fig5/run.py`.
-- [ ] **153d Run once**, record the result whatever it is, register the case, add its test, regenerate its row and the status page.
-- [ ] **153e Documents** (R5), `/code-review`, commit, push.
+The scan is `validation_reports/phase152_coverage_scan.md`. Of the five not-met cases, none can be fixed with published data: three are limits of PAIN's own method, one needs section data that is not published (ISSUE-030, closed), and one differs from NASA's printout by a factor no printed input gives. The one gap for which data was found, forward-flight blade loads, was compared in Phase 153 (done 2026-11-14: no verdict, ISSUE-043). **No phase is open.** The rules of Phases 137–151 hold (`COMPLETED_PHASES.md`): criteria fixed and dated before any comparison, no tuning, targeted testsets only.
 
 ---
 
@@ -438,7 +427,8 @@ the files below were read in full unless noted). It holds a NACA 4-(5)(08)-03 tw
 | `measured\noise\tr996_fig8_...csv` | p_c vs C_P at x/D = 0, d/D 0.042, B = 2 and 4, M_t 0.60 and 1.00; line slopes | Loading sensitivity | Clark Y point not detected; M_t 1.00 outside the polar Mach grid |
 | `measured\noise\tr1079_fig6/7/8_...csv`, `naca_tn3202_table1_...csv` | Report 1079 far-field directivity, SPL vs M_t and distance (9 m, 30 ft); TN 3202 harmonic amplitudes of a different pusher propeller | Far-field cross-checks of Gutin/Hanson/F1A at 7.5 D | Not Report 996 and not near-field. TN 3202 conditions differ (use only for spectrum shape) |
 | `analytical\noise_vs_measured.json`, `bem_vs_measured.json`, `bem_vs_cfd.json`, `records\*.json` | The folder's own BEM, Gutin and Hanson (far-field) predictions and a CFD case at M = 0.23, J = 1.18 | Reference numbers for comparison and cross-checks | Their polars carry the k_cl/k_cd calibration. BEM static C_T is 31% low at 20°, M_t 0.60; Report 1079 thrust −12%, torque −35% at 15°, M_t 0.75 |
-| `measured\wind_tunnel\...` (RM L9G06a, forward flight) | C_T, C_P, efficiency vs J, M | Not Report 996. Useful later as a forward-flight load check of CCBlade, since the folder's calibration came from it | Not read in detail |
+| `measured\wind_tunnel
+aca_report1012_fig5_ct_cp.csv` (NACA Report 1012 Fig. 5, forward flight; digitized 2026-11-14, Phase 153) | C_T and C_P at 38 points, Mach 0.165–0.675, blade angles 30°–60° | Compared once with the loads model: no verdict (ISSUE-042, 043) | Only the falling part of each curve is read; 20°, 25° and the loaded part are not |
 
 **Is it enough?** For CCBlade loads and for an F1A check on **total rms pressure** (Figs. 6, 7, 8), mostly yes, with these gaps:
 1. **Figs. 12, 13(a), 14 were not in the data folder; they are now digitized from the report PDF** (`data\report996\`). The Fig. 14 table gives the report's own C_T and C_Q for β₇₅ = 10°, which are the loads for Figs. 12 and 14. RM L8H25a and RM L51C27 supply loads for the other cases.

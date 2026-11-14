@@ -10,7 +10,8 @@ Two lists, newest first in each. **Not assigned to a phase**: issues to act on o
 
 | Issue | Subject | Kind | State |
 |---|---|---|---|
-| 042 | Forward-flight thrust and power of the Report 996 blade (NACA Report 1012): a second test of the blade loads | Validity, data | Phase 153 (planned 2026-11-14) |
+| 043 | Forward-flight loads: the computed thrust and power curves lie about 3 % higher in advance ratio than Report 1012's | Investigation | open, not assigned (needs the loaded part of the curves read by hand) |
+| 042 | Forward-flight thrust and power of the Report 996 blade (NACA Report 1012): a second test of the blade loads | Validity, data | closed 2026-11-14: compared once, no verdict (input rule); not registered as a case |
 | 041 | Held-out test of the ISSUE-032 fix: the Merlin IVC loss factors of CR-172428 App. C | Validity, data | closed 2026-11-12: FLIGHT_ETA met 218/221 |
 | 040 | The per-stage file layout and the 44 test-only cases (Phase 150b, 150e rest) | Organisation | closed 2026-11-12 |
 | 039 | FLIGHT_MODES: twenty generalized masses differ in the in-plane part, with both signs | Investigation | closed 2026-11-12: no error found; about half are near pairs |
@@ -378,9 +379,23 @@ Was: open, not assigned to a phase. Recorded 2026-11-10. Labels. No verdict chan
 
 ---
 
+## ISSUE-043: forward-flight loads lie about 3 % higher in advance ratio than NACA Report 1012's
+
+**Status:** open, not assigned to a phase. Recorded 2026-11-14 by Claude from Phase 153. No verdict, criterion or code changes.
+
+**What was seen.** On 38 points of Report 1012 Fig. 5 (Mach 0.165–0.675, blade angles 30°–60°), this code's C_T and C_P are both high at every point, and the efficiency stays close (median 0.897 against 0.913). The code gives the measured C_T at an advance ratio 0.5 % to 4.9 % higher (median 3.1 %), roughly one degree of blade angle. On the falling part of the curves that is +7 % to +83 % in C_T.
+
+**Why it has no verdict.** All 38 points lie on the falling, lightly loaded part of the curves, the only part the digitizer could read. There the unprinted tunnel air state moves the result by up to 24 % through the Reynolds number.
+
+**What is not known.** The cause. Candidates, none tested: the reference line of the printed blade angle; blade twist under load; the zero-lift angle of the XFOIL polars; the tunnel Mach correction. Whether the same shift is present where the tool is used (Pereira's loads are within 1 % of the measured thrust at one condition, `PER_LOADS`).
+
+**What it needs.** The loaded part of Fig. 5 (advance ratios below best efficiency) read by hand, which `IMPLEMENTATION_PLAN.md` §2.2 allows for a pass by the author; then a comparison with its criterion fixed first. Choosing a blade-angle offset from this result would be tuning.
+
+---
+
 ## ISSUE-042: forward-flight thrust and power of the Report 996 blade, a second test of the blade loads
 
-**Status:** open, Phase 153. Recorded 2026-11-14 by Claude (found while searching for ISSUE-030's data).
+**Status:** closed 2026-11-14 (Claude, under the author's authority of 2026-11-14; Phase 153, report `validation_reports/phase153_forward_flight_loads.md`). One run: C_T 5/38 and C_P 5/38 within ±15 %, the code high at every point (+6.5 % to +83 %). A ±20 % change of the Reynolds number moves a compared value by up to 24.1 % (limit fixed beforehand: 5 %), so the comparison carries **no verdict** and is **not registered as a case**; its runner was removed, the data and the digitizer are kept. What it shows is ISSUE-043. Recorded 2026-11-14 by Claude (found while searching for ISSUE-030's data).
 
 **What is missing.** The blade loads are tested against measurement once, statically (`R996_LOADS`, not met 24/32). In forward flight, where the tool is used, the loads are shown at Pereira's one condition without a criterion (`PER_LOADS`).
 
