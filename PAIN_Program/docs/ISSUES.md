@@ -10,7 +10,7 @@ Two lists, newest first in each. **Not assigned to a phase**: issues to act on o
 
 | Issue | Subject | Kind | State |
 |---|---|---|---|
-| 044 | The Report 996 blade input: blade root at 0.271 R and the tabulated tip twist, where the NACA figures print less tip pitch (and, for Report 1012, the spinner at 0.331 R) | Input, decision | open, not assigned (moves cases with a verdict: the author's decision) |
+| 044 | The Report 996 blade input: blade root at 0.271 R and the tabulated tip twist, where the NACA figures print less tip pitch (and, for Report 1012, the spinner at 0.331 R) | Input, decision | decided 2026-11-14: Phase 154 (blade angle from Report 996 Fig. 3(c); root unchanged) |
 | 043 | Forward-flight loads: the computed thrust and power curves lie about 3 % higher in advance ratio than Report 1012's | Investigation | closed 2026-11-14: mostly two inputs that differ from Report 1012 Fig. 2 (blade root at the spinner, tip twist); a 1–1.5 % remainder is unexplained |
 | 042 | Forward-flight thrust and power of the Report 996 blade (NACA Report 1012): a second test of the blade loads | Validity, data | closed 2026-11-14: compared once, no verdict (input rule); not registered as a case |
 | 041 | Held-out test of the ISSUE-032 fix: the Merlin IVC loss factors of CR-172428 App. C | Validity, data | closed 2026-11-12: FLIGHT_ETA met 218/221 |
@@ -382,7 +382,7 @@ Was: open, not assigned to a phase. Recorded 2026-11-10. Labels. No verdict chan
 
 ## ISSUE-044: the Report 996 blade input differs from the NACA blade-form figures near the root and the tip
 
-**Status:** open, not assigned to a phase. Recorded 2026-11-14 by Claude from ISSUE-043. A decision for the author: it would change the inputs of cases with a verdict after the results below were seen, so any re-run is post-hoc.
+**Status:** decided 2026-11-14 (Claude, under the author's authority of 2026-11-14 ("do thats right", read as "do what's right" on the ISSUE-044 question)): Phase 154 takes the blade angle from Report 996 Fig. 3(c) and keeps the root at r/R 0.271; re-runs are post-hoc. Was: open, not assigned to a phase. Recorded 2026-11-14 by Claude from ISSUE-043. A decision for the author: it would change the inputs of cases with a verdict after the results below were seen, so any re-run is post-hoc.
 
 **What differs.** The Report 996 cases build the blade from `blade_form.csv` (CR-196702 App. B-1, a 1996 tabulation of the NACA blade-form curves) from r/R 0.271, with a spinner radius of 0.1651 m that `propeller.yaml` calls an approximation.
 - Report 1012 Fig. 2 and Report 996 Fig. 3(c) both draw the blade angle straight to the tip. By script on Report 1012 Fig. 2, the table has more pitch beyond r/R 0.9: +0.44° at 0.95 R and +0.84° at the tip, relative to 0.75 R. Elsewhere the two agree within 0.25°.
