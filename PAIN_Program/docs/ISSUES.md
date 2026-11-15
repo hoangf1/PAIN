@@ -11,7 +11,7 @@ Two lists, newest first in each. **Not assigned to a phase**: issues to act on o
 | Issue | Subject | Kind | State |
 |---|---|---|---|
 | 046 | Turboprop viability: no forward-flight propeller case at turboprop size and tip Mach with the blade printed | Validity, data | Phase 156 (planned 2026-11-14; data search first) |
-| 045 | Turboprop viability: the Merlin IVC's measured cabin levels in flight (CR-172428 Table 23) are not compared; FLIGHT10_H234's label is stale | Validity, data, code | Phase 155 (planned 2026-11-14) |
+| 045 | Turboprop viability: the Merlin IVC's measured cabin levels in flight (CR-172428 Table 23) are not compared; FLIGHT10_H234's label is stale | Validity, data, code | closed 2026-11-15: FLIGHT10_REPRO met 15/15; the measured comparison is information only |
 | 044 | The Report 996 blade input: blade root at 0.271 R and the tabulated tip twist, where the NACA figures print less tip pitch (and, for Report 1012, the spinner at 0.331 R) | Input, decision | closed 2026-11-14: Phase 154 done, no verdict changes |
 | 043 | Forward-flight loads: the computed thrust and power curves lie about 3 % higher in advance ratio than Report 1012's | Investigation | closed 2026-11-14: mostly two inputs that differ from Report 1012 Fig. 2 (blade root at the spinner, tip twist); a 1–1.5 % remainder is unexplained |
 | 042 | Forward-flight thrust and power of the Report 996 blade (NACA Report 1012): a second test of the blade loads | Validity, data | closed 2026-11-14: compared once, no verdict (input rule); not registered as a case |
@@ -394,9 +394,9 @@ Was: open, not assigned to a phase. Recorded 2026-11-10. Labels. No verdict chan
 
 ## ISSUE-045: the Merlin IVC's measured cabin levels in flight are not compared with this code
 
-**Status:** open, Phase 155. Recorded 2026-11-14 by Claude, at the author's request of 2026-11-14 ("do another scan of the validation coverage and check whats needed so i can prove that the tool is viable for turboprops"). Report: `validation_reports/turboprop_viability_scan.md`.
+**Status:** closed 2026-11-15 by Phase 155 (`validation_reports/phase155_merlin_flight.md`). H1 and H5 of run 10 are transcribed and checked against the print's own lower quarter and the deck cards. The upsweep side is the full mirror of the field; checked against Table 23, it follows PAIN's printed change within 0.4 dB. New case **FLIGHT10_REPRO met 15/15** (12 rows held out; the code is 0.9–2.8 dB below PAIN). Against the measured levels, information only: code − measured −1.0, +3.5, +0.2, +8.4, −1.3 dB, where PAIN had +1.7, +5.9, +1.9, +9.5, +1.0 dB. FLIGHT10_H234's stale note is corrected. Was: open, Phase 155. Recorded 2026-11-14 by Claude, at the author's request of 2026-11-14 ("do another scan of the validation coverage and check whats needed so i can prove that the tool is viable for turboprops"). Report: `validation_reports/turboprop_viability_scan.md`.
 
-**What is missing.** CR-172428 §5.4 compares PAIN with the measured space-average cabin levels of a turboprop in flight (Merlin IVC, runs 10–12, Table 23; NASA's statistics in Table 24). This code reproduces PAIN's run 10 (FLIGHT10_H234, a diagnostic, H2–H4) but has never been set against the measurement. That would be the record's only turboprop cabin case against measurement.
+**What is missing.** CR-172428 §5.4 compares PAIN with the measured space-average cabin levels of a turboprop in flight (Merlin IVC, runs 10–12, Table 23; NASA's statistics in Table 24). This code reproduces PAIN's run 10 (FLIGHT10_H234, a diagnostic, H2–H4; 1.3–2.4 dB below PAIN since ISSUE-032) but has never been set against the measurement. That would be the record's only turboprop cabin case against measurement.
 
 **What stands in the way.**
 1. The measured level is the power sum of both propellers (downsweep and upsweep, p. 164). This code has no blade-sweep switch; App. A p. 189 prints the program change by which PAIN builds the upsweep field from the downsweep input.

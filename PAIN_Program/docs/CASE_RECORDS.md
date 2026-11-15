@@ -1361,6 +1361,24 @@ Inputs: `data/cr172428/appB_acoustic_modes.csv`, `appC_merlin_acoustic_modes.csv
 Equations: App. C Eqs. (C.7), (C.12).
 Outputs: cabin-mode frequency [Hz].
 
+### Case: FLIGHT10_REPRO
+**Title:** CR-172428 flight run 10 (Merlin IVC), H1–H5: this code against PAIN's printed cabin levels, both propellers (155)
+**Map / block:** total / P_REPRO
+**Category:** verification
+**Kind:** runnable
+**Chain span:** Skin field → Interior tones
+**Compared with:** NASA's printed prediction
+**Source:** CR-172428 App. D pp. 229–237 (deck, field, printed downsweep levels) and Table 23 (PAIN's upsweep and both-sides levels); criterion fixed 2026-11-15 before any H1, H5 or upsweep run (Phase 155, ISSUE-045)
+**What it tests:** A turboprop in flight (Merlin IVC, 1568 rpm, 4-blade propellers turning the same way): run 10 from PAIN's printed deck and field for the downsweep side, the upsweep side PAIN builds from it (App. A item 5, the field mirrored about the propeller line), and their power sum, each against PAIN's printed space-average cabin levels.
+**Why it is here:** The only full reproduction of PAIN on a turboprop in flight, both propellers, as NASA compared it with the measured cabin levels.
+**A pass means:** Within ±3 dB of PAIN's printed level per row; met if at least 4 of 5 rows are within it in each of downsweep, upsweep and both sides.
+**Not covered:** The measured flight levels (Table 23): their 95 % confidence limits are too wide to carry a verdict at ±4 dB, so the comparison is information only (`phase155_merlin_flight.md`). Runs 11 and 12 (not printed). Downsweep H2–H4 were seen before (post-hoc); the other rows are held out.
+**Recorded outcome:** first run 2026-11-15; see `phase155_merlin_flight.md`.
+**Explanation:** `_run_flight10_repro` in `cases_flight_run10.jl`; `r172428_flight10_inputs(; sweep)`.
+Inputs: `appD_run10_H1.csv`–`appD_run10_H5.csv`, `table23_flight_levels.csv`, the run 10 deck as in FLIGHT10_H234.
+Equations: the shipped PAIN chain; upsweep field = downsweep field mirrored L → 20 − L; both = power sum.
+Outputs: cabin space-average level per tone [dB re 20 μPa], three forms; verdict ≥ 4 of 5 within ±3 dB in each.
+
 ### Case: FLIGHT10_H234
 **Title:** CR-172428 flight run 10, H2–H4: as shipped and trim per band vs PAIN (102)
 **Map / block:** total / P_REPRO
@@ -1371,7 +1389,7 @@ Outputs: cabin-mode frequency [Hz].
 **Source:** CR-172428 App. D pp. 229–237 (deck, field, printed levels); what is compared fixed 2026-10-30 before the run (plan §8ar, commit f00c03f)
 **What it tests:** Run 10 from PAIN's printed deck and field, H2–H4 (H1 and H5 fields are cut off in the scan), with the code as it ships and with the trim of tones and modes at the band centre (`trim_band_centre`).
 **Why it is here:** The flight tones lie off band centres, so they test whether PAIN takes the trim per band (diagnostic).
-**A pass means:** No verdict (FLIGHT_MODES not met); per tone, which form is closer to PAIN's printed level is recorded.
+**A pass means:** No verdict: a diagnostic of the trim-per-band question (Phase 102). FLIGHT_MODES is met since Phase 142; the reproduction of run 10 with a verdict is FLIGHT10_REPRO (Phase 155).
 **Not covered:** H1 and H5; the mode list of NASA's file (lowest 400 used); CYL2D at NY = 11 (assumption).
 **Recorded outcome:** no verdict (2026-10-30): as shipped 98.30 / 89.76 / 79.19 dB, trim per band 98.68 / 89.77 / 79.17 dB, PAIN 96.59 / 88.06 / 83.92 dB; the trim per band is closer at 0/3 (not supported). **Re-run after Phase 104 (2026-10-30, post-hoc; θ as printed, from the bottom):** as shipped 96.80 / 88.85 / 80.67 dB, trim per band 97.14 / 88.87 / 80.64 dB; still 0/3. **After Phase 105 (post-hoc; NASA's printed Merlin grid, NY = 11, 0.45h):** 97.13 / 89.37 / 81.34 dB, trim per band 97.47 / 89.40 / 81.31 dB; 0/3. **After Phases 106–107 (post-hoc):** 97.33 / 89.00 / 82.86 dB, trim per band 97.66 / 89.02 / 82.80 dB; 0/3. **After Phase 108 (post-hoc; run 10's pre-correction floor sign):** 94.60 / 87.44 / 83.89 dB, trim per band 94.99 / 87.47 / 83.91 dB; closer at 3/3 (by ≤ 0.4 dB).
 **Explanation:** `r172428_flight10_inputs()` and `_run_flight10_h234` in `cases_flight_run10.jl`.

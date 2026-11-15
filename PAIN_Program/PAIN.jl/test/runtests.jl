@@ -3277,14 +3277,14 @@ _run_if("Run 10's field angle as printed (phase 104)") do
     deck = [split(l, ",") for l in eachline(PAIN._r172428_csv("appD_run10_deck_field.csv")) if !startswith(l, "#")][2:end]
     n = 0
     for c in deck
-        k, l, H = parse.(Int, c[[1, 2, 6]]); 2 ≤ H ≤ 4 || continue
+        k, l, H = parse.(Int, c[[1, 2, 6]])        # all 11 printed cards, H1–H5 since Phase 155a
         ph, A = parse(Float64, c[7]), parse(Float64, c[8])
         @test isapprox(rad2deg(f.phases[k, 9 + l, H]), ph; atol=0.1)                           # deck phase = printed phase
         ΔdB = 20log10(f.amps[k, 9 + l, H] / A)                                                  # printed blocked / deck free field
         @test 3.8 ≤ ΔdB ≤ 20log10(0.8 * 10^0.3) + 0.05                                          # App. A item 3: ≤ 4.06 dB
         n += 1
     end
-    @test n == 6
+    @test n == 11
 end
 
 _run_if("Flight run 10, H2–H4, and the trim per band (phase 102)") do
@@ -3294,7 +3294,7 @@ _run_if("Flight run 10, H2–H4, and the trim per band (phase 102)") do
     @test PAIN._trim_ω(inp, 2π * 209.1) == 2π * 209.1 && PAIN._trim_ω(bnd, 2π * 209.1) == 2π * 200.0
     @test PAIN.sidewall_tau(bnd, 2π * 209.1) == PAIN.sidewall_tau(inp, 2π * 200.0) != PAIN.sidewall_tau(inp, 2π * 209.1)
     f = PAIN.r172428_flight10_field()
-    @test all(f.amps[:, :, 1] .== 0) && f.amps[7, 10, 3] ≈ PAIN.spl_dB_to_peak_Pa(133.3)        # H3 peak, printed 133.3 dB
+    @test f.amps[7, 10, 1] ≈ PAIN.spl_dB_to_peak_Pa(140.3) && f.amps[7, 10, 3] ≈ PAIN.spl_dB_to_peak_Pa(133.3)   # H1, H3 peaks as printed
     @test only(p.theta_deg for p in f.pts if p.k == 1 && p.ell == 10) == 75.0                    # propeller line (Phase 104)
     r = run_validation_case("FLIGHT10_H234")
     @test r.verdict === :no_verdict && r.inputs_echo.closer == 3   # 0/3 until Phase 108 (pre-correction sign); post-hoc
@@ -3306,6 +3306,25 @@ _run_if("Flight run 10, H2–H4, and the trim per band (phase 102)") do
     @test r.inputs_echo.as_shipped ≈ [94.21, 86.29, 82.64] atol = 0.01
     @test r.inputs_echo.band ≈ [94.60, 86.31, 82.74] atol = 0.01
     png = plot_case(r, VALIDATION_CASES["FLIGHT10_H234"].plot_spec; path=joinpath(TEST_OUT, "FLIGHT10_H234.png"))
+    @test isfile(png) && filesize(png) > 0
+end
+
+_run_if("Merlin flight run 10, H1–H5, both propellers, against PAIN (phase 155)") do
+    # Criterion fixed 2026-11-15 (ISSUE-045, commit 5d293ac) before any H1, H5 or upsweep run.
+    d = PAIN.r172428_flight10_field(); u = PAIN.r172428_flight10_field(; sweep=-1)
+    @test u.amps[:, 1, :] == d.amps[:, 19, :] && u.phases[:, 1, :] == d.phases[:, 19, :] && u.phases[:, 10, :] == d.phases[:, 10, :]
+    @test_throws Exception PAIN.r172428_flight10_field(; sweep=0)
+    @test d.amps[:, 1:9, :] == d.amps[:, 19:-1:11, :]                       # the printed field is mirror-symmetric in amplitude
+    r = run_validation_case("FLIGHT10_REPRO")
+    @test r.verdict === :met && r.inputs_echo.counts == Dict("downsweep" => 5, "upsweep" => 5, "both sides" => 5)
+    @test r.inputs_echo.down ≈ [97.14, 94.21, 86.29, 82.64, 68.64] atol = 0.01   # first run 2026-11-15
+    @test r.inputs_echo.up ≈ [97.21, 93.08, 87.82, 82.61, 66.96] atol = 0.01
+    @test r.inputs_echo.both ≈ PAIN._dB_sum.(r.inputs_echo.down, r.inputs_echo.up) atol = 0.01
+    t23 = sort([x for x in PAIN.r172428_table23() if x.run == 10]; by=x -> x.H)
+    # the upsweep follows PAIN's printed change from downsweep (Table 23); a magnitude-only swap would give zero change
+    @test all(abs((r.inputs_echo.up[H] - r.inputs_echo.down[H]) - (t23[H].up - t23[H].down)) < 0.5 for H in 1:5)
+    @test all(abs(PAIN._dB_sum(x.down, x.up) - x.both) ≤ 0.051 for x in PAIN.r172428_table23())   # Table 23 as transcribed
+    png = plot_case(r, VALIDATION_CASES["FLIGHT10_REPRO"].plot_spec; path=joinpath(TEST_OUT, "FLIGHT10_REPRO.png"))
     @test isfile(png) && filesize(png) > 0
 end
 

@@ -28,7 +28,7 @@ APPB_ETA_N_BAND,2026-11-12,2026-11-12,no_verdict,46,46,0.0099,0.00026,"loss fact
 APPB_ETA_N_T2_BAND,2026-11-12,2026-11-12,met,3,3,0.0018,0.0017,"loss factor","3/3 in tol · max |err| 0.0018 loss factor · med 0.0017 loss factor"
 R172428_CODE_DEFAULT,2026-11-12,2026-11-12,no_verdict,9,9,1.9,0.18,"dB","no verdict · max |err| 1.9 dB · med 0.18 dB"
 FLIGHT_MODES,2026-11-12,2026-11-12,met,200,221,113.1,1.2,"%","200/221 in tol (needs ≥ 90 %) · max |err| 113.1 % · med 1.2 %"
-FLIGHT10_H234,2026-11-12,2026-11-12,no_verdict,6,6,2.4,1.8,"dB","no verdict · max |err| 2.4 dB · med 1.8 dB"
+FLIGHT10_H234,2026-11-15,2026-11-15,no_verdict,6,6,2.4,1.8,"dB","no verdict · max |err| 2.4 dB · med 1.8 dB"
 AC_C695A_DBA,2026-11-12,2026-11-12,no_verdict,35,36,3.6,0.69,"dB","no verdict · max |err| 3.6 dB · med 0.69 dB"
 AC_C695A_TONES,2026-11-12,2026-11-12,no_verdict,34,108,20.8,5.9,"dB","no verdict · max |err| 20.8 dB · med 5.9 dB"
 AC_C695A_EXT,2026-11-12,2026-11-12,no_verdict,53,101,8.8,4.0,"dB","no verdict · max |err| 8.8 dB · med 4.0 dB"
@@ -57,3 +57,4 @@ PER_FIG7,2026-11-12,2026-11-12,met,3,3,3.4,1.3,"deg","3/3 in tol · max |err| 3.
 PER_FIG8,2026-11-12,2026-11-12,not_met,10,14,3.7,0.81,"dB","10/14 in tol · max |err| 3.7 dB · med 0.81 dB"
 PER_FIG9,2026-11-12,2026-11-12,no_verdict,15,18,3.7,0.35,"dB","no verdict · max |err| 3.7 dB · med 0.35 dB"
 FLIGHT_ETA,2026-11-12,2026-11-12,met,218,221,29.7,8.3,"%","218/221 in tol (needs ≥ 75 %) · max |err| 29.7 % · med 8.3 %"
+FLIGHT10_REPRO,2026-11-15,2026-11-15,met,15,15,2.8,2.3,"dB","15/15 in tol · max |err| 2.8 dB · med 2.3 dB"

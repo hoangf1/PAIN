@@ -34,6 +34,9 @@ const CASE_FAMILIES = Dict{String,NamedTuple{(:family, :derived_from),Tuple{Stri
     "CYL2D_C1" => (family="CYL2D cabin modes", derived_from=""),
     "CYL2D_PRINTED" => (family="CYL2D cabin modes", derived_from=""),
     "CABIN_FREQ_PRINTED" => (family="CYL2D cabin modes", derived_from=""),
+    # Phase 155 (2026-11-15): the Merlin IVC's flight run 10, one printed deck and field
+    "FLIGHT10_REPRO" => (family="CR-172428 flight run 10 (Merlin IVC)", derived_from=""),
+    "FLIGHT10_H234" => (family="CR-172428 flight run 10 (Merlin IVC)", derived_from="FLIGHT10_REPRO"),
 )
 
 # Phase 146c (2026-11-11, decided by Claude under the author's authority of 2026-11-10 and 2026-11-11): a plain title per
@@ -52,6 +55,7 @@ const PLAIN_TITLES = Dict{String,String}(
     "NR_TP1964_XOVER" => "Noise reduction of a bare cylinder against measurement (TP-1964, Fig. 8)",
     "FLIGHT_MODES" => "Structural modes of the flight aircraft against NASA's printed mode list (CR-172428, App. C)",
     "FLIGHT_ETA" => "Structural-mode loss factors of the flight aircraft against NASA's printout (CR-172428, App. C)",
+    "FLIGHT10_REPRO" => "Cabin tone levels of a turboprop in flight, both propellers, against NASA's printed prediction (CR-172428 run 10)",
     "MRP_APPD" => "Fuselage structural modes against NASA's printed Table D-1 (CR-3813)",
     "R172428_ETA" => "Structural-mode loss factors against NASA's printout (CR-172428, App. B)",
     "APPB_EPS_N" => "Cabin-mode factor ε_n against NASA's printout (CR-172428, App. B)",

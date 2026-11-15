@@ -21,7 +21,7 @@ A turboprop puts a large propeller (about 2.5–4 m, 4–6 blades, helical tip M
 | Cabin tones | R172428_ETAT2 met; R172428_EXP not met 5/9 | NASA's printed PAIN; measurement | no: the 1 m test article; FLIGHT10_H234 (Merlin, flight) is a diagnostic against PAIN's printout | **the main gap and the main opportunity** (below) |
 | Bands and dB(A) | NR_TP1964_XOVER not met 9/18 | measurement | no: a bare cylinder | the Commander 695A cases carry no verdict (blade and cabin section not printed) |
 
-**What can be claimed today.** On a real turboprop fuselage (Merlin IVC), the cabin half of the chain reproduces what NASA's PAIN printed: structural modes, loss factors, cabin modes, and the cabin tones of flight run 10 from PAIN's field. FLIGHT10_H234 shows the code as shipped within about 1 dB of PAIN's printed H2–H4, but as a diagnostic. NASA itself compared PAIN with the Merlin's measured cabin levels in flight (CR-172428 §5.4, Tables 23–24): predictions high by 4.3 dB on average with a standard deviation of 4.1 dB over 15 tones, 2.6 dB and 2.4 dB without the 4th harmonic. This code has not yet been compared with that measurement directly.
+**What can be claimed today.** On a real turboprop fuselage (Merlin IVC), the cabin half of the chain reproduces what NASA's PAIN printed: structural modes, loss factors, cabin modes, and the cabin tones of flight run 10 from PAIN's field. FLIGHT10_H234 shows the code as shipped 1.3 to 2.4 dB below PAIN's printed H2–H4, but as a diagnostic (corrected 2026-11-15: the scan first said "within about 1 dB", a figure from before ISSUE-032). NASA itself compared PAIN with the Merlin's measured cabin levels in flight (CR-172428 §5.4, Tables 23–24): predictions high by 4.3 dB on average with a standard deviation of 4.1 dB over 15 tones, 2.6 dB and 2.4 dB without the 4th harmonic. This code has not yet been compared with that measurement directly.
 
 **What cannot be claimed.** The propeller half: loads and near field in forward flight at turboprop size and tip Mach, and the field on a curved fuselage in flight. For a turboprop prediction the exterior field must at present come from measurement or a separately validated propeller code; the tool's own propeller path is not validated there.
 
@@ -59,3 +59,9 @@ This needs data the repository does not hold: a forward-flight propeller of turb
 If none prints the blade, the propeller half stays unvalidated for turboprops, and that is stated as a limit of the tool.
 
 Sources found by web search for this scan: [NASA TM-102285 record](https://ntrs.nasa.gov/citations/19890016304), [twin-turboprop flight tests, NASA 1986](https://ntrs.nasa.gov/api/citations/19860010618/downloads/19860010618.pdf), [their 1988 analysis](https://ntrs.nasa.gov/citations/19880009836).
+
+## Update 2026-11-15: Phase 155 done
+
+- **FLIGHT10_REPRO met, 15/15** (`phase155_merlin_flight.md`): run 10 H1–H5, both propellers, within 3 dB of PAIN's printed levels in every form. Twelve of the rows are held out. The code is 0.9–2.8 dB below PAIN.
+- **Against the measured flight levels, information only** (the measurement's own 95 % limit at H2 is at least 5.9 dB above its mean): the code is within 1.3 dB at H1, H3 and H5, 3.5 dB high at H2 and 8.4 dB high at H4. PAIN was +1.7, +5.9, +1.9, +9.5 and +1.0 dB.
+- The cabin half of the chain on a turboprop in flight is now reproduced with a verdict; the propeller half stays open (Phase 156).

@@ -152,11 +152,16 @@ end
 end
 @testset "iso102/105: flight run 10 field and inputs, printed 2-D lists" begin
     f = PAIN.r172428_flight10_field()
-    @test size(f.amps) == (16, 19, 4) && all(iszero, f.amps[:, :, 1])               # H1 cut off in the scan
+    @test size(f.amps) == (16, 19, 5) && f.amps[7, 10, 5] ≈ PAIN.spl_dB_to_peak_Pa(125.6)   # H1–H5 since Phase 155a; H5 peak as printed
     @test f.amps[1, 1, 2] ≈ sqrt(2) * 20e-6 * 10^(108.9 / 20) && f.phases[1, 1, 2] ≈ deg2rad(-150.3)   # App. D p. 231, L 1, k 1
     p1 = f.pts[1]; p10 = f.pts[10]
     @test (p1.k, p1.ell, p1.theta_deg, p1.alpha_deg) == (1, 1, -15.0, 90.0) && p1.x3 ≈ 1.12 - 0.094
     @test (p10.ell, p10.theta_deg, p10.alpha_deg) == (10, 75.0, 0.0)                 # propeller line at L = 10
+    @test PAIN._dB_sum(90.0, 90.0) ≈ 90.0 + 10log10(2) && PAIN._dB_sum(90.0, 70.0) ≈ 90.0 + 10log10(1.01)   # power sum (Phase 155)
+    t23 = PAIN.r172428_table23()
+    @test length(t23) == 15 && Set(r.run for r in t23) == Set([10, 11, 12])                 # runs 10–12, H1–H5 (Table 23)
+    r1 = only(r for r in t23 if r.run == 10 && r.H == 1)
+    @test (r1.f_Hz, r1.down, r1.up, r1.both, r1.measured) == (104.5, 99.9, 99.9, 102.9, 101.2)
     inp = PAIN.r172428_flight10_inputs()
     @test (inp.fuse.L, inp.fuse.a, inp.fuse.theta0_deg, inp.m_wall, inp.L_c) == (9.27, 0.84, 50.0, 4.54, 7.89)
     @test (inp.ρ_ext, inp.c_ext, inp.ρ_int, inp.c_int) == (1.1012, 334.08, 1.204, 343.0)

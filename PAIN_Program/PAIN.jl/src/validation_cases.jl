@@ -684,7 +684,8 @@ const DIAGNOSTIC_CASES = Dict(
     # Phase 100 (2026-10-30): NASA's per-band PF-105 table against the App. B admittances (selects the insulation input)
     "R172428_TRIM_DECK" => "sets NASA's App. D PF-105 deck table against App. B's trim admittances; selects the input (Phase 100a)",
     # Phase 102 (2026-10-30): flight run 10, H2–H4; no criterion was fixed for it (FLIGHT_MODES was not met then; met since
-    # Phase 142, 2026-11-11, on the settled reference file; whether this case may carry a verdict is ISSUE-034)
+    # Phase 142, 2026-11-11, on the settled reference file). It stays the diagnostic of the trim-per-band question; the
+    # reproduction of run 10 with a verdict is FLIGHT10_REPRO (Phase 155, 2026-11-15)
     "FLIGHT10_H234" => "sets the code as it ships and the trim per band against PAIN's printed run 10 levels (Phase 102)",
     # Phase 135f / 136a (2026-11-10; the author's sorting of 2026-11-09): runs a program form or option that is not the
     # shipped default, or repeats another case's measurement. By kind, whatever the outcome.
