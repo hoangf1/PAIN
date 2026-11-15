@@ -329,8 +329,8 @@ The scan is `validation_reports/phase152_coverage_scan.md`. Of the five not-met 
 
 ### Phase 156: a forward-flight propeller case for turboprops (ISSUE-046)
 
-- [ ] **156a Data search.** NASA TM-102285 (OV-10A) and its companion reports; analyses of the Commander 695A flights; any NASA forward-flight test of a 2.5–4 m propeller with the blade printed. Record each with what it prints.
-- [ ] **156b If a source prints the blade:** plan its case (loads, near field or fuselage pressure in flight) with the criterion fixed first.
+- [x] **156a Data search.** NASA TM-102285 (OV-10A) and its companion reports; analyses of the Commander 695A flights; any NASA forward-flight test of a 2.5–4 m propeller with the blade printed. Record each with what it prints. **Done 2026-11-15:** NACA Report 1377 (with TN 3417, TN 4068) qualifies: flight tests of two 3.40 m four-blade propellers, tabulated near-field levels, blade form in Fig. 2. The OV-10A and 695A reports do not print their blades. Table in ISSUE-046.
+- [ ] **156b If a source prints the blade:** plan its case (loads, near field or fuselage pressure in flight) with the criterion fixed first. **Planned 2026-11-15:** case `R1377_FLIGHT`; its criterion, row rule and the two unprinted inputs with their 1 dB rule are in ISSUE-046, committed before any computation. Steps: transcribe Tables I and II (two passes); digitize Fig. 2 by script; XFOIL polars by the Phase 69 procedure; run once; register.
 - [ ] **156c If none does:** state the limit in `METHODOLOGY.md`, `README.md` and the GUI's source note: for turboprops, take the exterior field from measurement or a separately validated propeller code.
 
 ---

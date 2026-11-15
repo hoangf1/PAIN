@@ -10,7 +10,7 @@ Two lists, newest first in each. **Not assigned to a phase**: issues to act on o
 
 | Issue | Subject | Kind | State |
 |---|---|---|---|
-| 046 | Turboprop viability: no forward-flight propeller case at turboprop size and tip Mach with the blade printed | Validity, data | Phase 156 (planned 2026-11-14; data search first) |
+| 046 | Turboprop viability: no forward-flight propeller case at turboprop size and tip Mach with the blade printed | Validity, data | Phase 156: data found (NACA Report 1377), case `R1377_FLIGHT` in work |
 | 045 | Turboprop viability: the Merlin IVC's measured cabin levels in flight (CR-172428 Table 23) are not compared; FLIGHT10_H234's label is stale | Validity, data, code | closed 2026-11-15: FLIGHT10_REPRO met 15/15; the measured comparison is information only |
 | 044 | The Report 996 blade input: blade root at 0.271 R and the tabulated tip twist, where the NACA figures print less tip pitch (and, for Report 1012, the spinner at 0.331 R) | Input, decision | closed 2026-11-14: Phase 154 done, no verdict changes |
 | 043 | Forward-flight loads: the computed thrust and power curves lie about 3 % higher in advance ratio than Report 1012's | Investigation | closed 2026-11-14: mostly two inputs that differ from Report 1012 Fig. 2 (blade root at the spinner, tip twist); a 1–1.5 % remainder is unexplained |
@@ -387,6 +387,27 @@ Was: open, not assigned to a phase. Recorded 2026-11-10. Labels. No verdict chan
 **Status:** open, Phase 156. Recorded 2026-11-14 by Claude, at the author's request of 2026-11-14 ("do another scan of the validation coverage and check whats needed so i can prove that the tool is viable for turboprops"). Report: `validation_reports/turboprop_viability_scan.md`.
 
 **What is missing.** The propeller half of the chain is validated only statically on a 1.2 m two-blade propeller (Report 996, near field on scaled loads; loads not met) and at low speed on a 0.3 m propeller (Pereira). Report 1012's forward-flight loads carry no verdict (ISSUE-042, 043). No in-flight fuselage pressure with a printed blade is held: the Commander 695A (CR-178004) and the OV-10A (TM-102285) lack it as far as known.
+
+**156a, the data search (done 2026-11-15).**
+
+| Source | What it holds | Usable? |
+|---|---|---|
+| NACA Report 1377 (Kurbjun, Vogeley 1958; NTRS 19930092360), with NACA TN 3417 (NTRS 19930084203) and TN 4068 (NTRS 19930084988), which it supersedes | Flight tests on a single-engine fighter: two four-blade propellers of 3.40 m (11 ft 2 in), one with rectangular blades (Hamilton Standard 6547A-6, TN 3417) and one with tapered blades. Sound-pressure levels of the blade-passage harmonics at a boom microphone 0.655 D from the axis, at three axial positions, flight Mach 0.22 to 0.72, printed in Tables I and II with power, engine speed, airspeed, static pressure and temperature. Blade width, thickness, angle and design lift coefficient against radius in Fig. 2 | **Yes, with two inputs not printed** (below): turboprop size, forward flight, helical tip Mach 0.74 to 1.05 |
+| NASA TM-102285 (OV-10A; NTRS 19890016304) | Fuselage-surface tones in flight on two microphone arrays | No: the Hamilton Standard 1027A-0 blade is named, its geometry is not printed |
+| NASA CR-178004 (Commander 695A) | Exterior and cabin tones in flight | No: the blade is not printed (AC_C695A cases, no verdict) |
+
+**156b, the case `R1377_FLIGHT`: decisions and criterion (fixed 2026-11-15 by Claude, under the author's authority of 2026-11-15 ("you have full control ... do not ask for permission from me to do anything"), before any load or sound level is computed).**
+
+- **Compared.** The rms sound-pressure level of blade-passage harmonics 1 to 5 at the boom microphone (dB re 20 μPa), this code against Report 1377 Tables I and II, both propellers. Chain span Blade loads → Free field; compared with measurement.
+- **Rows, chosen from printed quantities alone.** Flight rows only (the static rows are not the gap). Helical tip Mach number as printed ≤ 0.90, the top of the polar Mach grid. Printed power ≥ 500 hp (the report's "approximately 0" power is not a defined load). Every printed level of harmonics 1–5 on those rows.
+- **Tolerance and pass rule.** ±3 dB per level; met if at least 75 % of the levels are within it, over both propellers together. Why ±3 dB: the report's repeated runs differ by up to 1.5 dB and its system response is flat within ±1 dB, so ±2 dB (Report 996's static tolerance) would not be clearly above the data's own scatter.
+- **Inputs as printed.** Diameter 3.404 m; four blades; propeller speed 0.479 × engine speed; airspeed, static pressure and temperature per row; microphone at 0.655 D from the axis and x = −0.125 D, 0, +0.125 D; blade width, thickness, blade angle and design lift coefficient from Fig. 2, digitized by script.
+- **Blade angle setting.** The propellers are constant-speed and the setting is not printed. It is set, per row, so that the computed shaft power equals the printed power (as in the 695A cases). The sound levels are what is compared; the power is not.
+- **Two inputs the report does not print, each with its rule.** (1) *The airfoil family.* Taken as NACA 16-series with the a = 1.0 mean line at the printed design lift coefficient (the family whose blades NACA describes by these same four curves in Reports 996 and 1012). Check: the same run on NACA four-digit sections of the same thickness and design lift (camber line maximum at mid-chord). (2) *The power's accuracy.* It comes from manifold pressure and engine speed ("approximately 1,000 horsepower"). Check: the same run at ±5 % power. **If either check moves any compared level by more than 1 dB (a third of the tolerance), the case carries no verdict** (input rule; ISSUE-037, ISSUE-042).
+- **Polars.** XFOIL by the Phase 69 procedure, unchanged (free transition, N_crit 8, 240 panels, Viterna extension), on sections at the blade's own thickness and design lift; Reynolds grid extended to the blade's range. No polar setting is chosen from this case's results.
+- **Blade root.** The innermost radius Fig. 2 prints for the blade width. The dashed inboard parts of the curves are used as printed.
+- **Not modelled, stated as limits.** The airplane (nose, wing and fuselage near the microphone, which the report treats as free space); the engine exhaust; any blade deflection.
+- **One run.** The result is recorded whatever it is; nothing is changed after it.
 
 **What it needs.** A data search first (TM-102285 and its companions; analyses of the 695A flights; any NASA forward-flight propeller test of 2.5–4 m with the blade printed). If nothing prints the blade, the limit is stated in the record and the tool's guidance: for turboprops, take the exterior field from measurement or a separately validated propeller code.
 
