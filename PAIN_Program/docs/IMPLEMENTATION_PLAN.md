@@ -13,7 +13,7 @@ Single source of truth for building this project without re-deriving context in 
 2. Data register and digitization instructions (status, procedure, one card per figure; §2.5 candidate sources found 2026-11-09)
 3. Current status and open work queue
 4. Architecture
-Phases 152–154 (planned and done 2026-11-14): no phase is open.
+Phases 152–154 (planned and done 2026-11-14). Open phases 155–156 (planned 2026-11-14, turboprop scan).
 8cg–8co. Phases 143–151 done (planned 2026-11-09 from `ISSUES.md`; Phases 135–138 done 2026-11-10, 139–151 done 2026-11-11; open remainders are tickets ISSUE-030 to 040 and moved to `COMPLETED_PHASES.md`)
 5–8ac, 11. *(in `COMPLETED_PHASES.md`, same section numbers, moved 2026-10-29)* every completed phase, the queue Q0–Q66 and the 2026-10-21 review
 9. Reference appendices (BBN evidence, Report 996 figures and data, Pereira polar specification, variables)
@@ -255,7 +255,7 @@ Already in `references/` and bearing on an open phase: `NACA_TN_1546.pdf` holds 
 ## 3. Current status and work queue
 
 **Status of the validation cases:** `VALIDATION_GUIDELINE.md` §0 (the map: cases with a verdict) and `NO_VERDICT_CASES.md`
-(the cases without one). **Open issues:** `ISSUES.md` (001–044 are closed). **Completed phases** (§§5–8ac and §11, with the work queue Q0–Q66 and the 2026-10-21 review I-01–I-20)
+(the cases without one). **Open issues:** `ISSUES.md` (001–044 are closed; 045 and 046, recorded 2026-11-14, are Phases 155 and 156). **Completed phases** (§§5–8ac and §11, with the work queue Q0–Q66 and the 2026-10-21 review I-01–I-20)
 are in `COMPLETED_PHASES.md` under the same section numbers; a reference such as "IMPLEMENTATION_PLAN.md §8b" in the code
 or the other documents points there. When a phase is done, mark it done and move its section to the bottom of
 `COMPLETED_PHASES.md` (`CLAUDE.md`).
@@ -264,6 +264,8 @@ or the other documents points there. When a phase is done, mark it done and move
 
 | Q | Item | Kind | Prerequisite | Output |
 |---|------|------|--------------|--------|
+| Q132 | Phase 155: the Merlin IVC in flight against its measured cabin levels (ISSUE-045) | code (blade sweep), data, one new case | — | turboprop cabin case against measurement |
+| Q133 | Phase 156: a forward-flight propeller case for turboprops (ISSUE-046) | data search first | — | a case, or the limit stated |
 | — | Phases 90–134 are done (2026-11-05; 118f: unit-test gaps; 112–116 merged from branch `heart`, numbered 100–104 there). Q113–Q129 were planned on 2026-11-09 from `ISSUES.md`; none is started. Author decisions of 2026-11-09 are in the steps; order confirmed: Q113, then Q114–Q122 (not-met cases), then Q123–Q129 | — | — | — |
 
 If a queue item is blocked on data, skip to the next unblocked item and say which data item blocks it.
@@ -321,6 +323,24 @@ The diagram matches the code (phases 21–22 done 2026-10-21): `propeller_ccblad
 *(Author 2026-11-14: "do another scan of the coverage map for all the cases and see what needs to be fixed list solutions to these cases into phases in the implementation plan"; "if its not the exact data then just say inputs couldnt be found and move on".)*
 
 The scan is `validation_reports/phase152_coverage_scan.md`. Of the five not-met cases, none can be fixed with published data: three are limits of PAIN's own method, one needs section data that is not published (ISSUE-030, closed), and one differs from NASA's printout by a factor no printed input gives. The one gap for which data was found, forward-flight blade loads, was compared in Phase 153 (done 2026-11-14: no verdict, ISSUE-043). **No phase is open.** The rules of Phases 137–151 hold (`COMPLETED_PHASES.md`): criteria fixed and dated before any comparison, no tuning, targeted testsets only.
+
+## Open phases 155–156 (planned 2026-11-14 from the turboprop scan)
+
+*(Author 2026-11-14: "do another scan of the validation coverage and check whats needed so i can prove that the tool is viable for turboprops".)* The scan is `validation_reports/turboprop_viability_scan.md`. The rules of Phases 137–154 hold: criteria fixed and dated before any comparison, no tuning, every input printed or measured, post-hoc labels where a result was known, targeted testsets only.
+
+### Phase 155: the Merlin IVC in flight against its measured cabin levels (ISSUE-045)
+
+- [ ] **155a Field pages.** Read CR-172428 App. D pp. 230 and 234 (PDF 240, 244) at 300 dpi and establish which phase rows of H1 and H5 are cut. If only the generated mirror rows (L = 1–9) are cut, transcribe L = 10–19 by §2.2 (two passes) and complete H1 and H5; otherwise run 10 stays H2–H4.
+- [ ] **155b Blade sweep (code).** Implement PAIN's upsweep from the downsweep input as printed in App. A p. 189 (subroutine PROP changes) and the power sum of p. 164. Check, with a criterion fixed first, against Table 23's printed PAIN upsweep and both levels for run 10: held-out PAIN output (P).
+- [ ] **155c Run 10 against PAIN.** Correct FLIGHT10_H234's stale label. Decide and date, before any H1 or H5 run, whether the run 10 reproduction carries a verdict, with H1 and H5 as held-out data.
+- [ ] **155d Run 10 against measurement (E).** Transcribe Table 23's measured run 10 levels and the confidence limits of Figs. 55–57 by §2.2. Fix and date a criterion in R172428_EXP's form (±4 dB per tone of the measured space average, met if every tone is), after checking that the measurement's own confidence limits are clearly inside it. Then run once and register `MERLIN_FLIGHT_EXP` (chain span Skin field → Interior tones, compared with measurement).
+- [ ] **155e Documents** (R5), `/code-review`, commit, push.
+
+### Phase 156: a forward-flight propeller case for turboprops (ISSUE-046)
+
+- [ ] **156a Data search.** NASA TM-102285 (OV-10A) and its companion reports; analyses of the Commander 695A flights; any NASA forward-flight test of a 2.5–4 m propeller with the blade printed. Record each with what it prints.
+- [ ] **156b If a source prints the blade:** plan its case (loads, near field or fuselage pressure in flight) with the criterion fixed first.
+- [ ] **156c If none does:** state the limit in `METHODOLOGY.md`, `README.md` and the GUI's source note: for turboprops, take the exterior field from measurement or a separately validated propeller code.
 
 ---
 

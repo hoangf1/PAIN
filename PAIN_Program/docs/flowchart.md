@@ -12,6 +12,7 @@ Colour key in diagrams: green = check exists and passes as stated; orange = plan
 
 ## Status
 
+- **2026-11-14 (turboprop scan):** Phases 155–156 planned; flow unchanged.
 - **2026-11-14 (Phase 154 closed):** Report 996 blade angle from its own Fig. 3(c); flow unchanged.
 - **2026-11-14 (ISSUE-043 closed):** cause of the forward-flight displacement found in two blade inputs; nothing changed; flow unchanged.
 - **2026-11-14 (ISSUE-043 diagnostic):** loaded side of Report 1012 read and compared once; flow unchanged.

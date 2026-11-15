@@ -10,6 +10,8 @@ Two lists, newest first in each. **Not assigned to a phase**: issues to act on o
 
 | Issue | Subject | Kind | State |
 |---|---|---|---|
+| 046 | Turboprop viability: no forward-flight propeller case at turboprop size and tip Mach with the blade printed | Validity, data | Phase 156 (planned 2026-11-14; data search first) |
+| 045 | Turboprop viability: the Merlin IVC's measured cabin levels in flight (CR-172428 Table 23) are not compared; FLIGHT10_H234's label is stale | Validity, data, code | Phase 155 (planned 2026-11-14) |
 | 044 | The Report 996 blade input: blade root at 0.271 R and the tabulated tip twist, where the NACA figures print less tip pitch (and, for Report 1012, the spinner at 0.331 R) | Input, decision | closed 2026-11-14: Phase 154 done, no verdict changes |
 | 043 | Forward-flight loads: the computed thrust and power curves lie about 3 % higher in advance ratio than Report 1012's | Investigation | closed 2026-11-14: mostly two inputs that differ from Report 1012 Fig. 2 (blade root at the spinner, tip twist); a 1–1.5 % remainder is unexplained |
 | 042 | Forward-flight thrust and power of the Report 996 blade (NACA Report 1012): a second test of the blade loads | Validity, data | closed 2026-11-14: compared once, no verdict (input rule); not registered as a case |
@@ -377,6 +379,31 @@ Was: open, not assigned to a phase. Recorded 2026-11-10. Labels. No verdict chan
 - PER_FIG8: the CFD misses are taken from the case text; the rule of step 3 needs them computed from the digitized file and set against the same ±1.7 dB and ±3 dB gates.
 
 **Not done yet.** Nothing changed.
+
+---
+
+## ISSUE-046: no forward-flight propeller case at turboprop size and tip Mach with the blade printed
+
+**Status:** open, Phase 156. Recorded 2026-11-14 by Claude, at the author's request of 2026-11-14 ("do another scan of the validation coverage and check whats needed so i can prove that the tool is viable for turboprops"). Report: `validation_reports/turboprop_viability_scan.md`.
+
+**What is missing.** The propeller half of the chain is validated only statically on a 1.2 m two-blade propeller (Report 996, near field on scaled loads; loads not met) and at low speed on a 0.3 m propeller (Pereira). Report 1012's forward-flight loads carry no verdict (ISSUE-042, 043). No in-flight fuselage pressure with a printed blade is held: the Commander 695A (CR-178004) and the OV-10A (TM-102285) lack it as far as known.
+
+**What it needs.** A data search first (TM-102285 and its companions; analyses of the 695A flights; any NASA forward-flight propeller test of 2.5–4 m with the blade printed). If nothing prints the blade, the limit is stated in the record and the tool's guidance: for turboprops, take the exterior field from measurement or a separately validated propeller code.
+
+---
+
+## ISSUE-045: the Merlin IVC's measured cabin levels in flight are not compared with this code
+
+**Status:** open, Phase 155. Recorded 2026-11-14 by Claude, at the author's request of 2026-11-14 ("do another scan of the validation coverage and check whats needed so i can prove that the tool is viable for turboprops"). Report: `validation_reports/turboprop_viability_scan.md`.
+
+**What is missing.** CR-172428 §5.4 compares PAIN with the measured space-average cabin levels of a turboprop in flight (Merlin IVC, runs 10–12, Table 23; NASA's statistics in Table 24). This code reproduces PAIN's run 10 (FLIGHT10_H234, a diagnostic, H2–H4) but has never been set against the measurement. That would be the record's only turboprop cabin case against measurement.
+
+**What stands in the way.**
+1. The measured level is the power sum of both propellers (downsweep and upsweep, p. 164). This code has no blade-sweep switch; App. A p. 189 prints the program change by which PAIN builds the upsweep field from the downsweep input.
+2. Run 10's H1 and H5 field pages have phase rows cut in the scan; whether only PAIN's generated mirror rows (L = 1–9) are cut is not yet checked.
+3. Runs 11 and 12 are not printed.
+
+**Also.** FLIGHT10_H234's record says "no verdict (FLIGHT_MODES not met)"; FLIGHT_MODES is met since Phase 142.
 
 ---
 
