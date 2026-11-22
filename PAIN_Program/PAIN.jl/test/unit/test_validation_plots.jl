@@ -124,6 +124,23 @@ end
         empty!(PAIN.VALIDATION_CASE_ORDER); append!(PAIN.VALIDATION_CASE_ORDER, saved)
     end
 end
+@testset "CairoMakie loads on the first plot, not at start-up" begin
+    # 2026-11-21 (GUI start-up): `using PAIN` and the GUI's start-up state leave CairoMakie unloaded, and a plot entry
+    # point then loads it and draws. Fails if `using CairoMakie` returns to the module, if start-up plots, or if the
+    # entry point does not run the plotting body in the newest world (UndefVarError on `Figure`). Fresh process.
+    png = joinpath(UNIT_OUT, "unit_lazy_cov.png")
+    code = """
+        using PAIN
+        cm = Base.PkgId(Base.UUID("13f3f980-e62b-5c42-98c6-ff1f3baf88f0"), "CairoMakie")
+        PAIN.make_gui_observables()
+        haskey(Base.loaded_modules, cm) && exit(2)
+        PAIN.plot_coverage_chart($(repr(png)))
+        haskey(Base.loaded_modules, cm) || exit(3)
+        """
+    p = run(ignorestatus(`$(Base.julia_cmd()) --startup-file=no --project=$(Base.active_project()) -e $code`))
+    @test p.exitcode == 0 && filesize(png) > 0
+end
+PAIN.load_plotting!()   # the next testset uses CairoMakie's Figure / Axis through PAIN (top level: next statement sees them)
 @testset "plot_case and log ticks" begin
     fig = PAIN.Figure(); ax = PAIN.Axis(fig[1, 1])
     PAIN._apply_log_ticks!(ax, [150.0, 900.0, 4000.0])

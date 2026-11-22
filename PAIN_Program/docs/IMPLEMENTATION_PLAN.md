@@ -314,6 +314,7 @@ The diagram matches the code (phases 21–22 done 2026-10-21): `propeller_ccblad
 | Trim / loss | `src/trim_loss.jl` |
 | Metrics | `src/metrics.jl` |
 | Driver | `scripts/run/run_pain.jl` |
+| GUI and plots | `src/gui_*.jl`, `src/validation_plots.jl`, `src/validation_coverage.jl`, `src/mode_animation.jl`. CairoMakie loads on the first plot (`load_plotting!`), and the GUI's start-up state is precompiled (2026-11-21) |
 
 ---
 

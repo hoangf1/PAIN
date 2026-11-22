@@ -45,6 +45,7 @@ end
     q = PAIN.plot_coverage_chart(joinpath(UNIT_OUT, "unit_cov_all.png"); verdict_only=false)
     @test filesize(p) > 0 && filesize(q) > filesize(p)              # every case draws more rows than the verdict cases
 end
+PAIN.load_plotting!()   # the next testset uses CairoMakie through PAIN (top level: next statement sees it)
 @testset "shading above the trim model's range" begin
     mk(xmax) = PAIN.ValidationCaseResult("X", "2026-11-12", (;), PAIN.ValidationTableRow[],
         [PAIN.PlotSeries("s", :computed, [100.0, xmax], [1.0, 2.0]; panel=1)], :no_verdict, "", "", "")

@@ -127,7 +127,8 @@ end
 The chain coverage chart as a PNG: one row per case, its bar spanning its chain stages, coloured by what it is compared
 with; cases without a verdict drawn pale. The verdict and points are printed at the right. Returns `path`.
 """
-function plot_coverage_chart(path::AbstractString; rec::AbstractDict=recorded_case_errors(), verdict_only::Bool=true)
+plot_coverage_chart(path::AbstractString; kw...) = _with_cairomakie(_plot_coverage_chart_makie, path; kw...)
+function _plot_coverage_chart_makie(path::AbstractString; rec::AbstractDict=recorded_case_errors(), verdict_only::Bool=true)
     rows = coverage_rows(; rec, verdict_only)
     n = length(rows); ns = length(CHAIN_STAGES)
     fig = Figure(size=(1250, 120 + 17 * max(n, 1)), fontsize=12)

@@ -16,7 +16,28 @@ using AcousticMetrics
 using Observables
 using QML
 using Dates
-using CairoMakie
+using PrecompileTools: @setup_workload, @compile_workload
+
+# CairoMakie is loaded on the first plot, not by `using PAIN`: it took ~5 s of every GUI start (2026-11-21).
+# The plotting entry points (`plot_case`, `plot_coverage_chart`, the `render_*` mode pictures) go through
+# `_with_cairomakie`, which loads it once and runs the plotting body in the newest world, where its names resolve.
+const _CAIROMAKIE_LOADED = Ref(false)
+
+"""
+    load_plotting!()
+
+Load CairoMakie into PAIN (once). The plotting functions do this themselves; call it only before using CairoMakie
+names through `PAIN` directly (as some tests do), from top level so the next statement sees them.
+"""
+function load_plotting!()
+    if !_CAIROMAKIE_LOADED[]
+        Core.eval(@__MODULE__, :(using CairoMakie))
+        _CAIROMAKIE_LOADED[] = true
+    end
+    return nothing
+end
+
+_with_cairomakie(f, args...; kw...) = (load_plotting!(); Base.invokelatest(f, args...; kw...))
 
 include("pain_settings.jl")          # phase 127 run-path constants as settings
 include("geometry.jl")
@@ -524,6 +545,16 @@ function validate_mrp_table_d1(modes::StructuralModes; tol_frac::Float64=0.05,
         ))
     end
     return records
+end
+
+# Precompile the GUI's start-up state: `make_gui_observables` compiled for ~2-6 s on every start (2026-11-21).
+# Julia side only (what `main()` runs before `loadqml`): no Qt and no plotting at precompile time. The cache it
+# fills is cleared so no file read now is stored in the package image.
+@setup_workload begin
+    @compile_workload begin
+        make_gui_observables()
+    end
+    _RECORDED_ERRORS_CACHE[] = nothing
 end
 
 end # module

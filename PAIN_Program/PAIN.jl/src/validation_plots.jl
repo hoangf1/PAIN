@@ -611,7 +611,8 @@ end
 Render `result.series` to PNG (and PDF) at `validation_figure_path(id)`
 (`docs/validation_reports/figures/<block folder>/<id>.png`) unless `path` is given. Returns the PNG path. Empty series writes a placeholder image.
 """
-function plot_case(result::ValidationCaseResult, spec::PlotSpec; path::Union{Nothing,AbstractString}=nothing)
+plot_case(result::ValidationCaseResult, spec::PlotSpec; kw...) = _with_cairomakie(_plot_case_makie, result, spec; kw...)
+function _plot_case_makie(result::ValidationCaseResult, spec::PlotSpec; path::Union{Nothing,AbstractString}=nothing)
     png = path === nothing ? validation_figure_path(result.id) : String(path)
     mkpath(dirname(png))
     pdf = replace(png, r"\.png$"i => ".pdf")

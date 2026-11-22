@@ -3761,3 +3761,14 @@ Queue row: | Q131 | Phase 154: the Report 996 blade angle from Report 996 Fig. 3
 - [x] **155e Documents** (R5), `/code-review`, commit, push. **Done 2026-11-15.**
 
 Queue row: | Q132 | Phase 155: the Merlin IVC in flight against its measured cabin levels (ISSUE-045) | code (blade sweep), data, one new case | — | turboprop cabin case against measurement | · **done 2026-11-15**: FLIGHT10_REPRO met 15/15; measured comparison information only; report `phase155_merlin_flight.md`
+
+## 8ct. GUI start-up time (done 2026-11-21; not a phase of the plan, author's request of the same day)
+
+The author asked how to make the GUI start faster. With warm caches, the time to the window was about 25 s: about 1 s for Julia to start, 3.5 s for `Pkg.instantiate()` in `scripts/run_gui.jl`, 13 s loading packages (Qt 6.0 s, CairoMakie 4.9 s, AcousticAnalogies 2.7 s, CCBlade 2.6 s; PAIN's own code 0.05 s), and about 7 s in `main()`, mostly compiling `make_gui_observables`.
+
+- [x] **Launcher:** `Pkg.instantiate()` removed. README Step 2 installs the packages once.
+- [x] **CairoMakie on first plot:** removed `using CairoMakie` from the module. The six plot entry points (`plot_case`, `plot_coverage_chart`, `render_mode_animation`, `render_mode_frame_pngs`, `render_structural_frame_pngs`, `render_structural_mode_png`) call `load_plotting!()` and run their bodies (`_<name>_makie`) through `invokelatest`, so a plot works from a task that started before the load (the GUI's buttons). The first plot of a coverage chart took 33.8 s before and 37.8 s after: the load moved, nothing else got slower. The separate mode-window process (GLMakie) no longer loads CairoMakie as well.
+- [x] **Precompiled start-up:** PrecompileTools (already in the Manifest, version unchanged) runs `make_gui_observables()` at precompile time. No Qt and no plotting run at precompile time, and the snapshot cache it fills is cleared afterwards. `make_gui_observables` went from 1.8–5.9 s to 0.14–0.27 s.
+- [x] **Test:** `Unit tests: validation_plots` has a fresh-process test. It checks that `using PAIN` and the start-up state leave CairoMakie unloaded, and that a plot then loads it and draws. Two tests that use CairoMakie names through `PAIN` call `PAIN.load_plotting!()` first.
+
+**Result.** Old and new code were run alternately on the same machine, which was under heavy load from other programs: about 55–74 s before (55 s without `instantiate`), about 28–33 s after. No case, input, criterion, tolerance or recorded result changed. Checks on 2026-11-22, on a quiet machine: `smoke_qml_load.jl` all six parts pass in 228 s (on 2026-11-21, under the same heavy load, its run-status-box part missed its 120 s timer, so it was re-run quiet), `smoke_gui_model.jl` passes, and the unit testsets `validation_plots`, `issue036_gaps` and `polars` pass. The flowcharts, methodology, criteria and case records do not describe start-up, so they are unchanged.

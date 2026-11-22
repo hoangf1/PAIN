@@ -227,7 +227,8 @@ Caption: mode index, f, Φ_G, symmetry, display-only note. Modes 0–5 include F
 Optional axial side view: cos(q π z / L) (Eq. C.9).
 Returns `(gif_path, png_path)`.
 """
-function render_mode_animation(path::AbstractString, frames;
+render_mode_animation(path::AbstractString, frames; kw...) = _with_cairomakie(_render_mode_animation_makie, path, frames; kw...)
+function _render_mode_animation_makie(path::AbstractString, frames;
                                format::Symbol=:gif,
                                axial_q::Integer=0,
                                L::Real=test_article_length(),
@@ -290,7 +291,8 @@ function render_mode_animation(path::AbstractString, frames;
 end
 
 """Write each animation frame as a PNG; returns vector of paths (for GUI play)."""
-function render_mode_frame_pngs(dir::AbstractString, frames; prefix::AbstractString="frame")
+render_mode_frame_pngs(dir::AbstractString, frames; kw...) = _with_cairomakie(_render_mode_frame_pngs_makie, dir, frames; kw...)
+function _render_mode_frame_pngs_makie(dir::AbstractString, frames; prefix::AbstractString="frame")
     isdir(dir) || mkpath(dir)
     outline = _cabin_outline(deg2rad(frames.theta0_deg))
     clim = frames.clim
@@ -381,7 +383,8 @@ function structural_mode_frames(st::StructuralMode, fuse::FuselageGeometry; nfra
 end
 
 """Write each structural animation frame as a PNG (cross-section ring + shell ψ field); returns the paths."""
-function render_structural_frame_pngs(dir::AbstractString, fr; prefix::AbstractString="s")
+render_structural_frame_pngs(dir::AbstractString, fr; kw...) = _with_cairomakie(_render_structural_frame_pngs_makie, dir, fr; kw...)
+function _render_structural_frame_pngs_makie(dir::AbstractString, fr; prefix::AbstractString="s")
     isdir(dir) || mkpath(dir)
     paths = String[]
     a, θ0 = fr.a, fr.θ0
@@ -408,7 +411,8 @@ function render_structural_frame_pngs(dir::AbstractString, fr; prefix::AbstractS
 end
 
 """Render structural shell/floor ψ to a PNG (display only)."""
-function render_structural_mode_png(path::AbstractString, disp)
+render_structural_mode_png(path::AbstractString, disp) = _with_cairomakie(_render_structural_mode_png_makie, path, disp)
+function _render_structural_mode_png_makie(path::AbstractString, disp)
     fig = Figure(size=(720, 420); fontsize=12)
     ax1 = Axis(fig[1, 1]; xlabel="z (m)", ylabel="θ (deg)", title="shell ψ (Eqs. 46–47) mode $(disp.index)")
     heatmap!(ax1, disp.z, disp.theta_deg, disp.shell_ψ'; colormap=:balance)

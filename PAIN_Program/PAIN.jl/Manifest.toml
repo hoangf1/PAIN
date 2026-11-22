@@ -2,7 +2,7 @@
 
 julia_version = "1.13.2"
 manifest_format = "2.1"
-project_hash = "75666348e5de67480f6aa61e027a28a8c42db868"
+project_hash = "c9cc06096833139b1938f9a8c389bd9ef7c05c2b"
 
 [[deps.AbstractFFTs]]
 deps = ["LinearAlgebra"]
@@ -1591,7 +1591,7 @@ uuid = "bac558e1-5e72-5ebc-8fee-abe8a469f55d"
 version = "2.0.3"
 
 [[deps.PAIN]]
-deps = ["AcousticAnalogies", "AcousticMetrics", "CCBlade", "CairoMakie", "Dates", "FFTW", "GLMakie", "JSON3", "LinearAlgebra", "Observables", "QML", "Random", "SparseArrays", "Statistics"]
+deps = ["AcousticAnalogies", "AcousticMetrics", "CCBlade", "CairoMakie", "Dates", "FFTW", "GLMakie", "JSON3", "LinearAlgebra", "Observables", "PrecompileTools", "QML", "Random", "SparseArrays", "Statistics"]
 path = "."
 uuid = "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
 version = "0.1.0"
