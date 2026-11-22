@@ -284,8 +284,12 @@ end
 """NACA 16-series section key `n16_<c><tt>` → thickness ratio `tt/100`; `nothing` for any other key."""
 function _section_t_over_c(name::AbstractString)
     m = match(r"^n16_(\d)(\d\d)$", name)
+    m === nothing || return parse(Int, m.captures[2]) / 100
+    # Phase 156b (2026-11-22): sections at a blade station's own thickness, `n16_c<c_l×1000>_t<t/c×10⁴>` and the
+    # four-digit family `n4d_c…_t…` (data/polars/xfoil_r1377.py)
+    m = match(r"^n(?:16|4d)_c\d{4}_t(\d{4})$", name)
     m === nothing && return nothing
-    return parse(Int, m.captures[2]) / 100
+    return parse(Int, m.captures[1]) / 10_000
 end
 
 """Index `i` and weight `w` so that `x ≈ (1 − w)·grid[i] + w·grid[i + 1]` on a sorted grid (`x` clamped to it)."""

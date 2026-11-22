@@ -57,6 +57,9 @@ end
     afs = PAIN.station_polars(ps, [0.06, 0.10])
     @test afs[1](a, 1e6, 0.2)[1] ≈ 4.0 * a && afs[2](a, 1e6, 0.2)[1] ≈ 6.0 * a
     @test PAIN._section_t_over_c("n16_213") == 0.13 && PAIN._section_t_over_c("naca4412") === nothing
+    # Phase 156b names: the thickness is the last four digits / 10⁴ (the c_l digits must not be read as thickness)
+    @test PAIN._section_t_over_c("n16_c0570_t1416") == 0.1416 && PAIN._section_t_over_c("n4d_c0266_t0535") == 0.0535
+    @test PAIN._section_t_over_c("n16_c570_t1416") === nothing && PAIN._section_t_over_c("n5d_c0570_t1416") === nothing
     @test PAIN._bracket([1.0, 2.0, 4.0], 3.0) == (2, 0.5) && PAIN._bracket([1.0], 9.0) == (1, 0.0)
     t = ps.tables[("n16_506", 1e6, 0.2)]
     st0 = PAIN.PolarStats()
