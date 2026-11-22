@@ -387,12 +387,12 @@ Report tonal-only, broadband-only and total, for both average and max seat.
 ### Milestone status
 | # | Status |
 |---|---|
-| M1 Core TL engine | Done. V1, V2 and V3 pass. |
-| M2 Source models | Done. V0a and V0b pass. Time-domain and Gutin results agree within 0.04 dB. Optional blade-geometry source added 2026-11-02 (see below). |
-| M3 Full pipeline | Done. `run_case`, JSON and CSV export work. V0c passes. |
+| M1 Core TL engine | Done. V1, V2 and V3 pass (check ok; V2p, added later, is check failed; see below). |
+| M2 Source models | Done. V0a passes (V0b, the scattering check, was retired 2026-11-02 with the scattering model). Time-domain and Gutin results agree within 0.04 dB. Optional blade-geometry source added 2026-11-02 (see below). |
+| M3 Full pipeline | Done. `run_case`, JSON and CSV export work. (V0c, the box-mode seat check, was retired 2026-11-02 with the box-mode seats.) |
 | M4 GUI v1 | Done. Six input tabs, eight plot views and the results bar. |
 | M5 Compare & sweep | Done. A/B overlay, IL, background sweeps, mission summary, 1-vs-5 patch check. |
-| M6 Validation | Framework done: Validation tab, figures, HTML/PDF export (the heatmap was removed 2026-11-03) (the run is threaded: about 1-2 min). All runnable cases ran 2026-11-02: **met V5b, V5c, V5d; not met V4a, V5, V6, V7** (see below). V4 ran 2026-11-03 (not met, see the V2p/V4 notes). |
+| M6 Validation | Framework done: Validation tab, figures, HTML/PDF export (the heatmap was removed 2026-11-03) (the run is threaded: about 1-2 min). Current record of the paper pipeline (cases.yaml, VALIDATION.md): **1 of 8 validation cases met: met V5b; not met V4, V4a, V4b, V5, V5c, V6, V7.** V4 ran 2026-11-03, the others 2026-11-02 (see the V2p/V4 notes). The run lists in the older sections below (V5c and V5d met, and so on) describe the retired pipeline and stay as history. |
 | M7 Polish & package | Partly done: material library and PDF report. Still open: unit toggles, a separate material editor, PyInstaller build. |
 
 ### Where the code differs from the text above
@@ -417,15 +417,15 @@ Everything below is digitized under `PAIN_Program/data` and can be copied withou
 |---|---|---|---|
 | TP-1964 Fig. 8 (`tp1964/`) | Bare unstiffened cylinder, reverberant-field NR, 50 Hz-5 kHz | **V4a** (sidewall TL / NR, lab) | Run: not met |
 | TP-1964 Fig. 17 (`tp1964/`) | Measured interior T60 and structural decay | V4a inputs (absorption, eta) | Used |
-| CR-3813 Figs. E-21/E-22 (`cr3813/`) | Stiffened, trimmed 1.83 m cylinder, reverberant NR (range and 95 % limits) | Candidate V4b | Blocked: blanket flow resistivity and septum material are not printed (input-completeness) |
-| CR-3813 Fig. E-13 (`cr3813/e13_absorption_targets.csv`) | Measured interior absorption of that cylinder | V4b / V7b inputs | Available |
+| CR-3813 Figs. E-21/E-22 (`cr3813/`) | Stiffened, trimmed 1.83 m cylinder, reverberant NR (range and 95 % limits) | **V4b** | Run 2026-11-02 on the paper pipeline: not met, 5/19 bands (cases.yaml). It was first judged blocked, because the blanket flow resistivity and septum material are not printed; the case now uses only inputs CR-3813 prints, and the rule of the paper pipeline (METHOD.md) applies |
+| CR-3813 Fig. E-13 (`cr3813/e13_absorption_targets.csv`) | Measured interior absorption of that cylinder | V4b input | Used |
 | CR-3813 Fig. E-16, T1/T2 targets (`cr3813/`) | Propeller-driven interior 1/3-octave levels, same cylinder | Candidate V7b (tonal interior) | Needs the measured exterior field (E-11) as a measured-source override; same trim inputs gap as V4b |
 | CR-3813 Fig. E-11 (`cr3813/e11_freefield_measured_*.csv`) | Measured free-field propeller levels | V5-style source check / V7b input | Available, not yet mapped |
 | TP-2444 Figs. 17, 19 (`tp2444/`) | Same 1.83 m model 2: exterior and interior spectra, rotation direction | Candidate V7c | Analysis bandwidth not stated (5 Hz assumed in PAIN); trim gap as above |
 | CR-172428 App. B (`cr172428/`) | Blocked pressure field and PAIN's predictions | Not used: predictions, not experimental | Available |
 | CR-172490 Fig. 15 (`cr172490/`) | Sharp's double-panel *prediction* | Verification only (another method) | Not a validation reference |
 | `references/NASA_CR_178004.pdf` | Commander 695A flight: exterior and interior harmonics, untreated and treated | **V5** (run), V5b, V7 | The appendices are printed tables with a text layer, so they can be transcribed (not digitized from plots). App. A drives V5; App. D (1/3-octave exterior) drives V5b; App. B and E (untreated cabin) and App. C, F, J (treated cabin, insertion loss) drive V7 and a V6-like case. Inputs are in sec. 2 and Tables 1-8 |
-| NASA TM-85722 | Lab TL and in-flight IL | V4, V6 as planned | Not in the repo |
+| NASA TM-85722 (`Cabin_Noise/references/NASA_TM_85722.pdf`, downloaded from NTRS 2026-11-02) | Lab TL, in-flight IL, Table I and Fig. 18 | **V4** (run 2026-11-03: Fig. 18, prop-plane layup, not met); V6 compares CR-178004 App. J, not this report | In the repo. The inventory's "Not in the repo" was out of date; corrected 2026-11-22 |
 
 ### V4a result (TP-1964 Fig. 8, run 2026-11-02, criterion fixed before the run)
 - **Not met.** max |dNR| = 16.1 dB over 250 Hz-2 kHz (target 3 dB); 1 of 21 bands lies within 3 dB over 50 Hz-5 kHz.
@@ -670,3 +670,11 @@ Everything below is digitized under `PAIN_Program/data` and can be copied withou
 - **Default case:** broadband 77.3 -> 79.9 dBA: the low-frequency wall spectrum scales as tau_w^2 delta ~ x^0.4 (delta ~ x^0.8, tau_w ~ x^-0.2), and the thicker layer moves the spectrum to lower frequencies, where the double wall transmits more. Room average 95.9 dBA, max seat 100.7 dBA (was 100.6); the tones still dominate.
 - The sidewall areas are unchanged: one side 43.13 m^2 (cabin length x height, 22.7 x 1.9 m) for the tones, both sides 86.26 m^2 for the boundary layer.
 - No test asserts the old value. No validation or verification input changed: the V cases that run a boundary layer carry their own nose distances, and the others (V4, V5, V5c, V2p and the TM-85722 check) do not use it. The `Fuselage` dataclass default was set to the same 11.3 m, so a project built in code gets the sourced value too.
+
+### Status text corrected (2026-11-22, decided by Claude under the author's authority of 2026-11-11)
+- **What changed:** status text only. No criterion, tolerance, case, data file or recorded result was changed.
+  - The M1, M2, M3 and M6 rows of the milestone table now match `cases.yaml` and VALIDATION.md: 1 of 8 validation cases met (V5b); not met V4, V4a, V4b, V5, V5c, V6, V7. The row had said "met V5b, V5c, V5d; not met V4a, V5, V6, V7", which was the retired pipeline's list.
+  - V0b and V0c are marked retired in M2 and M3. They tested the scattering model and the box-mode seats, both removed in the 2026-11-02 restructure (METHOD.md sec. 3). The original validation plan table (sec. 5) keeps them as plan text.
+  - V4b in the data inventory was marked "Blocked". It was run on 2026-11-02 and is not met (5/19 bands).
+  - TM-85722 in the data inventory was marked "Not in the repo". The PDF is in `Cabin_Noise/references/`, and V4 uses its Fig. 18.
+- **V8, history (2026-11-03):** after the V8 removal above, commit 20633ff added a V8 criterion (cabin overall dBA against CR-178004 App. E/F). Commit f5f6b0a reverted it within the hour, at the author's direction: the cabin dBA check belongs in PAIN_Program, not in Cabin_Noise. No V8 case, data or result exists in Cabin_Noise.
