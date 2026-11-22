@@ -363,9 +363,13 @@ ApplicationWindow {
 
     // Phase 151d smoke: open the Cabin modes tab (the frames are built on open), press Play, and grab the frame view
     // twice, some ticks apart; the two shots must differ (the mode is seen moving).
+    // The second shot waits until the frame index has moved (up to 30 s after the first): a fixed gap raced the first
+    // play ticks, which can compile for over 0.5 s (2026-11-22). A mode that never moves still fails the smoke.
     Timer {
         property int step: 0
         property real elapsedMs: 0
+        property real shotMs: 0
+        property real shotIndex: 0
         interval: 500
         running: String(pain.smoke_cabin_png || "").length > 0
         repeat: true
@@ -386,12 +390,15 @@ ApplicationWindow {
                     Qt.quit()
                 }
             } else if (step === 2) {
+                step = -1                                   // waiting for the first shot to be taken
                 cmFrameView.grabToImage(function (result) {
                     result.saveToFile(out)
                     console.log("CABIN_ANIM saved:", out, "frame", pain.cm_frame_index)
+                    shotIndex = pain.cm_frame_index
+                    shotMs = elapsedMs
+                    step = 3
                 })
-                step = 3
-            } else if (step === 3) {
+            } else if (step === 3 && (pain.cm_frame_index !== shotIndex || elapsedMs - shotMs >= 30000)) {
                 var out2 = out.replace(".png", "_later.png")
                 cmFrameView.grabToImage(function (result) {
                     result.saveToFile(out2)
