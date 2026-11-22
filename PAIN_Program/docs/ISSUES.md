@@ -10,7 +10,8 @@ Two lists, newest first in each. **Not assigned to a phase**: issues to act on o
 
 | Issue | Subject | Kind | State |
 |---|---|---|---|
-| 046 | Turboprop viability: no forward-flight propeller case at turboprop size and tip Mach with the blade printed | Validity, data | Phase 156: data found (NACA Report 1377), case `R1377_FLIGHT` in work |
+| 047 | The Report 996 section files differ from the published NACA 16-series sections (eight of ten, by up to 14 % in thickness and 30 % in camber) | Input, decision | open: re-running the Report 996 cases is post-hoc; the author's decision |
+| 046 | Turboprop viability: no forward-flight propeller case at turboprop size and tip Mach with the blade printed | Validity, data | Phase 156: data found (NACA Report 1377), case `R1377_FLIGHT` in work; inputs and rules of 2026-11-22 fixed before any computation |
 | 045 | Turboprop viability: the Merlin IVC's measured cabin levels in flight (CR-172428 Table 23) are not compared; FLIGHT10_H234's label is stale | Validity, data, code | closed 2026-11-15: FLIGHT10_REPRO met 15/15; the measured comparison is information only |
 | 044 | The Report 996 blade input: blade root at 0.271 R and the tabulated tip twist, where the NACA figures print less tip pitch (and, for Report 1012, the spinner at 0.331 R) | Input, decision | closed 2026-11-14: Phase 154 done, no verdict changes |
 | 043 | Forward-flight loads: the computed thrust and power curves lie about 3 % higher in advance ratio than Report 1012's | Investigation | closed 2026-11-14: mostly two inputs that differ from Report 1012 Fig. 2 (blade root at the spinner, tip twist); a 1–1.5 % remainder is unexplained |
@@ -382,6 +383,33 @@ Was: open, not assigned to a phase. Recorded 2026-11-10. Labels. No verdict chan
 
 ---
 
+## ISSUE-047: the Report 996 section files differ from the published NACA 16-series sections
+
+**Status:** open, not assigned to a phase. Recorded 2026-11-22 by Claude during Phase 156b (checking the section generator for `R1377_FLIGHT`). A decision for the author: a fix changes the polars of cases with a verdict after their results are known, so any re-run is post-hoc.
+
+**What is wrong.** The ten contours in `data/report996/xfoil_sections/` came from the sibling repository's NACA 16 code (METHODOLOGY §polars). Measured from the files, with the published definitions (16-series thickness and the a = 1.0 mean line, reproduced to TR 824's printed 16-009 ordinates and a = 1.0 table):
+
+| File | Max thickness (named) | Camber at mid-chord (published a = 1.0) |
+|---|---|---|
+| n16_101 | 0.0114 (0.01) | 0.0072 (0.0055) |
+| n16_213 | 0.1335 (0.13) | 0.0117 (0.0110) |
+| n16_312 | 0.1248 (0.12) | 0.0150 (0.0165) |
+| n16_405 | 0.0507 (0.05) | 0.0205 (0.0221) |
+| n16_410 | 0.1007 (0.10) | 0.0236 (0.0221) |
+| n16_411 | 0.1083 (0.11) | 0.0211 (0.0221) |
+| n16_506 | 0.0619 (0.06) | 0.0250 (0.0276) |
+| n16_507 | 0.0741 (0.07) | 0.0276 (0.0276) |
+| n16_508 | 0.0801 (0.08) | 0.0275 (0.0276) |
+| n16_509 | 0.0935 (0.09) | 0.0255 (0.0276) |
+
+Two files match; the others are off by 1–14 % in thickness and up to 30 % in camber, in both directions.
+
+**Affected.** Every case on the Phase 69 polars of the Report 996 blade (`R996_LOADS`, `FIG12`, `FIG13A`, `FIG14`, the Report 996 polar display cases) and the N_crit fit to TN 1546 (16-312, 16-506, 16-509 are among the files that differ).
+
+**Proposed action.** Regenerate the ten contours with the published definitions (the generator of Phase 156b), measure how much the polars and the Report 996 results move, and decide with the author whether the cases re-run (post-hoc label) or keep their record with this ticket as a stated limit.
+
+---
+
 ## ISSUE-046: no forward-flight propeller case at turboprop size and tip Mach with the blade printed
 
 **Status:** open, Phase 156. Recorded 2026-11-14 by Claude, at the author's request of 2026-11-14 ("do another scan of the validation coverage and check whats needed so i can prove that the tool is viable for turboprops"). Report: `validation_reports/turboprop_viability_scan.md`.
@@ -408,6 +436,18 @@ Was: open, not assigned to a phase. Recorded 2026-11-10. Labels. No verdict chan
 - **Blade root.** The innermost radius Fig. 2 prints for the blade width. The dashed inboard parts of the curves are used as printed.
 - **Not modelled, stated as limits.** The airplane (nose, wing and fuselage near the microphone, which the report treats as free space); the engine exhaust; any blade deflection.
 - **One run.** The result is recorded whatever it is; nothing is changed after it.
+
+**156b, inputs read and the rules they needed (decided 2026-11-22 by Claude, under the author's authority of 2026-11-15 and the go-ahead of 2026-11-22 ("Yes, continue 156b"), before any polar, load or sound level is computed).**
+
+- **Tables I and II** are in `data/report1377/tables_I_II_flight.csv`: 47 tapered and 24 rectangular flight rows, harmonics 1–5, read in two passes with no disagreement (`data/digitizers/r1377_tables/`). Checked against the table's own arithmetic (BPF, M∞ = V/a, M_R, M_t): four rows disagree with themselves in the print, kept as printed. The row rule takes the printed M_t, so tapered row 9 (printed 0.89, 0.92 from its own V, t and N) is in, and tapered row 38 (printed 0.92, 0.885) and rectangular row 6 (printed 0.92, 0.896) are out. **The rows: 28 tapered and 11 rectangular, 179 levels.**
+- **Blade root (the rule above, made exact).** A section needs its width, angle and thickness, so the root is the innermost radius at which Fig. 2 prints all three: tapered r/R 0.349 (the width curve ends there), rectangular 0.271 (the blade-angle curve ends there; the width curve runs on to 0.165). Read by script (`qa/fig2_pixels.json`, `inner_ends`). Blade stations are the digitized ones from the first inside the root: tapered 0.40–0.95, rectangular 0.30–0.95, every 0.05.
+- **Blade tip.** Fig. 2's curves end at about r/R 0.96; the last station is 0.95, the tip radius is D/2, and the load falls to zero there through CCBlade's tip loss (as in every case of this code).
+- **A third input the report does not print: the rectangular blade's design lift inboard of r/R 0.60.** Its curve meets the top border (0.50) at about 0.55–0.60 with a level tangent, in Report 1377 and in TN 3417 alike. Taken as 0.50 inboard. Check: the printed slope between 0.60 and 0.70 carried inboard (0.60 at r/R 0.30). Same 1 dB rule as the two above.
+- **Sections.** NACA 16-series thickness and the a = 1.0 mean line by their published definitions (TR 824's 16-009 ordinates and a = 1.0 table are reproduced to the printed digits). The four-digit check uses the four-digit thickness (open trailing edge) and the parabolic camber line with its maximum at mid-chord, camber = design lift / 4π (thin-airfoil ideal lift of that line). Polar sections at r/R 0.40 (tapered) or 0.30 (rectangular), then 0.40 … 0.90 and 0.95, each at that station's own thickness and design lift; the stations between take the blend by thickness that the polar loader already applies (the thickness falls monotonically on both blades).
+- **Polar grid.** Phase 69 settings unchanged (XFOIL 6.99, free transition, N_crit 8, 240 panels, α −6° to 20° by 0.5°, Viterna past the converged span with each blade's own c/R at 0.75 R). Reynolds 7·10⁵, 10⁶, 1.5·10⁶, 2·10⁶, 3·10⁶, 4·10⁶ and Mach 0.2 … 0.9: each section is run only on the grid points that bracket the range it meets on the 39 rows, from the printed speed, rpm, pressure and temperature without induction (Re 0.7–3.1·10⁶, M 0.30–0.89).
+- **Air and observer.** Density, speed of sound and viscosity (Sutherland) from the printed static pressure and temperature; V is the true airspeed (M∞ = V/a holds on every row). The microphone is at 0.655 D from the axis and x as printed (positive ahead), moving with the airplane at V. Shaft power = the printed engine power. Level = 20 log₁₀(p_rms / 20 μPa) of each harmonic.
+- **The checks are three** (airfoil family, power ±5 %, inboard design lift); if any moves any compared level by more than 1 dB, the case carries no verdict.
+- **Found while checking the generator (not this case):** `data/report996/xfoil_sections/n16_509.dat` is 9.35 % thick with about 7.5 % less camber than the published 16-509. Ticket ISSUE-047; the Report 996 cases are not touched here.
 
 **What it needs.** A data search first (TM-102285 and its companions; analyses of the 695A flights; any NASA forward-flight propeller test of 2.5–4 m with the blade printed). If nothing prints the blade, the limit is stated in the record and the tool's guidance: for turboprops, take the exterior field from measurement or a separately validated propeller code.
 
