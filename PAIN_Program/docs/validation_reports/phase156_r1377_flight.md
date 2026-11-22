@@ -1,6 +1,6 @@
 # Phase 156b: two 3.40 m four-blade propellers in flight against NACA Report 1377 (2026-11-22)
 
-Done by Claude under the author's authority of 2026-11-15 and the go-ahead of 2026-11-22 ("Yes, continue 156b"). The runner (`PAIN.jl/src/cases_r1377_flight.jl`) was run once; it is in commit RUNNER_COMMIT and removed in the next commit (rule of 2026-11-10: a comparison that cannot carry a verdict is not a case). Kept: Tables I and II and the Fig. 2 blade form (`data/report1377/`), their digitizers (`data/digitizers/`), the section generator and XFOIL runner (`data/polars/xfoil_r1377.py`), the sections and the five polar sets, and this report.
+Done by Claude under the author's authority of 2026-11-15 and the go-ahead of 2026-11-22 ("Yes, continue 156b"). The runner (`PAIN.jl/src/cases_r1377_flight.jl`) was run once; it is in commit f0ae877 and removed in the next commit (rule of 2026-11-10: a comparison that cannot carry a verdict is not a case). Kept: Tables I and II and the Fig. 2 blade form (`data/report1377/`), their digitizers (`data/digitizers/`), the section generator and XFOIL runner (`data/polars/xfoil_r1377.py`), the sections and the five polar sets, and this report.
 
 ## What was fixed before the run
 

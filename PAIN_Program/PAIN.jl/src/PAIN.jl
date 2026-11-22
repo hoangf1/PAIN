@@ -91,7 +91,6 @@ include("cases_t1_appb.jl")                      # T1 on App. B's printed field
 include("cases_commander695a.jl")                # Commander 695A cabin against CR-178004
 include("cases_flight_loss_factors.jl")          # Merlin IVC loss factors (ISSUE-041)
 include("cases_wall_reflection.jl")              # Eq. (43) blocking against Report 996 Fig. 10
-include("cases_r1377_flight.jl")                 # NACA Report 1377 propellers in flight (Phase 156b)
 include("cases_core.jl")                         # the original cases and the registry's finish
 include("validation_map.jl")
 include("validation_plots.jl")

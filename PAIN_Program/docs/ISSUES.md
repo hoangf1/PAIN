@@ -11,7 +11,8 @@ Two lists, newest first in each. **Not assigned to a phase**: issues to act on o
 | Issue | Subject | Kind | State |
 |---|---|---|---|
 | 047 | The Report 996 section files differ from the published NACA 16-series sections (eight of ten, by up to 14 % in thickness and 30 % in camber) | Input, decision | open: re-running the Report 996 cases is post-hoc; the author's decision |
-| 046 | Turboprop viability: no forward-flight propeller case at turboprop size and tip Mach with the blade printed | Validity, data | Phase 156: data found (NACA Report 1377), case `R1377_FLIGHT` in work; inputs and rules of 2026-11-22 fixed before any computation |
+| 048 | NACA Report 1377 in flight: the code is a median 6 dB above the measured harmonic levels at the boom microphone, also where its thrust matches the printed thrust | Investigation | open, not assigned: cause not established; no verdict possible on these data (Phase 156) |
+| 046 | Turboprop viability: no forward-flight propeller case at turboprop size and tip Mach with the blade printed | Validity, data | closed 2026-11-22: Report 1377 compared once (Phase 156b), no verdict by the input rule, not registered; the limit is stated (156c); the level difference is ISSUE-048 |
 | 045 | Turboprop viability: the Merlin IVC's measured cabin levels in flight (CR-172428 Table 23) are not compared; FLIGHT10_H234's label is stale | Validity, data, code | closed 2026-11-15: FLIGHT10_REPRO met 15/15; the measured comparison is information only |
 | 044 | The Report 996 blade input: blade root at 0.271 R and the tabulated tip twist, where the NACA figures print less tip pitch (and, for Report 1012, the spinner at 0.331 R) | Input, decision | closed 2026-11-14: Phase 154 done, no verdict changes |
 | 043 | Forward-flight loads: the computed thrust and power curves lie about 3 % higher in advance ratio than Report 1012's | Investigation | closed 2026-11-14: mostly two inputs that differ from Report 1012 Fig. 2 (blade root at the spinner, tip twist); a 1–1.5 % remainder is unexplained |
@@ -89,7 +90,7 @@ Asked and answered in the sessions of 2026-11-09 and 2026-11-10. Quoted words ar
 | 18 | R172428_ETA and E14_LOSS after Phase 139 (2026-11-10) | "there must be something wrong with this function methodlogical wise this needs further investigation" | 032 | — |
 | 19 | CYL2D_PRINTED's cause (2026-11-10) | "i guess it would be both": approximation in this recreation, and unexplained; a ticket of its own | 033 | 135 |
 
-Still open for the author: the new CLAUDE.md update list (Phase 148a), the plain titles of the cases (Phase 146c), any deletion of a Markdown file (Phase 149a), and the two questions of ISSUE-031. Settled on 2026-11-10 under the author's delegation (`validation_reports/phase135_151_decisions.md`): the unscaled loads are shown as a second line on the existing cases, not as new cases (decision 7, Phase 141c); no further held-out printout exists (Phase 136e); R2 on run 10's printed field stays a unit test (Phase 144a).
+Open for the author when written; all since settled: the CLAUDE.md update list (Phase 148a), the plain titles of the cases (Phase 146c) and Markdown-file deletion (Phase 149a), done 2026-11-11 (`COMPLETED_PHASES.md`); the two questions of ISSUE-031, closed 2026-11-12 (status corrected 2026-11-22). Settled on 2026-11-10 under the author's delegation (`validation_reports/phase135_151_decisions.md`): the unscaled loads are shown as a second line on the existing cases, not as new cases (decision 7, Phase 141c); no further held-out printout exists (Phase 136e); R2 on run 10's printed field stays a unit test (Phase 144a).
 
 ## Sources found (2026-11-09)
 
@@ -383,6 +384,18 @@ Was: open, not assigned to a phase. Recorded 2026-11-10. Labels. No verdict chan
 
 ---
 
+## ISSUE-048: in flight, the code is a median 6 dB above Report 1377's measured harmonic levels
+
+**Status:** open, not assigned to a phase. Recorded 2026-11-22 by Claude (Phase 156b, under the author's authority of 2026-11-15 and the go-ahead of 2026-11-22). Report: `validation_reports/phase156_r1377_flight.md`.
+
+**What was found.** The one run of `R1377_FLIGHT` (not a case: no verdict by the input rule) puts this code a median 6.2 dB above the measured level of harmonics 1–5 at the boom microphone, 0.655 D from the axis (0.53 m from the blade tip): tapered blades +7.0 dB, rectangular +3.0 dB; 43 of 179 levels within ±3 dB. On the 117 levels of rows whose computed thrust is within 10 % of the printed thrust the code is still a median 6.3 dB high, so the blade-angle setting alone does not explain it. Thrust at the printed power, code / printed: 0.86–0.90 at M∞ 0.21–0.22, 1.04–1.10 at about 1,000 hp and M∞ 0.5, 0.26–0.52 on four tapered rows at part power or the highest propeller speed.
+
+**Candidates, none tested** (testing them on these data now would be choosing after the result): the near field close to the tip, where the level falls fast with distance and the chordwise load distribution matters; the microphone boom and the airplane, which the report treats as free space; XFOIL polars at section Mach numbers up to 0.89; the airfoil family, which the report does not print.
+
+**What it needs.** A data set that separates these: in-flight levels at more than one distance from the tip, or a propeller in flight with its sections printed. Any change found from these data is post-hoc for `R1377_FLIGHT` and would need a held-out test. Decision for the author: whether to search further or leave the limit as stated.
+
+---
+
 ## ISSUE-047: the Report 996 section files differ from the published NACA 16-series sections
 
 **Status:** open, not assigned to a phase. Recorded 2026-11-22 by Claude during Phase 156b (checking the section generator for `R1377_FLIGHT`). A decision for the author: a fix changes the polars of cases with a verdict after their results are known, so any re-run is post-hoc.
@@ -412,7 +425,7 @@ Two files match; the others are off by 1–14 % in thickness and up to 30 % in c
 
 ## ISSUE-046: no forward-flight propeller case at turboprop size and tip Mach with the blade printed
 
-**Status:** open, Phase 156. Recorded 2026-11-14 by Claude, at the author's request of 2026-11-14 ("do another scan of the validation coverage and check whats needed so i can prove that the tool is viable for turboprops"). Report: `validation_reports/turboprop_viability_scan.md`.
+**Status:** closed 2026-11-22 (Phase 156): NACA Report 1377 compared once; no verdict by the input rule fixed beforehand, so not registered; the limit is stated in README and METHODOLOGY; the level difference is ISSUE-048. Recorded 2026-11-14 by Claude, at the author's request of 2026-11-14 ("do another scan of the validation coverage and check whats needed so i can prove that the tool is viable for turboprops"). Report: `validation_reports/turboprop_viability_scan.md`.
 
 **What is missing.** The propeller half of the chain is validated only statically on a 1.2 m two-blade propeller (Report 996, near field on scaled loads; loads not met) and at low speed on a 0.3 m propeller (Pereira). Report 1012's forward-flight loads carry no verdict (ISSUE-042, 043). No in-flight fuselage pressure with a printed blade is held: the Commander 695A (CR-178004) and the OV-10A (TM-102285) lack it as far as known.
 

@@ -255,7 +255,7 @@ Already in `references/` and bearing on an open phase: `NACA_TN_1546.pdf` holds 
 ## 3. Current status and work queue
 
 **Status of the validation cases:** `VALIDATION_GUIDELINE.md` §0 (the map: cases with a verdict) and `NO_VERDICT_CASES.md`
-(the cases without one). **Open issues:** `ISSUES.md` (001–045 are closed; 046 is Phase 156). **Completed phases** (§§5–8ac and §11, with the work queue Q0–Q66 and the 2026-10-21 review I-01–I-20)
+(the cases without one). **Open issues:** `ISSUES.md` (001–046 are closed; 047 and 048 are open and not assigned to a phase). **Completed phases** (§§5–8ac and §11, with the work queue Q0–Q66 and the 2026-10-21 review I-01–I-20)
 are in `COMPLETED_PHASES.md` under the same section numbers; a reference such as "IMPLEMENTATION_PLAN.md §8b" in the code
 or the other documents points there. When a phase is done, mark it done and move its section to the bottom of
 `COMPLETED_PHASES.md` (`CLAUDE.md`).
@@ -264,8 +264,7 @@ or the other documents points there. When a phase is done, mark it done and move
 
 | Q | Item | Kind | Prerequisite | Output |
 |---|------|------|--------------|--------|
-| Q133 | Phase 156: a forward-flight propeller case for turboprops (ISSUE-046) | data search first | — | a case, or the limit stated |
-| — | Phases 90–134 are done (2026-11-05; 118f: unit-test gaps; 112–116 merged from branch `heart`, numbered 100–104 there). Q113–Q129 were planned on 2026-11-09 from `ISSUES.md`; none is started. Author decisions of 2026-11-09 are in the steps; order confirmed: Q113, then Q114–Q122 (not-met cases), then Q123–Q129 | — | — | — |
+| — | Phases 90–134 are done (2026-11-05; 118f: unit-test gaps; 112–116 merged from branch `heart`, numbered 100–104 there). Q113–Q129 were planned on 2026-11-09 from `ISSUES.md`; all are done (`COMPLETED_PHASES.md` §3; status corrected 2026-11-22). Author decisions of 2026-11-09 are in the steps; order confirmed: Q113, then Q114–Q122 (not-met cases), then Q123–Q129 | — | — | — |
 
 If a queue item is blocked on data, skip to the next unblocked item and say which data item blocks it.
 
@@ -324,15 +323,9 @@ The diagram matches the code (phases 21–22 done 2026-10-21): `propeller_ccblad
 
 The scan is `validation_reports/phase152_coverage_scan.md`. Of the five not-met cases, none can be fixed with published data: three are limits of PAIN's own method, one needs section data that is not published (ISSUE-030, closed), and one differs from NASA's printout by a factor no printed input gives. The one gap for which data was found, forward-flight blade loads, was compared in Phase 153 (done 2026-11-14: no verdict, ISSUE-043). **No phase is open.** The rules of Phases 137–151 hold (`COMPLETED_PHASES.md`): criteria fixed and dated before any comparison, no tuning, targeted testsets only.
 
-## Open phase 156 (planned 2026-11-14 from the turboprop scan; Phase 155 done 2026-11-15, in `COMPLETED_PHASES.md` §8cs)
+## Phase 156 (planned 2026-11-14 from the turboprop scan; done 2026-11-22, in `COMPLETED_PHASES.md` §8cu)
 
-*(Author 2026-11-14: "do another scan of the validation coverage and check whats needed so i can prove that the tool is viable for turboprops".)* The scan is `validation_reports/turboprop_viability_scan.md`. The rules of Phases 137–154 hold: criteria fixed and dated before any comparison, no tuning, every input printed or measured, post-hoc labels where a result was known, targeted testsets only.
-
-### Phase 156: a forward-flight propeller case for turboprops (ISSUE-046)
-
-- [x] **156a Data search.** NASA TM-102285 (OV-10A) and its companion reports; analyses of the Commander 695A flights; any NASA forward-flight test of a 2.5–4 m propeller with the blade printed. Record each with what it prints. **Done 2026-11-15:** NACA Report 1377 (with TN 3417, TN 4068) qualifies: flight tests of two 3.40 m four-blade propellers, tabulated near-field levels, blade form in Fig. 2. The OV-10A and 695A reports do not print their blades. Table in ISSUE-046.
-- [ ] **156b If a source prints the blade:** plan its case (loads, near field or fuselage pressure in flight) with the criterion fixed first. **Planned 2026-11-15:** case `R1377_FLIGHT`; its criterion, row rule and the two unprinted inputs with their 1 dB rule are in ISSUE-046, committed before any computation. Steps: transcribe Tables I and II (two passes); digitize Fig. 2 by script; XFOIL polars by the Phase 69 procedure; run once; register.
-- [ ] **156c If none does:** state the limit in `METHODOLOGY.md`, `README.md` and the GUI's source note: for turboprops, take the exterior field from measurement or a separately validated propeller code.
+NACA Report 1377 was found and compared once; no verdict by the input rule fixed beforehand, so no case; the limit is stated. **No phase is open.** Open, not assigned to a phase: ISSUE-047 and ISSUE-048 (decisions for the author).
 
 ---
 
