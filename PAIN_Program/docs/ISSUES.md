@@ -10,9 +10,9 @@ Two lists, newest first in each. **Not assigned to a phase**: issues to act on o
 
 | Issue | Subject | Kind | State |
 |---|---|---|---|
-| 049 | NACA Report 1377 ground rows: computed static thrust 1.6–1.8 times the printed thrust at part power, and the higher harmonics behind the disk fall off much faster than measured | Investigation | open, not assigned: found in the ISSUE-048 ground diagnostic (2026-11-23); nothing tested |
+| 049 | NACA Report 1377 ground rows: computed static thrust 1.6–1.8 times the printed thrust at part power, and the higher harmonics behind the disk fall off much faster than measured | Investigation | closed 2026-11-23: cannot be tested on these data (printed power is a power-curve setting, no thrust instrument is listed, the report flags extraneous noise); a stated limit |
 | 047 | The Report 996 section files differ from the published NACA 16-series sections (eight of ten, by up to 14 % in thickness and 30 % in camber) | Input, decision | closed 2026-11-22: sections regenerated from the published definitions, polars and Report 996 cases re-run post-hoc (author: re-run); no verdict changed |
-| 048 | NACA Report 1377 in flight: the code is a median 6 dB above the measured harmonic levels at the boom microphone, also where its thrust matches the printed thrust | Investigation | open: cause not established; no verdict possible on these data (Phase 156); ground-test diagnostic 2026-11-23: not settled by its rule (D +1.81 dB, one check +2.06 dB); every check puts the code 5 dB closer at rest than in flight |
+| 048 | NACA Report 1377 in flight: the code is a median 6 dB above the measured harmonic levels at the boom microphone, also where its thrust matches the printed thrust | Investigation | closed 2026-11-23: inputs could not be found (no second distance; TN 3417 and TN 4068 are superseded by Report 1377, same microphone); the ground diagnostic leans to the flight-only causes, not established; a stated limit |
 | 046 | Turboprop viability: no forward-flight propeller case at turboprop size and tip Mach with the blade printed | Validity, data | closed 2026-11-22: Report 1377 compared once (Phase 156b), no verdict by the input rule, not registered; the limit is stated (156c); the level difference is ISSUE-048 |
 | 045 | Turboprop viability: the Merlin IVC's measured cabin levels in flight (CR-172428 Table 23) are not compared; FLIGHT10_H234's label is stale | Validity, data, code | closed 2026-11-15: FLIGHT10_REPRO met 15/15; the measured comparison is information only |
 | 044 | The Report 996 blade input: blade root at 0.271 R and the tabulated tip twist, where the NACA figures print less tip pitch (and, for Report 1012, the spinner at 0.331 R) | Input, decision | closed 2026-11-14: Phase 154 done, no verdict changes |
@@ -387,7 +387,7 @@ Was: open, not assigned to a phase. Recorded 2026-11-10. Labels. No verdict chan
 
 ## ISSUE-049: Report 1377 ground rows, static thrust at part power and the higher harmonics behind the disk
 
-**Status:** open, not assigned to a phase. Recorded 2026-11-23 by Claude, from the ISSUE-048 ground-test diagnostic (`validation_reports/issue048_r1377_ground.md`). Nothing was tested. Both findings come from a run whose rule asked another question, so neither carries a verdict.
+**Status:** closed 2026-11-23: cannot be tested on these data (below). Recorded 2026-11-23 by Claude, from the ISSUE-048 ground-test diagnostic (`validation_reports/issue048_r1377_ground.md`). Nothing was tested. Both findings come from a run whose rule asked another question, so neither carries a verdict.
 
 **What was found.**
 - **Thrust.** With the blade angle set so that the computed shaft power equals the printed engine power, the code's static thrust over the printed thrust is:
@@ -404,13 +404,20 @@ Was: open, not assigned to a phase. Recorded 2026-11-10. Labels. No verdict chan
 - static inflow at low blade angle, where CCBlade's momentum balance is least certain;
 - the thickness and loading near field behind the disk.
 
-**What it needs:** a static test of the same propellers with the blade angle and shaft power printed, or a check of the static loads on another propeller whose static thrust and power are both measured. Decision for the author.
+**What it needs:** a static test of the same propellers with the blade angle and shaft power printed, or a check of the static loads on another propeller whose static thrust and power are both measured.
+
+**Closed 2026-11-23 (Claude, under the author's authority of that day, "keep going until the coverage map and issues are solved", and the rule of 2026-11-14, "if its not the exact data then just say inputs couldnt be found and move on").** These data cannot test either finding. Reasons, from the reports themselves:
+- **Power is a setting, not a measurement.** TN 3417 (p. 4; the same airplane, boom and rectangular propeller) says the pilot set engine speed and manifold pressure "to the values given by the engine manufacturer's power curves". Report 1377 lists its recorded quantities as dynamic pressure, altitude, temperature, engine speed and manifold pressure. So the printed power is brake power from the power curves, at the engine, before the gearbox.
+- **Thrust is not measured.** Neither report lists a thrust instrument or says how T was found. All 17 traverse rows print the same 2,800 lb.
+- **The levels behind the disk may hold other noise.** The report's footnote a marks three ground rows as lost to "extraneous noise", and the engine's individual jet-ejector exhaust stacks sit behind the propeller. No background level is printed for the ground runs.
+
+A stated limit: on Report 1377's data the static loads cannot be checked, and the levels of the higher harmonics behind the disk cannot be told apart from other noise. No other static test of these propellers was found. TN 4068 is superseded by Report 1377.
 
 ---
 
 ## ISSUE-048: in flight, the code is a median 6 dB above Report 1377's measured harmonic levels
 
-**Status:** open; the ground-test diagnostic was run 2026-11-23 and does not settle the question by its rule (result below). Recorded 2026-11-22 by Claude (Phase 156b, under the author's authority of 2026-11-15 and the go-ahead of 2026-11-22). Report: `validation_reports/phase156_r1377_flight.md`.
+**Status:** closed 2026-11-23: inputs could not be found to settle it (decision at the end of this entry); the ground-test diagnostic was run the same day and does not settle the question by its rule. Recorded 2026-11-22 by Claude (Phase 156b, under the author's authority of 2026-11-15 and the go-ahead of 2026-11-22). Report: `validation_reports/phase156_r1377_flight.md`.
 
 **What was found.** The one run of `R1377_FLIGHT` (not a case: no verdict by the input rule) puts this code a median 6.2 dB above the measured level of harmonics 1–5 at the boom microphone, 0.655 D from the axis (0.53 m from the blade tip): tapered blades +7.0 dB, rectangular +3.0 dB; 43 of 179 levels within ±3 dB. On the 117 levels of rows whose computed thrust is within 10 % of the printed thrust the code is still a median 6.3 dB high, so the blade-angle setting alone does not explain it. Thrust at the printed power, code / printed: 0.86–0.90 at M∞ 0.21–0.22, 1.04–1.10 at about 1,000 hp and M∞ 0.5, 0.26–0.52 on four tapered rows at part power or the highest propeller speed.
 
@@ -450,6 +457,12 @@ Was: open, not assigned to a phase. Recorded 2026-11-10. Labels. No verdict chan
 - **Two findings outside the question** went to ISSUE-049: the static thrust at part power, and the fall-off of the higher harmonics behind the disk.
 - **Decided 2026-11-23 by Claude under the author's authority:** the ticket stays open. A next step would need data that the ground rows do not give: flight levels at a second distance, or a propeller in flight with its sections printed. No change was made to the code or to any case.
 - The runner was run once, committed with this result, and then removed. The ground polars are kept: `data/report1377/polars_<set>_ground.json`.
+
+**Closed 2026-11-23 (Claude, under the author's authority of that day, "keep going until the coverage map and issues are solved", and the rule of 2026-11-14, "if its not the exact data then just say inputs couldnt be found and move on").**
+- **Searched:** TN 3417 (in `references/`) is the rectangular-blade forerunner, with the same boom at y = 0.655 D only. TN 4068 is superseded by Report 1377, which holds its data. Neither gives a second distance or printed sections.
+- **One more reason no verdict is possible:** the printed power is a setting from the engine manufacturer's power curves (TN 3417 p. 4), not a measured shaft power, and no thrust instrument is listed. The blade angle of every row rests on that power.
+- **Stated limit, unchanged:** for turboprops in flight, take the exterior field from measurement where the level matters (README, METHODOLOGY).
+- **What the ground diagnostic adds, not established:** at rest, every check puts the code about 5 dB closer to the measured levels than in flight. That leans to the flight-only causes: forward speed, section Mach above about 0.7, and the outer unloading.
 
 ---
 

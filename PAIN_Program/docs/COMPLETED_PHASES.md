@@ -3820,4 +3820,9 @@ The author asked how to make the GUI start faster. With warm caches, the time to
   - Every check puts the code about 5 dB closer at rest than in flight (+7.0 dB). This leans to the flight-only causes; it is not established.
   - Rectangular blade: D = +0.81 dB.
 - [x] **Recorded.** Report `validation_reports/issue048_r1377_ground.md`. ISSUE-048 stays open. ISSUE-049 was opened for the static thrust at part power (1.6–1.8 times printed) and for the harmonics behind the disk. The runner was committed with the result and removed in the next commit.
+- [x] **ISSUE-048 and ISSUE-049 closed (2026-11-23; author: "keep going until the coverage map and issues are solved"; rule of 2026-11-14 for inputs that cannot be found).**
+  - TN 3417 has the same microphone distance only, and TN 4068 is superseded by Report 1377: no second distance exists.
+  - TN 3417 p. 4: the printed power is a setting from the engine maker's power curves. Neither report lists a thrust instrument, and the ground rows carry extraneous noise.
+  - So neither the flight level difference nor the static thrust can be tested further on published data. The turboprop limit stands.
+  - The coverage map is unchanged: five not met, each with its recorded cause and no published input that would fix it (Phase 152 scan, re-checked 2026-11-23).
 

@@ -80,6 +80,7 @@ A check moves a compared level by at most 2.5 dB (four-digit sections), 1.1 dB (
   - At part power the computed static thrust is 1.6–1.8 times the printed thrust.
   - Behind the disk the computed higher harmonics fall off much faster than the measured ones.
 - **Not modelled:** a ground reflection. It would raise the measured levels and so lower D.
+- **Closed the same day.** Both tickets were closed as "inputs could not be found" (ISSUES.md, 2026-11-23). There is no second microphone distance. The printed power is a setting from the engine maker's power curves (TN 3417 p. 4), and neither report lists a thrust instrument.
 
 ## Every row
 
