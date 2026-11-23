@@ -550,6 +550,28 @@ Two files match; the others are off by 1–14 % in thickness and up to 30 % in c
 
 **What it needs.** A data search first (TM-102285 and its companions; analyses of the 695A flights; any NASA forward-flight propeller test of 2.5–4 m with the blade printed). If nothing prints the blade, the limit is stated in the record and the tool's guidance: for turboprops, take the exterior field from measurement or a separately validated propeller code.
 
+
+**Search, 2026-11-23 (Claude, under the author's authority of that day: "keep going until the coverage map and issues are solved", then "why stop when you can search").** It looked for the inputs that keep cases without a verdict, and for turboprop flight data with the blade printed. Nothing was found that would change a verdict.
+
+| Source | What it holds | Why it is not the input |
+|---|---|---|
+| NASA CR-178389 (Wilby, Wilby, 1988; scan, read as page images) | A second analysis of the Commander 695A flights. Dowty Rotol three-blade propeller with supercritical sections, 2.69 m. Skin 1.6 mm; "longitudinal stiffeners consist mainly of longerons at three vertical stations" (p. 3) | No blade geometry. Its predictions (p. 22) use the SAE AIR-1407 method, which needs only diameter, blade count, tip Mach and power, and the power was estimated |
+| NASA TM-85722 (in `Cabin_Noise/references/`) | The same 695A: rectangular cross-section, cabin height 4.76 ft, length 17.5 ft, skin 0.064 in, stiffener depth 2 in, frame doublers near the propeller plane | No cabin width, no stiffener section properties, no blade |
+| SAE 830733, *Acoustic evaluation of three turbo propellers* (a Commander 695, near and far field) | Abstract only | Behind a paywall. Whether it prints a blade is not known |
+| NASA TM-102285 (OV-10A, scan, read as page images) | Hamilton Standard 1027A-0, three blades, 2.59 m. 12 fuselage microphones at about 1.75 m from the axis (Table I). Engine torque and rpm recorded; blade angle filmed | No blade geometry. Levels are plotted only, not tabulated |
+| NACA TN 4068 | — | Superseded by Report 1377 (same data) |
+| NACA TN 3424 (6 %-thick sections, including 16-006) | Section data from Mach 0.3 | Still 6 % thick, the limit TN 1546 already has; R996_LOADS needs thinner sections (Phase 152) |
+| Hartzell Manual 114-8 (in `references/`) | 9333C blade width and thickness by station (already used) | No twist, no section |
+
+**Decision 2026-11-23 (Claude, under the same authority).** For the eleven cases without a verdict for want of inputs, the inputs could not be found:
+- the 695A and Aero Commander blades;
+- the 695A cabin width and stiffener sections;
+- TP-2444's lining as run;
+- the Phase III trim's facing side;
+- NASA's unprinted routines.
+
+They stay as they are. The partial 695A structure above (skin, height, stiffener depth) is not enough for the cabin model, which needs the stiffener section properties. Nothing was downloaded into the repository: the two scans were read from the fetched copies.
+
 ---
 
 ## ISSUE-045: the Merlin IVC's measured cabin levels in flight are not compared with this code

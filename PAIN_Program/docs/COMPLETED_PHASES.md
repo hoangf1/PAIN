@@ -3826,3 +3826,4 @@ The author asked how to make the GUI start faster. With warm caches, the time to
   - So neither the flight level difference nor the static thrust can be tested further on published data. The turboprop limit stands.
   - The coverage map is unchanged: five not met, each with its recorded cause and no published input that would fix it (Phase 152 scan, re-checked 2026-11-23).
 
+- [x] **Search for the missing inputs (2026-11-23; author: "why stop when you can search").** Read: CR-178389 and TM-102285, both scans, as page images; TM-85722 (Cabin_Noise references); and the catalogue records of SAE 830733, TN 4068 and TN 3424. None prints the 695A, Aero Commander or OV-10A blade, the 695A stiffener sections, or section data thinner than 6 %. The record is in ISSUES.md, ISSUE-046. No case changed.
