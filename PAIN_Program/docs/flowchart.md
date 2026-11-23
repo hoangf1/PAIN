@@ -14,6 +14,7 @@ Colour key in diagrams: green = check exists and passes as stated; orange = plan
 
 - **2026-11-15 (Phase 155 closed):** run 10 field H1–H5 and the upsweep side (field mirrored about the propeller line, CR-172428 App. A item 5) in the CR-172428 flight case; flow unchanged.
 - **2026-11-14 (turboprop scan):** Phases 155–156 planned; flow unchanged.
+- **2026-11-22 (ISSUE-047 closed):** Report 996 sections from the published NACA 16-series definitions, polars and cases re-run; flow unchanged.
 - **2026-11-14 (Phase 154 closed):** Report 996 blade angle from its own Fig. 3(c); flow unchanged.
 - **2026-11-22 (Phase 156 closed):** NACA Report 1377 flight data added and compared once; no case, no code change in the chain (the polar loader reads the new section names); flow unchanged.
 - **2026-11-14 (ISSUE-043 closed):** cause of the forward-flight displacement found in two blade inputs; nothing changed; flow unchanged.

@@ -10,7 +10,7 @@ Done by Claude at the author's go-ahead of 2026-11-22 ("Yes, measure it"). This 
 4. The Report 996 loads, scaled acoustics and unscaled acoustics generators were run four times, with only the polar file and the section folder changed. The run on the old inputs reproduces the recorded `scale_factors.csv`, `f1a_results.csv` and `f1a_results_unscaled.csv` exactly.
 5. The other cases on this polar file were run on old and new polars.
 
-Kept: the sections, polars and fit table in `data/report996/issue047_published_sections/` (used by no case). The run scripts were scratch copies with redirected paths and are not kept.
+The run scripts were scratch copies with redirected paths and are not kept. After the re-run (below) the sections and polars are the files the cases read; the fit table is `data/polars/issue047_ncrit_fit.md`.
 
 ## The section data
 
@@ -33,7 +33,7 @@ Points converged in both sets, all Reynolds and Mach numbers, α −6° to 20°.
 - **16-507** is 7.4 % thick in the old file, not 7 %.
 - ISSUE-047's plan called both files "matching" and proposed them as a control. That was wrong: their changes are real differences from the published shape, not run-to-run noise.
 
-**N_crit fit:** the rule still chooses **N_crit 8** (RMS 0.055 on 16-506 and 16-509; was 0.039). The held-out 16-312 is **19/26** within 0.05 (was 13/26). The criterion is 75 %, so it is still not met.
+**N_crit fit:** the rule still chooses **N_crit 8** (RMS 0.055 on 16-506 and 16-509; was 0.039). The held-out 16-312 is **19/26** within 0.05 (was 13/26), below the fit rule's 75 % mark (POLAR_FIDELITY is an information case: no verdict).
 
 ## The cases
 
@@ -54,7 +54,7 @@ New sections (polars and thickness area together). Counts on the new sections ar
 - **Split by input:** the section thickness area alone moves the compared levels by at most 0.16 dB (median 0.03 dB). The polars carry the rest.
 - **Scaled levels** (the cases' own form): 9 of 78 compared levels move by more than 1 dB, all at tip Mach 0.9. The median move is 0.05 dB.
 - **Unscaled second line** (no verdict): 15 of 59 move by more than 1 dB, up to +5.2 dB, again at tip Mach 0.9. The median move is 0.43 dB.
-- **No case would change its verdict.** R996_LOADS stays not met (its criterion needs every row). FIG14 and FIG12 stay met (92 % and 78 %). POLAR_FIDELITY stays not met (74 %).
+- **No case would change its verdict.** R996_LOADS stays not met (its criterion needs every row). FIG14 and FIG12 stay met (92 % and 78 %). POLAR_FIDELITY, an information case, reaches 74 % (20/27).
 
 ## What this means for the decision (the author's)
 
@@ -63,3 +63,13 @@ New sections (polars and thickness area together). Counts on the new sections ar
 - The choice:
   - **Re-run** R996_LOADS, FIG12, FIG14, POLAR_FIDELITY and the dependent cases on the published sections, labelled post-hoc. The polars are ready.
   - **Keep** the records, and state in each record that the tip Mach 0.9 rows rest on section files that differ from the published shapes, by the amounts above.
+
+## Decision and re-run (2026-11-22)
+
+The author chose the re-run ("go for it", on the recommendation to re-run, as in Phase 154). Done the same day:
+
+- `data/report996/xfoil_sections` and `polars_phase69_ncrit8.json` now hold the published sections and their polars.
+- The old files are `xfoil_sections_pre047` and `polars_phase69_ncrit8_pre047.json`; the old results are the three `*_pre047.csv`.
+- The regenerated `scale_factors.csv`, `f1a_results.csv` and `f1a_results_unscaled.csv` equal the measurement run above exactly.
+- The cases were re-run with post-hoc labels in their records, and their counts are the ones in the table above.
+- **No verdict changed.**

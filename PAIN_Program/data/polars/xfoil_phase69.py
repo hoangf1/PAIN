@@ -23,7 +23,7 @@ sys.path.insert(0, str(HERE))
 import xfoil_polars as xp  # noqa: E402  (same session, parser and acceptance rule)
 
 ROOT = HERE.parent.parent
-SEC_DIR = ROOT / "data" / "report996" / "xfoil_sections"
+SEC_DIR = ROOT / "data" / "report996" / "xfoil_sections"   # published 16-series sections since 2026-11-22 (ISSUE-047); the 2026-10-28 runs used xfoil_sections_pre047
 SECTIONS = ["n16_213", "n16_312", "n16_411", "n16_410", "n16_509", "n16_508", "n16_507", "n16_506", "n16_405", "n16_101"]
 NCRIT_CANDIDATES = list(range(1, 13))
 GRID_RE = [1.5e5, 2e5, 3e5, 5e5, 7e5, 1e6, 1.5e6, 2e6]

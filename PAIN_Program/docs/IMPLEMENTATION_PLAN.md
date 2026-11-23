@@ -255,7 +255,7 @@ Already in `references/` and bearing on an open phase: `NACA_TN_1546.pdf` holds 
 ## 3. Current status and work queue
 
 **Status of the validation cases:** `VALIDATION_GUIDELINE.md` §0 (the map: cases with a verdict) and `NO_VERDICT_CASES.md`
-(the cases without one). **Open issues:** `ISSUES.md` (001–046 are closed; 047 and 048 are open and not assigned to a phase). **Completed phases** (§§5–8ac and §11, with the work queue Q0–Q66 and the 2026-10-21 review I-01–I-20)
+(the cases without one). **Open issues:** `ISSUES.md` (001–047 are closed; 048 is open and not assigned to a phase). **Completed phases** (§§5–8ac and §11, with the work queue Q0–Q66 and the 2026-10-21 review I-01–I-20)
 are in `COMPLETED_PHASES.md` under the same section numbers; a reference such as "IMPLEMENTATION_PLAN.md §8b" in the code
 or the other documents points there. When a phase is done, mark it done and move its section to the bottom of
 `COMPLETED_PHASES.md` (`CLAUDE.md`).
@@ -325,7 +325,7 @@ The scan is `validation_reports/phase152_coverage_scan.md`. Of the five not-met 
 
 ## Phase 156 (planned 2026-11-14 from the turboprop scan; done 2026-11-22, in `COMPLETED_PHASES.md` §8cu)
 
-NACA Report 1377 was found and compared once; no verdict by the input rule fixed beforehand, so no case; the limit is stated. **No phase is open.** Open, not assigned to a phase: ISSUE-047 and ISSUE-048 (decisions for the author). ISSUE-047 was measured on 2026-11-22 (`validation_reports/issue047_r996_sections.md`). ISSUE-048 was searched on the same day: Report 1377's ground tests are the lead found (COMPLETED_PHASES §8cv).
+NACA Report 1377 was found and compared once; no verdict by the input rule fixed beforehand, so no case; the limit is stated. **No phase is open.** Open, not assigned to a phase: ISSUE-048 (a decision for the author). It was searched on 2026-11-22: Report 1377's ground tests are the lead found. ISSUE-047 was measured and closed the same day: the Report 996 cases were re-run on the published sections, and no verdict changed (COMPLETED_PHASES §8cv).
 
 ---
 

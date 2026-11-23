@@ -8,7 +8,7 @@ using Dates
 const ROOT = joinpath(@__DIR__, "..", "..", "..")
 const DATA = joinpath(ROOT, "data", "report996")
 const BF = joinpath(DATA, "naca_4-5-08-03", "blade_form_r996_fig3c.csv")   # Phase 154 (2026-11-14): β from Report 996 Fig. 3(c)
-const POLAR = joinpath(DATA, "polars_phase69_ncrit8.json")  # Phase 69: free transition, N_crit 8
+const POLAR = joinpath(DATA, "polars_phase69_ncrit8.json")  # Phase 69: free transition, N_crit 8; published 16-series sections since 2026-11-22 (ISSUE-047)
 const OUT_MD = joinpath(ROOT, "docs", "validation_reports", "report996_loads.md")
 const OUT_CSV = joinpath(DATA, "scale_factors.csv")
 
@@ -105,7 +105,7 @@ function main()
         println(io)
         println(io, "Generated $(Dates.today()) by `scripts/run/run_report996_loads.jl`. Static V=0, `allow_static=true`.")
         println(io, "Blade: `blade_form_r996_fig3c.csv`, β from Report 996 Fig. 3(c) (Phase 154, 2026-11-14; re-run post-hoc; the results on `blade_form.csv` are compared in `phase154_r996_blade_angle.md`).")
-        println(io, "Polars: `polars_phase69_ncrit8.json` (Phase 69: free transition, N_crit 8 fitted to TN 1546) primary + bracket.")
+        println(io, "Polars: `polars_phase69_ncrit8.json` (Phase 69: free transition, N_crit 8 fitted to TN 1546) primary + bracket, on the published NACA 16-series sections (ISSUE-047, re-run 2026-11-22, post-hoc; the results on the old section files are `scale_factors_pre047.csv`).")
         println(io)
         println(io, "| polar | β₇₅ | M_t | B | C_T ccb | C_P ccb | C_T meas | C_P meas | s_T | s_Q | source |")
         println(io, "|---|---:|---:|--:|---:|---:|---:|---:|---:|---:|---|")

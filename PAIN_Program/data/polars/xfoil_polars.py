@@ -94,7 +94,7 @@ def run_grid(jobs, workers=6):
 
 def report996():
     src = ROOT / "data" / "report996" / "polars_forced_sibling.json"       # copy of the sibling repo's polars_forced.json
-    sec_dir = ROOT / "data" / "report996" / "xfoil_sections"
+    sec_dir = ROOT / "data" / "report996" / "xfoil_sections_pre047"   # the files this record was made from (ISSUE-047, 2026-11-22)
     old = json.load(open(src))
     secs = old["sections"]
     new_re, new_m = [3e5], [0.1]

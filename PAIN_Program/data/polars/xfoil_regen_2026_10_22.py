@@ -26,7 +26,7 @@ sys.path.insert(0, str(HERE))
 import xfoil_polars as xp   # regexes, settings, frange
 
 XFOIL = xp.XFOIL
-SEC = HERE.parent / "report996" / "xfoil_sections"
+SEC = HERE.parent / "report996" / "xfoil_sections_pre047"   # the files this record was made from (ISSUE-047, 2026-11-22)
 HANG_S = xp.TIMEOUT          # same 60 s limit per session
 
 

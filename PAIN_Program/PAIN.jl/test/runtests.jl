@@ -2429,7 +2429,7 @@ _run_if("Validation map errors (V-UNIT)") do
         write_case_error_summary(path; run_date="2026-10-22")
         rec = recorded_case_errors(path)
         @test haskey(rec, "R996_FIG14")
-        @test rec["R996_FIG14"].n_within == 24      # Phase 76 (2026-10-28): thickness on (Phase 72: 14, before: 20)
+        @test rec["R996_FIG14"].n_within == 22      # ISSUE-047 (2026-11-22, post-hoc): published 16-series sections (Phase 76: 24, Phase 72: 14, before: 20)
         @test rec["R996_FIG14"].n_rows == 24
         @test !isempty(rec["R996_FIG14"].text)
         @test hasproperty(rec["R996_FIG14"], :source_date)
@@ -2482,9 +2482,9 @@ _run_if("Validation map errors (V-UNIT)") do
 
     fig14 = run_validation_case("R996_FIG14")
     s14 = case_error_summary(fig14, VALIDATION_CASES["R996_FIG14"].plot_spec)
-    @test s14.n_within == 24                     # Phase 76 (2026-10-28) recorded rerun (Phase 72: 14, before: 20)
+    @test s14.n_within == 22                     # ISSUE-047 (2026-11-22, post-hoc) recorded rerun (Phase 76: 24, Phase 72: 14, before: 20)
     @test s14.n_rows == 24
-    @test count(r -> r.within_tolerance, fig14.table) == 24
+    @test count(r -> r.within_tolerance, fig14.table) == 22
     @test length(fig14.table) == 24
     # Phase 141c: the unscaled-load second line (12 measured points) is drawn but leaves the table and the count
     @test fig14.inputs_echo.unscaled_n == 12 && count(s -> occursin("not scaled", s.name), fig14.series) == 3
@@ -2625,9 +2625,9 @@ _run_if("Validation case registry (34d)") do
     # Task C new cases — Fig.14 counts after A_rms = A/√2 (I-17 / F4 2026-10-21, post-hoc);
     # Phase 72 (2026-10-28): Fig. 14 microphone placed behind the plane as Report 996 defines it (was 20/24, met)
     fig14 = run_validation_case("R996_FIG14")
-    @test count(r -> r.within_tolerance, fig14.table) == 24
+    @test count(r -> r.within_tolerance, fig14.table) == 22   # ISSUE-047 (2026-11-22, post-hoc): published sections (Phase 76: 24)
     @test length(fig14.table) == 24
-    @test fig14.verdict === :met            # Phase 76 (2026-10-28): thickness on
+    @test fig14.verdict === :met            # Phase 76 (2026-10-28): thickness on; still met after ISSUE-047
     @test PAIN.underlying_verdict(run_validation_case("BLK_P68")) === :met   # a unit check since Phase 144d
     f1a_gutin = run_validation_case("F1A_GUTIN")   # information since Phase 85 (2026-10-29); the check itself still holds
     @test f1a_gutin.verdict === :no_verdict && PAIN.underlying_verdict(f1a_gutin) === :met

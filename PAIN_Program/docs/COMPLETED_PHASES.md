@@ -3793,7 +3793,12 @@ The author asked how to make the GUI start faster. With warm caches, the time to
   - The Report 996 generators were re-run four times on scratch copies; the run on the old inputs reproduces the recorded CSVs exactly. The other cases on the polar file were run on both sets.
   - Result: N_crit is still 8. The thickness area alone moves levels by at most 0.16 dB. The polars move the scaled levels by a median 0.05 dB, up to 3.2 dB at tip Mach 0.9, and the unscaled levels up to 5.2 dB. No verdict would change.
   - The plan's "control" (16-507, 16-508) turned out to be real shape differences; the ticket records the correction.
-  - Report: `validation_reports/issue047_r996_sections.md`. Data, used by no case: `data/report996/issue047_published_sections/`. Re-run or keep is still the author's decision.
+  - Report: `validation_reports/issue047_r996_sections.md`.
+- [x] **ISSUE-047 closed: the re-run** (author 2026-11-22: "go for it", on the recommendation to re-run, as in Phase 154).
+  - The published sections and their polars replace the old files the cases read. The old files and results are kept as `*_pre047`.
+  - Loads and both acoustics files were regenerated; they equal the measurement run exactly. The nine affected cases and their figures were re-run, then the status page.
+  - Result: R996_LOADS 27/32, not met (was 24/32); R996_FIG14 22/24, met (was 24/24); R996_FIG12 31/40, met (was 32/40); R996_FIG13A 14/14; R996_PHASE 42.5°; POLAR_FIDELITY 20/27, information. **No verdict changed.**
+  - Two tests pinned Fig. 14 at 24 and now pin 22.
 - [x] **ISSUE-048, the search.**
   - Report 1377's static ground tests are the lead: the same propellers and boom, a 21-position axial traverse, power steps and measured thrust. They can separate the flight-only causes from the shared ones, as a diagnostic with no verdict.
   - The report's own pp. 8–9 point to the near tip and the outer blade unloading above the design speed.

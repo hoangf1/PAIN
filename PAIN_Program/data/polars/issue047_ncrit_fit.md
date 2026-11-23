@@ -1,6 +1,6 @@
 # Phase 69b N_crit fit to NACA TN 1546
 
-Source: `data/report996/issue047_published_sections/tn1546_ncrit.json` (ISSUE-047 diagnostic, published 16-series sections; not used by any case) (2026-11-22). Rule fixed 2026-10-28 before the run.
+Source: `data/polars/issue047_tn1546_ncrit.json` (ISSUE-047: the published 16-series sections, in `data/report996/xfoil_sections` since 2026-11-22) (2026-11-22). Rule fixed 2026-10-28 before the run.
 
 | N_crit | fit points converged | RMS fit (16-506, 16-509) | mean dc_l fit | held-out 16-312 within 0.05 |
 |---|---|---|---|---|

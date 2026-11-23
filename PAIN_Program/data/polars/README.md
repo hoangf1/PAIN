@@ -20,6 +20,6 @@ Cautions: XFOIL hangs past stall on thin sections (60 s limit; partial output ke
 
 The forced-transition set `../report996/polars_forced_merged.json` is kept unchanged as the pre-Phase-69 record.
 
-## ISSUE-047 (2026-11-22): published 16-series sections, used by no case
+## ISSUE-047 (2026-11-22): published 16-series sections
 
-`../report996/issue047_published_sections/` holds the ten Report 996 sections regenerated from the published definitions (`xfoil_r1377.py` `contour()`), the Phase 69 grid and fill on them (`xfoil_phase69.py` with only `SEC_DIR` changed, N_crit 8) and the TN 1546 N_crit runs with the Phase 69b fit table. No case reads them. Report: `docs/validation_reports/issue047_r996_sections.md`.
+Since 2026-11-22 `../report996/xfoil_sections/` holds the ten Report 996 sections regenerated from the published definitions (`xfoil_r1377.py` `contour()`, 161 points), and `../report996/polars_phase69_ncrit8.json` is the Phase 69 grid and fill on them (`xfoil_phase69.py grid 8`, `fill 8`). The 2026-10-28 files are `../report996/xfoil_sections_pre047/` and `../report996/polars_phase69_ncrit8_pre047.json`; `xfoil_polars.py report996` and `xfoil_regen_2026_10_22.py` point at the old sections, which their records were made from. TN 1546 N_crit runs on the new sections: `issue047_tn1546_ncrit.json`, fit `issue047_ncrit_fit.md` (still N_crit 8). Report: `docs/validation_reports/issue047_r996_sections.md`.
