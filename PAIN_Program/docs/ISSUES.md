@@ -10,6 +10,7 @@ Two lists, newest first in each. **Not assigned to a phase**: issues to act on o
 
 | Issue | Subject | Kind | State |
 |---|---|---|---|
+| 050 | SAE 830733 (a Commander 695 turboprop in flight, three propellers) is not read: it may print the blade or structure the four AC_C695A cases lack | Data | **open** 2026-11-23: waiting for the author's copy of the paper |
 | 049 | NACA Report 1377 ground rows: computed static thrust 1.6–1.8 times the printed thrust at part power, and the higher harmonics behind the disk fall off much faster than measured | Investigation | closed 2026-11-23: cannot be tested on these data (printed power is a power-curve setting, no thrust instrument is listed, the report flags extraneous noise); a stated limit |
 | 047 | The Report 996 section files differ from the published NACA 16-series sections (eight of ten, by up to 14 % in thickness and 30 % in camber) | Input, decision | closed 2026-11-22: sections regenerated from the published definitions, polars and Report 996 cases re-run post-hoc (author: re-run); no verdict changed |
 | 048 | NACA Report 1377 in flight: the code is a median 6 dB above the measured harmonic levels at the boom microphone, also where its thrust matches the printed thrust | Investigation | closed 2026-11-23: inputs could not be found (no second distance; TN 3417 and TN 4068 are superseded by Report 1377, same microphone); the ground diagnostic leans to the flight-only causes, not established; a stated limit |
@@ -385,6 +386,29 @@ Was: open, not assigned to a phase. Recorded 2026-11-10. Labels. No verdict chan
 
 ---
 
+## ISSUE-050: SAE 830733 is not read
+
+**Status:** open, waiting for the author's copy of the paper. Recorded 2026-11-23 by Claude, at the author's request ("i can get it myself bring it as an issue").
+
+**What is missing.** SAE 830733, *Acoustic evaluation of three turbo propellers* (1983), reports near- and far-field noise of three propellers flown on a Commander 695. It is behind a paywall, so only its abstract was read in the search of 2026-11-23 (ISSUE-046). It is the one source on that list not read. Whether it prints the blade is not known.
+
+**Affected cases:** the four Commander 695A cases without a verdict, `AC_C695A_DBA`, `AC_C695A_TONES`, `AC_C695A_EXT` and `AC_C695A_SEAT`. They lack:
+- the 695A blade: width, thickness, twist and sections against radius;
+- the cabin cross-section (the width);
+- the stiffener section properties.
+
+**What it needs.**
+1. The author brings the paper into `references/`.
+2. Claude reads it for those inputs. Also wanted: which of the three propellers is CR-178004's Dowty Rotol blade, and its operating conditions (power, speed, altitude).
+3. Any input found is transcribed in two passes and checked against the paper's own arithmetic, as for Report 1377.
+4. The rule of 2026-11-14 applies: if it is not the exact data (another propeller, or a blade only sketched), the ticket closes with "inputs could not be found".
+
+If inputs are found, the rule for each case's verdict is written and committed before any re-run, as for Phase 156b. The cases' present results are not a guide to it.
+
+**Not done yet.** Nothing changed.
+
+---
+
 ## ISSUE-049: Report 1377 ground rows, static thrust at part power and the higher harmonics behind the disk
 
 **Status:** closed 2026-11-23: cannot be tested on these data (below). Recorded 2026-11-23 by Claude, from the ISSUE-048 ground-test diagnostic (`validation_reports/issue048_r1377_ground.md`). Nothing was tested. Both findings come from a run whose rule asked another question, so neither carries a verdict.
@@ -572,7 +596,7 @@ Two files match; the others are off by 1–14 % in thickness and up to 30 % in c
 
 They stay as they are. The partial 695A structure above (skin, height, stiffener depth) is not enough for the cabin model, which needs the stiffener section properties. Nothing was downloaded into the repository: the two scans were read from the fetched copies.
 
-**SAE 830733, 2026-11-23 (author's answer: "Leave it").** It is not bought or requested. It stays the one source on this list that has not been read.
+**SAE 830733, 2026-11-23.** The author's first answer was "Leave it" (not bought or requested by Claude). The author then said "i can get it myself bring it as an issue": ISSUE-050.
 
 ---
 

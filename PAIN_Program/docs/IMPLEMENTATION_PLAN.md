@@ -325,7 +325,7 @@ The scan is `validation_reports/phase152_coverage_scan.md`. Of the five not-met 
 
 ## Phase 156 (planned 2026-11-14 from the turboprop scan; done 2026-11-22, in `COMPLETED_PHASES.md` §8cu)
 
-NACA Report 1377 was found and compared once; no verdict by the input rule fixed beforehand, so no case; the limit is stated. **No phase is open.** **No issue is open.** ISSUE-048 was searched on 2026-11-22. Its ground-test diagnostic ran on 2026-11-23: not settled by its rule, though every check puts the code about 5 dB closer at rest than in flight. ISSUE-048 and ISSUE-049 (two findings of that run) were closed the same day: inputs could not be found (COMPLETED_PHASES §8cw). ISSUE-047 was measured and closed the same day: the Report 996 cases were re-run on the published sections, and no verdict changed (COMPLETED_PHASES §8cv).
+NACA Report 1377 was found and compared once; no verdict by the input rule fixed beforehand, so no case; the limit is stated. **No phase is open.** **One issue is open: ISSUE-050** (SAE 830733, waiting for the author's copy of the paper; it may print the 695A blade or structure). ISSUE-048 was searched on 2026-11-22. Its ground-test diagnostic ran on 2026-11-23: not settled by its rule, though every check puts the code about 5 dB closer at rest than in flight. ISSUE-048 and ISSUE-049 (two findings of that run) were closed the same day: inputs could not be found (COMPLETED_PHASES §8cw). ISSUE-047 was measured and closed the same day: the Report 996 cases were re-run on the published sections, and no verdict changed (COMPLETED_PHASES §8cv).
 
 ---
 
