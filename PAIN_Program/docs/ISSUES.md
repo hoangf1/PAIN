@@ -10,8 +10,8 @@ Two lists, newest first in each. **Not assigned to a phase**: issues to act on o
 
 | Issue | Subject | Kind | State |
 |---|---|---|---|
-| 047 | The Report 996 section files differ from the published NACA 16-series sections (eight of ten, by up to 14 % in thickness and 30 % in camber) | Input, decision | open: re-running the Report 996 cases is post-hoc; the author's decision |
-| 048 | NACA Report 1377 in flight: the code is a median 6 dB above the measured harmonic levels at the boom microphone, also where its thrust matches the printed thrust | Investigation | open, not assigned: cause not established; no verdict possible on these data (Phase 156) |
+| 047 | The Report 996 section files differ from the published NACA 16-series sections (eight of ten, by up to 14 % in thickness and 30 % in camber) | Input, decision | open: measured 2026-11-22 (up to 3.2 dB at tip Mach 0.9, under 0.2 dB from the thickness area; no verdict would change); re-run (post-hoc) or keep with a stated limit is the author's decision |
+| 048 | NACA Report 1377 in flight: the code is a median 6 dB above the measured harmonic levels at the boom microphone, also where its thrust matches the printed thrust | Investigation | open, not assigned: cause not established; no verdict possible on these data (Phase 156); search 2026-11-22: Report 1377's static ground tests (same propellers and boom) can separate the flight-only causes, as a diagnostic |
 | 046 | Turboprop viability: no forward-flight propeller case at turboprop size and tip Mach with the blade printed | Validity, data | closed 2026-11-22: Report 1377 compared once (Phase 156b), no verdict by the input rule, not registered; the limit is stated (156c); the level difference is ISSUE-048 |
 | 045 | Turboprop viability: the Merlin IVC's measured cabin levels in flight (CR-172428 Table 23) are not compared; FLIGHT10_H234's label is stale | Validity, data, code | closed 2026-11-15: FLIGHT10_REPRO met 15/15; the measured comparison is information only |
 | 044 | The Report 996 blade input: blade root at 0.271 R and the tabulated tip twist, where the NACA figures print less tip pitch (and, for Report 1012, the spinner at 0.331 R) | Input, decision | closed 2026-11-14: Phase 154 done, no verdict changes |
@@ -394,11 +394,17 @@ Was: open, not assigned to a phase. Recorded 2026-11-10. Labels. No verdict chan
 
 **What it needs.** A data set that separates these: in-flight levels at more than one distance from the tip, or a propeller in flight with its sections printed. Any change found from these data is post-hoc for `R1377_FLIGHT` and would need a held-out test. Decision for the author: whether to search further or leave the limit as stated.
 
+**Search, 2026-11-22 (Claude, at the author's request of that day: "research issue 48 as well").** Nothing was run or compared; this records the leads.
+
+- **In hand and not yet used: Report 1377's ground tests** (Tables I and II, "Ground tests" blocks; also TN 3417, its tapered-blade forerunner, in `references/`). The same two propellers, airplane and boom microphone at y = 0.655 D, static: the tapered blade at about 1,030 hp traversed through 21 axial positions from x = +0.125 D to −0.125 D, and power steps of 570 to 1,200 hp at x = +0.125 D, 0, −0.125 D, with the measured static thrust printed for each row (Phase 156b read only the flight rows). They share the near tip, the boom and airplane and the unknown airfoil family with the flight rows, but not the forward speed, the section Mach numbers above about 0.7 or the outer blade unloading above the design speed. The code high by about 6 dB on the ground as well would point to the shared candidates; close to the ground levels would point to the flight-only ones. A comparison on these rows would carry no verdict under the same input rule (the airfoil family is still unprinted), so it is a diagnostic; its rule would be fixed before it runs, and a ground reflection would be one more unmodelled path.
+- **What the report says itself** (Report 1377 pp. 8–9): the propellers were designed for flight Mach 0.5; above it the outer part of the blade unloads, and with the microphone near the tip the results "over emphasize" thickness noise against loading noise; its reference 6 puts the rectangular blade's thickness noise within 6 dB of its loading noise. This supports the near-field and load-distribution candidates; it is not a test of them.
+- **Outside, not read:** NACA TN 4068 (the planform comparison, very likely the rectangular half of Report 1377, so probably no new data); the SR-3 propfan in flight (JetStar fuselage microphones, Learjet formation flights at several distances; NASA TM-82805 compares it with the 8 × 6 ft tunnel); the Propfan Test Assessment (SR-7L on a Gulfstream II, wing-boom and fuselage microphones; NASA CR-185138, CR-182278, AIAA-90-3953). The propfans are swept, at helical tip Mach 1.0–1.15, outside the turboprop range this ticket concerns, and whether their sections are printed is not known.
+
 ---
 
 ## ISSUE-047: the Report 996 section files differ from the published NACA 16-series sections
 
-**Status:** open, not assigned to a phase. Recorded 2026-11-22 by Claude during Phase 156b (checking the section generator for `R1377_FLIGHT`). A decision for the author: a fix changes the polars of cases with a verdict after their results are known, so any re-run is post-hoc.
+**Status:** open, not assigned to a phase; measured 2026-11-22 (below; report `validation_reports/issue047_r996_sections.md`). Recorded 2026-11-22 by Claude during Phase 156b (checking the section generator for `R1377_FLIGHT`). A decision for the author: a fix changes the polars of cases with a verdict after their results are known, so any re-run is post-hoc.
 
 **What is wrong.** The ten contours in `data/report996/xfoil_sections/` came from the sibling repository's NACA 16 code (METHODOLOGY §polars). Measured from the files, with the published definitions (16-series thickness and the a = 1.0 mean line, reproduced to TR 824's printed 16-009 ordinates and a = 1.0 table):
 
@@ -420,6 +426,20 @@ Two files match; the others are off by 1–14 % in thickness and up to 30 % in c
 **Affected.** Every case on the Phase 69 polars of the Report 996 blade (`R996_LOADS`, `FIG12`, `FIG13A`, `FIG14`, the Report 996 polar display cases) and the N_crit fit to TN 1546 (16-312, 16-506, 16-509 are among the files that differ).
 
 **Proposed action.** Regenerate the ten contours with the published definitions (the generator of Phase 156b), measure how much the polars and the Report 996 results move, and decide with the author whether the cases re-run (post-hoc label) or keep their record with this ticket as a stated limit.
+
+**Measurement (fixed 2026-11-22, at the author's go-ahead of that day, before any run).** Diagnostic only: no verdict changes, no recorded result, polar file or section file in the repository is replaced, and the outputs stay in the scratch folder; the report keeps the numbers. Steps: (1) the ten contours from the published definitions (`xfoil_r1377.contour`, 161 points like the old files); (2) the Phase 69 grid and fill pass unchanged (N_crit 8; `xfoil_phase69.py` with only the section folder changed); (3) the TN 1546 N_crit runs (1–12) on the new 16-312, 16-506, 16-509 and the Phase 69b fit rule unchanged: does it still choose 8; (4) the Report 996 loads (`run_report996_loads.jl`), scaled acoustics (`run_report996_acoustics.jl`, scale factors from the new loads) and unscaled acoustics (`run_report996_unscaled.jl`) with only the polar file and the section folder changed, as four runs: old inputs (must reproduce the recorded CSVs), new section areas only, new polars only, both; (5) the other cases on this polar file (`POLAR_FIDELITY`, `PROP_BB_FIG14`, `PROP_BB_FIG17`, `T2_PRED_BB`) on the new polars. Reported: the change of c_l and c_d at matched points, of C_T and C_P (%), and of every compared sound level (dB), with the count of each case's own criterion on the new inputs as information. 16-507 and 16-508 already match the published shape, so their polar change measures what a new contour of the same shape changes by itself. What the numbers mean for the records is the author's decision; this measurement fixes no threshold.
+
+**Result (2026-11-22; `validation_reports/issue047_r996_sections.md`; sections, polars and fit table in `data/report996/issue047_published_sections/`, used by no case).** The run on the old inputs reproduces the three recorded CSVs exactly. Deviation from the plan, decided 2026-11-22 by Claude: the sections, polars and fit table were kept in the repository after all, labelled "used by no case", so that a re-run would not need the 4.5 hours of XFOIL again. Nothing a case reads was changed.
+- **Correction to the plan above:** 16-507 and 16-508 are not a control. The old 16-507 is 7.4 % thick, and the old 16-508 closes the trailing edge where the published form is open by 0.16 % of the chord. Their c_l changes (median +0.04) are real shape differences, so all ten files differ from the published shapes, not eight ("Two files match" above holds only for thickness and camber).
+- **Section data:** median c_l change −0.02 to +0.07 by section; c_d +2 to +6 %.
+- **N_crit fit:** still 8. Held-out 16-312 at 19/26, still not met.
+- **Thickness area alone:** at most 0.16 dB.
+- **With the new polars:**
+  - Scaled levels move by a median 0.05 dB, but up to 3.2 dB at tip Mach 0.9 (9 of 78 levels over 1 dB, all at tip Mach 0.9).
+  - Unscaled levels move up to 5.2 dB.
+  - C_P rises 50–73 % at tip Mach 0.9, and 0–14 % elsewhere.
+- **Counts on the new sections** (information, post-hoc): R996_LOADS 27/32, FIG14 22/24, FIG12 31/40, FIG13A 14/14, POLAR_FIDELITY 20/27, broadband cases unchanged. No verdict would change.
+- **Still for the author:** re-run on the published sections (post-hoc label; polars ready), or keep the records and state the tip Mach 0.9 limit in them.
 
 ---
 

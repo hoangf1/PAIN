@@ -19,3 +19,7 @@ Cautions: XFOIL hangs past stall on thin sections (60 s limit; partial output ke
 - Logs: `run_phase69_tn1546.log`, `run_phase69_grid.log`, `run_phase69_fill.log`.
 
 The forced-transition set `../report996/polars_forced_merged.json` is kept unchanged as the pre-Phase-69 record.
+
+## ISSUE-047 (2026-11-22): published 16-series sections, used by no case
+
+`../report996/issue047_published_sections/` holds the ten Report 996 sections regenerated from the published definitions (`xfoil_r1377.py` `contour()`), the Phase 69 grid and fill on them (`xfoil_phase69.py` with only `SEC_DIR` changed, N_crit 8) and the TN 1546 N_crit runs with the Phase 69b fit table. No case reads them. Report: `docs/validation_reports/issue047_r996_sections.md`.

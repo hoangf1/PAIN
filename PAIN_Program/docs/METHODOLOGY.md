@@ -276,7 +276,7 @@ QUIT
 
 | Set (file) | Geometry | Panels | Transition | Re grid | M grid | α requested |
 |---|---|---|---|---|---|---|
-| Report 996 (`data/report996/polars_forced_merged.json`) | 10 NACA 16-series sections (`data/report996/xfoil_sections/*.dat`, 160 points each, generated with the sibling repository's NACA 16 code, not from Report 996 coordinates) | 240 (new entries); not recorded for the 200 inherited sibling entries (Linux double-precision build) | forced, x_tr = 0.02 upper and lower | 3·10⁵, 5·10⁵, 1·10⁶, 2·10⁶, 4·10⁶ | 0.1, 0.2, 0.4, 0.55, 0.65, 0.72 | −6° to 14°, 0.5° steps |
+| Report 996 (`data/report996/polars_forced_merged.json`) | 10 NACA 16-series sections (`data/report996/xfoil_sections/*.dat`, 160 points each, generated with the sibling repository's NACA 16 code, not from Report 996 coordinates; eight of the ten differ from the published 16-series shapes, ISSUE-047: the effect on the cases is measured in `validation_reports/issue047_r996_sections.md`, up to 3.2 dB at tip Mach 0.9) | 240 (new entries); not recorded for the 200 inherited sibling entries (Linux double-precision build) | forced, x_tr = 0.02 upper and lower | 3·10⁵, 5·10⁵, 1·10⁶, 2·10⁶, 4·10⁶ | 0.1, 0.2, 0.4, 0.55, 0.65, 0.72 | −6° to 14°, 0.5° steps |
 | Pereira N_crit 9, primary (`data/pereira/naca4412_xfoil_ncrit9.json`) | XFOIL built-in NACA 4412 | 180 | free, N_crit 9 | 2·10⁴, 3·10⁴, 5·10⁴, 7.5·10⁴, 1·10⁵, 1.5·10⁵, 2·10⁵, 3·10⁵ | 0, 0.1, 0.2, 0.3, 0.4 | −10° to 10° in 0.5°, 10° to 20° in 0.25° |
 | Pereira N_crit 5, bracket (`..._ncrit5.json`) | same | 180 | free, N_crit 5 | same | same | same |
 | Pereira x_tr 0.05, bracket (`..._xtr005.json`) | same | 180 | forced, x_tr = 0.05 | same | same | same |

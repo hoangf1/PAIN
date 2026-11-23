@@ -3782,3 +3782,20 @@ The author asked how to make the GUI start faster. With warm caches, the time to
 - [x] **156c The limit.** The condition written for 156c (no source prints a blade) did not arise, but its outcome is the one that applies, since no comparison with a verdict exists: stated in README and METHODOLOGY. For a turboprop, where the level matters, take the exterior field from measurement or a separately validated propeller code. The GUI already tags every run with a computed propeller field X-EXTRAP, so no GUI change (decided 2026-11-22 by Claude under the author's authority of 2026-11-15).
 
 **Outcome.** No case; kept: the transcribed tables, the blade form and their digitizers, the section generator, the sections and polar sets, the report. In `PAIN.jl/src` only the polar loader changed: it reads the new section names (`n16_c<c_l>_t<t/c>`, `n4d_…`; unit test). Queue row: | Q133 | Phase 156: a forward-flight propeller case for turboprops (ISSUE-046) | data search first | — | a case, or the limit stated | · **done 2026-11-22**
+
+## 8cv. ISSUE-047 measured and ISSUE-048 searched (2026-11-22; not a phase of the plan, author's requests of the same day)
+
+*(Author 2026-11-22: "Yes, measure it" for ISSUE-047; "i would like you to research issue 48 as well if possible".)*
+
+- [x] **ISSUE-047, the Report 996 section files.**
+  - What was measured was written in the ticket before any run.
+  - The ten sections were regenerated to the published 16-series definitions, then run through the Phase 69 grid, the fill pass and the TN 1546 N_crit runs, all unchanged.
+  - The Report 996 generators were re-run four times on scratch copies; the run on the old inputs reproduces the recorded CSVs exactly. The other cases on the polar file were run on both sets.
+  - Result: N_crit is still 8. The thickness area alone moves levels by at most 0.16 dB. The polars move the scaled levels by a median 0.05 dB, up to 3.2 dB at tip Mach 0.9, and the unscaled levels up to 5.2 dB. No verdict would change.
+  - The plan's "control" (16-507, 16-508) turned out to be real shape differences; the ticket records the correction.
+  - Report: `validation_reports/issue047_r996_sections.md`. Data, used by no case: `data/report996/issue047_published_sections/`. Re-run or keep is still the author's decision.
+- [x] **ISSUE-048, the search.**
+  - Report 1377's static ground tests are the lead: the same propellers and boom, a 21-position axial traverse, power steps and measured thrust. They can separate the flight-only causes from the shared ones, as a diagnostic with no verdict.
+  - The report's own pp. 8–9 point to the near tip and the outer blade unloading above the design speed.
+  - Outside data (SR-3 and SR-7L propfans in flight) are swept and transonic, outside the turboprop range.
+  - Recorded in the ticket. Nothing was run.
