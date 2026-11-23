@@ -16,6 +16,8 @@ Run from PAIN_Program:
     python data/polars/xfoil_r1377.py sections            # writes data/report1377/xfoil_sections/*.dat and prints the jobs
     python data/polars/xfoil_r1377.py run <set> [workers] # set: tapered_16, rectangular_16, tapered_4d, rectangular_4d,
                                                           #      rectangular_16_clslope (check of the inboard design lift)
+    python data/polars/xfoil_r1377.py ground <set> [workers]  # ISSUE-048: the set plus the ground-row grid points,
+                                                              # written to polars_<set>_ground.json
 Outputs data/report1377/polars_<set>.json in the Phase 69 format (sections, Res, Ms, polars "section|Re|M", header).
 """
 import csv, datetime, json, math, sys
@@ -117,14 +119,26 @@ def case_rows():
     return sel
 
 
-def kinematic_range(blade, x, bd):
-    """(M_min, M_max, Re_min, Re_max) of station x over the case rows: printed V, N, p, t, no induction."""
+P_GROUND_UNPRINTED_PSF = 2116.2   # Table II prints no ground pressure: standard sea level (ISSUE-048, 2026-11-23)
+
+
+def ground_rows():
+    """Ground rows of Tables I and II with a printed level of harmonic 1-5 (ISSUE-048 rule, 2026-11-23)."""
+    sel = [r for r in _rows(DATA / "tables_I_II_ground.csv")
+           if any(r[f"H{h}_dB"] not in ("-", "a") for h in range(1, 6))]
+    assert len(sel) == 28, len(sel)
+    return sel
+
+
+def kinematic_range(blade, x, bd, rows=None):
+    """(M_min, M_max, Re_min, Re_max) of station x over the rows (default: the flight case rows): printed V, N, p, t,
+    no induction; a ground row without a printed pressure uses P_GROUND_UNPRINTED_PSF."""
     Ms, Res = [], []
-    for r in case_rows():
+    for r in (case_rows() if rows is None else rows):
         if r["blade"] != blade:
             continue
         T = (float(r["t_F"]) - 32) * 5 / 9 + 273.15
-        p = float(r["p_psf"]) * 47.880259
+        p = (P_GROUND_UNPRINTED_PSF if r["p_psf"] == "-" else float(r["p_psf"])) * 47.880259
         rho, a, mu = p / (287.05 * T), math.sqrt(1.4 * 287.05 * T), 1.458e-6 * T ** 1.5 / (T + 110.4)
         V = float(r["V_fps"]) * 0.3048
         W = math.hypot(V, 2 * math.pi * 0.479 * float(r["N_rpm"]) / 60 * x * D_M / 2)
@@ -224,8 +238,51 @@ def run(name, workers=4):
     print("wrote", out, len(db), "polars")
 
 
+def run_ground(name, workers=4):
+    """ISSUE-048 (2026-11-23): the flight set `name` plus the grid points that bracket each station's range on the
+    ground rows and are not in it, same settings and fill pass; written to polars_<name>_ground.json (flight file kept)."""
+    from concurrent.futures import ThreadPoolExecutor
+    blade, fam, variant, secs, _ = set_jobs(name)
+    assert variant == "primary", name
+    flight = json.load(open(DATA / f"polars_{name}.json"))
+    jobs = []
+    for (x, bd, hb, cl), s in zip(station_inputs(blade, variant), secs):
+        m0, m1, r0, r1 = kinematic_range(blade, x, bd, ground_rows())
+        for Re in bracket(GRID_RE, r0, r1):
+            for M in bracket(GRID_M, m0, m1):
+                k = f"{s}|{Re:.0f}|{M:.2f}"
+                if k not in flight["polars"]:
+                    jobs.append((k, SEC_DIR / f"{s}.dat", Re, M, GRID_ALPHA, PANELS, ("ncrit", N_CRIT)))
+    print(f"{name}: {len(jobs)} ground polars to run", flush=True)
+    res = xp.run_grid(jobs, workers=workers)
+    db, hung = dict(flight["polars"]), []
+    for k, rows, miss, to in res:
+        db[k] = rows
+        if to:
+            hung.append(k)
+    with ThreadPoolExecutor(workers) as ex:
+        for k, extra in ex.map(_fill, hung):
+            have = {round(r[0], 3) for r in db[k]}
+            db[k] = sorted(db[k] + [[a, cl, cd] for a, (cl, cd) in extra.items() if round(a, 3) not in have])
+            print(f"{k}: fill -> {len(db[k])} pts", flush=True)
+    new = [j[0] for j in jobs]
+    missing = {k: [a for a in GRID_ALPHA if round(a, 3) not in {round(r[0], 3) for r in db[k]}] for k in new}
+    hdr = dict(flight["header"])
+    hdr.update(purpose=hdr["purpose"] + "; ISSUE-048 ground-test diagnostic: plus the ground-row grid points",
+               ground_points=new, ground_grid_rule="grid points bracketing each station's range on the 28 ground rows "
+               "with a printed level (no induction), not already in the flight set",
+               ground_absent_alphas={k: v for k, v in missing.items() if v}, ground_workers=workers,
+               ground_generated=datetime.date.today().isoformat(),
+               ground_script=f"data/polars/xfoil_r1377.py ground {name}")
+    out = DATA / f"polars_{name}_ground.json"
+    json.dump(dict(flight, polars=db, header=hdr), open(out, "w"))
+    print("wrote", out, len(db), "polars", flush=True)
+
+
 if __name__ == "__main__":
-    if sys.argv[1] == "sections":
+    if sys.argv[1] == "ground":
+        run_ground(sys.argv[2], int(sys.argv[3]) if len(sys.argv) > 3 else 4)
+    elif sys.argv[1] == "sections":
         sections()
     elif sys.argv[1] == "run":
         run(sys.argv[2], int(sys.argv[3]) if len(sys.argv) > 3 else 4)

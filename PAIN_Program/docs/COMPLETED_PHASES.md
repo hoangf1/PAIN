@@ -3804,3 +3804,20 @@ The author asked how to make the GUI start faster. With warm caches, the time to
   - The report's own pp. 8–9 point to the near tip and the outer blade unloading above the design speed.
   - Outside data (SR-3 and SR-7L propfans in flight) are swept and transonic, outside the turboprop range.
   - Recorded in the ticket. Nothing was run.
+
+## 8cw. ISSUE-048 ground-test diagnostic (2026-11-23; not a phase of the plan, author's go-ahead of 2026-11-22)
+
+*(Author 2026-11-22: "Yes, start 048".)*
+
+- [x] **Data and rule.**
+  - Report 1377's ground blocks were read in two passes with 0 disagreements: 29 tapered rows (25 with levels) and 3 rectangular rows (`data/report1377/tables_I_II_ground.csv`).
+  - The traverse has 17 positions, not 21 as the search said.
+  - The rule was written in ISSUE-048 and committed (09d58b7) before any computation. It fixes the inputs (as in 156b, at rest), the extra polars, the checks and the answer bands on D, the median code − measured.
+- [x] **Polars.** 104 extra XFOIL polars at the static section Mach and Reynolds numbers, with the same settings (`xfoil_r1377.py ground`). They are in `polars_<set>_ground.json`; the flight files are unchanged.
+- [x] **The run (once).**
+  - Tapered D = +1.81 dB. The checks give: four-digit sections +0.79 dB, power −5 % +1.32 dB, power +5 % +2.06 dB.
+  - **Not settled by the rule:** one check falls 0.06 dB outside the ±2 dB band.
+  - Every check puts the code about 5 dB closer at rest than in flight (+7.0 dB). This leans to the flight-only causes; it is not established.
+  - Rectangular blade: D = +0.81 dB.
+- [x] **Recorded.** Report `validation_reports/issue048_r1377_ground.md`. ISSUE-048 stays open. ISSUE-049 was opened for the static thrust at part power (1.6–1.8 times printed) and for the harmonics behind the disk. The runner was committed with the result and removed in the next commit.
+

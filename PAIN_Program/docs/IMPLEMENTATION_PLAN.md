@@ -325,7 +325,7 @@ The scan is `validation_reports/phase152_coverage_scan.md`. Of the five not-met 
 
 ## Phase 156 (planned 2026-11-14 from the turboprop scan; done 2026-11-22, in `COMPLETED_PHASES.md` §8cu)
 
-NACA Report 1377 was found and compared once; no verdict by the input rule fixed beforehand, so no case; the limit is stated. **No phase is open.** Open, not assigned to a phase: ISSUE-048 (a decision for the author). It was searched on 2026-11-22: Report 1377's ground tests are the lead found. ISSUE-047 was measured and closed the same day: the Report 996 cases were re-run on the published sections, and no verdict changed (COMPLETED_PHASES §8cv).
+NACA Report 1377 was found and compared once; no verdict by the input rule fixed beforehand, so no case; the limit is stated. **No phase is open.** Open, not assigned to a phase: ISSUE-048 and ISSUE-049 (decisions for the author). ISSUE-048 was searched on 2026-11-22, and its ground-test diagnostic was run on 2026-11-23: not settled by its rule, though every check puts the code about 5 dB closer at rest than in flight (COMPLETED_PHASES §8cw). ISSUE-049 holds two findings from that run. ISSUE-047 was measured and closed the same day: the Report 996 cases were re-run on the published sections, and no verdict changed (COMPLETED_PHASES §8cv).
 
 ---
 
