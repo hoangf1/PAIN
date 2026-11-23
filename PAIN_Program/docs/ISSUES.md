@@ -572,6 +572,8 @@ Two files match; the others are off by 1–14 % in thickness and up to 30 % in c
 
 They stay as they are. The partial 695A structure above (skin, height, stiffener depth) is not enough for the cabin model, which needs the stiffener section properties. Nothing was downloaded into the repository: the two scans were read from the fetched copies.
 
+**SAE 830733, 2026-11-23 (author's answer: "Leave it").** It is not bought or requested. It stays the one source on this list that has not been read.
+
 ---
 
 ## ISSUE-045: the Merlin IVC's measured cabin levels in flight are not compared with this code
