@@ -10,7 +10,7 @@ Two lists, newest first in each. **Not assigned to a phase**: issues to act on o
 
 | Issue | Subject | Kind | State |
 |---|---|---|---|
-| 050 | SAE 830733 (a Commander 695 turboprop in flight, three propellers) is not read: it may print the blade or structure the four AC_C695A cases lack | Data | **open** 2026-11-23: waiting for the author's copy of the paper |
+| 050 | SAE 830733 (a Commander 695 turboprop in flight, three propellers) is not read: it may print the blade or structure the four AC_C695A cases lack | Data | closed 2026-11-24: the author cannot get the paper; inputs could not be found |
 | 049 | NACA Report 1377 ground rows: computed static thrust 1.6–1.8 times the printed thrust at part power, and the higher harmonics behind the disk fall off much faster than measured | Investigation | closed 2026-11-23: cannot be tested on these data (printed power is a power-curve setting, no thrust instrument is listed, the report flags extraneous noise); a stated limit |
 | 047 | The Report 996 section files differ from the published NACA 16-series sections (eight of ten, by up to 14 % in thickness and 30 % in camber) | Input, decision | closed 2026-11-22: sections regenerated from the published definitions, polars and Report 996 cases re-run post-hoc (author: re-run); no verdict changed |
 | 048 | NACA Report 1377 in flight: the code is a median 6 dB above the measured harmonic levels at the boom microphone, also where its thrust matches the printed thrust | Investigation | closed 2026-11-23: inputs could not be found (no second distance; TN 3417 and TN 4068 are superseded by Report 1377, same microphone); the ground diagnostic leans to the flight-only causes, not established; a stated limit |
@@ -388,7 +388,7 @@ Was: open, not assigned to a phase. Recorded 2026-11-10. Labels. No verdict chan
 
 ## ISSUE-050: SAE 830733 is not read
 
-**Status:** open, waiting for the author's copy of the paper. Recorded 2026-11-23 by Claude, at the author's request ("i can get it myself bring it as an issue").
+**Status:** closed 2026-11-24: the author cannot get the paper ("nevermind i dont think i can access those papers"), so the inputs could not be found (rule of 2026-11-14). The four AC_C695A cases stay without a verdict. Was: open, waiting for the author's copy. Recorded 2026-11-23 by Claude, at the author's request ("i can get it myself bring it as an issue").
 
 **What is missing.** SAE 830733, *Acoustic evaluation of three turbo propellers* (1983), reports near- and far-field noise of three propellers flown on a Commander 695. It is behind a paywall, so only its abstract was read in the search of 2026-11-23 (ISSUE-046). It is the one source on that list not read. Whether it prints the blade is not known.
 
@@ -405,7 +405,9 @@ Was: open, not assigned to a phase. Recorded 2026-11-10. Labels. No verdict chan
 
 If inputs are found, the rule for each case's verdict is written and committed before any re-run, as for Phase 156b. The cases' present results are not a guide to it.
 
-**Not done yet.** Nothing changed.
+**Closed 2026-11-24.** The paper was not read. Nothing changed.
+
+**Another route, checked and not taken.** The cabin cases could start from CR-178004's measured exterior tones (App. A) instead of the computed propeller field. That removes the blade input, but the cabin width and stiffener sections are still not printed, so the cases would still carry no verdict.
 
 ---
 
@@ -596,7 +598,7 @@ Two files match; the others are off by 1–14 % in thickness and up to 30 % in c
 
 They stay as they are. The partial 695A structure above (skin, height, stiffener depth) is not enough for the cabin model, which needs the stiffener section properties. Nothing was downloaded into the repository: the two scans were read from the fetched copies.
 
-**SAE 830733, 2026-11-23.** The author's first answer was "Leave it" (not bought or requested by Claude). The author then said "i can get it myself bring it as an issue": ISSUE-050.
+**SAE 830733, 2026-11-23.** The author's first answer was "Leave it" (not bought or requested by Claude). The author then said "i can get it myself bring it as an issue": ISSUE-050, closed 2026-11-24 because the author cannot get it.
 
 ---
 
